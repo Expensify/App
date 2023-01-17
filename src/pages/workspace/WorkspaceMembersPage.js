@@ -148,10 +148,10 @@ class WorkspaceMembersPage extends React.Component {
         policyMemberList = _.filter(_.keys(policyMemberList), policyMember => policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
         this.setState(prevState => ({
-            selectedEmployees: removableMembers.length !== prevState.selectedEmployees.length
+            selectedEmployees: !_.every(removableMembers, member => _.contains(prevState.selectedEmployees, member))
                 ? removableMembers
                 : [],
-        }));
+        }), () => this.validate());
     }
 
     /**
