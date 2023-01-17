@@ -125,6 +125,10 @@ class WorkspaceMembersPage extends React.Component {
      * Show the modal to confirm removal of the selected members
      */
     askForConfirmationToRemove() {
+        if (!_.isEmpty(this.state.errors)) {
+            return;
+        }
+
         this.setState({isRemoveMembersConfirmModalVisible: true});
     }
 
@@ -157,7 +161,6 @@ class WorkspaceMembersPage extends React.Component {
      *
      */
     toggleUser(login, pendingAction) {
-        // @TODO: call validate here
         if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
@@ -168,6 +171,8 @@ class WorkspaceMembersPage extends React.Component {
         } else {
             this.addUser(login);
         }
+
+        this.validate();
     }
 
     /**
@@ -205,16 +210,17 @@ class WorkspaceMembersPage extends React.Component {
         }
     }
 
-    // @TODO: implement method
     validate() {
-        const error = {};
+        const errors = {};
         _.each(this.state.selectedEmployees, (member) => {
             if (member !== this.props.policy.owner && member !== this.props.session.email) {
                 return;
             }
 
-            return error;
+            errors[member] = this.props.translate('workspace.people.error.cannotRemove');
         });
+
+        this.setState({errors});
     }
 
     /**
@@ -233,6 +239,7 @@ class WorkspaceMembersPage extends React.Component {
         item,
     }) {
         return (
+            // @TODO: display error
             <OfflineWithFeedback errorRowStyles={[styles.peopleRowBorderBottom]} onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors}>
                 <TouchableOpacity
                     style={[styles.peopleRow, (_.isEmpty(item.errors) || this.state.errors[item.login]) && styles.peopleRowBorderBottom]}
