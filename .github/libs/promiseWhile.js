@@ -5,7 +5,7 @@
  * @param {Function} action
  * @returns {Promise}
  */
-function promiseWhile(condition, action) {
+function g(condition, action) {
     return new Promise((resolve, reject) => {
         const loop = function () {
             if (!condition()) {

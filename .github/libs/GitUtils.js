@@ -1,6 +1,6 @@
 const _ = require('underscore');
 const {spawn} = require('child_process');
-const sanitizeStringForJSONParse = require('../../src/libs/sanitizeStringForJSONParse').default;
+const sanitizeStringForJSONParse = require('./sanitizeStringForJSONParse');
 
 /**
  * Get merge logs between two refs (inclusive) as a JavaScript object.
