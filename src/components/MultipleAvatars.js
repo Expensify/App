@@ -36,6 +36,9 @@ const propTypes = {
 
     /** Whether the avatars are in an element being pressed */
     isPressed: PropTypes.bool,
+
+    /** Whether #focus mode is on */
+    isFocusMode: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -47,6 +50,7 @@ const defaultProps = {
     shouldStackHorizontally: false,
     isHovered: false,
     isPressed: false,
+    isFocusMode: false,
 };
 
 const MultipleAvatars = (props) => {
@@ -122,7 +126,9 @@ const MultipleAvatars = (props) => {
                             <Avatar
                                 source={props.icons[0] || props.fallbackIcon}
                                 fill={themeColors.iconSuccessFill}
-                                size={CONST.AVATAR_SIZE.SMALLER}
+                                size={props.isFocusMode ? CONST.AVATAR_SIZE.MID_SUBSCRIPT : CONST.AVATAR_SIZE.SMALLER}
+
+                                imageStyles={[singleAvatarStyles]}
                             />
                         </View>
                     </Tooltip>
@@ -135,7 +141,9 @@ const MultipleAvatars = (props) => {
                                     <Avatar
                                         source={props.icons[1] || props.fallbackIcon}
                                         fill={themeColors.iconSuccessFill}
-                                        size={CONST.AVATAR_SIZE.SMALLER}
+                                        size={props.isFocusMode ? CONST.AVATAR_SIZE.MID_SUBSCRIPT : CONST.AVATAR_SIZE.SMALLER}
+
+                                        imageStyles={[singleAvatarStyles]}
                                     />
                                 </View>
                             </Tooltip>

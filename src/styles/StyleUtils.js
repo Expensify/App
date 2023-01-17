@@ -17,12 +17,14 @@ function getAvatarSize(size) {
     const AVATAR_SIZES = {
         [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeNormal,
         [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.avatarSizeSmallSubscript,
+        [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.avatarSizeMidSubscript,
         [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.avatarSizeSubscript,
         [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
         [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
         [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
         [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
         [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
+
     };
     return AVATAR_SIZES[size];
 }
