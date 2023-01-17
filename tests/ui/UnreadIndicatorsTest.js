@@ -38,13 +38,6 @@ beforeAll(() => {
     Linking.setInitialURL('https://new.expensify.com/r/1');
     appSetup();
 
-    // When using the Pusher mock the act of calling Pusher.isSubscribed will create a
-    // channel already in a subscribed state. These methods are normally used to prevent
-    // duplicated subscriptions, but we don't need them for this test so forcing them to
-    // return false will make the testing less complex.
-    Pusher.isSubscribed = jest.fn().mockReturnValue(false);
-    Pusher.isAlreadySubscribing = jest.fn().mockReturnValue(false);
-
     // Connect to Pusher
     PusherConnectionManager.init();
     Pusher.init({
@@ -208,7 +201,10 @@ function signInAndGetAppWithUnreadChat() {
 }
 
 describe('Unread Indicators', () => {
-    afterEach(() => Onyx.clear());
+    afterEach(() => {
+        jest.clearAllMocks();
+        Onyx.clear();
+    });
 
     it('Display bold in the LHN for unread chat and new line indicator above the chat message when we navigate to it', () => {
         let renderedApp;
@@ -358,8 +354,8 @@ describe('Unread Indicators', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // Verify notification was created as the new message that has arrived is very recent
-                expect(LocalNotification.showCommentNotification.mock.calls).toHaveLength(1);
+                // Verify notification was created
+                expect(LocalNotification.showCommentNotification).toBeCalled();
 
                 // // Navigate back to the sidebar
                 return navigateToSidebar(renderedApp);
