@@ -19304,7 +19304,7 @@ function wrappy (fn, cb) {
 "use strict";
 __nccwpck_require__.r(__webpack_exports__);
 /* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */   "default": () => /* export default binding */ __WEBPACK_DEFAULT_EXPORT__
 /* harmony export */ });
 const replacer = str => ({
     '\\': '\\\\',
@@ -19324,7 +19324,7 @@ const replacer = str => ({
  * @param {String} inputString
  * @returns {String}
  */
-function sanitizeStringForJSONParse(inputString) {
+/* harmony default export */ function __WEBPACK_DEFAULT_EXPORT__(inputString) {
     if (!inputString || typeof inputString !== 'string') {
         return '';
     }
@@ -19332,8 +19332,6 @@ function sanitizeStringForJSONParse(inputString) {
     // Replace any newlines and escape backslashes
     return inputString.replace(/\\|\t|\n|\r|\f|"/g, replacer);
 }
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (sanitizeStringForJSONParse);
 
 
 /***/ }),

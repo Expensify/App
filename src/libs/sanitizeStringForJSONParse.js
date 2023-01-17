@@ -16,7 +16,7 @@ const replacer = str => ({
  * @param {String} inputString
  * @returns {String}
  */
-function sanitizeStringForJSONParse(inputString) {
+export default function (inputString) {
     if (!inputString || typeof inputString !== 'string') {
         return '';
     }
@@ -24,5 +24,3 @@ function sanitizeStringForJSONParse(inputString) {
     // Replace any newlines and escape backslashes
     return inputString.replace(/\\|\t|\n|\r|\f|"/g, replacer);
 }
-
-export default sanitizeStringForJSONParse;
