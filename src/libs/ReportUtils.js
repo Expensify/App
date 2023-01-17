@@ -263,9 +263,6 @@ function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
             return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
         });
     }
-    if (adminReport) {
-        console.log('found admin chat');
-    }
 
     return adminReport || _.last(sortedReports);
 }
