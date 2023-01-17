@@ -889,7 +889,7 @@ module.exports = function (inputString) {
 
     // Replace any newlines and escape backslashes
     return inputString.replace(/\\|\t|\n|\r|\f|"/g, replacer);
-}
+};
 
 
 /***/ }),
