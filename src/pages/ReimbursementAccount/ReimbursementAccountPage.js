@@ -101,14 +101,8 @@ class ReimbursementAccountPage extends React.Component {
         if (prevProps.network.isOffline && !this.props.network.isOffline) {
             this.fetchData();
         }
-        const currentStep = this.getDefaultStateForField('currentStep', CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
-        const previousStep = ReimbursementAccountUtils.getDefaultStateForField(
-            this.props.reimbursementAccountDraft,
-            this.props.reimbursementAccount,
-            'currentStep',
-            CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
-        );
-
+        const currentStep = lodashGet(this.props, 'reimbursementAccount.achData.currentStep') || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+        const previousStep = lodashGet(prevProps, 'reimbursementAccount.achData.currentStep') || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         if (currentStep === previousStep) {
             return;
         }
@@ -181,11 +175,6 @@ class ReimbursementAccountPage extends React.Component {
      * @param {boolean} ignoreLocalCurrentStep Pass true if you want the last "updated" view (from db), not the last "viewed" view (from onyx).
      */
     fetchData(ignoreLocalCurrentStep) {
-        // Pass true if you want the last "updated" view (from db), not the last "viewed" view (from onyx).
-        if (ignoreLocalCurrentStep) {
-            BankAccounts.updateReimbursementAccountDraft({currentStep: '', subStep: ''});
-        }
-
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
         const stepToOpen = this.getStepToOpenFromRouteParams();
