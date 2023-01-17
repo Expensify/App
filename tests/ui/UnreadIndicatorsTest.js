@@ -18,6 +18,10 @@ import LocalNotification from '../../src/libs/Notification/LocalNotification';
 import * as Report from '../../src/libs/actions/Report';
 import * as CollectionUtils from '../../src/libs/CollectionUtils';
 import DateUtils from '../../src/libs/DateUtils';
+import * as User from '../../src/libs/actions/User';
+import * as Pusher from '../../src/libs/Pusher/pusher';
+import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
+import CONFIG from '../../src/CONFIG';
 
 jest.mock('../../src/libs/Notification/LocalNotification');
 
@@ -33,6 +37,21 @@ beforeAll(() => {
     jest.setTimeout(30000);
     Linking.setInitialURL('https://new.expensify.com/r/1');
     appSetup();
+
+    // When using the Pusher mock the act of calling Pusher.isSubscribed will create a
+    // channel already in a subscribed state. These methods are normally used to prevent
+    // duplicated subscriptions, but we don't need them for this test so forcing them to
+    // return false will make the testing less complex.
+    Pusher.isSubscribed = jest.fn().mockReturnValue(false);
+    Pusher.isAlreadySubscribing = jest.fn().mockReturnValue(false);
+
+    // Connect to Pusher
+    PusherConnectionManager.init();
+    Pusher.init({
+        appKey: CONFIG.PUSHER.APP_KEY,
+        cluster: CONFIG.PUSHER.CLUSTER,
+        authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=AuthenticatePusher`,
+    });
 });
 
 /**
@@ -126,6 +145,10 @@ function signInAndGetAppWithUnreadChat() {
             expect(loginForm).toHaveLength(1);
 
             return TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
+        })
+        .then(() => {
+            User.subscribeToUserEvents();
+            return waitForPromisesToResolve();
         })
         .then(() => {
             const MOMENT_TEN_MINUTES_AGO = moment().subtract(10, 'minutes');
@@ -283,38 +306,55 @@ describe('Unread Indicators', () => {
                 const NEW_REPORT_ID = '2';
                 const NEW_REPORT_CREATED_MOMENT = moment().subtract(5, 'seconds');
                 const NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT = NEW_REPORT_CREATED_MOMENT.add(1, 'seconds');
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`, {
-                    reportID: NEW_REPORT_ID,
-                    reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-                    maxSequenceNumber: 1,
-                    lastReadSequenceNumber: 0,
-                    lastReadTime: '',
-                    lastActionCreated: DateUtils.getDBTime(NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf()),
-                    lastMessageText: 'Comment 1',
-                    participants: [USER_C_EMAIL],
-                });
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${NEW_REPORT_ID}`, {
-                    0: {
-                        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                        automatic: false,
-                        sequenceNumber: 0,
-                        created: NEW_REPORT_CREATED_MOMENT.format(MOMENT_FORMAT),
-                        reportActionID: NumberUtils.rand64(),
+
+                const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${USER_A_ACCOUNT_ID}${CONFIG.PUSHER.SUFFIX}`);
+                channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
+                    {
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`,
+                        value: {
+                            reportID: NEW_REPORT_ID,
+                            reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+                            maxSequenceNumber: 1,
+                            lastReadSequenceNumber: 0,
+                            lastReadTime: '',
+                            lastActionCreated: DateUtils.getDBTime(NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf()),
+                            lastMessageText: 'Comment 1',
+                            participants: [USER_C_EMAIL],
+                        },
                     },
-                    1: {
-                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-                        actorEmail: USER_C_EMAIL,
-                        actorAccountID: USER_C_ACCOUNT_ID,
-                        person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
-                        sequenceNumber: 1,
-                        created: NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.format(MOMENT_FORMAT),
-                        message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
-                        reportActionID: NumberUtils.rand64(),
+                    {
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${NEW_REPORT_ID}`,
+                        value: {
+                            0: {
+                                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                                automatic: false,
+                                sequenceNumber: 0,
+                                created: NEW_REPORT_CREATED_MOMENT.format(MOMENT_FORMAT),
+                                reportActionID: NumberUtils.rand64(),
+                            },
+                            1: {
+                                actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                                actorEmail: USER_C_EMAIL,
+                                actorAccountID: USER_C_ACCOUNT_ID,
+                                person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
+                                sequenceNumber: 1,
+                                created: NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.format(MOMENT_FORMAT),
+                                message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
+                                reportActionID: NumberUtils.rand64(),
+                            },
+                        },
+                        shouldNotify: true,
                     },
-                });
-                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
-                    [USER_C_EMAIL]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
-                });
+                    {
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS,
+                        value: {
+                            [USER_C_EMAIL]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
+                        },
+                    },
+                ]);
                 return waitForPromisesToResolve();
             })
             .then(() => {
