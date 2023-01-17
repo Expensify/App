@@ -222,13 +222,13 @@ function suggestEmojis(text, limit = 5) {
     const emojiData = text.match(CONST.REGEX.EMOJI_SUGGESTIONS);
     if (emojiData) {
         const matching = [];
-        const nodes = emojisTrie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1));
+        const nodes = emojisTrie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1), limit);
         for (let j = 0; j < nodes.length; j++) {
             if (nodes[j].metaData.code && !_.find(matching, obj => obj.name === nodes[j].name)) {
                 if (matching.length === limit) {
                     return matching;
                 }
-                matching.unshift({code: nodes[j].metaData.code, name: nodes[j].name});
+                matching.push({code: nodes[j].metaData.code, name: nodes[j].name});
             }
             const suggestions = nodes[j].metaData.suggestions;
             for (let i = 0; i < suggestions.length; i++) {
@@ -236,7 +236,7 @@ function suggestEmojis(text, limit = 5) {
                     return matching;
                 }
                 if (!_.find(matching, obj => obj.name === suggestions[i].name)) {
-                    matching.unshift(suggestions[i]);
+                    matching.push(suggestions[i]);
                 }
             }
         }
