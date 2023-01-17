@@ -56,12 +56,14 @@ class DateOfBirthPage extends Component {
     validate(values) {
         const errors = {};
         const minimumAge = 5;
+        const maximumAge = 150;
 
-        if (!values.dateOfBirth) {
-            errors.dateOfBirth = this.props.translate('personalDetailsPages.error.dobInvalid');
-        } else if (!ValidationUtils.meetsAgeRequirements(values.dateOfBirth, minimumAge)) {
-            // TODO: show error for too young or too old
-            errors.dateOfBirth = this.props.translate('personalDetailsPages.error.dobTooYoung', {age: minimumAge});
+        if (_.isEmpty(values.dateOfBirth)) {
+            errors.dateOfBirth = this.props.translate('personalDetailsPages.error.dateInvalid');
+        }
+        const dateError = ValidationUtils.getAgeRequirementError(values.dateOfBirth, minimumAge, maximumAge);
+        if (dateError) {
+            errors.dateOfBirth = dateError;
         }
 
         return errors;

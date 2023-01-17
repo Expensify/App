@@ -207,6 +207,31 @@ function meetsAgeRequirements(date) {
 }
 
 /**
+ * Validate that given date is in a specified range of years before now.
+ *
+ * @param {String} date
+ * @param {Number} minimumAge
+ * @param {Number} maximumAge
+ * @returns {String}
+ */
+function getAgeRequirementError(date, minimumAge, maximumAge) {
+    const recentDate = moment().subtract(minimumAge, 'years');
+    const longAgoDate = moment().subtract(maximumAge, 'years');
+    const testDate = moment(date);
+    if (!testDate.isValid()) {
+        return Localize.translateLocal('personalDetailsPages.error.dateInvalid');
+    } else if (testDate.isBetween(longAgoDate, recentDate)) {
+        return '';
+    }
+
+    if (testDate.isAfter(recentDate)) {
+        return Localize.translateLocal('personalDetailsPages.error.dateTooRecent', {numYears: minimumAge});
+    } else {
+        return Localize.translateLocal('personalDetailsPages.error.dateTooOld', {numYears: maximumAge});
+    }
+}
+
+/**
  * @param {String} url
  * @returns {Boolean}
  */
@@ -416,6 +441,7 @@ function isValidTaxID(taxID) {
 
 export {
     meetsAgeRequirements,
+    getAgeRequirementError,
     isValidAddress,
     isValidDate,
     isValidCardName,

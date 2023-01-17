@@ -352,7 +352,7 @@ export default {
         isShownOnProfile: 'Tu zona horaria se muestra en tu perfil.',
         getLocationAutomatically: 'Detecta tu ubicación automáticamente.',
     },
-    personalDetails: {
+    personalDetailsPages: {
         personalDetails: '',
         privateDataMessage: '',
         legalName: '',
@@ -364,8 +364,9 @@ export default {
             hasInvalidCharacter: '',
             legalFirstNameEmpty: '',
             legalLastNameEmpty: '',
-            dobInvalid: '',
-            dobTooYoung: ({age}) => ``,
+            dateInvalid: '',
+            dateTooRecent: ({numYears}) => ``,
+            dateTooOld: ({numYears}) => ``,
         },
     },
     addSecondaryLoginPage: {

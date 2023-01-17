@@ -364,8 +364,9 @@ export default {
             hasInvalidCharacter: ({characterName}) => `Please remove the ${characterName} from the field above.`,
             legalFirstNameEmpty: 'Please enter a valid legal first name',
             legalLastNameEmpty: 'Please enter a valid legal last name',
-            dobInvalid: 'Please enter a valid date.',
-            dobTooYoung: ({age}) => `You must be older than ${age} to fill out this form.`,
+            dateInvalid: 'Please enter a valid date.',
+            dateTooRecent: ({numYears}) => `Date needs to be less than ${numYears} years ago.`,
+            dateTooOld: ({numYears}) => `Date cannot be more than ${numYears} years ago.`,
         },
     },
     addSecondaryLoginPage: {
