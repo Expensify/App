@@ -22,9 +22,9 @@ const webLink = 'https://expensify.app/WEB_LINK';
 const desktopLink = 'https://expensify.app/DESKTOP_LINK';
 
 const androidQRCode = `![Android](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${androidLink})`;
-const desktopQRCode = `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${desktopLink})`;
+const desktopQRCode = `![Desktop](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${desktopLink})`;
 const iOSQRCode = `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${iOSLink})`;
-const webQRCode = `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})`;
+const webQRCode = `![Web](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})`;
 
 const message = `:test_tube::test_tube: Use the links below to test this build in android and iOS. Happy testing! :test_tube::test_tube:
 | android :robot:  | iOS :apple: |
