@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
@@ -27,7 +28,7 @@ import reportActionPropTypes from '../report/reportActionPropTypes';
 import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
-import Log from '../../../libs/Log';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -143,11 +144,11 @@ class SidebarLinks extends React.Component {
                     nativeID="drag-area"
                 >
                     <Header
-                        textSize="large"
                         title={this.props.translate('sidebarScreen.headerChat')}
                         accessibilityLabel={this.props.translate('sidebarScreen.headerChat')}
                         accessibilityRole="text"
                         shouldShowEnvironmentBadge
+                        textStyles={[styles.textHeadline]}
                     />
                     <Tooltip text={this.props.translate('common.search')}>
                         <TouchableOpacity
@@ -164,10 +165,14 @@ class SidebarLinks extends React.Component {
                         accessibilityRole="button"
                         onPress={this.showSettingsPage}
                     >
-                        <AvatarWithIndicator
-                            source={this.props.currentUserPersonalDetails.avatar}
-                            tooltipText={this.props.translate('common.settings')}
-                        />
+                        <OfflineWithFeedback
+                            pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
+                        >
+                            <AvatarWithIndicator
+                                source={this.props.currentUserPersonalDetails.avatar}
+                                tooltipText={this.props.translate('common.settings')}
+                            />
+                        </OfflineWithFeedback>
                     </TouchableOpacity>
                 </View>
                 <Freeze freeze={this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded}>
