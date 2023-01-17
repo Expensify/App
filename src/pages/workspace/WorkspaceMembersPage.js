@@ -23,7 +23,6 @@ import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OptionRow from '../../components/OptionRow';
-import CheckboxWithTooltip from '../../components/CheckboxWithTooltip';
 import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import CONST from '../../CONST';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
@@ -137,10 +136,9 @@ class WorkspaceMembersPage extends React.Component {
     toggleAllUsers() {
         let policyMemberList = lodashGet(this.props, 'policyMemberList', {});
         policyMemberList = _.filter(_.keys(policyMemberList), policyMember => policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
         this.setState(prevState => ({
-            selectedEmployees: removableMembers.length !== prevState.selectedEmployees.length
-                ? removableMembers
+            selectedEmployees: policyMemberList.length !== prevState.selectedEmployees.length
+                ? policyMemberList
                 : [],
         }));
     }
@@ -157,7 +155,7 @@ class WorkspaceMembersPage extends React.Component {
             return;
         }
 
-        // Add or remove the user if the checkbox is enabled and is clickable.
+        // Add or remove the user if the checkbox is enabled
         if (_.contains(this.state.selectedEmployees, login)) {
             this.removeUser(login);
         } else {
@@ -193,7 +191,6 @@ class WorkspaceMembersPage extends React.Component {
      * @param {Object} item
      */
     dismissError(item) {
-        // TODO: login here also probably will need to change when connecting this to the real api
         if (item.pendingAction === 'delete') {
             Policy.clearDeleteMemberError(this.props.route.params.policyID, item.login);
         } else {
@@ -225,11 +222,10 @@ class WorkspaceMembersPage extends React.Component {
                     onPress={() => this.toggleUser(item.login, item.pendingAction)}
                     activeOpacity={0.7}
                 >
-                    <CheckboxWithTooltip
+                    <Checkbox
                         style={[styles.peopleRowCell]}
                         isChecked={_.contains(this.state.selectedEmployees, item.login)}
                         onPress={() => this.toggleUser(item.login, item.pendingAction)}
-                        text={this.props.translate('workspace.people.error.cannotRemove')}
                     />
                     <View style={styles.flex1}>
                         <OptionRow
