@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
@@ -7,7 +8,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import ROUTES from '../../../../ROUTES';
 import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import CONST from '../../../../CONST';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import styles from '../../../../styles/styles';
 import Navigation from '../../../../libs/Navigation/Navigation';
@@ -15,7 +15,6 @@ import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import DatePicker from '../../../../components/DatePicker';
 import { withOnyx } from 'react-native-onyx';
-import ONYXKEYS from '../../../../ONYXKEYS';
 
 const propTypes = {
     /* Onyx Props */

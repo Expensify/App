@@ -17,7 +17,6 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import { withOnyx } from 'react-native-onyx';
-import ONYXKEYS from '../../../../ONYXKEYS';
 
 const propTypes = {
     /* Onyx Props */
