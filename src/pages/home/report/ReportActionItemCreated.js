@@ -51,32 +51,30 @@ const ReportActionItemCreated = (props) => {
             errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat')}
             errorRowStyles={[styles.ml10, styles.mr2]}
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
-            style={[styles.reportActionItemCreatedContainer]}
         >
-            <View pointerEvents="none" style={[styles.emptyStateBackgroundContainer, StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)]}>
-                <ImageBackground
-                    source={EmptyStateBackgroundImage}
-                    style={[styles.emptyStateBackgroundImage]}
-                />
-            </View>
-            <View
-                accessibilityLabel="Chat welcome message"
-                style={[
-                    styles.chatContent,
-                    styles.p5,
-                ]}
-            >
-                <Pressable
-                    onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
-                    style={[styles.ph5, styles.pb3, styles.alignSelfStart]}
-                >
-                    <RoomHeaderAvatars
-                        icons={icons}
-                        shouldShowLargeAvatars={isPolicyExpenseChat}
+            <View pointerEvents="none" style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
+                <View style={StyleUtils.getReportWelcomeBackgroundImageViewStyle(props.isSmallScreenWidth)}>
+                    <ImageBackground
+                        source={EmptyStateBackgroundImage}
+                        style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
                     />
-                </Pressable>
-                <View style={[styles.ph5]}>
-                    <ReportWelcomeText report={props.report} />
+                </View>
+                <View
+                    accessibilityLabel="Chat welcome message"
+                    style={styles.p5}
+                >
+                    <Pressable
+                        onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
+                        style={[styles.ph5, styles.pb3, styles.alignSelfStart]}
+                    >
+                        <RoomHeaderAvatars
+                            icons={icons}
+                            shouldShowLargeAvatars={isPolicyExpenseChat}
+                        />
+                    </Pressable>
+                    <View style={[styles.ph5]}>
+                        <ReportWelcomeText report={props.report} />
+                    </View>
                 </View>
             </View>
         </OfflineWithFeedback>

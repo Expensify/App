@@ -37,13 +37,19 @@ const CONST = {
     AVATAR_MAX_WIDTH_PX: 4096,
     AVATAR_MAX_HEIGHT_PX: 4096,
 
-    // Background image sizes for report empty state
-    WELCOME_BACKGROUND_IMAGE_HEIGHT: {
-        SMALL_SCREEN: 300,
-        WIDE_SCREEN: 450,
+    // Sizes needed for report empty state background image handling
+    EMPTY_STATE_BACKGROUND: {
+        SMALL_SCREEN: {
+            IMAGE_HEIGHT: 300,
+            CONTAINER_MINHEIGHT: 200,
+            VIEW_HEIGHT: 185,
+        },
+        WIDE_SCREEN: {
+            IMAGE_HEIGHT: 450,
+            CONTAINER_MINHEIGHT: 500,
+            VIEW_HEIGHT: 275,
+        },
     },
-
-    WELCOME_BACKGROUND_IMAGE_CONTAINER_MINHEIGHT: 500,
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {

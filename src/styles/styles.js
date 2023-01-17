@@ -2885,23 +2885,6 @@ const styles = {
         paddingTop: 80,
         paddingBottom: 45,
     },
-
-    emptyStateBackgroundContainer: {
-        width: '100%',
-        position: 'absolute',
-    },
-
-    emptyStateBackgroundImage: {
-        width: '100%',
-        height: '100%',
-        bottom: '-40%',
-    },
-
-    reportActionItemCreatedContainer: {
-        minHeight: CONST.WELCOME_BACKGROUND_IMAGE_CONTAINER_MINHEIGHT,
-        display: 'flex',
-        justifyContent: 'flex-end',
-    },
 };
 
 export default styles;

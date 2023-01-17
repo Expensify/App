@@ -652,14 +652,42 @@ function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
 function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth) {
     if (isSmallScreenWidth) {
         return {
-            height: CONST.WELCOME_BACKGROUND_IMAGE_HEIGHT.SMALL_SCREEN,
-            top: -CONST.WELCOME_BACKGROUND_IMAGE_HEIGHT.SMALL_SCREEN,
+            height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
+            width: '100%',
         };
     }
 
     return {
-        height: CONST.WELCOME_BACKGROUND_IMAGE_HEIGHT.WIDE_SCREEN,
-        top: -CONST.WELCOME_BACKGROUND_IMAGE_HEIGHT.WIDE_SCREEN,
+        height: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT,
+        width: '100%',
+    };
+}
+
+function getReportWelcomeBackgroundImageViewStyle(isSmallScreenWidth) {
+    if (isSmallScreenWidth) {
+        return {
+            height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.VIEW_HEIGHT,
+        };
+    }
+
+    return {
+        height: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.VIEW_HEIGHT,
+    };
+}
+
+function getReportWelcomeContainerStyle(isSmallScreenWidth) {
+    if (isSmallScreenWidth) {
+        return {
+            minHeight: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.CONTAINER_MINHEIGHT,
+            display: 'flex',
+            justifyContent: 'space-between',
+        };
+    }
+
+    return {
+        minHeight: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.CONTAINER_MINHEIGHT,
+        display: 'flex',
+        justifyContent: 'space-between',
     };
 }
 
@@ -699,4 +727,6 @@ export {
     fade,
     getHorizontalStackedAvatarBorderStyle,
     getReportWelcomeBackgroundImageStyle,
+    getReportWelcomeBackgroundImageViewStyle,
+    getReportWelcomeContainerStyle,
 };
