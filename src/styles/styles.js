@@ -456,7 +456,7 @@ const styles = {
     },
 
     buttonDangerDisabled: {
-        backgroundColor: themeColors.dangerDisabled,
+        opacity: 0.5,
     },
 
     buttonDangerHovered: {
@@ -537,7 +537,6 @@ const styles = {
         alignItems: 'center',
         height: variables.componentSizeNormal,
         justifyContent: 'center',
-        marginRight: 8,
         width: variables.componentSizeNormal,
     },
 
@@ -691,11 +690,11 @@ const styles = {
     },
 
     chatItemComposeSecondaryRowOffset: {
-        marginLeft: 48,
+        marginLeft: variables.chatInputSpacing,
     },
 
     offlineIndicator: {
-        marginLeft: 48,
+        marginLeft: variables.chatInputSpacing,
     },
 
     offlineIndicatorMobile: {
@@ -710,7 +709,7 @@ const styles = {
     // Actions
     actionAvatar: {
         borderRadius: 20,
-        marginRight: 8,
+        marginRight: variables.avatarChatSpacing,
     },
 
     componentHeightLarge: {
@@ -894,15 +893,6 @@ const styles = {
 
     lh16: {
         lineHeight: 16,
-    },
-
-    formLabel: {
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
-        color: themeColors.heading,
-        fontSize: variables.fontSizeLabel,
-        lineHeight: variables.lineHeightLarge,
-        marginBottom: 8,
     },
 
     formHelp: {
@@ -1307,7 +1297,7 @@ const styles = {
         flexShrink: 1,
         flexBasis: 0,
         position: 'relative',
-        marginLeft: 48,
+        marginLeft: variables.chatInputSpacing,
     },
 
     chatItemRight: {
@@ -1330,7 +1320,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         lineHeight: variables.lineHeightXLarge,
-        paddingRight: 5,
         paddingBottom: 4,
         ...wordBreak.breakWord,
     },
@@ -1422,7 +1411,7 @@ const styles = {
         // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
-        paddingHorizontal: 8,
+        paddingHorizontal: variables.avatarChatSpacing,
         paddingTop: 0,
         paddingBottom: 0,
         alignSelf: 'center',
@@ -1453,7 +1442,7 @@ const styles = {
         backgroundColor: themeColors.transparent,
         height: 32,
         padding: 6,
-        margin: 4,
+        margin: 3,
         justifyContent: 'center',
     },
 
@@ -1527,8 +1516,7 @@ const styles = {
         alignSelf: 'flex-end',
         borderRadius: variables.buttonBorderRadius,
         height: 32,
-        marginVertical: 4,
-        marginLeft: 3,
+        marginVertical: 3,
         paddingHorizontal: 6,
         justifyContent: 'center',
     },
@@ -1542,16 +1530,22 @@ const styles = {
     },
 
     chatItemAttachButton: {
-        alignItems: 'center',
         alignSelf: 'flex-end',
+        borderRadius: variables.componentBorderRadiusRounded,
+        backgroundColor: themeColors.transparent,
+        height: 32,
+        padding: 6,
+        marginLeft: 3,
+        marginRight: 3,
+        justifyContent: 'center',
+    },
+
+    chatItemAttachBorder: {
         borderRightColor: themeColors.border,
         borderRightWidth: 1,
-        height: 32,
-        width: 32,
-        marginBottom: 4,
-        marginTop: 4,
-        marginLeft: 4,
-        justifyContent: 'center',
+        marginBottom: 3,
+        marginTop: 3,
+
     },
 
     composerSizeButton: {
@@ -1560,6 +1554,7 @@ const styles = {
         height: 26,
         marginBottom: 6,
         marginTop: 6,
+        marginRight: 4,
         justifyContent: 'center',
         width: 32,
     },
@@ -1741,13 +1736,13 @@ const styles = {
     },
 
     emptyAvatar: {
-        marginRight: variables.componentSizeNormal - 24,
+        marginRight: variables.avatarChatSpacing,
         height: variables.avatarSizeNormal,
         width: variables.avatarSizeNormal,
     },
 
     emptyAvatarSmall: {
-        marginRight: variables.componentSizeNormal - 28,
+        marginRight: variables.avatarChatSpacing - 4,
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
     },
@@ -2013,9 +2008,6 @@ const styles = {
     },
 
     roomHeaderAvatar: {
-        height: variables.componentSizeLarge,
-        width: variables.componentSizeLarge,
-        borderRadius: 100,
         borderColor: themeColors.componentBG,
         borderWidth: 4,
         marginLeft: -16,
@@ -2231,10 +2223,6 @@ const styles = {
         flexGrow: 1,
         paddingStart: 20,
         paddingEnd: 20,
-    },
-
-    noScrollbars: {
-        scrollbarWidth: 'none',
     },
 
     codeWordWrapper: {
@@ -2868,10 +2856,23 @@ const styles = {
         paddingRight: 18,
     },
 
-    pushToPageEmptyItemLabel: {
-        color: themeColors.textSupporting,
-        fontSize: variables.fontSizeNormal,
-        maxWidth: 240,
+    deeplinkWrapperContainer: {
+        padding: 20,
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: themeColors.appBG,
+    },
+
+    deeplinkWrapperMessage: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    deeplinkWrapperFooter: {
+        paddingTop: 80,
+        paddingBottom: 45,
     },
 };
 
