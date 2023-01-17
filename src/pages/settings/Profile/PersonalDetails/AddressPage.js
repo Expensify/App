@@ -57,7 +57,6 @@ class AddressPage extends Component {
         this.validate = this.validate.bind(this);
         this.updateAddress = this.updateAddress.bind(this);
         this.onCountryUpdate = this.onCountryUpdate.bind(this);
-        this.assignEmptyError = this.assignEmptyError.bind(this);
 
         this.state = {
             isUsaForm: false,
@@ -96,32 +95,24 @@ class AddressPage extends Component {
     validate(values) {
         const errors = {};
 
-        // Assign s
-        this.assignEmptyError(errors, values, ['addressLine1', 'city', 'zipPostCode', 'country']);
-        // this.assignTooLongError(errors, values, ['addressLine1']);
+        const requiredFields = [
+            'addressLine1',
+            'city',
+            'zipPostCode',
+            'country',
 
-        // Only check "State" dropdown if Country is USA. Otherwise, validate "State / Province" field
-        if (this.state.isUsaForm === 'USA') {
-            this.assignEmptyError(errors, values, ['state']);
-        } else {
-            this.assignEmptyError(errors, values, ['stateOrProvince']);
-        }
+            // Check "State" dropdown if selected Country is USA. Otherwise, validate "State / Province" field.
+            this.state.isUsaForm ? 'state' : 'stateOrProvince',
+        ];
 
-        return errors;
-    }
-
-    /**
-     * Checks many fields at a time to see if any are empty. If they are, assigns an error to that field.
-     * @param {Object} errors
-     * @param {Object} values
-     * @param {Array} valueKeys
-     */
-    assignEmptyError(errors, values, valueKeys) {
-        _.each(valueKeys, (key) => {
-            if (_.isEmpty(values[key])) {
-                errors[key] = this.props.translate('common.error.fieldRequired');
+        // Add "Field required" errors if any required field is empty
+        _.each(requiredFields, (fieldKey) => {
+            if (_.isEmpty(values[fieldKey])) {
+                errors[fieldKey] = this.props.translate('common.error.fieldRequired');
             }
         });
+
+        return errors;
     }
 
     /**
