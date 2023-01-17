@@ -127,6 +127,7 @@ module.exports = {
 
 const _ = __nccwpck_require__(3571);
 const {spawn} = __nccwpck_require__(3129);
+const sanitizeStringForJSONParse = __nccwpck_require__(8989);
 
 /**
  * Get merge logs between two refs (inclusive) as a JavaScript object.
@@ -162,11 +163,8 @@ function getMergeLogsAsJSON(fromRef, toRef) {
         spawnedProcess.on('error', err => reject(err));
     })
         .then((stdout) => {
-            // Remove any double-quotes from commit subjects
-            let sanitizedOutput = stdout.replace(/(?<="subject": ").*(?="})/g, subject => subject.replace(/"/g, "'"));
-
-            // Also remove any newlines and escape backslashes
-            sanitizedOutput = sanitizedOutput.replace(/(\r\n|\n|\r)/gm, '').replace(/\\/g, '\\\\');
+            // Sanitize just the text within commit subjects as that's the only potentially un-parseable text.
+            const sanitizedOutput = stdout.replace(/(?<="subject": ").*(?="})/g, subject => sanitizeStringForJSONParse(subject));
 
             // Then format as JSON and convert to a proper JS object
             const json = `[${sanitizedOutput}]`.replace('},]', '}]');
@@ -13581,6 +13579,46 @@ function wrappy (fn, cb) {
     return ret
   }
 }
+
+
+/***/ }),
+
+/***/ 8989:
+/***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
+
+"use strict";
+__nccwpck_require__.r(__webpack_exports__);
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
+const replacer = str => ({
+    '\\': '\\\\',
+    '\t': '\\t',
+    '\n': '\\n',
+    '\r': '\\r',
+    '\f': '\\f',
+    '"': '\\"',
+}[str]);
+
+/**
+ * Replace any characters in the string that will break JSON.parse for our Git Log output
+ *
+ * Solution partly taken from SO user Gabriel Rodríguez Flores 🙇
+ * https://stackoverflow.com/questions/52789718/how-to-remove-special-characters-before-json-parse-while-file-reading
+ *
+ * @param {String} inputString
+ * @returns {String}
+ */
+function sanitizeStringForJSONParse(inputString) {
+    if (!inputString || typeof inputString !== 'string') {
+        return '';
+    }
+
+    // Replace any newlines and escape backslashes
+    return inputString.replace(/\\|\t|\n|\r|\f|"/g, replacer);
+}
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (sanitizeStringForJSONParse);
 
 
 /***/ }),
