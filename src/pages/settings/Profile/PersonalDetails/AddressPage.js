@@ -6,19 +6,15 @@ import {View} from 'react-native';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import * as Localize from '../../../../libs/Localize';
 import ROUTES from '../../../../ROUTES';
 import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import CONST from '../../../../CONST';
-import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import TextInput from '../../../../components/TextInput';
-import Text from '../../../../components/Text';
 import styles from '../../../../styles/styles';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
-import AddressForm from '../../../ReimbursementAccount/AddressForm';
 import AddressSearch from '../../../../components/AddressSearch';
 import CountryPicker from '../../../../components/CountryPicker';
 import StatePicker from '../../../../components/StatePicker';
@@ -61,6 +57,7 @@ class AddressPage extends Component {
         this.validate = this.validate.bind(this);
         this.updateAddress = this.updateAddress.bind(this);
         this.onCountryUpdate = this.onCountryUpdate.bind(this);
+        this.assignEmptyError = this.assignEmptyError.bind(this);
 
         this.state = {
             isUsaForm: false,
@@ -73,14 +70,17 @@ class AddressPage extends Component {
      */
     updateAddress(values) {
         PersonalDetails.updateAddress(
-            `${values.street1.trim()}\n${values.street2}`.trim(),
+            `${values.addressLine1.trim()}\n${values.addressLine2}`.trim(),
             values.city.trim(),
-            values.state,
-            values.zip,
+            this.state.isUsaForm ? values.state : values.stateOrProvince,
+            values.zipPostCode,
             values.country,
         );
     }
 
+    /**
+     * @param {String} newCountry - new country selected in form
+     */
     onCountryUpdate(newCountry) {
         if (newCountry === 'USA') {
             this.setState({isUsaForm: true});
@@ -96,57 +96,32 @@ class AddressPage extends Component {
     validate(values) {
         const errors = {};
 
-        // Check for invalid characters in street and city fields
-        const [legalFirstNameInvalidCharacter, legalLastNameInvalidCharacter] = ValidationUtils.findInvalidSymbols(
-            [values.legalFirstName, values.legalLastName],
-        );
-        this.assignError(
-            errors,
-            'legalFirstName',
-            !_.isEmpty(legalFirstNameInvalidCharacter),
-            Localize.translateLocal(
-                'personalDetails.error.hasInvalidCharacter',
-                {invalidCharacter: legalFirstNameInvalidCharacter},
-            ),
-        );
-        this.assignError(
-            errors,
-            'legalLastName',
-            !_.isEmpty(legalLastNameInvalidCharacter),
-            Localize.translateLocal(
-                'personalDetails.error.hasInvalidCharacter',
-                {invalidCharacter: legalLastNameInvalidCharacter},
-            ),
-        );
-        if (!_.isEmpty(errors)) {
-            return errors;
-        }
+        // Assign s
+        this.assignEmptyError(errors, values, ['addressLine1', 'city', 'zipPostCode', 'country']);
+        // this.assignTooLongError(errors, values, ['addressLine1']);
 
-        // Check the character limit for first and last name
-        const characterLimitError = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
-        const [hasLegalFirstNameError, hasLegalLastNameError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
-            CONST.FORM_CHARACTER_LIMIT,
-            [values.legalFirstName, values.legalLastName],
-        );
-        this.assignError(errors, 'legalFirstName', hasLegalFirstNameError, characterLimitError);
-        this.assignError(errors, 'legalLastName', hasLegalLastNameError, characterLimitError);
+        // Only check "State" dropdown if Country is USA. Otherwise, validate "State / Province" field
+        if (this.state.isUsaForm === 'USA') {
+            this.assignEmptyError(errors, values, ['state']);
+        } else {
+            this.assignEmptyError(errors, values, ['stateOrProvince']);
+        }
 
         return errors;
     }
 
     /**
+     * Checks many fields at a time to see if any are empty. If they are, assigns an error to that field.
      * @param {Object} errors
-     * @param {String} errorKey
-     * @param {Boolean} hasError
-     * @param {String} errorCopy
-     * @returns {Object} - An object containing the errors for each inputID
+     * @param {Object} values
+     * @param {Array} valueKeys
      */
-    assignError(errors, errorKey, hasError, errorCopy) {
-        const validateErrors = errors;
-        if (hasError) {
-            validateErrors[errorKey] = errorCopy;
-        }
-        return validateErrors;
+    assignEmptyError(errors, values, valueKeys) {
+        _.each(valueKeys, (key) => {
+            if (_.isEmpty(values[key])) {
+                errors[key] = this.props.translate('common.error.fieldRequired');
+            }
+        });
     }
 
     /**
@@ -192,15 +167,15 @@ class AddressPage extends Component {
                             inputID="addressLine2"
                             label={this.props.translate('common.addressLine', {lineNumber: 2})}
                             defaultValue={addressLine2}
-                            maxLength={50}
+                            maxLength={CONST.FORM_CHARACTER_LIMIT}
                         />
                     </View>
                     <View style={styles.mb4}>
                         <TextInput
                             inputID="city"
                             label={this.props.translate('common.city')}
-                            defaultValue={lodashGet(privateDetails, 'address.city', '')}
-                            maxLength={50}
+                            defaultValue={lodashGet(privateDetails, 'address.city') || ''}
+                            maxLength={CONST.FORM_CHARACTER_LIMIT}
                         />
                     </View>
                     <View style={[styles.flexRow, styles.mb4]}>
@@ -208,24 +183,24 @@ class AddressPage extends Component {
                             {this.state.isUsaForm ? (
                                 <StatePicker
                                     inputID="state"
-                                    defaultValue={lodashGet(privateDetails, 'address.state', '')}
+                                    defaultValue={lodashGet(privateDetails, 'address.state') || ''}
                                 />
                             ) : (
                                 <TextInput
                                     inputID="stateOrProvince"
                                     label={this.props.translate('common.stateOrProvince')}
-                                    defaultValue={lodashGet(privateDetails, 'address.state', '')}
-                                    maxLength={50}
+                                    defaultValue={lodashGet(privateDetails, 'address.state') || ''}
+                                    maxLength={CONST.FORM_CHARACTER_LIMIT}
                                 />
                             )}
                         </View>
                         <View style={[styles.flex1]}>
                             <TextInput
-                                inputID="zipCode"
+                                inputID="zipPostCode"
                                 label={this.props.translate('common.zipPostCode')}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                defaultValue={lodashGet(privateDetails, 'address.zip', '')}
-                                // maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+                                defaultValue={lodashGet(privateDetails, 'address.zip') || ''}
+                                maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                             />
                         </View>
                     </View>
@@ -233,7 +208,7 @@ class AddressPage extends Component {
                         <CountryPicker
                             inputID="country"
                             onValueChange={this.onCountryUpdate}
-                            defaultValue={lodashGet(privateDetails, 'address.country', '')}
+                            defaultValue={lodashGet(privateDetails, 'address.country') || ''}
                         />
                     </View>
                 </Form>

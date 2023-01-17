@@ -88,6 +88,7 @@ export default {
             invalidAmount: 'Invalid amount',
             acceptedTerms: 'You must accept the Terms of Service to continue',
             phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
+            fieldRequired: 'This field is required.',
         },
         please: 'Please',
         contactUs: 'contact us',
