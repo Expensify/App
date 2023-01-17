@@ -1,5 +1,4 @@
 import {Linking} from 'react-native';
-import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -327,8 +326,24 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
         }],
     };
 
+    const params = {
+        reportID,
+        emailList: participantList ? participantList.join(',') : '',
+    };
+
     // If we are creating a new report, we need to add the optimistic report data and a report action
     if (!_.isEmpty(newReportObject)) {
+        // Change the method to set for new reports because it doesn't exist yet, is faster,
+        // and we need the data to be available when we navigate to the chat page
+        onyxData.optimisticData[0].onyxMethod = CONST.ONYX.METHOD.SET;
+
+        const optimisticCreatedActionData = ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail);
+        onyxData.optimisticData[1] = {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: optimisticCreatedActionData,
+        };
+
         onyxData.optimisticData[0].value = {
             ...onyxData.optimisticData[0].value,
             ...newReportObject,
@@ -338,23 +353,11 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             isOptimisticReport: true,
         };
 
-        // Change the method to set for new reports because it doesn't exist yet, is faster,
-        // and we need the data to be available when we navigate to the chat page
-        onyxData.optimisticData[0].onyxMethod = CONST.ONYX.METHOD.SET;
-
-        // Also create a report action so that the page isn't endlessly loading
-        onyxData.optimisticData[1] = {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail),
-        };
+        // Add the createdReportActionID parameter to the API call
+        params.createdReportActionID = optimisticCreatedActionData[0].reportActionID;
     }
-    API.write('OpenReport',
-        {
-            reportID,
-            emailList: participantList ? participantList.join(',') : '',
-        },
-        onyxData);
+
+    API.write('OpenReport', params, onyxData);
 }
 
 /**
@@ -458,6 +461,34 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
     API.read('OpenPaymentDetailsPage', {
         reportID: chatReportID,
         iouReportID,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IOU,
+                value: {
+                    loading: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IOU,
+                value: {
+                    loading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IOU,
+                value: {
+                    loading: false,
+                },
+            },
+        ],
     });
 }
 
@@ -897,6 +928,7 @@ function addPolicyReport(policy, reportName, visibility) {
         // The room might contain all policy members so notifying always should be opt-in only.
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
     );
+    const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(policyReport.ownerEmail);
 
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
     // fetchReportIfNeeded is called on the ReportScreen, so openReport is called which is unnecessary since the optimistic data will be stored in Onyx.
@@ -915,7 +947,7 @@ function addPolicyReport(policy, reportName, visibility) {
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyReport.reportID}`,
-            value: ReportUtils.buildOptimisticCreatedReportAction(policyReport.ownerEmail),
+            value: createdReportAction,
         },
     ];
     const successData = [
@@ -946,6 +978,7 @@ function addPolicyReport(policy, reportName, visibility) {
             reportName,
             visibility,
             reportID: policyReport.reportID,
+            createdReportActionID: createdReportAction.reportActionID,
         },
         {optimisticData, successData},
     );
@@ -1058,6 +1091,10 @@ function subscribeToNewActionEvent(reportID, callback) {
  * @param {Object} action
  */
 function showReportActionNotification(reportID, action) {
+    if (ReportActionsUtils.isDeletedAction(action)) {
+        return;
+    }
+
     if (!ActiveClientManager.isClientTheLeader()) {
         Log.info('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
         return;
@@ -1101,6 +1138,12 @@ function showReportActionNotification(reportID, action) {
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         },
     });
+
+    // Notify the ReportActionsView that a new comment has arrived
+    if (reportID === newActionSubscriber.reportID) {
+        const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
+        newActionSubscriber.callback(isFromCurrentUser, action.reportActionID);
+    }
 }
 
 /**
@@ -1111,51 +1154,6 @@ function showReportActionNotification(reportID, action) {
 function clearIOUError(reportID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errorFields: {iou: null}});
 }
-
-// We are using this map to ensure actions are only handled once
-const handledReportActions = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    initWithStoredValues: false,
-    callback: (actions, key) => {
-        // reportID can be derived from the Onyx key
-        const reportID = key.split('_')[1];
-        if (!reportID) {
-            return;
-        }
-
-        _.each(actions, (action) => {
-            if (lodashGet(handledReportActions, [reportID, action.sequenceNumber])) {
-                return;
-            }
-
-            if (ReportActionsUtils.isDeletedAction(action)) {
-                return;
-            }
-
-            if (!action.created) {
-                return;
-            }
-
-            // If we are past the deadline to notify for this comment don't do it
-            if (moment.utc(moment(action.created).unix() * 1000).isBefore(moment.utc().subtract(10, 'seconds'))) {
-                handledReportActions[reportID] = handledReportActions[reportID] || {};
-                handledReportActions[reportID][action.sequenceNumber] = true;
-                return;
-            }
-
-            // Notify the ReportActionsView that a new comment has arrived
-            if (reportID === newActionSubscriber.reportID) {
-                const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
-                newActionSubscriber.callback(isFromCurrentUser, action.reportActionID);
-            }
-
-            showReportActionNotification(reportID, action);
-            handledReportActions[reportID] = handledReportActions[reportID] || {};
-            handledReportActions[reportID][action.sequenceNumber] = true;
-        });
-    },
-});
 
 export {
     addComment,
@@ -1188,4 +1186,5 @@ export {
     clearIOUError,
     getMaxSequenceNumber,
     subscribeToNewActionEvent,
+    showReportActionNotification,
 };

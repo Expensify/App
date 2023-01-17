@@ -50,7 +50,7 @@ class BaseSidebarScreen extends Component {
     render() {
         return (
             <ScreenWrapper
-                includePaddingBottom={false}
+                includeSafeAreaPaddingBottom={false}
                 style={[styles.sidebar]}
             >
                 {({insets}) => (

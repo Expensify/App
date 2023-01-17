@@ -139,6 +139,7 @@ class HeaderWithCloseButton extends Component {
                 ]}
                 >
                     {this.props.shouldShowBackButton && (
+                    <View style={[styles.mr2]}>
                         <Tooltip text={this.props.translate('common.back')}>
                             <Pressable
                                 onPress={() => {
@@ -152,6 +153,7 @@ class HeaderWithCloseButton extends Component {
                                 <Icon src={Expensicons.BackArrow} />
                             </Pressable>
                         </Tooltip>
+                    </View>
                     )}
                     <Header
                         title={this.props.title}
@@ -180,7 +182,7 @@ class HeaderWithCloseButton extends Component {
                         <Tooltip text={this.props.translate('getAssistancePage.questionMarkButtonTooltip')}>
                             <Pressable
                                 onPress={() => Navigation.navigate(ROUTES.getGetAssistanceRoute(this.props.guidesCallTaskID))}
-                                style={[styles.touchableButtonImage, styles.mr0]}
+                                style={[styles.touchableButtonImage]}
                                 accessibilityRole="button"
                                 accessibilityLabel={this.props.translate('getAssistancePage.questionMarkButtonTooltip')}
                             >
@@ -193,7 +195,6 @@ class HeaderWithCloseButton extends Component {
                             <ThreeDotsMenu
                                 menuItems={this.props.threeDotsMenuItems}
                                 onIconPress={this.props.onThreeDotsButtonPress}
-                                iconStyles={[styles.mr0]}
                                 anchorPosition={this.props.threeDotsAnchorPosition}
                             />
                         )}
@@ -203,7 +204,7 @@ class HeaderWithCloseButton extends Component {
                         <Tooltip text={this.props.translate('common.close')}>
                             <Pressable
                                 onPress={this.props.onCloseButtonPress}
-                                style={[styles.touchableButtonImage, styles.mr0]}
+                                style={[styles.touchableButtonImage]}
                                 accessibilityRole="button"
                                 accessibilityLabel={this.props.translate('common.close')}
                             >
