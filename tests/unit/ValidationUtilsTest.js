@@ -78,7 +78,7 @@ describe('ValidationUtils', () => {
 
         test('Invalid URLs with special characters and emojis', () => {
             expect(ValidationUtils.isValidWebsite('www.~expensify.com')).toBe(false);
-            expect(ValidationUtils.isValidWebsite('www.expen$ify.com')).toBe(false);
+            expect(ValidationUtils.isValidWebsite('https://www.expen$ify.com')).toBe(false);
             expect(ValidationUtils.isValidWebsite('www.expensify😄.com')).toBe(false);
         });
     });

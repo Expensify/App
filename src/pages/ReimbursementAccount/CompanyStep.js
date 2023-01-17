@@ -192,6 +192,7 @@ class CompanyStep extends React.Component {
                         containerStyles={[styles.mt4]}
                         defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'website', this.defaultWebsite)}
                         shouldSaveDraft
+                        hint={this.props.translate('common.websiteExample')}
                     />
                     <TextInput
                         inputID="companyTaxID"
