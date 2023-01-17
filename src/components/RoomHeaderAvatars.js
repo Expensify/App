@@ -82,6 +82,7 @@ const RoomHeaderAvatars = (props) => {
                                     style={[
                                         styles.roomHeaderAvatarSize,
                                         styles.roomHeaderAvatar,
+                                        ...iconStyle,
                                         styles.roomHeaderAvatarOverlay,
                                     ]}
                                 />

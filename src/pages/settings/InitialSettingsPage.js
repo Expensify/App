@@ -32,6 +32,7 @@ import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import ConfirmModal from '../../components/ConfirmModal';
 import * as ReportUtils from '../../libs/ReportUtils';
+import * as Link from '../../libs/actions/Link';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
@@ -170,6 +171,11 @@ class InitialSettingsPage extends React.Component {
                 action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
                 brickRoadIndicator: PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList) || !_.isEmpty(this.props.userWallet.errors)
                     || !_.isEmpty(this.props.walletTerms.errors) ? 'error' : null,
+            },
+            {
+                translationKey: 'initialSettingsPage.help',
+                icon: Expensicons.QuestionMark,
+                action: () => { Link.openExternalLink(CONST.NEWHELP_URL); },
             },
             {
                 translationKey: 'initialSettingsPage.about',

@@ -154,7 +154,7 @@ class DetailsPage extends React.PureComponent {
                                 )}
                                 {details.login ? (
                                     <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
-                                        <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                        <Text style={[styles.textLabelSupporting, styles.mb2]} numberOfLines={1}>
                                             {this.props.translate(isSMSLogin
                                                 ? 'common.phoneNumber'
                                                 : 'common.email')}
@@ -172,7 +172,7 @@ class DetailsPage extends React.PureComponent {
                                 ) : null}
                                 {pronouns ? (
                                     <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                        <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                        <Text style={[styles.textLabelSupporting, styles.mb2]} numberOfLines={1}>
                                             {this.props.translate('profilePage.preferredPronouns')}
                                         </Text>
                                         <Text numberOfLines={1}>

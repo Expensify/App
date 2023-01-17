@@ -7,12 +7,13 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Section from '../components/Section';
 import Navigation from '../libs/Navigation/Navigation';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
 import Text from '../components/Text';
 import * as Expensicons from '../components/Icon/Expensicons';
 import * as Illustrations from '../components/Icon/Illustrations';
 import * as Report from '../libs/actions/Report';
 import ROUTES from '../ROUTES';
+import * as Link from '../libs/actions/Link';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Route object from navigation */
@@ -44,7 +45,6 @@ const GetAssistancePage = props => (
                         onPress: () => Report.navigateToConciergeChat(),
                         icon: Expensicons.ChatBubble,
                         shouldShowRightIcon: true,
-                        iconFill: themeColors.success,
                         wrapperStyle: [styles.cardMenuItem],
                     },
                     {
@@ -52,7 +52,13 @@ const GetAssistancePage = props => (
                         onPress: () => Navigation.navigate(ROUTES.getRequestCallRoute(props.route.params.taskID)),
                         icon: Expensicons.Phone,
                         shouldShowRightIcon: true,
-                        iconFill: themeColors.success,
+                        wrapperStyle: [styles.cardMenuItem],
+                    },
+                    {
+                        title: props.translate('getAssistancePage.exploreHelpDocs'),
+                        onPress: () => Link.openExternalLink(CONST.NEWHELP_URL),
+                        icon: Expensicons.QuestionMark,
+                        shouldShowRightIcon: true,
                         wrapperStyle: [styles.cardMenuItem],
                     },
                 ]}
