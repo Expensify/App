@@ -1,5 +1,5 @@
 import CONST from '../../CONST';
-import Config from '../../CONFIG';
+import replaceSourceOrigin from '../replaceSourceOrigin';
 
 /**
  * Extract the thumbnail URL, source URL and the original filename from the HTML.
@@ -19,14 +19,9 @@ export default function getAttachmentName(html) {
             originalFileName: null,
         };
     }
-    const sourceURL = html.match(SOURCE_REGEX)[1].replace(
-        Config.EXPENSIFY.EXPENSIFY_URL,
-        Config.EXPENSIFY.URL_API_ROOT,
-    );
-    const previewSourceURL = (IS_IMAGE_TAG ? html.match(PREVIEW_SOURCE_REGEX)[1] : sourceURL).replace(
-        Config.EXPENSIFY.EXPENSIFY_URL,
-        Config.EXPENSIFY.URL_API_ROOT,
-    );
+    const sourceURL = replaceSourceOrigin(html.match(SOURCE_REGEX)[1]);
+    const imageURL = IS_IMAGE_TAG && replaceSourceOrigin(html.match(PREVIEW_SOURCE_REGEX)[1]);
+    const previewSourceURL = IS_IMAGE_TAG ? imageURL : sourceURL;
     const originalFileName = html.match(ORIGINAL_FILENAME_REGEX)[1];
 
     // Update the image URL so the images can be accessed depending on the config environment

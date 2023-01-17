@@ -1,35 +1,12 @@
 import React from 'react';
-import _ from 'underscore';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
-import Config from '../../../CONFIG';
 import AttachmentModal from '../../AttachmentModal';
 import styles from '../../../styles/styles';
 import ThumbnailImage from '../../ThumbnailImage';
 import PressableWithoutFocus from '../../PressableWithoutFocus';
 import CONST from '../../../CONST';
 import {ShowContextMenuContext, showContextMenuForReport} from '../../ShowContextMenuContext';
-
-/**
- * Update the image URL so images can be accessed depending on the config environment
- *
- * @param {String} urlString
- * @returns {*|String}
- */
-function mapSource(urlString) {
-    // Attachments can come from either staging or prod, depending on the env they were uploaded by
-    // Both should be replaced and loaded from API ROOT of the current environment
-    const originsWeShouldReplace = [Config.EXPENSIFY.EXPENSIFY_URL, Config.EXPENSIFY.STAGING_EXPENSIFY_URL];
-
-    const originToReplace = _.find(originsWeShouldReplace, origin => urlString.startsWith(origin));
-    if (!originToReplace) {
-        return urlString;
-    }
-
-    return urlString.replace(
-        originToReplace,
-        Config.EXPENSIFY.URL_API_ROOT,
-    );
-}
+import replaceSourceOrigin from '../../../libs/replaceSourceOrigin';
 
 const ImageRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
@@ -53,8 +30,8 @@ const ImageRenderer = (props) => {
     //
     const isAttachment = Boolean(htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
     const originalFileName = htmlAttribs['data-name'];
-    const previewSource = mapSource(htmlAttribs.src);
-    const source = mapSource(isAttachment
+    const previewSource = replaceSourceOrigin(htmlAttribs.src);
+    const source = replaceSourceOrigin(isAttachment
         ? htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]
         : htmlAttribs.src);
 
