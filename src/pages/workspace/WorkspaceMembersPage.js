@@ -211,8 +211,6 @@ class WorkspaceMembersPage extends React.Component {
     renderItem({
         item,
     }) {
-        // const canBeRemoved = this.props.policy.owner !== item.login && this.props.session.email !== item.login && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-        // const canBeRemoved = this.props.policy.owner !== login && this.props.session.email !== login;
         return (
             <OfflineWithFeedback errorRowStyles={[styles.peopleRowBorderBottom]} onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors}>
                 <TouchableOpacity
@@ -250,6 +248,13 @@ class WorkspaceMembersPage extends React.Component {
                 </TouchableOpacity>
             </OfflineWithFeedback>
         );
+    }
+
+    validate() {
+        _.each(this.state.selectedEmployees, member => {
+            if (member)
+        });
+        // this.props.policy.owner !== item.login && this.props.session.email !== item.login && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     }
 
     render() {
