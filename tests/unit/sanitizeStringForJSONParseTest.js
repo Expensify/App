@@ -1,12 +1,11 @@
-import sanitizeStringForJSONParse from '../../src/libs/sanitizeStringForJSONParse';
+import sanitizeStringForJSONParse from '../../.github/libs/sanitizeStringForJSONParse';
 
-// Bad inputs should just be ignored and an empty string returned.
+// Bad inputs should cause an error to be thrown
 const badInputs = [
-    ['', ''],
-    [null, ''],
-    [undefined, ''],
-    [42, ''],
-    [true, ''],
+    null,
+    undefined,
+    42,
+    true,
 ];
 
 // Invalid JSON Data should be able to get parsed and the parsed result should match the input text.
@@ -28,15 +27,15 @@ const invalidJSONData = [
 
 // Valid JSON Data should be able to get parsed and the input text should be unmodified.
 const validJSONData = [
+    ['', ''],
     ['Hello world!', 'Hello world!'],
     ['Hello\\\\world!', 'Hello\\\\world!'],
 ];
 
 describe('santizeStringForJSONParse', () => {
-    describe.each(badInputs)('canHandleBadInputs', (input, expectedOutput) => {
+    describe.each(badInputs)('willDetectBadInputs', (input) => {
         test('sanitizeStringForJSONParse', () => {
-            const result = sanitizeStringForJSONParse(input);
-            expect(result).toStrictEqual(expectedOutput);
+            expect(() => sanitizeStringForJSONParse(input)).toThrow();
         });
     });
 

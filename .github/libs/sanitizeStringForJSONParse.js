@@ -16,8 +16,8 @@ const replacer = str => ({
  * @param {String} inputString
  * @returns {String}
  */
-export default function (inputString) {
-    if (!inputString || typeof inputString !== 'string') {
+module.exports = function (inputString) {
+    if (typeof inputString !== 'string') {
         throw new TypeError('Input must me of type String');
     }
 
