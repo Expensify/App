@@ -884,6 +884,7 @@ function buildOptimisticChatReport(
     visibility = undefined,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
 ) {
+    const currentTime = DateUtils.getDBTime();
     return {
         chatType,
         hasOutstandingIOU: false,
@@ -893,8 +894,8 @@ function buildOptimisticChatReport(
         lastMessageHtml: '',
         lastMessageText: null,
         lastReadSequenceNumber: 0,
-        lastActionCreated: DateUtils.getDBTime(),
-        lastReadTime: '',
+        lastReadTime: currentTime,
+        lastActionCreated: currentTime,
         maxSequenceNumber: 0,
         notificationPreference,
         oldPolicyName,
@@ -970,6 +971,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
     );
     const announceChatReportID = announceChatData.reportID;
     const announceReportActionData = buildOptimisticCreatedReportAction(announceChatData.ownerEmail);
+    const announceCreatedReportActionID = announceReportActionData[0].reportActionID;
 
     const adminsChatData = buildOptimisticChatReport(
         [currentUserEmail],
@@ -982,6 +984,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
     );
     const adminsChatReportID = adminsChatData.reportID;
     const adminsReportActionData = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
+    const adminsCreatedReportActionID = adminsReportActionData[0].reportActionID;
 
     const expenseChatData = buildOptimisticChatReport(
         [currentUserEmail],
@@ -994,17 +997,21 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
     );
     const expenseChatReportID = expenseChatData.reportID;
     const expenseReportActionData = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
+    const expenseCreatedReportActionID = expenseReportActionData[0].reportActionID;
 
     return {
         announceChatReportID,
         announceChatData,
         announceReportActionData,
+        announceCreatedReportActionID,
         adminsChatReportID,
         adminsChatData,
         adminsReportActionData,
+        adminsCreatedReportActionID,
         expenseChatReportID,
         expenseChatData,
         expenseReportActionData,
+        expenseCreatedReportActionID,
     };
 }
 
