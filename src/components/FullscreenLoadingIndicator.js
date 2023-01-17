@@ -21,7 +21,7 @@ const FullScreenLoadingIndicator = (props) => {
             <ActivityIndicator color={themeColors.spinner} size="large" />
         </View>
     );
-}
+};
 
 FullScreenLoadingIndicator.propTypes = propTypes;
 FullScreenLoadingIndicator.defaultProps = defaultProps;
