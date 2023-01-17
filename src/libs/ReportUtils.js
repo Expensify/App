@@ -256,7 +256,18 @@ function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
             || hasExpensifyGuidesEmails(lodashGet(report, ['participants'], [])));
     }
 
-    return _.last(sortedReports);
+    let adminReport;
+    if (!ignoreDefaultRooms) {
+        adminReport = _.find(sortedReports, (report) => {
+            const chatType = getChatType(report);
+            return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
+        });
+    }
+    if (adminReport) {
+        console.log('found admin chat');
+    }
+
+    return adminReport || _.last(sortedReports);
 }
 
 /**

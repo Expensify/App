@@ -156,6 +156,7 @@ function navigate(route = ROUTES.HOME) {
         navigationRef.current.dispatch(DeprecatedCustomActions.pushDrawerRoute(route));
         return;
     }
+
     linkTo(navigationRef.current, route);
 }
 

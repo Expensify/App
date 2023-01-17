@@ -43,7 +43,6 @@ function parseAndLogRoute(state) {
     if (currentPath.includes('/transition')) {
         Log.info('Navigating from transition link from OldDot using short lived authToken');
     } else {
-        console.trace();
         Log.info('Navigating to route', false, {path: currentPath});
     }
 
