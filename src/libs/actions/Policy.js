@@ -428,15 +428,14 @@ function setWorkspaceErrors(policyID, errors) {
 
 /**
  * @param {String} policyID
- * @param {String} member
  * @param {Object} errors
  */
-function setWorkspaceMemberErrors(policyID, member, errors) {
-    if (!allPolicies[policyID]) {
+function setWorkspaceMemberErrors(policyID, errors) {
+    if (!allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]) {
         return;
     }
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, {[member]: {errors}});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, errors);
 }
 
 /**

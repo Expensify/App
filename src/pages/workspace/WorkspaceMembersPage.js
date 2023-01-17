@@ -30,6 +30,7 @@ import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as Expensicons from '../../components/Icon/Expensicons';
+import DateUtils from '../../libs/DateUtils';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -108,11 +109,11 @@ class WorkspaceMembersPage extends React.Component {
      */
     removeUsers() {
         this.validate();
-        Policy.removeMembers(this.state.selectedEmployees, this.props.route.params.policyID);
-        this.setState({
-            selectedEmployees: [],
-            isRemoveMembersConfirmModalVisible: false,
-        });
+        // Policy.removeMembers(this.state.selectedEmployees, this.props.route.params.policyID);
+        // this.setState({
+        //     selectedEmployees: [],
+        //     isRemoveMembersConfirmModalVisible: false,
+        // });
     }
 
     /**
@@ -198,12 +199,20 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     validate() {
+        const onyxUpdate = {};
         _.each(this.state.selectedEmployees, (member) => {
-            if (member === this.props.policy.owner) {
-                const error = this.props.translate('workspace.people.error.cannotRemove');
-                setWorkspaceMemberError(member, error);
+            if (member !== this.props.policy.owner && member !== this.props.session.email) {
+                return;
             }
+
+            onyxUpdate[member] = {
+                errors: {
+                    [DateUtils.getMicroseconds()]: this.props.translate('workspace.people.error.cannotRemove')
+                },
+            };
         });
+
+        Policy.setWorkspaceMemberErrors(this.props.route.params.policyID, onyxUpdate);
     }
 
     /**
