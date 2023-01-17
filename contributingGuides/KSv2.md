@@ -1,6 +1,6 @@
 # KSv2
 
-In Expensify we have an engineering prioritization process called "Kernel Scheduler v2" (KSv2). This system prioritizes tasks based on time priorities:
+In Expensify, we have a task prioritization process called "Kernel Scheduler v2" (KSv2) that organizes GH issues based on their time urgency:
 
 **Hourly**: If a Github issue has the `Hourly` label, the assignee should update it *at least* once an hour
 
