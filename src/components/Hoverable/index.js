@@ -72,7 +72,7 @@ class Hoverable extends Component {
         if (!this.state.isHovered) {
             return;
         }
-        if (this.wrapperView && !this.wrapperView.contains(event.target) && this.props.resetsOnClickOutside) {
+        if (this.wrapperView && !this.wrapperView.contains(event.target)) {
             this.setIsHovered(false);
         }
     }
@@ -89,8 +89,24 @@ class Hoverable extends Component {
                         ref(el);
                     }
                 },
-                onMouseEnter: () => this.setIsHovered(true),
-                onMouseLeave: () => this.setIsHovered(false),
+                onMouseEnter: (el) => {
+                    this.setIsHovered(true);
+
+                    // Call the original onMouseEnter, if any
+                    const {onMouseEnter} = this.props.children;
+                    if (_.isFunction(onMouseEnter)) {
+                        onMouseEnter(el);
+                    }
+                },
+                onMouseLeave: (el) => {
+                    this.setIsHovered(false);
+
+                    // Call the original onMouseLeave, if any
+                    const {onMouseLeave} = this.props.children;
+                    if (_.isFunction(onMouseLeave)) {
+                        onMouseLeave(el);
+                    }
+                },
             });
         }
         return (

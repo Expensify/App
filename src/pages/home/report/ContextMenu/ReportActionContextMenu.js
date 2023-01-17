@@ -7,9 +7,9 @@ const contextMenuRef = React.createRef();
  *
  * @param {string} type - the context menu type to display [EMAIL, LINK, REPORT_ACTION]
  * @param {Object} [event] - A press event.
- * @param {string} [selection] - A copy text.
+ * @param {String} [selection] - Copied content.
  * @param {Element} contextMenuAnchor - popoverAnchor
- * @param {Number} reportID - Active Report Id
+ * @param {String} reportID - Active Report Id
  * @param {Object} reportAction - ReportAction for ContextMenu
  * @param {String} draftMessage - ReportAction Draftmessage
  * @param {Function} [onShow=() => {}] - Run a callback when Menu is shown
@@ -20,7 +20,7 @@ function showContextMenu(
     event,
     selection,
     contextMenuAnchor,
-    reportID = 0,
+    reportID = '0',
     reportAction = {},
     draftMessage = '',
     onShow = () => {},
@@ -80,7 +80,7 @@ function hideDeleteModal() {
 
 /**
  * Opens the Confirm delete action modal
- * @param {Number} reportID
+ * @param {String} reportID
  * @param {Object} reportAction
  * @param {Boolean} [shouldSetModalVisibility]
  * @param {Function} [onConfirm]

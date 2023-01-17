@@ -3,6 +3,7 @@ const lodashGet = require('lodash/get');
 const core = require('@actions/core');
 const {GitHub, getOctokitOptions} = require('@actions/github/lib/utils');
 const {throttling} = require('@octokit/plugin-throttling');
+const {paginateRest} = require('@octokit/plugin-paginate-rest');
 
 const GITHUB_OWNER = 'Expensify';
 const APP_REPO = 'App';
@@ -27,19 +28,16 @@ const POLL_RATE = 10000;
 
 class GithubUtils {
     /**
-     * Either give an existing instance of Octokit or create a new one
+     * Initialize internal octokit
      *
-     * @readonly
-     * @static
-     * @memberof GithubUtils
+     * @private
      */
-    static get octokit() {
-        if (this.octokitInternal) {
-            return this.octokitInternal;
-        }
-        const OctokitThrottled = GitHub.plugin(throttling);
+    static initOctokit() {
+        const Octokit = GitHub.plugin(throttling, paginateRest);
         const token = core.getInput('GITHUB_TOKEN', {required: true});
-        this.octokitInternal = new OctokitThrottled(getOctokitOptions(token, {
+
+        // Save a copy of octokit used in this class
+        this.internalOctokit = new Octokit(getOctokitOptions(token, {
             throttle: {
                 onRateLimit: (retryAfter, options) => {
                     console.warn(
@@ -60,7 +58,36 @@ class GithubUtils {
                 },
             },
         }));
-        return this.octokitInternal;
+    }
+
+    /**
+     * Either give an existing instance of Octokit rest or create a new one
+     *
+     * @readonly
+     * @static
+     * @memberof GithubUtils
+     */
+    static get octokit() {
+        if (this.internalOctokit) {
+            return this.internalOctokit.rest;
+        }
+        this.initOctokit();
+        return this.internalOctokit.rest;
+    }
+
+    /**
+     * Either give an existing instance of Octokit paginate or create a new one
+     *
+     * @readonly
+     * @static
+     * @memberof GithubUtils
+     */
+    static get paginate() {
+        if (this.internalOctokit) {
+            return this.internalOctokit.paginate;
+        }
+        this.initOctokit();
+        return this.internalOctokit.paginate;
     }
 
     /**
@@ -109,6 +136,7 @@ class GithubUtils {
                 labels: issue.labels,
                 PRList: this.getStagingDeployCashPRList(issue),
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
+                internalQAPRList: this.getStagingDeployCashInternalQA(issue),
                 isTimingDashboardChecked: /-\s\[x]\sI checked the \[App Timing Dashboard]/.test(issue.body),
                 isFirebaseChecked: /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body),
                 tag,
@@ -127,7 +155,7 @@ class GithubUtils {
      * @returns {Array<Object>} - [{url: String, number: Number, isVerified: Boolean}]
      */
     static getStagingDeployCashPRList(issue) {
-        let PRListSection = issue.body.match(/pull requests:\*\*(?:\r?\n)*((?:.*\r?\n(?:\s+-\s.*\r?\n)+\r?\n)+)/) || [];
+        let PRListSection = issue.body.match(/pull requests:\*\*\r?\n((?:-.*\r?\n)+)\r?\n\r?\n?/) || [];
         if (PRListSection.length !== 2) {
             // No PRs, return an empty array
             console.log('Hmmm...The open StagingDeployCash does not list any pull requests, continuing...');
@@ -135,16 +163,14 @@ class GithubUtils {
         }
         PRListSection = PRListSection[1];
         const PRList = _.map(
-            [...PRListSection.matchAll(new RegExp(`- (${PULL_REQUEST_REGEX.source})\\s+- \\[([ x])] QA\\s+- \\[([ x])] Accessibility`, 'g'))],
+            [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${PULL_REQUEST_REGEX.source})`, 'g'))],
             match => ({
-                url: match[1],
-                number: Number.parseInt(match[2], 10),
-                isVerified: match[3] === 'x',
-                isAccessible: match[4] === 'x',
+                url: match[2],
+                number: Number.parseInt(match[3], 10),
+                isVerified: match[1] === 'x',
             }),
         );
-        const internalQAPRList = this.getStagingDeployCashInternalQA(issue);
-        return _.sortBy(_.union(PRList, internalQAPRList), 'number');
+        return _.sortBy(PRList, 'number');
     }
 
     /**
@@ -156,7 +182,7 @@ class GithubUtils {
      * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean}]
      */
     static getStagingDeployCashDeployBlockers(issue) {
-        let deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r?\n((?:.*\r?\n)+)/) || [];
+        let deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r?\n((?:-.*\r?\n)+)/) || [];
         if (deployBlockerSection.length !== 2) {
             return [];
         }
@@ -178,7 +204,7 @@ class GithubUtils {
      * @private
      *
      * @param {Object} issue
-     * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean, isAccessible: Boolean}]
+     * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean}]
      */
     static getStagingDeployCashInternalQA(issue) {
         let internalQASection = issue.body.match(/Internal QA:\*\*\r?\n((?:- \[[ x]].*\r?\n)+)/) || [];
@@ -189,10 +215,9 @@ class GithubUtils {
         const internalQAPRs = _.map(
             [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${PULL_REQUEST_REGEX.source})`, 'g'))],
             match => ({
-                url: match[2],
+                url: match[2].split('-')[0].trim(),
                 number: Number.parseInt(match[3], 10),
                 isResolved: match[1] === 'x',
-                isAccessible: false,
             }),
         );
         return _.sortBy(internalQAPRs, 'number');
@@ -204,9 +229,9 @@ class GithubUtils {
      * @param {String} tag
      * @param {Array} PRList - The list of PR URLs which are included in this StagingDeployCash
      * @param {Array} [verifiedPRList] - The list of PR URLs which have passed QA.
-     * @param {Array} [accessiblePRList] - The list of PR URLs which have passed the accessability check.
      * @param {Array} [deployBlockers] - The list of DeployBlocker URLs.
      * @param {Array} [resolvedDeployBlockers] - The list of DeployBlockers URLs which have been resolved.
+     * @param {Array} [resolvedInternalQAPRs] - The list of Internal QA PR URLs which have been resolved.
      * @param {Boolean} [isTimingDashboardChecked]
      * @param {Boolean} [isFirebaseChecked]
      * @returns {Promise}
@@ -215,9 +240,9 @@ class GithubUtils {
         tag,
         PRList,
         verifiedPRList = [],
-        accessiblePRList = [],
         deployBlockers = [],
         resolvedDeployBlockers = [],
+        resolvedInternalQAPRs = [],
         isTimingDashboardChecked = false,
         isFirebaseChecked = false,
     ) {
@@ -229,6 +254,11 @@ class GithubUtils {
                 );
                 console.log('Filtering out the following automated pull requests:', automatedPRs);
 
+                // The format of this map is following:
+                // {
+                //    'https://github.com/Expensify/App/pull/9641': [ 'PauloGasparSv', 'kidroca' ],
+                //    'https://github.com/Expensify/App/pull/9642': [ 'mountiny', 'kidroca' ]
+                // }
                 const internalQAPRMap = _.reduce(
                     _.filter(data, pr => !_.isEmpty(_.findWhere(pr.labels, {name: INTERNAL_QA_LABEL}))),
                     (map, pr) => {
@@ -241,12 +271,11 @@ class GithubUtils {
                 console.log('Found the following Internal QA PRs:', internalQAPRMap);
 
                 const noQAPRs = _.pluck(
-                    _.filter(data, PR => (PR.title || '').toUpperCase().startsWith('[NO QA]')),
+                    _.filter(data, PR => /\[No\s?QA]/i.test(PR.title)),
                     'html_url',
                 );
                 console.log('Found the following NO QA PRs:', noQAPRs);
                 const verifiedOrNoQAPRs = _.union(verifiedPRList, noQAPRs);
-                const accessibleOrNoQAPRs = _.union(accessiblePRList, noQAPRs);
 
                 const sortedPRList = _.chain(PRList)
                     .difference(automatedPRs)
@@ -265,38 +294,44 @@ class GithubUtils {
 
                 // PR list
                 if (!_.isEmpty(sortedPRList)) {
-                    issueBody += '\r\n**This release contains changes from the following pull requests:**';
+                    issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
                     _.each(sortedPRList, (URL) => {
-                        issueBody += `\r\n\r\n- ${URL}`;
-                        issueBody += _.contains(verifiedOrNoQAPRs, URL) ? '\r\n  - [x] QA' : '\r\n  - [ ] QA';
-                        issueBody += _.contains(accessibleOrNoQAPRs, URL) ? '\r\n  - [x] Accessibility' : '\r\n  - [ ] Accessibility';
+                        issueBody += _.contains(verifiedOrNoQAPRs, URL) ? '- [x]' : '- [ ]';
+                        issueBody += ` ${URL}\r\n`;
                     });
+                    issueBody += '\r\n\r\n';
                 }
 
+                // Internal QA PR list
                 if (!_.isEmpty(internalQAPRMap)) {
-                    issueBody += '\r\n\r\n\r\n**Internal QA:**';
+                    console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
+                    issueBody += '**Internal QA:**\r\n';
                     _.each(internalQAPRMap, (assignees, URL) => {
                         const assigneeMentions = _.reduce(assignees, (memo, assignee) => `${memo} @${assignee}`, '');
-                        issueBody += `\r\n${_.contains(verifiedOrNoQAPRs, URL) ? '- [x]' : '- [ ]'} `;
+                        issueBody += `${_.contains(resolvedInternalQAPRs, URL) ? '- [x]' : '- [ ]'} `;
                         issueBody += `${URL}`;
                         issueBody += ` -${assigneeMentions}`;
+                        issueBody += '\r\n';
                     });
+                    issueBody += '\r\n\r\n';
                 }
 
                 // Deploy blockers
                 if (!_.isEmpty(deployBlockers)) {
-                    issueBody += '\r\n\r\n\r\n**Deploy Blockers:**';
+                    issueBody += '**Deploy Blockers:**\r\n';
                     _.each(sortedDeployBlockers, (URL) => {
-                        issueBody += _.contains(resolvedDeployBlockers, URL) ? '\r\n- [x] ' : '\r\n- [ ] ';
+                        issueBody += _.contains(resolvedDeployBlockers, URL) ? '- [x] ' : '- [ ] ';
                         issueBody += URL;
+                        issueBody += '\r\n';
                     });
+                    issueBody += '\r\n\r\n';
                 }
 
-                issueBody += '\r\n\r\n**Deployer verifications:**';
+                issueBody += '**Deployer verifications:**';
                 // eslint-disable-next-line max-len
                 issueBody += `\r\n- [${isTimingDashboardChecked ? 'x' : ' '}] I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.`;
                 // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes.`;
+                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
 
                 issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
                 return issueBody;
@@ -316,7 +351,7 @@ class GithubUtils {
      */
     static fetchAllPullRequests(pullRequestNumbers) {
         const oldestPR = _.first(_.sortBy(pullRequestNumbers));
-        return this.octokit.paginate(this.octokit.pulls.list, {
+        return this.paginate(this.octokit.pulls.list, {
             owner: GITHUB_OWNER,
             repo: APP_REPO,
             state: 'all',
@@ -331,6 +366,44 @@ class GithubUtils {
         })
             .then(prList => _.filter(prList, pr => _.contains(pullRequestNumbers, pr.number)))
             .catch(err => console.error('Failed to get PR list', err));
+    }
+
+    /**
+     * @param {Number} pullRequestNumber
+     * @returns {Promise}
+     */
+    static getPullRequestBody(pullRequestNumber) {
+        return this.octokit.pulls.get({
+            owner: GITHUB_OWNER,
+            repo: APP_REPO,
+            pull_number: pullRequestNumber,
+        }).then(({data: pullRequestComment}) => pullRequestComment.body);
+    }
+
+    /**
+     * @param {Number} pullRequestNumber
+     * @returns {Promise}
+     */
+    static getAllReviewComments(pullRequestNumber) {
+        return this.paginate(this.octokit.pulls.listReviews, {
+            owner: GITHUB_OWNER,
+            repo: APP_REPO,
+            pull_number: pullRequestNumber,
+            per_page: 100,
+        }, response => _.map(response.data, review => review.body));
+    }
+
+    /**
+     * @param {Number} issueNumber
+     * @returns {Promise}
+     */
+    static getAllComments(issueNumber) {
+        return this.paginate(this.octokit.issues.listComments, {
+            owner: GITHUB_OWNER,
+            repo: APP_REPO,
+            issue_number: issueNumber,
+            per_page: 100,
+        }, response => _.map(response.data, comment => comment.body));
     }
 
     /**
@@ -452,7 +525,7 @@ class GithubUtils {
      * @returns {Promise<String>}
      */
     static getActorWhoClosedIssue(issueNumber) {
-        return this.octokit.paginate(this.octokit.issues.listEvents, {
+        return this.paginate(this.octokit.issues.listEvents, {
             owner: GITHUB_OWNER,
             repo: APP_REPO,
             issue_number: issueNumber,

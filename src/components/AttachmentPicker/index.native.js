@@ -6,7 +6,8 @@ import React, {Component} from 'react';
 import {Alert, Linking, View} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import RNDocumentPicker from 'react-native-document-picker';
-import RNFetchBlob from 'rn-fetch-blob';
+import RNFetchBlob from 'react-native-blob-util';
+import Str from 'expensify-common/lib/str';
 import {propTypes as basePropTypes, defaultProps} from './attachmentPickerPropTypes';
 import styles from '../../styles/styles';
 import Popover from '../Popover';
@@ -65,9 +66,16 @@ const documentPickerOptions = {
   * @return {Promise}
   */
 function getDataForUpload(fileData) {
+    let fileName = fileData.fileName || fileData.name || 'chat_attachment';
+    const fileExtension = `.${_.last(fileData.type.split('/'))}`;
+    if (!Str.endsWith(fileName, fileExtension)) {
+        fileName = `${fileName}${fileExtension}`;
+    }
     const fileResult = {
-        name: fileData.fileName || fileData.name || 'chat_attachment',
+        name: fileName,
         type: fileData.type,
+        width: fileData.width,
+        height: fileData.height,
         uri: fileData.fileCopyUri || fileData.uri,
         size: fileData.fileSize || fileData.size,
     };

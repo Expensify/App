@@ -6,6 +6,7 @@ import {
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -17,6 +18,8 @@ import personalDetailsPropType from './personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import * as ReportUtils from '../libs/ReportUtils';
+import reportPropTypes from './reportPropTypes';
+import withReportOrNavigateHome from './home/report/withReportOrNavigateHome';
 
 const propTypes = {
     /* Onyx Props */
@@ -25,16 +28,7 @@ const propTypes = {
     personalDetails: personalDetailsPropType.isRequired,
 
     /** The active report */
-    report: PropTypes.shape({
-        /** The list of icons */
-        icons: PropTypes.arrayOf(PropTypes.string),
-
-        /** The report name */
-        reportName: PropTypes.string,
-
-        /** Array of participants */
-        participants: PropTypes.arrayOf(PropTypes.string),
-    }).isRequired,
+    report: reportPropTypes.isRequired,
 
     /** Route params */
     route: PropTypes.shape({
@@ -58,13 +52,13 @@ const getAllParticipants = (report, personalDetails) => {
     const {participants} = report;
 
     return _.map(participants, (login) => {
-        const userPersonalDetail = personalDetails[login];
+        const userPersonalDetail = lodashGet(personalDetails, login, {displayName: login, avatar: ''});
         const userLogin = Str.removeSMSDomain(login);
 
         return ({
             alternateText: userLogin,
             displayName: userPersonalDetail.displayName,
-            icons: [userPersonalDetail.avatar],
+            icons: userPersonalDetail.avatar ? [userPersonalDetail.avatar] : [ReportUtils.getDefaultAvatar()],
             keyForList: userLogin,
             login,
             text: userPersonalDetail.displayName,
@@ -105,8 +99,7 @@ const ReportParticipantsPage = (props) => {
                         hideSectionHeaders
                         showTitleTooltip
                         disableFocusOptions
-                        optionMode="default"
-                        forceTextUnreadStyle
+                        boldStyle
                         optionHoveredStyle={styles.hoveredComponentBG}
                     />
                     )}
@@ -120,12 +113,10 @@ ReportParticipantsPage.displayName = 'ReportParticipantsPage';
 
 export default compose(
     withLocalize,
+    withReportOrNavigateHome,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
         },
     }),
 )(ReportParticipantsPage);

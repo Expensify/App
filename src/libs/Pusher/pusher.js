@@ -1,7 +1,20 @@
+import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import ONYXKEYS from '../../ONYXKEYS';
 import Pusher from './library';
 import TYPE from './EventType';
 import Log from '../Log';
+
+let shouldForceOffline = false;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (network) => {
+        if (!network) {
+            return;
+        }
+        shouldForceOffline = Boolean(network.shouldForceOffline);
+    },
+});
 
 let socket;
 const socketEventCallbacks = [];
@@ -55,7 +68,7 @@ function init(args, params) {
         // If we want to pass params in our requests to api.php we'll need to add it to socket.config.auth.params
         // as per the documentation
         // (https://pusher.com/docs/channels/using_channels/connection#channels-options-parameter).
-        // Any param mentioned here will show up in $_REQUEST when we call "Push_Authenticate". Params passed here need
+        // Any param mentioned here will show up in $_REQUEST when we call "AuthenticatePusher". Params passed here need
         // to pass our inputRules to show up in the request.
         if (params) {
             socket.config.auth = {};
@@ -112,6 +125,11 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
 
     const chunkedDataEvents = {};
     const callback = (eventData) => {
+        if (shouldForceOffline) {
+            Log.info('[Pusher] Ignoring a Push event because shouldForceOffline = true');
+            return;
+        }
+
         let data;
         try {
             data = _.isObject(eventData) ? eventData : JSON.parse(eventData);

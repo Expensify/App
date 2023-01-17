@@ -19,7 +19,7 @@ const propTypes = {
 const WorkspaceInvoicesFirstSection = props => (
     <Section
         title={props.translate('workspace.invoices.invoiceClientsAndCustomers')}
-        icon={Illustrations.MoneyEnvelopeBlue}
+        icon={Illustrations.InvoiceBlue}
         menuItems={[
             {
                 title: props.translate('workspace.invoices.sendInvoice'),
@@ -27,6 +27,7 @@ const WorkspaceInvoicesFirstSection = props => (
                 icon: Expensicons.Send,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
+                wrapperStyle: [styles.cardMenuItem],
             },
             {
                 title: props.translate('workspace.invoices.viewAllInvoices'),
@@ -36,10 +37,12 @@ const WorkspaceInvoicesFirstSection = props => (
                 icon: Expensicons.Invoice,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
+                wrapperStyle: [styles.cardMenuItem],
             },
         ]}
+        containerStyles={[styles.cardSection]}
     >
-        <View style={[styles.mv4]}>
+        <View style={[styles.mv3]}>
             <Text>
                 {props.translate('workspace.invoices.invoiceFirstSectionCopy')}
             </Text>

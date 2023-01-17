@@ -1,59 +1,80 @@
-name: Create a new version
+name: Create new version
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       SEMVER_LEVEL:
         description: One of {BUILD, PATCH, MINOR, MAJOR}
+        required: false
+        default: BUILD
+        type: string
+
+    outputs:
+      NEW_VERSION:
+        description: The new version string
+        value: ${{ jobs.createNewVersion.outputs.NEW_VERSION }}
+
+    secrets:
+      LARGE_SECRET_PASSPHRASE:
+        description: Passphrase used to decrypt GPG key
+        required: true
+      OS_BOTIFY_TOKEN:
+        description: Token for the OSBotify user
+        required: true
+      SLACK_WEBHOOK:
+        description: Webhook used to comment in slack
         required: true
 
 jobs:
+  validateActor:
+    runs-on: ubuntu-latest
+    outputs:
+      HAS_WRITE_ACCESS: ${{ contains(fromJSON('["write", "admin"]'), steps.getUserPermissions.outputs.PERMISSION) }}
+    steps:
+      - name: Get user permissions
+        id: getUserPermissions
+        run: echo "PERMISSION=$(gh api /repos/${{ github.repository }}/collaborators/${{ github.actor }}/permission | jq -r '.permission')" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
   createNewVersion:
-    if: github.actor == 'OSBotify'
-    runs-on: macos-11
+    runs-on: macos-latest
+    needs: validateActor
+    if: ${{ fromJSON(needs.validateActor.outputs.HAS_WRITE_ACCESS) }}
+
+    outputs:
+      NEW_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
 
     steps:
-      # Version: 2.3.4
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+      # Version: 3.0.2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           fetch-depth: 0
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
+      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+        with:
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+      - uses: softprops/turnstyle@ca99add00ff0c9cbc697d22631d2992f377e5bd5
         with:
           poll-interval-seconds: 10
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Decrypt GPG key
-        run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Import the GPG Key
-        run: cd .github/workflows && gpg --import OSBotify-private-key.asc
-
-      - name: Set up git
-        run: |
-          git fetch
-          git checkout main
-          git config user.signingkey 367811D53E34168C
-          git config commit.gpgsign true
-          git config user.name OSBotify
-          git config user.email infra+osbotify@expensify.com
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Create new branch
         run: |
-          git checkout -b version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}
-          git push --set-upstream origin version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}
-          echo "VERSION_BRANCH=version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}" >> "$GITHUB_ENV"
+          git pull
+          BRANCH_NAME="version-${{ inputs.SEMVER_LEVEL }}-$(uuidgen)"
+          git checkout -b "$BRANCH_NAME"
+          git push --set-upstream origin "$BRANCH_NAME"
+          echo "VERSION_BRANCH=$BRANCH_NAME" >> "$GITHUB_ENV"
 
       - name: Generate version
         id: bumpVersion
-        uses: Expensify/App/.github/actions/bumpVersion@main
+        uses: Expensify/App/.github/actions/javascript/bumpVersion@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          SEMVER_LEVEL: ${{ github.event.inputs.SEMVER_LEVEL }}
+          SEMVER_LEVEL: ${{ inputs.SEMVER_LEVEL }}
 
       - name: Commit new version
         run: |
@@ -67,29 +88,14 @@ jobs:
           git push origin ${{ env.VERSION_BRANCH }}
 
       - name: Update main branch
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/composite/updateProtectedBranch@main
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          WORKFLOW: updateProtectedBranch.yml
-          INPUTS: '{ "TARGET_BRANCH": "main", "SOURCE_BRANCH": "${{ env.VERSION_BRANCH }}" }'
+          TARGET_BRANCH: main
+          SOURCE_BRANCH: ${{ env.VERSION_BRANCH }}
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
-      # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
-      # the other workflows with the same change
-      - uses: 8398a7/action-slack@v3
-        name: Job failed Slack notification
-        if: ${{ failure() }}
+      - if: ${{ failure() }}
+        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
         with:
-          status: custom
-          fields: workflow, repo
-          custom_payload: |
-            {
-              channel: '#announce',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

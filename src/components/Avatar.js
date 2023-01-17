@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import {Image, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import stylePropTypes from '../styles/stylePropTypes';
@@ -8,12 +8,18 @@ import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as Expensicons from './Icon/Expensicons';
+import getAvatarDefaultSource from '../libs/getAvatarDefaultSource';
+import Image from './Image';
+import {withNetwork} from './OnyxProvider';
+import networkPropTypes from './networkPropTypes';
+import styles from '../styles/styles';
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
     source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
 
     /** Extra styles to pass to Image */
+    // eslint-disable-next-line react/forbid-prop-types
     imageStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Extra styles to pass to View wrapper */
@@ -27,6 +33,9 @@ const propTypes = {
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.func,
+
+    /** Props to detect online status */
+    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {
@@ -46,6 +55,14 @@ class Avatar extends PureComponent {
         };
     }
 
+    componentDidUpdate(prevProps) {
+        const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
+        if (!this.state.imageError || !isReconnecting) {
+            return;
+        }
+        this.setState({imageError: false});
+    }
+
     render() {
         if (!this.props.source) {
             return null;
@@ -56,21 +73,33 @@ class Avatar extends PureComponent {
             ...this.props.imageStyles,
         ];
 
+        const iconStyle = [
+            StyleUtils.getAvatarStyle(this.props.size),
+            styles.bgTransparent,
+            ...this.props.imageStyles,
+        ];
         const iconSize = StyleUtils.getAvatarSize(this.props.size);
 
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
                 {_.isFunction(this.props.source) || this.state.imageError
                     ? (
-                        <Icon
-                            src={this.state.imageError ? this.props.fallbackIcon : this.props.source}
-                            height={iconSize}
-                            width={iconSize}
-                            fill={this.state.imageError ? themeColors.offline : this.props.fill}
-                        />
+                        <View style={iconStyle}>
+                            <Icon
+                                src={this.state.imageError ? this.props.fallbackIcon : this.props.source}
+                                height={iconSize}
+                                width={iconSize}
+                                fill={this.state.imageError ? themeColors.offline : this.props.fill}
+                            />
+                        </View>
                     )
                     : (
-                        <Image source={{uri: this.props.source}} style={imageStyle} onError={() => this.setState({imageError: true})} />
+                        <Image
+                            source={{uri: this.props.source}}
+                            defaultSource={getAvatarDefaultSource(this.props.source)}
+                            style={imageStyle}
+                            onError={() => this.setState({imageError: true})}
+                        />
                     )}
             </View>
         );
@@ -79,4 +108,4 @@ class Avatar extends PureComponent {
 
 Avatar.defaultProps = defaultProps;
 Avatar.propTypes = propTypes;
-export default Avatar;
+export default withNetwork()(Avatar);

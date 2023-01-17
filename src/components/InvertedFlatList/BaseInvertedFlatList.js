@@ -7,6 +7,7 @@ import * as CollectionUtils from '../../libs/CollectionUtils';
 
 const propTypes = {
     /** Same as FlatList can be any array of anything */
+    // eslint-disable-next-line react/forbid-prop-types
     data: PropTypes.arrayOf(PropTypes.any),
 
     /** Same as FlatList although we wrap it in a measuring helper before passing to the actual FlatList component */
@@ -23,15 +24,11 @@ const propTypes = {
 
     /** Should we measure these items and call getItemLayout? */
     shouldMeasureItems: PropTypes.bool,
-
-    /** Should we remove the clipped sub views? */
-    shouldRemoveClippedSubviews: PropTypes.bool,
 };
 
 const defaultProps = {
     data: [],
     shouldMeasureItems: false,
-    shouldRemoveClippedSubviews: false,
 };
 
 class BaseInvertedFlatList extends Component {
@@ -143,7 +140,6 @@ class BaseInvertedFlatList extends Component {
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
                 ref={this.props.innerRef}
-                inverted
                 renderItem={this.renderItem}
 
                 // Native platforms do not need to measure items and work fine without this.
@@ -153,7 +149,6 @@ class BaseInvertedFlatList extends Component {
                 // We keep this property very low so that chat switching remains fast
                 maxToRenderPerBatch={1}
                 windowSize={15}
-                removeClippedSubviews={this.props.shouldRemoveClippedSubviews}
                 maintainVisibleContentPosition={{minIndexForVisible: 0, autoscrollToTopThreshold: 0}}
             />
         );

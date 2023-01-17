@@ -1,9 +1,8 @@
 import _ from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {KeyboardAvoidingView} from 'react-native';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
+import * as Wallet from '../../libs/actions/Wallet';
 import ONYXKEYS from '../../ONYXKEYS';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import CONST from '../../CONST';
@@ -16,28 +15,29 @@ import OnfidoStep from './OnfidoStep';
 import AdditionalDetailsStep from './AdditionalDetailsStep';
 import TermsStep from './TermsStep';
 import ActivateStep from './ActivateStep';
-import styles from '../../styles/styles';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import FailedKYC from './FailedKYC';
 import compose from '../../libs/compose';
-import withLocalize from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 
 const propTypes = {
     /** Information about the network from Onyx */
     network: networkPropTypes.isRequired,
 
-    ...userWalletPropTypes,
+    /** The user's wallet */
+    userWallet: userWalletPropTypes,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    // eslint-disable-next-line react/default-props-match-prop-types
     userWallet: {},
 };
 
 class EnablePaymentsPage extends React.Component {
     componentDidMount() {
-        this.fetchData();
+        Wallet.openEnablePaymentsPage();
     }
 
     componentDidUpdate(prevProps) {
@@ -45,11 +45,7 @@ class EnablePaymentsPage extends React.Component {
             return;
         }
 
-        this.fetchData();
-    }
-
-    fetchData() {
-        BankAccounts.fetchUserWallet();
+        Wallet.openEnablePaymentsPage();
     }
 
     render() {
@@ -57,28 +53,39 @@ class EnablePaymentsPage extends React.Component {
             return <FullScreenLoadingIndicator />;
         }
 
-        if (this.props.userWallet.shouldShowFailedKYC) {
-            return (
-                <ScreenWrapper>
-                    <KeyboardAvoidingView style={[styles.flex1]} behavior="height">
-                        <HeaderWithCloseButton
-                            title={this.props.translate('additionalDetailsStep.headerTitle')}
-                            onCloseButtonPress={() => Navigation.dismissModal()}
-                        />
-                        <FailedKYC />
-                    </KeyboardAvoidingView>
-                </ScreenWrapper>
-            );
-        }
-
-        const currentStep = this.props.userWallet.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;
-
         return (
-            <ScreenWrapper>
-                {currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS && <AdditionalDetailsStep walletAdditionalDetailsDraft={this.props.walletAdditionalDetailsDraft} />}
-                {currentStep === CONST.WALLET.STEP.ONFIDO && <OnfidoStep walletAdditionalDetailsDraft={this.props.walletAdditionalDetailsDraft} />}
-                {currentStep === CONST.WALLET.STEP.TERMS && <TermsStep />}
-                {currentStep === CONST.WALLET.STEP.ACTIVATE && <ActivateStep userWallet={this.props.userWallet} />}
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+                {() => {
+                    if (this.props.userWallet.errorCode === CONST.WALLET.ERROR.KYC) {
+                        return (
+                            <>
+                                <HeaderWithCloseButton
+                                    title={this.props.translate('additionalDetailsStep.headerTitle')}
+                                    onCloseButtonPress={() => Navigation.dismissModal()}
+                                />
+                                <FailedKYC />
+                            </>
+                        );
+                    }
+
+                    if (this.props.userWallet.shouldShowWalletActivationSuccess) {
+                        return (
+                            <ActivateStep userWallet={this.props.userWallet} />
+                        );
+                    }
+
+                    const currentStep = this.props.userWallet.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;
+                    return (
+                        <>
+                            {(currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS || currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS_KBA)
+                                && <AdditionalDetailsStep />}
+                            {currentStep === CONST.WALLET.STEP.ONFIDO && this.props.walletAdditionalDetailsDraft
+                            && <OnfidoStep walletAdditionalDetailsDraft={this.props.walletAdditionalDetailsDraft} />}
+                            {currentStep === CONST.WALLET.STEP.TERMS && <TermsStep />}
+                            {currentStep === CONST.WALLET.STEP.ACTIVATE && <ActivateStep userWallet={this.props.userWallet} />}
+                        </>
+                    );
+                }}
             </ScreenWrapper>
         );
     }
@@ -96,9 +103,6 @@ export default compose(
             // We want to refresh the wallet each time the user attempts to activate the wallet so we won't use the
             // stored values here.
             initWithStoredValues: false,
-        },
-        walletAdditionalDetailsDraft: {
-            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS_DRAFT,
         },
     }),
     withNetwork(),

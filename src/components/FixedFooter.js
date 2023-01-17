@@ -8,6 +8,7 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 
     /** Styles to be assigned to Container */
+    // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.arrayOf(PropTypes.object),
 };
 

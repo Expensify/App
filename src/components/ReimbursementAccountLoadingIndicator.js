@@ -9,6 +9,7 @@ import HeaderWithCloseButton from './HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from './ScreenWrapper';
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
+import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 
 const propTypes = {
     /** Whether the user is submitting verifications data */
@@ -23,23 +24,25 @@ const ReimbursementAccountLoadingIndicator = props => (
             title={props.translate('reimbursementAccountLoadingAnimation.oneMoment')}
             onCloseButtonPress={Navigation.dismissModal}
         />
-        {props.isSubmittingVerificationsData ? (
-            <View style={[styles.pageWrapper]}>
-                <Image
-                    source={{uri: `${CONST.CLOUDFRONT_URL}/images/icons/emptystates/emptystate_reviewing.gif`}}
-                    style={[
-                        styles.loadingVBAAnimation,
-                    ]}
-                />
-                <View style={[styles.ph6]}>
-                    <Text style={[styles.textAlignCenter]}>
-                        {props.translate('reimbursementAccountLoadingAnimation.explanationLine')}
-                    </Text>
+        <FullPageOfflineBlockingView>
+            {props.isSubmittingVerificationsData ? (
+                <View style={[styles.pageWrapper]}>
+                    <Image
+                        source={{uri: `${CONST.CLOUDFRONT_URL}/images/animations/animation_accountreview.gif`}}
+                        style={[
+                            styles.loadingVBAAnimation,
+                        ]}
+                    />
+                    <View style={[styles.ph6]}>
+                        <Text style={[styles.textAlignCenter]}>
+                            {props.translate('reimbursementAccountLoadingAnimation.explanationLine')}
+                        </Text>
+                    </View>
                 </View>
-            </View>
-        ) : (
-            <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-        )}
+            ) : (
+                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+            )}
+        </FullPageOfflineBlockingView>
     </ScreenWrapper>
 );
 

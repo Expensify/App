@@ -7,11 +7,11 @@ import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 class TextInput extends React.Component {
     componentDidMount() {
         if (this.props.disableKeyboard) {
-            this.textInput.setNativeProps({inputmode: 'none'});
+            this.textInput.setAttribute('inputmode', 'none');
         }
 
         if (this.props.name) {
-            this.textInput.setNativeProps({name: this.props.name});
+            this.textInput.setAttribute('name', this.props.name);
         }
     }
 
@@ -38,7 +38,7 @@ class TextInput extends React.Component {
                 inputStyle={[
                     styles.baseTextInput,
                     styles.textInputDesktop,
-                    isLabeledMultiline && styles.textInputMultiline,
+                    isLabeledMultiline ? styles.textInputMultiline : {},
                     ...this.props.inputStyle,
                 ]}
             />

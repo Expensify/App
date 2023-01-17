@@ -1,40 +1,49 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as MainQueue from '../Network/MainQueue';
+import DateUtils from '../DateUtils';
+import * as Localize from '../Localize';
+import * as PersistedRequests from './PersistedRequests';
+import NetworkConnection from '../NetworkConnection';
 
-let currentActiveClients;
+let currentIsOffline;
+let currentShouldForceOffline;
 Onyx.connect({
-    key: ONYXKEYS.ACTIVE_CLIENTS,
-    callback: (val) => {
-        currentActiveClients = !val ? [] : val;
+    key: ONYXKEYS.NETWORK,
+    callback: (network) => {
+        if (!network) {
+            return;
+        }
+        currentIsOffline = network.isOffline;
+        currentShouldForceOffline = Boolean(network.shouldForceOffline);
     },
-});
-
-let currentPreferredLocale;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: val => currentPreferredLocale = val,
 });
 
 /**
  * @param {String} errorMessage
  */
 function clearStorageAndRedirect(errorMessage) {
-    const activeClients = currentActiveClients;
-    const preferredLocale = currentPreferredLocale;
+    // Under certain conditions, there are key-values we'd like to keep in storage even when a user is logged out.
+    // We pass these into the clear() method in order to avoid having to reset them on a delayed tick and getting
+    // flashes of unwanted default state.
+    const keysToPreserve = [];
+    keysToPreserve.push(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    keysToPreserve.push(ONYXKEYS.ACTIVE_CLIENTS);
 
-    // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
-    Onyx.clear()
+    // After signing out, set ourselves as offline if we were offline before logging out and we are not forcing it.
+    // If we are forcing offline, ignore it while signed out, otherwise it would require a refresh because there's no way to toggle the switch to go back online while signed out.
+    if (currentIsOffline && !currentShouldForceOffline) {
+        keysToPreserve.push(ONYXKEYS.NETWORK);
+    }
+
+    Onyx.clear(keysToPreserve)
         .then(() => {
-            if (preferredLocale) {
-                Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
-            }
-            if (activeClients && activeClients.length > 0) {
-                Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
+            if (!errorMessage) {
+                return;
             }
 
-            // `Onyx.clear` reinitialize the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`.
-            Onyx.merge(ONYXKEYS.SESSION, {error: errorMessage});
+            // `Onyx.clear` reinitializes the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`
+            Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal(errorMessage)}});
         });
 }
 
@@ -49,6 +58,8 @@ function clearStorageAndRedirect(errorMessage) {
  */
 function redirectToSignIn(errorMessage) {
     MainQueue.clear();
+    PersistedRequests.clear();
+    NetworkConnection.clearReconnectionCallbacks();
     clearStorageAndRedirect(errorMessage);
 }
 

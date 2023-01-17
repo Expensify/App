@@ -1,14 +1,11 @@
 import React from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
-import Button from '../../components/Button';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
-import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -16,20 +13,19 @@ import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import Text from '../../components/Text';
 import ShortTermsForm from './TermsPage/ShortTermsForm';
 import LongTermsForm from './TermsPage/LongTermsForm';
+import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
+import walletTermsPropTypes from './walletTermsPropTypes';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /** Comes from Onyx. Information about the terms for the wallet */
-    walletTerms: PropTypes.shape({
-        /** Whether or not the information is currently loading */
-        loading: PropTypes.bool,
-    }),
+    walletTerms: walletTermsPropTypes,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    walletTerms: {
-        loading: false,
-    },
+    walletTerms: {},
 };
 
 class TermsStep extends React.Component {
@@ -64,6 +60,7 @@ class TermsStep extends React.Component {
     }
 
     render() {
+        const errorMessage = this.state.error ? this.props.translate('common.error.acceptedTerms') : (ErrorUtils.getLatestErrorMessage(this.props.walletTerms) || '');
         return (
             <>
                 <HeaderWithCloseButton
@@ -96,7 +93,7 @@ class TermsStep extends React.Component {
                                 </Text>
 
                                 <TextLink href="https://use.expensify.com/privacy">
-                                    {`${this.props.translate('common.privacyPolicy')} `}
+                                    {`${this.props.translate('common.privacy')} `}
                                 </TextLink>
 
                                 <Text>{`${this.props.translate('common.and')} `}</Text>
@@ -107,17 +104,9 @@ class TermsStep extends React.Component {
                             </>
                         )}
                     />
-                    {this.state.error && (
-                        <Text style={[styles.formError, styles.mb2]}>
-                            {this.props.translate('common.error.acceptedTerms')}
-                        </Text>
-                    )}
-                    <Button
-                        success
-                        style={[styles.mv4]}
-                        text={this.props.translate('termsStep.enablePayments')}
-                        isLoading={this.props.walletTerms.loading}
-                        onPress={() => {
+                    <FormAlertWithSubmitButton
+                        buttonText={this.props.translate('termsStep.enablePayments')}
+                        onSubmit={() => {
                             if (!this.state.hasAcceptedDisclosure
                                 || !this.state.hasAcceptedPrivacyPolicyAndWalletAgreement) {
                                 this.setState({error: true});
@@ -125,11 +114,15 @@ class TermsStep extends React.Component {
                             }
 
                             this.setState({error: false});
-                            BankAccounts.activateWallet(CONST.WALLET.STEP.TERMS, {
+                            BankAccounts.acceptWalletTerms({
                                 hasAcceptedTerms: this.state.hasAcceptedDisclosure
                                     && this.state.hasAcceptedPrivacyPolicyAndWalletAgreement,
+                                chatReportID: this.props.walletTerms.chatReportID,
                             });
                         }}
+                        message={errorMessage}
+                        isAlertVisible={this.state.error || Boolean(errorMessage)}
+                        containerStyles={[styles.mh0, styles.mv4]}
                     />
                 </ScrollView>
             </>
@@ -144,7 +137,9 @@ export default compose(
     withOnyx({
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,
-            initWithStoredValues: false,
+        },
+        userWallet: {
+            key: ONYXKEYS.USER_WALLET,
         },
     }),
 )(TermsStep);

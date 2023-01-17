@@ -5,7 +5,7 @@ import _ from 'underscore';
 import styles from '../styles/styles';
 import RadioButton from './RadioButton';
 import Text from './Text';
-import InlineErrorText from './InlineErrorText';
+import FormHelpMessage from './FormHelpMessage';
 
 const propTypes = {
     /** Whether the radioButton is checked */
@@ -75,9 +75,7 @@ const RadioButtonWithLabel = (props) => {
                     {LabelComponent && (<LabelComponent />)}
                 </TouchableOpacity>
             </View>
-            <InlineErrorText>
-                {props.errorText}
-            </InlineErrorText>
+            <FormHelpMessage message={props.errorText} />
         </>
     );
 };

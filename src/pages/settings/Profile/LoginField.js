@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import colors from '../../../styles/colors';
+import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import Icon from '../../../components/Icon';
 import ROUTES from '../../../ROUTES';
@@ -12,7 +12,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import * as User from '../../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Button from '../../../components/Button';
-import MenuItem from '../../../components/MenuItem';
+import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 
 const propTypes = {
     /** Label to display on login form */
@@ -41,7 +41,7 @@ class LoginField extends Component {
         };
         this.timeout = null;
         this.onResendClicked = this.onResendClicked.bind(this);
-        this.getLabelMargin = this.getLabelMargin.bind(this);
+        this.getTitle = this.getTitle.bind(this);
     }
 
     /**
@@ -64,72 +64,67 @@ class LoginField extends Component {
         }
     }
 
-    /**
-    * Bottom margin is not needed for phone/email label when unverified.
-    * When phone/email is not verified, the resend button increases the gap between the label and text,
-    * so the bottom margin is not required.
-    * @returns {Object}
-    */
-    getLabelMargin() {
-        return this.props.login.partnerUserID && !this.props.login.validatedDate ? styles.mb0 : {};
+    getTitle() {
+        if (!this.props.login.partnerUserID) {
+            return this.props.label;
+        }
+        if (this.props.type === CONST.LOGIN_TYPE.PHONE) {
+            return this.props.toLocalPhone(this.props.login.partnerUserID);
+        }
+        return this.props.login.partnerUserID;
     }
 
     render() {
         let note;
-        if (this.props.type === CONST.LOGIN_TYPE.PHONE) {
-            // No phone number
-            if (!this.props.login.partnerUserID) {
-                note = this.props.translate('loginField.addYourPhoneToSettleViaVenmo');
-
-            // Has unvalidated phone number
-            } else if (!this.props.login.validatedDate) {
+        if (this.props.login.partnerUserID && !this.props.login.validatedDate) {
+            if (this.props.type === CONST.LOGIN_TYPE.PHONE) {
+                // Has unvalidated phone number
                 note = this.props.translate('loginField.numberHasNotBeenValidated');
-
-            // Has verified phone number
             } else {
-                note = this.props.translate('loginField.useYourPhoneToSettleViaVenmo');
+                // Has unvalidated email
+                note = this.props.translate('loginField.emailHasNotBeenValidated');
             }
-
-        // Has unvalidated email
-        } else if (this.props.login.partnerUserID && !this.props.login.validatedDate) {
-            note = this.props.translate('loginField.emailHasNotBeenValidated');
         }
 
         return (
-            <View style={styles.mb6}>
-                <Text style={[styles.formLabel, this.getLabelMargin()]}>{this.props.label}</Text>
-                {!this.props.login.partnerUserID ? (
-                    <View style={[styles.mln5, styles.mrn5]}>
-                        <MenuItem
-                            key={`common.add.${this.props.type}`}
-                            title={`${this.props.translate('common.add')} ${this.props.label}`}
-                            icon={Expensicons.Plus}
-                            onPress={() => Navigation.navigate(ROUTES.getSettingsAddLoginRoute(this.props.type))}
-                        />
-                    </View>
-                ) : (
-                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                        <Text numberOfLines={1}>
-                            {this.props.type === CONST.LOGIN_TYPE.PHONE
-                                ? this.props.toLocalPhone(this.props.login.partnerUserID)
-                                : this.props.login.partnerUserID}
-                        </Text>
-                        {!this.props.login.validatedDate && (
-                            <Button
-                                small
-                                style={[styles.mb2]}
-                                onPress={this.onResendClicked}
-                                ContentComponent={() => (this.state.showCheckmarkIcon ? (
-                                    <Icon fill={colors.black} src={Expensicons.Checkmark} />
-                                ) : (
-                                    <Text style={styles.buttonSmallText}>
-                                        {this.props.translate('common.resend')}
-                                    </Text>
-                                ))}
+            <View style={[styles.ph8]}>
+                <View>
+                    {!this.props.login.partnerUserID || this.props.login.validatedDate ? (
+                        <View style={[styles.mln8, styles.mrn8]}>
+                            <MenuItemWithTopDescription
+                                title={this.getTitle()}
+                                description={this.props.login.partnerUserID ? this.props.label : undefined}
+                                interactive={Boolean(!this.props.login.partnerUserID)}
+                                onPress={this.props.login.partnerUserID ? () => { } : () => Navigation.navigate(ROUTES.getSettingsAddLoginRoute(this.props.type))}
+                                shouldShowRightIcon={Boolean(!this.props.login.partnerUserID)}
+                                style={[!this.props.login.partnerUserID && styles.colorMuted]}
                             />
-                        )}
-                    </View>
-                )}
+                        </View>
+                    ) : (
+                        <View style={[styles.mt2]}>
+                            <Text style={[styles.textLabelSupporting]}>{this.props.label}</Text>
+                            <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.pt]}>
+                                <Text numberOfLines={1}>
+                                    {this.props.type === CONST.LOGIN_TYPE.PHONE
+                                        ? this.props.toLocalPhone(this.props.login.partnerUserID)
+                                        : this.props.login.partnerUserID}
+                                </Text>
+                                <Button
+                                    small
+                                    style={[styles.mb2]}
+                                    onPress={this.onResendClicked}
+                                    ContentComponent={() => (this.state.showCheckmarkIcon ? (
+                                        <Icon fill={themeColors.inverse} src={Expensicons.Checkmark} />
+                                    ) : (
+                                        <Text style={styles.buttonSmallText}>
+                                            {this.props.translate('common.resend')}
+                                        </Text>
+                                    ))}
+                                />
+                            </View>
+                        </View>
+                    )}
+                </View>
                 {note && (
                     <Text style={[styles.textLabel, styles.colorMuted]}>
                         {note}

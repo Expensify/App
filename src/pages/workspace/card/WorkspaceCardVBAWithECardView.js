@@ -21,6 +21,7 @@ const WorkspaceCardVBAWithECardView = (props) => {
             icon: Expensicons.ExpensifyCard,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
+            wrapperStyle: [styles.cardMenuItem],
         },
         {
             title: props.translate('workspace.common.reconcileCards'),
@@ -28,6 +29,7 @@ const WorkspaceCardVBAWithECardView = (props) => {
             icon: Expensicons.ReceiptSearch,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
+            wrapperStyle: [styles.cardMenuItem],
         },
         {
             title: props.translate('workspace.common.settlementFrequency'),
@@ -35,27 +37,30 @@ const WorkspaceCardVBAWithECardView = (props) => {
             icon: Expensicons.Gear,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
+            wrapperStyle: [styles.cardMenuItem],
         },
     ];
 
     return (
         <Section
             title={props.translate('workspace.card.headerWithEcard')}
-            icon={Illustrations.CreditCardsBlue}
+            icon={Illustrations.CreditCardsNew}
             menuItems={menuItems}
         >
-            <View style={[styles.mv4]}>
+            <View style={[styles.mv3]}>
                 <Text>{props.translate('workspace.card.VBAWithECardCopy')}</Text>
             </View>
 
-            <UnorderedList
-                items={[
-                    props.translate('workspace.card.benefit1'),
-                    props.translate('workspace.card.benefit2'),
-                    props.translate('workspace.card.benefit3'),
-                    props.translate('workspace.card.benefit4'),
-                ]}
-            />
+            <View style={[styles.mv3]}>
+                <UnorderedList
+                    items={[
+                        props.translate('workspace.card.benefit1'),
+                        props.translate('workspace.card.benefit2'),
+                        props.translate('workspace.card.benefit3'),
+                        props.translate('workspace.card.benefit4'),
+                    ]}
+                />
+            </View>
         </Section>
     );
 };

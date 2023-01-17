@@ -32,16 +32,12 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
-    /** The default value of the state picker */
-    defaultValue: PropTypes.string,
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     label: '',
     value: undefined,
-    defaultValue: undefined,
     errorText: '',
     shouldSaveDraft: false,
     inputID: undefined,
@@ -56,7 +52,6 @@ const StatePicker = forwardRef((props, ref) => (
         items={STATES}
         onInputChange={props.onInputChange}
         value={props.value}
-        defaultValue={props.defaultValue}
         label={props.label || props.translate('common.state')}
         errorText={props.errorText}
         onBlur={props.onBlur}

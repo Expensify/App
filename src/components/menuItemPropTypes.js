@@ -10,6 +10,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     wrapperStyle: stylePropTypes,
 
+    /** Used to apply offline styles to child text components */
+    style: stylePropTypes,
+
     /** Function to fire when component is pressed */
     onPress: PropTypes.func,
 
@@ -30,6 +33,12 @@ const propTypes = {
 
     /** Should we make this selectable with a checkbox */
     shouldShowSelectedState: PropTypes.bool,
+
+    /** Should the title show with normal font weight (not bold) */
+    shouldShowBasicTitle: PropTypes.bool,
+
+    /** Should the description be shown above the title (instead of the other way around) */
+    shouldShowDescriptionOnTop: PropTypes.bool,
 
     /** Whether this item is selected */
     isSelected: PropTypes.bool,
@@ -66,6 +75,15 @@ const propTypes = {
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.func,
+
+    /** Avatars to show on the right of the menu item */
+    floatRightAvatars: PropTypes.arrayOf(PropTypes.string),
+
+    /** The type of brick road indicator to show. */
+    brickRoadIndicator: PropTypes.oneOf([CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, CONST.BRICK_ROAD_INDICATOR_STATUS.INFO, '']),
+
+    /** Prop to identify if we should load avatars vertically instead of diagonally */
+    shouldStackHorizontally: PropTypes.bool,
 };
 
 export default propTypes;

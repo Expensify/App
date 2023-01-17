@@ -4,6 +4,8 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import WorkspaceReimburseView from './WorkspaceReimburseView';
 import WorkspacePageWithSections from '../WorkspacePageWithSections';
 import CONST from '../../../CONST';
+import compose from '../../../libs/compose';
+import withPolicy, {policyPropTypes} from '../withPolicy';
 
 const propTypes = {
     /** The route object passed to this page from the navigator */
@@ -15,17 +17,20 @@ const propTypes = {
         }).isRequired,
     }).isRequired,
 
+    ...policyPropTypes,
     ...withLocalizePropTypes,
 };
 
 const WorkspaceReimbursePage = props => (
     <WorkspacePageWithSections
+        shouldUseScrollView
         headerText={props.translate('workspace.common.reimburse')}
         route={props.route}
         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
+        shouldSkipVBBACall
     >
-        {(hasVBA, policyID) => (
-            <WorkspaceReimburseView policyID={policyID} hasVBA={hasVBA} />
+        {() => (
+            <WorkspaceReimburseView policy={props.policy} />
         )}
     </WorkspacePageWithSections>
 );
@@ -33,4 +38,7 @@ const WorkspaceReimbursePage = props => (
 WorkspaceReimbursePage.propTypes = propTypes;
 WorkspaceReimbursePage.displayName = 'WorkspaceReimbursePage';
 
-export default withLocalize(WorkspaceReimbursePage);
+export default compose(
+    withPolicy,
+    withLocalize,
+)(WorkspaceReimbursePage);

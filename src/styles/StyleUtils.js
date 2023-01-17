@@ -19,7 +19,9 @@ function getAvatarSize(size) {
         [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.avatarSizeSmallSubscript,
         [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.avatarSizeSubscript,
         [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
+        [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
         [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
+        [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
     };
     return AVATAR_SIZES[size];
 }
@@ -77,27 +79,18 @@ function getNavigationDrawerStyle(isSmallScreenWidth) {
             width: '100%',
             height: '100%',
             borderColor: themeColors.border,
+            backgroundColor: themeColors.appBG,
         }
         : {
             height: '100%',
             width: variables.sideBarWidth,
             borderRightColor: themeColors.border,
+            backgroundColor: themeColors.appBG,
         };
 }
 
 function getNavigationDrawerType(isSmallScreenWidth) {
     return isSmallScreenWidth ? 'slide' : 'permanent';
-}
-
-function getNavigationModalCardStyle(isSmallScreenWidth) {
-    return {
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-        backgroundColor: 'transparent',
-        height: '100%',
-    };
 }
 
 /**
@@ -181,7 +174,7 @@ function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerH
  * @param {Number} width
  * @return {Object}
  */
-function getAutoGrowTextInputStyle(width) {
+function getWidthStyle(width) {
     return {
         width,
     };
@@ -213,6 +206,37 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
+ * Converts a color in hexadecimal notation into RGB notation.
+ *
+ * @param {String} hexadecimal A color in hexadecimal notation.
+ * @returns {Array} `undefined` if the input color is not in hexadecimal notation. Otherwise, the RGB components of the input color.
+ */
+function hexadecimalToRGBArray(hexadecimal) {
+    const components = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexadecimal);
+
+    if (components === null) { return undefined; }
+
+    return _.map(components.slice(1), component => parseInt(component, 16));
+}
+
+/**
+ * Returns a background color with opacity style
+ *
+ * @param {String} backgroundColor
+ * @param {number} opacity
+ * @returns {Object}
+ */
+function getBackgroundColorWithOpacityStyle(backgroundColor, opacity) {
+    const result = hexadecimalToRGBArray(backgroundColor);
+    if (result !== undefined) {
+        return {
+            backgroundColor: `rgba(${result[0]}, ${result[1]}, ${result[2]}, ${opacity})`,
+        };
+    }
+    return {};
+}
+
+/**
  * Generate a style for the background color of the Badge
  *
  * @param {Boolean} success
@@ -234,11 +258,15 @@ function getBadgeColorStyle(success, error, isPressed = false) {
  * Generate a style for the background color of the button, based on its current state.
  *
  * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @param {Boolean} isMenuItem - whether this icon is apart of a list
  * @returns {Object}
  */
-function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false) {
     switch (buttonState) {
         case CONST.BUTTON_STATES.ACTIVE:
+            if (isMenuItem) {
+                return {backgroundColor: themeColors.border};
+            }
             return {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.PRESSED:
             return {backgroundColor: themeColors.buttonPressedBG};
@@ -253,9 +281,10 @@ function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT
  * Generate fill color of an icon based on its state.
  *
  * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @param {Boolean} isMenuIcon - whether this icon is apart of a list
  * @returns {Object}
  */
-function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false) {
     switch (buttonState) {
         case CONST.BUTTON_STATES.ACTIVE:
         case CONST.BUTTON_STATES.PRESSED:
@@ -265,6 +294,9 @@ function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
         case CONST.BUTTON_STATES.DEFAULT:
         case CONST.BUTTON_STATES.DISABLED:
         default:
+            if (isMenuIcon) {
+                return themeColors.iconMenu;
+            }
             return themeColors.icon;
     }
 }
@@ -283,13 +315,13 @@ function getAnimatedFABStyle(rotate, backgroundColor) {
 
 /**
  * @param {Number} width
- * @param {Number} height
+ * @param {Number | null} height
  * @returns {Object}
  */
-function getWidthAndHeightStyle(width, height) {
+function getWidthAndHeightStyle(width, height = null) {
     return {
         width,
-        height,
+        height: height != null ? height : width,
     };
 }
 
@@ -298,16 +330,22 @@ function getWidthAndHeightStyle(width, height) {
  * @returns {Object}
  */
 function getModalPaddingStyles({
+    shouldAddBottomSafeAreaMargin,
+    shouldAddTopSafeAreaMargin,
     shouldAddBottomSafeAreaPadding,
     shouldAddTopSafeAreaPadding,
     safeAreaPaddingTop,
     safeAreaPaddingBottom,
     safeAreaPaddingLeft,
     safeAreaPaddingRight,
+    modalContainerStyleMarginTop,
+    modalContainerStyleMarginBottom,
     modalContainerStylePaddingTop,
     modalContainerStylePaddingBottom,
 }) {
     return {
+        marginTop: (modalContainerStyleMarginTop || 0) + (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0),
+        marginBottom: (modalContainerStyleMarginBottom || 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottom : 0),
         paddingTop: shouldAddTopSafeAreaPadding
             ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
             : modalContainerStylePaddingTop || 0,
@@ -387,10 +425,10 @@ function getLoginPagePromoStyle() {
  * Generate the styles for the ReportActionItem wrapper view.
  *
  * @param {Boolean} [isHovered]
- * @param {Boolean} [isPending]
+ * @param {Boolean} [isLoading]
  * @returns {Object}
  */
-function getReportActionItemStyle(isHovered = false, isPending = false) {
+function getReportActionItemStyle(isHovered = false, isLoading = false) {
     return {
         display: 'flex',
         justifyContent: 'space-between',
@@ -399,7 +437,7 @@ function getReportActionItemStyle(isHovered = false, isPending = false) {
 
             // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
             : colors.transparent,
-        opacity: isPending ? 0.5 : 1,
+        opacity: isLoading ? 0.5 : 1,
         cursor: 'default',
     };
 }
@@ -429,12 +467,95 @@ function getPaymentMethodMenuWidth(isSmallScreenWidth) {
 }
 
 /**
+ * Converts a color in RGBA notation to an equivalent color in RGB notation.
+ *
+ * @param {Array} foregroundRGB The three components of the foreground color in RGB notation.
+ * @param {Array} backgroundRGB The three components of the background color in RGB notation.
+ * @param {number} opacity The desired opacity of the foreground color.
+ * @returns {Array} The RGB components of the RGBA color converted to RGB.
+ */
+function convertRGBAToRGB(foregroundRGB, backgroundRGB, opacity) {
+    const [foregroundRed, foregroundGreen, foregroundBlue] = foregroundRGB;
+    const [backgroundRed, backgroundGreen, backgroundBlue] = backgroundRGB;
+
+    return [
+        ((1 - opacity) * backgroundRed) + (opacity * foregroundRed),
+        ((1 - opacity) * backgroundGreen) + (opacity * foregroundGreen),
+        ((1 - opacity) * backgroundBlue) + (opacity * foregroundBlue),
+    ];
+}
+
+/**
+ * Converts three unit values to the three components of a color in RGB notation.
+ *
+ * @param {number} red A unit value representing the first component of a color in RGB notation.
+ * @param {number} green A unit value representing the second component of a color in RGB notation.
+ * @param {number} blue A unit value representing the third component of a color in RGB notation.
+ * @returns {Array} An array with the three components of a color in RGB notation.
+ */
+function convertUnitValuesToRGB(red, green, blue) {
+    return [Math.floor(red * 255), Math.floor(green * 255), Math.floor(blue * 255)];
+}
+
+/**
+ * Converts the three components of a color in RGB notation to three unit values.
+ *
+ * @param {number} red The first component of a color in RGB notation.
+ * @param {number} green The second component of a color in RGB notation.
+ * @param {number} blue The third component of a color in RGB notation.
+ * @returns {Array} An array with three unit values representing the components of a color in RGB notation.
+ */
+function convertRGBToUnitValues(red, green, blue) {
+    return [red / 255, green / 255, blue / 255];
+}
+
+/**
+ * Determines the theme color for a modal based on the app's background color,
+ * the modal's backdrop, and the backdrop's opacity.
+ *
+ * @returns {String} The theme color as an RGB value.
+ */
+function getThemeBackgroundColor() {
+    const backdropOpacity = variables.modalFullscreenBackdropOpacity;
+
+    const [backgroundRed, backgroundGreen, backgroundBlue] = hexadecimalToRGBArray(themeColors.appBG);
+    const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.modalBackdrop);
+    const normalizedBackdropRGB = convertRGBToUnitValues(backdropRed, backdropGreen, backdropBlue);
+    const normalizedBackgroundRGB = convertRGBToUnitValues(
+        backgroundRed,
+        backgroundGreen,
+        backgroundBlue,
+    );
+    const themeRGBNormalized = convertRGBAToRGB(
+        normalizedBackdropRGB,
+        normalizedBackgroundRGB,
+        backdropOpacity,
+    );
+    const themeRGB = convertUnitValuesToRGB(...themeRGBNormalized);
+
+    return `rgb(${themeRGB.join(', ')})`;
+}
+
+/**
  * Parse styleParam and return Styles array
  * @param {Object|Object[]} styleParam
  * @returns {Object[]}
  */
 function parseStyleAsArray(styleParam) {
     return _.isArray(styleParam) ? styleParam : [styleParam];
+}
+
+/**
+ * Receives any number of object or array style objects and returns them all as an array
+ * @param {Object|Object[]} allStyles
+ * @return {Object[]}
+ */
+function combineStyles(...allStyles) {
+    let finalStyles = [];
+    _.each(allStyles, (style) => {
+        finalStyles = finalStyles.concat(parseStyleAsArray(style));
+    });
+    return finalStyles;
 }
 
 /**
@@ -448,6 +569,86 @@ function getPaddingLeft(paddingLeft) {
     };
 }
 
+/**
+ * Android only - convert RTL text to a LTR text using Unicode controls.
+ * https://www.w3.org/International/questions/qa-bidi-unicode-controls
+ * @param {String} text
+ * @returns {String}
+ */
+function convertToLTR(text) {
+    return `\u2066${text}`;
+}
+
+/**
+ * Checks to see if the iOS device has safe areas or not
+ *
+ * @param {Number} windowWidth
+ * @param {Number} windowHeight
+ * @returns {Boolean}
+ */
+function hasSafeAreas(windowWidth, windowHeight) {
+    const heightsIphonesWithNotches = [812, 896, 844, 926];
+    return _.contains(heightsIphonesWithNotches, windowHeight) || _.contains(heightsIphonesWithNotches, windowWidth);
+}
+
+/**
+ * Get variable keyboard height as style
+ * @param {Number} keyboardHeight
+ * @returns {Object}
+ */
+function getHeight(keyboardHeight) {
+    return {
+        height: keyboardHeight,
+    };
+}
+
+/**
+ * Return style for opacity animation.
+ *
+ * @param {Animated.Value} fadeAnimation
+ * @returns {Object}
+ */
+function fade(fadeAnimation) {
+    return {
+        opacity: fadeAnimation,
+    };
+}
+
+/**
+ * Return width for keyboard shortcuts modal.
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
+function getKeyboardShortcutsModalWidth(isSmallScreenWidth) {
+    if (isSmallScreenWidth) {
+        return {maxWidth: '100%'};
+    }
+    return {maxWidth: 600};
+}
+
+/**
+ * @param {Boolean} isHovered
+ * @param {Boolean} isPressed
+ * @returns {Object}
+ */
+function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
+    let backgroundColor = themeColors.appBG;
+
+    if (isHovered) {
+        backgroundColor = themeColors.buttonHoveredBG;
+    }
+
+    if (isPressed) {
+        backgroundColor = themeColors.buttonPressedBG;
+    }
+
+    return {
+        backgroundColor,
+        borderColor: backgroundColor,
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -455,12 +656,12 @@ export {
     getSafeAreaMargins,
     getNavigationDrawerStyle,
     getNavigationDrawerType,
-    getNavigationModalCardStyle,
     getZoomCursorStyle,
     getZoomSizingStyle,
-    getAutoGrowTextInputStyle,
+    getWidthStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
+    getBackgroundColorWithOpacityStyle,
     getBadgeColorStyle,
     getButtonBackgroundColorStyle,
     getIconFillColor,
@@ -472,7 +673,15 @@ export {
     getLoginPagePromoStyle,
     getReportActionItemStyle,
     getMiniReportActionContextMenuWrapperStyle,
+    getKeyboardShortcutsModalWidth,
     getPaymentMethodMenuWidth,
+    getThemeBackgroundColor,
     parseStyleAsArray,
+    combineStyles,
     getPaddingLeft,
+    convertToLTR,
+    hasSafeAreas,
+    getHeight,
+    fade,
+    getHorizontalStackedAvatarBorderStyle,
 };

@@ -49,6 +49,23 @@ class BaseDrawerNavigator extends Component {
         };
     }
 
+    componentDidMount() {
+        // We need to resolve the isDrawerReady promise so that any pending drawer actions, like direct navigation from OldDot to
+        // a NewDot report, can happen.
+        Navigation.setIsDrawerReady();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.isSmallScreenWidth === this.props.isSmallScreenWidth) {
+            return;
+        }
+
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({
+            defaultStatus: Navigation.getDefaultDrawerState(this.props.isSmallScreenWidth),
+        });
+    }
+
     render() {
         const content = (
             <Drawer.Navigator

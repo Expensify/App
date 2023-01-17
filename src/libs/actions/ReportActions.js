@@ -1,122 +1,43 @@
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as CollectionUtils from '../CollectionUtils';
-import CONST from '../../CONST';
-import * as ReportUtils from '../ReportUtils';
-import * as ReportActionsUtils from '../ReportActionsUtils';
 
 /**
- * Map of the most recent non-loading sequenceNumber for a reportActions_* key in Onyx by reportID.
- *
- * What's the difference between reportMaxSequenceNumbers and reportActionsMaxSequenceNumbers?
- *
- * Knowing the maxSequenceNumber for a report does not necessarily mean we have stored the report actions for that
- * report. To understand and optimize which reportActions we need to fetch we also keep track of the max sequenceNumber
- * for the stored reportActions in reportActionsMaxSequenceNumbers. This allows us to initially download all
- * reportActions when the app starts up and then only download the actions that we need when the app reconnects.
- *
- * This information should only be used in the correct contexts. In most cases, reportMaxSequenceNumbers should be
- * referenced and not the locally stored reportAction's max sequenceNumber.
+ * @param {String} reportID
+ * @param {String} sequenceNumber
  */
-const reportActionsMaxSequenceNumbers = {};
-const reportActions = {};
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
-            return;
-        }
-
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        const actionsArray = _.toArray(actions);
-        reportActions[reportID] = actionsArray;
-        const mostRecentNonLoadingActionIndex = _.findLastIndex(actionsArray, action => !action.loading);
-        const mostRecentAction = actionsArray[mostRecentNonLoadingActionIndex];
-        if (!mostRecentAction || _.isUndefined(mostRecentAction.sequenceNumber)) {
-            return;
-        }
-
-        reportActionsMaxSequenceNumbers[reportID] = mostRecentAction.sequenceNumber;
-    },
-});
-
-/**
- * WARNING: Do not use this method to access the maxSequenceNumber for a report. This ONLY returns the maxSequenceNumber
- * for reportActions that are stored in Onyx under a reportActions_* key.
- *
- * @param {Number} reportID
- * @param {Boolean} shouldWarn
- * @returns {Number}
- */
-function dangerouslyGetReportActionsMaxSequenceNumber(reportID, shouldWarn = true) {
-    if (shouldWarn) {
-        console.error('WARNING: dangerouslyGetReportActionsMaxSequenceNumber is unreliable as it ONLY references '
-            + 'reportActions in storage. It should not be used to access the maxSequenceNumber for a report. Use '
-            + 'reportMaxSequenceNumbers[reportID] instead.');
-    }
-
-    return reportActionsMaxSequenceNumbers[reportID];
+function deleteOptimisticReportAction(reportID, sequenceNumber) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        [sequenceNumber]: null,
+    });
 }
 
 /**
- * Compares the maximum sequenceNumber that we know about with the most recent report action we have saved.
- * If we have no report actions at all for the report we will assume that it is missing actions.
- *
- * @param {Number} reportID
- * @param {Number} maxKnownSequenceNumber
- * @returns {Boolean}
+ * @param {String} reportID
+ * @param {String} sequenceNumber
  */
-function isReportMissingActions(reportID, maxKnownSequenceNumber) {
-    return _.isUndefined(reportActionsMaxSequenceNumbers[reportID])
-        || reportActionsMaxSequenceNumbers[reportID] < maxKnownSequenceNumber;
+function clearReportActionErrors(reportID, sequenceNumber) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        [sequenceNumber]: {
+            errors: null,
+        },
+    });
 }
 
 /**
- * Get the count of deleted messages after a sequence number of a report
- * @param {Number|String} reportID
- * @param {Number} sequenceNumber
- * @return {Number}
+ * This method clears the errors for a chat where send money action was done
+ * @param {String} chatReportID
+ * @param {String} reportActionID
  */
-function getDeletedCommentsCount(reportID, sequenceNumber) {
-    if (!reportActions[reportID]) {
-        return 0;
-    }
-
-    return _.reduce(reportActions[reportID], (numDeletedMessages, action) => {
-        if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || action.sequenceNumber <= sequenceNumber) {
-            return numDeletedMessages;
-        }
-
-        // Empty ADDCOMMENT actions typically mean they have been deleted
-        const message = _.first(lodashGet(action, 'message', null));
-        const html = lodashGet(message, 'html', '');
-        return _.isEmpty(html) ? numDeletedMessages + 1 : numDeletedMessages;
-    }, 0);
-}
-
-/**
- * Get the message text for the last action that was not deleted
- * @param {Number} reportID
- * @return {String}
- */
-function getLastVisibleMessageText(reportID) {
-    const parser = new ExpensiMark();
-    const lastMessageIndex = _.findLastIndex(reportActions[reportID], action => (
-        !ReportActionsUtils.isDeletedAction(action)
-    ));
-    const htmlText = lodashGet(reportActions, [reportID, lastMessageIndex, 'message', 0, 'html'], '');
-    const messageText = parser.htmlToText(htmlText);
-
-    return ReportUtils.formatReportLastMessageText(messageText);
+function clearSendMoneyErrors(chatReportID, reportActionID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+        [reportActionID]: {
+            errors: null,
+        },
+    });
 }
 
 export {
-    isReportMissingActions,
-    dangerouslyGetReportActionsMaxSequenceNumber,
-    getDeletedCommentsCount,
-    getLastVisibleMessageText,
+    clearReportActionErrors,
+    deleteOptimisticReportAction,
+    clearSendMoneyErrors,
 };

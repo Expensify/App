@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -13,12 +13,11 @@ import ReportScreen from '../../../pages/home/ReportScreen';
 import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import BaseDrawerNavigator from './BaseDrawerNavigator';
 import * as ReportUtils from '../../ReportUtils';
+import reportPropTypes from '../../../pages/reportPropTypes';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
-    reports: PropTypes.objectOf(PropTypes.shape({
-        reportID: PropTypes.number,
-    })),
+    reports: PropTypes.objectOf(reportPropTypes),
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
@@ -30,12 +29,13 @@ const propTypes = {
 
         /** The type of the policy */
         type: PropTypes.string,
-    })).isRequired,
+    })),
 };
 
 const defaultProps = {
     reports: {},
     betas: [],
+    policies: {},
 };
 
 /**
@@ -54,31 +54,55 @@ const getInitialReportScreenParams = (reports, ignoreDefaultRooms, policies) => 
     return {reportID: String(reportID)};
 };
 
-const MainDrawerNavigator = (props) => {
-    const initialParams = getInitialReportScreenParams(props.reports, !Permissions.canUseDefaultRooms(props.betas), props.policies);
-
-    // Wait until reports are fetched and there is a reportID in initialParams
-    if (!initialParams.reportID) {
-        return <FullScreenLoadingIndicator logDetail={{name: 'Main Drawer Loader', initialParams}} />;
+class MainDrawerNavigator extends Component {
+    constructor(props) {
+        super(props);
+        this.initialParams = getInitialReportScreenParams(props.reports, !Permissions.canUseDefaultRooms(props.betas), props.policies);
     }
 
-    // After the app initializes and reports are available the home navigation is mounted
-    // This way routing information is updated (if needed) based on the initial report ID resolved.
-    // This is usually needed after login/create account and re-launches
-    return (
-        <BaseDrawerNavigator
-            drawerContent={() => <SidebarScreen />}
-            screens={[
-                {
-                    name: SCREENS.REPORT,
-                    component: ReportScreen,
-                    initialParams,
-                },
-            ]}
-            isMainScreen
-        />
-    );
-};
+    shouldComponentUpdate(nextProps) {
+        const initialNextParams = getInitialReportScreenParams(nextProps.reports, !Permissions.canUseDefaultRooms(nextProps.betas), nextProps.policies);
+        if (this.initialParams.reportID === initialNextParams.reportID) {
+            return false;
+        }
+
+        this.initialParams = initialNextParams;
+        return true;
+    }
+
+    render() {
+        // Wait until reports are fetched and there is a reportID in initialParams
+        if (!this.initialParams.reportID) {
+            return <FullScreenLoadingIndicator logDetail={{name: 'Main Drawer Loader', initialParams: this.initialParams}} />;
+        }
+
+        // After the app initializes and reports are available the home navigation is mounted
+        // This way routing information is updated (if needed) based on the initial report ID resolved.
+        // This is usually needed after login/create account and re-launches
+        return (
+            <BaseDrawerNavigator
+                drawerContent={({navigation, state}) => {
+                    // This state belongs to the drawer so it should always have the ReportScreen as it's initial (and only) route
+                    const reportIDFromRoute = lodashGet(state, ['routes', 0, 'params', 'reportID']);
+                    return (
+                        <SidebarScreen
+                            navigation={navigation}
+                            reportIDFromRoute={reportIDFromRoute}
+                        />
+                    );
+                }}
+                screens={[
+                    {
+                        name: SCREENS.REPORT,
+                        component: ReportScreen,
+                        initialParams: this.initialParams,
+                    },
+                ]}
+                isMainScreen
+            />
+        );
+    }
+}
 
 MainDrawerNavigator.propTypes = propTypes;
 MainDrawerNavigator.defaultProps = defaultProps;
@@ -95,4 +119,3 @@ export default withOnyx({
         key: ONYXKEYS.COLLECTION.POLICY,
     },
 })(MainDrawerNavigator);
-export {getInitialReportScreenParams};

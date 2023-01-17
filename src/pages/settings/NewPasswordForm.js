@@ -70,6 +70,7 @@ class NewPasswordForm extends React.Component {
         return (
             <View style={styles.mb6}>
                 <TextInput
+                    autoFocus
                     label={`${this.props.translate('setPasswordPage.enterPassword')}`}
                     secureTextEntry
                     autoComplete={ComponentUtils.NEW_PASSWORD_AUTOCOMPLETE_TYPE}

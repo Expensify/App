@@ -3,6 +3,7 @@ import _ from 'underscore';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
+import * as Localize from './Localize';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -256,9 +257,9 @@ function validateIdentity(identity) {
  * @param {Boolean} [isCountryCodeOptional]
  * @returns {Boolean}
  */
-function isValidUSPhone(phoneNumber, isCountryCodeOptional) {
+function isValidUSPhone(phoneNumber = '', isCountryCodeOptional) {
     // Remove non alphanumeric characters from the phone number
-    const sanitizedPhone = phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, '');
+    const sanitizedPhone = (phoneNumber || '').replace(CONST.REGEX.NON_ALPHA_NUMERIC, '');
     const isUsPhone = isCountryCodeOptional
         ? CONST.REGEX.US_PHONE_WITH_OPTIONAL_COUNTRY_CODE.test(sanitizedPhone) : CONST.REGEX.US_PHONE.test(sanitizedPhone);
 
@@ -271,6 +272,14 @@ function isValidUSPhone(phoneNumber, isCountryCodeOptional) {
  */
 function isValidPassword(password) {
     return password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
+}
+
+/**
+ * @param {String} code
+ * @returns {Boolean}
+ */
+function isValidTwoFactorCode(code) {
+    return Boolean(code.match(CONST.REGEX.CODE_2FA));
 }
 
 /**
@@ -321,7 +330,38 @@ function isValidRoutingNumber(number) {
  * @returns {Boolean[]}
  */
 function doesFailCharacterLimit(maxLength, valuesToBeValidated) {
-    return _.map(valuesToBeValidated, value => value.length > maxLength);
+    return _.map(valuesToBeValidated, value => value && value.length > maxLength);
+}
+
+/**
+ * Checks if each string in array is of valid length and then returns true
+ * for each string which exceeds the limit. The function trims the passed values.
+ *
+ * @param {Number} maxLength
+ * @param {String[]} valuesToBeValidated
+ * @returns {Boolean[]}
+ */
+function doesFailCharacterLimitAfterTrim(maxLength, valuesToBeValidated) {
+    return _.map(valuesToBeValidated, value => value && value.trim().length > maxLength);
+}
+
+/**
+ * Checks if input value includes comma or semicolon which are not accepted
+ *
+ * @param {String[]} valuesToBeValidated
+ * @returns {String[]}
+ */
+function findInvalidSymbols(valuesToBeValidated) {
+    return _.map(valuesToBeValidated, (value) => {
+        if (!value) {
+            return '';
+        }
+        let inValidSymbol = value.replace(/[,]+/g, '') !== value ? Localize.translateLocal('personalDetails.error.comma') : '';
+        if (_.isEmpty(inValidSymbol)) {
+            inValidSymbol = value.replace(/[;]+/g, '') !== value ? Localize.translateLocal('personalDetails.error.semicolon') : '';
+        }
+        return inValidSymbol;
+    });
 }
 
 /**
@@ -352,13 +392,26 @@ function isExistingRoomName(roomName, reports, policyID) {
 }
 
 /**
+ * Checks if a room name is valid by checking that:
+ * - It starts with a hash '#'
+ * - After the first character, it contains only lowercase letters, numbers, and dashes
+ * - It's between 1 and MAX_ROOM_NAME_LENGTH characters long
+ *
+ * @param {String} roomName
+ * @returns {Boolean}
+ */
+function isValidRoomName(roomName) {
+    return CONST.REGEX.ROOM_NAME.test(roomName);
+}
+
+/**
  * Checks if tax ID consists of 9 digits
  *
  * @param {String} taxID
  * @returns {Boolean}
  */
 function isValidTaxID(taxID) {
-    return CONST.REGEX.TAX_ID.test(taxID.replace(CONST.REGEX.NON_NUMERIC, ''));
+    return taxID && CONST.REGEX.TAX_ID.test(taxID.replace(CONST.REGEX.NON_NUMERIC, ''));
 }
 
 export {
@@ -377,6 +430,7 @@ export {
     isValidURL,
     validateIdentity,
     isValidPassword,
+    isValidTwoFactorCode,
     isPositiveInteger,
     isNumericWithSpecialChars,
     isValidPaypalUsername,
@@ -384,7 +438,10 @@ export {
     isValidSSNLastFour,
     isValidSSNFullNine,
     doesFailCharacterLimit,
+    doesFailCharacterLimitAfterTrim,
     isReservedRoomName,
     isExistingRoomName,
+    isValidRoomName,
     isValidTaxID,
+    findInvalidSymbols,
 };

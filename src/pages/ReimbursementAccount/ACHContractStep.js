@@ -4,6 +4,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import * as store from '../../libs/actions/ReimbursementAccount/store';
 import Text from '../../components/Text';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import styles from '../../styles/styles';
@@ -142,6 +143,8 @@ class ACHContractStep extends React.Component {
             return;
         }
 
+        const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
+
         // If they did not select that there are other beneficial owners, then we need to clear out the array here. The
         // reason we do it here is that if they filled out several beneficial owners, but then toggled the checkbox, we
         // want the data to remain in the form so we don't lose the user input until they submit the form. This will
@@ -149,7 +152,7 @@ class ACHContractStep extends React.Component {
         this.setState(prevState => ({
             beneficialOwners: !prevState.hasOtherBeneficialOwners ? [] : prevState.beneficialOwners,
         }),
-        () => BankAccounts.setupWithdrawalAccount({...this.state}));
+        () => BankAccounts.updateBeneficialOwnersForBankAccount({...this.state, beneficialOwners: JSON.stringify(this.state.beneficialOwners), bankAccountID}));
     }
 
     /**
@@ -171,12 +174,16 @@ class ACHContractStep extends React.Component {
                     title={this.props.translate('beneficialOwnersStep.additionalInformation')}
                     stepCounter={{step: 4, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
-                    onBackButtonPress={() => BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR)}
+                    onBackButtonPress={() => {
+                        BankAccounts.clearOnfidoToken();
+                        BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                    }}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                 />
                 <ReimbursementAccountForm
+                    reimbursementAccount={this.props.reimbursementAccount}
                     onSubmit={this.submit}
                 >
                     <Text style={[styles.mb5]}>
@@ -224,6 +231,7 @@ class ACHContractStep extends React.Component {
                                         {this.props.translate('beneficialOwnersStep.additionalOwner')}
                                     </Text>
                                     <IdentityForm
+                                        translate={this.props.translate}
                                         style={[styles.mb2]}
                                         onFieldChange={values => this.clearErrorAndSetBeneficialOwnerValues(index, values)}
                                         values={{

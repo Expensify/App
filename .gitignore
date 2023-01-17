@@ -24,6 +24,7 @@ DerivedData
 *.p12
 *.mobileprovision
 ios-fastlane-json-key.json
+ios/.xcode.env.local
 
 # Android/IntelliJ
 #
@@ -34,6 +35,7 @@ local.properties
 *.iml
 android/*.hprof
 android/app/src/main/java/com/expensify/chat/generated/
+.cxx/
 
 # Vscode
 .vscode
@@ -62,15 +64,17 @@ android/app/android-fastlane-json-key.json
 # For more information about the recommended setup visit:
 # https://docs.fastlane.tools/best-practices/source-control/
 
-fastlane/report.xml
-fastlane/Preview.html
-fastlane/screenshots
+**/fastlane/report.xml
+**/fastlane/Preview.html
+**/fastlane/screenshots
+**/fastlane/test_output
 
 # Bundle artifact
 *.jsbundle
 
-# CocoaPods
+# Ruby / CocoaPods
 /ios/Pods/
+/vendor/bundle/
 
 # Local DEV config
 /.env
@@ -85,3 +89,8 @@ storybook-static
 # Jest coverage report
 /coverage.data
 /coverage/
+
+.jest-cache
+
+# E2E test reports
+tests/e2e/results/

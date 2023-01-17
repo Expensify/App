@@ -12,7 +12,8 @@ const env = dotenv.config({path: path.resolve(__dirname, '../.env.staging')}).pa
 module.exports = ({config}) => {
     config.resolve.alias = {
         'react-native-config': 'react-web-config',
-        'react-native$': 'react-native-web',
+        'react-native$': '@expensify/react-native-web',
+        'react-native-web': '@expensify/react-native-web',
         '@react-native-community/netinfo': path.resolve(__dirname, '../__mocks__/@react-native-community/netinfo.js'),
     };
 

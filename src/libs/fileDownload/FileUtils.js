@@ -103,10 +103,24 @@ function getFileType(fileUrl) {
     return CONST.ATTACHMENT_FILE_TYPE.FILE;
 }
 
+/**
+ * Returns the filename split into fileName and fileExtension
+ *
+ * @param {String} fullFileName
+ * @returns {Object}
+ */
+function splitExtensionFromFileName(fullFileName) {
+    const fileName = fullFileName.trim();
+    const splitFileName = fileName.split('.');
+    const fileExtension = splitFileName.pop();
+    return {fileName: splitFileName.join('.'), fileExtension};
+}
+
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
     showPermissionErrorAlert,
+    splitExtensionFromFileName,
     getAttachmentName,
     getFileType,
 };

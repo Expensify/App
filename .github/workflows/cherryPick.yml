@@ -7,7 +7,7 @@ on:
         description: The number of a pull request to CP
         required: true
       NEW_VERSION:
-        description: The new app version
+        description: The new app version (leave empty if running manually)
         required: false
         default: ''
 
@@ -26,36 +26,9 @@ jobs:
 
   createNewVersion:
     needs: validateActor
-    runs-on: ubuntu-latest
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) && github.event.inputs.NEW_VERSION == '' }}
-    outputs:
-      NEW_VERSION: ${{ steps.getNewVersion.outputs.NEW_VERSION }}
-    steps:
-      - name: Checkout main branch
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
-        with:
-          ref: main
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
-        with:
-          poll-interval-seconds: 10
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create new BUILD version
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          WORKFLOW: createNewVersion.yml
-          INPUTS: '{ "SEMVER_LEVEL": "BUILD" }'
-
-      - name: Pull main to get the new version
-        id: getNewVersion
-        run: |
-          git pull origin main
-          echo "New version is $(npm run print-version --silent)"
-          echo "::set-output name=NEW_VERSION::$(npm run print-version --silent)"
+    uses: Expensify/App/.github/workflows/createNewVersion.yml@main
+    secrets: inherit
 
   cherryPick:
     needs: [validateActor, createNewVersion]
@@ -64,25 +37,14 @@ jobs:
     steps:
       # Version: 2.3.4
       - name: Checkout staging branch
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           ref: staging
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Decrypt Botify GPG key
-        run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Import Botify GPG Key
-        run: cd .github/workflows && gpg --import OSBotify-private-key.asc
-
-      - name: Set up git for Botify
-        run: |
-          git config user.signingkey 367811D53E34168C
-          git config commit.gpgsign true
-          git config user.name OSBotify
-          git config user.email infra+osbotify@expensify.com
+      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+        with:
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Create branch for new pull request
         run: |
@@ -91,7 +53,7 @@ jobs:
 
       - name: Get merge commit for CP pull request
         id: getCPMergeCommit
-        uses: Expensify/App/.github/actions/getPullRequestDetails@main
+        uses: Expensify/App/.github/actions/javascript/getPullRequestDetails@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USER: ${{ github.actor }}
@@ -111,7 +73,7 @@ jobs:
 
       - name: Get merge commit for version-bump pull request
         id: getVersionBumpMergeCommit
-        uses: Expensify/App/.github/actions/getPullRequestDetails@main
+        uses: Expensify/App/.github/actions/javascript/getPullRequestDetails@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USER: OSBotify
@@ -128,13 +90,13 @@ jobs:
           echo "Attempting to cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}"
           if git cherry-pick -S -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}; then
             echo "🎉 No conflicts! CP was a success, PR can be automerged 🎉"
-            echo "::set-output name=SHOULD_AUTOMERGE::true"
+            echo "SHOULD_AUTOMERGE=true" >> "$GITHUB_OUTPUT"
           else
             echo "😞 PR can't be automerged, there are merge conflicts in the following files:"
             git --no-pager diff --name-only --diff-filter=U
             git add .
             GIT_MERGE_AUTOEDIT=no git cherry-pick --continue
-            echo "::set-output name=SHOULD_AUTOMERGE::false"
+            echo "SHOULD_AUTOMERGE=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Push changes to CP branch
@@ -149,13 +111,13 @@ jobs:
             --label "automerge" \
             --base "staging"
           sleep 5
-          echo "::set-output name=PR_NUMBER::$(gh pr view --json 'number' --jq '.number')"
+          echo "PR_NUMBER=$(gh pr view --json 'number' --jq '.number')" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Check if ShortVersionString is up to date
         id: isShortVersionStringUpdated
-        uses: Expensify/App/.github/actions/checkBundleVersionStringMatch@main
+        uses: Expensify/App/.github/actions/javascript/checkBundleVersionStringMatch@main
 
       - name: Auto-assign PR if there are merge conflicts or if the bundle versions are mismatched
         if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) || !fromJSON(steps.isShortVersionStringUpdated.outputs.BUNDLE_VERSIONS_MATCH) }}
@@ -198,7 +160,7 @@ jobs:
 
       - name: Check if pull request is mergeable
         id: isPullRequestMergeable
-        uses: Expensify/App/.github/actions/isPullRequestMergeable@main
+        uses: Expensify/App/.github/actions/javascript/isPullRequestMergeable@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.pr_number }}

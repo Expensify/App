@@ -15,7 +15,7 @@ import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButto
 import FormScrollView from '../../components/FormScrollView';
 import walletAdditionalDetailsDraftPropTypes from './walletAdditionalDetailsDraftPropTypes';
 import walletOnfidoDataPropTypes from './walletOnfidoDataPropTypes';
-import * as Localize from '../../libs/Localize';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /** Stores various information used to build the UI and call any APIs */
@@ -32,7 +32,8 @@ const defaultProps = {
         applicantID: '',
         sdkToken: '',
         loading: false,
-        error: '',
+        errors: {},
+        fixableErrors: [],
         hasAcceptedPrivacyPolicy: false,
     },
 };
@@ -41,11 +42,11 @@ class OnfidoPrivacy extends React.Component {
     constructor(props) {
         super(props);
 
-        this.fetchOnfidoToken = this.fetchOnfidoToken.bind(this);
+        this.openOnfidoFlow = this.openOnfidoFlow.bind(this);
     }
 
-    fetchOnfidoToken() {
-        BankAccounts.fetchOnfidoToken(
+    openOnfidoFlow() {
+        BankAccounts.openOnfidoFlow(
             this.props.walletAdditionalDetailsDraft.legalFirstName,
             this.props.walletAdditionalDetailsDraft.legalLastName,
             this.props.walletAdditionalDetailsDraft.dob,
@@ -53,28 +54,15 @@ class OnfidoPrivacy extends React.Component {
     }
 
     render() {
-        let onfidoError = lodashGet(this.props, 'walletOnfidoData.error') || '';
-        if (!onfidoError) {
-            const onfidoFixableErrors = lodashGet(this.props, 'userWallet.onfidoFixableErrors', []);
-            if (!_.isEmpty(onfidoFixableErrors)) {
-                const supportedErrorKeys = ['originalDocumentNeeded', 'documentNeedsBetterQuality', 'imageNeedsBetterQuality', 'selfieIssue', 'selfieNotMatching', 'selfieNotLive'];
-                const translatedFixableErrors = _.filter(_.map(onfidoFixableErrors, (errorKey) => {
-                    if (_.contains(supportedErrorKeys, errorKey)) {
-                        return Localize.translateLocal(`onfidoStep.${errorKey}`);
-                    }
-                    return null;
-                }));
-                if (!_.isEmpty(translatedFixableErrors)) {
-                    onfidoError = translatedFixableErrors.join(' ');
-                }
-            }
-        }
+        let onfidoError = ErrorUtils.getLatestErrorMessage(this.props.walletOnfidoData) || '';
+        const onfidoFixableErrors = lodashGet(this.props, 'walletOnfidoData.fixableErrors', []);
+        onfidoError += !_.isEmpty(onfidoFixableErrors) ? `\n${onfidoFixableErrors.join('\n')}` : '';
 
         return (
-            <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentBetween]}>
+            <View style={[styles.mb5, styles.flex1, styles.justifyContentBetween]}>
                 {!this.props.walletOnfidoData.hasAcceptedPrivacyPolicy ? (
                     <FormScrollView ref={el => this.form = el}>
-                        <View style={styles.justifyContentCenter}>
+                        <View style={[styles.mh5, styles.justifyContentCenter]}>
                             <Text style={[styles.mb5]}>
                                 {this.props.translate('onfidoStep.acceptTerms')}
                                 <TextLink
@@ -86,7 +74,7 @@ class OnfidoPrivacy extends React.Component {
                                 <TextLink
                                     href="https://onfido.com/privacy/"
                                 >
-                                    {this.props.translate('common.privacyPolicy')}
+                                    {this.props.translate('common.privacy')}
                                 </TextLink>
                                 {` ${this.props.translate('common.and')} `}
                                 <TextLink
@@ -99,17 +87,17 @@ class OnfidoPrivacy extends React.Component {
                         </View>
                         <FormAlertWithSubmitButton
                             isAlertVisible={Boolean(onfidoError)}
-                            onSubmit={this.fetchOnfidoToken}
+                            onSubmit={this.openOnfidoFlow}
                             onFixTheErrorsLinkPressed={() => {
                                 this.form.scrollTo({y: 0, animated: true});
                             }}
                             message={onfidoError}
-                            isLoading={this.props.walletOnfidoData.loading}
+                            isLoading={this.props.walletOnfidoData.isLoading}
                             buttonText={onfidoError ? this.props.translate('onfidoStep.tryAgain') : this.props.translate('common.continue')}
                         />
                     </FormScrollView>
                 ) : null}
-                {this.props.walletOnfidoData.hasAcceptedPrivacyPolicy && this.props.walletOnfidoData.loading ? <FullscreenLoadingIndicator /> : null}
+                {this.props.walletOnfidoData.hasAcceptedPrivacyPolicy && this.props.walletOnfidoData.isLoading ? <FullscreenLoadingIndicator /> : null}
             </View>
         );
     }

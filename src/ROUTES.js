@@ -22,7 +22,12 @@ export default {
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
+    SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',
+    SETTINGS_TIMEZONE: 'settings/profile/timezone',
+    SETTINGS_TIMEZONE_SELECT: 'settings/profile/timezone/select',
+    SETTINGS_PRONOUNS: 'settings/profile/pronouns',
     SETTINGS_PREFERENCES: 'settings/preferences',
+    SETTINGS_WORKSPACES: 'settings/workspaces',
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
     SETTINGS_PASSWORD: 'settings/security/password',
@@ -42,6 +47,10 @@ export default {
     REPORT,
     REPORT_WITH_ID: 'r/:reportID',
     getReportRoute: reportID => `r/${reportID}`,
+
+    /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
+    CONCIERGE: 'concierge',
+
     IOU_REQUEST,
     IOU_BILL,
     IOU_SEND,
@@ -101,7 +110,6 @@ export default {
     WORKSPACE_INVOICES: 'workspace/:policyID/invoices',
     WORKSPACE_TRAVEL: 'workspace/:policyID/travel',
     WORKSPACE_MEMBERS: 'workspace/:policyID/members',
-    WORKSPACE_BANK_ACCOUNT: 'workspace/:policyID/bank-account',
     WORKSPACE_NEW_ROOM: 'workspace/new-room',
     getWorkspaceInitialRoute: policyID => `workspace/${policyID}`,
     getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
@@ -112,7 +120,6 @@ export default {
     getWorkspaceInvoicesRoute: policyID => `workspace/${policyID}/invoices`,
     getWorkspaceTravelRoute: policyID => `workspace/${policyID}/travel`,
     getWorkspaceMembersRoute: policyID => `workspace/${policyID}/members`,
-    getWorkspaceBankAccountRoute: policyID => `workspace/${policyID}/bank-account`,
     getRequestCallRoute: taskID => `request-call/${taskID}`,
     REQUEST_CALL: 'request-call/:taskID',
 

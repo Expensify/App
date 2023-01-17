@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
@@ -17,6 +18,7 @@ import ROUTES from '../../../ROUTES';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
 import Tooltip from '../../../components/Tooltip';
 import ControlSelection from '../../../libs/ControlSelection';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 
 const propTypes = {
     /** All the data of the action */
@@ -26,6 +28,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** Styles for the outermost View */
+    // eslint-disable-next-line react/forbid-prop-types
     wrapperStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Children view component for this action item */
@@ -48,9 +51,14 @@ const showUserDetails = (email) => {
 };
 
 const ReportActionItemSingle = (props) => {
-    const {avatar, displayName, login} = props.personalDetails[props.action.actorEmail] || {};
+    const {
+        avatar,
+        displayName,
+        login,
+        pendingFields,
+    } = props.personalDetails[props.action.actorEmail] || {};
     const avatarUrl = props.action.automatic
-        ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
+        ? CONST.CONCIERGE_ICON_URL
 
         // Use avatar in personalDetails if we have one then fallback to avatar provided by the action
         : (avatar || props.action.avatar);
@@ -65,39 +73,43 @@ const ReportActionItemSingle = (props) => {
     return (
         <View style={props.wrapperStyles}>
             <Pressable
-                style={styles.alignSelfStart}
+                style={[styles.alignSelfStart]}
                 onPressIn={ControlSelection.block}
                 onPressOut={ControlSelection.unblock}
                 onPress={() => showUserDetails(props.action.actorEmail)}
             >
                 <Tooltip text={props.action.actorEmail}>
-                    <Avatar
-                        containerStyles={[styles.actionAvatar]}
-                        source={avatarUrl}
-                    />
+                    <OfflineWithFeedback
+                        pendingAction={lodashGet(pendingFields, 'avatar', null)}
+                    >
+                        <Avatar
+                            containerStyles={[styles.actionAvatar]}
+                            source={avatarUrl}
+                        />
+                    </OfflineWithFeedback>
                 </Tooltip>
             </Pressable>
             <View style={[styles.chatItemRight]}>
                 {props.showHeader ? (
                     <View style={[styles.chatItemMessageHeader]}>
                         <Pressable
-                            style={[styles.flexShrink1]}
+                            style={[styles.flexShrink1, styles.mr1]}
                             onPressIn={ControlSelection.block}
                             onPressOut={ControlSelection.unblock}
                             onPress={() => showUserDetails(props.action.actorEmail)}
                         >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
-                                    key={`person-${props.action.sequenceNumber}-${index}`}
+                                    key={`person-${props.action.reportActionID}-${index}`}
                                     fragment={fragment}
                                     tooltipText={props.action.actorEmail}
                                     isAttachment={props.action.isAttachment}
-                                    isLoading={props.action.loading}
+                                    isLoading={props.action.isLoading}
                                     isSingleLine
                                 />
                             ))}
                         </Pressable>
-                        <ReportActionItemDate timestamp={props.action.timestamp} />
+                        <ReportActionItemDate created={props.action.created} />
                     </View>
                 ) : null}
                 {props.children}

@@ -16,11 +16,10 @@ import BankAccount from '../../libs/models/BankAccount';
 import TextLink from '../../components/TextLink';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
-import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import EnableStep from './EnableStep';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
-import ReimbursementAccountForm from './ReimbursementAccountForm';
+import Form from '../../components/Form';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import Section from '../../components/Section';
@@ -37,6 +36,7 @@ const propTypes = {
 
 const defaultProps = {
     reimbursementAccount: {
+        errorFields: {},
         errors: {},
         maxAttemptsReached: false,
     },
@@ -47,80 +47,34 @@ class ValidationStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
-
-        this.state = {
-            amount1: ReimbursementAccountUtils.getDefaultStateForField(props, 'amount1', ''),
-            amount2: ReimbursementAccountUtils.getDefaultStateForField(props, 'amount2', ''),
-            amount3: ReimbursementAccountUtils.getDefaultStateForField(props, 'amount3', ''),
-        };
-
-        this.requiredFields = [
-            'amount1',
-            'amount2',
-            'amount3',
-        ];
-
-        this.errorTranslationKeys = {
-            amount1: 'common.error.invalidAmount',
-            amount2: 'common.error.invalidAmount',
-            amount3: 'common.error.invalidAmount',
-        };
-
-        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
-        this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
-        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.validate = this.validate.bind(this);
     }
 
     /**
-    * @param {Object} value
-    */
-    setValue(value) {
-        BankAccounts.updateReimbursementAccountDraft(value);
-        this.setState(value);
-    }
-
-    /**
-     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
-     *
-     * @param {String} inputKey
-     * @param {String} value
+     * @param {Object} values - form input values passed by the Form component
+     * @returns {Object}
      */
-    clearErrorAndSetValue(inputKey, value) {
-        this.setValue({[inputKey]: value});
-        this.clearError(inputKey);
-    }
-
-    /**
-     * @returns {Boolean}
-     */
-    validate() {
+    validate(values) {
         const errors = {};
-        const values = {
-            amount1: this.filterInput(this.state.amount1),
-            amount2: this.filterInput(this.state.amount2),
-            amount3: this.filterInput(this.state.amount3),
-        };
 
-        _.each(this.requiredFields, (inputKey) => {
-            if (ValidationUtils.isRequiredFulfilled(values[inputKey])) {
+        _.each(values, (value, key) => {
+            const filteredValue = this.filterInput(value);
+            if (ValidationUtils.isRequiredFulfilled(filteredValue)) {
                 return;
             }
-
-            errors[inputKey] = true;
+            errors[key] = this.props.translate('common.error.invalidAmount');
         });
-        BankAccounts.setBankAccountFormValidationErrors(errors);
-        return _.size(errors) === 0;
+
+        return errors;
     }
 
-    submit() {
-        if (!this.validate()) {
-            BankAccounts.showBankAccountErrorModal();
-            return;
-        }
-
-        const amount1 = this.filterInput(this.state.amount1);
-        const amount2 = this.filterInput(this.state.amount2);
-        const amount3 = this.filterInput(this.state.amount3);
+    /**
+     * @param {Object} values - form input values passed by the Form component
+     */
+    submit(values) {
+        const amount1 = this.filterInput(values.amount1);
+        const amount2 = this.filterInput(values.amount2);
+        const amount3 = this.filterInput(values.amount3);
 
         const validateCode = [amount1, amount2, amount3].join(',');
 
@@ -139,7 +93,7 @@ class ValidationStep extends React.Component {
      * @returns {String}
      */
     filterInput(amount) {
-        let value = amount.trim();
+        let value = amount ? amount.trim() : '';
         if (value === '' || !Math.abs(Str.fromUSDToNumber(value)) || _.isNaN(Number(value))) {
             return '';
         }
@@ -157,7 +111,7 @@ class ValidationStep extends React.Component {
 
         // If a user tries to navigate directly to the validate page we'll show them the EnableStep
         if (state === BankAccount.STATE.OPEN) {
-            return <EnableStep achData={lodashGet(this.props, 'reimbursementAccount.achData')} />;
+            return <EnableStep />;
         }
 
         const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
@@ -190,8 +144,12 @@ class ValidationStep extends React.Component {
                     </View>
                 )}
                 {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
-                    <ReimbursementAccountForm
+                    <Form
+                        formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+                        submitButtonText={this.props.translate('validationStep.buttonText')}
                         onSubmit={this.submit}
+                        validate={this.validate}
+                        style={[styles.mh5, styles.flexGrow1]}
                     >
                         <View style={[styles.mb2]}>
                             <Text style={[styles.mb5]}>
@@ -203,58 +161,56 @@ class ValidationStep extends React.Component {
                         </View>
                         <View style={[styles.mv5, styles.flex1]}>
                             <TextInput
+                                inputID="amount1"
+                                shouldSaveDraft
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.52"
                                 keyboardType="decimal-pad"
-                                value={this.state.amount1}
-                                onChangeText={amount1 => this.clearErrorAndSetValue('amount1', amount1)}
-                                errorText={this.getErrorText('amount1')}
                             />
                             <TextInput
+                                inputID="amount2"
+                                shouldSaveDraft
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.53"
                                 keyboardType="decimal-pad"
-                                value={this.state.amount2}
-                                onChangeText={amount2 => this.clearErrorAndSetValue('amount2', amount2)}
-                                errorText={this.getErrorText('amount2')}
                             />
                             <TextInput
+                                shouldSaveDraft
+                                inputID="amount3"
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.54"
                                 keyboardType="decimal-pad"
-                                value={this.state.amount3}
-                                onChangeText={amount3 => this.clearErrorAndSetValue('amount3', amount3)}
-                                errorText={this.getErrorText('amount3')}
                             />
                         </View>
-                    </ReimbursementAccountForm>
+                    </Form>
                 )}
                 {isVerifying && (
                     <View style={[styles.flex1]}>
                         <Section
                             title={this.props.translate('workspace.bankAccount.letsFinishInChat')}
-                            icon={Illustrations.ConciergeBlue}
+                            icon={Illustrations.ConciergeBubble}
                         >
                             <Text>
                                 {this.props.translate('validationStep.letsChatText')}
                             </Text>
+                            <Button
+                                text={this.props.translate('validationStep.letsChatCTA')}
+                                onPress={Report.navigateToConciergeChat}
+                                icon={Expensicons.ChatBubble}
+                                style={[styles.mt4]}
+                                iconStyles={[styles.buttonCTAIcon]}
+                                shouldShowRightIcon
+                                large
+                                success
+                            />
+                            <MenuItem
+                                title={this.props.translate('workspace.bankAccount.noLetsStartOver')}
+                                icon={Expensicons.RotateLeft}
+                                onPress={BankAccounts.requestResetFreePlanBankAccount}
+                                shouldShowRightIcon
+                                wrapperStyle={[styles.cardMenuItem, styles.mv3]}
+                            />
                         </Section>
-                        <Button
-                            text={this.props.translate('validationStep.letsChatCTA')}
-                            onPress={Report.navigateToConciergeChat}
-                            icon={Expensicons.ChatBubble}
-                            style={[styles.mt4, styles.mh3]}
-                            iconStyles={[styles.mr5]}
-                            shouldShowRightIcon
-                            extraLarge
-                            success
-                        />
-                        <MenuItem
-                            title={this.props.translate('workspace.bankAccount.noLetsStartOver')}
-                            icon={Expensicons.RotateLeft}
-                            onPress={BankAccounts.requestResetFreePlanBankAccount}
-                            shouldShowRightIcon
-                        />
                     </View>
                 )}
             </View>
@@ -268,9 +224,6 @@ ValidationStep.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        reimbursementAccountDraft: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
-        },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },

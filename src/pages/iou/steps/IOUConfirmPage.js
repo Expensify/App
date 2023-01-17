@@ -32,8 +32,8 @@ const propTypes = {
         text: PropTypes.string,
         keyForList: PropTypes.string,
         isPinned: PropTypes.bool,
-        isUnread: PropTypes.bool,
-        reportID: PropTypes.number,
+        reportID: PropTypes.string,
+        // eslint-disable-next-line react/forbid-prop-types
         participantsList: PropTypes.arrayOf(PropTypes.object),
         payPalMeAddress: PropTypes.string,
         phoneNumber: PropTypes.string,
@@ -42,14 +42,15 @@ const propTypes = {
     /** IOU type */
     iouType: PropTypes.string,
 
-    /** Is this IOU associated with existing report */
-    isIOUAttachedToExistingChatReport: PropTypes.bool.isRequired,
+    /** Can the participants be modified or not */
+    canModifyParticipants: PropTypes.bool,
 };
 
 const defaultProps = {
     onUpdateComment: null,
     comment: '',
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
+    canModifyParticipants: false,
 };
 
 const IOUConfirmPage = props => (
@@ -62,7 +63,7 @@ const IOUConfirmPage = props => (
         onConfirm={props.onConfirm}
         onSendMoney={props.onSendMoney}
         iouType={props.iouType}
-        isIOUAttachedToExistingChatReport={props.isIOUAttachedToExistingChatReport}
+        canModifyParticipants={props.canModifyParticipants}
     />
 );
 

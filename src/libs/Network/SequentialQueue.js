@@ -127,9 +127,18 @@ function getCurrentRequest() {
     return currentRequest;
 }
 
+/**
+ * Returns a promise that resolves when the sequential queue is done processing all persisted write requests.
+ * @returns {Promise}
+ */
+function waitForIdle() {
+    return isReadyPromise;
+}
+
 export {
     flush,
     getCurrentRequest,
     isRunning,
     push,
+    waitForIdle,
 };

@@ -50,6 +50,20 @@ module.exports = (env) => {
             __dirname: false,
             __filename: false,
         },
+        module: {
+            rules: [
+                {
+                    test: /react-native-onyx/,
+                    use: {
+                        loader: 'babel-loader',
+                        options: {
+                            presets: ['@babel/preset-react'],
+
+                        },
+                    },
+                },
+            ],
+        },
     };
 
     return [mainProcessConfig, rendererConfig];

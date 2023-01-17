@@ -6,7 +6,7 @@ set -e
 TEST_DIR=$(dirname "$(dirname "$(cd "$(dirname "$0")" || exit 1;pwd)/$(basename "$0")")")
 SCRIPTS_DIR="$TEST_DIR/../scripts"
 DUMMY_DIR="$HOME/DumDumRepo"
-getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.js"
+getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.mjs"
 
 source "$SCRIPTS_DIR/shellUtils.sh"
 
@@ -117,7 +117,7 @@ success "Version bumped to $(print_version) on main"
 info "Merging main into staging..."
 git checkout staging
 git checkout -b update-staging-from-main
-git merge --no-edit -Xtheirs main
+git merge --no-edit -Xtheirs main || { git diff --name-only --diff-filter=U | xargs git rm; git -c core.editor=true merge --continue; }
 git checkout staging
 git merge update-staging-from-main --no-ff -m "Merge pull request #3 from Expensify/update-staging-from-main"
 info "Merged PR #3 to staging"
@@ -219,7 +219,7 @@ title "Scenario #4A: Run the production deploy"
 info "Updating production from staging..."
 git checkout production
 git checkout -b update-production-from-staging
-git merge --no-edit -Xtheirs staging
+git merge --no-edit -Xtheirs staging || { git diff --name-only --diff-filter=U | xargs git rm; git -c core.editor=true merge --continue; }
 git checkout production
 git merge update-production-from-staging --no-ff -m "Merge pull request #8 from Expensify/update-production-from-staging"
 info "Merged PR #8 into production"
@@ -250,7 +250,7 @@ success "Successfully updated version to 1.1.0 on main!"
 info "Updating staging from main..."
 git checkout staging
 git checkout -b update-staging-from-main
-git merge --no-edit -Xtheirs main
+git merge --no-edit -Xtheirs main || { git diff --name-only --diff-filter=U | xargs git rm; git -c core.editor=true merge --continue; }
 git checkout staging
 git merge update-staging-from-main --no-ff -m "Merge pull request #10 from Expensify/update-staging-from-main"
 info "Merged PR #10 into staging"
@@ -289,7 +289,7 @@ git checkout main
 git checkout -b version-bump
 npm --no-git-tag-version version 1.1.1 -m "Update version to 1.1.1"
 git add package.json package-lock.json
-git commit -m "Update version to $(cat package.json | jq -r .version)"
+git commit -m "Update version to $(jq -r .version < package.json)"
 git checkout main
 git merge version-bump --no-ff -m "Merge pull request #12 from Expensify/version-bump"
 info "Merged PR #12 into main"
@@ -299,7 +299,7 @@ success "Bumped version to 1.1.1 on main!"
 info "Merging main into staging..."
 git checkout staging
 git checkout -b update-staging-from-main
-git merge --no-edit -Xtheirs main
+git merge --no-edit -Xtheirs main || { git diff --name-only --diff-filter=U | xargs git rm; git -c core.editor=true merge --continue; }
 git checkout staging
 git merge update-staging-from-main --no-ff -m "Merge pull request #13 from Expensify/update-staging-from-main"
 info "Merged PR #13 into staging"

@@ -27,8 +27,15 @@ HTMLBanner.args = {
     shouldRenderHTML: true,
 };
 
+const BannerWithLink = Template.bind({});
+BannerWithLink.args = {
+    text: 'This is a informational banner containing <a href="https://new.expensify.com/settings">internal Link</a> and <a href=" https://google.com">public link</a>',
+    shouldRenderHTML: true,
+};
+
 export default story;
 export {
     InfoBanner,
     HTMLBanner,
+    BannerWithLink,
 };

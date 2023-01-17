@@ -5,6 +5,32 @@ import * as MainQueue from '../Network/MainQueue';
 import * as Authentication from '../Authentication';
 import * as Request from '../Request';
 import Log from '../Log';
+import NetworkConnection from '../NetworkConnection';
+
+// We store a reference to the active authentication request so that we are only ever making one request to authenticate at a time.
+let isAuthenticating = null;
+
+/**
+ * @param {String} commandName
+ * @returns {Promise}
+ */
+function reauthenticate(commandName) {
+    if (isAuthenticating) {
+        return isAuthenticating;
+    }
+
+    isAuthenticating = Authentication.reauthenticate(commandName)
+        .then((response) => {
+            isAuthenticating = null;
+            return response;
+        })
+        .catch((error) => {
+            isAuthenticating = null;
+            throw error;
+        });
+
+    return isAuthenticating;
+}
 
 /**
  * Reauthentication middleware
@@ -33,7 +59,8 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                 // creating and deleting logins. In those cases, they should handle the original response instead
                 // of the new response created by handleExpiredAuthToken.
                 const shouldRetry = lodashGet(request, 'data.shouldRetry');
-                if (!shouldRetry) {
+                const apiRequestType = lodashGet(request, 'data.apiRequestType');
+                if (!shouldRetry && !apiRequestType) {
                     if (isFromSequentialQueue) {
                         return data;
                     }
@@ -41,35 +68,32 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                     if (request.resolve) {
                         request.resolve(data);
                     }
-                    return;
+                    return data;
                 }
 
-                // We are already authenticating
-                if (NetworkStore.isAuthenticating()) {
-                    if (isFromSequentialQueue) {
-                        // This should never happen in theory. If we go offline while we are Authenticating or handling a response with a 407 jsonCode then isAuthenticating should be
-                        // set to false. If we do somehow get here, we will log about it since we will never know it happened otherwise and it would be difficult to diagnose.
-                        const message = 'Cannot complete sequential request because we are already authenticating';
-                        Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} ${message}`);
-                        throw new Error(message);
-                    }
-
+                // We are already authenticating and using the DeprecatedAPI so we will replay the request
+                if (!apiRequestType && NetworkStore.isAuthenticating()) {
                     MainQueue.replay(request);
                     return data;
                 }
 
-                return Authentication.reauthenticate(request.commandName)
+                return reauthenticate(request.commandName)
                     .then((authenticateResponse) => {
-                        if (isFromSequentialQueue) {
-                            return Request.processWithMiddleware(request, true);
+                        if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
+                            return Request.processWithMiddleware(request, isFromSequentialQueue);
+                        }
+
+                        if (apiRequestType === CONST.API_REQUEST_TYPE.READ) {
+                            NetworkConnection.triggerReconnectionCallbacks('read request made with expired authToken');
+                            return Promise.resolve();
                         }
 
                         MainQueue.replay(request);
                         return authenticateResponse;
                     })
                     .catch(() => {
-                        if (isFromSequentialQueue) {
-                            throw new Error('Unable to reauthenticate sequential queue request because we failed to reauthenticate');
+                        if (isFromSequentialQueue || apiRequestType) {
+                            throw new Error('Failed to reauthenticate');
                         }
 
                         // If we make it here, then our reauthenticate request could not be made due to a networking issue. The original request can be retried safely.

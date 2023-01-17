@@ -1,4 +1,4 @@
-import RNFetchBlob from 'rn-fetch-blob';
+import RNFetchBlob from 'react-native-blob-util';
 import CameraRoll from '@react-native-community/cameraroll';
 import lodashGet from 'lodash/get';
 import * as FileUtils from './FileUtils';
@@ -46,7 +46,7 @@ function downloadImage(fileUrl) {
  * @returns {String} URI
  */
 function downloadVideo(fileUrl, fileName) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         let documentPathUri = null;
         let cameraRollUri = null;
 
@@ -57,7 +57,8 @@ function downloadVideo(fileUrl, fileName) {
         }).then((attachment) => {
             cameraRollUri = attachment;
             return RNFetchBlob.fs.unlink(documentPathUri);
-        }).then(() => resolve(cameraRollUri));
+        }).then(() => resolve(cameraRollUri))
+            .catch(err => reject(err));
     });
 }
 

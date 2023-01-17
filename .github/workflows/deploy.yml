@@ -20,7 +20,7 @@ jobs:
 
       - name: Check if merged pull request was an automatic version bump PR
         id: isAutomatedPullRequest
-        run: echo "::set-output name=IS_AUTOMERGE_PR::${{ steps.getMergedPullRequest.outputs.author == 'OSBotify' }}"
+        run: echo "IS_AUTOMERGE_PR=${{ steps.getMergedPullRequest.outputs.author == 'OSBotify' }}" >> "$GITHUB_OUTPUT"
 
   deployStaging:
     runs-on: ubuntu-latest
@@ -29,26 +29,14 @@ jobs:
 
     steps:
       - name: Checkout staging branch
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           ref: staging
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Decrypt Botify GPG key
-        run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Import Botify GPG Key
-        run: cd .github/workflows && gpg --import OSBotify-private-key.asc
-
-      - name: Set up git for Botify
-        run: |
-          git config user.signingkey 367811D53E34168C
-          git config commit.gpgsign true
-          git config user.name OSBotify
-          git config user.email infra+osbotify@expensify.com
-
+      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+        with:
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Tag version
         run: git tag "$(npm run print-version --silent)"
@@ -62,26 +50,14 @@ jobs:
     if: ${{ fromJSON(needs.validate.outputs.isAutomatedPullRequest) && github.ref == 'refs/heads/production' }}
 
     steps:
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           fetch-depth: 0
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Decrypt Botify GPG key
-        run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Import Botify GPG Key
-        run: cd .github/workflows && gpg --import OSBotify-private-key.asc
-
-      - name: Set up git for Botify
-        run: |
-          git config user.signingkey 367811D53E34168C
-          git config commit.gpgsign true
-          git config user.name OSBotify
-          git config user.email infra+osbotify@expensify.com
-
+      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+        with:
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Checkout production branch
         run: git checkout production
@@ -91,7 +67,7 @@ jobs:
 
       - name: Get Release Pull Request List
         id: getReleasePRList
-        uses: Expensify/App/.github/actions/getDeployPullRequestList@main
+        uses: Expensify/App/.github/actions/javascript/getDeployPullRequestList@main
         with:
           TAG: ${{ env.PRODUCTION_VERSION }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -99,7 +75,7 @@ jobs:
 
       - name: Generate Release Body
         id: getReleaseBody
-        uses: Expensify/App/.github/actions/getReleaseBody@main
+        uses: Expensify/App/.github/actions/javascript/getReleaseBody@main
         with:
           PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
 

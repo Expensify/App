@@ -6,12 +6,45 @@ on:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
 
+env:
+  # Number of parallel jobs for jest tests
+  CHUNKS: 3
 jobs:
+  config:
+    runs-on: ubuntu-latest
+    name: Define matrix parameters
+    outputs:
+      MATRIX: ${{ steps.set-matrix.outputs.MATRIX }}
+      JEST_CHUNKS: ${{ steps.set-matrix.outputs.JEST_CHUNKS }}
+    steps:
+      - name: Set Matrix
+        id: set-matrix
+        uses: actions/github-script@v6
+        with:
+          # Generate matrix array i.e. [0, 1, 2, ...., CHUNKS - 1] for test job
+          script: |
+            core.setOutput('MATRIX', Array.from({ length: Number(process.env.CHUNKS) }, (v, i) => i + 1));
+            core.setOutput('JEST_CHUNKS', Number(process.env.CHUNKS) - 1);
+
   test:
+    needs: config
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
+    name: test (job ${{ fromJSON(matrix.chunk) }})
+    env:
+      CI: true
+    strategy:
+      fail-fast: false
+      matrix:
+        chunk: ${{fromJson(needs.config.outputs.MATRIX)}}
+
     steps:
-      - uses: actions/checkout@v2
+      # This action checks-out the repository, so the workflow can access it.
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          fetch-depth: 0
+
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       # If automatic signing is enabled, iOS builds will fail, so ensure we always have the proper profile specified
       - name: Check Provisioning Style
@@ -23,31 +56,19 @@ jobs:
             exit 1
           fi
 
-      - name: Use Node.js
-        uses: actions/setup-node@v1
+      - name: Cache Jest cache
+        id: cache-jest-cache
+        uses: actions/cache@v1
         with:
-          node-version: '14.x'
+          path: .jest-cache
+          key: ${{ runner.os }}-jest
 
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
-          path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-
-      - name: Install node packages
-        uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
-        with:
-          timeout_minutes: 10
-          max_attempts: 5
-          command: npm ci
-
-      - name: Jest Unit Tests
-        run: npm run test
-        env:
-          CI: true
+      - name: All Unit Tests
+        if: ${{ fromJSON(matrix.chunk) < fromJSON(env.CHUNKS) }}
+        # Split the jest based test files in multiple chunks/groups and then execute them in parallel in different jobs/runners.
+        run: npx jest --listTests --json | jq -cM '[_nwise(length / ${{ fromJSON(needs.config.outputs.JEST_CHUNKS) }} | ceil)]' | jq '[[]] + .' | jq '.[${{ fromJSON(matrix.chunk) }}] | .[] | @text' | xargs npm test
 
       - name: Pull Request Tests
+        # Pull request related tests will be run in separate runner in parallel.
+        if: ${{ fromJSON(matrix.chunk) == fromJSON(env.CHUNKS) }}
         run: tests/unit/getPullRequestsMergedBetweenTest.sh

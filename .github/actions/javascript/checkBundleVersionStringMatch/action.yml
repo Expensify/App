@@ -1,0 +1,8 @@
+name: 'Check if Bundle Versions Match'
+description: "Check if the CFBundleVersion string is compatible with the CFBundleShortVersionString"
+outputs:
+  BUNDLE_VERSIONS_MATCH:
+    description: Whether or not the bundle versions match
+runs:
+  using: 'node16'
+  main: './index.js'

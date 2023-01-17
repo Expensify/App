@@ -11,18 +11,20 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ReimbursementAccountLoadingIndicator from '../../components/ReimbursementAccountLoadingIndicator';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
+import BankAccount from '../../libs/models/BankAccount';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import getPlaidOAuthReceivedRedirectURI from '../../libs/getPlaidOAuthReceivedRedirectURI';
 import Text from '../../components/Text';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
+import * as store from '../../libs/actions/ReimbursementAccount/store';
 
 // Steps
 import BankAccountStep from './BankAccountStep';
 import CompanyStep from './CompanyStep';
+import ContinueBankAccountSetup from './ContinueBankAccountSetup';
 import RequestorStep from './RequestorStep';
 import ValidationStep from './ValidationStep';
 import ACHContractStep from './ACHContractStep';
@@ -33,6 +35,9 @@ import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
 
 const propTypes = {
+    /** Plaid SDK token to use to initialize the widget */
+    plaidLinkToken: PropTypes.string,
+
     /** ACH data for the withdrawal account actively being set up */
     reimbursementAccount: reimbursementAccountPropTypes,
 
@@ -59,8 +64,9 @@ const propTypes = {
 
 const defaultProps = {
     reimbursementAccount: {
-        loading: true,
+        isLoading: true,
     },
+    plaidLinkToken: '',
     route: {
         params: {
             stepToOpen: '',
@@ -69,6 +75,17 @@ const defaultProps = {
 };
 
 class ReimbursementAccountPage extends React.Component {
+    constructor(props) {
+        super(props);
+        this.continue = this.continue.bind(this);
+
+        const achData = lodashGet(this.props, 'reimbursementAccount.achData', {});
+        const hasInProgressVBBA = achData.bankAccountID && achData.state !== BankAccount.STATE.OPEN;
+        this.state = {
+            shouldShowContinueSetupButton: hasInProgressVBBA,
+        };
+    }
+
     componentDidMount() {
         this.fetchData();
     }
@@ -147,9 +164,16 @@ class ReimbursementAccountPage extends React.Component {
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
         const stepToOpen = this.getStepToOpenFromRouteParams();
+        const reimbursementAccount = store.getReimbursementAccountInSetup();
+        const subStep = reimbursementAccount.subStep || '';
+        const localCurrentStep = reimbursementAccount.currentStep || '';
+        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep);
+    }
 
-        // If we are trying to navigate to `/bank-account/new` and we already have a bank account then don't allow returning to `/new`
-        BankAccounts.fetchFreePlanVerifiedBankAccount(stepToOpen !== CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT ? stepToOpen : '');
+    continue() {
+        this.setState({
+            shouldShowContinueSetupButton: false,
+        });
     }
 
     render() {
@@ -160,7 +184,7 @@ class ReimbursementAccountPage extends React.Component {
         // next step.
         const achData = lodashGet(this.props, 'reimbursementAccount.achData', {});
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-        if (this.props.reimbursementAccount.loading) {
+        if (this.props.reimbursementAccount.isLoading) {
             const isSubmittingVerificationsData = _.contains([
                 CONST.BANK_ACCOUNT.STEP.COMPANY,
                 CONST.BANK_ACCOUNT.STEP.REQUESTOR,
@@ -169,6 +193,15 @@ class ReimbursementAccountPage extends React.Component {
             return (
                 <ReimbursementAccountLoadingIndicator
                     isSubmittingVerificationsData={isSubmittingVerificationsData}
+                />
+            );
+        }
+
+        const hasInProgressVBBA = achData.bankAccountID && achData.state !== BankAccount.STATE.OPEN;
+        if (hasInProgressVBBA && this.state.shouldShowContinueSetupButton) {
+            return (
+                <ContinueBankAccountSetup
+                    continue={this.continue}
                 />
             );
         }
@@ -207,35 +240,30 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
         return (
-            <ScreenWrapper>
-                <KeyboardAvoidingView>
-                    {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
-                        <BankAccountStep
-                            achData={achData}
-                            isPlaidDisabled={this.props.reimbursementAccount.isPlaidDisabled}
-                            receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
-                            plaidLinkOAuthToken={this.props.plaidLinkToken}
-                        />
-                    )}
-                    {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (
-                        <CompanyStep achData={achData} />
-                    )}
-                    {currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR && (
-                        <RequestorStep achData={achData} />
-                    )}
-                    {currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && (
-                        <ACHContractStep companyName={achData.companyName} />
-                    )}
-                    {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
-                        <ValidationStep />
-                    )}
-                    {currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE && (
-                        <EnableStep
-                            achData={this.props.reimbursementAccount.achData}
-                        />
-                    )}
-                    <WorkspaceResetBankAccountModal />
-                </KeyboardAvoidingView>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+                {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
+                    <BankAccountStep
+                        receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
+                        plaidLinkOAuthToken={this.props.plaidLinkToken}
+                        onSubStepBack={() => (hasInProgressVBBA ? this.setState({shouldShowContinueSetupButton: true}) : BankAccounts.setBankAccountSubStep(null))}
+                    />
+                )}
+                {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (
+                    <CompanyStep />
+                )}
+                {currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR && (
+                    <RequestorStep />
+                )}
+                {currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && (
+                    <ACHContractStep companyName={achData.companyName} />
+                )}
+                {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
+                    <ValidationStep />
+                )}
+                {currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE && (
+                    <EnableStep />
+                )}
+                <WorkspaceResetBankAccountModal />
             </ScreenWrapper>
         );
     }

@@ -5,7 +5,7 @@
   "scripts": {},
   "dependencies": {
     "electron-context-menu": "^2.3.0",
-    "electron-log": "^4.3.5",
+    "electron-log": "^4.4.7",
     "electron-serve": "^1.0.0",
     "electron-updater": "^4.3.4"
   },

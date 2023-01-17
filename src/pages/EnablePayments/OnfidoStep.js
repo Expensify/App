@@ -14,6 +14,7 @@ import Growl from '../../libs/Growl';
 import OnfidoPrivacy from './OnfidoPrivacy';
 import walletAdditionalDetailsDraftPropTypes from './walletAdditionalDetailsDraftPropTypes';
 import walletOnfidoDataPropTypes from './walletOnfidoDataPropTypes';
+import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
 
 const propTypes = {
     /** Stores various information used to build the UI and call any APIs */
@@ -49,7 +50,7 @@ class OnfidoStep extends React.Component {
      */
     canShowOnfido() {
         return this.props.walletOnfidoData.hasAcceptedPrivacyPolicy
-            && !this.props.walletOnfidoData.loading
+            && !this.props.walletOnfidoData.isLoading
             && !this.props.walletOnfidoData.error
             && this.props.walletOnfidoData.sdkToken;
     }
@@ -63,29 +64,32 @@ class OnfidoStep extends React.Component {
                     shouldShowBackButton
                     onBackButtonPress={() => Wallet.updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS)}
                 />
-                {
-                    this.canShowOnfido() ? (
-                        <Onfido
-                            sdkToken={this.props.walletOnfidoData.sdkToken}
-                            onError={() => {
-                                Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
-                            }}
-                            onUserExit={() => {
-                                Navigation.goBack();
-                            }}
-                            onSuccess={(data) => {
-                                BankAccounts.activateWallet(CONST.WALLET.STEP.ONFIDO, {
-                                    onfidoData: JSON.stringify({
-                                        ...data,
-                                        applicantID: this.props.walletOnfidoData.applicantID,
-                                    }),
-                                });
-                            }}
-                        />
-                    ) : (
-                        <OnfidoPrivacy walletOnfidoData={this.props.walletOnfidoData} walletAdditionalDetailsDraft={this.props.walletAdditionalDetailsDraft} />
-                    )
-                }
+                <FullPageOfflineBlockingView>
+                    {
+                        this.canShowOnfido() ? (
+                            <Onfido
+                                sdkToken={this.props.walletOnfidoData.sdkToken}
+                                onError={() => {
+                                    Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
+                                }}
+                                onUserExit={() => {
+                                    Navigation.goBack();
+                                }}
+                                onSuccess={(data) => {
+                                    BankAccounts.verifyIdentity({
+                                        onfidoData: JSON.stringify({
+                                            ...data,
+                                            applicantID: this.props.walletOnfidoData.applicantID,
+                                        }),
+                                    });
+                                }}
+                            />
+                        ) : (
+                            <OnfidoPrivacy walletOnfidoData={this.props.walletOnfidoData} walletAdditionalDetailsDraft={this.props.walletAdditionalDetailsDraft} />
+                        )
+                    }
+                </FullPageOfflineBlockingView>
+
             </>
         );
     }

@@ -1,9 +1,10 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
+import {Freeze} from 'react-freeze';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -13,52 +14,43 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import Icon from '../../../components/Icon';
 import Header from '../../../components/Header';
-import OptionsList from '../../../components/OptionsList';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
-import * as OptionsListUtils from '../../../libs/OptionsListUtils';
-import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import Tooltip from '../../../components/Tooltip';
 import CONST from '../../../CONST';
 import participantPropTypes from '../../../components/participantPropTypes';
-import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import networkPropTypes from '../../../components/networkPropTypes';
-import {withNetwork} from '../../../components/OnyxProvider';
+import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
+import withWindowDimensions from '../../../components/withWindowDimensions';
+import reportActionPropTypes from '../report/reportActionPropTypes';
+import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
+import SidebarUtils from '../../../libs/SidebarUtils';
+import reportPropTypes from '../../reportPropTypes';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
     onLinkClick: PropTypes.func.isRequired,
-
-    /** Navigates to settings and hides sidebar */
-    onAvatarClick: PropTypes.func.isRequired,
 
     /** Safe area insets required for mobile devices margins */
     insets: safeAreaInsetPropTypes.isRequired,
 
     /* Onyx Props */
     /** List of reports */
-    reports: PropTypes.objectOf(PropTypes.shape({
-        /** ID of the report */
-        reportID: PropTypes.number,
+    // eslint-disable-next-line react/no-unused-prop-types
+    chatReports: PropTypes.objectOf(reportPropTypes),
 
-        /** Name of the report */
-        reportName: PropTypes.string,
-
-        /** Number of unread actions on the report */
-        unreadActionCount: PropTypes.number,
-    })),
-
-    /** Reports having a draft */
-    reportsWithDraft: PropTypes.objectOf(PropTypes.bool),
+    /** All report actions for all reports */
+    // eslint-disable-next-line react/no-unused-prop-types
+    reportActions: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes))),
 
     /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape({
+    currentUserPersonalDetails: PropTypes.shape({
         /** Display name of the current user from their personal details */
         displayName: PropTypes.string,
 
@@ -66,11 +58,8 @@ const propTypes = {
         avatar: PropTypes.string,
     }),
 
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
-    /** Currently viewed reportID */
-    currentlyViewedReportID: PropTypes.string,
+    /** Current reportID from the route in react navigation state object */
+    reportIDFromRoute: PropTypes.string,
 
     /** Whether we are viewing below the responsive breakpoint */
     isSmallScreenWidth: PropTypes.bool.isRequired,
@@ -78,182 +67,72 @@ const propTypes = {
     /** The chat priority mode */
     priorityMode: PropTypes.string,
 
-    /** Whether we have the necessary report data to load the sidebar */
-    initialReportDataLoaded: PropTypes.bool,
-
-    // Whether we are syncing app data
-    isSyncingData: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    reports: {},
-    reportsWithDraft: {},
+    chatReports: {},
+    reportActions: {},
     personalDetails: {},
-    myPersonalDetails: {
+    currentUserPersonalDetails: {
         avatar: ReportUtils.getDefaultAvatar(),
     },
-    currentlyViewedReportID: '',
+    reportIDFromRoute: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
-    initialReportDataLoaded: false,
-    isSyncingData: false,
 };
 
 class SidebarLinks extends React.Component {
-    static getRecentReports(props) {
-        const activeReportID = parseInt(props.currentlyViewedReportID, 10);
-        const sidebarOptions = OptionsListUtils.getSidebarOptions(
-            props.reports,
-            props.personalDetails,
-            activeReportID,
-            props.priorityMode,
-            props.betas,
-        );
-        return sidebarOptions.recentReports;
-    }
-
-    static getUnreadReports(reportsObject) {
-        const reports = _.values(reportsObject);
-        if (reports.length === 0) {
-            return [];
-        }
-        const unreadReports = _.filter(reports, report => report && report.unreadActionCount > 0);
-        return unreadReports;
-    }
-
-    /**
-     * Returns true if the sidebar list should be re-ordered
-     *
-     * @param {Object} nextProps
-     * @param {Boolean} hasActiveDraftHistory
-     * @param {Array} orderedReports
-     * @param {String} currentlyViewedReportID
-     * @param {Array} unreadReports
-     * @returns {Boolean}
-     */
-    static shouldReorder(nextProps, hasActiveDraftHistory, orderedReports, currentlyViewedReportID, unreadReports) {
-        // We do not want to re-order reports in the LHN if the only change is the draft comment in the
-        // current report.
-
-        // We don't need to limit draft comment flashing for small screen widths as LHN is not visible.
-        if (nextProps.isSmallScreenWidth) {
-            return true;
-        }
-
-        // Always update if LHN is empty.
-        if (orderedReports.length === 0) {
-            return true;
-        }
-
-        const didActiveReportChange = currentlyViewedReportID !== nextProps.currentlyViewedReportID;
-
-        // Always re-order the list whenever the active report is changed
-        if (didActiveReportChange) {
-            return true;
-        }
-
-        // If any reports have new unread messages, re-order the list
-        const nextUnreadReports = SidebarLinks.getUnreadReports(nextProps.reports || {});
-        const hasNewUnreadReports = nextUnreadReports.length > 0
-            && _.some(nextUnreadReports,
-                nextUnreadReport => !_.some(unreadReports, unreadReport => unreadReport.reportID === nextUnreadReport.reportID));
-        if (hasNewUnreadReports) {
-            return true;
-        }
-
-        // If there is an active report that either had or has a draft, we do not want to re-order the list
-        if (nextProps.currentlyViewedReportID && hasActiveDraftHistory) {
-            return false;
-        }
-
-        return true;
-    }
-
     constructor(props) {
         super(props);
-        this.state = {
-            activeReport: {
-                reportID: props.currentlyViewedReportID,
-                hasDraftHistory: lodashGet(props.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${props.currentlyViewedReportID}`, false),
-                lastMessageTimestamp: lodashGet(props.reports, `${ONYXKEYS.COLLECTION.REPORT}${props.currentlyViewedReportID}.lastMessageTimestamp`, 0),
-            },
-            orderedReports: [],
-            priorityMode: props.priorityMode,
-            unreadReports: SidebarLinks.getUnreadReports(props.reports || {}),
-        };
-    }
 
-    static getDerivedStateFromProps(nextProps, prevState) {
-        const isActiveReportSame = prevState.activeReport.reportID === nextProps.currentlyViewedReportID;
-        const lastMessageTimestamp = lodashGet(nextProps.reports, `${ONYXKEYS.COLLECTION.REPORT}${nextProps.currentlyViewedReportID}.lastMessageTimestamp`, 0);
-
-        // Determines if the active report has a history of draft comments while active.
-        let hasDraftHistory;
-
-        // If the active report has not changed and the message has been sent, set the draft history flag to false so LHN can reorder.
-        // Otherwise, if the active report has not changed and the flag was previously true, preserve the state so LHN cannot reorder.
-        // Otherwise, update the flag from the prop value.
-        if (isActiveReportSame && prevState.activeReport.lastMessageTimestamp !== lastMessageTimestamp) {
-            hasDraftHistory = false;
-        } else if (isActiveReportSame && prevState.activeReport.hasDraftHistory) {
-            hasDraftHistory = true;
-        } else {
-            hasDraftHistory = lodashGet(nextProps.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${nextProps.currentlyViewedReportID}`, false);
-        }
-
-        const shouldReorder = SidebarLinks.shouldReorder(nextProps, hasDraftHistory, prevState.orderedReports, prevState.activeReport.reportID, prevState.unreadReports);
-        const switchingPriorityModes = nextProps.priorityMode !== prevState.priorityMode;
-
-        // Build the report options we want to show
-        const recentReports = SidebarLinks.getRecentReports(nextProps);
-
-        // Determine whether we need to keep the previous LHN order
-        const orderedReports = shouldReorder || switchingPriorityModes
-            ? recentReports
-            : _.chain(prevState.orderedReports)
-
-            // To preserve the order of the conversations, we map over the previous state's order of reports.
-            // Then match and replace older reports with the newer report conversations from recentReports
-                .map(orderedReport => _.find(recentReports, recentReport => orderedReport.reportID === recentReport.reportID))
-
-            // Because we are using map, we have to filter out any undefined reports. This happens if recentReports
-            // does not have all the conversations in prevState.orderedReports
-                .filter(orderedReport => orderedReport !== undefined)
-                .value();
-
-        return {
-            orderedReports,
-            priorityMode: nextProps.priorityMode,
-            activeReport: {
-                reportID: nextProps.currentlyViewedReportID,
-                hasDraftHistory,
-                lastMessageTimestamp,
-            },
-            unreadReports: SidebarLinks.getUnreadReports(nextProps.reports || {}),
-        };
+        this.showSearchPage = this.showSearchPage.bind(this);
+        this.showSettingsPage = this.showSettingsPage.bind(this);
+        this.showReportPage = this.showReportPage.bind(this);
     }
 
     showSearchPage() {
+        if (this.props.isCreateMenuOpen) {
+            // Prevent opening Search page when click Search icon quickly after clicking FAB icon
+            return;
+        }
         Navigation.navigate(ROUTES.SEARCH);
     }
 
+    showSettingsPage() {
+        if (this.props.isCreateMenuOpen) {
+            // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS);
+    }
+
+    /**
+     * Show Report page with selected report id
+     *
+     * @param {Object} option
+     * @param {String} option.reportID
+     */
+    showReportPage(option) {
+        if (this.props.isCreateMenuOpen) {
+            // Prevent opening Report page when click LHN row quickly after clicking FAB icon
+            return;
+        }
+        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+        this.props.onLinkClick();
+    }
+
     render() {
-        // Wait until the reports and personalDetails are actually loaded before displaying the LHN
-        if (!this.props.initialReportDataLoaded || _.isEmpty(this.props.personalDetails)) {
+        // Wait until the personalDetails are actually loaded before displaying the LHN
+        if (_.isEmpty(this.props.personalDetails)) {
             return null;
         }
-
-        const activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
-        const sections = [{
-            title: '',
-            indexOffset: 0,
-            data: this.state.orderedReports || [],
-            shouldShow: true,
-        }];
-
+        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
         return (
-            <View style={[styles.flex1, styles.h100]}>
+            <View
+                accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
+                accessibilityLabel="List of chats"
+                style={[styles.flex1, styles.h100]}
+            >
                 <View
                     style={[
                         styles.flexRow,
@@ -265,11 +144,11 @@ class SidebarLinks extends React.Component {
                     nativeID="drag-area"
                 >
                     <Header
-                        textSize="large"
                         title={this.props.translate('sidebarScreen.headerChat')}
                         accessibilityLabel={this.props.translate('sidebarScreen.headerChat')}
                         accessibilityRole="text"
                         shouldShowEnvironmentBadge
+                        textStyles={[styles.textHeadline]}
                     />
                     <Tooltip text={this.props.translate('common.search')}>
                         <TouchableOpacity
@@ -284,37 +163,37 @@ class SidebarLinks extends React.Component {
                     <TouchableOpacity
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
                         accessibilityRole="button"
-                        onPress={this.props.onAvatarClick}
+                        onPress={this.showSettingsPage}
                     >
-                        <AvatarWithIndicator
-                            source={this.props.myPersonalDetails.avatar}
-                            isActive={this.props.network && !this.props.network.isOffline}
-                            isSyncing={this.props.network && !this.props.network.isOffline && this.props.isSyncingData}
-                            tooltipText={this.props.translate('common.settings')}
-                        />
+                        <OfflineWithFeedback
+                            pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
+                        >
+                            <AvatarWithIndicator
+                                source={this.props.currentUserPersonalDetails.avatar}
+                                tooltipText={this.props.translate('common.settings')}
+                            />
+                        </OfflineWithFeedback>
                     </TouchableOpacity>
                 </View>
-                <OptionsList
-                    contentContainerStyles={[
-                        styles.sidebarListContainer,
-                        {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
-                    ]}
-                    sections={sections}
-                    focusedIndex={_.findIndex(this.state.orderedReports, (
-                        option => option.reportID === activeReportID
-                    ))}
-                    onSelectRow={(option) => {
-                        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
-                        this.props.onLinkClick();
-                    }}
-                    optionBackgroundColor={themeColors.sidebar}
-                    hideSectionHeaders
-                    showTitleTooltip
-                    disableFocusOptions={this.props.isSmallScreenWidth}
-                    optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
-                    onLayout={App.setSidebarLoaded}
-                />
-                <KeyboardSpacer />
+                <Freeze freeze={this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded}>
+                    <LHNOptionsList
+                        contentContainerStyles={[
+                            styles.sidebarListContainer,
+                            {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
+                        ]}
+                        data={optionListItems}
+                        focusedIndex={_.findIndex(optionListItems, (
+                            option => option.toString() === this.props.reportIDFromRoute
+                        ))}
+                        onSelectRow={this.showReportPage}
+                        shouldDisableFocusOptions={this.props.isSmallScreenWidth}
+                        optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
+                        onLayout={() => {
+                            App.setSidebarLoaded();
+                            this.isSidebarLoaded = true;
+                        }}
+                    />
+                </Freeze>
             </View>
         );
     }
@@ -323,37 +202,106 @@ class SidebarLinks extends React.Component {
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
 
+/**
+ * This function (and the few below it), narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
+ * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
+ * @param {Object} [report]
+ * @returns {Object|undefined}
+ */
+const chatReportSelector = (report) => {
+    if (ReportUtils.isIOUReport(report)) {
+        return null;
+    }
+    return report && ({
+        reportID: report.reportID,
+        participants: report.participants,
+        hasDraft: report.hasDraft,
+        isPinned: report.isPinned,
+        errorFields: {
+            addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
+        },
+        maxSequenceNumber: report.maxSequenceNumber,
+        lastReadSequenceNumber: report.lastReadSequenceNumber,
+        lastReadTime: report.lastReadTime,
+        lastMessageText: report.lastMessageText,
+        lastActionCreated: report.lastActionCreated,
+        iouReportID: report.iouReportID,
+        hasOutstandingIOU: report.hasOutstandingIOU,
+        statusNum: report.statusNum,
+        stateNum: report.stateNum,
+        chatType: report.chatType,
+        policyID: report.policyID,
+        reportName: report.reportName,
+    });
+};
+
+/**
+ * @param {Object} [personalDetails]
+ * @returns {Object|undefined}
+ */
+const personalDetailsSelector = personalDetails => _.reduce(personalDetails, (finalPersonalDetails, personalData, login) => {
+    // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
+    // eslint-disable-next-line no-param-reassign
+    finalPersonalDetails[login] = {
+        login: personalData.login,
+        displayName: personalData.displayName,
+        firstName: personalData.firstName,
+        avatar: personalData.avatar,
+    };
+    return finalPersonalDetails;
+}, {});
+
+/**
+ * @param {Object} [reportActions]
+ * @returns {Object|undefined}
+ */
+const reportActionsSelector = reportActions => reportActions && _.map(reportActions, reportAction => ({
+    errors: reportAction.errors,
+}));
+
+/**
+ * @param {Object} [policy]
+ * @returns {Object|undefined}
+ */
+const policySelector = policy => policy && ({
+    type: policy.type,
+    name: policy.name,
+});
+
 export default compose(
     withLocalize,
-    withNetwork(),
+    withCurrentUserPersonalDetails,
+    withWindowDimensions,
     withOnyx({
-        reports: {
+        // Note: It is very important that the keys subscribed to here are the same
+        // keys that are subscribed to at the top of SidebarUtils.js. If there was a key missing from here and data was updated
+        // for that key, then there would be no re-render and the options wouldn't reflect the new data because SidebarUtils.getOrderedReportIDs() wouldn't be triggered.
+        // This could be changed if each OptionRowLHN used withOnyx() to connect to the Onyx keys, but if you had 10,000 reports
+        // with 10,000 withOnyx() connections, it would have unknown performance implications.
+        chatReports: {
             key: ONYXKEYS.COLLECTION.REPORT,
+            selector: chatReportSelector,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
-        currentlyViewedReportID: {
-            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+            selector: personalDetailsSelector,
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
         },
-        initialReportDataLoaded: {
-            key: ONYXKEYS.INITIAL_REPORT_DATA_LOADED,
-        },
-        isSyncingData: {
-            key: ONYXKEYS.IS_LOADING_AFTER_RECONNECT,
-            initWithStoredValues: false,
-        },
         betas: {
             key: ONYXKEYS.BETAS,
         },
-        reportsWithDraft: {
-            key: ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT,
+        reportActions: {
+            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+            selector: reportActionsSelector,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+            selector: policySelector,
+        },
+        preferredLocale: {
+            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         },
     }),
 )(SidebarLinks);

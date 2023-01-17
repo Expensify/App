@@ -21,6 +21,13 @@ import ConfirmModal from './components/ConfirmModal';
 import compose from './libs/compose';
 import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
 import * as User from './libs/actions/User';
+import NetworkConnection from './libs/NetworkConnection';
+import Navigation from './libs/Navigation/Navigation';
+import DeeplinkWrapper from './components/DeeplinkWrapper';
+
+// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
+// eslint-disable-next-line no-unused-vars
+import UnreadIndicatorUpdater from './libs/UnreadIndicatorUpdater';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -47,9 +54,6 @@ const propTypes = {
     /** Whether a new update is available and ready to install. */
     updateAvailable: PropTypes.bool,
 
-    /** Whether the initial data needed to render the app is ready */
-    initialReportDataLoaded: PropTypes.bool,
-
     /** Tells us if the sidebar has rendered */
     isSidebarLoaded: PropTypes.bool,
 
@@ -72,7 +76,6 @@ const defaultProps = {
         accountID: null,
     },
     updateAvailable: false,
-    initialReportDataLoaded: false,
     isSidebarLoaded: false,
     screenShareRequest: null,
 };
@@ -91,6 +94,9 @@ class Expensify extends PureComponent {
             isOnyxMigrated: false,
             isSplashShown: true,
         };
+
+        // Used for the offline indicator appearing when someone is offline
+        NetworkConnection.subscribeToNetInfo();
     }
 
     componentDidMount() {
@@ -114,24 +120,18 @@ class Expensify extends PureComponent {
         this.appStateChangeListener = AppState.addEventListener('change', this.initializeClient);
     }
 
-    componentDidUpdate(prevProps) {
-        const previousAccountID = lodashGet(prevProps, 'session.accountID', null);
-        const currentAccountID = lodashGet(this.props, 'session.accountID', null);
-
-        if (currentAccountID && (currentAccountID !== previousAccountID)) {
-            PushNotification.register(currentAccountID);
+    componentDidUpdate() {
+        if (!this.state.isNavigationReady || !this.state.isSplashShown) {
+            return;
         }
 
-        if (this.state.isNavigationReady && this.state.isSplashShown) {
-            const authStackReady = this.props.initialReportDataLoaded && this.props.isSidebarLoaded;
-            const shouldHideSplash = !this.isAuthenticated() || authStackReady;
+        const shouldHideSplash = !this.isAuthenticated() || this.props.isSidebarLoaded;
 
-            if (shouldHideSplash) {
-                BootSplash.hide();
+        if (shouldHideSplash) {
+            BootSplash.hide();
 
-                // eslint-disable-next-line react/no-did-update-set-state
-                this.setState({isSplashShown: false});
-            }
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({isSplashShown: false});
         }
     }
 
@@ -142,6 +142,9 @@ class Expensify extends PureComponent {
 
     setNavigationReady() {
         this.setState({isNavigationReady: true});
+
+        // Navigate to any pending routes now that the NavigationContainer is ready
+        Navigation.setIsNavigationReady();
     }
 
     /**
@@ -182,7 +185,7 @@ class Expensify extends PureComponent {
         }
 
         return (
-            <>
+            <DeeplinkWrapper>
                 {!this.state.isSplashShown && (
                     <>
                         <GrowlNotification ref={Growl.growlRef} />
@@ -206,7 +209,7 @@ class Expensify extends PureComponent {
                     onReady={this.setNavigationReady}
                     authenticated={this.isAuthenticated()}
                 />
-            </>
+            </DeeplinkWrapper>
         );
     }
 }
@@ -222,9 +225,6 @@ export default compose(
         updateAvailable: {
             key: ONYXKEYS.UPDATE_AVAILABLE,
             initWithStoredValues: false,
-        },
-        initialReportDataLoaded: {
-            key: ONYXKEYS.INITIAL_REPORT_DATA_LOADED,
         },
         isSidebarLoaded: {
             key: ONYXKEYS.IS_SIDEBAR_LOADED,

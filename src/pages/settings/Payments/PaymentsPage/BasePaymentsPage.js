@@ -1,8 +1,9 @@
 import React from 'react';
 import {
-    View, TouchableOpacity, Dimensions, InteractionManager, LayoutAnimation,
+    View, InteractionManager, LayoutAnimation,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import PaymentMethodList from '../PaymentMethodList';
 import ROUTES from '../../../../ROUTES';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
@@ -12,25 +13,26 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import styles from '../../../../styles/styles';
 import withLocalize from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
-import KeyboardAvoidingView from '../../../../components/KeyboardAvoidingView/index';
 import * as BankAccounts from '../../../../libs/actions/BankAccounts';
 import Popover from '../../../../components/Popover';
 import MenuItem from '../../../../components/MenuItem';
 import Text from '../../../../components/Text';
 import * as PaymentMethods from '../../../../libs/actions/PaymentMethods';
-import getClickedElementLocation from '../../../../libs/getClickedElementLocation';
+import getClickedTargetLocation from '../../../../libs/getClickedTargetLocation';
 import withWindowDimensions from '../../../../components/withWindowDimensions';
 import CurrentWalletBalance from '../../../../components/CurrentWalletBalance';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import Permissions from '../../../../libs/Permissions';
-import ConfirmPopover from '../../../../components/ConfirmPopover';
 import AddPaymentMethodMenu from '../../../../components/AddPaymentMethodMenu';
 import CONST from '../../../../CONST';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
-import ConfirmModal from '../../../../components/ConfirmModal';
 import KYCWall from '../../../../components/KYCWall';
 import {propTypes, defaultProps} from './paymentsPagePropTypes';
 import {withNetwork} from '../../../../components/OnyxProvider';
+import * as PaymentUtils from '../../../../libs/PaymentUtils';
+import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
+import ConfirmContent from '../../../../components/ConfirmContent';
+import Button from '../../../../components/Button';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
@@ -40,13 +42,17 @@ class BasePaymentsPage extends React.Component {
             shouldShowAddPaymentMenu: false,
             shouldShowDefaultDeleteMenu: false,
             shouldShowPasswordPrompt: false,
-            shouldShowConfirmPopover: false,
             isSelectedPaymentMethodDefault: false,
             selectedPaymentMethod: {},
-            formattedSelectedPaymentMethod: {},
+            formattedSelectedPaymentMethod: {
+                title: '',
+            },
             anchorPositionTop: 0,
-            anchorPositionLeft: 0,
+            anchorPositionBottom: 0,
+            anchorPositionRight: 0,
             addPaymentMethodButton: null,
+            methodID: null,
+            showConfirmDeleteContent: false,
         };
 
         this.paymentMethodPressed = this.paymentMethodPressed.bind(this);
@@ -58,35 +64,29 @@ class BasePaymentsPage extends React.Component {
         this.hidePasswordPrompt = this.hidePasswordPrompt.bind(this);
         this.navigateToTransferBalancePage = this.navigateToTransferBalancePage.bind(this);
         this.setMenuPosition = this.setMenuPosition.bind(this);
+        this.listHeaderComponent = this.listHeaderComponent.bind(this);
     }
 
     componentDidMount() {
         this.fetchData();
-        if (this.props.shouldListenForResize) {
-            this.dimensionsSubscription = Dimensions.addEventListener('change', this.setMenuPosition);
-        }
     }
 
     componentDidUpdate(prevProps) {
+        if (this.shouldListenForResize) {
+            this.setMenuPosition();
+        }
+
         if (!prevProps.network.isOffline || this.props.network.isOffline) {
             return;
         }
-
         this.fetchData();
-    }
-
-    componentWillUnmount() {
-        if (!this.props.shouldListenForResize || !this.dimensionsSubscription) {
-            return;
-        }
-        this.dimensionsSubscription.remove();
     }
 
     setMenuPosition() {
         if (!this.state.addPaymentMethodButton) {
             return;
         }
-        const buttonPosition = getClickedElementLocation(this.state.addPaymentMethodButton);
+        const buttonPosition = getClickedTargetLocation(this.state.addPaymentMethodButton);
         this.setPositionAddPaymentMenu(buttonPosition);
     }
 
@@ -109,10 +109,11 @@ class BasePaymentsPage extends React.Component {
      */
     setPositionAddPaymentMenu(position) {
         this.setState({
-            anchorPositionTop: position.bottom,
+            anchorPositionTop: position.top + position.height,
+            anchorPositionBottom: this.props.windowHeight - position.top,
 
             // We want the position to be 13px to the right of the left border
-            anchorPositionLeft: position.left + 13,
+            anchorPositionRight: (this.props.windowWidth - position.right) + 13,
         });
     }
 
@@ -123,12 +124,15 @@ class BasePaymentsPage extends React.Component {
      * @param {String} accountType
      * @param {String} account
      * @param {Boolean} isDefault
+     * @param {String|Number} methodID
      */
-    paymentMethodPressed(nativeEvent, accountType, account, isDefault) {
-        const position = getClickedElementLocation(nativeEvent);
+    paymentMethodPressed(nativeEvent, accountType, account, isDefault, methodID) {
+        const position = getClickedTargetLocation(nativeEvent.currentTarget);
         this.setState({
-            addPaymentMethodButton: nativeEvent,
+            addPaymentMethodButton: nativeEvent.currentTarget,
         });
+
+        // The delete/default menu
         if (accountType) {
             let formattedSelectedPaymentMethod;
             if (accountType === CONST.PAYMENT_METHODS.PAYPAL) {
@@ -159,6 +163,7 @@ class BasePaymentsPage extends React.Component {
                 selectedPaymentMethod: account,
                 selectedPaymentMethodType: accountType,
                 formattedSelectedPaymentMethod,
+                methodID,
             });
             this.setPositionAddPaymentMenu(position);
             return;
@@ -166,6 +171,7 @@ class BasePaymentsPage extends React.Component {
         this.setState({
             shouldShowAddPaymentMenu: true,
         });
+
         this.setPositionAddPaymentMenu(position);
     }
 
@@ -196,7 +202,7 @@ class BasePaymentsPage extends React.Component {
     }
 
     fetchData() {
-        PaymentMethods.getPaymentMethods();
+        PaymentMethods.openPaymentsPage();
     }
 
     /**
@@ -211,6 +217,11 @@ class BasePaymentsPage extends React.Component {
      */
     hideDefaultDeleteMenu() {
         this.setState({shouldShowDefaultDeleteMenu: false});
+        InteractionManager.runAfterInteractions(() => {
+            this.setState({
+                showConfirmDeleteContent: false,
+            });
+        });
     }
 
     hidePasswordPrompt() {
@@ -222,10 +233,18 @@ class BasePaymentsPage extends React.Component {
     }
 
     makeDefaultPaymentMethod(password) {
+        // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
+        const paymentMethods = PaymentUtils.formatPaymentMethods(
+            this.props.bankAccountList,
+            this.props.cardList,
+        );
+
+        const previousPaymentMethod = _.find(paymentMethods, method => method.isDefault);
+        const currentPaymentMethod = _.find(paymentMethods, method => method.methodID === this.state.methodID);
         if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-            PaymentMethods.setWalletLinkedAccount(password, this.state.selectedPaymentMethod.bankAccountID, null);
+            PaymentMethods.makeDefaultPaymentMethod(password, this.state.selectedPaymentMethod.bankAccountID, null, previousPaymentMethod, currentPaymentMethod);
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            PaymentMethods.setWalletLinkedAccount(password, null, this.state.selectedPaymentMethod.fundID);
+            PaymentMethods.makeDefaultPaymentMethod(password, null, this.state.selectedPaymentMethod.fundID, previousPaymentMethod, currentPaymentMethod);
         }
     }
 
@@ -233,9 +252,9 @@ class BasePaymentsPage extends React.Component {
         if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PAYPAL) {
             PaymentMethods.deletePayPalMe();
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-            BankAccounts.deleteBankAccount(this.state.selectedPaymentMethod.bankAccountID);
+            BankAccounts.deletePaymentBankAccount(this.state.selectedPaymentMethod.bankAccountID);
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            PaymentMethods.deleteDebitCard(this.state.selectedPaymentMethod.fundID);
+            PaymentMethods.deletePaymentCard(this.state.selectedPaymentMethod.fundID);
         }
     }
 
@@ -243,81 +262,108 @@ class BasePaymentsPage extends React.Component {
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE);
     }
 
+    listHeaderComponent() {
+        return (
+            <>
+                {Permissions.canUseWallet(this.props.betas) && (
+                    <>
+                        <View style={[styles.mv5]}>
+                            <OfflineWithFeedback
+                                pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
+                                errors={this.props.walletTerms.errors}
+                                onClose={PaymentMethods.clearWalletTermsError}
+                                errorRowStyles={[styles.ml10, styles.mr2]}
+                            >
+                                <CurrentWalletBalance />
+                            </OfflineWithFeedback>
+                        </View>
+                        {this.props.userWallet.currentBalance > 0 && (
+                            <KYCWall
+                                onSuccessfulKYC={this.navigateToTransferBalancePage}
+                                enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
+                                addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
+                                addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
+                                popoverPlacement="bottom"
+                            >
+                                {triggerKYCFlow => (
+                                    <MenuItem
+                                        title={this.props.translate('common.transferBalance')}
+                                        icon={Expensicons.Transfer}
+                                        onPress={triggerKYCFlow}
+                                        shouldShowRightIcon
+                                        disabled={this.props.network.isOffline}
+                                    />
+                                )}
+                            </KYCWall>
+                        )}
+                    </>
+                )}
+                <Text
+                    style={[styles.ph5, styles.mt6, styles.textLabelSupporting]}
+                >
+                    {this.props.translate('paymentsPage.paymentMethodsTitle')}
+                </Text>
+            </>
+        );
+    }
+
     render() {
         const isPayPalMeSelected = this.state.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PAYPAL;
-        const shouldShowMakeDefaultButton = !this.state.isSelectedPaymentMethodDefault && Permissions.canUseWallet(this.props.betas) && !isPayPalMeSelected;
+        const shouldShowMakeDefaultButton = !this.state.isSelectedPaymentMethodDefault
+            && Permissions.canUseWallet(this.props.betas)
+            && !isPayPalMeSelected
+            && !(this.state.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT && this.state.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
 
         // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
         const isPopoverBottomMount = this.state.anchorPositionTop === 0 || this.props.isSmallScreenWidth;
         return (
             <ScreenWrapper>
-                <KeyboardAvoidingView>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('common.payments')}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                        onCloseButtonPress={() => Navigation.dismissModal(true)}
-                    />
-                    <View style={styles.flex1}>
-                        {Permissions.canUseWallet(this.props.betas) && (
-                            <>
-                                <View style={[styles.mv5]}>
-                                    <CurrentWalletBalance />
-                                </View>
-                                {this.props.userWallet.currentBalance > 0 && (
-                                    <KYCWall
-                                        onSuccessfulKYC={this.navigateToTransferBalancePage}
-                                        enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
-                                        addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
-                                        addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
-                                        popoverPlacement="bottom"
-                                    >
-                                        {triggerKYCFlow => (
-                                            <MenuItem
-                                                title={this.props.translate('common.transferBalance')}
-                                                icon={Expensicons.Transfer}
-                                                onPress={triggerKYCFlow}
-                                                shouldShowRightIcon
-                                            />
-                                        )}
-                                    </KYCWall>
-                                )}
-                            </>
-                        )}
-                        <Text
-                            style={[styles.ph5, styles.mt6, styles.formLabel]}
-                        >
-                            {this.props.translate('paymentsPage.paymentMethodsTitle')}
-                        </Text>
+                <HeaderWithCloseButton
+                    title={this.props.translate('common.payments')}
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                />
+                <View style={[styles.flex1, styles.mb4]}>
+                    <OfflineWithFeedback
+                        style={styles.flex1}
+                        contentContainerStyle={styles.flex1}
+                        onClose={() => PaymentMethods.clearWalletError()}
+                        errors={this.props.userWallet.errors}
+                        errorRowStyles={[styles.ph6]}
+                    >
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
                             style={[styles.flex4]}
                             isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
-                            actionPaymentMethodType={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt || this.state.shouldShowConfirmPopover
+                            actionPaymentMethodType={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt
                                 ? this.state.selectedPaymentMethodType
                                 : ''}
-                            activePaymentMethodID={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt || this.state.shouldShowConfirmPopover
+                            activePaymentMethodID={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt
                                 ? this.getSelectedPaymentMethodID()
                                 : ''}
+                            listHeaderComponent={this.listHeaderComponent}
                         />
-                    </View>
-                    <AddPaymentMethodMenu
-                        isVisible={this.state.shouldShowAddPaymentMenu}
-                        onClose={this.hideAddPaymentMenu}
-                        anchorPosition={{
-                            top: this.state.anchorPositionTop,
-                            left: this.state.anchorPositionLeft,
-                        }}
-                        onItemSelected={method => this.addPaymentMethodTypePressed(method)}
-                    />
-                    <Popover
-                        isVisible={this.state.shouldShowDefaultDeleteMenu}
-                        onClose={this.hideDefaultDeleteMenu}
-                        anchorPosition={{
-                            top: this.state.anchorPositionTop,
-                            left: this.state.anchorPositionLeft,
-                        }}
-                    >
+                    </OfflineWithFeedback>
+                </View>
+                <AddPaymentMethodMenu
+                    isVisible={this.state.shouldShowAddPaymentMenu}
+                    onClose={this.hideAddPaymentMenu}
+                    anchorPosition={{
+                        bottom: this.state.anchorPositionBottom,
+                        right: this.state.anchorPositionRight - 10,
+                    }}
+                    onItemSelected={method => this.addPaymentMethodTypePressed(method)}
+                />
+                <Popover
+                    isVisible={this.state.shouldShowDefaultDeleteMenu}
+                    onClose={this.hideDefaultDeleteMenu}
+                    anchorPosition={{
+                        top: this.state.anchorPositionTop,
+                        right: this.state.anchorPositionRight,
+                    }}
+                >
+                    {!this.state.showConfirmDeleteContent ? (
                         <View
                             style={[
                                 styles.m5,
@@ -325,115 +371,101 @@ class BasePaymentsPage extends React.Component {
                             ]}
                         >
                             {isPopoverBottomMount && (
-                                <MenuItem
-                                    title={this.state.formattedSelectedPaymentMethod.title}
-                                    icon={this.state.formattedSelectedPaymentMethod.icon}
-                                    description={this.state.formattedSelectedPaymentMethod.description}
-                                    wrapperStyle={[styles.pv0, styles.ph0, styles.mb4]}
-                                    disabled
-                                    interactive={false}
-                                />
+                            <MenuItem
+                                title={this.state.formattedSelectedPaymentMethod.title || ''}
+                                icon={this.state.formattedSelectedPaymentMethod.icon}
+                                description={this.state.formattedSelectedPaymentMethod.description}
+                                wrapperStyle={[styles.pv0, styles.ph0, styles.mb4]}
+                                disabled
+                                interactive={false}
+                            />
                             )}
                             {shouldShowMakeDefaultButton && (
-                                <TouchableOpacity
-                                    onPress={() => {
-                                        this.setState({
-                                            shouldShowDefaultDeleteMenu: false,
-                                        });
-
-                                        // Wait for the previous modal to close, before opening a new one. A modal will be considered completely closed when closing animation is finished.
-                                        // InteractionManager fires after the currently running animation is completed.
-                                        // https://github.com/Expensify/App/issues/7768#issuecomment-1044879541
-                                        InteractionManager.runAfterInteractions(() => {
-                                            this.setState({
-                                                shouldShowPasswordPrompt: true,
-                                                passwordButtonText: this.props.translate('paymentsPage.setDefaultConfirmation'),
-                                            });
-                                        });
-                                    }}
-                                    style={[styles.button, styles.alignSelfCenter, styles.w100]}
-                                >
-                                    <Text style={[styles.buttonText]}>
-                                        {this.props.translate('paymentsPage.setDefaultConfirmation')}
-                                    </Text>
-                                </TouchableOpacity>
-                            )}
-                            <TouchableOpacity
+                            <Button
                                 onPress={() => {
                                     this.setState({
                                         shouldShowDefaultDeleteMenu: false,
                                     });
+
+                                    // Wait for the previous modal to close, before opening a new one. A modal will be considered completely closed when closing animation is finished.
+                                    // InteractionManager fires after the currently running animation is completed.
+                                    // https://github.com/Expensify/App/issues/7768#issuecomment-1044879541
                                     InteractionManager.runAfterInteractions(() => {
                                         this.setState({
-                                            shouldShowConfirmPopover: true,
+                                            shouldShowPasswordPrompt: true,
+                                            passwordButtonText: this.props.translate('paymentsPage.setDefaultConfirmation'),
                                         });
                                     });
                                 }}
-                                style={[
-                                    styles.button,
-                                    styles.buttonDanger,
-                                    shouldShowMakeDefaultButton && styles.mt4,
-                                    styles.alignSelfCenter,
-                                    styles.w100,
-                                ]}
-                            >
-                                <Text style={[styles.buttonText, styles.textWhite]}>
-                                    {this.props.translate('common.delete')}
-                                </Text>
-                            </TouchableOpacity>
+                                text={this.props.translate('paymentsPage.setDefaultConfirmation')}
+                            />
+                            )}
+                            <Button
+                                onPress={() => {
+                                    this.setState({
+                                        showConfirmDeleteContent: true,
+                                    });
+                                }}
+                                style={[shouldShowMakeDefaultButton && styles.mt4]}
+                                text={this.props.translate('common.delete')}
+                                danger
+                            />
                         </View>
-                    </Popover>
-                    <PasswordPopover
-                        isVisible={this.state.shouldShowPasswordPrompt}
-                        onClose={this.hidePasswordPrompt}
-                        anchorPosition={{
-                            top: this.state.anchorPositionTop,
-                            left: this.state.anchorPositionLeft,
-                        }}
-                        onSubmit={(password) => {
-                            this.hidePasswordPrompt();
-                            this.makeDefaultPaymentMethod(password);
-                        }}
-                        submitButtonText={this.state.passwordButtonText}
-                        isDangerousAction
-                    />
-                    <ConfirmPopover
-                        contentStyles={!this.props.isSmallScreenWidth ? [styles.sidebarPopover] : undefined}
-                        isVisible={this.state.shouldShowConfirmPopover}
-                        title={this.props.translate('paymentsPage.deleteAccount')}
-                        prompt={this.props.translate('paymentsPage.deleteConfirmation')}
-                        confirmText={this.props.translate('common.delete')}
-                        cancelText={this.props.translate('common.cancel')}
-                        anchorPosition={{
-                            top: this.state.anchorPositionTop,
-                            left: this.state.anchorPositionLeft,
-                        }}
-                        onConfirm={() => {
-                            this.setState({
-                                shouldShowConfirmPopover: false,
-                            });
-                            this.deletePaymentMethod();
-                        }}
-                        onCancel={() => {
-                            this.setState({shouldShowConfirmPopover: false});
-                        }}
-                        shouldShowCancelButton
-                        danger
-                    />
-                    <ConfirmModal
-                        title={this.props.translate('paymentsPage.allSet')}
-                        onConfirm={PaymentMethods.dismissWalletConfirmModal}
-                        isVisible={this.props.walletTransfer.shouldShowConfirmModal}
-                        prompt={this.props.translate('paymentsPage.transferConfirmText', {
-                            amount: this.props.numberFormat(
-                                this.props.walletTransfer.transferAmount / 100,
-                                {style: 'currency', currency: 'USD'},
-                            ),
-                        })}
-                        confirmText={this.props.translate('paymentsPage.gotIt')}
-                        shouldShowCancelButton={false}
-                    />
-                </KeyboardAvoidingView>
+                    ) : (
+                        <ConfirmContent
+                            onConfirm={() => {
+                                this.setState({
+                                    shouldShowDefaultDeleteMenu: false,
+                                });
+                                InteractionManager.runAfterInteractions(() => {
+                                    this.setState({
+                                        showConfirmDeleteContent: false,
+                                    });
+                                });
+                                this.deletePaymentMethod();
+                            }}
+                            onCancel={() => {
+                                this.setState({
+                                    shouldShowDefaultDeleteMenu: false,
+                                });
+                                InteractionManager.runAfterInteractions(
+                                    () => {
+                                        this.setState(
+                                            {
+                                                showConfirmDeleteContent: false,
+                                            },
+                                        );
+                                    },
+                                );
+                            }}
+                            contentStyles={!this.props.isSmallScreenWidth ? [styles.sidebarPopover] : undefined}
+                            title={this.props.translate('paymentsPage.deleteAccount')}
+                            prompt={this.props.translate('paymentsPage.deleteConfirmation')}
+                            confirmText={this.props.translate('common.delete')}
+                            cancelText={this.props.translate('common.cancel')}
+                            anchorPosition={{
+                                top: this.state.anchorPositionTop,
+                                right: this.state.anchorPositionRight,
+                            }}
+                            shouldShowCancelButton
+                            danger
+                        />
+                    )}
+                </Popover>
+                <PasswordPopover
+                    isVisible={this.state.shouldShowPasswordPrompt}
+                    onClose={this.hidePasswordPrompt}
+                    anchorPosition={{
+                        top: this.state.anchorPositionTop,
+                        right: this.state.anchorPositionRight,
+                    }}
+                    onSubmit={(password) => {
+                        this.hidePasswordPrompt();
+                        this.makeDefaultPaymentMethod(password);
+                    }}
+                    submitButtonText={this.state.passwordButtonText}
+                    isDangerousAction
+                />
             </ScreenWrapper>
         );
     }
@@ -455,6 +487,15 @@ export default compose(
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
+        },
+        bankAccountList: {
+            key: ONYXKEYS.BANK_ACCOUNT_LIST,
+        },
+        cardList: {
+            key: ONYXKEYS.CARD_LIST,
+        },
+        walletTerms: {
+            key: ONYXKEYS.WALLET_TERMS,
         },
     }),
 )(BasePaymentsPage);

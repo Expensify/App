@@ -1,33 +1,18 @@
 import React from 'react';
-import {withNavigation} from '@react-navigation/compat';
-import {withOnyx} from 'react-native-onyx';
-import compose from '../../../../libs/compose';
-import withWindowDimensions from '../../../../components/withWindowDimensions';
-import withLocalize from '../../../../components/withLocalize';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import {sidebarPropTypes, sidebarDefaultProps} from './sidebarPropTypes';
+import sidebarPropTypes from './sidebarPropTypes';
 import BaseSidebarScreen from './BaseSidebarScreen';
+import FloatingActionButtonAndPopover from './FloatingActionButtonAndPopover';
 
-// eslint-disable-next-line react/jsx-props-no-spreading
-const SidebarScreen = props => <BaseSidebarScreen {...props} />;
+const SidebarScreen = props => (
+    <BaseSidebarScreen
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+    >
+        <FloatingActionButtonAndPopover />
+    </BaseSidebarScreen>
+);
 
 SidebarScreen.propTypes = sidebarPropTypes;
-SidebarScreen.defaultProps = sidebarDefaultProps;
 SidebarScreen.displayName = 'SidebarScreen';
 
-export default compose(
-    withNavigation,
-    withLocalize,
-    withWindowDimensions,
-    withOnyx({
-        allPolicies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        isCreatingWorkspace: {
-            key: ONYXKEYS.IS_CREATING_WORKSPACE,
-        },
-    }),
-)(SidebarScreen);
+export default SidebarScreen;

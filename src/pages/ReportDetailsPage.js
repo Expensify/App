@@ -20,6 +20,9 @@ import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
 import Text from '../components/Text';
+import CONST from '../CONST';
+import reportPropTypes from './reportPropTypes';
+import withReportOrNavigateHome from './home/report/withReportOrNavigateHome';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -30,19 +33,7 @@ const propTypes = {
     }).isRequired,
 
     /** The report currently being looked at */
-    report: PropTypes.shape({
-        /** Name of the report */
-        reportName: PropTypes.string,
-
-        /** List of primarylogins of participants of the report */
-        participants: PropTypes.arrayOf(PropTypes.string),
-
-        /** List of icons for report participants */
-        icons: PropTypes.arrayOf(PropTypes.string),
-
-        /** ID of the report */
-        reportID: PropTypes.number,
-    }).isRequired,
+    report: reportPropTypes.isRequired,
 
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
@@ -73,14 +64,16 @@ class ReportDetailsPage extends Component {
 
         // All nonarchived chats should let you see their members
         this.menuItems.push({
+            key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
             translationKey: 'common.members',
             icon: Expensicons.Users,
-            subtitle: props.report.participants.length,
+            subtitle: lodashGet(props.report, 'participants', []).length,
             action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
         });
 
         if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report)) {
             this.menuItems.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
                 translationKey: 'common.settings',
                 icon: Expensicons.Gear,
                 action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
@@ -89,11 +82,13 @@ class ReportDetailsPage extends Component {
 
         if (ReportUtils.isUserCreatedPolicyRoom(this.props.report)) {
             this.menuItems.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
                 icon: Expensicons.Plus,
                 action: () => { /* Placeholder for when inviting other users is built in */ },
             },
             {
+                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: 'common.leaveRoom',
                 icon: Expensicons.Exit,
                 action: () => { /* Placeholder for when leaving rooms is built in */ },
@@ -132,11 +127,11 @@ class ReportDetailsPage extends Component {
                             <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                                 <View style={[styles.alignSelfCenter, styles.w100]}>
                                     <DisplayNames
-                                        fullTitle={ReportUtils.getReportName(this.props.report, this.props.personalDetails, this.props.policies)}
+                                        fullTitle={ReportUtils.getReportName(this.props.report, this.props.policies)}
                                         displayNamesWithTooltips={displayNamesWithTooltips}
                                         tooltipEnabled
                                         numberOfLines={1}
-                                        textStyles={[styles.headerText, styles.mb2, styles.textAlignCenter]}
+                                        textStyles={[styles.textHeadline, styles.mb2, styles.textAlignCenter]}
                                         shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
                                     />
                                 </View>
@@ -145,7 +140,7 @@ class ReportDetailsPage extends Component {
                                         styles.sidebarLinkText,
                                         styles.optionAlternateText,
                                         styles.textLabelSupporting,
-                                        styles.mb5,
+                                        styles.mb2,
                                     ]}
                                     numberOfLines={1}
                                 >
@@ -155,17 +150,21 @@ class ReportDetailsPage extends Component {
                         </View>
                     </View>
                     {_.map(this.menuItems, (item) => {
-                        const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
+                        const brickRoadIndicator = (
+                            ReportUtils.hasReportNameError(this.props.report)
+                            && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS
+                        )
+                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                            : '';
                         return (
                             <MenuItem
-                                key={keyTitle}
-                                title={keyTitle}
+                                key={item.key}
+                                title={this.props.translate(item.translationKey)}
                                 subtitle={item.subtitle}
                                 icon={item.icon}
                                 onPress={item.action}
-                                iconStyles={item.iconStyles}
-                                iconFill={item.iconFill}
                                 shouldShowRightIcon
+                                brickRoadIndicator={brickRoadIndicator}
                             />
                         );
                     })}
@@ -179,10 +178,8 @@ ReportDetailsPage.propTypes = propTypes;
 
 export default compose(
     withLocalize,
+    withReportOrNavigateHome,
     withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },

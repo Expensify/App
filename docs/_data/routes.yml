@@ -1,0 +1,40 @@
+home:
+  href: home
+  title: Welcome to ExpensifyHelp!
+  description: Find the answers to all of your questions about receipts, expenses, corporate cards, or anything else in the spend management universe.
+
+# Hubs are comprised of sections and articles. Sections contain multiple related articles, but there can be standalone articles as well
+hubs:
+  - href: send-money
+    title: Send money
+    description: With only a couple of clicks, send money to your friends or coworkers.
+    icon: /assets/images/paper-airplane.svg
+    sections:
+      - href: workspaces
+        title: Workspaces
+        articles:
+          - href: The-Free-Plan
+            title: The Free Plan
+      - href: paying-friends
+        title: Paying Friends
+        articles:
+          - href: Request-and-Send-Money
+            title: Request and Send Money
+
+  - href: request-money
+    title: Request money
+    icon: /assets/images/money-case.svg
+    description: Request money for work expenses, bills, or a night out with friends.
+    articles:
+      - href: Request-and-Send-Money
+        title: Request and Send Money
+
+  - href: other
+    title: Other
+    description: Everything else you're looking for is right here.
+    icon: /assets/images/lightbulb.svg
+    articles:
+      - href: Your-Expensify-Account-Manager
+        title: Your Expensify Account Manager
+      - href: Everything-About-Chat
+        title: Everything About Chat

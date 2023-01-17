@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Expensify Help</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui">
+    <link rel="icon" type="image/png" href="/assets/images/expensify-logo-round.png">
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.12.0/tocbot.css">
+
+    <script src="https://kit.fontawesome.com/263e5e8608.js" crossorigin="anonymous"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.12.0/tocbot.js"></script>
+    <script defer src="/assets/js/main.js"></script>
+
+    <!-- SEO tags -->
+    {% seo %}
+</head>
+<body>
+
+    <div id="lhn">
+
+        <div class="lhn-header">
+            <div id="header-button">
+                <i id="angle-up-icon" class="fa-solid fa-angle-up icon hide"></i>
+                <i id="bars-icon" class="fa-solid fa-bars icon"></i>
+            </div>
+            <a href="/">
+                <img src="/assets/images/expensify-help.svg" class="logo" />
+            </a>
+        </div>
+
+        <!-- LHN content (Main navigation tree or Article TOC) -->
+        <div id="lhn-content">
+            {% if page.url == "/" or page.url contains "/hubs/" %}
+                {% include lhn-template.html %}
+            {% else %}
+                <div id="back-button" class="icon-with-link">
+                    <i class="fa-solid fa-angle-left icon"></i>
+                    <div class="link">Back</div>
+                </div>
+                <div class="article-toc"></div>
+            {% endif %}
+        </div>
+
+        <!-- Concierge button anchored at the bottom of the LHN (rendered on wider screens) -->
+        {% include floating-concierge-button.html id="floating-concierge-button-lhn" %}
+    </div>
+
+    <div id="content-area">
+
+        <!-- Article title (only shown in article pages) -->
+        {% if page.url contains "/articles/" %}
+            <h1 class="title">
+                {{ page.name | remove: '.md' | split: "-" |  join: " " }}
+            </h1>
+
+            <div class="article-toc-content article">
+                {{ content }}
+            </div>
+        {% else %}
+            <div class="article-toc-content lhn">
+                {{ content }}
+            </div>
+        {% endif %}
+
+        <!-- Concierge button at the bottom of the page -->
+        <a class="card get-help" href="{{ CONCIERGE_CHAT_URL }}" target="_blank">
+            <div class="body">
+                <h3 class="title with-margin">Didn't find what you were looking for?</h3>
+                <p class="description">Concierge is here to answer all your questions.</p>
+            </div>
+            <div class="submit-button">
+                <button class="success">Send a message</button>
+            </div>
+        </a>
+    </div>
+</body>
+</html>

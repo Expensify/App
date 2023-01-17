@@ -1,10 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {ActivityIndicator, View, ScrollView} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import Navigation from '../../libs/Navigation/Navigation';
 import compose from '../../libs/compose';
 import ROUTES from '../../ROUTES';
@@ -16,12 +16,15 @@ import * as BankAccounts from '../../libs/actions/BankAccounts';
 import BankAccount from '../../libs/models/BankAccount';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
-import withFullPolicy from './withFullPolicy';
+import withPolicy from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import ScrollViewWithContext from '../../components/ScrollViewWithContext';
 
 const propTypes = {
+    shouldSkipVBBACall: PropTypes.bool,
+
     /** Information about the network from Onyx */
     network: networkPropTypes.isRequired,
 
@@ -38,7 +41,7 @@ const propTypes = {
     }).isRequired,
 
     /** From Onyx */
-    /** Bank account currently in setup */
+    /** Bank account attached to free plan */
     reimbursementAccount: reimbursementAccountPropTypes,
 
     /** User Data from Onyx */
@@ -58,6 +61,9 @@ const propTypes = {
         name: PropTypes.string,
     }).isRequired,
 
+    /** Option to use the default scroll view  */
+    shouldUseScrollView: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -67,6 +73,8 @@ const defaultProps = {
     reimbursementAccount: {},
     footer: null,
     guidesCallTaskID: '',
+    shouldUseScrollView: false,
+    shouldSkipVBBACall: false,
 };
 
 class WorkspacePageWithSections extends React.Component {
@@ -83,8 +91,11 @@ class WorkspacePageWithSections extends React.Component {
     }
 
     fetchData() {
-        const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
-        BankAccounts.fetchFreePlanVerifiedBankAccount('', achState);
+        if (this.props.shouldSkipVBBACall) {
+            return;
+        }
+
+        BankAccounts.openWorkspaceView();
     }
 
     render() {
@@ -95,8 +106,11 @@ class WorkspacePageWithSections extends React.Component {
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
-            <ScreenWrapper>
-                <KeyboardAvoidingView>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+                <FullPageNotFoundView
+                    shouldShow={_.isEmpty(this.props.policy)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                >
                     <HeaderWithCloseButton
                         title={this.props.headerText}
                         subtitle={policyName}
@@ -106,13 +120,10 @@ class WorkspacePageWithSections extends React.Component {
                         onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
                         onCloseButtonPress={() => Navigation.dismissModal()}
                     />
-                    {this.props.reimbursementAccount.loading ? (
-                        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                            <ActivityIndicator color={themeColors.spinner} size="large" />
-                        </View>
-                    ) : (
-                        <>
-                            <ScrollView
+                    {this.props.shouldUseScrollView
+                        ? (
+                            <ScrollViewWithContext
+                                keyboardShouldPersistTaps="handled"
                                 style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                             >
                                 <View style={[styles.w100, styles.flex1]}>
@@ -120,11 +131,11 @@ class WorkspacePageWithSections extends React.Component {
                                     {this.props.children(hasVBA, policyID, isUsingECard)}
 
                                 </View>
-                            </ScrollView>
-                            {this.props.footer}
-                        </>
-                    )}
-                </KeyboardAvoidingView>
+                            </ScrollViewWithContext>
+                        )
+                        : this.props.children(hasVBA, policyID, isUsingECard)}
+                    {this.props.footer}
+                </FullPageNotFoundView>
             </ScreenWrapper>
         );
     }
@@ -143,6 +154,6 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
-    withFullPolicy,
+    withPolicy,
     withNetwork(),
 )(WorkspacePageWithSections);

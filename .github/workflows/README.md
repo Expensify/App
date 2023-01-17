@@ -3,6 +3,8 @@
 ## Important tip for creating GitHub Workflows
 All inputs and outputs to GitHub Actions and any data passed between jobs or workflows is JSON-encoded (AKA, strings). Keep this in mind whenever writing GitHub workflows – you may need to JSON-decode variables to access them accurately. Here's an example of a common way to misuse GitHub Actions data:
 
+
+
 ```yaml
 name: CI
 on: pull_request
@@ -59,7 +61,8 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 1. `LARGE_SECRET_PASSPHRASE` - decrypts secrets stored in various encrypted files stored in GitHub repository. To create updated versions of these encrypted files, refer to steps 1-4 of [this encrypted secrets help page](https://docs.github.com/en/actions/reference/encrypted-secrets#limits-for-secrets) using the `LARGE_SECRET_PASSPHRASE`.
    1. `android/app/my-upload-key.keystore.gpg`
    1. `android/app/android-fastlane-json-key.json.gpg`
-   1. `ios/chat_expensify_appstore.mobileprovision`
+   1. `ios/chat_expensify_adhoc.mobileprovision.gpg`
+   1. `ios/chat_expensify_appstore.mobileprovision.gpg`
    1. `ios/Certificates.p12.gpg`
 1. `SLACK_WEBHOOK` - Sends Slack notifications via Slack WebHook https://expensify.slack.com/services/B01AX48D7MM
 1. `OS_BOTIFY_TOKEN` - Personal access token for @OSBotify user in GitHub
@@ -75,14 +78,19 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 1. `APPLE_CONTACT_PHONE` - Phone number used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
 1. `APPLE_DEMO_EMAIL` - Demo account email used for https://appstoreconnect.apple.com/
 1. `APPLE_DEMO_PASSWORD` - Demo account password used for https://appstoreconnect.apple.com/
+1. `BROWSERSTACK` - Used to access Browserstack's API
 
 ## Actions
 
 All these _workflows_ are comprised of atomic _actions_. Most of the time, we can use pre-made and independently maintained actions to create powerful workflows that meet our needs. However, when we want to do something very specific or have a more complex or robust action in mind, we can create our own _actions_.
 
-All our actions are stored in the neighboring directory [`.github/actions`](https://github.com/Expensify/App/tree/main/.github/actions). Each action is a module comprised of three parts:
+All our actions are stored in the neighboring directory [`.github/actions`](https://github.com/Expensify/App/tree/main/.github/actions). There are two kinds of actions, [composite actions](https://docs.github.com/en/actions/creating-actions/creating-a-composite-action), and [JavaScript actions](https://docs.github.com/en/actions/creating-actions/creating-a-javascript-action).
 
-1. An [action metadata file](https://docs.github.com/en/free-pro-team@latest/actions/creating-actions/creating-a-javascript-action#creating-an-action-metadata-file) called `action.yml`. This describes the action, gives it a name, and defines its inputs and outputs.
+All actions must have an "action metadata file" called `action.yml`. This describes the action, gives it a name, and defines its inputs and outputs. For composite actions, it also includes the run steps.
+
+JavaScript actions are modules comprised of three parts:
+
+1. An [action metadata file](https://docs.github.com/en/free-pro-team@latest/actions/creating-actions/creating-a-javascript-action#creating-an-action-metadata-file) called `action.yml`.
 1. A Node.js script, whose name matches the module. This is where you can implement the custom logic for your action.
 1. A compiled file called index.js. This is a compiled output of the file from (2) and should _NEVER_ be directly modified.
 
@@ -107,7 +115,7 @@ In order to bundle actions with their dependencies into a single Node.js executa
     - Use the absolute path of the action in GitHub, including the repo name, path, and branch ref, like so:
       ```yaml
       - name: Generate Version
-        uses: Expensify/App/.github/actions/bumpVersion@main
+        uses: Expensify/App/.github/actions/javascript/bumpVersion@main
       ```
        Do not try to use a relative path.
 - Confusingly, paths in action metadata files (`action.yml`) _must_ use relative paths.
@@ -120,7 +128,7 @@ We have a unique way of defining certain workflows which can be manually trigger
 
 ```yaml
 - name: Create new BUILD version
-  uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
+  uses: Expensify/App/.github/actions/javascript/triggerWorkflowAndWait@main
   with:
     GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
     WORKFLOW: createNewVersion.yml

@@ -1,0 +1,23 @@
+name: 'Get the details of a pull request'
+description: 'Get the details of a pull request'
+inputs:
+  GITHUB_TOKEN:
+    description: Auth token for New Expensify Github
+    required: true
+  PULL_REQUEST_NUMBER:
+    description: The number of the pull request
+    required: false
+  TITLE_REGEX:
+    description: Regex to match PR titles for
+    required: false
+  USER:
+    description: The creator of the pull request
+    required: true
+outputs:
+  MERGE_COMMIT_SHA:
+    description: 'The merge_commit_sha of the given pull request'
+  MERGE_ACTOR:
+    description: 'The actor who merged the pull request'
+runs:
+  using: 'node16'
+  main: './index.js'

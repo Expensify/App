@@ -1,0 +1,47 @@
+{% assign activeHub = page.url | remove: "/hubs/" | remove: ".html" %}
+
+<ul class="lhn-items">
+    <li class="home-link">
+        {% if page.url == "/" %}
+            <div class="selected">Home</div>
+        {% else %}
+            <a href="/" class="link">Home</a>
+        {% endif %}
+    </li>
+
+    {% for hub in site.data.routes.hubs %}
+        {% if hub.href == activeHub %}
+            <li>
+                <div class="icon-with-link selected">
+                    <i class="fa-solid fa-angle-down icon"></i>
+                    <span>{{ hub.title }}</span>
+                </div>
+                <ul class="nested-treeview">
+                    <!-- First display sections with nested articles -->
+                    {% for section in hub.sections %}
+                        <li>
+                            <a href="#{{ section.href }}" class="link">{{ section.title }}</a>
+                            <ul>
+                                {% for article in section.articles %}
+                                    {% include lhn-article-link.html hub=hub.href href=article.href title=article.title %}
+                                {% endfor %}
+                            </ul>
+                        </li>
+                    {% endfor %}
+
+                    <!-- Then display standalone articles -->
+                    {% for article in hub.articles %}
+                        {% include lhn-article-link.html hub=hub.href href=article.href title=article.title %}
+                    {% endfor %}
+                </ul>
+            </li>
+        {% else %}
+            <li>
+                <a href="/hubs/{{ hub.href }}" class="icon-with-link link">
+                    <i class="fa-solid fa-angle-right icon"></i>
+                    {{ hub.title }}
+                </a>
+            </li>
+        {% endif %}
+    {% endfor %}
+</ul>

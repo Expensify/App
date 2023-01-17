@@ -12,8 +12,8 @@ export default {
     /** ID of the report action */
     sequenceNumber: PropTypes.number,
 
-    /** Unix timestamp */
-    timestamp: PropTypes.number,
+    /** ISO-formatted datetime */
+    created: PropTypes.string,
 
     /** report action message */
     message: PropTypes.arrayOf(reportActionFragmentPropTypes),
@@ -24,9 +24,8 @@ export default {
         IOUTransactionID: PropTypes.string,
     }),
 
-    /** If the reportAction is pending, that means we have not yet sent the Report_AddComment command to the server.
-    This should most often occur when the client is offline. */
-    isPending: PropTypes.bool,
+    /** Whether we have received a response back from the server */
+    isLoading: PropTypes.bool,
 
     /** Error message that's come back from the server. */
     error: PropTypes.string,

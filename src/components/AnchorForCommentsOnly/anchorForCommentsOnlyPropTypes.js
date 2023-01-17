@@ -1,8 +1,6 @@
 import PropTypes from 'prop-types';
+import stylePropTypes from '../../styles/stylePropTypes';
 
-/**
- * Text based component that is passed a URL to open onPress
- */
 const propTypes = {
     /** The URL to open */
     href: PropTypes.string,
@@ -15,29 +13,27 @@ const propTypes = {
         This is unused in native, but is here for parity with web */
     target: PropTypes.string,
 
-    /** Flag to differentiate attachments and hyperlink. Base on flag link will be treated as a file download or a regular hyperlink */
-    isAttachment: PropTypes.bool,
-
     /** Any children to display */
     children: PropTypes.node,
 
-    /** Filename in case of attachments, anchor text in case of URLs or emails. */
+    /** Anchor text of URLs or emails. */
     displayName: PropTypes.string,
 
     /** Any additional styles to apply */
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.any,
+    style: stylePropTypes,
 
+    /** Press handler for the link, when not passed, default href is used to create a link like behaviour */
+    onPress: PropTypes.func,
 };
 
 const defaultProps = {
     href: '',
     rel: '',
     target: '',
-    isAttachment: false,
     children: null,
     style: {},
     displayName: '',
+    onPress: undefined,
 };
 
 export {propTypes, defaultProps};

@@ -1,0 +1,600 @@
+@import 'breakpoints';
+@import 'colors';
+@import 'fonts';
+
+* {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+    line-height: 1;
+
+    @include maxBreakpoint($breakpoint-tablet) {
+        scroll-padding-top: 80px;        
+    }
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+caption,
+th,
+td {
+    text-align: left;
+    font-weight: 400;
+    vertical-align: middle;
+}
+
+q,
+blockquote {
+    quotes: none;
+
+    &:before,
+    &:after {
+        content: none;
+    }
+}
+
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+main,
+menu,
+nav,
+section,
+summary {
+    display: block;
+}
+
+html,
+body {
+    height: 100%;
+    min-height: 100%;
+    background: $color-darker-green;
+}
+
+hr {
+    background: $color-light-blue;
+    border: none;
+    display: inline-block;
+    width: 24px;
+    height: 2px;
+    margin: 0 0 16px;
+}
+
+strong {
+    font-weight: bold;
+}
+
+em {
+    font-style: italic;
+}
+
+a {
+    color: $color-light-blue;
+    text-decoration: none;
+
+    img {
+        display: block;
+    }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: $color-white;
+    font-weight: bold;
+    padding-bottom: 12px;
+}
+
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin-top: 20px;
+}
+
+h1 {
+    font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-weight: 500;
+    font-size: larger;
+}
+
+h2 {
+    font-size: large;
+}
+
+p {
+    padding-bottom: 20px;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+    line-height: 1.4;
+    font-weight: 400;
+    font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-size: 16px;
+    color: $color-white;
+}
+
+button {
+    border-radius: 12px;
+    padding: 12px;
+    font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+
+    &.success {
+        background-color: $color-green;
+        color: $color-white;
+        width: 100%;
+        border-radius: 100px;
+        padding-left: 20px;
+        padding-right: 20px;
+
+        &:hover {
+            background-color: desaturate($color-green, 15%);
+            cursor: pointer;
+        }
+
+        @include breakpoint($breakpoint-tablet) {
+            width: auto;
+        }
+    }
+}
+
+#logo {
+    width: 240px;
+    padding: 80px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    align-content: center;
+}
+
+#lhn {
+    position: fixed;
+    background-color: $color-darker-green;
+    box-sizing: border-box;
+    border-right-color: $color-dark-green;
+    border-right-width: 1px;
+    border-style: solid;
+    width: 100%;
+    height: auto;
+    &.expanded {
+        height: 100%;
+    }
+
+    @include breakpoint($breakpoint-tablet) {
+        width: 320px;
+        height: 100%;
+    }
+
+    @include breakpoint($breakpoint-desktop) {
+        width: 420px;
+    }
+
+    ul,
+    li {
+        list-style: none;
+    }
+
+
+    #lhn-content {
+        overflow: auto;
+        display: none;
+        height: calc(100% - 100px);
+        padding: 0 24px 24px 24px;
+
+        .in-this-article {
+            padding-top: 40px;
+            display: block;
+        }
+
+        @include breakpoint($breakpoint-tablet) {
+            display: block;
+            height: calc(100% - 150px);
+            padding: 0 44px 44px 44px;
+            -ms-overflow-style: none;
+            /* IE and Edge */
+            scrollbar-width: none;
+            /* Firefox */
+            &::-webkit-scrollbar {
+                display: none;
+            }
+
+        }
+
+        &.expanded {
+            display: block;
+        }
+
+        .article-toc {
+            margin-top: 20px;
+        }
+    }
+
+    .lhn-header {
+        padding: 24px;
+        @include breakpoint($breakpoint-tablet) {
+            padding: 44px;
+        }
+
+        #header-button {
+            position: absolute;
+            display: block;
+            @include breakpoint($breakpoint-tablet) {
+                display: none;
+            }
+        }
+
+        .logo {
+            width: 160px;
+            align-content: center;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+
+            @include breakpoint($breakpoint-tablet) {
+                width: 210px;
+                align-content: normal;
+                display: flex;
+                margin-left: 0;
+                margin-right: 0;
+            }
+        }
+    }
+
+    .icon-with-link {
+        display: grid;
+        grid-template-columns: 40px auto;
+        cursor: pointer;
+    }
+
+    .selected {
+        cursor: auto;
+        font-weight: bold;
+        color: $color-white;
+    }
+
+    .hide {
+        display: none;
+        position: fixed;
+    }
+}
+
+#content-area {
+    display: flex;
+    flex-direction: column;
+    background-color: $color-super-dark-green;
+    min-height: 100vh;
+    margin-left: 0;
+    padding: 80px 24px 24px 24px;
+
+    @include breakpoint($breakpoint-tablet) {
+        margin-left: 320px;
+    }
+
+    @include breakpoint($breakpoint-desktop) {
+        /* Same as the width of the lhn */
+        margin-left: 420px;
+        padding: 52px 68px;
+        box-sizing: border-box;
+    }
+
+    @include breakpoint($breakpoint-wide) {
+        margin-left: 420px;
+        /* On wide screens, the padding needs to be equal to
+        the view width, minus the content size, minus the lhn size, divided by two. */
+        padding: 52px calc((100vw - 1000px - 420px)/2);
+    }
+
+    ul,
+    ol {
+        margin-left: 24px;
+        padding-bottom: 20px;
+    }
+
+    h1 {
+        &.title {
+            font-size: 2.25em;
+        }
+    }
+
+    .article {
+        img {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            padding-bottom: 20px;
+
+            @include maxBreakpoint($breakpoint-tablet) {
+                width: 100%;
+                height: 100%;
+                max-width: auto;
+                max-height: auto;
+            }
+
+            @include breakpoint($breakpoint-tablet) {
+                max-width: -webkit-fill-available;
+                max-height: -webkit-fill-available;
+            }
+        }
+
+        .img-wrap {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+    }
+
+}
+
+.link {
+    display: inline;
+    color: $color-link;
+    cursor: pointer;
+
+    &:hover {
+        color: $color-link-hovered;
+    }
+}
+
+.lhn-items {
+
+    ol,
+    ul {
+        padding-left: 32px;
+    }
+
+    ul,
+    li {
+        margin-bottom: 20px;
+
+        /* Apply recursive style to add a margin to the nested items */
+        ul,
+        li {
+            margin-top: 20px;
+            cursor: pointer;
+        }
+    }
+
+    .nested-treeview {
+        margin-left: 40px;
+    }
+
+    .selected-article {
+        font-weight: bold;
+        color: $color-white;
+    }
+
+    .home-link {
+        padding-left: 40px;
+    }
+}
+
+.cards-group {
+    display: grid;
+    grid-template-columns: auto;
+    row-gap: 20px;
+    column-gap: 20px;
+    padding-bottom: 20px;
+
+    @include breakpoint($breakpoint-desktop) {
+        grid-template-columns: 50% 50%;
+    }
+}
+
+.card {
+    display: flex;
+    flex-wrap: nowrap;
+    border-radius: 16px;
+    padding: 28px;
+    font-weight: 700;
+    cursor: pointer;
+    color: $color-white;
+    background-color: $color-darker-green;
+
+    &:hover {
+        background-color: darken($color-darker-green, 1%);
+    }
+
+    .row {
+        display: flex;
+        flex-basis:100%;
+    }
+
+    .left-icon {
+        display: flex;
+        align-items: center;
+        padding-right: 28px;
+
+        img {
+            width: 64px;
+        }
+    }
+
+    .right-icon {
+        display: flex;
+        align-items: center;
+        padding-left: 16px;
+    }
+
+    .submit-button {
+        display: flex;
+        align-items: center;
+        margin-top: 16px;
+        padding-left: 0;
+
+        @include breakpoint($breakpoint-desktop) {
+            margin-top: 0;
+            padding-left: 16px;
+        }
+    }
+
+    .body {
+        display: flex;
+        flex-wrap: nowrap;
+        flex-direction: column;
+        flex-grow: 2;
+    }
+
+    h3.title {
+        padding: 0;
+        margin: 0;
+
+        &.with-margin {
+            margin: 0 0 4px 0;
+        }
+    }
+
+
+
+    p.description {
+        padding: 0;
+        margin: 0;
+        font-weight: normal;
+
+        &.with-min-height {
+            min-height: 68px;
+
+            @include breakpoint($breakpoint-tablet) {
+                min-height: 48px;
+            }
+        }
+    }
+}
+
+.icon {
+    color: $color-gray-green;
+    font-size: larger;
+    display: inline;
+
+    &.fa-angle-right {
+        padding-left: 4px;
+    }
+}
+
+.homepage {
+    h1 {
+        margin-top: 0;
+        padding-bottom: 20px;
+        padding-top: 8px;
+        @include breakpoint($breakpoint-tablet) {
+            padding-top: 0px;
+        }
+    }
+    h2  {
+        padding-bottom: 24px;
+    }
+    p {
+        margin-bottom: 20px;
+    }
+    .cards-group {
+        padding-bottom: 32px;
+    }
+}
+
+.centered-content {
+    height: 240px;
+    text-align: center;
+    font-size: larger;
+    position: absolute;
+    top: calc((100vh - 240px) / 2);
+
+    width: 380px;
+    right: calc((100vw - 380px) / 2);
+    @include breakpoint($breakpoint-tablet) {
+        width: 500px;
+        right: calc((100vw - 500px) / 2);
+    }
+
+    &.with-lhn {
+        right: calc((100vw - 380px) / 2);
+
+        @include breakpoint($breakpoint-tablet) {
+            right: calc((100vw - 320px - 500px ) / 2);
+        }
+
+        @include breakpoint($breakpoint-desktop) {
+            right: calc((100vw - 420px - 500px) / 2);
+        }
+    }
+
+    div {
+        margin-top: 8px;
+    }
+
+    strong {
+        font-size: 20px;
+    }
+
+    .icon {
+        width: 76px;
+        padding: 28px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+#floating-concierge-button-global {
+    position: fixed;
+    display: block;
+    @include breakpoint($breakpoint-tablet) {
+        display: none;
+    }
+}
+
+#floating-concierge-button-lhn {
+    position: absolute;
+    display: none;
+    @include breakpoint($breakpoint-tablet) {
+        display: block;
+    }
+}
+
+.get-help {
+    flex-wrap: wrap;
+    margin-top: auto;
+}
+
+.floating-concierge-button {
+    bottom: 2rem;
+    right: 2rem;
+
+    img {
+        width: 4rem;
+        height: 4rem;
+
+        &:hover {
+            filter: saturate(2);
+        }
+    }
+}
+
+.disable-scrollbar {
+    @media screen and (max-width: $breakpoint-tablet) {
+        overflow: hidden;
+    }
+}

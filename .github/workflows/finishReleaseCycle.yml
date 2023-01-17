@@ -24,7 +24,7 @@ jobs:
 
       - name: Reopen and comment on issue
         if: ${{ !fromJSON(steps.validateActor.outputs.isTeamMember) }}
-        uses: Expensify/App/.github/actions/reopenIssueWithComment@main
+        uses: Expensify/App/.github/actions/javascript/reopenIssueWithComment@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -35,14 +35,14 @@ jobs:
       - name: Check for any deploy blockers
         if: ${{ fromJSON(steps.validateActor.outputs.isTeamMember) }}
         id: checkDeployBlockers
-        uses: Expensify/App/.github/actions/checkDeployBlockers@main
+        uses: Expensify/App/.github/actions/javascript/checkDeployBlockers@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
 
       - name: Reopen and comment on issue
         if: ${{ fromJSON(steps.validateActor.outputs.isTeamMember) && fromJSON(steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS) }}
-        uses: Expensify/App/.github/actions/reopenIssueWithComment@main
+        uses: Expensify/App/.github/actions/javascript/reopenIssueWithComment@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -56,88 +56,48 @@ jobs:
     needs: validate
     if: ${{ fromJSON(needs.validate.outputs.isValid) }}
     steps:
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
-        with:
-          ref: main
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
       - name: Update production branch
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/composite/updateProtectedBranch@main
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          WORKFLOW: updateProtectedBranch.yml
-          INPUTS: '{ "TARGET_BRANCH": "production" }'
+          TARGET_BRANCH: production
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+  # Create a new patch version to prep for next release cycle
+  createNewPatchVersion:
+    needs: validate
+    if: ${{ fromJSON(needs.validate.outputs.isValid) }}
+    uses: Expensify/App/.github/workflows/createNewVersion.yml@main
+    secrets: inherit
+    with:
+      SEMVER_LEVEL: PATCH
 
   # Deploy deferred PRs to staging and create a new StagingDeployCash for the next release cycle.
   createNewStagingDeployCash:
-    runs-on: macos-11
-    needs: validate
-    if: ${{ fromJSON(needs.validate.outputs.isValid) }}
+    runs-on: ubuntu-latest
+    needs: createNewPatchVersion
     steps:
-      # Version: 2.3.4
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
-        with:
-          ref: main
-          fetch-depth: 0
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
-        with:
-          poll-interval-seconds: 10
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create new PATCH version
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          WORKFLOW: createNewVersion.yml
-          INPUTS: '{ "SEMVER_LEVEL": "PATCH" }'
-
       - name: Update staging branch to trigger staging deploy
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/composite/updateProtectedBranch@main
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          WORKFLOW: updateProtectedBranch.yml
-          INPUTS: '{ "TARGET_BRANCH": "staging" }'
-
-      - name: Pull staging to get the new version
-        run: |
-          git checkout staging
-          git pull origin staging
-          echo "NEW_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
-          echo "New version is ${{ env.NEW_VERSION }}"
+          TARGET_BRANCH: staging
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
         # Create a local git tag so that GitUtils.getPullRequestsMergedBetween can use `git log` to generate a
         # list of pull requests that were merged between this version tag and another.
         # NOTE: This tag is only used locally and shouldn't be pushed to the remote.
         # If it was pushed, that would trigger the staging deploy which is handled in a separate workflow (deploy.yml)
       - name: Tag version
-        run: git tag ${{ env.NEW_VERSION }}
+        run: git tag ${{ needs.createNewPatchVersion.outputs.NEW_VERSION }}
 
       - name: Create new StagingDeployCash
-        uses: Expensify/App/.github/actions/createOrUpdateStagingDeploy@main
+        uses: Expensify/App/.github/actions/javascript/createOrUpdateStagingDeploy@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          NPM_VERSION: ${{ env.NEW_VERSION }}
+          NPM_VERSION: ${{ needs.createNewPatchVersion.outputs.NEW_VERSION }}
 
-      # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
-      # the other workflows with the same change
-      - uses: 8398a7/action-slack@v3
-        name: Job failed Slack notification
-        if: ${{ failure() }}
+      - if: ${{ failure() }}
+        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
         with:
-          status: custom
-          fields: workflow, repo
-          custom_payload: |
-            {
-              channel: '#announce',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

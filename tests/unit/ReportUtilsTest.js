@@ -1,9 +1,9 @@
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
 
 const currentUserEmail = 'bjorn@vikings.net';
 const participantsPersonalDetails = {
@@ -35,7 +35,9 @@ const policies = {
 
 Onyx.init({keys: ONYXKEYS});
 
-beforeAll(() => Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail}));
+beforeAll(() => waitForPromisesToResolve()
+    .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS, participantsPersonalDetails))
+    .then(() => Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail})));
 beforeEach(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.DEFAULT_LOCALE).then(waitForPromisesToResolve));
 
 describe('ReportUtils', () => {
@@ -96,32 +98,32 @@ describe('ReportUtils', () => {
             test('with displayName', () => {
                 expect(ReportUtils.getReportName({
                     participants: [currentUserEmail, 'ragnar@vikings.net'],
-                }, _.pick(participantsPersonalDetails, 'ragnar@vikings.net'))).toBe('Ragnar Lothbrok');
+                })).toBe('Ragnar Lothbrok');
             });
 
             test('no displayName', () => {
                 expect(ReportUtils.getReportName({
                     participants: [currentUserEmail, 'floki@vikings.net'],
-                }, _.pick(participantsPersonalDetails, 'floki@vikings.net'))).toBe('floki@vikings.net');
+                })).toBe('floki@vikings.net');
             });
 
             test('SMS', () => {
                 expect(ReportUtils.getReportName({
                     participants: [currentUserEmail, '+12223334444@expensify.sms'],
-                }, _.pick(participantsPersonalDetails, '+12223334444@expensify.sms'))).toBe('2223334444');
+                })).toBe('2223334444');
             });
         });
 
         test('Group DM', () => {
             expect(ReportUtils.getReportName({
                 participants: [currentUserEmail, 'ragnar@vikings.net', 'floki@vikings.net', 'lagertha@vikings.net', '+12223334444@expensify.sms'],
-            }, participantsPersonalDetails)).toBe('Ragnar, floki@vikings.net, Lagertha, 2223334444');
+            })).toBe('Ragnar, floki@vikings.net, Lagertha, 2223334444');
         });
 
         describe('Default Policy Room', () => {
             const baseAdminsRoom = {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-                reportName: 'admins',
+                reportName: '#admins',
             };
 
             test('Active', () => {
@@ -174,7 +176,7 @@ describe('ReportUtils', () => {
                         policyID: policy.policyID,
                         isOwnPolicyExpenseChat: true,
                         ownerEmail: 'ragnar@vikings.net',
-                    }, participantsPersonalDetails, policies)).toBe('Vikings Policy');
+                    }, policies)).toBe('Vikings Policy');
                 });
 
                 test('as admin', () => {
@@ -183,7 +185,7 @@ describe('ReportUtils', () => {
                         policyID: policy.policyID,
                         isOwnPolicyExpenseChat: false,
                         ownerEmail: 'ragnar@vikings.net',
-                    }, participantsPersonalDetails, policies)).toBe('Ragnar Lothbrok');
+                    }, policies)).toBe('Ragnar Lothbrok');
                 });
             });
 
@@ -203,10 +205,10 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: true,
                     };
 
-                    expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archived)');
+                    expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat, policies)).toBe('Vikings Policy (archived)');
 
                     return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
-                        .then(() => expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archivado)'));
+                        .then(() => expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat, policies)).toBe('Vikings Policy (archivado)'));
                 });
 
                 test('as admin', () => {
@@ -215,12 +217,90 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: false,
                     };
 
-                    expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat, participantsPersonalDetails)).toBe('Ragnar Lothbrok (archived)');
+                    expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archived)');
 
                     return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
-                        .then(() => expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat, participantsPersonalDetails)).toBe('Ragnar Lothbrok (archivado)'));
+                        .then(() => expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archivado)'));
                 });
             });
+        });
+    });
+
+    describe('hasOutstandingIOU', () => {
+        it('returns false when there is no report', () => {
+            expect(ReportUtils.hasOutstandingIOU()).toBe(false);
+        });
+        it('returns false when the report has no iouReportID', () => {
+            const report = LHNTestUtils.getFakeReport();
+            expect(ReportUtils.hasOutstandingIOU(report)).toBe(false);
+        });
+        it('returns false when there is no iouReports collection', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                iouReportID: '1',
+            };
+            expect(ReportUtils.hasOutstandingIOU(report)).toBe(false);
+        });
+        it('returns false when there is no matching IOU report', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                iouReportID: '1',
+            };
+            const iouReports = {};
+            expect(ReportUtils.hasOutstandingIOU(report, undefined, iouReports)).toBe(false);
+        });
+        it('returns false when the matched IOU report does not have an owner email', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                iouReportID: '1',
+            };
+            const iouReports = {
+                report_1: {
+                    reportID: '1',
+                },
+            };
+            expect(ReportUtils.hasOutstandingIOU(report, undefined, iouReports)).toBe(false);
+        });
+        it('returns false when the matched IOU report does not have an owner email', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                iouReportID: '1',
+            };
+            const iouReports = {
+                report_1: {
+                    reportID: '1',
+                    ownerEmail: 'a@a.com',
+                },
+            };
+            expect(ReportUtils.hasOutstandingIOU(report, 'b@b.com', iouReports)).toBe(false);
+        });
+        it('returns true when the report has an oustanding IOU', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                iouReportID: '1',
+                hasOutstandingIOU: true,
+            };
+            const iouReports = {
+                report_1: {
+                    reportID: '1',
+                    ownerEmail: 'a@a.com',
+                },
+            };
+            expect(ReportUtils.hasOutstandingIOU(report, 'b@b.com', iouReports)).toBe(true);
+        });
+        it('returns false when the report has no oustanding IOU', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                iouReportID: '1',
+                hasOutstandingIOU: false,
+            };
+            const iouReports = {
+                report_1: {
+                    reportID: '1',
+                    ownerEmail: 'a@a.com',
+                },
+            };
+            expect(ReportUtils.hasOutstandingIOU(report, 'b@b.com', iouReports)).toBe(false);
         });
     });
 });

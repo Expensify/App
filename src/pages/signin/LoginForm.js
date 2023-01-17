@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
-import Button from '../../components/Button';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -13,11 +12,18 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import compose from '../../libs/compose';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import TextInput from '../../components/TextInput';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
+import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
+import OfflineIndicator from '../../components/OfflineIndicator';
+import {withNetwork} from '../../components/OnyxProvider';
+import networkPropTypes from '../../components/networkPropTypes';
+import * as ErrorUtils from '../../libs/ErrorUtils';
+import DotIndicatorMessage from '../../components/DotIndicatorMessage';
+import * as CloseAccount from '../../libs/actions/CloseAccount';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -28,14 +34,22 @@ const propTypes = {
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
         /** An error message to display to the user */
-        error: PropTypes.string,
+        errors: PropTypes.objectOf(PropTypes.string),
 
         /** Success message to display when necessary */
         success: PropTypes.string,
 
         /** Whether or not a sign on form is loading (being submitted) */
-        loading: PropTypes.bool,
+        isLoading: PropTypes.bool,
     }),
+
+    closeAccount: PropTypes.shape({
+        /** Message to display when user successfully closed their account */
+        success: PropTypes.string,
+    }),
+
+    /** Props to detect online status */
+    network: networkPropTypes.isRequired,
 
     ...windowDimensionsPropTypes,
 
@@ -46,6 +60,7 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
+    closeAccount: {},
     blurOnSubmit: false,
 };
 
@@ -59,6 +74,10 @@ class LoginForm extends React.Component {
             formError: false,
             login: '',
         };
+
+        if (this.props.account.errors || this.props.account.isLoading) {
+            Session.clearAccountMessages();
+        }
     }
 
     componentDidMount() {
@@ -76,10 +95,6 @@ class LoginForm extends React.Component {
             return;
         }
         this.input.focus();
-
-        if (this.state.login) {
-            this.clearLogin();
-        }
     }
 
     /**
@@ -93,8 +108,13 @@ class LoginForm extends React.Component {
             formError: null,
         });
 
-        if (this.props.account.error) {
+        if (this.props.account.errors) {
             Session.clearAccountMessages();
+        }
+
+        // Clear the "Account successfully closed" message when the user starts typing
+        if (this.props.closeAccount.success) {
+            CloseAccount.setDefaultData();
         }
     }
 
@@ -109,6 +129,15 @@ class LoginForm extends React.Component {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     validateAndSubmitForm() {
+        if (this.props.network.isOffline) {
+            return;
+        }
+
+        // If account was closed and have success message in Onyx, we clear it here
+        if (!_.isEmpty(this.props.closeAccount.success)) {
+            CloseAccount.setDefaultData();
+        }
+
         const login = this.state.login.trim();
         if (!login) {
             this.setState({formError: 'common.pleaseEnterEmailOrPhoneNumber'});
@@ -132,13 +161,15 @@ class LoginForm extends React.Component {
         });
 
         // Check if this login has an account associated with it or not
-        Session.fetchAccountDetails(isValidPhoneLogin ? phoneLogin : login);
+        Session.beginSignIn(isValidPhoneLogin ? phoneLogin : login);
     }
 
     render() {
+        const formErrorTranslated = this.state.formError && this.props.translate(this.state.formError);
+        const error = formErrorTranslated || ErrorUtils.getLatestErrorMessage(this.props.account);
         return (
             <>
-                <View style={[styles.mt3]}>
+                <View accessibilityLabel="Login form" style={[styles.mt3]}>
                     <TextInput
                         ref={el => this.input = el}
                         label={this.props.translate('loginForm.phoneOrEmail')}
@@ -151,33 +182,35 @@ class LoginForm extends React.Component {
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
                         autoCorrect={false}
-                        keyboardType={getEmailKeyboardType()}
+                        keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                     />
                 </View>
-                {this.state.formError && (
-                    <Text style={[styles.formError]}>
-                        {this.props.translate(this.state.formError)}
-                    </Text>
-                )}
-
-                {!this.state.formError && !_.isEmpty(this.props.account.error) && (
-                    <Text style={[styles.formError]}>
-                        {this.props.account.error}
-                    </Text>
-                )}
                 {!_.isEmpty(this.props.account.success) && (
                     <Text style={[styles.formSuccess]}>
                         {this.props.account.success}
                     </Text>
                 )}
-                <View style={[styles.mt5]}>
-                    <Button
-                        success
-                        text={this.props.translate('common.continue')}
-                        isLoading={this.props.account.loading}
-                        onPress={this.validateAndSubmitForm}
-                    />
-                </View>
+                {!_.isEmpty(this.props.closeAccount.success) && (
+
+                    // DotIndicatorMessage mostly expects onyxData errors, so we need to mock an object so that the messages looks similar to prop.account.errors
+                    <DotIndicatorMessage style={[styles.mv2]} type="success" messages={{0: this.props.closeAccount.success}} />
+                )}
+                { // We need to unmount the submit button when the component is not visible so that the Enter button
+                  // key handler gets unsubscribed and does not conflict with the Password Form
+                    this.props.isVisible && (
+                        <View style={[styles.mt5]}>
+                            <FormAlertWithSubmitButton
+                                buttonText={this.props.translate('common.continue')}
+                                isLoading={this.props.account.isLoading}
+                                onSubmit={this.validateAndSubmitForm}
+                                message={error}
+                                isAlertVisible={!_.isEmpty(error)}
+                                containerStyles={[styles.mh0]}
+                            />
+                        </View>
+                    )
+                }
+                <OfflineIndicator containerStyles={[styles.mv1]} />
             </>
         );
     }
@@ -189,8 +222,10 @@ LoginForm.defaultProps = defaultProps;
 export default compose(
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
+        closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},
     }),
     withWindowDimensions,
     withLocalize,
     withToggleVisibilityView,
+    withNetwork(),
 )(LoginForm);

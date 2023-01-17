@@ -11,6 +11,7 @@ import styles from '../../styles/styles';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
+import * as Report from '../../libs/actions/Report';
 
 class WalletStatementModal extends React.Component {
     constructor(props) {
@@ -27,13 +28,20 @@ class WalletStatementModal extends React.Component {
      * @param {MessageEvent} e
      */
     navigate(e) {
-        if (!e.data || e.data.type !== 'STATEMENT_NAVIGATE' || !e.data.url) {
+        if (!e.data || !e.data.type || (e.data.type !== 'STATEMENT_NAVIGATE' && e.data.type !== 'CONCIERGE_NAVIGATE')) {
             return;
         }
-        const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND, ROUTES.IOU_BILL];
-        const navigateToIOURoute = _.find(iouRoutes, iouRoute => e.data.url.includes(iouRoute));
-        if (navigateToIOURoute) {
-            Navigation.navigate(navigateToIOURoute);
+
+        if (e.data.type === 'CONCIERGE_NAVIGATE') {
+            Report.navigateToConciergeChat();
+        }
+
+        if (e.data.type === 'STATEMENT_NAVIGATE' && e.data.url) {
+            const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND, ROUTES.IOU_BILL];
+            const navigateToIOURoute = _.find(iouRoutes, iouRoute => e.data.url.includes(iouRoute));
+            if (navigateToIOURoute) {
+                Navigation.navigate(navigateToIOURoute);
+            }
         }
     }
 
@@ -66,7 +74,7 @@ class WalletStatementModal extends React.Component {
 
 WalletStatementModal.propTypes = walletStatementPropTypes;
 WalletStatementModal.defaultProps = walletStatementDefaultProps;
-WalletStatementModal.displayName = 'WalletStatementModal';
+
 export default compose(
     withLocalize,
     withOnyx({

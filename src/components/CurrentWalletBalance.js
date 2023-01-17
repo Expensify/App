@@ -18,6 +18,7 @@ const propTypes = {
     }),
 
     /** Styles of the amount */
+    // eslint-disable-next-line react/forbid-prop-types
     balanceStyles: PropTypes.arrayOf(PropTypes.object),
 
     ...withLocalizePropTypes,
@@ -45,7 +46,7 @@ const CurrentWalletBalance = (props) => {
     );
     return (
         <Text
-            style={[styles.textXXXLarge, styles.pv5, styles.alignSelfCenter, ...props.balanceStyles]}
+            style={[styles.pv5, styles.alignSelfCenter, styles.textHeadline, styles.textXXXLarge, ...props.balanceStyles]}
         >
             {`${formattedBalance}`}
         </Text>

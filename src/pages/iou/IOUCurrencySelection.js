@@ -2,20 +2,16 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import OptionsSelector from '../../components/OptionsSelector';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as IOU from '../../libs/actions/IOU';
 import * as CurrencySymbolUtils from '../../libs/CurrencySymbolUtils';
 import {withNetwork} from '../../components/OnyxProvider';
-import networkPropTypes from '../../components/networkPropTypes';
 
 /**
  * IOU Currency selection for selecting currency
@@ -33,10 +29,7 @@ const propTypes = {
         ISO4217: PropTypes.string,
     })),
 
-    /** Information about the network from Onyx */
-    network: networkPropTypes.isRequired,
     ...withLocalizePropTypes,
-
 };
 
 const defaultProps = {
@@ -47,28 +40,14 @@ class IOUCurrencySelection extends Component {
     constructor(props) {
         super(props);
 
-        const {currencyOptions} = OptionsListUtils.getCurrencyListForSections(this.getCurrencyOptions(this.props.currencyList), '');
-
         this.state = {
             searchValue: '',
-            currencyData: currencyOptions,
+            currencyData: this.getCurrencyOptions(this.props.currencyList),
         };
         this.getCurrencyOptions = this.getCurrencyOptions.bind(this);
         this.getSections = this.getSections.bind(this);
         this.confirmCurrencySelection = this.confirmCurrencySelection.bind(this);
         this.changeSearchValue = this.changeSearchValue.bind(this);
-    }
-
-    componentDidMount() {
-        this.fetchData();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (!prevProps.network.isOffline || this.props.network.isOffline) {
-            return;
-        }
-
-        this.fetchData();
     }
 
     /**
@@ -77,8 +56,10 @@ class IOUCurrencySelection extends Component {
      * @returns {Array}
      */
     getSections() {
+        if (this.state.searchValue.trim() && !this.state.currencyData.length) {
+            return [];
+        }
         const sections = [];
-
         sections.push({
             title: this.props.translate('iOUCurrencySelection.allCurrencies'),
             data: this.state.currencyData,
@@ -95,14 +76,9 @@ class IOUCurrencySelection extends Component {
     getCurrencyOptions() {
         return _.map(this.props.currencyList, (currencyInfo, currencyCode) => ({
             text: `${currencyCode} - ${CurrencySymbolUtils.getLocalizedCurrencySymbol(this.props.preferredLocale, currencyCode)}`,
-            searchText: `${currencyCode} ${currencyInfo.symbol}`,
             currencyCode,
             keyForList: currencyCode,
         }));
-    }
-
-    fetchData() {
-        PersonalDetails.getCurrencyList();
     }
 
     /**
@@ -111,13 +87,13 @@ class IOUCurrencySelection extends Component {
      * @return {void}
      */
     changeSearchValue(searchValue) {
-        const {currencyOptions} = OptionsListUtils.getCurrencyListForSections(
-            this.getCurrencyOptions(this.props.currencyList),
-            searchValue,
-        );
+        const currencyOptions = this.getCurrencyOptions(this.props.currencyList);
+        const searchRegex = new RegExp(searchValue, 'i');
+        const filteredCurrencies = _.filter(currencyOptions, currencyOption => searchRegex.test(currencyOption.text));
+
         this.setState({
             searchValue,
-            currencyData: currencyOptions,
+            currencyData: filteredCurrencies,
         });
     }
 
@@ -133,22 +109,21 @@ class IOUCurrencySelection extends Component {
     }
 
     render() {
+        const headerMessage = this.state.searchValue.trim() && !this.state.currencyData.length ? this.props.translate('common.noResultsFound') : '';
         return (
-            <ScreenWrapper>
-                <KeyboardAvoidingView>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('iOUCurrencySelection.selectCurrency')}
-                        onCloseButtonPress={Navigation.goBack}
-                    />
-                    <OptionsSelector
-                        sections={this.getSections()}
-                        onSelectRow={this.confirmCurrencySelection}
-                        value={this.state.searchValue}
-                        onChangeText={this.changeSearchValue}
-                        shouldDelayFocus
-                        placeholderText={this.props.translate('common.search')}
-                    />
-                </KeyboardAvoidingView>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+                <HeaderWithCloseButton
+                    title={this.props.translate('iOUCurrencySelection.selectCurrency')}
+                    onCloseButtonPress={Navigation.goBack}
+                />
+                <OptionsSelector
+                    sections={this.getSections()}
+                    onSelectRow={this.confirmCurrencySelection}
+                    value={this.state.searchValue}
+                    onChangeText={this.changeSearchValue}
+                    placeholderText={this.props.translate('common.search')}
+                    headerMessage={headerMessage}
+                />
             </ScreenWrapper>
         );
     }

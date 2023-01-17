@@ -11,29 +11,21 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import FloatingMessageCounterContainer from './FloatingMessageCounterContainer';
 
 const propTypes = {
-    /** Count of new messages to show in the badge */
-    count: PropTypes.number,
+    /** Whether the New Messages indicator is active */
+    isActive: PropTypes.bool,
 
-    /** Whether the marker is active */
-    active: PropTypes.bool,
-
-    /** Callback to be called when user closes the badge */
-    onClose: PropTypes.func,
-
-    /** Callback to be called when user clicks the marker */
+    /** Callback to be called when user clicks the New Messages indicator */
     onClick: PropTypes.func,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    count: 0,
-    active: false,
-    onClose: () => {},
+    isActive: false,
     onClick: () => {},
 };
 
-const MARKER_INACTIVE_TRANSLATE_Y = -30;
+const MARKER_INACTIVE_TRANSLATE_Y = -40;
 const MARKER_ACTIVE_TRANSLATE_Y = 10;
 
 class FloatingMessageCounter extends PureComponent {
@@ -45,7 +37,7 @@ class FloatingMessageCounter extends PureComponent {
     }
 
     componentDidUpdate() {
-        if (this.props.active && this.props.count > 0) {
+        if (this.props.isActive) {
             this.show();
         } else {
             this.hide();
@@ -70,7 +62,10 @@ class FloatingMessageCounter extends PureComponent {
 
     render() {
         return (
-            <FloatingMessageCounterContainer containerStyles={[styles.floatingMessageCounterTransformation(this.translateY)]}>
+            <FloatingMessageCounterContainer
+                accessibilityHint="Scroll to newest messages"
+                containerStyles={[styles.floatingMessageCounterTransformation(this.translateY)]}
+            >
                 <View style={styles.floatingMessageCounter}>
                     <View style={[
                         styles.flexRow,
@@ -83,8 +78,8 @@ class FloatingMessageCounter extends PureComponent {
                             small
                             onPress={this.props.onClick}
                             ContentComponent={() => (
-                                <View style={[styles.flexRow]}>
-                                    <Icon small src={Expensicons.DownArrow} fill={themeColors.textReversed} />
+                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                    <Icon small src={Expensicons.DownArrow} fill={themeColors.textLight} />
                                     <Text
                                         selectable={false}
                                         style={[
@@ -93,23 +88,9 @@ class FloatingMessageCounter extends PureComponent {
                                             styles.textWhite,
                                         ]}
                                     >
-                                        {this.props.translate(
-                                            'newMessageCount',
-                                            {count: this.props.count},
-                                        )}
+                                        {this.props.translate('newMessages')}
                                     </Text>
                                 </View>
-                            )}
-                            shouldRemoveRightBorderRadius
-                        />
-                        <Button
-                            success
-                            small
-                            style={[styles.buttonDropdown]}
-                            onPress={this.props.onClose}
-                            shouldRemoveLeftBorderRadius
-                            ContentComponent={() => (
-                                <Icon small src={Expensicons.Close} fill={themeColors.textReversed} />
                             )}
                         />
                     </View>

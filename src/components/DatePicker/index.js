@@ -5,7 +5,6 @@ import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import canUseTouchScreen from '../../libs/canUseTouchscreen';
 import './styles.css';
 
 const datePickerPropTypes = {
@@ -31,10 +30,8 @@ class DatePicker extends React.Component {
     componentDidMount() {
         // Adds nice native datepicker on web/desktop. Not possible to set this through props
         this.inputRef.setAttribute('type', 'date');
+        this.inputRef.setAttribute('max', CONST.DATE.MAX_DATE);
         this.inputRef.classList.add('expensify-datepicker');
-        if (this.props.maximumDate) {
-            this.inputRef.setAttribute('max', moment(this.props.maximumDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
-        }
     }
 
     /**
@@ -43,11 +40,11 @@ class DatePicker extends React.Component {
      */
     setDate(text) {
         if (!text) {
-            this.props.onInputChange(null);
+            this.props.onInputChange('');
             return;
         }
 
-        const asMoment = moment(text);
+        const asMoment = moment(text, true);
         if (asMoment.isValid()) {
             this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
         }
@@ -69,7 +66,7 @@ class DatePicker extends React.Component {
     render() {
         return (
             <TextInput
-                forceActiveLabel={!canUseTouchScreen()}
+                forceActiveLabel
                 ref={(el) => {
                     this.inputRef = el;
 
@@ -80,6 +77,7 @@ class DatePicker extends React.Component {
                 onFocus={this.showDatepicker}
                 label={this.props.label}
                 onInputChange={this.setDate}
+                value={this.props.value}
                 defaultValue={this.defaultValue}
                 placeholder={this.props.placeholder}
                 errorText={this.props.errorText}

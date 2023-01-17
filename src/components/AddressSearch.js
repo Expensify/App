@@ -45,6 +45,7 @@ const propTypes = {
     onInputChange: PropTypes.func.isRequired,
 
     /** Customize the TextInput container */
+    // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** A map of inputID key names */
@@ -143,6 +144,11 @@ const AddressSearch = (props) => {
             horizontal
             contentContainerStyle={styles.flex1}
             scrollEnabled={false}
+
+            // keyboardShouldPersistTaps="always" is required for Android native,
+            // otherwise tapping on a result doesn't do anything. More information
+            // here: https://github.com/FaridSafi/react-native-google-places-autocomplete#use-inside-a-scrollview-or-flatlist
+            keyboardShouldPersistTaps="always"
         >
             <View style={styles.w100}>
                 <GooglePlacesAutocomplete
@@ -156,14 +162,13 @@ const AddressSearch = (props) => {
                         setDisplayListViewBorder(false);
                     }}
                     query={{
-                        key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
                         language: props.preferredLocale,
                         types: 'address',
                         components: 'country:us',
                     }}
                     requestUrl={{
-                        useOnPlatform: 'web',
-                        url: `${CONFIG.EXPENSIFY.EXPENSIFY_URL}api?command=Proxy_GooglePlaces&proxyUrl=`,
+                        useOnPlatform: 'all',
+                        url: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Proxy_GooglePlaces&proxyUrl=`,
                     }}
                     textInputProps={{
                         InputComp: TextInput,
@@ -223,9 +228,9 @@ const AddressSearch = (props) => {
                         separator: [styles.googleSearchSeparator],
                     }}
                     onLayout={(event) => {
-                    // We use the height of the element to determine if we should hide the border of the listView dropdown
-                    // to prevent a lingering border when there are no address suggestions.
-                    // The height of the empty element is 2px (1px height for each top and bottom borders)
+                        // We use the height of the element to determine if we should hide the border of the listView dropdown
+                        // to prevent a lingering border when there are no address suggestions.
+                        // The height of the empty element is 2px (1px height for each top and bottom borders)
                         setDisplayListViewBorder(event.nativeEvent.layout.height > 2);
                     }}
                 />
@@ -236,6 +241,7 @@ const AddressSearch = (props) => {
 
 AddressSearch.propTypes = propTypes;
 AddressSearch.defaultProps = defaultProps;
+AddressSearch.displayName = 'AddressSearch';
 
 export default withLocalize(React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading

@@ -1,0 +1,28 @@
+name: 'Announce failed workflow in Slack'
+description: 'Post failed workflow in Slack #announce channel'
+
+inputs:
+  SLACK_WEBHOOK:
+    description: 'URL of the slack webhook'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: 8398a7/action-slack@2780b654eb23ee546e54052f0d2b0ed66ea30eaa
+      name: Job failed Slack notification
+      with:
+        status: custom
+        fields: workflow, repo
+        custom_payload: |
+          {
+            channel: '#announce',
+            attachments: [{
+              color: "#DB4545",
+              pretext: `<!subteam^S4TJJ3PSL>`,
+              text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW_RUN} workflow 💥`,
+            }]
+          }
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        SLACK_WEBHOOK_URL: ${{ inputs.SLACK_WEBHOOK }}

@@ -2,18 +2,26 @@ import Onyx from 'react-native-onyx';
 
 /**
  * @param {String} formID
- * @param {Boolean} isSubmitting
+ * @param {Boolean} isLoading
  */
-function setIsSubmitting(formID, isSubmitting) {
-    Onyx.merge(formID, {isSubmitting});
+function setIsLoading(formID, isLoading) {
+    Onyx.merge(formID, {isLoading});
 }
 
 /**
  * @param {String} formID
- * @param {Boolean} serverErrorMessage
+ * @param {Object} errors
  */
-function setServerErrorMessage(formID, serverErrorMessage) {
-    Onyx.merge(formID, {serverErrorMessage});
+function setErrors(formID, errors) {
+    Onyx.merge(formID, {errors});
+}
+
+/**
+ * @param {String} formID
+ * @param {Object} errorFields
+ */
+function setErrorFields(formID, errorFields) {
+    Onyx.merge(formID, {errorFields});
 }
 
 /**
@@ -21,11 +29,12 @@ function setServerErrorMessage(formID, serverErrorMessage) {
  * @param {Object} draftValues
  */
 function setDraftValues(formID, draftValues) {
-    Onyx.merge(`${formID}DraftValues`, draftValues);
+    Onyx.merge(`${formID}Draft`, draftValues);
 }
 
 export {
-    setIsSubmitting,
-    setServerErrorMessage,
+    setIsLoading,
+    setErrors,
+    setErrorFields,
     setDraftValues,
 };

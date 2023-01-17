@@ -11,7 +11,14 @@ const propTypes = {
     /** Callback to inform parent modal with key pressed */
     numberPressed: PropTypes.func.isRequired,
 
+    /** Callback to inform parent modal whether user is long pressing the "<" (backspace) button */
+    longPressHandlerStateChanged: PropTypes.func,
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    longPressHandlerStateChanged: () => {},
 };
 
 const padNumbers = [
@@ -41,6 +48,7 @@ class BigNumberPad extends React.Component {
         if (key !== '<') {
             return;
         }
+        this.props.longPressHandlerStateChanged(true);
         const timer = setInterval(() => {
             this.props.numberPressed(key);
         }, 100);
@@ -68,7 +76,9 @@ class BigNumberPad extends React.Component {
                                     onPressOut={() => {
                                         clearInterval(this.state.timer);
                                         ControlSelection.unblock();
+                                        this.props.longPressHandlerStateChanged(false);
                                     }}
+                                    onMouseDown={e => e.preventDefault()}
                                 />
                             );
                         })}
@@ -80,5 +90,6 @@ class BigNumberPad extends React.Component {
 }
 
 BigNumberPad.propTypes = propTypes;
+BigNumberPad.defaultProps = defaultProps;
 
 export default withLocalize(BigNumberPad);

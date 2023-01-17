@@ -1,113 +1,61 @@
-import Onyx from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
-import _ from 'underscore';
+import getPlaidLinkTokenParameters from '../getPlaidLinkTokenParameters';
 import ONYXKEYS from '../../ONYXKEYS';
+import * as API from '../API';
 import CONST from '../../CONST';
-import * as DeprecatedAPI from '../deprecatedAPI';
-import Growl from '../Growl';
-import * as Localize from '../Localize';
-
-/**
- * List of bank accounts. This data should not be stored in Onyx since it contains unmasked PANs.
- *
- * @private
- */
-let plaidBankAccounts = [];
-let bankName = '';
-let plaidAccessToken = '';
-
-/**
- * We clear these out of storage once we are done with them so the user must re-enter Plaid credentials upon returning.
- */
-function clearPlaidBankAccountsAndToken() {
-    plaidBankAccounts = [];
-    bankName = '';
-    Onyx.set(ONYXKEYS.PLAID_BANK_ACCOUNTS, {});
-    Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, null);
-}
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
+ * @param {Boolean} allowDebit
+ * @param {Number} bankAccountID
  */
-function fetchPlaidLinkToken() {
-    DeprecatedAPI.Plaid_GetLinkToken()
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                return;
-            }
-
-            Onyx.merge(ONYXKEYS.PLAID_LINK_TOKEN, response.linkToken);
-        });
+function openPlaidBankLogin(allowDebit, bankAccountID) {
+    const params = getPlaidLinkTokenParameters();
+    params.allowDebit = allowDebit;
+    params.bankAccountID = bankAccountID;
+    API.read('OpenPlaidBankLogin', params);
 }
 
 /**
  * @param {String} publicToken
- * @param {String} bank
+ * @param {String} bankName
+ * @param {Boolean} allowDebit
  */
-function fetchPlaidBankAccounts(publicToken, bank) {
-    bankName = bank;
-
-    Onyx.merge(ONYXKEYS.PLAID_BANK_ACCOUNTS, {loading: true});
-    DeprecatedAPI.BankAccount_Get({
+function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
+    API.read('OpenPlaidBankAccountSelector', {
         publicToken,
-        allowDebit: false,
-        bank,
-    })
-        .then((response) => {
-            if (response.jsonCode === 666 && response.title === CONST.BANK_ACCOUNT.PLAID.ERROR.TOO_MANY_ATTEMPTS) {
-                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isPlaidDisabled: true});
-            }
-
-            plaidAccessToken = response.plaidAccessToken;
-
-            // Filter out any accounts that already exist since they cannot be used again.
-            plaidBankAccounts = _.filter(response.accounts, account => !account.alreadyExists);
-
-            if (plaidBankAccounts.length === 0) {
-                Growl.error(Localize.translateLocal('bankAccount.error.noBankAccountAvailable'));
-            }
-
-            Onyx.merge(ONYXKEYS.PLAID_BANK_ACCOUNTS, {
-                error: {
-                    title: response.title,
-                    message: response.message,
-                },
-                loading: false,
-                accounts: _.map(plaidBankAccounts, account => ({
-                    ...account,
-                    accountNumber: Str.maskPAN(account.accountNumber),
-                })),
+        allowDebit,
+        bank: bankName,
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PLAID_DATA,
+            value: {
+                isLoading: true,
+                error: '',
+                errors: null,
                 bankName,
-            });
-        });
-}
-
-/**
- * @returns {String}
- */
-function getPlaidAccessToken() {
-    return plaidAccessToken;
-}
-
-/**
- * @returns {Array}
- */
-function getPlaidBankAccounts() {
-    return plaidBankAccounts;
-}
-
-/**
- * @returns {String}
- */
-function getBankName() {
-    return bankName;
+            },
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PLAID_DATA,
+            value: {
+                isLoading: false,
+                error: '',
+                errors: null,
+            },
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PLAID_DATA,
+            value: {
+                isLoading: false,
+            },
+        }],
+    });
 }
 
 export {
-    clearPlaidBankAccountsAndToken,
-    fetchPlaidBankAccounts,
-    fetchPlaidLinkToken,
-    getPlaidAccessToken,
-    getPlaidBankAccounts,
-    getBankName,
+    openPlaidBankAccountSelector,
+    openPlaidBankLogin,
 };

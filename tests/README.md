@@ -15,6 +15,10 @@
 - To simulate a network request succeeding or failing we can mock the expected response first and then manually trigger the action that calls that API command.
 - [Mocking the response of `HttpUtils.xhr()`](https://github.com/Expensify/App/blob/ca2fa88a5789b82463d35eddc3d57f70a7286868/tests/actions/SessionTest.js#L25-L32) is the best way to simulate various API conditions so we can verify whether a result occurs or not.
 
+## Mocking `node_modules`, user modules, and what belongs in `jest/setup.js`
+
+If you need to mock a library that exists in `node_modules` then add it to the `__mocks__` folder in the root of the project. More information about this [here](https://jestjs.io/docs/manual-mocks#mocking-node-modules). If you need to mock an individual library you should create a mock module in a `__mocks__` subdirectory adjacent to the library as explained [here](https://jestjs.io/docs/manual-mocks#mocking-user-modules). However, keep in mind that when you do this you also must manually require the mock by calling something like `jest.mock('../../src/libs/Log');` at the top of an individual test file. If every test in the app will need something to be mocked that's a good case for adding it to `jest/setup.js`, but we should generally avoid adding user mocks or `node_modules` mocks to this file. Please use the `__mocks__` subdirectories wherever appropriate.
+
 ## Assertions
 
 - There are a ton of [matchers](https://jestjs.io/docs/en/using-matchers) that `jest` offers for making assertions.
@@ -25,7 +29,7 @@ expect(onyxData).toBe(expectedOnyxData);
 
 ## Documenting Tests
 
-Tests aren't always clear about what exactly is being tested. To make this a bit easier we recommend adopting the following format for code comments:
+Tests aren't always clear about what exactly is being tested.  To make this a bit easier we recommend adopting the following format for code comments:
 
 ```
 // Given <initial_condition>
@@ -60,7 +64,7 @@ describe('actions/Report', () => {
         }));
 
         // When we add a new action to that report
-        addAction(REPORT_ID, 'Hello!');
+        Report.addComment(REPORT_ID, 'Hello!');
         return waitForPromisesToResolve()
             .then(() => {
                 const action = reportActions[ACTION_ID];
@@ -69,7 +73,7 @@ describe('actions/Report', () => {
                 // the comment we left and it will be in a loading state because
                 // it's an "optimistic comment"
                 expect(action.message[0].text).toBe('Hello!');
-                expect(action.loading).toBe(true);
+                expect(action.isPending).toBe(true);
             });
     });
 });

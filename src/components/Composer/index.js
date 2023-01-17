@@ -3,13 +3,15 @@ import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
-import CONST from '../../CONST';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
 import getNumberOfLines from '../../libs/ComposerUtils/index';
+import * as Browser from '../../libs/Browser';
+import Clipboard from '../../libs/Clipboard';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -37,18 +39,6 @@ const propTypes = {
     /** When the input has cleared whoever owns this input should know about it */
     onClear: PropTypes.func,
 
-    /** Callback to fire when a file has being dragged over the text input & report body */
-    onDragOver: PropTypes.func,
-
-    /** Callback to fire when a file has been dragged into the text input & report body */
-    onDragEnter: PropTypes.func,
-
-    /** Callback to fire when the user is no longer dragging over the text input & report body */
-    onDragLeave: PropTypes.func,
-
-    /** Callback to fire when a file is dropped on the text input & report body */
-    onDrop: PropTypes.func,
-
     /** Whether or not this TextInput is disabled. */
     isDisabled: PropTypes.bool,
 
@@ -71,6 +61,9 @@ const propTypes = {
     /** Allow the full composer to be opened */
     setIsFullComposerAvailable: PropTypes.func,
 
+    /** Whether the composer is full size */
+    isComposerFullSize: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -82,10 +75,6 @@ const defaultProps = {
     shouldClear: false,
     onClear: () => {},
     style: null,
-    onDragEnter: () => {},
-    onDragOver: () => {},
-    onDragLeave: () => {},
-    onDrop: () => {},
     isDisabled: false,
     autoFocus: false,
     forwardedRef: null,
@@ -96,6 +85,7 @@ const defaultProps = {
     },
     isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
+    isComposerFullSize: false,
 };
 
 const IMAGE_EXTENSIONS = {
@@ -127,10 +117,13 @@ class Composer extends React.Component {
                 end: initialValue.length,
             },
         };
-        this.dragNDropListener = this.dragNDropListener.bind(this);
+
+        this.paste = this.paste.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
+        this.putSelectionInClipboard = this.putSelectionInClipboard.bind(this);
+        this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
     }
 
     componentDidMount() {
@@ -147,14 +140,9 @@ class Composer extends React.Component {
         // There is no onPaste or onDrag for TextInput in react-native so we will add event
         // listeners here and unbind when the component unmounts
         if (this.textInput) {
-            // Firefox will not allow dropping unless we call preventDefault on the dragover event
-            // We listen on document to extend the Drop area beyond Composer
-            document.addEventListener('dragover', this.dragNDropListener);
-            document.addEventListener('dragenter', this.dragNDropListener);
-            document.addEventListener('dragleave', this.dragNDropListener);
-            document.addEventListener('drop', this.dragNDropListener);
             this.textInput.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
+            this.textInput.addEventListener('keydown', this.putSelectionInClipboard);
         }
     }
 
@@ -165,7 +153,9 @@ class Composer extends React.Component {
             this.setState({numberOfLines: 1});
             this.props.onClear();
         }
-        if (prevProps.defaultValue !== this.props.defaultValue
+
+        if (prevProps.value !== this.props.value
+            || prevProps.defaultValue !== this.props.defaultValue
             || prevProps.isComposerFullSize !== this.props.isComposerFullSize) {
             this.updateNumberOfLines();
         }
@@ -181,51 +171,24 @@ class Composer extends React.Component {
             return;
         }
 
-        document.removeEventListener('dragover', this.dragNDropListener);
-        document.removeEventListener('dragenter', this.dragNDropListener);
-        document.removeEventListener('dragleave', this.dragNDropListener);
-        document.removeEventListener('drop', this.dragNDropListener);
         this.textInput.removeEventListener('paste', this.handlePaste);
         this.textInput.removeEventListener('wheel', this.handleWheel);
     }
 
     /**
-     * Handles all types of drag-N-drop events on the composer
-     *
-     * @param {Object} e native Event
+     * Set pasted text to clipboard
+     * @param {String} text
      */
-    dragNDropListener(e) {
-        let isOriginComposer = false;
-        const handler = () => {
-            switch (e.type) {
-                case 'dragover':
-                    e.preventDefault();
-                    this.props.onDragOver(e, isOriginComposer);
-                    break;
-                case 'dragenter':
-                    e.dataTransfer.dropEffect = 'copy';
-                    this.props.onDragEnter(e, isOriginComposer);
-                    break;
-                case 'dragleave':
-                    this.props.onDragLeave(e, isOriginComposer);
-                    break;
-                case 'drop':
-                    this.props.onDrop(e, isOriginComposer);
-                    break;
-                default: break;
-            }
-        };
+    paste(text) {
+        try {
+            document.execCommand('insertText', false, text);
+            this.updateNumberOfLines();
 
-        // We first check if drop target is composer so that it can be highlighted
-        if (this.textInput.contains(e.target)) {
-            isOriginComposer = true;
-            handler();
-            return;
-        }
-
-        if (document.getElementById(CONST.REPORT.DROP_NATIVE_ID).contains(e.target)) {
-            handler();
-        }
+            // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
+            this.textInput.blur();
+            this.textInput.focus();
+        // eslint-disable-next-line no-empty
+        } catch (e) {}
     }
 
     /**
@@ -235,12 +198,7 @@ class Composer extends React.Component {
      */
     handlePastedHTML(html) {
         const parser = new ExpensiMark();
-        const markdownText = parser.htmlToMarkdown(html);
-        try {
-            document.execCommand('insertText', false, markdownText);
-            this.updateNumberOfLines();
-        // eslint-disable-next-line no-empty
-        } catch (e) {}
+        this.paste(parser.htmlToMarkdown(html));
     }
 
     /**
@@ -250,13 +208,14 @@ class Composer extends React.Component {
      * @param {ClipboardEvent} event
      */
     handlePaste(event) {
+        event.preventDefault();
+
         const {files, types} = event.clipboardData;
         const TEXT_HTML = 'text/html';
 
         // If paste contains files, then trigger file management
         if (files.length > 0) {
             // Prevent the default so we do not post the file name into the text box
-            event.preventDefault();
             this.props.onPasteFile(event.clipboardData.files[0]);
             return;
         }
@@ -265,12 +224,17 @@ class Composer extends React.Component {
         if (types.includes(TEXT_HTML)) {
             const pastedHTML = event.clipboardData.getData(TEXT_HTML);
 
-            event.preventDefault();
             const domparser = new DOMParser();
             const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
 
             // If HTML has img tag, then fetch images from it.
-            if (embeddedImages.length > 0) {
+            if (embeddedImages.length > 0 && embeddedImages[0].src) {
+                // If HTML has emoji, then treat this as plain text.
+                if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
+                    const plainText = event.clipboardData.getData('text/plain');
+                    this.paste(Str.htmlDecode(plainText));
+                    return;
+                }
                 fetch(embeddedImages[0].src)
                     .then((response) => {
                         if (!response.ok) { throw Error(response.statusText); }
@@ -279,7 +243,7 @@ class Composer extends React.Component {
                     .then((x) => {
                         const extension = IMAGE_EXTENSIONS[x.type];
                         if (!extension) {
-                            throw new Error(this.props.translate('composer.noExtentionFoundForMimeType'));
+                            throw new Error(this.props.translate('composer.noExtensionFoundForMimeType'));
                         }
 
                         return new File([x], `pasted_image.${extension}`, {});
@@ -301,7 +265,12 @@ class Composer extends React.Component {
             }
 
             this.handlePastedHTML(pastedHTML);
+            return;
         }
+
+        const plainText = event.clipboardData.getData('text/plain').replace(/\n\n/g, '\n');
+
+        this.paste(Str.htmlDecode(plainText));
     }
 
     /**
@@ -316,6 +285,33 @@ class Composer extends React.Component {
         this.textInput.scrollTop += event.deltaY;
         event.preventDefault();
         event.stopPropagation();
+    }
+
+    putSelectionInClipboard(event) {
+        // If anything happens that isn't cmd+c or cmd+x, ignore the event because it's not a copy command
+        if (!event.metaKey || (event.key !== 'c' && event.key !== 'x')) {
+            return;
+        }
+
+        // The user might have only highlighted a portion of the message to copy, so using the selection will ensure that
+        // the only stuff put into the clipboard is what the user selected.
+        const selectedText = event.target.value.substring(this.state.selection.start, this.state.selection.end);
+
+        // The plaintext portion that is put into the clipboard needs to have the newlines duplicated. This is because
+        // the paste functionality is stripping all duplicate newlines to try and provide consistent behavior.
+        Clipboard.setHtml(selectedText, selectedText.replace(/\n/g, '\n\n'));
+    }
+
+    /**
+     * We want to call updateNumberOfLines only when the parent doesn't provide value in props
+     * as updateNumberOfLines is already being called when value changes in componentDidUpdate
+     */
+    shouldCallUpdateNumberOfLines() {
+        if (!_.isEmpty(this.props.value)) {
+            return;
+        }
+
+        this.updateNumberOfLines();
     }
 
     /**
@@ -346,15 +342,16 @@ class Composer extends React.Component {
         const propStyles = StyleSheet.flatten(this.props.style);
         propStyles.outline = 'none';
         const propsWithoutStyles = _.omit(this.props, 'style');
+
+        // We're disabling autoCorrect for iOS Safari until Safari fixes this issue. See https://github.com/Expensify/App/issues/8592
         return (
             <RNTextInput
                 autoComplete="off"
+                autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
                 selection={this.state.selection}
-                onChange={() => {
-                    this.updateNumberOfLines();
-                }}
+                onChange={this.shouldCallUpdateNumberOfLines}
                 onSelectionChange={this.onSelectionChange}
                 numberOfLines={this.state.numberOfLines}
                 style={propStyles}

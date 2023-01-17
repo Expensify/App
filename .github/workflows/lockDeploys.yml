@@ -7,17 +7,17 @@ on:
 jobs:
   lockStagingDeploys:
     if: ${{ github.event.label.name == '🔐 LockCashDeploys 🔐' && contains(github.event.issue.labels.*.name, 'StagingDeployCash') && github.actor != 'OSBotify' }}
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
       # Version: 2.3.4
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           ref: main
           fetch-depth: 0
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Wait for staging deploys to finish
-        uses: Expensify/App/.github/actions/awaitStagingDeploys@main
+        uses: Expensify/App/.github/actions/javascript/awaitStagingDeploys@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -29,23 +29,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
-      # the other workflows with the same change
-      - uses: 8398a7/action-slack@v3
-        name: Job failed Slack notification
-        if: ${{ failure() }}
+      - if: ${{ failure() }}
+        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
         with:
-          status: custom
-          fields: workflow, repo
-          custom_payload: |
-            {
-              channel: '#announce',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

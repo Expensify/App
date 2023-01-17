@@ -1,21 +1,25 @@
 import 'react-native-gesture-handler/jestSetup';
+import * as reanimatedJestUtils from 'react-native-reanimated/src/reanimated2/jestUtils';
+import setupMockImages from './setupMockImages';
 
-jest.mock('react-native-reanimated', () => {
-    const Reanimated = require('react-native-reanimated/mock');
+setupMockImages();
+reanimatedJestUtils.setUpTests();
 
-    // The mock for `call` immediately calls the callback which is incorrect
-    // So we override it with a no-op
-    Reanimated.default.call = () => {};
-
-    return Reanimated;
-});
-
-// Silence the warning: Animated: `useNativeDriver` is not supported because the native animated module is missing
+// This mock is required as per setup instructions for react-navigation testing
+// https://reactnavigation.org/docs/testing/#mocking-native-modules
 jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
 
-// Set up manual mocks for methods used in the actions so our test does not fail.
-jest.mock('../src/libs/Notification/PushNotification', () => ({
-    // There is no need for a jest.fn() since we don't need to make assertions against it.
-    register: () => {},
-    deregister: () => {},
-}));
+// We have to mock the SQLiteStorage provider because it uses the native module SQLiteStorage, which is not available in jest.
+// Mocking this file in __mocks__ does not work because jest doesn't support mocking files that are not directly used in the testing project
+jest.mock('react-native-onyx/lib/storage/providers/SQLiteStorage', () => require('react-native-onyx/lib/storage/providers/__mocks__/SQLiteStorage'));
+
+// Turn off the console logs for timing events. They are not relevant for unit tests and create a lot of noise
+jest.spyOn(console, 'debug').mockImplementation((...params) => {
+    if (params[0].indexOf('Timing:') === 0) {
+        return;
+    }
+
+    // Send the message to console.log but don't re-used console.debug or else this mock method is called in an infinite loop. Instead, just prefix the output with the word "DEBUG"
+    // eslint-disable-next-line no-console
+    console.log('DEBUG', ...params);
+});

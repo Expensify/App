@@ -6,10 +6,10 @@ on:
 
 jobs:
   lint:
-    uses: ./.github/workflows/lint.yml
+    uses: Expensify/App/.github/workflows/lint.yml@main
 
   test:
-    uses: ./.github/workflows/test.yml
+    uses: Expensify/App/.github/workflows/test.yml@main
 
   confirmPassingBuild:
     runs-on: ubuntu-latest
@@ -17,26 +17,10 @@ jobs:
     if: ${{ always() }}
 
     steps:
-      # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
-      # the other workflows with the same change
-      - uses: 8398a7/action-slack@v3
-        name: Job failed Slack notification
-        if: ${{ needs.lint.result == 'failure' || needs.test.result == 'failure' }}
+      - if: ${{ needs.lint.result == 'failure' || needs.test.result == 'failure' }}
+        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
         with:
-          status: custom
-          fields: workflow, repo
-          custom_payload: |
-            {
-              channel: '#announce',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
       - if: ${{ needs.lint.result == 'failure' || needs.test.result == 'failure' }}
         run: exit 1
@@ -45,165 +29,137 @@ jobs:
     runs-on: ubuntu-latest
     needs: confirmPassingBuild
     outputs:
-      mergedPullRequest: ${{ steps.getMergedPullRequest.outputs.number }}
-      isStagingDeployLocked: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED }}
-      isAutomatedPullRequest: ${{ steps.isAutomatedPullRequest.outputs.IS_VERSION_BUMP_PR }}
-      shouldCherryPick: ${{ steps.shouldCherryPick.outputs.SHOULD_CHERRY_PICK }}
+      MERGED_PR: ${{ steps.getMergedPullRequest.outputs.number }}
+      IS_AUTOMATED_PR: ${{ steps.isAutomatedPullRequest.outputs.IS_AUTOMATED_PR }}
+      SHOULD_DEPLOY: ${{ steps.shouldDeploy.outputs.SHOULD_DEPLOY }}
+      SHOULD_CP: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED && steps.hasCherryPickLabel.outputs.HAS_CP_LABEL }}
 
     steps:
-      # Version: 2.3.4
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
       - name: Get merged pull request
         id: getMergedPullRequest
         uses: actions-ecosystem/action-get-merged-pull-request@59afe90821bb0b555082ce8ff1e36b03f91553d9
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ github.token }}
 
       - name: Check if StagingDeployCash is locked
         id: isStagingDeployLocked
-        uses: Expensify/App/.github/actions/isStagingDeployLocked@main
+        uses: Expensify/App/.github/actions/javascript/isStagingDeployLocked@main
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Check if merged pull request was an automatic version bump PR
+      - name: Check if merged pull request was an automated PR
         id: isAutomatedPullRequest
-        run: echo "::set-output name=IS_VERSION_BUMP_PR::${{ github.actor == 'OSBotify' }}"
+        run: echo "IS_AUTOMATED_PR=${{ github.actor == 'OSBotify' }}" >> "$GITHUB_OUTPUT"
 
       - name: Check if merged pull request has `CP Staging` label
-        id: shouldCherryPick
-        run: echo "::set-output name=SHOULD_CHERRY_PICK::${{ contains(steps.getMergedPullRequest.outputs.labels, 'CP Staging') }}"
+        id: hasCherryPickLabel
+        run: echo "HAS_CP_LABEL=${{ contains(steps.getMergedPullRequest.outputs.labels, 'CP Staging') }}" >> "$GITHUB_OUTPUT"
+
+      - name: Check if merged pull request should trigger a deploy
+        id: shouldDeploy
+        run: echo "SHOULD_DEPLOY=${{ fromJSON(steps.hasCherryPickLabel.outputs.HAS_CP_LABEL) || (!fromJSON(steps.isStagingDeployLocked.outputs.IS_LOCKED) && !fromJSON(steps.isAutomatedPullRequest.outputs.IS_AUTOMATED_PR)) }}" >> "$GITHUB_OUTPUT"
 
   skipDeploy:
     runs-on: ubuntu-latest
     needs: chooseDeployActions
-    if: ${{ fromJSON(needs.chooseDeployActions.outputs.isStagingDeployLocked) && !fromJSON(needs.chooseDeployActions.outputs.isAutomatedPullRequest) && !fromJSON(needs.chooseDeployActions.outputs.shouldCherryPick) }}
-
+    if: ${{ !fromJSON(needs.chooseDeployActions.outputs.SHOULD_DEPLOY) && !fromJSON(needs.chooseDeployActions.outputs.IS_AUTOMATED_PR) }}
     steps:
       - name: Comment on deferred PR
         uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
         with:
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          number: ${{ needs.chooseDeployActions.outputs.mergedPullRequest }}
+          number: ${{ needs.chooseDeployActions.outputs.MERGED_PR }}
           body: |
             :hand: This PR was not deployed to staging yet because QA is ongoing. It will be automatically deployed to staging after the next production release.
 
-  version:
-    runs-on: ubuntu-latest
+  createNewVersion:
     needs: chooseDeployActions
-    if: ${{ fromJSON(needs.chooseDeployActions.outputs.shouldCherryPick) || (!fromJSON(needs.chooseDeployActions.outputs.isStagingDeployLocked) && !fromJSON(needs.chooseDeployActions.outputs.isAutomatedPullRequest)) }}
+    if: ${{ fromJSON(needs.chooseDeployActions.outputs.SHOULD_DEPLOY) }}
+    uses: Expensify/App/.github/workflows/createNewVersion.yml@main
+    secrets: inherit
 
+  updateStaging:
+    needs: [chooseDeployActions, createNewVersion]
+    runs-on: ubuntu-latest
     steps:
-      # Version: 2.3.4
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
+      - uses: softprops/turnstyle@ca99add00ff0c9cbc697d22631d2992f377e5bd5
         with:
           poll-interval-seconds: 10
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create new BUILD version
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          WORKFLOW: createNewVersion.yml
-          INPUTS: '{ "SEMVER_LEVEL": "BUILD" }'
-
-      - name: Pull main to get the new version
-        run: |
-          git pull origin main
-          echo "NEW_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
-          echo "New version is ${{ env.NEW_VERSION }}"
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Update staging branch from main
-        if: ${{ !fromJSON(needs.chooseDeployActions.outputs.isStagingDeployLocked) }}
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
+        if: ${{ !fromJSON(needs.chooseDeployActions.outputs.SHOULD_CP) }}
+        uses: Expensify/App/.github/actions/composite/updateProtectedBranch@main
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          WORKFLOW: updateProtectedBranch.yml
-          INPUTS: '{ "TARGET_BRANCH": "staging" }'
+          TARGET_BRANCH: staging
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
-      - name: Determine if this pull request will be cherry-picked
-        run: echo "DO_CHERRY_PICK=${{ fromJSON(needs.chooseDeployActions.outputs.isStagingDeployLocked) && fromJSON(needs.chooseDeployActions.outputs.shouldCherryPick) }}" >> "$GITHUB_ENV"
-
-      - name: Cherry pick to staging
-        if: ${{ fromJSON(env.DO_CHERRY_PICK) }}
-        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
+      - name: Cherry-pick PR to staging
+        if: ${{ fromJSON(needs.chooseDeployActions.outputs.SHOULD_CP) }}
+        uses: Expensify/App/.github/actions/javascript/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: cherryPick.yml
-          INPUTS: '{ "PULL_REQUEST_NUMBER": "${{ needs.chooseDeployActions.outputs.mergedPullRequest }}", "NEW_VERSION": "${{ env.NEW_VERSION }}" }'
+          INPUTS: '{ "PULL_REQUEST_NUMBER": "${{ needs.chooseDeployActions.outputs.MERGED_PR }}", "NEW_VERSION": "${{ needs.createNewVersion.outputs.NEW_VERSION }}" }'
+
+      # Version: 3.0.2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          ref: staging
+          fetch-depth: 0
 
       # Create a local git tag on staging so that GitUtils.getPullRequestsMergedBetween can use `git log` to generate a
       # list of pull requests that were merged between this version tag and another.
       # NOTE: This tag is only used locally and shouldn't be pushed to the remote.
       # If it was pushed, that would trigger the staging deploy which is handled in a separate workflow (deploy.yml)
       - name: Tag staging
-        run: |
-          git checkout staging
-          git pull origin staging
-          git tag ${{ env.NEW_VERSION }}
+        run: git tag ${{ needs.createNewVersion.outputs.NEW_VERSION }}
 
       - name: Update StagingDeployCash
-        uses: Expensify/App/.github/actions/createOrUpdateStagingDeploy@main
+        uses: Expensify/App/.github/actions/javascript/createOrUpdateStagingDeploy@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          NPM_VERSION: ${{ env.NEW_VERSION }}
+          NPM_VERSION: ${{ needs.createNewVersion.outputs.NEW_VERSION }}
+
+      - name: Find open StagingDeployCash
+        id: getStagingDeployCash
+        run: echo "STAGING_DEPLOY_CASH=$(gh issue list --label StagingDeployCash --json number --jq '.[0].number')" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Comment in StagingDeployCash to alert Applause that a new pull request has been cherry-picked
-        if: ${{ fromJSON(env.DO_CHERRY_PICK) }}
+        if: ${{ fromJSON(needs.chooseDeployActions.outputs.SHOULD_CP) }}
         run: |
-          PR_URL="https://github.com/Expensify/App/pull/${{ needs.chooseDeployActions.outputs.mergedPullRequest }}"
-          printf -v COMMENT ":clap: Heads up @Expensify/applauseleads :clap:\nA [new pull request](%s) has been :cherries: cherry-picked :cherries: to staging, and will be deployed to staging in version \`%s\` :rocket:" "$PR_URL" ${{ env.NEW_VERSION }}
+          PR_URL="https://github.com/Expensify/App/pull/${{ needs.chooseDeployActions.outputs.MERGED_PR }}"
+          printf -v COMMENT ":clap: Heads up @Expensify/applauseleads :clap:\nA [new pull request](%s) has been :cherries: cherry-picked :cherries: to staging, and will be deployed to staging in version \`%s\` :rocket:" "$PR_URL" ${{ needs.createNewVersion.outputs.NEW_VERSION }}
           gh issue comment \
-          "$(gh issue list --label StagingDeployCash --json number --jq '.[0].number')" \
-          --body "$COMMENT"
+            ${{ steps.getStagingDeployCash.outputs.STAGING_DEPLOY_CASH }} \
+            --body "$COMMENT"
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Wait for staging deploys to finish
-        if: ${{ fromJSON(env.DO_CHERRY_PICK) }}
-        uses: Expensify/App/.github/actions/awaitStagingDeploys@main
+        if: ${{ fromJSON(needs.chooseDeployActions.outputs.SHOULD_CP) }}
+        uses: Expensify/App/.github/actions/javascript/awaitStagingDeploys@main
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          TAG: ${{ env.NEW_VERSION }}
+          GITHUB_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.createNewVersion.outputs.NEW_VERSION }}
 
       - name: Comment in StagingDeployCash to alert Applause that cherry-picked pull request has been deployed.
-        if: ${{ fromJSON(env.DO_CHERRY_PICK) }}
+        if: ${{ fromJSON(needs.chooseDeployActions.outputs.SHOULD_CP) }}
         run: |
           gh issue comment \
-          "$(gh issue list --label StagingDeployCash --json number --jq '.[0].number')" \
-          --body ":tada: All set?…You bet! @Expensify/applauseleads https://github.com/Expensify/App/releases/tag/${{ env.NEW_VERSION }} has been deployed to staging :tada:"
+            ${{ steps.getStagingDeployCash.outputs.STAGING_DEPLOY_CASH }} \
+            --body ":tada: All set?…You bet! @Expensify/applauseleads https://github.com/Expensify/App/releases/tag/${{ needs.createNewVersion.outputs.NEW_VERSION }} has been deployed to staging :tada:"
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
-      # the other workflows with the same change
-      - uses: 8398a7/action-slack@v3
-        name: Job failed Slack notification
-        if: ${{ failure() }}
+      - if: ${{ failure() }}
+        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
         with:
-          status: custom
-          fields: workflow, repo
-          custom_payload: |
-            {
-              channel: '#announce',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
   # Check if actor is member of Expensify organization by looking for Expensify/expensify team
   isExpensifyEmployee:
@@ -233,7 +189,7 @@ jobs:
     if: ${{ github.actor != 'OSBotify' && !fromJSON(needs.isExpensifyEmployee.outputs.IS_EXPENSIFY_EMPLOYEE) }}
     steps:
       # Version: 2.3.4
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -258,10 +214,132 @@ jobs:
           body: |
             @${{ steps.getMergedPullRequest.outputs.author }}, Great job getting your first Expensify/App pull request over the finish line! :tada:
 
-            I know there's a lot of information in our [contributing guidelines](https://github.com/Expensify/App/blob/main/CONTRIBUTING.md), so here are some points to take note of :memo::
+            I know there's a lot of information in our [contributing guidelines](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md), so here are some points to take note of :memo::
 
             1. Now that your first PR has been merged, you can be hired for another issue. Once you've completed a few issues, you may be eligible to work on more than one job at a time.
             2. Once your PR is deployed to our staging servers, it will undergo quality assurance (QA) testing. If we find that it doesn't work as expected or causes a regression, you'll be responsible for fixing it. Typically, we would revert this PR and give you another chance to create a similar PR without causing a regression.
             3. Once your PR is deployed to _production_, we start a 7-day timer :alarm_clock:. After it has been on production for 7 days without causing any regressions, then we pay out the Upwork job. :moneybag:
 
             So it might take a while before you're paid for your work, but we typically post multiple new jobs every day, so there's plenty of opportunity. I hope you've had a positive experience contributing to this repo! :blush:
+
+  e2e-tests:
+    name: "Run e2e performance regression tests"
+    runs-on: ubuntu-20.04-64core
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          fetch-depth: 0
+
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
+
+      - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
+        with:
+          ruby-version: '2.7'
+          bundler-cache: true
+
+      # Cache gradle to improve Android build time
+      - name: Gradle cache
+        uses: gradle/gradle-build-action@3fbe033aaae657f011f88f29be9e65ed26bd29ef
+
+      - name: Make zip directory for everything to send to AWS Device Farm
+        run: mkdir zip
+
+      - name: Checkout "Compare" commit
+        run: git checkout ${{ github.event.before }}
+
+      - name: Install node packages
+        uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          command: npm ci
+
+      - name: Build "Compare" APK
+        run: npm run android-build-e2e
+
+      - name: Copy "Compare" APK
+        run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk zip/app-e2eRelease-compare.apk
+
+      - name: Checkout "Baseline" commit (last release)
+        run: git checkout "$(gh release list --limit 1 | awk '{ print $1 }')"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install node packages
+        uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          command: npm ci
+
+      - name: Build "Baseline" APK
+        run: npm run android-build-e2e
+
+      - name: Copy "Baseline" APK
+        run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk zip/app-e2eRelease-baseline.apk
+
+      - name: Checkout previous branch for source code to run on AWS Device farm
+        run: git checkout -
+
+      - name: Copy e2e code into zip folder
+        run: cp -r tests/e2e zip
+
+      - name: Zip everything in the zip directory up
+        run: zip -qr App.zip ./zip
+
+      - name: Configure AWS Credentials
+        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
+        with:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-west-2
+
+      - name: Schedule AWS Device Farm test run
+        uses: realm/aws-devicefarm/test-application@7b9a91236c456c97e28d384c9e476035d5ea686b
+        with:
+          name: App E2E Performance Regression Tests
+          project_arn: ${{ secrets.AWS_PROJECT_ARN }}
+          device_pool_arn: ${{ secrets.AWS_DEVICE_POOL_ARN }}
+          app_file: zip/app-e2eRelease-baseline.apk
+          app_type: ANDROID_APP
+          test_type: APPIUM_NODE
+          test_package_file: App.zip
+          test_package_type: APPIUM_NODE_TEST_PACKAGE
+          test_spec_file: tests/e2e/TestSpec.yml
+          test_spec_type: APPIUM_NODE_TEST_SPEC
+          remote_src: false
+          file_artifacts: Customer Artifacts.zip
+          cleanup: true
+
+      - name: Unzip AWS Device Farm results
+        if: ${{ always() }}
+        run: unzip Customer\ Artifacts.zip
+
+      - name: Print AWS Device Farm run results
+        if: ${{ always() }}
+        run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/debug.log"
+
+      - name: Set output of AWS Device Farm into GitHub ENV
+        run: |
+          { echo 'OUTPUT<<EOF'; cat ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md; echo 'EOF'; } >> "$GITHUB_ENV"
+
+      - name: Get merged pull request
+        id: getMergedPullRequest
+        # TODO: Point back action actions-ecosystem after https://github.com/actions-ecosystem/action-get-merged-pull-request/pull/223 is merged
+        uses: roryabraham/action-get-merged-pull-request@7a7a194f6ff8f3eef58c822083695a97314ebec1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Leave output of AWS Device Farm as a PR comment
+        run: |
+          gh pr comment ${{ steps.getMergedPullRequest.outputs.number }} -F ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if test failed, if so leave a deploy blocker label
+        if: ${{ contains(env.OUTPUT, '🔴') }}
+        run: |
+          gh pr edit ${{ steps.getMergedPullRequest.outputs.number }} --add-label 'DeployBlockerCash'
+          gh pr comment ${{ steps.getMergedPullRequest.outputs.number }} -b "@Expensify/mobile-deployers 📣 Please look into this performance regression as it's a deploy blocker."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

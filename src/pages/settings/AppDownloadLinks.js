@@ -14,9 +14,10 @@ import * as Link from '../../libs/actions/Link';
 import PressableWithSecondaryInteraction from '../../components/PressableWithSecondaryInteraction';
 import ControlSelection from '../../libs/ControlSelection';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import canUseTouchScreen from '../../libs/canUseTouchscreen';
+import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from '../home/report/ContextMenu/ContextMenuActions';
+import PopoverReportActionContextMenu from '../home/report/ContextMenu/PopoverReportActionContextMenu';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -41,7 +42,7 @@ const AppDownloadLinksPage = (props) => {
             icon: Expensicons.Apple,
             iconRight: Expensicons.NewWindow,
             action: () => {
-                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS);
+                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS, true);
             },
             link: CONST.APP_DOWNLOAD_LINKS.IOS,
         },
@@ -60,7 +61,7 @@ const AppDownloadLinksPage = (props) => {
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
-     * @param {string} [selection] - A copy text.
+     * @param {String} [selection] - Copied content.
      */
     const showPopover = (event, selection) => {
         ReportActionContextMenu.showContextMenu(
@@ -80,10 +81,13 @@ const AppDownloadLinksPage = (props) => {
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <ScrollView style={[styles.mt5]}>
+                <PopoverReportActionContextMenu
+                    ref={ReportActionContextMenu.contextMenuRef}
+                />
                 {_.map(menuItems, item => (
                     <PressableWithSecondaryInteraction
                         key={item.translationKey}
-                        onPressIn={() => props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
+                        onPressIn={() => props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
                         onSecondaryInteraction={e => showPopover(e, item.link)}
                         ref={el => popoverAnchor = el}

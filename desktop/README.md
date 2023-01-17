@@ -48,6 +48,8 @@ Testing the auto-update process can be a little involved. The most effective way
 
 **Note:** In order to test with a notarized build you'll need to have a paid Apple developer account.
 
+You can inspect auto update related logs in the log file at `~/Library/Logs/new.expensify.desktop/main.log`
+
 ## Setting up Min.IO
 Rather than pushing new builds to the production S3 bucket, the best way to test locally is to use [Min.IO](https://min.io). Min.IO is an S3-compatible service that you can set up and deploy locally. In order to set up a local Min.IO instance to emulate an S3 bucket, follow these steps:
 
@@ -139,3 +141,9 @@ To see the actual `app.asar` content run the following script
 npx asar extract desktop-build/mac/New\ Expensify.app/Contents/Resources/app.asar ./unpacked-asar
 ```
 The expected size of `app.asar` = `desktop/dist/www/` + `desktop/node_modules/`;
+
+
+# Logging
+
+- `main` process logs are written to `~/Library/Logs/new.expensify.desktop/main.log`
+- `renderer` logs can be observed live in the developer console (⌘ Cmd + ⌥ Option + I)

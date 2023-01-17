@@ -1,4 +1,6 @@
 import React from 'react';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 import Clipboard from '../libs/Clipboard';
@@ -25,8 +27,16 @@ class CopySelectionHelper extends React.Component {
     }
 
     copySelectionToClipboard() {
-        const selectionMarkdown = SelectionScraper.getAsMarkdown();
-        Clipboard.setString(selectionMarkdown);
+        const selection = SelectionScraper.getCurrentSelection();
+        if (!selection) {
+            return;
+        }
+        const parser = new ExpensiMark();
+        if (!Clipboard.canSetHtml()) {
+            Clipboard.setString(parser.htmlToMarkdown(selection));
+            return;
+        }
+        Clipboard.setHtml(selection, Str.htmlDecode(parser.htmlToText(selection)));
     }
 
     render() {
