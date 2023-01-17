@@ -21,13 +21,13 @@ function getTestBuildMessage() {
         ? `![Android](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${androidLink})`
         : "The QR code can't be generated, because the android build failed";
     const desktopQRCode = desktopSuccess
-        ? `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${desktopLink})`
-        : "The QR code can't be generated, because the iOS build failed";
+        ? `![Desktop](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${desktopLink})`
+        : "The QR code can't be generated, because the Desktop build failed";
     const iOSQRCode = iOSSuccess
         ? `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${iOSLink})`
-        : "The QR code can't be generated, because the desktop build failed";
+        : "The QR code can't be generated, because the iOS build failed";
     const webQRCode = webSuccess
-        ? `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})`
+        ? `![Web](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})`
         : "The QR code can't be generated, because the web build failed";
 
     const message = `:test_tube::test_tube: Use the links below to test this build in android and iOS. Happy testing! :test_tube::test_tube:
@@ -43,7 +43,7 @@ function getTestBuildMessage() {
 }
 
 /**
- * Comment Single PR
+ * Comment on a single PR
  *
  * @param {Number} PR
  * @param {String} message
