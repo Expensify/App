@@ -60,7 +60,6 @@ class WorkspaceMembersPage extends React.Component {
         this.state = {
             selectedEmployees: [],
             isRemoveMembersConfirmModalVisible: false,
-            showTooltipForLogin: '',
         };
 
         this.renderItem = this.renderItem.bind(this);
@@ -136,7 +135,6 @@ class WorkspaceMembersPage extends React.Component {
      * Add or remove all users from the selectedEmployees list
      */
     toggleAllUsers() {
-        this.setState({showTooltipForLogin: ''});
         let policyMemberList = lodashGet(this.props, 'policyMemberList', {});
         policyMemberList = _.filter(_.keys(policyMemberList), policyMember => policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
@@ -165,8 +163,6 @@ class WorkspaceMembersPage extends React.Component {
         } else {
             this.addUser(login);
         }
-
-        this.setState({showTooltipForLogin: ''});
     }
 
     /**
@@ -233,7 +229,6 @@ class WorkspaceMembersPage extends React.Component {
                         style={[styles.peopleRowCell]}
                         isChecked={_.contains(this.state.selectedEmployees, item.login)}
                         onPress={() => this.toggleUser(item.login, item.pendingAction)}
-                        toggleTooltip={this.state.showTooltipForLogin === item.login}
                         text={this.props.translate('workspace.people.error.cannotRemove')}
                     />
                     <View style={styles.flex1}>
