@@ -107,9 +107,7 @@ class WorkspaceMembersPage extends React.Component {
      * Remove selected users from the workspace
      */
     removeUsers() {
-        // Remove the admin from the list
-        const membersToRemove = _.without(this.state.selectedEmployees, this.props.session.email);
-        Policy.removeMembers(membersToRemove, this.props.route.params.policyID);
+        Policy.removeMembers(this.state.selectedEmployees, this.props.route.params.policyID);
         this.setState({
             selectedEmployees: [],
             isRemoveMembersConfirmModalVisible: false,
