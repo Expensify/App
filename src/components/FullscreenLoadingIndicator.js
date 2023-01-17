@@ -14,15 +14,13 @@ const defaultProps = {
     style: [],
 };
 
-class FullScreenLoadingIndicator extends React.Component {
-    render() {
-        const additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
-        return (
-            <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, ...additionalStyles]}>
-                <ActivityIndicator color={themeColors.spinner} size="large" />
-            </View>
-        );
-    }
+const FullScreenLoadingIndicator = (props) => {
+    const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
+    return (
+        <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, ...additionalStyles]}>
+            <ActivityIndicator color={themeColors.spinner} size="large" />
+        </View>
+    );
 }
 
 FullScreenLoadingIndicator.propTypes = propTypes;
