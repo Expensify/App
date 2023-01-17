@@ -136,7 +136,7 @@ class ACHContractStep extends React.Component {
             return;
         }
 
-        const bankAccountID = this.props.reimbursementAccount.achData.bankAccountID;
+        const bankAccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0;
 
         // If they did not select that there are other beneficial owners, then we need to clear out the array here. The
         // reason we do it here is that if they filled out several beneficial owners, but then toggled the checkbox, we

@@ -121,7 +121,7 @@ class CompanyStep extends React.Component {
 
     submit(values) {
         const bankAccount = {
-            bankAccountID: this.props.reimbursementAccount.achData.bankAccountID,
+            bankAccountID: lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0,
 
             // Fields from BankAccount step
             ...this.getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
@@ -137,7 +137,7 @@ class CompanyStep extends React.Component {
     }
 
     render() {
-        const bankAccountID = this.props.reimbursementAccount.achData.bankAccountID || 0;
+        const bankAccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0;
         const shouldDisableCompanyName = bankAccountID && this.props.getDefaultStateForField('companyName');
         const shouldDisableCompanyTaxID = bankAccountID && this.props.getDefaultStateForField('companyTaxID');
 

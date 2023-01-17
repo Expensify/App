@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import Log from '../libs/Log';
 import PlaidLink from './PlaidLink';
 import * as BankAccounts from '../libs/actions/BankAccounts';
@@ -76,7 +77,9 @@ class AddPlaidBankAccount extends React.Component {
 
     componentDidMount() {
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
-        if ((this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken) || !_.isEmpty(this.props.plaidData.bankAccounts) || !_.isEmpty(this.props.plaidData.errors)) {
+        if ((this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken)
+            || !_.isEmpty(lodashGet(this.props.plaidData, 'bankAccounts'))
+            || !_.isEmpty(lodashGet(this.props.plaidData, 'errors'))) {
             return;
         }
 
@@ -97,20 +100,22 @@ class AddPlaidBankAccount extends React.Component {
     }
 
     render() {
-        const plaidBankAccounts = this.props.plaidData.bankAccounts || [];
+        const plaidBankAccounts = lodashGet(this.props.plaidData, 'bankAccounts') || [];
         const token = this.getPlaidLinkToken();
         const options = _.map(plaidBankAccounts, account => ({
             value: account.plaidAccountID,
             label: `${account.addressName} ${account.mask}`,
         }));
         const {icon, iconSize} = getBankIcon();
-        const plaidDataErrorMessage = !_.isEmpty(this.props.plaidData.errors) ? _.chain(this.props.plaidData.errors).values().first().value() : '';
+        const plaidErrors = lodashGet(this.props.plaidData, 'errors');
+        const plaidDataErrorMessage = !_.isEmpty(plaidErrors) ? _.chain(plaidErrors).values().first().value() : '';
+        const bankName = lodashGet(this.props.plaidData, 'bankName');
 
         // Plaid Link view
         if (!plaidBankAccounts.length) {
             return (
                 <FullPageOfflineBlockingView>
-                    {this.props.plaidData.isLoading && (
+                    {lodashGet(this.props.plaidData, 'isLoading') && (
                         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <ActivityIndicator color={themeColors.spinner} size="large" />
                         </View>
@@ -120,7 +125,7 @@ class AddPlaidBankAccount extends React.Component {
                             {plaidDataErrorMessage}
                         </Text>
                     )}
-                    {Boolean(token) && !this.props.plaidData.bankName && (
+                    {Boolean(token) && !bankName && (
                         <PlaidLink
                             token={token}
                             onSuccess={({publicToken, metadata}) => {
@@ -153,7 +158,7 @@ class AddPlaidBankAccount extends React.Component {
                         height={iconSize}
                         width={iconSize}
                     />
-                    <Text style={[styles.ml3, styles.textStrong]}>{this.props.plaidData.bankName}</Text>
+                    <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
                 </View>
                 <View style={[styles.mb5]}>
                     <Picker

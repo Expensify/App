@@ -53,18 +53,18 @@ class BankAccountPlaidStep extends React.Component {
             accountNumber: selectedPlaidBankAccount.accountNumber,
             plaidMask: selectedPlaidBankAccount.mask,
             isSavings: selectedPlaidBankAccount.isSavings,
-            bankName: this.props.plaidData.bankName,
+            bankName: lodashGet(this.props.plaidData, 'bankName') || '',
             plaidAccountID: selectedPlaidBankAccount.plaidAccountID,
-            plaidAccessToken: this.props.plaidData.plaidAccessToken,
+            plaidAccessToken: lodashGet(this.props.plaidData, 'plaidAccessToken') || '',
         };
         ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
 
-        const bankAccountID = this.props.reimbursementAccount.achData.bankAccountID || 0;
+        const bankAccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0;
         BankAccounts.connectBankAccountWithPlaid(bankAccountID, bankAccountData);
     }
 
     render() {
-        const bankAccountID = this.props.reimbursementAccount.achData.bankAccountID || 0;
+        const bankAccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0;
         const selectedPlaidAccountID = this.props.getDefaultStateForField('plaidAccountID', '');
 
         return (
@@ -84,7 +84,7 @@ class BankAccountPlaidStep extends React.Component {
                     onSubmit={this.submit}
                     submitButtonText={this.props.translate('common.saveAndContinue')}
                     style={[styles.mh5, styles.flexGrow1]}
-                    isSubmitButtonVisible={Boolean(selectedPlaidAccountID) && !_.isEmpty(this.props.plaidData.bankAccounts)}
+                    isSubmitButtonVisible={Boolean(selectedPlaidAccountID) && !_.isEmpty(lodashGet(this.props.plaidData, 'bankAccounts'))}
                 >
                     <AddPlaidBankAccount
                         text={this.props.translate('bankAccount.plaidBodyCopy')}

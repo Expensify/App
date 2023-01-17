@@ -101,8 +101,8 @@ class ReimbursementAccountPage extends React.Component {
         if (prevProps.network.isOffline && !this.props.network.isOffline) {
             this.fetchData();
         }
-        const currentStep = lodashGet(this.props, 'reimbursementAccount.achData.currentStep') || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-        const previousStep = lodashGet(prevProps, 'reimbursementAccount.achData.currentStep') || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+        const currentStep = lodashGet(this.props.reimbursementAccount, 'achData.currentStep') || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+        const previousStep = lodashGet(prevProps.reimbursementAccount, 'achData.currentStep') || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         if (currentStep === previousStep) {
             return;
         }

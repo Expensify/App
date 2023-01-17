@@ -1,5 +1,6 @@
 import React from 'react';
 import {Image, View} from 'react-native';
+import lodashGet from 'lodash/get';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
@@ -55,7 +56,7 @@ class BankAccountManualStep extends React.Component {
 
     submit(values) {
         BankAccounts.connectBankAccountManually(
-            this.props.reimbursementAccount.achData.bankAccountID || 0,
+            lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0,
             values.accountNumber,
             values.routingNumber,
             this.props.getDefaultStateForField('plaidMask'),
@@ -63,7 +64,7 @@ class BankAccountManualStep extends React.Component {
     }
 
     render() {
-        const shouldDisableInputs = Boolean(this.props.reimbursementAccount.achData.bankAccountID);
+        const shouldDisableInputs = Boolean(lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID'));
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>

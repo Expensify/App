@@ -2,6 +2,7 @@ import React from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import withLocalize from '../../components/withLocalize';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
@@ -33,7 +34,7 @@ class RequestorOnfidoStep extends React.Component {
 
     submit(onfidoData) {
         BankAccounts.verifyIdentityForBankAccount(
-            this.props.reimbursementAccount.achData.bankAccountID || 0,
+            lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0,
             onfidoData,
         );
 

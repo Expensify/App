@@ -1,6 +1,7 @@
 import React from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -34,14 +35,14 @@ const propTypes = {
 
 const EnableStep = (props) => {
     const isUsingExpensifyCard = props.user.isUsingExpensifyCard;
-    const reimbursementAccount = props.reimbursementAccount.achData || {};
-    const {icon, iconSize} = getBankIcon(reimbursementAccount.bankName);
-    const formattedBankAccountNumber = reimbursementAccount.accountNumber
+    const achData = lodashGet(props.reimbursementAccount, 'achData') || {};
+    const {icon, iconSize} = getBankIcon(achData.bankName);
+    const formattedBankAccountNumber = achData.accountNumber
         ? `${props.translate('paymentMethodList.accountLastFour')} ${
-            reimbursementAccount.accountNumber.slice(-4)
+            achData.accountNumber.slice(-4)
         }`
         : '';
-    const bankName = reimbursementAccount.addressName;
+    const bankName = achData.addressName;
 
     return (
         <ScreenWrapper style={[styles.flex1, styles.justifyContentBetween]} includeSafeAreaPaddingBottom={false}>

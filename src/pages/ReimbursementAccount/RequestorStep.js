@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import moment from 'moment';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import withLocalize from '../../components/withLocalize';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -90,7 +91,7 @@ class RequestorStep extends React.Component {
 
     submit(values) {
         const payload = {
-            bankAccountID: this.props.reimbursementAccount.achData.bankAccountID || 0,
+            bankAccountID: lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0,
             ...values,
             dob: moment(values.dob).format(CONST.DATE.MOMENT_FORMAT_STRING),
         };
