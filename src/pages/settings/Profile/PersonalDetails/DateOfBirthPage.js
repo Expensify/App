@@ -55,14 +55,13 @@ class DateOfBirthPage extends Component {
      */
     validate(values) {
         const errors = {};
+        const minimumAge = 5;
 
         if (!values.dateOfBirth) {
             errors.dateOfBirth = this.props.translate('personalDetailsPages.error.dobInvalid');
-        }
-        const birthYear = values.dateOfBirth.split('-')[0];
-        const yearNow = (new Date()).getUTCFullYear();
-        if ((yearNow - birthYear) < 1) {
-            errors.dateOfBirth = this.props.translate('personalDetailsPages.error.dobTooYoung', {age: 10});
+        } else if (!ValidationUtils.meetsAgeRequirements(values.dateOfBirth, minimumAge)) {
+            // TODO: show error for too young or too old
+            errors.dateOfBirth = this.props.translate('personalDetailsPages.error.dobTooYoung', {age: minimumAge});
         }
 
         return errors;
