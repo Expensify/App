@@ -14,8 +14,6 @@ import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import BaseDrawerNavigator from './BaseDrawerNavigator';
 import * as ReportUtils from '../../ReportUtils';
 import reportPropTypes from '../../../pages/reportPropTypes';
-import * as ReportActionContextMenu from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
-import PopoverReportActionContextMenu from '../../../pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
@@ -82,31 +80,26 @@ class MainDrawerNavigator extends Component {
         // This way routing information is updated (if needed) based on the initial report ID resolved.
         // This is usually needed after login/create account and re-launches
         return (
-            <>
-                <PopoverReportActionContextMenu
-                    ref={ReportActionContextMenu.contextMenuRef}
-                />
-                <BaseDrawerNavigator
-                    drawerContent={({navigation, state}) => {
-                        // This state belongs to the drawer so it should always have the ReportScreen as it's initial (and only) route
-                        const reportIDFromRoute = lodashGet(state, ['routes', 0, 'params', 'reportID']);
-                        return (
-                            <SidebarScreen
-                                navigation={navigation}
-                                reportIDFromRoute={reportIDFromRoute}
-                            />
-                        );
-                    }}
-                    screens={[
-                        {
-                            name: SCREENS.REPORT,
-                            component: ReportScreen,
-                            initialParams: this.initialParams,
-                        },
-                    ]}
-                    isMainScreen
-                />
-            </>
+            <BaseDrawerNavigator
+                drawerContent={({navigation, state}) => {
+                    // This state belongs to the drawer so it should always have the ReportScreen as it's initial (and only) route
+                    const reportIDFromRoute = lodashGet(state, ['routes', 0, 'params', 'reportID']);
+                    return (
+                        <SidebarScreen
+                            navigation={navigation}
+                            reportIDFromRoute={reportIDFromRoute}
+                        />
+                    );
+                }}
+                screens={[
+                    {
+                        name: SCREENS.REPORT,
+                        component: ReportScreen,
+                        initialParams: this.initialParams,
+                    },
+                ]}
+                isMainScreen
+            />
         );
     }
 }
