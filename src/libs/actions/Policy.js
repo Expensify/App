@@ -27,7 +27,7 @@ Onyx.connect({
             // and unset the draft indicator (pencil icon) alongside removing any draft comments. Clearing these values will keep the newly archived chats from being displayed in the LHN.
             // More info: https://github.com/Expensify/App/issues/14260
             const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
-            const policyReports = ReportUtils.getPolicyReports(policyID);
+            const policyReports = ReportUtils.getAllPolicyReports(policyID);
             const cleanUpMergeQueries = {};
             const cleanUpSetQueries = {};
             _.each(policyReports, ({reportID}) => {

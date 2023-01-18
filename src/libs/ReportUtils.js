@@ -1186,7 +1186,7 @@ function getChatByParticipants(newParticipantList) {
  * @param {String} policyID
  * @returns {Array}
  */
-function getPolicyReports(policyID) {
+function getAllPolicyReports(policyID) {
     return _.filter(allReports, report => report && report.policyID === policyID);
 }
 
@@ -1264,7 +1264,7 @@ export {
     buildOptimisticReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
-    getPolicyReports,
+    getAllPolicyReports,
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
     isIOUReport,
