@@ -231,7 +231,7 @@ class RequestorStep extends React.Component {
                                 href="https://onfido.com/privacy/"
                                 style={styles.textMicro}
                             >
-                                {this.props.translate('common.privacyPolicy')}
+                                {this.props.translate('common.privacy')}
                             </TextLink>
                             {` ${this.props.translate('common.and')} `}
                             <TextLink

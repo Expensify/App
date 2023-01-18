@@ -1,5 +1,4 @@
 import {Linking} from 'react-native';
-import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -1092,6 +1091,10 @@ function subscribeToNewActionEvent(reportID, callback) {
  * @param {Object} action
  */
 function showReportActionNotification(reportID, action) {
+    if (ReportActionsUtils.isDeletedAction(action)) {
+        return;
+    }
+
     if (!ActiveClientManager.isClientTheLeader()) {
         Log.info('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
         return;
@@ -1135,6 +1138,12 @@ function showReportActionNotification(reportID, action) {
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         },
     });
+
+    // Notify the ReportActionsView that a new comment has arrived
+    if (reportID === newActionSubscriber.reportID) {
+        const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
+        newActionSubscriber.callback(isFromCurrentUser, action.reportActionID);
+    }
 }
 
 /**
@@ -1145,51 +1154,6 @@ function showReportActionNotification(reportID, action) {
 function clearIOUError(reportID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errorFields: {iou: null}});
 }
-
-// We are using this map to ensure actions are only handled once
-const handledReportActions = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    initWithStoredValues: false,
-    callback: (actions, key) => {
-        // reportID can be derived from the Onyx key
-        const reportID = key.split('_')[1];
-        if (!reportID) {
-            return;
-        }
-
-        _.each(actions, (action) => {
-            if (lodashGet(handledReportActions, [reportID, action.sequenceNumber])) {
-                return;
-            }
-
-            if (ReportActionsUtils.isDeletedAction(action)) {
-                return;
-            }
-
-            if (!action.created) {
-                return;
-            }
-
-            // If we are past the deadline to notify for this comment don't do it
-            if (moment.utc(moment(action.created).unix() * 1000).isBefore(moment.utc().subtract(10, 'seconds'))) {
-                handledReportActions[reportID] = handledReportActions[reportID] || {};
-                handledReportActions[reportID][action.sequenceNumber] = true;
-                return;
-            }
-
-            // Notify the ReportActionsView that a new comment has arrived
-            if (reportID === newActionSubscriber.reportID) {
-                const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
-                newActionSubscriber.callback(isFromCurrentUser, action.reportActionID);
-            }
-
-            showReportActionNotification(reportID, action);
-            handledReportActions[reportID] = handledReportActions[reportID] || {};
-            handledReportActions[reportID][action.sequenceNumber] = true;
-        });
-    },
-});
 
 export {
     addComment,
@@ -1222,4 +1186,5 @@ export {
     clearIOUError,
     getMaxSequenceNumber,
     subscribeToNewActionEvent,
+    showReportActionNotification,
 };
