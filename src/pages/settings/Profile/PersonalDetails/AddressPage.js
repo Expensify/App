@@ -69,7 +69,8 @@ class AddressPage extends Component {
      */
     updateAddress(values) {
         PersonalDetails.updateAddress(
-            `${values.addressLine1.trim()}\n${values.addressLine2}`.trim(),
+            values.addressLine1.trim(),
+            values.addressLine2.trim(),
             values.city.trim(),
             this.state.isUsaForm ? values.state : values.stateOrProvince,
             values.zipPostCode,
@@ -115,20 +116,8 @@ class AddressPage extends Component {
         return errors;
     }
 
-    /**
-     * @param {String} street
-     * @returns {Object}
-     */
-    parseAddressStreet(street) {
-        return {
-            addressLine1: street.split('\n')[0],
-            addressLine2: street.split('\n').length > 1 ? street.split('\n')[1] : '',
-        }
-    }
-
     render() {
         const privateDetails = this.props.privatePersonalDetails || {};
-        const {addressLine1, addressLine2} = this.parseAddressStreet(lodashGet(privateDetails, 'address.street') || '');
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -150,14 +139,14 @@ class AddressPage extends Component {
                         <AddressSearch
                             inputID="addressLine1"
                             label={this.props.translate('common.addressLine', {lineNumber: 1})}
-                            defaultValue={addressLine1}
+                            defaultValue={lodashGet(privateDetails, 'address.street') || ''}
                         />
                     </View>
                     <View style={styles.mb4}>
                         <TextInput
                             inputID="addressLine2"
                             label={this.props.translate('common.addressLine', {lineNumber: 2})}
-                            defaultValue={addressLine2}
+                            defaultValue={lodashGet(privateDetails, 'address.street2') || ''}
                             maxLength={CONST.FORM_CHARACTER_LIMIT}
                         />
                     </View>

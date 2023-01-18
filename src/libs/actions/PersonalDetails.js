@@ -178,7 +178,7 @@ function updateDisplayName(firstName, lastName) {
  * @param {String} legalLastName
  */
 function updateLegalName(legalFirstName, legalLastName) {
-    API.write('UpdateDisplayName', {legalFirstName, legalLastName}, {
+    API.write('UpdateLegalName', {legalFirstName, legalLastName}, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
@@ -195,7 +195,7 @@ function updateLegalName(legalFirstName, legalLastName) {
  * @param {String} dateOfBirth
  */
 function updateDateOfBirth(dateOfBirth) {
-    API.write('UpdateDateOfBirth', {dateOfBirth}, {
+    API.write('UpdateDateOfBirth', {dob: dateOfBirth}, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
@@ -207,17 +207,27 @@ function updateDateOfBirth(dateOfBirth) {
     Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
-function updateAddress(street, city, state, zip, country) {
-    API.write('UpdateHomeAddress', {street, city, state, zip, country}, {
+function updateAddress(street, street2, city, state, zip, country) {
+    API.write('UpdateHomeAddress', {
+        addressStreet: street,
+        addressStreet2: street2,
+        addressCity: city,
+        addressState: state,
+        addressZipCode: zip,
+        addressCountry: country,
+    }, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
             value: {
-                street,
-                city,
-                state,
-                zip,
-                country,
+                address: {
+                    street,
+                    street2,
+                    city,
+                    state,
+                    zip,
+                    country,
+                },
             },
         }],
     });
