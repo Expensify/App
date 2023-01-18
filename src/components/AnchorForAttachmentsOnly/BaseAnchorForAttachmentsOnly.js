@@ -77,7 +77,7 @@ class BaseAnchorForAttachmentsOnly extends React.Component {
                         )}
                     >
                         <AttachmentView
-                            sourceURL={source}
+                            source={source}
                             file={{name: this.props.displayName}}
                             shouldShowDownloadIcon
                             shouldShowLoadingSpinnerIcon={this.state.isDownloading}
