@@ -146,13 +146,13 @@ export default {
         openLinkInBrowser: 'abrir este enlace en tu navegador',
     },
     iOUConfirmationList: {
-        whoPaid: '¿QUIÉN PAGO?',
-        whoWasThere: '¿QUIÉN ASISTIÓ?',
+        whoPaid: '¿Quién pago?',
+        whoWasThere: '¿Quién asistió?',
         whatsItFor: '¿Para qué es?',
     },
     iOUCurrencySelection: {
         selectCurrency: 'Selecciona una moneda',
-        allCurrencies: 'TODAS LAS MONEDAS',
+        allCurrencies: 'Todas las monedas',
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
@@ -385,6 +385,7 @@ export default {
             phrase3: 'y',
             phrase4: 'política de privacidad',
         },
+        help: 'Ayuda',
     },
     closeAccountPage: {
         closeAccount: 'Cerrar cuenta',
@@ -981,6 +982,7 @@ export default {
         chatWithConcierge: 'Chatear con Concierge',
         requestSetupCall: 'Llámame por teléfono',
         questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
+        exploreHelpDocs: 'Explorar la documentación de ayuda',
     },
     requestCallPage: {
         title: 'Llámame por teléfono',

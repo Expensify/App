@@ -146,13 +146,13 @@ export default {
         openLinkInBrowser: 'open this link in your browser',
     },
     iOUConfirmationList: {
-        whoPaid: 'WHO PAID?',
-        whoWasThere: 'WHO WAS THERE?',
+        whoPaid: 'Who paid?',
+        whoWasThere: 'Who was there?',
         whatsItFor: 'What\'s it for?',
     },
     iOUCurrencySelection: {
         selectCurrency: 'Select a currency',
-        allCurrencies: 'ALL CURRENCIES',
+        allCurrencies: 'All currencies',
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
@@ -385,6 +385,7 @@ export default {
             phrase3: 'and',
             phrase4: 'privacy policy',
         },
+        help: 'Help',
     },
     closeAccountPage: {
         closeAccount: 'Close account',
@@ -979,6 +980,7 @@ export default {
         chatWithConcierge: 'Chat with Concierge',
         requestSetupCall: 'Request a setup call',
         questionMarkButtonTooltip: 'Get assistance from our team',
+        exploreHelpDocs: 'Explore help docs',
     },
     requestCallPage: {
         title: 'Request a call',
