@@ -39,6 +39,13 @@ const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
 
+const defaultNewActionSubscriber = {
+    reportID: '',
+    callback: () => {},
+};
+
+let newActionSubscriber = defaultNewActionSubscriber;
+
 /**
  * @param {String} reportID
  * @returns {Number}
@@ -1069,13 +1076,6 @@ function clearPolicyRoomNameErrors(reportID) {
 function setIsComposerFullSize(reportID, isComposerFullSize) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, isComposerFullSize);
 }
-
-const defaultNewActionSubscriber = {
-    reportID: '',
-    callback: () => {},
-};
-
-let newActionSubscriber = defaultNewActionSubscriber;
 
 /**
  * Enables the Report actions file to let the ReportActionsView know that a new comment has arrived in realtime for the current report

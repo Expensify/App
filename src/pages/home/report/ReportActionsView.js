@@ -102,7 +102,6 @@ class ReportActionsView extends React.Component {
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
         this.unsubscribeFromNewActionEvent = Report.subscribeToNewActionEvent(this.props.report.reportID, (isFromCurrentUser, newActionID, isDeleted) => {
-
             if (isDeleted) {
                 this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.getSortedReportActionsForDisplay(this.props.report.reportActions))});
             }
