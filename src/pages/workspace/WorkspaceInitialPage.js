@@ -183,7 +183,7 @@ class WorkspaceInitialPage extends React.Component {
                             errorRowStyles={[styles.ph6, styles.pv2]}
                         >
                             <View style={[styles.flex1]}>
-                                <View style={styles.pageWrapper}>
+                                <View style={[styles.pageWrapper, styles.pt0]}>
                                     <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
                                         <Pressable
                                             disabled={this.hasPolicyCreationError()}

@@ -120,7 +120,7 @@ class DetailsPage extends React.PureComponent {
                 >
                     {details ? (
                         <ScrollView>
-                            <View style={styles.pageWrapper}>
+                            <View style={[styles.pageWrapper, styles.pt0]}>
                                 <AttachmentModal
                                     headerTitle={isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
                                     sourceURL={details.avatar}
