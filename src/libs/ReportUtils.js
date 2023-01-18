@@ -1183,7 +1183,6 @@ function getChatByParticipants(newParticipantList) {
 }
 
 /**
- * Get policy reports
  * @param {String} policyID
  * @returns {Array}
  */
