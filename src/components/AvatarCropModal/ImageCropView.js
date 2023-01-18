@@ -64,6 +64,7 @@ const ImageCropView = (props) => {
         };
     }, [props.originalImageHeight, props.originalImageWidth]);
 
+    // ControlSelection.blockElement will prevent safari default behaviour (I-beam cursor on drag). See https://github.com/Expensify/App/issues/13688
     return (
         <PanGestureHandler onGestureEvent={props.panGestureEventHandler}>
             <Animated.View ref={ControlSelection.blockElement} style={[containerStyle, styles.imageCropContainer]}>
