@@ -9,7 +9,7 @@ labels: Daily, NewFeature
 ## Tasks
 
 - [ ] Post **Proposal (Problem/Solution)** in #expensify-open-source
-- [ ] Wait until the post has a majority (2/3) of positive reactions (👍)
+- [ ] Wait at least one full business day, and until the post has a majority (2/3) of positive reactions (👍)
 - [ ] Paste Proposal in the space above with a link to the Slack thread
 - [ ] Email `strategy@expensify.com` and paste in the Proposal
 - [ ] Fill out **High-level overview of the problem**, **Timeline**, and **Terminology** sections of the Design Doc
