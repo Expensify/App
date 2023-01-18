@@ -895,15 +895,6 @@ const styles = {
         lineHeight: 16,
     },
 
-    formLabel: {
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
-        color: themeColors.heading,
-        fontSize: variables.fontSizeLabel,
-        lineHeight: variables.lineHeightLarge,
-        marginBottom: 8,
-    },
-
     formHelp: {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
@@ -2859,12 +2850,6 @@ const styles = {
     saveButtonPadding: {
         paddingLeft: 18,
         paddingRight: 18,
-    },
-
-    pushToPageEmptyItemLabel: {
-        color: themeColors.textSupporting,
-        fontSize: variables.fontSizeNormal,
-        maxWidth: 240,
     },
 
     deeplinkWrapperContainer: {

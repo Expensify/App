@@ -147,7 +147,6 @@ class ReportActionItem extends Component {
             children = (
                 <IOUAction
                     chatReportID={this.props.report.reportID}
-                    iouReportID={this.props.report.iouReportID}
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
                     isHovered={hovered}

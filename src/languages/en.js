@@ -36,7 +36,6 @@ export default {
         and: 'and',
         details: 'Details',
         privacy: 'Privacy',
-        privacyPolicy: 'Privacy policy',
         delete: 'Delete',
         archived: 'archived',
         contacts: 'Contacts',
@@ -146,13 +145,13 @@ export default {
         openLinkInBrowser: 'open this link in your browser',
     },
     iOUConfirmationList: {
-        whoPaid: 'WHO PAID?',
-        whoWasThere: 'WHO WAS THERE?',
+        whoPaid: 'Who paid?',
+        whoWasThere: 'Who was there?',
         whatsItFor: 'What\'s it for?',
     },
     iOUCurrencySelection: {
         selectCurrency: 'Select a currency',
-        allCurrencies: 'ALL CURRENCIES',
+        allCurrencies: 'All currencies',
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
@@ -379,12 +378,13 @@ export default {
         signOut: 'Sign out',
         signOutConfirmationText: 'You\'ll lose any offline changes if you sign-out.',
         versionLetter: 'v',
-        readTheTermsAndPrivacyPolicy: {
+        readTheTermsAndPrivacy: {
             phrase1: 'Read the',
             phrase2: 'terms of service',
             phrase3: 'and',
-            phrase4: 'privacy policy',
+            phrase4: 'privacy',
         },
+        help: 'Help',
     },
     closeAccountPage: {
         closeAccount: 'Close account',
@@ -516,7 +516,7 @@ export default {
         phrase1: 'By logging in, you agree to the',
         phrase2: 'terms of service',
         phrase3: 'and',
-        phrase4: 'privacy policy',
+        phrase4: 'privacy',
         phrase5: 'Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its',
         phrase6: 'licenses',
     },
@@ -979,6 +979,7 @@ export default {
         chatWithConcierge: 'Chat with Concierge',
         requestSetupCall: 'Request a setup call',
         questionMarkButtonTooltip: 'Get assistance from our team',
+        exploreHelpDocs: 'Explore help docs',
     },
     requestCallPage: {
         title: 'Request a call',

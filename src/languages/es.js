@@ -36,7 +36,6 @@ export default {
         and: 'y',
         details: 'Detalles',
         privacy: 'Privacidad',
-        privacyPolicy: 'Política de privacidad',
         delete: 'Eliminar',
         archived: 'archivado',
         contacts: 'Contactos',
@@ -146,13 +145,13 @@ export default {
         openLinkInBrowser: 'abrir este enlace en tu navegador',
     },
     iOUConfirmationList: {
-        whoPaid: '¿QUIÉN PAGO?',
-        whoWasThere: '¿QUIÉN ASISTIÓ?',
+        whoPaid: '¿Quién pago?',
+        whoWasThere: '¿Quién asistió?',
         whatsItFor: '¿Para qué es?',
     },
     iOUCurrencySelection: {
         selectCurrency: 'Selecciona una moneda',
-        allCurrencies: 'TODAS LAS MONEDAS',
+        allCurrencies: 'Todas las monedas',
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
@@ -379,12 +378,13 @@ export default {
         signOut: 'Desconectar',
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
         versionLetter: 'v',
-        readTheTermsAndPrivacyPolicy: {
+        readTheTermsAndPrivacy: {
             phrase1: 'Leer los',
             phrase2: 'términos de servicio',
             phrase3: 'y',
-            phrase4: 'política de privacidad',
+            phrase4: 'privacidad',
         },
+        help: 'Ayuda',
     },
     closeAccountPage: {
         closeAccount: 'Cerrar cuenta',
@@ -516,7 +516,7 @@ export default {
         phrase1: 'Al iniciar sesión, estás accediendo a los',
         phrase2: 'términos de servicio',
         phrase3: 'y',
-        phrase4: 'política de privacidad',
+        phrase4: 'privacidad',
         phrase5: 'El envío de dinero es brindado por Expensify Payments LLC (NMLS ID:2017010) de conformidad con sus',
         phrase6: 'licencias',
     },
@@ -981,6 +981,7 @@ export default {
         chatWithConcierge: 'Chatear con Concierge',
         requestSetupCall: 'Llámame por teléfono',
         questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
+        exploreHelpDocs: 'Explorar la documentación de ayuda',
     },
     requestCallPage: {
         title: 'Llámame por teléfono',

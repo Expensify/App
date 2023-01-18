@@ -55,18 +55,6 @@ Onyx.connect({
 function signOut() {
     Log.info('Flushing logs before signing out', true, {}, true);
 
-    const optimisticData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: ONYXKEYS.SESSION,
-            value: null,
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: ONYXKEYS.CREDENTIALS,
-            value: {},
-        },
-    ];
     API.write('LogOut', {
         // Send current authToken because we will immediately clear it once triggering this command
         authToken: NetworkStore.getAuthToken(),
@@ -74,7 +62,7 @@ function signOut() {
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         shouldRetry: false,
-    }, {optimisticData});
+    });
 
     Timing.clearData();
 }
