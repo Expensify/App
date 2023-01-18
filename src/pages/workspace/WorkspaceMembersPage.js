@@ -76,6 +76,10 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (prevProps.preferredLocale !== this.props.preferredLocale) {
+            this.validate();
+        }
+
         const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
         if (!isReconnecting) {
             return;
