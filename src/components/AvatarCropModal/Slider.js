@@ -28,7 +28,8 @@ const Slider = (props) => {
         transform: [{translateX: props.sliderValue.value}],
     }));
 
-    // ControlSelection.blockElement will prevent safari default behaviour (I-beam cursor on drag). See https://github.com/Expensify/App/issues/13688
+    // We're preventing text selection with ControlSelection.blockElement to prevent safari
+    // default behaviour of cursor - I-beam cursor on drag. See https://github.com/Expensify/App/issues/13688
     return (
         <View ref={ControlSelection.blockElement} style={styles.sliderBar}>
             <PanGestureHandler onGestureEvent={props.onGesture}>
