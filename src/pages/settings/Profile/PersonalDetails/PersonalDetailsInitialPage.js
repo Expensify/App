@@ -43,6 +43,7 @@ const defaultProps = {
         dateOfBirth: '',
         address: {
             street: '',
+            street2: '',
             city: '',
             state: '',
             zip: '',
@@ -55,6 +56,7 @@ const PersonalDetailsInitialPage = (props) => {
     PersonalDetails.openPersonalDetailsPage();
 
     const privateDetails = props.privatePersonalDetails || {};
+    const address = privateDetails.address || {};
     const legalName = `${privateDetails.legalFirstName || ''} ${privateDetails.legalLastName || ''}`.trim();
 
     /**
@@ -68,25 +70,20 @@ const PersonalDetailsInitialPage = (props) => {
     }
 
     /**
-     * Formats an address object into a string
+     * Formats an address object into an easily readable string
      *
-     * @param {Object} address
-     * @param {String} address.street
-     * @param {String} address.city
-     * @param {String} address.state
-     * @param {String} address.zip
-     * @param {String} address.country
      * @returns {String}
      */
-    const formatAddress = (address = {}) => {
+    const getFormattedAddress = () => {
         const formattedAddress = formatPiece(address.street)
+            + formatPiece(address.street2)
             + formatPiece(address.city)
             + formatPiece(address.state)
             + formatPiece(address.zip)
             + formatPiece(address.country);
 
         // Remove the last comma of the address
-        return formattedAddress.replace(/,$/, '').trim();
+        return formattedAddress.trim().replace(/,$/, '');
     }
 
     return (
@@ -118,7 +115,7 @@ const PersonalDetailsInitialPage = (props) => {
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH)}
                 />
                 <MenuItemWithTopDescription
-                    title={formatAddress(privateDetails.address)}
+                    title={getFormattedAddress()}
                     description={props.translate('personalDetailsPages.homeAddress')}
                     shouldShowRightIcon
                     wrapperStyle={[styles.ph2]}
