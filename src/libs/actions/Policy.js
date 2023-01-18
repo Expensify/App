@@ -23,6 +23,9 @@ Onyx.connect({
             return;
         }
         if (val === null || val === undefined) {
+            // If we are deleting a policy, we have to check every report linked to that policy
+            // and unset the draft indicator (pencil icon) alognside removing any draft comments
+            // More info: https://github.com/Expensify/App/issues/14260
             const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
             const policyReports = ReportUtils.getPolicyReports(policyID);
             const cleanUpMergeQueries = {};
