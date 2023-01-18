@@ -383,7 +383,6 @@ export default {
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Tu usuario de PayPal',
         addPayPalAccount: 'Agregar cuenta de PayPal',
-        growlMessageOnSave: 'Su nombre de usuario de PayPal se agregó correctamente',
         formatError: 'Usuario PayPal.me no válido',
     },
     addDebitCardPage: {

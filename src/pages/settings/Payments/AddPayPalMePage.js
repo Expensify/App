@@ -39,8 +39,6 @@ class AddPayPalMePage extends React.Component {
         }
         this.setState({payPalMeUsernameError: false});
         User.addPaypalMeAddress(this.state.payPalMeUsername);
-
-        Growl.show(this.props.translate('addPayPalMePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
     }
 
