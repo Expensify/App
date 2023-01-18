@@ -24,7 +24,7 @@ Onyx.connect({
         }
         if (val === null || val === undefined) {
             // If we are deleting a policy, we have to check every report linked to that policy
-            // and unset the draft indicator (pencil icon) alognside removing any draft comments
+            // and unset the draft indicator (pencil icon) alongside removing any draft comments. Clearing these values will keep the newly archived chats from being displayed in the LHN.
             // More info: https://github.com/Expensify/App/issues/14260
             const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
             const policyReports = ReportUtils.getPolicyReports(policyID);
