@@ -707,6 +707,11 @@ function deleteReportComment(reportID, reportAction) {
         reportActionID: reportAction.reportActionID,
     };
     API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
+
+    if (reportID === newActionSubscriber.reportID) {
+        const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
+        newActionSubscriber.callback(isFromCurrentUser, reportAction.reportActionID, true);
+    }
 }
 
 /**
@@ -1142,7 +1147,7 @@ function showReportActionNotification(reportID, action) {
     // Notify the ReportActionsView that a new comment has arrived
     if (reportID === newActionSubscriber.reportID) {
         const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
-        newActionSubscriber.callback(isFromCurrentUser, action.reportActionID);
+        newActionSubscriber.callback(isFromCurrentUser, action.reportActionID, false);
     }
 }
 

@@ -75,7 +75,6 @@ class ReportActionsView extends React.Component {
 
         this.currentScrollOffset = 0;
         this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(props.reportActions);
-        this.updatedNewMarkerReportActionID = '';
         this.trackScroll = this.trackScroll.bind(this);
         this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
@@ -102,7 +101,12 @@ class ReportActionsView extends React.Component {
 
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
-        this.unsubscribeFromNewActionEvent = Report.subscribeToNewActionEvent(this.props.report.reportID, (isFromCurrentUser, newActionID) => {
+        this.unsubscribeFromNewActionEvent = Report.subscribeToNewActionEvent(this.props.report.reportID, (isFromCurrentUser, newActionID, isDeleted) => {
+
+            if (isDeleted) {
+                this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.getSortedReportActionsForDisplay(this.props.report.reportActions))});
+            }
+
             const isNewMarkerReportActionIDSet = !_.isEmpty(this.state.newMarkerReportActionID);
 
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
@@ -134,7 +138,6 @@ class ReportActionsView extends React.Component {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
             this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(nextProps.reportActions);
             this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(nextProps.reportActions);
-            this.updatedNewMarkerReportActionID = ReportUtils.getNewMarkerReportActionID(nextProps.report, this.sortedAndFilteredReportActions);
             return true;
         }
 
@@ -194,11 +197,6 @@ class ReportActionsView extends React.Component {
             } else {
                 Report.reconnect(this.props.report.reportID);
             }
-        }
-
-        if (this.updatedNewMarkerReportActionID) {
-            this.setState({newMarkerReportActionID: this.updatedNewMarkerReportActionID});
-            this.updatedNewMarkerReportActionID = '';
         }
 
         // If the report was previously hidden by the side bar, or the view is expanded from mobile to desktop layout
@@ -376,7 +374,7 @@ class ReportActionsView extends React.Component {
                             mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
                             isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
                             loadMoreChats={this.loadMoreChats}
-                            newMarkerReportActionID={this.updatedNewMarkerReportActionID ? this.updatedNewMarkerReportActionID : this.state.newMarkerReportActionID}
+                            newMarkerReportActionID={this.state.newMarkerReportActionID}
                         />
                         <PopoverReportActionContextMenu
                             ref={ReportActionContextMenu.contextMenuRef}
