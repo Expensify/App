@@ -36,7 +36,6 @@ export default {
         and: 'y',
         details: 'Detalles',
         privacy: 'Privacidad',
-        privacyPolicy: 'Política de privacidad',
         delete: 'Eliminar',
         archived: 'archivado',
         contacts: 'Contactos',
@@ -152,13 +151,13 @@ export default {
         openLinkInBrowser: 'abrir este enlace en tu navegador',
     },
     iOUConfirmationList: {
-        whoPaid: '¿QUIÉN PAGO?',
-        whoWasThere: '¿QUIÉN ASISTIÓ?',
+        whoPaid: '¿Quién pago?',
+        whoWasThere: '¿Quién asistió?',
         whatsItFor: '¿Para qué es?',
     },
     iOUCurrencySelection: {
         selectCurrency: 'Selecciona una moneda',
-        allCurrencies: 'TODAS LAS MONEDAS',
+        allCurrencies: 'Todas las monedas',
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
@@ -402,12 +401,13 @@ export default {
         signOut: 'Desconectar',
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
         versionLetter: 'v',
-        readTheTermsAndPrivacyPolicy: {
+        readTheTermsAndPrivacy: {
             phrase1: 'Leer los',
             phrase2: 'términos de servicio',
             phrase3: 'y',
-            phrase4: 'política de privacidad',
+            phrase4: 'privacidad',
         },
+        help: 'Ayuda',
     },
     closeAccountPage: {
         closeAccount: 'Cerrar cuenta',
@@ -539,7 +539,7 @@ export default {
         phrase1: 'Al iniciar sesión, estás accediendo a los',
         phrase2: 'términos de servicio',
         phrase3: 'y',
-        phrase4: 'política de privacidad',
+        phrase4: 'privacidad',
         phrase5: 'El envío de dinero es brindado por Expensify Payments LLC (NMLS ID:2017010) de conformidad con sus',
         phrase6: 'licencias',
     },
@@ -981,7 +981,7 @@ export default {
             streamlinePayments: 'Optimiza pagos',
             oneMoreThing: '¡Una cosa más!',
             allSet: '¡Todo listo!',
-            accountDescriptionNoCards: 'Esta cuenta bancaria se utilizará para reembolsar gastos y cobrar y pagar facturas, todo desde la misma cuenta.\n\nPor favor añade un correo electrónico de trabajo como tu nombre de usuario secundario para activar la Tarjeta Expensify.',
+            accountDescriptionNoCards: 'Esta cuenta bancaria se utilizará para reembolsar gastos y cobrar y pagar facturas, todo desde la misma cuenta.\n\nPor favor, añade un correo electrónico de trabajo como tu nombre de usuario secundario para activar la Tarjeta Expensify.',
             accountDescriptionWithCards: 'Esta cuenta bancaria se utilizará para emitir tarjetas corporativas, reembolsar gastos y cobrar y pagar facturas, todo desde la misma cuenta.',
             addWorkEmail: 'Añadir correo electrónico de trabajo',
             letsFinishInChat: '¡Continuemos en el chat!',
@@ -1004,6 +1004,7 @@ export default {
         chatWithConcierge: 'Chatear con Concierge',
         requestSetupCall: 'Llámame por teléfono',
         questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
+        exploreHelpDocs: 'Explorar la documentación de ayuda',
     },
     requestCallPage: {
         title: 'Llámame por teléfono',
@@ -1024,16 +1025,16 @@ export default {
             guides: 'Tenga en cuenta que nuestras guías suelen estar disponibles desde el domingo a las 5pm CT hasta el viernes a las 5pm CT.',
         },
         error: {
-            phoneNumberExtension: 'Por favor, introduzca una extensión telefónica válida',
-            firstName: 'Por favor ingresa tu nombre',
-            lastName: 'Por favor ingresa tu apellido',
+            phoneNumberExtension: 'Por favor, introduce una extensión telefónica válida',
+            firstName: 'Por favor, ingresa tu nombre',
+            lastName: 'Por favor, ingresa tu apellido',
             firstNameLength: 'El nombre no debe tener más de 50 caracteres',
             lastNameLength: 'El apellido no debe tener más de 50 caracteres',
         },
     },
     requestCallConfirmationScreen: {
         callRequested: '¡Llamada solicitada con éxito!',
-        allSet: 'Todo listo! Pronto recibirás una llamada nuestra.',
+        allSet: '¡Todo listo! Pronto recibirás una llamada nuestra.',
         gotIt: 'Entendido',
     },
     emojiPicker: {
@@ -1061,12 +1062,12 @@ export default {
         roomAlreadyExistsError: 'Ya existe una sala con este nombre',
         roomNameReservedError: 'Una sala en este espacio de trabajo ya usa este nombre',
         roomNameInvalidError: 'Los nombres de las salas solo pueden contener letras, números y guiones',
-        pleaseEnterRoomName: 'Por favor escribe el nombre de una sala',
+        pleaseEnterRoomName: 'Por favor, escribe el nombre de una sala',
         pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo',
         renamedRoomAction: ({oldName, newName}) => ` cambió el nombre de la sala de ${oldName} a ${newName}`,
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
-        growlMessageOnRenameError: 'No se pudo cambiar el nomdre del espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo.',
+        growlMessageOnRenameError: 'No se pudo cambiar el nombre del espacio de trabajo, por favor, comprueba tu conexión e inténtalo de nuevo.',
         visibilityOptions: {
             restricted: 'Restringida',
             private: 'Privada',
@@ -1093,15 +1094,15 @@ export default {
     genericErrorPage: {
         title: '¡Uh-oh, algo salió mal!',
         body: {
-            helpTextMobile: 'Intente cerrar y volver a abrir la aplicación o cambiar a la',
+            helpTextMobile: 'Intenta cerrar y volver a abrir la aplicación o cambiar a la',
             helpTextWeb: 'web.',
-            helpTextConcierge: 'Si el problema persiste, comuníquese con',
+            helpTextConcierge: 'Si el problema persiste, comunícate con',
         },
-        refresh: 'Refresh',
+        refresh: 'Actualizar',
     },
     fileDownload: {
         success: {
-            title: 'Descargado!',
+            title: '!Descargado!',
             message: 'Archivo descargado correctamente',
         },
         generalError: {
@@ -1110,7 +1111,7 @@ export default {
         },
         permissionError: {
             title: 'Se necesita acceso',
-            message: 'Expensify no tiene acceso para guardar archivos. Para habilitar la descarga de archivos, entra en Settings y habilita el accesso',
+            message: 'Expensify no tiene acceso para guardar archivos. Para habilitar la descarga de archivos, entra en Preferencias y habilita el acceso',
         },
     },
     desktopApplicationMenu: {
