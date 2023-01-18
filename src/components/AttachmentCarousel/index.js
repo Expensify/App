@@ -46,7 +46,6 @@ const defaultProps = {
 class AttachmentCarousel extends React.Component {
     constructor(props) {
         super(props);
-        console.log(this.props.sourceURL);
         this.canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
         this.makeStateWithReports = this.makeStateWithReports.bind(this);
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
