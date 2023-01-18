@@ -73,4 +73,7 @@ export default PropTypes.shape({
 
     /** The status of the current report */
     statusNum: PropTypes.oneOf(_.values(CONST.REPORT.STATUS)),
+
+    /** The user's permissions for the report, only included for restricted policy rooms */
+    permissions: PropTypes.string,
 });
