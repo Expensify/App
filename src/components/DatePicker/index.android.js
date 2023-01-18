@@ -1,4 +1,5 @@
 import React from 'react';
+import {Keyboard} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
 import _ from 'underscore';
@@ -35,6 +36,7 @@ class DatePicker extends React.Component {
      * @param {Event} event
      */
     showPicker(event) {
+        Keyboard.dismiss();
         this.setState({isPickerVisible: true});
         event.preventDefault();
     }

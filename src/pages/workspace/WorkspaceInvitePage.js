@@ -25,6 +25,7 @@ import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
 import ROUTES from '../../ROUTES';
+import * as Localize from '../../libs/Localize';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -87,6 +88,7 @@ class WorkspaceInvitePage extends React.Component {
             selectedOptions: [],
             userToInvite,
             welcomeNote: this.getWelcomeNote(),
+            shouldDisableButton: false,
         };
     }
 
@@ -98,6 +100,13 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (
+            prevProps.preferredLocale !== this.props.preferredLocale
+            && this.state.welcomeNote === Localize.translate(prevProps.preferredLocale, 'workspace.invite.welcomeNote', {workspaceName: this.props.policy.name})
+        ) {
+            this.setState({welcomeNote: this.getWelcomeNote()});
+        }
+
         const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
         if (!isReconnecting) {
             return;
@@ -108,8 +117,13 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     getExcludedUsers() {
-        const policyMemberList = _.keys(lodashGet(this.props, 'policyMemberList', {}));
-        return [...CONST.EXPENSIFY_EMAILS, ...policyMemberList];
+        const policyMemberList = lodashGet(this.props, 'policyMemberList', {});
+        const usersToExclude = _.filter(_.keys(policyMemberList), policyMember => (
+            this.props.network.isOffline
+            || policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+            || !_.isEmpty(policyMemberList[policyMember].errors)
+        ));
+        return [...CONST.EXPENSIFY_EMAILS, ...usersToExclude];
     }
 
     /**
@@ -250,10 +264,12 @@ class WorkspaceInvitePage extends React.Component {
             return;
         }
 
-        const logins = _.map(this.state.selectedOptions, option => option.login);
-        const filteredLogins = _.uniq(_.compact(_.map(logins, login => login.toLowerCase().trim())));
-        Policy.addMembersToWorkspace(filteredLogins, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
-        Navigation.goBack();
+        this.setState({shouldDisableButton: true}, () => {
+            const logins = _.map(this.state.selectedOptions, option => option.login);
+            const filteredLogins = _.uniq(_.compact(_.map(logins, login => login.toLowerCase().trim())));
+            Policy.addMembersToWorkspace(filteredLogins, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
+            Navigation.goBack();
+        });
     }
 
     /**
@@ -331,7 +347,7 @@ class WorkspaceInvitePage extends React.Component {
                                     />
                                 </View>
                                 <FormAlertWithSubmitButton
-                                    isDisabled={!this.state.selectedOptions.length}
+                                    isDisabled={!this.state.selectedOptions.length || this.state.shouldDisableButton}
                                     isAlertVisible={this.getShouldShowAlertPrompt()}
                                     buttonText={this.props.translate('common.invite')}
                                     onSubmit={this.inviteUser}
@@ -345,15 +361,11 @@ class WorkspaceInvitePage extends React.Component {
                                     href={CONST.PRIVACY_URL}
                                     style={[styles.mh5, styles.mv2, styles.alignSelfStart]}
                                 >
-                                    {({hovered, pressed}) => (
-                                        <View style={[styles.flexRow]}>
-                                            <Text
-                                                style={[styles.mr1, styles.label, (hovered || pressed) ? styles.linkHovered : styles.link]}
-                                            >
-                                                {this.props.translate('common.privacyPolicy')}
-                                            </Text>
-                                        </View>
-                                    )}
+                                    <View style={[styles.flexRow]}>
+                                        <Text style={[styles.mr1, styles.label, styles.link]}>
+                                            {this.props.translate('common.privacy')}
+                                        </Text>
+                                    </View>
                                 </Pressable>
                             </View>
                         </>

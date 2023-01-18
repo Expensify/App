@@ -32,6 +32,11 @@ const CONST = {
     // Minimum width and height size in px for a selected image
     AVATAR_MIN_WIDTH_PX: 80,
     AVATAR_MIN_HEIGHT_PX: 80,
+
+    // Maximum width and height size in px for a selected image
+    AVATAR_MAX_WIDTH_PX: 4096,
+    AVATAR_MAX_HEIGHT_PX: 4096,
+
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
@@ -41,6 +46,7 @@ const CONST = {
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
         UNIX_EPOCH: '1970-01-01 00:00:00.000',
+        MAX_DATE: '9999-12-31',
     },
     SMS: {
         DOMAIN: '@expensify.sms',
@@ -150,6 +156,11 @@ const CONST = {
         AU: 'AU',
         CA: 'CA',
     },
+    DESKTOP_DEEPLINK_APP_STATE: {
+        CHECKING: 'checking',
+        INSTALLED: 'installed',
+        NOT_INSTALLED: 'not-installed',
+    },
     PLATFORM: {
         IOS: 'ios',
         ANDROID: 'android',
@@ -243,6 +254,7 @@ const CONST = {
     FEES_URL: `${USE_EXPENSIFY_URL}/fees`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
+    NEWHELP_URL: 'https://help.expensify.com',
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
@@ -717,6 +729,7 @@ const CONST = {
     ICON_TYPE_AVATAR: 'avatar',
     AVATAR_SIZE: {
         LARGE: 'large',
+        MEDIUM: 'medium',
         DEFAULT: 'default',
         SMALL: 'small',
         SMALLER: 'smaller',
@@ -748,6 +761,7 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
+        ROOM_NAME: /^#[a-z0-9-]{1,80}$/,
 
         // Adapted from: https://gist.github.com/dperini/729294
         // eslint-disable-next-line max-len
@@ -758,7 +772,7 @@ const CONST = {
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
         EMOJI_NAME: /:[\w+-]+:/g,
-        EMOJI_SUGGESTIONS: /:[a-zA-Z]{1,20}(\s[a-zA-Z]{0,20})?$/,
+        EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         CODE_2FA: /^\d{6}$/,
     },
@@ -869,6 +883,7 @@ const CONST = {
     },
 
     TFA_CODE_LENGTH: 6,
+    CHAT_ATTACHMENT_TOKEN_KEY: 'X-Chat-Attachment-Token',
 };
 
 export default CONST;

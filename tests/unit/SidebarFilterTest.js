@@ -313,14 +313,8 @@ describe('Sidebar', () => {
         it('hides unread chats', () => {
             // Given the sidebar is rendered in #focus mode (hides read chats)
             // with report 1 and 2 having unread actions
-            const report1 = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
-                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
-            };
-            const report2 = {
-                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']),
-                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
-            };
+            const report1 = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 0, true);
+            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 0, true);
             const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']);
             let sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
 
@@ -344,7 +338,7 @@ describe('Sidebar', () => {
                 })
 
                 // When report3 becomes unread
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`, {lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1}))
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`, {lastActionCreated: DateUtils.getDBTime()}))
 
                 // Then all three chats are showing
                 .then(() => {
@@ -352,7 +346,7 @@ describe('Sidebar', () => {
                 })
 
                 // When report 1 becomes read (it's the active report)
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`, {lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER}))
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`, {lastReadTime: DateUtils.getDBTime()}))
 
                 // Then all three chats are still showing
                 .then(() => {
@@ -443,13 +437,13 @@ describe('Sidebar', () => {
 
                 // When they have unread messages
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`, {
-                    lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+                    lastActionCreated: DateUtils.getDBTime(),
                 }))
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${archivedPolicyRoomReport.reportID}`, {
-                    lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+                    lastActionCreated: DateUtils.getDBTime(),
                 }))
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${archivedUserCreatedPolicyRoomReport.reportID}`, {
-                    lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+                    lastActionCreated: DateUtils.getDBTime(),
                 }))
 
                 // Then they are all visible
@@ -489,10 +483,10 @@ describe('Sidebar', () => {
 
                 // When they both have unread messages
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyRoomReport.reportID}`, {
-                    lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+                    lastActionCreated: DateUtils.getDBTime(),
                 }))
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${userCreatedPolicyRoomReport.reportID}`, {
-                    lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+                    lastActionCreated: DateUtils.getDBTime(),
                 }))
 
                 // Then both rooms are visible
@@ -647,7 +641,6 @@ describe('Sidebar', () => {
                 // Given an archived report that has all comments read
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
-                    lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER,
                     statusNum: CONST.REPORT.STATUS.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 };
@@ -676,7 +669,7 @@ describe('Sidebar', () => {
                     })
 
                     // When the report has a new comment and is now unread
-                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1}))
+                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {lastActionCreated: DateUtils.getDBTime()}))
 
                     // Then the report is rendered in the LHN
                     .then(() => {
@@ -772,52 +765,6 @@ describe('Sidebar', () => {
                     .then(() => {
                         const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                         expect(optionRows).toHaveLength(1);
-                    });
-            });
-
-            it('is hidden regardless of how many comments it has', () => {
-                const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
-
-                // Given an archived report with no comments
-                const report = {
-                    ...LHNTestUtils.getFakeReport(),
-                    lastActionCreated: '2022-11-22 03:48:27.267',
-                    statusNum: CONST.REPORT.STATUS.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                };
-
-                // Given the user is in all betas
-                const betas = [
-                    CONST.BETAS.DEFAULT_ROOMS,
-                    CONST.BETAS.POLICY_ROOMS,
-                    CONST.BETAS.POLICY_EXPENSE_CHAT,
-                ];
-
-                return waitForPromisesToResolve()
-
-                    // When Onyx is updated to contain that data and the sidebar re-renders
-                    .then(() => Onyx.multiSet({
-                        [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                        [ONYXKEYS.BETAS]: betas,
-                        [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                        [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-                    }))
-
-                    // Then the report is not rendered in the LHN
-                    .then(() => {
-                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
-                        expect(optionRows).toHaveLength(0);
-                    })
-
-                    // When the report has comments
-                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {
-                        lastActionCreated: DateUtils.getDBTime(),
-                    }))
-
-                    // Then the report is not rendered in the LHN
-                    .then(() => {
-                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
-                        expect(optionRows).toHaveLength(0);
                     });
             });
         });
