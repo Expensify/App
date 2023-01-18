@@ -1111,6 +1111,7 @@ function isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports = {}) {
  * @param {Object} iouReports
  * @param {String[]} betas
  * @param {Object} policies
+ * @param {Boolean} isLHNOptionsList
  * @returns {boolean}
  */
 function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies, isLHNOptionsList = true) {
@@ -1166,8 +1167,10 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         return false;
     }
 
-    // Only include restricted policy rooms where the user has read, write permissions
-    // We always send back the permissions with restricted policy rooms
+    // We only need to filter out restricted rooms in the LHNOptionsList, not the Search Page,
+    // which necessitates the use of the isLHNOptionsList flag.
+    // If a user has 'read' permissions for a restricted room, we want it to be discoverable in the Search Page, but not in the LHN
+    // Restricted rooms should be in the LHN only if the user has 'read, write' permissions
     if (isLHNOptionsList && isRestrictedPolicyRoom(report) && report.permissions.indexOf('read, write') === -1) {
         return false;
     }
