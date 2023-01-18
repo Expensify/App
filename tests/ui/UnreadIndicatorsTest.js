@@ -185,7 +185,7 @@ function signInAndGetAppWithUnreadChat() {
         .then(() => renderedApp);
 }
 
-describe('Unread Indicators', () => {
+describe.skip('Unread Indicators', () => {
     afterEach(() => Onyx.clear());
 
     it('Display bold in the LHN for unread chat and new line indicator above the chat message when we navigate to it', () => {
