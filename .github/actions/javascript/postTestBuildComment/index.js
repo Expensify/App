@@ -5,238 +5,80 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 5847:
-/***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ 2052:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const _ = __nccwpck_require__(3571);
 const core = __nccwpck_require__(2186);
-const github = __nccwpck_require__(5438);
-const ActionUtils = __nccwpck_require__(970);
-const GitUtils = __nccwpck_require__(669);
+const {context} = __nccwpck_require__(5438);
 const GithubUtils = __nccwpck_require__(7999);
 
-const inputTag = core.getInput('TAG', {required: true});
+/**
+ * @returns {String}
+ */
+function getTestBuildMessage() {
+    console.log('Input for android', core.getInput('ANDROID', {required: true}));
+    const androidSuccess = core.getInput('ANDROID', {required: true}) === 'success';
+    const desktopSuccess = core.getInput('DESKTOP', {required: true}) === 'success';
+    const iOSSuccess = core.getInput('IOS', {required: true}) === 'success';
+    const webSuccess = core.getInput('WEB', {required: true}) === 'success';
 
-const isProductionDeploy = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: false}, false);
-const itemToFetch = isProductionDeploy ? 'release' : 'tag';
+    const androidLink = androidSuccess ? core.getInput('ANDROID_LINK') : '❌ FAILED ❌';
+    const desktopLink = desktopSuccess ? core.getInput('DESKTOP_LINK') : '❌ FAILED ❌';
+    const iOSLink = iOSSuccess ? core.getInput('IOS_LINK') : '❌ FAILED ❌';
+    const webLink = webSuccess ? core.getInput('WEB_LINK') : '❌ FAILED ❌';
+
+    const androidQRCode = androidSuccess
+        ? `![Android](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${androidLink})`
+        : "The QR code can't be generated, because the android build failed";
+    const desktopQRCode = desktopSuccess
+        ? `![Desktop](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${desktopLink})`
+        : "The QR code can't be generated, because the Desktop build failed";
+    const iOSQRCode = iOSSuccess
+        ? `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${iOSLink})`
+        : "The QR code can't be generated, because the iOS build failed";
+    const webQRCode = webSuccess
+        ? `![Web](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})`
+        : "The QR code can't be generated, because the web build failed";
+
+    const message = `:test_tube::test_tube: Use the links below to test this build in android and iOS. Happy testing! :test_tube::test_tube:
+| android :robot:  | iOS :apple: |
+| ------------- | ------------- |
+| ${androidLink}  | ${iOSLink}  |
+| ${androidQRCode}  | ${iOSQRCode}  |
+| desktop :computer: | web :spider_web: |
+| ${desktopLink}  | ${webLink}  |
+| ${desktopQRCode}  | ${webQRCode}  |`;
+
+    return message;
+}
 
 /**
- * Gets either releases or tags for a GitHub repo
+ * Comment on a single PR
  *
- * @param {boolean} fetchReleases
- * @returns {*}
+ * @param {Number} PR
+ * @param {String} message
+ * @returns {Promise<void>}
  */
-function getTagsOrReleases(fetchReleases) {
-    if (fetchReleases) {
-        return GithubUtils.octokit.repos.listReleases({
-            owner: github.context.repo.owner,
-            repo: github.context.repo.repo,
+function commentPR(PR, message) {
+    console.log(`Posting test build comment on #${PR}`);
+    return GithubUtils.createComment(context.repo.repo, PR, message)
+        .then(() => console.log(`Comment created on #${PR} successfully 🎉`))
+        .catch((err) => {
+            console.log(`Unable to write comment on #${PR} 😞`);
+            core.setFailed(err.message);
         });
-    }
-
-    return GithubUtils.octokit.repos.listTags({
-        owner: github.context.repo.owner,
-        repo: github.context.repo.repo,
-    });
 }
 
-console.log(`Fetching ${itemToFetch} list from github...`);
-getTagsOrReleases(isProductionDeploy)
-    .catch(githubError => core.setFailed(githubError))
-    .then(({data}) => {
-        const keyToPluck = isProductionDeploy ? 'tag_name' : 'name';
-        const tags = _.pluck(data, keyToPluck);
-        const priorTagIndex = _.indexOf(tags, inputTag) + 1;
-
-        if (priorTagIndex === 0) {
-            console.log(`No ${itemToFetch} was found for input tag ${inputTag}.`
-                + `Comparing it to latest ${itemToFetch} ${tags[0]}`);
-        }
-
-        if (priorTagIndex === tags.length) {
-            const err = new Error('Somehow, the input tag was at the end of the paginated result, '
-                + 'so we don\'t have the prior tag');
-            console.error(err.message);
-            core.setFailed(err);
-            return;
-        }
-
-        const priorTag = tags[priorTagIndex];
-        console.log(`Given ${itemToFetch}: ${inputTag}`);
-        console.log(`Prior ${itemToFetch}: ${priorTag}`);
-
-        return GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
-    })
-    .then((pullRequestList) => {
-        console.log(`Found the pull request list: ${pullRequestList}`);
-        return core.setOutput('PR_LIST', pullRequestList);
-    })
-    .catch(error => core.setFailed(error));
-
-
-/***/ }),
-
-/***/ 970:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const core = __nccwpck_require__(2186);
-
-/**
- * Safely parse a JSON input to a GitHub Action.
- *
- * @param {String} name - The name of the input.
- * @param {Object} options - Options to pass to core.getInput
- * @param {*} [defaultValue] - A default value to provide for the input.
- *                             Not required if the {required: true} option is given in the second arg to this function.
- * @returns {any}
- */
-function getJSONInput(name, options, defaultValue = undefined) {
-    const input = core.getInput(name, options);
-    if (input) {
-        return JSON.parse(input);
-    }
-    return defaultValue;
-}
-
-/**
- * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
- *
- * @param {String} name
- * @param {Object} options
- * @param {*} [defaultValue]
- * @returns {string|undefined}
- */
-function getStringInput(name, options, defaultValue = undefined) {
-    const input = core.getInput(name, options);
-    if (!input) {
-        return defaultValue;
-    }
-    return input;
-}
-
-module.exports = {
-    getJSONInput,
-    getStringInput,
+const run = function () {
+    const PR_NUMBER = core.getInput('PR_NUMBER', {required: true});
+    return commentPR(PR_NUMBER, getTestBuildMessage()).then(() => Promise.resolve());
 };
 
-
-/***/ }),
-
-/***/ 669:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const _ = __nccwpck_require__(3571);
-const {spawn} = __nccwpck_require__(3129);
-const sanitizeStringForJSONParse = __nccwpck_require__(9338);
-
-/**
- * Get merge logs between two refs (inclusive) as a JavaScript object.
- *
- * @param {String} fromRef
- * @param {String} toRef
- * @returns {Promise<Object<{commit: String, subject: String}>>}
- */
-function getMergeLogsAsJSON(fromRef, toRef) {
-    const command = `git log --format='{"commit": "%H", "subject": "%s"},' ${fromRef}...${toRef}`;
-    console.log('Getting pull requests merged between the following refs:', fromRef, toRef);
-    console.log('Running command: ', command);
-    return new Promise((resolve, reject) => {
-        let stdout = '';
-        let stderr = '';
-        const spawnedProcess = spawn('git', ['log', '--format={"commit": "%H", "subject": "%s"},', `${fromRef}...${toRef}`]);
-        spawnedProcess.on('message', console.log);
-        spawnedProcess.stdout.on('data', (chunk) => {
-            console.log(chunk.toString());
-            stdout += chunk.toString();
-        });
-        spawnedProcess.stderr.on('data', (chunk) => {
-            console.error(chunk.toString());
-            stderr += chunk.toString();
-        });
-        spawnedProcess.on('close', (code) => {
-            if (code !== 0) {
-                return reject(new Error(`${stderr}`));
-            }
-
-            resolve(stdout);
-        });
-        spawnedProcess.on('error', err => reject(err));
-    })
-        .then((stdout) => {
-            // Sanitize just the text within commit subjects as that's the only potentially un-parseable text.
-            const sanitizedOutput = stdout.replace(/(?<="subject": ").*?(?="})/g, subject => sanitizeStringForJSONParse(subject));
-
-            // Then remove newlines, format as JSON and convert to a proper JS object
-            const json = `[${sanitizedOutput}]`.replace(/(\r\n|\n|\r)/gm, '').replace('},]', '}]');
-
-            return JSON.parse(json);
-        });
+if (require.main === require.cache[eval('__filename')]) {
+    run();
 }
 
-/**
- * Parse merged PRs, excluding those from irrelevant branches.
- *
- * @param {Array<String>} commitMessages
- * @returns {Array<String>}
- */
-function getValidMergedPRs(commitMessages) {
-    return _.reduce(commitMessages, (mergedPRs, commitMessage) => {
-        if (!_.isString(commitMessage)) {
-            return mergedPRs;
-        }
-
-        const match = commitMessage.match(/Merge pull request #(\d+) from (?!Expensify\/(?:main|version-|update-staging-from-main|update-production-from-staging))/);
-        if (!_.isNull(match) && match[1]) {
-            mergedPRs.push(match[1]);
-        }
-
-        return mergedPRs;
-    }, []);
-}
-
-/**
- * Takes in two git refs and returns a list of PR numbers of all PRs merged between those two refs
- *
- * @param {String} fromRef
- * @param {String} toRef
- * @returns {Promise<Array<String>>} – Pull request numbers
- */
-function getPullRequestsMergedBetween(fromRef, toRef) {
-    let targetMergeList;
-    return getMergeLogsAsJSON(fromRef, toRef)
-        .then((mergeList) => {
-            console.log(`Commits made between ${fromRef} and ${toRef}:`, mergeList);
-            targetMergeList = mergeList;
-
-            // Get the full history on this branch, inclusive of the oldest commit from our target comparison
-            const oldestCommit = _.last(mergeList).commit;
-            return getMergeLogsAsJSON(oldestCommit, 'HEAD');
-        })
-        .then((fullMergeList) => {
-            // Remove from the final merge list any commits whose message appears in the full merge list more than once.
-            // This indicates that the PR should not be included in our list because it is a duplicate, and thus has already been processed by our CI
-            // See https://github.com/Expensify/App/issues/4977 for details
-            const duplicateMergeList = _.chain(fullMergeList)
-                .groupBy('subject')
-                .values()
-                .filter(i => i.length > 1)
-                .flatten()
-                .pluck('commit')
-                .value();
-            const finalMergeList = _.filter(targetMergeList, i => !_.contains(duplicateMergeList, i.commit));
-            console.log('Filtered out the following commits which were duplicated in the full git log:', _.difference(targetMergeList, finalMergeList));
-
-            // Find which commit messages correspond to merged PR's
-            const pullRequestNumbers = getValidMergedPRs(_.pluck(finalMergeList, 'subject'));
-            console.log(`List of pull requests merged between ${fromRef} and ${toRef}`, pullRequestNumbers);
-            return pullRequestNumbers;
-        });
-}
-
-module.exports = {
-    getValidMergedPRs,
-    getPullRequestsMergedBetween,
-};
+module.exports = run;
 
 
 /***/ }),
@@ -790,39 +632,6 @@ module.exports.DEPLOY_BLOCKER_CASH_LABEL = DEPLOY_BLOCKER_CASH_LABEL;
 module.exports.APPLAUSE_BOT = APPLAUSE_BOT;
 module.exports.ISSUE_OR_PULL_REQUEST_REGEX = ISSUE_OR_PULL_REQUEST_REGEX;
 module.exports.POLL_RATE = POLL_RATE;
-
-
-/***/ }),
-
-/***/ 9338:
-/***/ ((module) => {
-
-const replacer = str => ({
-    '\\': '\\\\',
-    '\t': '\\t',
-    '\n': '\\n',
-    '\r': '\\r',
-    '\f': '\\f',
-    '"': '\\"',
-}[str]);
-
-/**
- * Replace any characters in the string that will break JSON.parse for our Git Log output
- *
- * Solution partly taken from SO user Gabriel Rodríguez Flores 🙇
- * https://stackoverflow.com/questions/52789718/how-to-remove-special-characters-before-json-parse-while-file-reading
- *
- * @param {String} inputString
- * @returns {String}
- */
-module.exports = function (inputString) {
-    if (typeof inputString !== 'string') {
-        throw new TypeError('Input must me of type String');
-    }
-
-    // Replace any newlines and escape backslashes
-    return inputString.replace(/\\|\t|\n|\r|\f|"/g, replacer);
-};
 
 
 /***/ }),
@@ -15823,14 +15632,6 @@ module.exports = require("assert");;
 
 /***/ }),
 
-/***/ 3129:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("child_process");;
-
-/***/ }),
-
 /***/ 8614:
 /***/ ((module) => {
 
@@ -16013,6 +15814,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(5847);
+/******/ 	return __nccwpck_require__(2052);
 /******/ })()
 ;

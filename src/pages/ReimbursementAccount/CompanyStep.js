@@ -87,7 +87,7 @@ class CompanyStep extends React.Component {
             errors.companyPhone = this.props.translate('bankAccount.error.phoneNumber');
         }
 
-        if (!values.website || !ValidationUtils.isValidURL(values.website)) {
+        if (!values.website || !ValidationUtils.isValidWebsite(values.website)) {
             errors.website = this.props.translate('bankAccount.error.website');
         }
 
@@ -192,6 +192,7 @@ class CompanyStep extends React.Component {
                         containerStyles={[styles.mt4]}
                         defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'website', this.defaultWebsite)}
                         shouldSaveDraft
+                        hint={this.props.translate('common.websiteExample')}
                     />
                     <TextInput
                         inputID="companyTaxID"
