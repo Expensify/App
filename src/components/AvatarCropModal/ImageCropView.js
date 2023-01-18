@@ -8,6 +8,7 @@ import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import * as StyleUtils from '../../styles/StyleUtils';
 import gestureHandlerPropTypes from './gestureHandlerPropTypes';
+import ControlSelection from '../../libs/ControlSelection';
 
 const propTypes = {
     /** Link to image for cropping   */
@@ -65,7 +66,7 @@ const ImageCropView = (props) => {
 
     return (
         <PanGestureHandler onGestureEvent={props.panGestureEventHandler}>
-            <Animated.View style={[containerStyle, styles.imageCropContainer]}>
+            <Animated.View ref={ControlSelection.blockElement} style={[containerStyle, styles.imageCropContainer]}>
                 <Animated.Image style={[imageStyle, styles.h100, styles.w100]} source={{uri: props.imageUri}} resizeMode="contain" />
                 <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute]}>
                     <Icon src={Expensicons.ImageCropMask} width={props.containerSize} height={props.containerSize} />
