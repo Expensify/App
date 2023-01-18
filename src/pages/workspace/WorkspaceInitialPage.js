@@ -215,7 +215,6 @@ class WorkspaceInitialPage extends React.Component {
                                                 style={[
                                                     styles.alignSelfCenter,
                                                     styles.mt4,
-                                                    styles.mb6,
                                                     styles.w100,
                                                 ]}
                                                 onPress={this.openEditor}
