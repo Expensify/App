@@ -102,7 +102,6 @@ class AuthScreens extends React.Component {
         });
 
         App.openApp();
-        console.log('before setup');
         App.setUpPoliciesAndNavigate(this.props.session);
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 

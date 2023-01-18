@@ -48,7 +48,6 @@ const defaultProps = {
  * @returns {Object}
  */
 const getInitialReportScreenParams = (reports, ignoreDefaultRooms, policies, openOnAdminRoom) => {
-    console.log('avialable reports', reports);
     const last = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, openOnAdminRoom);
 
     // Fallback to empty if for some reason reportID cannot be derived - prevents the app from crashing
@@ -59,7 +58,6 @@ const getInitialReportScreenParams = (reports, ignoreDefaultRooms, policies, ope
 class MainDrawerNavigator extends Component {
     constructor(props) {
         super(props);
-        console.log('props', props);
         this.initialParams = getInitialReportScreenParams(props.reports, !Permissions.canUseDefaultRooms(props.betas), props.policies, props.route.params.openOnAdminRoom);
     }
 
