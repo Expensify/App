@@ -776,7 +776,7 @@ const CONST = {
         ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
 
         EMOJI_NAME: /:[\w+-]+:/g,
-        EMOJI_SUGGESTIONS: /:[a-zA-Z]{1,20}(\s[a-zA-Z]{0,20})?$/,
+        EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         CODE_2FA: /^\d{6}$/,
     },
@@ -887,6 +887,7 @@ const CONST = {
     },
 
     TFA_CODE_LENGTH: 6,
+    CHAT_ATTACHMENT_TOKEN_KEY: 'X-Chat-Attachment-Token',
 };
 
 export default CONST;

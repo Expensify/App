@@ -355,7 +355,7 @@ class WorkspaceInvitePage extends React.Component {
                                 >
                                     <View style={[styles.flexRow]}>
                                         <Text style={[styles.mr1, styles.label, styles.link]}>
-                                            {this.props.translate('common.privacyPolicy')}
+                                            {this.props.translate('common.privacy')}
                                         </Text>
                                     </View>
                                 </Pressable>

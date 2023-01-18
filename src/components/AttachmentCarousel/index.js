@@ -46,7 +46,7 @@ const defaultProps = {
 class AttachmentCarousel extends React.Component {
     constructor(props) {
         super(props);
-
+        console.log(this.props.sourceURL);
         this.canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
         this.makeStateWithReports = this.makeStateWithReports.bind(this);
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
@@ -220,7 +220,11 @@ class AttachmentCarousel extends React.Component {
                     onPress={() => this.canUseTouchScreen && this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
                     onCycleThroughAttachments={this.cycleThroughAttachments}
                 >
-                    <AttachmentView onPress={() => this.toggleArrowsVisibility(!this.state.shouldShowArrow)} sourceURL={authSourceURL} file={this.state.file} />
+                    <AttachmentView
+                        onPress={() => this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
+                        sourceURL={authSourceURL}
+                        file={this.state.file}
+                    />
                 </CarouselActions>
             </View>
         );

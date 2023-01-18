@@ -12,8 +12,12 @@ import compose from '../libs/compose';
 import Text from './Text';
 import Tooltip from './Tooltip';
 import themeColors from '../styles/themes/default';
+import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 
 const propTypes = {
+    /** Whether source url requires authentication */
+    isAuthTokenRequired: PropTypes.bool,
+
     /** URL to full-sized attachment */
     sourceURL: PropTypes.string.isRequired,
 
@@ -38,6 +42,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    isAuthTokenRequired: false,
     file: {
         name: '',
     },
@@ -52,10 +57,13 @@ const AttachmentView = (props) => {
     // will appear with a sourceURL that is a blob
     if (Str.isPDF(props.sourceURL)
         || (props.file && Str.isPDF(props.file.name || props.translate('attachmentView.unknownFilename')))) {
+        const sourceURL = props.isAuthTokenRequired
+            ? addEncryptedAuthTokenToURL(props.sourceURL)
+            : props.sourceURL;
         return (
             <PDFView
                 onPress={props.onPress}
-                sourceURL={props.sourceURL}
+                sourceURL={sourceURL}
                 style={styles.imageModalPDF}
                 onToggleKeyboard={props.onToggleKeyboard}
             />
@@ -66,7 +74,7 @@ const AttachmentView = (props) => {
     // both PDFs and images will appear as images when pasted into the the text field
     if (Str.isImage(props.sourceURL) || (props.file && Str.isImage(props.file.name))) {
         return (
-            <ImageView url={props.sourceURL} />
+            <ImageView url={props.sourceURL} isAuthTokenRequired={props.isAuthTokenRequired} />
         );
     }
 
