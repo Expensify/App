@@ -460,6 +460,7 @@ function getOptions(reports, personalDetails, {
         iouReports,
         betas,
         policies,
+        false,
     ));
 
     // Sorting the reports works like this:

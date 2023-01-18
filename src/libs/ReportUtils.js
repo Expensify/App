@@ -69,6 +69,10 @@ function getChatType(report) {
     return report ? report.chatType : '';
 }
 
+function getVisibility(report) {
+    return report ? report.visibility : '';
+}
+
 /**
  * Returns the concatenated title for the PrimaryLogins of a report
  *
@@ -199,6 +203,10 @@ function isDomainRoom(report) {
  */
 function isUserCreatedPolicyRoom(report) {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
+}
+
+function isRestrictedPolicyRoom(report) {
+    return isUserCreatedPolicyRoom && getVisibility(report) === CONST.REPORT.VISIBILITY.RESTRICTED;
 }
 
 /**
@@ -1105,7 +1113,7 @@ function isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports = {}) {
  * @param {Object} policies
  * @returns {boolean}
  */
-function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies) {
+function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies, isLHNOptionsList = true) {
     const isInDefaultMode = !isInGSDMode;
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -1155,6 +1163,12 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
 
     // Include user created policy rooms if the user isn't on the policy rooms beta
     if (isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
+        return false;
+    }
+
+    // Only include restricted policy rooms where the user has read, write permissions
+    // We always send back the permissions with restricted policy rooms
+    if (isLHNOptionsList && isRestrictedPolicyRoom(report) && report.permissions.indexOf('read, write') === -1) {
         return false;
     }
 
