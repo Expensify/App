@@ -43,7 +43,7 @@ class BasePaymentsPage extends React.Component {
             shouldShowAddPaymentMenu: false,
             shouldShowDefaultDeleteMenu: false,
             shouldShowPasswordPrompt: false,
-            shouldShowLoadingSpinner: true,
+            shouldShowLoadingSpinner: false,
             isSelectedPaymentMethodDefault: false,
             selectedPaymentMethod: {},
             formattedSelectedPaymentMethod: {
@@ -96,7 +96,11 @@ class BasePaymentsPage extends React.Component {
     }
 
     setShouldShowLoadingSpinner() {
-        this.setState({shouldShowLoadingSpinner: this.props.isLoadingPaymentMethods && !this.props.network.isOffline});
+        // In order to prevent a loop, only update state of the spinner if there is a change
+        const shouldShowLoadingSpinner = this.props.isLoadingPaymentMethods || false;
+        if (shouldShowLoadingSpinner !== this.state.shouldShowLoadingSpinner) {
+            this.setState({shouldShowLoadingSpinner: this.props.isLoadingPaymentMethods && !this.props.network.isOffline});
+        }
     }
 
     setMenuPosition() {
