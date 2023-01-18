@@ -2,6 +2,7 @@ import CONST from '../CONST';
 
 /**
  * Replaces spaces with dashes
+ *
  * @param {String} roomName
  * @returns {String}
  */
