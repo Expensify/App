@@ -44,11 +44,12 @@ const defaultProps = {
  * @param {Object} reports
  * @param {Boolean} [ignoreDefaultRooms]
  * @param {Object} policies
+ * @param {Boolean} openOnAdminRoom
  * @returns {Object}
  */
-const getInitialReportScreenParams = (reports, ignoreDefaultRooms, policies) => {
+const getInitialReportScreenParams = (reports, ignoreDefaultRooms, policies, openOnAdminRoom) => {
     console.log('avialable reports', reports);
-    const last = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies);
+    const last = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, openOnAdminRoom);
 
     // Fallback to empty if for some reason reportID cannot be derived - prevents the app from crashing
     const reportID = lodashGet(last, 'reportID', '');
@@ -58,7 +59,8 @@ const getInitialReportScreenParams = (reports, ignoreDefaultRooms, policies) => 
 class MainDrawerNavigator extends Component {
     constructor(props) {
         super(props);
-        this.initialParams = getInitialReportScreenParams(props.reports, !Permissions.canUseDefaultRooms(props.betas), props.policies);
+        console.log('props', props);
+        this.initialParams = getInitialReportScreenParams(props.reports, !Permissions.canUseDefaultRooms(props.betas), props.policies, props.route.params.openOnAdminRoom);
     }
 
     shouldComponentUpdate(nextProps) {

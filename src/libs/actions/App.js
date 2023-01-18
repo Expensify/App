@@ -214,6 +214,7 @@ function setUpPoliciesAndNavigate(session) {
                         && isTransitioningFromOldDot
                         && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
+        console.log('creating workspace');
         Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName, true);
         return;
     }
