@@ -160,12 +160,6 @@ const getInputSelection = (el) => {
     };
 }
 
-export default {
-    setString,
-    canSetHtml,
-    setHtml,
-};
-
 const saveSelection = (selection) => {
     return [selection.anchorNode, selection.anchorOffset, selection.focusNode, selection.focusOffset];
 }
@@ -173,3 +167,9 @@ const saveSelection = (selection) => {
 const restoreSelection = (selection, savedSelection) => {
     selection.setBaseAndExtent(savedSelection[0], savedSelection[1], savedSelection[2], savedSelection[3]);
 }
+
+export default {
+    setString,
+    canSetHtml,
+    setHtml,
+};
