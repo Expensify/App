@@ -3,7 +3,6 @@ import {Clipboard} from 'react-native-web';
 import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
 import * as Browser from '../Browser';
-import { length } from 'localforage';
 
 const canSetHtml = () => lodashGet(navigator, 'clipboard.write');
 
@@ -72,7 +71,7 @@ const setHtml = (html, text) => {
         throw new Error('clipboard.write is not supported on this platform, thus HTML cannot be copied.');
     }
 
-   if (CONST.BROWSER.SAFARI === Browser.getBrowser()) {
+    if (CONST.BROWSER.SAFARI === Browser.getBrowser()) {
         // Safari sanitize "text/html" data before writing to the pasteboard when using Clipboard API,
         // whitespaces in the start of line are stripped away. We use the deprecated method to copy
         // contents as HTML and keep whitespaces in the start of line on Safari.
