@@ -131,7 +131,6 @@ class ReportActionsView extends React.Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            const oldLength = this.sortedAndFilteredReportActions.length;
             this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(nextProps.reportActions);
             this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(nextProps.reportActions);
             return true;
@@ -210,7 +209,6 @@ class ReportActionsView extends React.Component {
         }
 
         if (ReportActionsUtils.filterReportActionsForDisplay(prevProps.reportActions) > this.sortedAndFilteredReportActions.count) {
-            console.log("Recalculating...");
             this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions)});
         }
 
