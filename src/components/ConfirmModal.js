@@ -71,7 +71,7 @@ const ConfirmModal = props => (
     >
         <ConfirmContent
             title={props.title}
-            onConfirm={props.onConfirm}
+            onConfirm={() => (props.isVisible ? props.onConfirm() : null)}
             onCancel={props.onCancel}
             confirmText={props.confirmText}
             cancelText={props.cancelText}
