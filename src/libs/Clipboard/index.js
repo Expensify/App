@@ -21,7 +21,7 @@ function setHTMLSync(html, text) {
     node.style.userSelect = 'text';
     node.addEventListener('copy', (e) => {
         e.stopPropagation();
-        e.preventDefault();
+        e.preventDefault(); 
         e.clipboardData.clearData();
         e.clipboardData.setData('text/html', html);
         e.clipboardData.setData('text/plain', text);
@@ -29,6 +29,14 @@ function setHTMLSync(html, text) {
     document.body.appendChild(node);
 
     const selection = window.getSelection();
+    const firstAncestorChild = selection.getRangeAt(0).commonAncestorContainer.firstChild;
+    let currentRanges = null;
+    
+    if(firstAncestorChild && isTextElement(firstAncestorChild))
+        currentRanges = getInputSelection(firstAncestorChild);
+    else
+        currentRanges = getSelectionRanges(selection);
+
     selection.removeAllRanges();
     const range = document.createRange();
     range.selectNodeContents(node);
@@ -42,7 +50,13 @@ function setHTMLSync(html, text) {
     }
 
     selection.removeAllRanges();
-    document.body.removeChild(node);
+
+    if(firstAncestorChild && isTextElement(firstAncestorChild))
+        firstAncestorChild.setSelectionRange(currentRanges.start, currentRanges.end);
+    else
+        setSelectionRanges(selection, currentRanges);
+
+        document.body.removeChild(node);
 }
 
 /**
@@ -59,7 +73,7 @@ const setHtml = (html, text) => {
         throw new Error('clipboard.write is not supported on this platform, thus HTML cannot be copied.');
     }
 
-    if (CONST.BROWSER.SAFARI === Browser.getBrowser()) {
+   if (CONST.BROWSER.SAFARI === Browser.getBrowser()) {
         // Safari sanitize "text/html" data before writing to the pasteboard when using Clipboard API,
         // whitespaces in the start of line are stripped away. We use the deprecated method to copy
         // contents as HTML and keep whitespaces in the start of line on Safari.
@@ -84,6 +98,80 @@ const setHtml = (html, text) => {
 const setString = (text) => {
     Clipboard.setString(text);
 };
+
+const getSelectionRanges = (selection) => {
+    const ranges = [];
+
+    for(let i = 0 ; i < selection.rangeCount; i++)
+        ranges.push(selection.getRangeAt(i).cloneRange());
+
+    return ranges;
+}
+
+const setSelectionRanges = (selection, ranges) => {
+    for(let i = 0 ; i < ranges.length; i++)
+        selection.addRange(ranges[i]);
+}
+
+const isTextElement = (el) => {
+    if (el instanceof HTMLInputElement) {
+        // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#input_types
+        if (/|text|email|number|password|search|tel|url/.test(el.type || '')) {
+            return true;
+        }
+    }
+    if (el instanceof HTMLTextAreaElement)
+        return true;
+
+    return false;
+}
+
+// ref: https://stackoverflow.com/a/4931963/1174657
+const getInputSelection = (el) => {
+    var start = 0, end = 0, normalizedValue, range,
+        textInputRange, len, endRange;
+
+    if (typeof el.selectionStart == "number" && typeof el.selectionEnd == "number") {
+        start = el.selectionStart;
+        end = el.selectionEnd;
+    } else {
+        range = document.selection.createRange();
+
+        if (range && range.parentElement() == el) {
+            len = el.value.length;
+            normalizedValue = el.value.replace(/\r\n/g, "\n");
+
+            // Create a working TextRange that lives only in the input
+            textInputRange = el.createTextRange();
+            textInputRange.moveToBookmark(range.getBookmark());
+
+            // Check if the start and end of the selection are at the very end
+            // of the input, since moveStart/moveEnd doesn't return what we want
+            // in those cases
+            endRange = el.createTextRange();
+            endRange.collapse(false);
+
+            if (textInputRange.compareEndPoints("StartToEnd", endRange) > -1) {
+                start = end = len;
+            } else {
+                start = -textInputRange.moveStart("character", -len);
+                start += normalizedValue.slice(0, start).split("\n").length - 1;
+
+                if (textInputRange.compareEndPoints("EndToEnd", endRange) > -1) {
+                    end = len;
+                } else {
+                    end = -textInputRange.moveEnd("character", -len);
+                    end += normalizedValue.slice(0, end).split("\n").length - 1;
+                }
+            }
+        }
+    }
+
+    return {
+        start: start,
+        end: end
+    };
+}
 
 export default {
     setString,
