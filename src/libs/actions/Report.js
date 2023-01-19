@@ -39,13 +39,6 @@ const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
 
-const defaultNewActionSubscriber = {
-    reportID: '',
-    callback: () => {},
-};
-
-let newActionSubscriber = defaultNewActionSubscriber;
-
 /**
  * @param {String} reportID
  * @returns {Number}
@@ -667,7 +660,7 @@ function deleteReportComment(reportID, reportAction) {
     };
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
-    // and remove the pendingAction so the strike-through clears
+    // and and remove the pendingAction so the strike-through clears
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -714,11 +707,6 @@ function deleteReportComment(reportID, reportAction) {
         reportActionID: reportAction.reportActionID,
     };
     API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
-
-    if (reportID === newActionSubscriber.reportID) {
-        const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
-        newActionSubscriber.callback(isFromCurrentUser, reportAction.reportActionID);
-    }
 }
 
 /**
@@ -1076,6 +1064,13 @@ function clearPolicyRoomNameErrors(reportID) {
 function setIsComposerFullSize(reportID, isComposerFullSize) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, isComposerFullSize);
 }
+
+const defaultNewActionSubscriber = {
+    reportID: '',
+    callback: () => {},
+};
+
+let newActionSubscriber = defaultNewActionSubscriber;
 
 /**
  * Enables the Report actions file to let the ReportActionsView know that a new comment has arrived in realtime for the current report
