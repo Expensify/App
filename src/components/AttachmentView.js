@@ -63,8 +63,8 @@ const AttachmentView = (props) => {
     if (Str.isPDF(props.source)
         || (props.file && Str.isPDF(props.file.name || props.translate('attachmentView.unknownFilename')))) {
         const sourceURL = props.isAuthTokenRequired
-            ? addEncryptedAuthTokenToURL(props.sourceURL)
-            : props.sourceURL;
+            ? addEncryptedAuthTokenToURL(props.source)
+            : props.source;
         return (
             <PDFView
                 sourceURL={sourceURL}
