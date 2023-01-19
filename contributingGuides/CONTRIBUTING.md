@@ -59,6 +59,8 @@ Please be aware that compensation for any support in solving an issue is provide
 - Merged PR within 9 business days - 50% **penalty**  
 - No PR within 12 business days - **Contract terminated**  
 
+If the PR causes a regression within 7 days of being deployed to production, contributors are not eligible for the 50% bonus. 
+
 ## Finding Jobs
 A job could be fixing a bug or working on a new feature. There are two ways you can find a job that you can contribute to:
 

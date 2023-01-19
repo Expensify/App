@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import React, {forwardRef} from 'react';
 import {Pressable} from 'react-native';
-import {LongPressGestureHandler, State} from 'react-native-gesture-handler';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 import Text from '../Text';
 import HapticFeedback from '../../libs/HapticFeedback';
@@ -16,40 +15,21 @@ const PressableWithSecondaryInteraction = (props) => {
     // Use Text node for inline mode to prevent content overflow.
     const Node = props.inline ? Text : Pressable;
     return (
-        <LongPressGestureHandler
-            onHandlerStateChange={(e) => {
-                if (e.nativeEvent.state !== State.ACTIVE) {
-                    return;
-                }
-
-                // Map gesture event to normal Responder event
-                const {
-                    absoluteX, absoluteY, locationX, locationY,
-                } = e.nativeEvent;
-                const mapEvent = {
-                    ...e,
-                    nativeEvent: {
-                        ...e.nativeEvent, pageX: absoluteX, pageY: absoluteY, x: locationX, y: locationY,
-                    },
-                };
-
+        <Node
+            ref={props.forwardedRef}
+            onPress={props.onPress}
+            onLongPress={(e) => {
                 e.preventDefault();
                 HapticFeedback.trigger();
-                props.onSecondaryInteraction(mapEvent);
+                props.onSecondaryInteraction(e);
             }}
-        >
-            <Node
-                ref={props.forwardedRef}
-                onPress={props.onPress}
-                onPressIn={props.onPressIn}
-                onPressOut={props.onPressOut}
+            onPressIn={props.onPressIn}
+            onPressOut={props.onPressOut}
             // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(_.omit(props, 'onLongPress'))}
-            >
-                {props.children}
-            </Node>
-        </LongPressGestureHandler>
-
+            {...(_.omit(props, 'onLongPress'))}
+        >
+            {props.children}
+        </Node>
     );
 };
 

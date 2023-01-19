@@ -207,11 +207,14 @@ function meetsAgeRequirements(date) {
 }
 
 /**
+ * Similar to backend, checks whether a website has a valid URL or not.
+ * http/https/ftp URL scheme required.
+ *
  * @param {String} url
  * @returns {Boolean}
  */
-function isValidURL(url) {
-    return CONST.REGEX.HYPERLINK.test(url);
+function isValidWebsite(url) {
+    return CONST.REGEX.WEBSITE.test(url);
 }
 
 /**
@@ -427,7 +430,7 @@ export {
     isValidZipCode,
     isRequiredFulfilled,
     isValidUSPhone,
-    isValidURL,
+    isValidWebsite,
     validateIdentity,
     isValidPassword,
     isValidTwoFactorCode,
