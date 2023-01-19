@@ -288,6 +288,8 @@ class ReportActionsView extends React.Component {
 
         const oldestReportAction = _.last(this.sortedAndFilteredReportActions);
 
+        console.log('RORY_DEBUG oldestReportAction:', oldestReportAction);
+
         // Don't load more chats if we're already at the beginning of the chat history
         if (oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return;
@@ -346,6 +348,8 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
+        console.log('RORY_DEBUG rendering ReportActionsView');
+
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
             return null;
