@@ -482,6 +482,7 @@ const CONST = {
         DECIMAL_PAD: 'decimal-pad',
         VISIBLE_PASSWORD: 'visible-password',
         EMAIL_ADDRESS: 'email-address',
+        ASCII_CAPABLE: 'ascii-capable',
     },
 
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
