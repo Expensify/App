@@ -65,7 +65,6 @@ class ReportActionsView extends React.Component {
 
         // We need this.sortedAndFilteredReportActions to be set before this.state is initialized because the function to calculate the newMarkerReportActionID uses the sorted report actions
         this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(props.reportActions);
-        console.log('RORY_DEBUG sortedAndFilteredReportActions', this.sortedAndFilteredReportActions);
 
         this.state = {
             isFloatingMessageCounterVisible: false,
@@ -131,7 +130,6 @@ class ReportActionsView extends React.Component {
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
             this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(nextProps.reportActions);
-            console.log('RORY_DEBUG sortedAndFilteredReportActions', this.sortedAndFilteredReportActions);
             this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(nextProps.reportActions);
             return true;
         }
@@ -279,16 +277,12 @@ class ReportActionsView extends React.Component {
      * displaying.
      */
     loadMoreChats() {
-        console.log('RORY_DEBUG loadMoreChats called');
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
         if (this.props.report.isLoadingMoreReportActions) {
-            console.log('RORY_DEBUG loadMoreChatsReturning early because report.isLoadingMoreReportActions');
             return;
         }
 
         const oldestReportAction = _.last(this.sortedAndFilteredReportActions);
-
-        console.log('RORY_DEBUG oldestReportAction:', oldestReportAction);
 
         // Don't load more chats if we're already at the beginning of the chat history
         if (oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
@@ -348,8 +342,6 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
-        console.log('RORY_DEBUG rendering ReportActionsView');
-
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
             return null;

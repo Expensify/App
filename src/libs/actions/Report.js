@@ -424,7 +424,6 @@ function reconnect(reportID) {
  * @param {String} reportActionID
  */
 function readOldestAction(reportID, reportActionID) {
-    console.log('RORY_DEBUG calling ReadOldestAction:', {reportID, reportActionID});
     API.read('ReadOldestAction',
         {
             reportID,
