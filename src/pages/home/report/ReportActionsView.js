@@ -135,7 +135,7 @@ class ReportActionsView extends React.Component {
             const oldLength = this.sortedAndFilteredReportActions.length;
             this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(nextProps.reportActions);
             if (this.sortedAndFilteredReportActions.length < oldLength) {
-                actionWasDeleted = true;
+                this.actionWasDeleted = true;
             }
 
             this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(nextProps.reportActions);
@@ -218,7 +218,7 @@ class ReportActionsView extends React.Component {
         if (this.actionWasDeleted && ReportUtils.isUnread(this.props.report)) {
             console.log("Recalculating...");
             this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions)});
-            actionWasDeleted = false;
+            this.actionWasDeleted = false;
         }
 
         // When the user navigates to the LHN the ReportActionsView doesn't unmount and just remains hidden.
@@ -361,7 +361,6 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
-        console.log("Render");
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
             return null;
