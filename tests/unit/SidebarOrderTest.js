@@ -518,22 +518,10 @@ describe('Sidebar', () => {
         it('alphabetizes chats', () => {
             const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            const report1 = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
-                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
-            };
-            const report2 = {
-                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
-                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
-            };
-            const report3 = {
-                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1),
-                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
-            };
-            const report4 = {
-                ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com'], 0),
-                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
-            };
+            const report1 = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3, true);
+            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2, true);
+            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1, true);
+            const report4 = LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com'], 0, true);
 
             return waitForPromisesToResolve()
 
@@ -573,20 +561,13 @@ describe('Sidebar', () => {
         it('puts archived chats last', () => {
             // Given three unread reports, with the first report being archived
             const report1 = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
-                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3, true),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             };
-            const report2 = {
-                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
-                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
-            };
-            const report3 = {
-                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1),
-                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
-            };
+            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2, true);
+            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1, true);
 
             // Given the user is in all betas
             const betas = [

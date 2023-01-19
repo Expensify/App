@@ -78,15 +78,15 @@ const HeaderView = (props) => {
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
                 {props.isSmallScreenWidth && (
-                    <Tooltip text={props.translate('common.back')}>
-                        <Pressable
-                            onPress={props.onNavigationMenuButtonClicked}
-                            style={[styles.LHNToggle]}
-                            accessibilityHint="Navigate back to chats list"
-                        >
+                    <Pressable
+                        onPress={props.onNavigationMenuButtonClicked}
+                        style={[styles.LHNToggle]}
+                        accessibilityHint="Navigate back to chats list"
+                    >
+                        <Tooltip text={props.translate('common.back')} shiftVertical={4}>
                             <Icon src={Expensicons.BackArrow} />
-                        </Pressable>
-                    </Tooltip>
+                        </Tooltip>
+                    </Pressable>
                 )}
                 {Boolean(props.report && title) && (
                     <View
@@ -156,7 +156,7 @@ const HeaderView = (props) => {
                             <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
                                 <Pressable
                                     onPress={() => Report.togglePinnedState(props.report)}
-                                    style={[styles.touchableButtonImage, styles.mr0]}
+                                    style={[styles.touchableButtonImage]}
                                 >
                                     <Icon src={Expensicons.Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
                                 </Pressable>

@@ -203,7 +203,7 @@ class IOUConfirmationList extends Component {
                 }));
 
             sections.push({
-                title: this.props.translate('common.to').toUpperCase(),
+                title: this.props.translate('common.to'),
                 data: formattedParticipants,
                 shouldShow: true,
                 indexOffset: 0,
