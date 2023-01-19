@@ -8,7 +8,8 @@ import CONST from '../CONST';
  */
 function modifyRoomName(roomName) {
     const modifiedRoomNameWithoutHash = roomName
-        .replace(/ /g, '-');
+        .replace(/ /g, '-')
+        .replace(/—/g, '--');
 
     return `${CONST.POLICY.ROOM_PREFIX}${modifiedRoomNameWithoutHash}`;
 }
