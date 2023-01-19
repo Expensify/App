@@ -318,7 +318,6 @@ class Form extends React.Component {
                         scrollToOverflowEnabled={this.props.scrollToOverflowEnabled}
                         ref={this.formRef}
                     >
-                        {' '}
                         {scrollViewContent(safeAreaPaddingBottomStyle)}
                     </ScrollView>
                 ))}
