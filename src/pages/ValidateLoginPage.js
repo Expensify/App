@@ -4,8 +4,8 @@ import {
     propTypes as validateLinkPropTypes,
     defaultProps as validateLinkDefaultProps,
 } from './validateLinkPropTypes';
+import * as User from '../libs/actions/User';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
-import * as Session from '../libs/actions/Session';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
@@ -17,11 +17,10 @@ const defaultProps = {
 };
 class ValidateLoginPage extends Component {
     componentDidMount() {
-        // TODO: figure out if accountID is needed anymore
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
 
-        Session.signIn('', validateCode);
+        User.validateLogin(accountID, validateCode);
     }
 
     render() {
