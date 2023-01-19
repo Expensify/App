@@ -22,6 +22,14 @@ const errorsToRetry = [
     CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
 ];
 
+let resolveIsReadyPromise;
+let isReadyPromise = new Promise((resolve) => {
+    resolveIsReadyPromise = resolve;
+});
+
+// Resolve the isReadyPromise immediately so that the queue starts working as soon as the page loads
+resolveIsReadyPromise();
+
 let isSequentialQueueRunning = false;
 let currentRequest = null;
 
@@ -77,12 +85,24 @@ function flush() {
         return;
     }
 
+    isSequentialQueueRunning = true;
+
+    // Reset the isReadyPromise so that the queue will be flushed as soon as the request is finished
+    isReadyPromise = new Promise((resolve) => {
+        resolveIsReadyPromise = resolve;
+    });
+
     // Ensure persistedRequests are read from storage before proceeding with the queue
     const connectionID = Onyx.connect({
         key: ONYXKEYS.PERSISTED_REQUESTS,
         callback: () => {
             Onyx.disconnect(connectionID);
-            process();
+            process()
+                .finally(() => {
+                    isSequentialQueueRunning = false;
+                    resolveIsReadyPromise();
+                    currentRequest = null;
+                });
         },
     });
 }
@@ -97,9 +117,6 @@ function isRunning() {
 // Flush the queue when the connection resumes
 NetworkStore.onReconnection(flush);
 
-// Call flush immediately so that the queue starts running as soon as the page loads
-flush();
-
 /**
  * @param {Object} request
  */
@@ -112,9 +129,13 @@ function push(request) {
         return;
     }
 
-    if (!isSequentialQueueRunning) {
-        flush();
+    // If the queue is running this request will run once it has finished processing the current batch
+    if (isSequentialQueueRunning) {
+        isReadyPromise.then(flush);
+        return;
     }
+
+    flush();
 }
 
 /**
