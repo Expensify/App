@@ -29,11 +29,13 @@ function setHTMLSync(html, text) {
     document.body.appendChild(node);
 
     const selection = window.getSelection();
-    let originalRange = selection.getRangeAt(0);
-    const firstAncestorChild = originalRange.commonAncestorContainer.firstChild;
-    
-    if(firstAncestorChild && isTextElement(firstAncestorChild))
-        originalRange = getInputSelection(firstAncestorChild);
+    let originalSelection = null;
+    const firstAnchorChild = selection.anchorNode.firstChild;
+
+    if(firstAnchorChild && isTextElement(firstAnchorChild))
+        originalSelection = getInputSelection(firstAnchorChild);
+    else
+        originalSelection = saveSelection(selection);
 
     selection.removeAllRanges();
     const range = document.createRange();
@@ -49,12 +51,12 @@ function setHTMLSync(html, text) {
 
     selection.removeAllRanges();
 
-    if(firstAncestorChild && isTextElement(firstAncestorChild))
-        firstAncestorChild.setSelectionRange(originalRange.start, originalRange.end);
+    if(firstAnchorChild && isTextElement(firstAnchorChild))
+        firstAnchorChild.setSelectionRange(originalSelection.start, originalSelection.end, originalSelection.direction);
     else
-        selection.addRange(originalRange);
+        restoreSelection(selection, originalSelection);
 
-        document.body.removeChild(node);
+    document.body.removeChild(node);
 }
 
 /**
@@ -153,7 +155,8 @@ const getInputSelection = (el) => {
 
     return {
         start: start,
-        end: end
+        end: end,
+        direction: el.selectionDirection,
     };
 }
 
@@ -162,3 +165,11 @@ export default {
     canSetHtml,
     setHtml,
 };
+
+const saveSelection = (selection) => {
+    return [selection.anchorNode, selection.anchorOffset, selection.focusNode, selection.focusOffset];
+}
+
+const restoreSelection = (selection, savedSelection) => {
+    selection.setBaseAndExtent(savedSelection[0], savedSelection[1], savedSelection[2], savedSelection[3]);
+}
