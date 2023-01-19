@@ -9,7 +9,7 @@ const propTypes = {
     /** Callback to fire when swiping left or right */
     onCycleThroughAttachments: PropTypes.func.isRequired,
 
-    /** Callback to handle a press event because PanResponder will intercept all gestures */
+    /** Callback to handle a press event*/
     onPress: PropTypes.func.isRequired,
 
     /** Boolean to prevent a left swipe action */
