@@ -218,6 +218,7 @@ class ReportActionsView extends React.Component {
         if (this.actionWasDeleted && ReportUtils.isUnread(this.props.report)) {
             console.log("Recalculating...");
             this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions)});
+            actionWasDeleted = false;
         }
 
         // When the user navigates to the LHN the ReportActionsView doesn't unmount and just remains hidden.
