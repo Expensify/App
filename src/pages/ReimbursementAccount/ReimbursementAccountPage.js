@@ -276,7 +276,13 @@ class ReimbursementAccountPage extends React.Component {
                 || achData.state === BankAccount.STATE.PENDING
             )) {
             return (
-                <ContinueBankAccountSetup continue={this.continue} />
+                <ContinueBankAccountSetup
+                    continue={this.continue}
+                    startOver={() => {
+                        this.setState({shouldHideContinueSetupButton: true});
+                        BankAccounts.requestResetFreePlanBankAccount();
+                    }}
+                />
             );
         }
 

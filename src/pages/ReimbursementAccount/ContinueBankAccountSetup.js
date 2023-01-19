@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView} from 'react-native';
 import _ from 'underscore';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -23,6 +22,9 @@ import withPolicy from '../workspace/withPolicy';
 const propTypes = {
     /** Callback to continue to the next step of the setup */
     continue: PropTypes.func.isRequired,
+
+    /** Callback to start over the setup */
+    startOver: PropTypes.func.isRequired,
 
     /** Policy values needed in the component */
     policy: PropTypes.shape({
@@ -65,7 +67,7 @@ const ContinueBankAccountSetup = props => (
                     <MenuItem
                         title={props.translate('workspace.bankAccount.startOver')}
                         icon={Expensicons.RotateLeft}
-                        onPress={BankAccounts.requestResetFreePlanBankAccount}
+                        onPress={props.startOver}
                         shouldShowRightIcon
                         wrapperStyle={[styles.cardMenuItem]}
                     />
