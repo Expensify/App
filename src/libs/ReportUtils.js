@@ -205,8 +205,22 @@ function isUserCreatedPolicyRoom(report) {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
 }
 
+/**
+ * Whether the provided report is a restricted policy room
+ * @param {Object} report
+ * @returns {Boolean}
+ */
 function isRestrictedPolicyRoom(report) {
-    return isUserCreatedPolicyRoom && getVisibility(report) === CONST.REPORT.VISIBILITY.RESTRICTED;
+    return isUserCreatedPolicyRoom(report) && getVisibility(report) === CONST.REPORT.VISIBILITY.RESTRICTED;
+}
+
+/**
+ * Whether the current user is a participant of the restricted policy room, if one is given
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isRestrictedRoomParticipant(report) {
+    return isRestrictedPolicyRoom(report) && report.permissions.indexOf('read, write') !== -1;
 }
 
 /**
@@ -1171,7 +1185,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
     // which necessitates the use of the isLHNOptionsList flag.
     // If a user has 'read' permissions for a restricted room, we want it to be discoverable in the Search Page, but not in the LHN
     // Restricted rooms should be in the LHN only if the user has 'read, write' permissions
-    if (isLHNOptionsList && isRestrictedPolicyRoom(report) && report.permissions.indexOf('read, write') === -1) {
+    if (isLHNOptionsList && isRestrictedRoomParticipant(report)) {
         return false;
     }
 
@@ -1242,6 +1256,7 @@ export {
     isAnnounceRoom,
     isUserCreatedPolicyRoom,
     isRestrictedPolicyRoom,
+    isRestrictedRoomParticipant,
     isChatRoom,
     getChatRoomSubtitle,
     getPolicyName,

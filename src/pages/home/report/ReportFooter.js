@@ -73,7 +73,7 @@ class ReportFooter extends React.Component {
         if (isArchivedRoom) {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
-        const shouldShowJoinRoomPrompt = ReportUtils.isRestrictedPolicyRoom(this.props.report) && this.props.report.permissions.indexOf('read, write') === -1;
+        const shouldShowJoinRoomPrompt = ReportUtils.isRestrictedPolicyRoom(this.props.report) && !ReportUtils.isRestrictedRoomParticipant(this.props.report);
         const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors) || shouldShowJoinRoomPrompt;
         return (
             <>

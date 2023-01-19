@@ -1,6 +1,7 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import Text from './Text';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import reportPropTypes from '../pages/reportPropTypes';
 
