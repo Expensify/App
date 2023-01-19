@@ -33,6 +33,7 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ReportActions from '../../../libs/actions/ReportActions';
 import reportPropTypes from '../../reportPropTypes';
+import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext';
 import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
 
 const propTypes = {
@@ -117,7 +118,11 @@ class ReportActionItem extends Component {
         }
 
         this.setState({isContextMenuActive: true});
-        const selection = SelectionScraper.getCurrentSelection();
+
+        // Newline characters need to be removed here because getCurrentSelection() returns html mixed with newlines, and when
+        // <br> tags are converted later to markdown, it creates duplicate newline characters. This means that when the content
+        // is pasted, there are extra newlines in the content that we want to avoid.
+        const selection = SelectionScraper.getCurrentSelection().replace(/\n/g, '');
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
@@ -142,30 +147,42 @@ class ReportActionItem extends Component {
             children = (
                 <IOUAction
                     chatReportID={this.props.report.reportID}
-                    iouReportID={this.props.report.iouReportID}
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
                     isHovered={hovered}
+                    contextMenuAnchor={this.popoverAnchor}
+                    checkIfContextMenuActive={this.checkIfContextMenuActive}
                 />
             );
         } else {
-            children = !this.props.draftMessage
-                ? (
-                    <ReportActionItemMessage action={this.props.action} />
-                ) : (
-                    <ReportActionItemMessageEdit
-                        action={this.props.action}
-                        draftMessage={this.props.draftMessage}
-                        reportID={this.props.report.reportID}
-                        index={this.props.index}
-                        ref={el => this.textInput = el}
-                        report={this.props.report}
-                        shouldDisableEmojiPicker={
-                            (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge))
-                            || ReportUtils.isArchivedRoom(this.props.report)
-                        }
-                    />
-                );
+            children = (
+                <ShowContextMenuContext.Provider
+                    value={{
+                        anchor: this.popoverAnchor,
+                        reportID: this.props.report.reportID,
+                        action: this.props.action,
+                        checkIfContextMenuActive: this.checkIfContextMenuActive,
+                    }}
+                >
+                    {!this.props.draftMessage
+                        ? (
+                            <ReportActionItemMessage action={this.props.action} />
+                        ) : (
+                            <ReportActionItemMessageEdit
+                                action={this.props.action}
+                                draftMessage={this.props.draftMessage}
+                                reportID={this.props.report.reportID}
+                                index={this.props.index}
+                                ref={el => this.textInput = el}
+                                report={this.props.report}
+                                shouldDisableEmojiPicker={
+                                    (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge))
+                                    || ReportUtils.isArchivedRoom(this.props.report)
+                                }
+                            />
+                        )}
+                </ShowContextMenuContext.Provider>
+            );
         }
         return children;
     }
