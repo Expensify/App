@@ -1,7 +1,6 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {View, Pressable} from 'react-native';
-import _ from 'underscore';
 import Image from '../Image';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -27,7 +26,6 @@ class ImageView extends PureComponent {
         super(props);
         this.scrollableRef = null;
         this.canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
-        this.debouncedCalculateImageSize = _.debounce(this.calculateImageSize, 220);
         this.onContainerLayoutChanged = this.onContainerLayoutChanged.bind(this);
         this.onContainerPressIn = this.onContainerPressIn.bind(this);
         this.onContainerPress = this.onContainerPress.bind(this);

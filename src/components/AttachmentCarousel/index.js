@@ -47,11 +47,13 @@ class AttachmentCarousel extends React.Component {
     constructor(props) {
         super(props);
         this.canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
-        this.makeStateWithReports = this.makeStateWithReports.bind(this);
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
-        this.toggleArrowsVisibility = this.toggleArrowsVisibility.bind(this);
 
-        this.state = {shouldShowArrow: this.canUseTouchScreen};
+        this.state = {
+            shouldShowArrow: this.canUseTouchScreen,
+            isForwardDisabled: true,
+            isBackDisabled: true,
+        };
     }
 
     componentDidMount() {

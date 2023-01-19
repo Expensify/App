@@ -2121,10 +2121,6 @@ const styles = {
         width: '100%',
     },
 
-    attachmentContainer: {
-        height: '100%',
-    },
-
     leftAttachmentArrow: {
         zIndex: 23,
         position: 'absolute',
