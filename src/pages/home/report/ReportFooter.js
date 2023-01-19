@@ -12,6 +12,7 @@ import SwipeableView from '../../../components/SwipeableView';
 import OfflineIndicator from '../../../components/OfflineIndicator';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import ArchivedReportFooter from '../../../components/ArchivedReportFooter';
+import JoinRoomPrompt from '../../../components/JoinRoomPrompt';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -115,7 +116,11 @@ class ReportFooter extends React.Component {
                 )}
                 {shouldShowJoinRoomPrompt && (
                     // TODO: (pending design) a component that will ask the user whether they want to join this room
-                    <></>
+
+                    <JoinRoomPrompt 
+                        isOffline={this.props.isOffline}
+                        report={this.props.report}
+                    />
                 )}
             </>
         );
