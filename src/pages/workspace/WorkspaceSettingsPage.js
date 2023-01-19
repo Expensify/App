@@ -37,7 +37,7 @@ class WorkspaceSettingsPage extends React.Component {
 
         this.getCurrencyItems = this.getCurrencyItems.bind(this);
         this.submit = this.submit.bind(this);
-        this.trimName = this.trimName.bind(this);
+        this.hasHtml = this.hasHtml.bind(this);
         this.validate = this.validate.bind(this);
     }
 
@@ -56,23 +56,28 @@ class WorkspaceSettingsPage extends React.Component {
         if (this.props.policy.isPolicyUpdating) {
             return;
         }
-        const name = this.trimName(values.name);
         const outputCurrency = values.currency;
-        Policy.updateGeneralSettings(this.props.policy.id, name, outputCurrency);
+        Policy.updateGeneralSettings(this.props.policy.id, values.name, outputCurrency);
         Keyboard.dismiss();
     }
 
     validate(values) {
         const errors = {};
-        const name = this.trimName(values.name);
-        if (!name || !name.length) {
+
+        if (this.hasHtml(values.name)) {
+            errors.name = 'has html';
+        }
+
+        if (!values.name || !values.name.length) {
             errors.name = this.props.translate('workspace.editor.nameIsRequiredError');
         }
         return errors;
     }
 
-    trimName(name) {
-        return name.replace(/<(.|\n)*?>/g, '').trim();
+    hasHtml(name) {
+        const trimmedName = name.trim();
+        console.log(trimmedName.search(/<(.|\n)*?>/g));
+        return trimmedName.search(/<(.|\n)*?>/g) != -1;
     }
 
     render() {
