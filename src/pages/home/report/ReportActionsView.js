@@ -67,6 +67,7 @@ class ReportActionsView extends React.Component {
 
         // We need this.sortedAndFilteredReportActions to be set before this.state is initialized because the function to calculate the newMarkerReportActionID uses the sorted report actions
         this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(props.reportActions);
+        this.actionWasDeleted = false;
 
         this.state = {
             isFloatingMessageCounterVisible: false,
@@ -101,11 +102,7 @@ class ReportActionsView extends React.Component {
 
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
-        this.unsubscribeFromNewActionEvent = Report.subscribeToNewActionEvent(this.props.report.reportID, (isFromCurrentUser, newActionID, isDeleted) => {
-            if (isDeleted) {
-                this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.getSortedReportActionsForDisplay(this.props.report.reportActions))});
-            }
-
+        this.unsubscribeFromNewActionEvent = Report.subscribeToNewActionEvent(this.props.report.reportID, (isFromCurrentUser, newActionID) => {
             const isNewMarkerReportActionIDSet = !_.isEmpty(this.state.newMarkerReportActionID);
 
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
@@ -135,7 +132,12 @@ class ReportActionsView extends React.Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
+            const oldLength = this.sortedAndFilteredReportActions.length;
             this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(nextProps.reportActions);
+            if (this.sortedAndFilteredReportActions.length < oldLength) {
+                actionWasDeleted = true;
+            }
+
             this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(nextProps.reportActions);
             return true;
         }
@@ -210,6 +212,12 @@ class ReportActionsView extends React.Component {
                     : '',
             });
             this.openReportIfNecessary();
+        }
+
+        // We should only do this when we've shrunken the list of reportActions.
+        if (this.actionWasDeleted && ReportUtils.isUnread(this.props.report)) {
+            console.log("Recalculating...");
+            this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions)});
         }
 
         // When the user navigates to the LHN the ReportActionsView doesn't unmount and just remains hidden.
@@ -352,6 +360,7 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
+        console.log("Render");
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
             return null;

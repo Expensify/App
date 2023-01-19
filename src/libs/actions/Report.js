@@ -667,7 +667,7 @@ function deleteReportComment(reportID, reportAction) {
     };
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
-    // and and remove the pendingAction so the strike-through clears
+    // and remove the pendingAction so the strike-through clears
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -717,7 +717,7 @@ function deleteReportComment(reportID, reportAction) {
 
     if (reportID === newActionSubscriber.reportID) {
         const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
-        newActionSubscriber.callback(isFromCurrentUser, reportAction.reportActionID, true);
+        newActionSubscriber.callback(isFromCurrentUser, reportAction.reportActionID);
     }
 }
 
@@ -1147,7 +1147,7 @@ function showReportActionNotification(reportID, action) {
     // Notify the ReportActionsView that a new comment has arrived
     if (reportID === newActionSubscriber.reportID) {
         const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
-        newActionSubscriber.callback(isFromCurrentUser, action.reportActionID, false);
+        newActionSubscriber.callback(isFromCurrentUser, action.reportActionID);
     }
 }
 
