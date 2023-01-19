@@ -20,6 +20,7 @@ import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 
+/* eslint-disable @lwc/lwc/no-async-await */
 let currentUserEmail;
 let currentUserAccountID;
 Onyx.connect({
@@ -67,8 +68,9 @@ function subscribeToReportCommentPushNotifications() {
     });
 
     // Open correct report when push notification is clicked
-    PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
-        if (Navigation.canNavigate('navigate')) {
+    PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, async ({reportID}) => {
+        const navigationIsReady = await Navigation.canNavigate('navigate');
+        if (navigationIsReady) {
             // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
             if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
                 Navigation.goBack();

@@ -203,26 +203,30 @@ class BaseOptionsSelector extends Component {
      *
      * @param {Object} option
      * @param {Object} ref
+     * @returns {Promise}
      */
     selectRow(option, ref) {
-        if (this.props.shouldFocusOnSelectRow) {
-            if (this.relatedTarget && ref === this.relatedTarget) {
-                this.textInput.focus();
-                this.relatedTarget = null;
+        return new Promise((resolve) => {
+            if (this.props.shouldFocusOnSelectRow) {
+                if (this.relatedTarget && ref === this.relatedTarget) {
+                    this.textInput.focus();
+                    this.relatedTarget = null;
+                }
+                if (this.textInput.isFocused()) {
+                    setSelection(this.textInput, 0, this.props.value.length);
+                }
             }
-            if (this.textInput.isFocused()) {
-                setSelection(this.textInput, 0, this.props.value.length);
+            const selectedOption = this.props.onSelectRow(option);
+            resolve(selectedOption);
+
+            if (!this.props.canSelectMultipleOptions) {
+                return;
             }
-        }
-        this.props.onSelectRow(option);
 
-        if (!this.props.canSelectMultipleOptions) {
-            return;
-        }
-
-        // Focus the first unselected item from the list (i.e: the best result according to the current search term)
-        this.setState({
-            focusedIndex: this.props.selectedOptions.length,
+            // Focus the first unselected item from the list (i.e: the best result according to the current search term)
+            this.setState({
+                focusedIndex: this.props.selectedOptions.length,
+            });
         });
     }
 

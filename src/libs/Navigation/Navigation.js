@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {Keyboard} from 'react-native';
+import {Keyboard, InteractionManager} from 'react-native';
 import {DrawerActions, getPathFromState, StackActions} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
@@ -11,6 +11,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 
+/* eslint-disable @lwc/lwc/no-async-await */
 let resolveNavigationIsReadyPromise;
 const navigationIsReadyPromise = new Promise((resolve) => {
     resolveNavigationIsReadyPromise = resolve;
@@ -23,6 +24,7 @@ const drawerIsReadyPromise = new Promise((resolve) => {
 
 let isLoggedIn = false;
 let pendingRoute = null;
+let isNavigating = false;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -48,37 +50,49 @@ function setDidTapNotification() {
  * @returns {Boolean}
  */
 function canNavigate(methodName, params = {}) {
-    if (navigationRef.isReady()) {
-        return true;
+    if (isNavigating) {
+        return new Promise((resolve) => {
+            Log.hmmm(`[Navigation] ${methodName} failed because navigation is progress`, params);
+            resolve(false);
+        });
     }
+    return new Promise((resolve) => {
+        InteractionManager.runAfterInteractions(() => {
+            if (navigationRef.isReady() && !isNavigating) {
+                resolve(true);
+            } else {
+                Log.hmmm(`[Navigation] ${methodName} failed because navigation ref was not yet ready`, params);
+                resolve(false);
+            }
+        });
+    });
+}
 
-    Log.hmmm(`[Navigation] ${methodName} failed because navigation ref was not yet ready`, params);
-    return false;
+function setIsNavigating(isNavigatingValue) {
+    isNavigating = isNavigatingValue;
 }
 
 /**
  * Opens the LHN drawer.
  * @private
  */
-function openDrawer() {
-    if (!canNavigate('openDrawer')) {
-        return;
+async function openDrawer() {
+    const navigationIsReady = await canNavigate('openDrawer');
+    if (navigationIsReady) {
+        navigationRef.current.dispatch(DrawerActions.openDrawer());
+        Keyboard.dismiss();
     }
-
-    navigationRef.current.dispatch(DrawerActions.openDrawer());
-    Keyboard.dismiss();
 }
 
 /**
  * Close the LHN drawer.
  * @private
  */
-function closeDrawer() {
-    if (!canNavigate('closeDrawer')) {
-        return;
+async function closeDrawer() {
+    const navigationIsReady = await canNavigate('closeDrawer');
+    if (navigationIsReady) {
+        navigationRef.current.dispatch(DrawerActions.closeDrawer());
     }
-
-    navigationRef.current.dispatch(DrawerActions.closeDrawer());
 }
 
 /**
@@ -96,20 +110,20 @@ function getDefaultDrawerState(isSmallScreenWidth) {
  * @private
  * @param {Boolean} shouldOpenDrawer
  */
-function goBack(shouldOpenDrawer = true) {
-    if (!canNavigate('goBack')) {
-        return;
-    }
+async function goBack(shouldOpenDrawer = true) {
+    const navigationIsReady = await canNavigate('goBack');
 
-    if (!navigationRef.current.canGoBack()) {
-        Log.hmmm('[Navigation] Unable to go back');
-        if (shouldOpenDrawer) {
-            openDrawer();
+    if (navigationIsReady) {
+        if (!navigationRef.current.canGoBack()) {
+            Log.hmmm('[Navigation] Unable to go back');
+            if (shouldOpenDrawer) {
+                openDrawer();
+            }
+            return;
         }
-        return;
-    }
 
-    navigationRef.current.goBack();
+        navigationRef.current.goBack();
+    }
 }
 
 /**
@@ -130,8 +144,9 @@ function isDrawerRoute(route) {
  * Main navigation method for redirecting to a route.
  * @param {String} route
  */
-function navigate(route = ROUTES.HOME) {
-    if (!canNavigate('navigate', {route})) {
+async function navigate(route = ROUTES.HOME) {
+    const navigationIsReady = await canNavigate('navigate', {route});
+    if (!navigationIsReady) {
         // Store intended route if the navigator is not yet available,
         // we will try again after the NavigationContainer is ready
         Log.hmmm(`[Navigation] Container not yet ready, storing route as pending: ${route}`);
@@ -165,18 +180,17 @@ function navigate(route = ROUTES.HOME) {
  *
  * @param {Boolean} [shouldOpenDrawer]
  */
-function dismissModal(shouldOpenDrawer = false) {
-    if (!canNavigate('dismissModal')) {
-        return;
-    }
+async function dismissModal(shouldOpenDrawer = false) {
+    const navigationIsReady = await canNavigate('dismissModal');
+    if (navigationIsReady) {
+        const normalizedShouldOpenDrawer = _.isBoolean(shouldOpenDrawer)
+            ? shouldOpenDrawer
+            : false;
 
-    const normalizedShouldOpenDrawer = _.isBoolean(shouldOpenDrawer)
-        ? shouldOpenDrawer
-        : false;
-
-    DeprecatedCustomActions.navigateBackToRootDrawer();
-    if (normalizedShouldOpenDrawer) {
-        openDrawer();
+        DeprecatedCustomActions.navigateBackToRootDrawer();
+        if (normalizedShouldOpenDrawer) {
+            openDrawer();
+        }
     }
 }
 
@@ -269,6 +283,7 @@ export default {
     isDrawerReady,
     setIsDrawerReady,
     isDrawerRoute,
+    setIsNavigating,
 };
 
 export {

@@ -6,6 +6,7 @@ import {
     TouchableOpacity,
     View,
     StyleSheet,
+    InteractionManager,
 } from 'react-native';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
@@ -76,6 +77,12 @@ const defaultProps = {
 };
 
 const OptionRow = (props) => {
+    const [isDisabled, setIsDisabled] = React.useState(props.isDisabled);
+
+    React.useEffect(() => {
+        setIsDisabled(props.isDisabled);
+    }, [props.isDisabled]);
+
     let touchableRef = null;
     const textStyle = props.optionIsFocused
         ? styles.sidebarLinkActiveText
@@ -117,13 +124,21 @@ const OptionRow = (props) => {
                     <TouchableOpacity
                         ref={el => touchableRef = el}
                         onPress={(e) => {
+                            setIsDisabled(true);
                             if (e) {
                                 e.preventDefault();
                             }
-
-                            props.onSelectRow(props.option, touchableRef);
+                            const selectedOption = props.onSelectRow(props.option, touchableRef);
+                            // eslint-disable-next-line rulesdir/prefer-early-return
+                            InteractionManager.runAfterInteractions(() => {
+                                if (selectedOption instanceof Promise) {
+                                    selectedOption.then(() => {
+                                        setIsDisabled(props.isDisabled);
+                                    });
+                                }
+                            });
                         }}
-                        disabled={props.isDisabled}
+                        disabled={isDisabled}
                         activeOpacity={0.8}
                         style={[
                             styles.flexRow,
