@@ -208,7 +208,9 @@ class ReportActionsView extends React.Component {
             this.openReportIfNecessary();
         }
 
-        if (ReportActionsUtils.filterReportActionsForDisplay(prevProps.reportActions) > this.sortedAndFilteredReportActions.count) {
+        // If the report is unread, we want to check if the number of actions has decreased. If so, then it seems that one of them was deleted. In this case, if the deleted action was the
+        // one marking the unread point, we need to recalculate which action should be the unread marker.
+        if (ReportUtils.isUnread(this.props.report) && ReportActionsUtils.filterReportActionsForDisplay(prevProps.reportActions) > this.sortedAndFilteredReportActions.count) {
             this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions)});
         }
 
