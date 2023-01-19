@@ -2702,10 +2702,6 @@ const styles = {
         flex: 1,
     },
 
-    errorPageContainer: {
-        backgroundColor: themeColors.componentBG,
-    },
-
     transferBalancePayment: {
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
