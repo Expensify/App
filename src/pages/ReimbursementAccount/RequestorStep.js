@@ -18,7 +18,6 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
-import * as Link from '../../libs/actions/Link';
 import RequestorOnfidoStep from './RequestorOnfidoStep';
 import Form from '../../components/Form';
 
@@ -221,29 +220,26 @@ class RequestorStep extends React.Component {
                         />
                         <Text style={[styles.mt3, styles.textMicroSupporting]}>
                             {this.props.translate('requestorStep.onFidoConditions')}
-                            <Text
-                                onPress={() => Link.openExternalLink('https://onfido.com/facial-scan-policy-and-release/')}
-                                style={[styles.textMicro, styles.link]}
-                                accessibilityRole="link"
+                            <TextLink
+                                href="https://onfido.com/facial-scan-policy-and-release/"
+                                style={styles.textMicro}
                             >
-                                {`${this.props.translate('onfidoStep.facialScan')}`}
-                            </Text>
+                                {this.props.translate('onfidoStep.facialScan')}
+                            </TextLink>
                             {', '}
-                            <Text
-                                onPress={() => Link.openExternalLink('https://onfido.com/privacy/')}
-                                style={[styles.textMicro, styles.link]}
-                                accessibilityRole="link"
+                            <TextLink
+                                href="https://onfido.com/privacy/"
+                                style={styles.textMicro}
                             >
-                                {`${this.props.translate('common.privacyPolicy')}`}
-                            </Text>
+                                {this.props.translate('common.privacy')}
+                            </TextLink>
                             {` ${this.props.translate('common.and')} `}
-                            <Text
-                                onPress={() => Link.openExternalLink('https://onfido.com/terms-of-service/')}
-                                style={[styles.textMicro, styles.link]}
-                                accessibilityRole="link"
+                            <TextLink
+                                href="https://onfido.com/terms-of-service/"
+                                style={styles.textMicro}
                             >
-                                {`${this.props.translate('common.termsOfService')}`}
-                            </Text>
+                                {this.props.translate('common.termsOfService')}
+                            </TextLink>
                         </Text>
                     </Form>
                 )}

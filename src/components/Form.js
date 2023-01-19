@@ -53,8 +53,8 @@ const propTypes = {
     /** Should the button be enabled when offline */
     enabledWhenOffline: PropTypes.bool,
 
-    /** Whether the action is dangerous */
-    isDangerousAction: PropTypes.bool,
+    /** Whether the form submit action is dangerous */
+    isSubmitActionDangerous: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
@@ -67,7 +67,7 @@ const defaultProps = {
     },
     draftValues: {},
     enabledWhenOffline: false,
-    isDangerousAction: false,
+    isSubmitActionDangerous: false,
 };
 
 class Form extends React.Component {
@@ -87,11 +87,13 @@ class Form extends React.Component {
         this.submit = this.submit.bind(this);
     }
 
-    /**
-     * @param {String} inputID - The inputID of the input being touched
-     */
-    setTouchedInput(inputID) {
-        this.touchedInputs[inputID] = true;
+    componentDidUpdate(prevProps) {
+        if (prevProps.preferredLocale === this.props.preferredLocale) {
+            return;
+        }
+
+        // Update the error messages if the language changes
+        this.validate(this.state.inputValues);
     }
 
     getErrorMessage() {
@@ -108,6 +110,13 @@ class Form extends React.Component {
         }
 
         return _.first(_.keys(hasStateErrors ? this.state.erorrs : this.props.formState.errorFields));
+    }
+
+    /**
+     * @param {String} inputID - The inputID of the input being touched
+     */
+    setTouchedInput(inputID) {
+        this.touchedInputs[inputID] = true;
     }
 
     submit() {
@@ -282,7 +291,7 @@ class Form extends React.Component {
                                 }}
                                 containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
                                 enabledWhenOffline={this.props.enabledWhenOffline}
-                                isDangerousAction={this.props.isDangerousAction}
+                                isSubmitActionDangerous={this.props.isSubmitActionDangerous}
                             />
                             )}
                         </View>

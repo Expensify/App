@@ -37,6 +37,7 @@ The tests can be run with the following CLI options:
                    the existing native app with the new package. If there
                    is no existing native app, it will fallback to mode "full"
   3. **skip**: does not rebuild anything, and just runs the existing native app
+- `--skipCheckout`: Won't checkout any baseline or comparison branch, and will just run the tests
 
 ## Available environment variables
 

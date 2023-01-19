@@ -471,8 +471,9 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
     }
 
     const participantDetails = [];
-    for (let i = 0; i < report.participants.length; i++) {
-        const login = report.participants[i];
+    const participants = report.participants || [];
+    for (let i = 0; i < participants.length; i++) {
+        const login = participants[i];
         participantDetails.push([
             login,
             lodashGet(personalDetails, [login, 'firstName'], ''),
@@ -883,6 +884,7 @@ function buildOptimisticChatReport(
     visibility = undefined,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
 ) {
+    const currentTime = DateUtils.getDBTime();
     return {
         chatType,
         hasOutstandingIOU: false,
@@ -892,8 +894,8 @@ function buildOptimisticChatReport(
         lastMessageHtml: '',
         lastMessageText: null,
         lastReadSequenceNumber: 0,
-        lastActionCreated: DateUtils.getDBTime(),
-        lastReadTime: '',
+        lastReadTime: currentTime,
+        lastActionCreated: currentTime,
         maxSequenceNumber: 0,
         notificationPreference,
         oldPolicyName,
@@ -969,6 +971,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
     );
     const announceChatReportID = announceChatData.reportID;
     const announceReportActionData = buildOptimisticCreatedReportAction(announceChatData.ownerEmail);
+    const announceCreatedReportActionID = announceReportActionData[0].reportActionID;
 
     const adminsChatData = buildOptimisticChatReport(
         [currentUserEmail],
@@ -981,6 +984,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
     );
     const adminsChatReportID = adminsChatData.reportID;
     const adminsReportActionData = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
+    const adminsCreatedReportActionID = adminsReportActionData[0].reportActionID;
 
     const expenseChatData = buildOptimisticChatReport(
         [currentUserEmail],
@@ -993,17 +997,21 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
     );
     const expenseChatReportID = expenseChatData.reportID;
     const expenseReportActionData = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
+    const expenseCreatedReportActionID = expenseReportActionData[0].reportActionID;
 
     return {
         announceChatReportID,
         announceChatData,
         announceReportActionData,
+        announceCreatedReportActionID,
         adminsChatReportID,
         adminsChatData,
         adminsReportActionData,
+        adminsCreatedReportActionID,
         expenseChatReportID,
         expenseChatData,
         expenseReportActionData,
+        expenseCreatedReportActionID,
     };
 }
 
@@ -1175,6 +1183,14 @@ function getChatByParticipants(newParticipantList) {
 }
 
 /**
+ * @param {String} policyID
+ * @returns {Array}
+ */
+function getAllPolicyReports(policyID) {
+    return _.filter(allReports, report => report && report.policyID === policyID);
+}
+
+/**
 * Returns true if Chronos is one of the chat participants (1:1)
 * @param {Object} report
 * @returns {Boolean}
@@ -1248,6 +1264,7 @@ export {
     buildOptimisticReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
+    getAllPolicyReports,
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
     isIOUReport,

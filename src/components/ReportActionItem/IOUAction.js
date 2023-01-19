@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -19,11 +20,17 @@ const propTypes = {
     /** All the data of the action */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
-    /** The associated chatReport */
+    /** The ID of the associated chatReport */
     chatReportID: PropTypes.string.isRequired,
 
     /** Is this IOUACTION the most recent? */
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
+
+    /** Popover context menu anchor, used for showing context menu */
+    contextMenuAnchor: PropTypes.shape({current: PropTypes.elementType}),
+
+    /** Callback for updating context menu active state, used for showing context menu */
+    checkIfContextMenuActive: PropTypes.func,
 
     /* Onyx Props */
     /** chatReport associated with iouReport */
@@ -36,10 +43,10 @@ const propTypes = {
     }),
 
     /** IOU report data object */
-    iouReport: iouReportPropTypes.isRequired,
+    iouReport: iouReportPropTypes,
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)).isRequired,
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Whether the IOU is hovered so we can modify its style */
     isHovered: PropTypes.bool,
@@ -48,9 +55,13 @@ const propTypes = {
 };
 
 const defaultProps = {
+    contextMenuAnchor: undefined,
+    checkIfContextMenuActive: () => {},
     chatReport: {
         participants: [],
     },
+    iouReport: {},
+    reportActions: {},
     isHovered: false,
 };
 
@@ -66,7 +77,8 @@ const IOUAction = (props) => {
 
     let shouldShowPendingConversionMessage = false;
     if (
-        props.iouReport
+        !_.isEmpty(props.iouReport)
+        && !_.isEmpty(props.reportActions)
         && props.chatReport.hasOutstandingIOU
         && props.isMostRecentIOUReportAction
         && props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
@@ -79,13 +91,19 @@ const IOUAction = (props) => {
         <>
             <IOUQuote
                 action={props.action}
+                chatReportID={props.chatReportID}
+                contextMenuAnchor={props.contextMenuAnchor}
                 shouldAllowViewDetails={Boolean(props.action.originalMessage.IOUReportID)}
                 onViewDetailsPressed={launchDetailsModal}
+                checkIfContextMenuActive={props.checkIfContextMenuActive}
             />
             {shouldShowIOUPreview && (
                 <IOUPreview
                     iouReportID={props.action.originalMessage.IOUReportID.toString()}
                     chatReportID={props.chatReportID}
+                    action={props.action}
+                    contextMenuAnchor={props.contextMenuAnchor}
+                    checkIfContextMenuActive={props.checkIfContextMenuActive}
                     shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
                     onPayButtonPressed={launchDetailsModal}
                     onPreviewPressed={launchDetailsModal}
@@ -112,7 +130,7 @@ export default compose(
             key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
         },
         iouReport: {
-            key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+            key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT}${action.originalMessage.IOUReportID}`,
         },
         reportActions: {
             key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
