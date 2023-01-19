@@ -139,6 +139,7 @@ const CONST = {
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+        PASSWORDLESS: 'passwordless',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

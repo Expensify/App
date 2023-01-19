@@ -6,6 +6,9 @@ import {
 } from './validateLinkPropTypes';
 import * as User from '../libs/actions/User';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
+import { compose } from 'underscore';
+import { withBetas } from '../components/OnyxProvider';
+import CONST from '../CONST';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
@@ -20,7 +23,13 @@ class ValidateLoginPage extends Component {
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
 
-        User.validateLogin(accountID, validateCode);
+        if(!this.isPasswordlessFlow()) {
+            User.validateLogin(accountID, validateCode);
+        }
+    }
+
+    isPasswordlessFlow() {
+        return this.props.betas.includes(CONST.BETAS.PASSWORDLESS);
     }
 
     render() {
@@ -31,4 +40,6 @@ class ValidateLoginPage extends Component {
 ValidateLoginPage.propTypes = propTypes;
 ValidateLoginPage.defaultProps = defaultProps;
 
-export default ValidateLoginPage;
+export default compose(
+    withBetas(),
+)(ValidateLoginPage);
