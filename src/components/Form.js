@@ -287,7 +287,7 @@ class Form extends React.Component {
 
                         // We subtract 10 to scroll slightly above the input
                         if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
-                            focusInput.measureLayout(this.formRef, (x, y) => this.formRef.scrollTo({y: y - 10, animated: false}));
+                            focusInput.measureLayout(this.formRef.current, (x, y) => this.formRef.current.scrollTo({y: y - 10, animated: false}));
                         }
                     }}
                     containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
