@@ -250,6 +250,22 @@ function addActions(reportID, text = '', file) {
         },
     ];
 
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: _.mapObject(optimisticReportActions, () => ({pendingAction: null})),
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: _.mapObject(optimisticReportActions, () => null),
+        },
+    ];
+
     // Update the timezone if it's been 5 minutes from the last time the user added a comment
     if (DateUtils.canUpdateTimezone()) {
         const timezone = DateUtils.getCurrentTimezone();
@@ -264,6 +280,8 @@ function addActions(reportID, text = '', file) {
 
     API.write(commandName, parameters, {
         optimisticData,
+        successData,
+        failureData,
     });
 }
 
