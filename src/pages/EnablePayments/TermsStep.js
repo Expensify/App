@@ -93,7 +93,7 @@ class TermsStep extends React.Component {
                                 </Text>
 
                                 <TextLink href="https://use.expensify.com/privacy">
-                                    {`${this.props.translate('common.privacyPolicy')} `}
+                                    {`${this.props.translate('common.privacy')} `}
                                 </TextLink>
 
                                 <Text>{`${this.props.translate('common.and')} `}</Text>
