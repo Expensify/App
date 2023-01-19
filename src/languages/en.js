@@ -1037,7 +1037,7 @@ export default {
         createRoom: 'Create room',
         roomAlreadyExistsError: 'A room with this name already exists',
         roomNameReservedError: 'A room on this workspace already uses this name',
-        roomNameInvalidError: 'Room names can only contain letters, numbers and hyphens',
+        roomNameInvalidError: 'Room names can only include lowercase letters, numbers and hyphens',
         pleaseEnterRoomName: 'Please enter a room name',
         pleaseSelectWorkspace: 'Please select a workspace',
         renamedRoomAction: ({oldName, newName}) => ` renamed this room from ${oldName} to ${newName}`,
