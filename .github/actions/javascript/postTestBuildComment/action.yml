@@ -1,0 +1,36 @@
+name: "Mark Pull Requests as Deployed"
+description: "Mark pull requests as deployed on production or staging"
+inputs:
+    PR_NUMBER:
+        description: "Pull request number"
+        required: true
+    GITHUB_TOKEN:
+        description: "Github token for authentication"
+        default: "${{ github.token }}"
+    ANDROID:
+        description: "Android job result ('success', 'failure', 'cancelled', or 'skipped')"
+        required: true
+    DESKTOP:
+        description: "Desktop job result ('success', 'failure', 'cancelled', or 'skipped')"
+        required: true
+    IOS:
+        description: "iOS job result ('success', 'failure', 'cancelled', or 'skipped')"
+        required: true
+    WEB:
+        description: "Web job result ('success', 'failure', 'cancelled', or 'skipped')"
+        required: true
+    ANDROID_LINK:
+        description: "Link for the Android build"
+        required: false
+    DESKTOP_LINK:
+        description: "Link for the desktop build"
+        required: false
+    IOS_LINK:
+        description: "Link for the iOS build"
+        required: false
+    WEB_LINK:
+        description: "Link for the web build"
+        required: false
+runs:
+    using: "node16"
+    main: "./index.js"
