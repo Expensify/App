@@ -36,7 +36,6 @@ export default {
         and: 'y',
         details: 'Detalles',
         privacy: 'Privacidad',
-        privacyPolicy: 'Política de privacidad',
         delete: 'Eliminar',
         archived: 'archivado',
         contacts: 'Contactos',
@@ -110,6 +109,7 @@ export default {
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
         areYouSure: '¿Estás seguro?',
         zipCodeExample: 'p. ej. 12345, 12345-1234, 12345 1234',
+        websiteExample: 'p. ej. https://www.expensify.com',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -379,11 +379,11 @@ export default {
         signOut: 'Desconectar',
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
         versionLetter: 'v',
-        readTheTermsAndPrivacyPolicy: {
+        readTheTermsAndPrivacy: {
             phrase1: 'Leer los',
             phrase2: 'términos de servicio',
             phrase3: 'y',
-            phrase4: 'política de privacidad',
+            phrase4: 'privacidad',
         },
         help: 'Ayuda',
     },
@@ -517,7 +517,7 @@ export default {
         phrase1: 'Al iniciar sesión, estás accediendo a los',
         phrase2: 'términos de servicio',
         phrase3: 'y',
-        phrase4: 'política de privacidad',
+        phrase4: 'privacidad',
         phrase5: 'El envío de dinero es brindado por Expensify Payments LLC (NMLS ID:2017010) de conformidad con sus',
         phrase6: 'licencias',
     },
