@@ -93,9 +93,7 @@ class SignInPage extends Component {
             } else if (!this.props.account.validated) {
                 welcomeText = this.props.translate('welcomeText.welcomeEnterMagicCode', {login: this.props.credentials.login});
             }
-        }
-        // All of this will go away when we get rid of password flows
-        else if (showSendValidateCodeForm) {
+        } else if (showSendValidateCodeForm) {
             welcomeText = '';
         } else if (showPasswordForm) {
             welcomeText = this.props.translate('welcomeText.welcomeBack');
