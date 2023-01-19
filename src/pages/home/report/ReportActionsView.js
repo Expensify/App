@@ -67,7 +67,6 @@ class ReportActionsView extends React.Component {
 
         // We need this.sortedAndFilteredReportActions to be set before this.state is initialized because the function to calculate the newMarkerReportActionID uses the sorted report actions
         this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(props.reportActions);
-        this.actionWasDeleted = false;
 
         this.state = {
             isFloatingMessageCounterVisible: false,
@@ -134,10 +133,6 @@ class ReportActionsView extends React.Component {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
             const oldLength = this.sortedAndFilteredReportActions.length;
             this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(nextProps.reportActions);
-            if (this.sortedAndFilteredReportActions.length < oldLength) {
-                this.actionWasDeleted = true;
-            }
-
             this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(nextProps.reportActions);
             return true;
         }
@@ -214,11 +209,9 @@ class ReportActionsView extends React.Component {
             this.openReportIfNecessary();
         }
 
-        // We should only do this when we've shrunken the list of reportActions.
-        if (this.actionWasDeleted && ReportUtils.isUnread(this.props.report)) {
+        if (ReportActionsUtils.filterReportActionsForDisplay(prevProps.reportActions) > this.sortedAndFilteredReportActions.count) {
             console.log("Recalculating...");
             this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions)});
-            this.actionWasDeleted = false;
         }
 
         // When the user navigates to the LHN the ReportActionsView doesn't unmount and just remains hidden.
