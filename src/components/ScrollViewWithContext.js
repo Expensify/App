@@ -22,7 +22,7 @@ class ScrollViewWithContext extends React.Component {
         this.state = {
             contentOffsetY: 0,
         };
-        this.scrollViewRef = React.createRef(null);
+        this.scrollViewRef = this.props.innerRef || React.createRef(null);
 
         this.setContextScrollPosition = this.setContextScrollPosition.bind(this);
     }
@@ -58,7 +58,11 @@ class ScrollViewWithContext extends React.Component {
 }
 ScrollViewWithContext.propTypes = propTypes;
 
-export default ScrollViewWithContext;
+export default React.forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <ScrollViewWithContext {...props} innerRef={ref} />
+));
+
 export {
     ScrollContext,
 };
