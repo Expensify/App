@@ -123,7 +123,7 @@ export default {
         attachmentTooLarge: 'Attachment too large',
         sizeExceeded: 'Attachment size is larger than 24 MB limit.',
         attachmentTooSmall: 'Attachment too small',
-        sizeNotMet: 'Attachment size must be greater than 240 bytes',
+        sizeNotMet: 'Attachment size must be greater than 240 bytes.',
         wrongFileType: 'Attachment is the wrong type',
         notAllowedExtension: 'Attachments must be one of the following types: ',
     },
@@ -293,7 +293,7 @@ export default {
         sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
         resolutionConstraints: ({
             minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx,
-        }) => `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels and smaller than ${maxHeightInPx}x${maxWidthInPx} pixels`,
+        }) => `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels and smaller than ${maxHeightInPx}x${maxWidthInPx} pixels.`,
         notAllowedExtension: ({allowedExtensions}) => `Profile picture must be one of the following types: ${allowedExtensions.join(', ')}.`,
     },
     profilePage: {
