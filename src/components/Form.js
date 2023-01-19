@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -56,6 +56,12 @@ const propTypes = {
     /** Whether the action is dangerous */
     isDangerousAction: PropTypes.bool,
 
+    /** Defines wheter the overflow content of the form's ScrollView should be scrollable */
+    scrollToOverflowEnabled: PropTypes.bool,
+
+    /** Defines wheter ScrollWithContext should be used instead of regular ScrollView */
+    scrollContextEnabled: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -68,6 +74,8 @@ const defaultProps = {
     draftValues: {},
     enabledWhenOffline: false,
     isDangerousAction: false,
+    scrollToOverflowEnabled: false,
+    scrollContextEnabled: false,
 };
 
 class Form extends React.Component {
@@ -79,6 +87,7 @@ class Form extends React.Component {
             inputValues: {},
         };
 
+        this.formRef = React.createRef(null);
         this.inputRefs = {};
         this.touchedInputs = {};
 
@@ -258,45 +267,61 @@ class Form extends React.Component {
     }
 
     render() {
+        const scrollViewContent = safeAreaPaddingBottomStyle => (
+            <View style={[this.props.style, safeAreaPaddingBottomStyle]}>
+                {this.childrenWrapperWithProps(this.props.children)}
+                {this.props.isSubmitButtonVisible && (
+                <FormAlertWithSubmitButton
+                    buttonText={this.props.submitButtonText}
+                    isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage()) || !_.isEmpty(this.props.formState.errorFields)}
+                    isLoading={this.props.formState.isLoading}
+                    message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
+                    onSubmit={this.submit}
+                    onFixTheErrorsLinkPressed={() => {
+                        const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
+                        const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
+                        const focusInput = this.inputRefs[focusKey];
+                        if (focusInput.focus && typeof focusInput.focus === 'function') {
+                            focusInput.focus();
+                        }
+
+                        // We subtract 10 to scroll slightly above the input
+                        if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
+                            focusInput.measureLayout(this.formRef, (x, y) => this.formRef.scrollTo({y: y - 10, animated: false}));
+                        }
+                    }}
+                    containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
+                    enabledWhenOffline={this.props.enabledWhenOffline}
+                    isDangerousAction={this.props.isDangerousAction}
+                />
+                )}
+            </View>
+        );
+
         return (
             <SafeAreaConsumer>
-                {({safeAreaPaddingBottomStyle}) => (
+                {({safeAreaPaddingBottomStyle}) => (this.props.scrollContextEnabled ? (
                     <ScrollViewWithContext
                         style={[styles.w100, styles.flex1]}
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="handled"
-                        ref={el => this.form = el}
+                        scrollToOverflowEnabled={this.props.scrollToOverflowEnabled}
+                        ref={this.formRef}
                     >
-                        <View style={[this.props.style, safeAreaPaddingBottomStyle]}>
-                            {this.childrenWrapperWithProps(this.props.children)}
-                            {this.props.isSubmitButtonVisible && (
-                            <FormAlertWithSubmitButton
-                                buttonText={this.props.submitButtonText}
-                                isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage()) || !_.isEmpty(this.props.formState.errorFields)}
-                                isLoading={this.props.formState.isLoading}
-                                message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
-                                onSubmit={this.submit}
-                                onFixTheErrorsLinkPressed={() => {
-                                    const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
-                                    const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
-                                    const focusInput = this.inputRefs[focusKey];
-                                    if (focusInput.focus && typeof focusInput.focus === 'function') {
-                                        focusInput.focus();
-                                    }
-
-                                    // We subtract 10 to scroll slightly above the input
-                                    if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
-                                        focusInput.measureLayout(this.form, (x, y) => this.form.scrollTo({y: y - 10, animated: false}));
-                                    }
-                                }}
-                                containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
-                                enabledWhenOffline={this.props.enabledWhenOffline}
-                                isDangerousAction={this.props.isDangerousAction}
-                            />
-                            )}
-                        </View>
+                        {scrollViewContent(safeAreaPaddingBottomStyle)}
                     </ScrollViewWithContext>
-                )}
+                ) : (
+                    <ScrollView
+                        style={[styles.w100, styles.flex1]}
+                        contentContainerStyle={styles.flexGrow1}
+                        keyboardShouldPersistTaps="handled"
+                        scrollToOverflowEnabled={this.props.scrollToOverflowEnabled}
+                        ref={this.formRef}
+                    >
+                        {' '}
+                        {scrollViewContent(safeAreaPaddingBottomStyle)}
+                    </ScrollView>
+                ))}
             </SafeAreaConsumer>
         );
     }
