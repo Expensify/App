@@ -42,7 +42,6 @@ class ScrollViewWithContext extends React.Component {
                 ref={this.scrollViewRef}
                 onScroll={this.setContextScrollPosition}
                 scrollEventThrottle={this.props.scrollEventThrottle || MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
-                scrollToOverflowEnabled
             >
                 <ScrollContext.Provider
                     value={{
