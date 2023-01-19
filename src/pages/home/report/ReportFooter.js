@@ -72,7 +72,8 @@ class ReportFooter extends React.Component {
         if (isArchivedRoom) {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
-        const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors);
+        const shouldShowJoinRoomPrompt = ReportUtils.isRestrictedPolicyRoom(this.props.report) && this.props.report.permissions.indexOf('read, write') === -1;
+        const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors) || shouldShowJoinRoomPrompt;
         return (
             <>
                 {(isArchivedRoom || hideComposer) && (
@@ -111,6 +112,10 @@ class ReportFooter extends React.Component {
                             </OfflineWithFeedback>
                         </SwipeableView>
                     </View>
+                )}
+                {shouldShowJoinRoomPrompt && (
+                    // TODO: (pending design) a component that will ask the user whether they want to join this room
+                    <></>
                 )}
             </>
         );

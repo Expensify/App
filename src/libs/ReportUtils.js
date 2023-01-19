@@ -1241,6 +1241,7 @@ export {
     isAdminRoom,
     isAnnounceRoom,
     isUserCreatedPolicyRoom,
+    isRestrictedPolicyRoom,
     isChatRoom,
     getChatRoomSubtitle,
     getPolicyName,
