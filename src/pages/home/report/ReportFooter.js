@@ -27,6 +27,12 @@ const propTypes = {
     /** Report actions for the current report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
+    /** The policies which the user has access to and which the report could be tied to */
+    policies: PropTypes.shape({
+        /** Name of the policy */
+        name: PropTypes.string,
+    }),
+
     /** Offline status */
     isOffline: PropTypes.bool.isRequired,
 
@@ -52,6 +58,7 @@ const propTypes = {
 const defaultProps = {
     report: {reportID: '0'},
     reportActions: {},
+    policies: {},
     onSubmitComment: () => {},
     errors: {},
     pendingAction: null,
@@ -85,6 +92,13 @@ class ReportFooter extends React.Component {
                                 report={this.props.report}
                             />
                         )}
+                        {shouldShowJoinRoomPrompt && (
+                            <JoinRoomPrompt
+                                isOffline={this.props.isOffline}
+                                report={this.props.report}
+                                policies={this.props.policies}
+                            />
+                        )}
                         {!this.props.isSmallScreenWidth && (
                             <View style={styles.offlineIndicatorRow}>
                                 {hideComposer && (
@@ -113,14 +127,6 @@ class ReportFooter extends React.Component {
                             </OfflineWithFeedback>
                         </SwipeableView>
                     </View>
-                )}
-                {shouldShowJoinRoomPrompt && (
-                    // TODO: (pending design) a component that will ask the user whether they want to join this room
-
-                    <JoinRoomPrompt 
-                        isOffline={this.props.isOffline}
-                        report={this.props.report}
-                    />
                 )}
             </>
         );

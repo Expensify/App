@@ -2874,6 +2874,21 @@ const styles = {
         paddingTop: 80,
         paddingBottom: 45,
     },
+
+    joinRoomPromptContainer: {
+        maxHeight: 92,
+        height: 92,
+        borderRadius: 18,
+        padding: 20,
+        backgroundColor: themeColors.overlay,
+        display: 'flex',
+        flexDirection: 'row',
+    },
+
+    joinRoomPromptTextContainer: {
+        paddingTop: 3.5,
+        paddingBottom: 3.5,
+    },
 };
 
 export default styles;
