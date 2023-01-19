@@ -9,6 +9,8 @@ import CONST from '../CONST';
 function modifyRoomName(roomName) {
     const modifiedRoomNameWithoutHash = roomName
         .replace(/ /g, '-')
+
+        // Replaces the smart dash on iOS devices with two hyphens
         .replace(/—/g, '--');
 
     return `${CONST.POLICY.ROOM_PREFIX}${modifiedRoomNameWithoutHash}`;
