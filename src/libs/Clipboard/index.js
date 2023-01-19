@@ -3,6 +3,7 @@ import {Clipboard} from 'react-native-web';
 import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
 import * as Browser from '../Browser';
+import { length } from 'localforage';
 
 const canSetHtml = () => lodashGet(navigator, 'clipboard.write');
 
@@ -21,7 +22,7 @@ function setHTMLSync(html, text) {
     node.style.userSelect = 'text';
     node.addEventListener('copy', (e) => {
         e.stopPropagation();
-        e.preventDefault(); 
+        e.preventDefault();
         e.clipboardData.clearData();
         e.clipboardData.setData('text/html', html);
         e.clipboardData.setData('text/plain', text);
@@ -29,13 +30,11 @@ function setHTMLSync(html, text) {
     document.body.appendChild(node);
 
     const selection = window.getSelection();
-    const firstAncestorChild = selection.getRangeAt(0).commonAncestorContainer.firstChild;
-    let currentRanges = null;
+    let originalRange = selection.getRangeAt(0);
+    const firstAncestorChild = originalRange.commonAncestorContainer.firstChild;
     
     if(firstAncestorChild && isTextElement(firstAncestorChild))
-        currentRanges = getInputSelection(firstAncestorChild);
-    else
-        currentRanges = getSelectionRanges(selection);
+        originalRange = getInputSelection(firstAncestorChild);
 
     selection.removeAllRanges();
     const range = document.createRange();
@@ -52,9 +51,9 @@ function setHTMLSync(html, text) {
     selection.removeAllRanges();
 
     if(firstAncestorChild && isTextElement(firstAncestorChild))
-        firstAncestorChild.setSelectionRange(currentRanges.start, currentRanges.end);
+        firstAncestorChild.setSelectionRange(originalRange.start, originalRange.end);
     else
-        setSelectionRanges(selection, currentRanges);
+        selection.addRange(originalRange);
 
         document.body.removeChild(node);
 }
@@ -98,20 +97,6 @@ const setHtml = (html, text) => {
 const setString = (text) => {
     Clipboard.setString(text);
 };
-
-const getSelectionRanges = (selection) => {
-    const ranges = [];
-
-    for(let i = 0 ; i < selection.rangeCount; i++)
-        ranges.push(selection.getRangeAt(i).cloneRange());
-
-    return ranges;
-}
-
-const setSelectionRanges = (selection, ranges) => {
-    for(let i = 0 ; i < ranges.length; i++)
-        selection.addRange(ranges[i]);
-}
 
 const isTextElement = (el) => {
     if (el instanceof HTMLInputElement) {
