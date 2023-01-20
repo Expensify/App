@@ -1229,6 +1229,14 @@ function getChatByParticipants(newParticipantList) {
 }
 
 /**
+ * @param {String} policyID
+ * @returns {Array}
+ */
+function getAllPolicyReports(policyID) {
+    return _.filter(allReports, report => report && report.policyID === policyID);
+}
+
+/**
 * Returns true if Chronos is one of the chat participants (1:1)
 * @param {Object} report
 * @returns {Boolean}
@@ -1303,6 +1311,7 @@ export {
     buildOptimisticReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
+    getAllPolicyReports,
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
     isIOUReport,

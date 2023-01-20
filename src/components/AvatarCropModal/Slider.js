@@ -5,6 +5,7 @@ import {PanGestureHandler} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import styles from '../../styles/styles';
 import gestureHandlerPropTypes from './gestureHandlerPropTypes';
+import ControlSelection from '../../libs/ControlSelection';
 
 const propTypes = {
     /** React-native-reanimated lib handler which executes when the user is panning slider */
@@ -27,8 +28,10 @@ const Slider = (props) => {
         transform: [{translateX: props.sliderValue.value}],
     }));
 
+    // We're preventing text selection with ControlSelection.blockElement to prevent safari
+    // default behaviour of cursor - I-beam cursor on drag. See https://github.com/Expensify/App/issues/13688
     return (
-        <View style={styles.sliderBar}>
+        <View ref={ControlSelection.blockElement} style={styles.sliderBar}>
             <PanGestureHandler onGestureEvent={props.onGesture}>
                 <Animated.View style={[styles.sliderKnob, rSliderStyle]} />
             </PanGestureHandler>

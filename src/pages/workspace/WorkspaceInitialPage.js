@@ -183,7 +183,7 @@ class WorkspaceInitialPage extends React.Component {
                             errorRowStyles={[styles.ph6, styles.pv2]}
                         >
                             <View style={[styles.flex1]}>
-                                <View style={styles.pageWrapper}>
+                                <View style={styles.avatarSectionWrapper}>
                                     <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
                                         <Pressable
                                             disabled={this.hasPolicyCreationError()}
@@ -215,7 +215,6 @@ class WorkspaceInitialPage extends React.Component {
                                                 style={[
                                                     styles.alignSelfCenter,
                                                     styles.mt4,
-                                                    styles.mb6,
                                                     styles.w100,
                                                 ]}
                                                 onPress={this.openEditor}
