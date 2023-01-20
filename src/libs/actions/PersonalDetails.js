@@ -221,8 +221,7 @@ function updateAddress(street, street2, city, state, zip, country) {
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
             value: {
                 address: {
-                    street,
-                    street2,
+                    street: `${street}\n${street2}`,
                     city,
                     state,
                     zip,

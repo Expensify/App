@@ -10,6 +10,7 @@ import ROUTES from '../../../../ROUTES';
 import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import CONST from '../../../../CONST';
+import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import TextInput from '../../../../components/TextInput';
 import styles from '../../../../styles/styles';
 import Navigation from '../../../../libs/Navigation/Navigation';
@@ -58,8 +59,9 @@ class AddressPage extends Component {
         this.updateAddress = this.updateAddress.bind(this);
         this.onCountryUpdate = this.onCountryUpdate.bind(this);
 
+        const currentCountry = lodashGet(props.privatePersonalDetails, 'address.country') || '';
         this.state = {
-            isUsaForm: false,
+            isUsaForm: currentCountry === 'USA',
         };
     }
 
@@ -72,7 +74,7 @@ class AddressPage extends Component {
             values.addressLine1.trim(),
             values.addressLine2.trim(),
             values.city.trim(),
-            this.state.isUsaForm ? values.state : values.stateOrProvince,
+            values.state.trim(),
             values.zipPostCode,
             values.country,
         );
@@ -101,10 +103,12 @@ class AddressPage extends Component {
             'city',
             'zipPostCode',
             'country',
-
-            // Check "State" dropdown if selected Country is USA. Otherwise, validate "State / Province" field.
-            this.state.isUsaForm ? 'state' : 'stateOrProvince',
+            'state',
         ];
+        // Check "State" dropdown is a valid state if selected Country is USA.
+        if (this.state.isUsaForm && !COMMON_CONST.STATES[values.state]) {
+            errors.state = this.props.translate('common.error.fieldRequired');
+        }
 
         // Add "Field required" errors if any required field is empty
         _.each(requiredFields, (fieldKey) => {
@@ -117,7 +121,8 @@ class AddressPage extends Component {
     }
 
     render() {
-        const privateDetails = this.props.privatePersonalDetails || {};
+        const address = lodashGet(this.props.privatePersonalDetails, 'address') || {};
+        const [street1, street2] = address.street && address.street.split('\n');
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -139,14 +144,22 @@ class AddressPage extends Component {
                         <AddressSearch
                             inputID="addressLine1"
                             label={this.props.translate('common.addressLine', {lineNumber: 1})}
-                            defaultValue={lodashGet(privateDetails, 'address.street') || ''}
+                            defaultValue={street1 || ''}
+                            isLimitedToUSA={false}
+                            renamedInputKeys={{
+                                street: 'addressLine1',
+                                city: 'city',
+                                state: 'state',
+                                zipCode: 'zipPostCode',
+                                country: 'country',
+                            }}
                         />
                     </View>
                     <View style={styles.mb4}>
                         <TextInput
                             inputID="addressLine2"
                             label={this.props.translate('common.addressLine', {lineNumber: 2})}
-                            defaultValue={lodashGet(privateDetails, 'address.street2') || ''}
+                            defaultValue={street2 || ''}
                             maxLength={CONST.FORM_CHARACTER_LIMIT}
                         />
                     </View>
@@ -154,7 +167,7 @@ class AddressPage extends Component {
                         <TextInput
                             inputID="city"
                             label={this.props.translate('common.city')}
-                            defaultValue={lodashGet(privateDetails, 'address.city') || ''}
+                            defaultValue={address.city || ''}
                             maxLength={CONST.FORM_CHARACTER_LIMIT}
                         />
                     </View>
@@ -163,13 +176,13 @@ class AddressPage extends Component {
                             {this.state.isUsaForm ? (
                                 <StatePicker
                                     inputID="state"
-                                    defaultValue={lodashGet(privateDetails, 'address.state') || ''}
+                                    defaultValue={address.state || ''}
                                 />
                             ) : (
                                 <TextInput
-                                    inputID="stateOrProvince"
+                                    inputID="state"
                                     label={this.props.translate('common.stateOrProvince')}
-                                    defaultValue={lodashGet(privateDetails, 'address.state') || ''}
+                                    defaultValue={address.state || ''}
                                     maxLength={CONST.FORM_CHARACTER_LIMIT}
                                 />
                             )}
@@ -179,7 +192,7 @@ class AddressPage extends Component {
                                 inputID="zipPostCode"
                                 label={this.props.translate('common.zipPostCode')}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                defaultValue={lodashGet(privateDetails, 'address.zip') || ''}
+                                defaultValue={address.zip || ''}
                                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                             />
                         </View>
@@ -188,7 +201,7 @@ class AddressPage extends Component {
                         <CountryPicker
                             inputID="country"
                             onValueChange={this.onCountryUpdate}
-                            defaultValue={lodashGet(privateDetails, 'address.country') || ''}
+                            defaultValue={address.country || ''}
                         />
                     </View>
                 </Form>

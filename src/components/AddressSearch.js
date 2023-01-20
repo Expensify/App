@@ -48,6 +48,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Should address search be limited to results in the USA */
+    isLimitedToUSA: PropTypes.bool,
+
     /** A map of inputID key names */
     renamedInputKeys: PropTypes.shape({
         street: PropTypes.string,
@@ -68,6 +71,7 @@ const defaultProps = {
     value: undefined,
     defaultValue: undefined,
     containerStyles: [],
+    isLimitedToUSA: true,
     renamedInputKeys: {
         street: 'addressStreet',
         city: 'addressCity',
@@ -81,6 +85,10 @@ const defaultProps = {
 // Reference: https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/609#issuecomment-886133839
 const AddressSearch = (props) => {
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
+    const query = {language: props.preferredLocale, types: 'address'};
+    if (props.isLimitedToUSA) {
+        query.components = 'country:us';
+    }
 
     const saveLocationDetails = (details) => {
         const addressComponents = details.address_components;
@@ -99,6 +107,7 @@ const AddressSearch = (props) => {
         }
         const zipCode = GooglePlacesUtils.getAddressComponent(addressComponents, 'postal_code', 'long_name');
         const state = GooglePlacesUtils.getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
+        const country = GooglePlacesUtils.getAddressComponent(addressComponents, 'country', 'short_name');
 
         const values = {
             street: props.value ? props.value.trim() : '',
@@ -118,6 +127,9 @@ const AddressSearch = (props) => {
         }
         if (state) {
             values.state = state;
+        }
+        if (country) {
+            values.country = country;
         }
         if (_.size(values) === 0) {
             return;
@@ -161,11 +173,7 @@ const AddressSearch = (props) => {
                         // After we select an option, we set displayListViewBorder to false to prevent UI flickering
                         setDisplayListViewBorder(false);
                     }}
-                    query={{
-                        language: props.preferredLocale,
-                        types: 'address',
-                        components: 'country:us',
-                    }}
+                    query={query}
                     requestUrl={{
                         useOnPlatform: 'all',
                         url: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Proxy_GooglePlaces&proxyUrl=`,

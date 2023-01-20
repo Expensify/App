@@ -75,8 +75,9 @@ const PersonalDetailsInitialPage = (props) => {
      * @returns {String}
      */
     const getFormattedAddress = () => {
-        const formattedAddress = formatPiece(address.street)
-            + formatPiece(address.street2)
+        const [street1, street2] = address.street && address.street.split('\n');
+        const formattedAddress = formatPiece(street1)
+            + formatPiece(street2)
             + formatPiece(address.city)
             + formatPiece(address.state)
             + formatPiece(address.zip)
