@@ -145,6 +145,10 @@ export default {
         youCanAlso: 'También puedes',
         openLinkInBrowser: 'abrir este enlace en tu navegador',
     },
+    magicCodeModal: {
+        title: 'Intentando autenticar\nsu navegador...',
+        description: 'Head back to your original tab to continue signing in.\n\nIf this is a separate device than the one you attempted to sign in from, please return to the sign-in page and use the magic code below to continue:',
+    },
     iOUConfirmationList: {
         whoPaid: '¿Quién pago?',
         whoWasThere: '¿Quién asistió?',
