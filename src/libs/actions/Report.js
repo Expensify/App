@@ -985,6 +985,25 @@ function addPolicyReport(policy, reportName, visibility) {
     Navigation.navigate(ROUTES.getReportRoute(policyReport.reportID));
 }
 
+function joinWorkspaceRoom(reportID) {
+    const report = allReports[reportID];
+
+
+    const optimisticData = {
+
+    };
+
+    const successData = {
+
+    };
+
+    API.write(
+        'JoinWorkspaceRoom',
+        {reportID},
+        {optimisticData, successData},
+    );
+}
+
 /**
  * @param {String} reportID The reportID of the policy report (workspace room)
  */
@@ -1173,6 +1192,7 @@ export {
     navigateToConciergeChat,
     setReportWithDraft,
     addPolicyReport,
+    joinWorkspaceRoom,
     navigateToConciergeChatAndDeleteReport,
     setIsComposerFullSize,
     markCommentAsUnread,

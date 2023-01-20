@@ -2889,6 +2889,22 @@ const styles = {
         paddingTop: 3.5,
         paddingBottom: 3.5,
     },
+
+    joinRoomPromptButtonContainer: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+    },
+
+    joinRoomButton: {
+        maxHeight: 40,
+        margin: 4,
+    },
+
+    joinRoomButtonText: {
+        fontSize: 13,
+    },
 };
 
 export default styles;

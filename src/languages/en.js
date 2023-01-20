@@ -1048,6 +1048,9 @@ export default {
             private: 'Private',
         },
     },
+    joinRoomPrompt: {
+        joinRoom: 'Join room',
+    },
     statementPage: {
         generatingPDF: 'We\'re generating your PDF right now. Please come back later!',
     },

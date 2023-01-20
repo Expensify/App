@@ -5,9 +5,13 @@ import Text from './Text';
 import styles from '../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import reportPropTypes from '../pages/reportPropTypes';
+import * as Report from '../libs/actions/Report';
 import Avatar from './Avatar';
+import Button from './Button';
 import * as ReportUtils from '../libs/ReportUtils';
 import CONST from '../CONST';
+import compose from '../libs/compose';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     /** Report object for the current report */
@@ -23,6 +27,8 @@ const propTypes = {
     isOffline: PropTypes.bool.isRequired,
 
     ...windowDimensionsPropTypes,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -32,7 +38,7 @@ const defaultProps = {
 
 const JoinRoomPrompt = (props) => {
     const icons = ReportUtils.getIcons(props.report);
-    const subtitle = ReportUtils.getChatRoomSubtitle(props.report, props.policies);
+    const subtitle = `${ReportUtils.getChatRoomSubtitle(props.report, props.policies)} - ${props.report.participants.length} member${props.report.participants.length > 1 ? 's' : ''}`;
 
     return (
         <View style={styles.joinRoomPromptContainer}>
@@ -57,16 +63,31 @@ const JoinRoomPrompt = (props) => {
                     </Text>
                 </View>
             </View>
-            <View style={[styles.flex1]}>
-
+            <View style={styles.joinRoomPromptButtonContainer}>
+                <Button
+                    innerStyles={[styles.joinRoomButton]}
+                    text={props.translate('common.details')}
+                    textStyles={[styles.joinRoomButtonText]}
+                    // onPress={event => }
+                />
+                <Button
+                    success
+                    innerStyles={[styles.joinRoomButton]}
+                    text={props.translate('joinRoomPrompt.joinRoom')}
+                    textStyles={[styles.joinRoomButtonText]}
+                    onPress={() => Report.joinWorkspaceRoom(props.report.reportID)}
+                    pressOnEnter
+                />
             </View>
         </View>
     );
-    
 };
 
 JoinRoomPrompt.displayName = 'JoinRoomPrompt';
 JoinRoomPrompt.propTypes = propTypes;
 JoinRoomPrompt.defaultProps = defaultProps;
 
-export default withWindowDimensions(JoinRoomPrompt);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+)(JoinRoomPrompt);
