@@ -638,15 +638,11 @@ function hasReportNameError(report) {
 }
 
 /**
- * @param {Number} sequenceNumber sequenceNumber must be provided and it must be a number. It cannot and should not be a clientID,
- *                                reportActionID, or anything else besides an estimate of what the next sequenceNumber will be for the
- *                                optimistic report action. Until we deprecate sequenceNumbers please assume that all report actions
- *                                have them and they should be numbers.
  * @param {String} [text]
  * @param {File} [file]
  * @returns {Object}
  */
-function buildOptimisticReportAction(sequenceNumber, text, file) {
+function buildOptimisticReportAction(text, file) {
     // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     const parser = new ExpensiMark();
@@ -674,7 +670,6 @@ function buildOptimisticReportAction(sequenceNumber, text, file) {
                 },
             ],
             automatic: false,
-            sequenceNumber,
             clientID: NumberUtils.generateReportActionClientID(),
             avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
             created: DateUtils.getDBTime(),
