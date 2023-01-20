@@ -92,9 +92,10 @@ function closeAccount(message) {
  * Resends a validation link to a given login
  *
  * @param {String} login
+ * @param {Boolean} isPasswordless - temporary param to trigger passwordless flow in backend
  */
-function resendValidateCode(login) {
-    DeprecatedAPI.ResendValidateCode({email: login});
+function resendValidateCode(login, isPasswordless = false) {
+    DeprecatedAPI.ResendValidateCode({email: login, isPasswordless});
 }
 
 /**
