@@ -70,7 +70,6 @@ export default () => ({
                         },
                     ],
                     automatic: false,
-                    clientID: '',
                     shouldShow: true,
                 },
                 1082059149: {
@@ -92,7 +91,6 @@ export default () => ({
                         },
                     ],
                     originalMessage: {
-                        clientID: '1659386951676734',
                         html: 'Say hello\ud83d\ude10',
                     },
                     avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/301e37631eca9e3127d6b668822e3a53771551f6_128.jpeg',
@@ -102,7 +100,6 @@ export default () => ({
                     automatic: false,
                     actionName: 'ADDCOMMENT',
                     shouldShow: true,
-                    clientID: '1659386951676734',
                     reportActionID: '1082059149',
                 },
             },

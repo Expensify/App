@@ -207,7 +207,6 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         transactionID: optimisticReportAction.originalMessage.IOUTransactionID,
         reportActionID: optimisticReportAction.reportActionID,
         createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : 0,
-        clientID: optimisticReportAction.sequenceNumber,
         shouldKeyReportActionsByID: true,
     }, {optimisticData, successData, failureData});
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
@@ -221,8 +220,8 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
  * The IOU split has the following shape:
  *  [
  *      {email: 'currentUser', amount: 100},
- *      {email: 'user2', amount: 100, iouReportID: '100', chatReportID: '110', transactionID: '120', reportActionID: '130', clientID: '140'},
- *      {email: 'user3', amount: 100, iouReportID: '200', chatReportID: '210', transactionID: '220', reportActionID: '230', clientID: '240'}
+ *      {email: 'user2', amount: 100, iouReportID: '100', chatReportID: '110', transactionID: '120', reportActionID: '130'},
+ *      {email: 'user3', amount: 100, iouReportID: '200', chatReportID: '210', transactionID: '220', reportActionID: '230'}
  *  ]
  * @param {Array} participants
  * @param {String} currentUserLogin
@@ -468,7 +467,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             chatReportID: oneOnOneChatReport.reportID,
             transactionID: oneOnOneIOUReportAction.originalMessage.IOUTransactionID,
             reportActionID: oneOnOneIOUReportAction.reportActionID,
-            clientID: oneOnOneIOUReportAction.clientID.toString(),
         };
 
         if (!_.isEmpty(oneOnOneCreatedReportAction)) {
@@ -482,7 +480,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         chatReportID: groupChatReport.reportID,
         transactionID: groupIOUReportAction.originalMessage.IOUTransactionID,
         reportActionID: groupIOUReportAction.reportActionID,
-        clientID: groupIOUReportAction.clientID.toString(),
     };
 
     if (!_.isEmpty(groupCreatedReportAction)) {
@@ -517,7 +514,6 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, lo
         transactionID: groupData.transactionID,
         reportActionID: groupData.reportActionID,
         createdReportActionID: groupData.createdReportActionID,
-        clientID: groupData.clientID,
         shouldKeyReportActionsByID: true,
     }, onyxData);
 
@@ -544,7 +540,6 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
         transactionID: groupData.transactionID,
         reportActionID: groupData.reportActionID,
         createdReportActionID: groupData.createdReportActionID,
-        clientID: groupData.clientID,
         shouldKeyReportActionsByID: true,
     }, onyxData);
 
@@ -641,7 +636,6 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
         transactionID,
         iouReportID: updatedIOUReport.reportID,
         comment: '',
-        clientID: optimisticReportAction.sequenceNumber,
         cancelMoneyRequestReportActionID: optimisticReportAction.reportActionID,
         chatReportID,
         debtorEmail: chatReport.participants[0],
@@ -808,7 +802,6 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             reportActionID: optimisticIOUReportAction.reportActionID,
             paymentMethodType,
             transactionID: optimisticIOUReportAction.originalMessage.IOUTransactionID,
-            clientID: optimisticIOUReportAction.sequenceNumber,
             newIOUReportDetails,
             createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : 0,
         },
@@ -911,7 +904,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             chatReportID: chatReport.reportID,
             reportActionID: optimisticIOUReportAction.reportActionID,
             paymentMethodType,
-            clientID: optimisticIOUReportAction.sequenceNumber,
         },
         optimisticData,
         successData,

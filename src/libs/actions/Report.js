@@ -228,8 +228,6 @@ function addActions(reportID, text = '', file) {
         reportActionID: file ? attachmentAction.reportActionID : reportCommentAction.reportActionID,
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
-        clientID: lastAction.clientID,
-        commentClientID: lodashGet(reportCommentAction, 'clientID', ''),
         file,
         shouldKeyReportActionsByID: true,
     };
