@@ -147,7 +147,7 @@ export default {
     },
     magicCodeModal: {
         title: 'Intentando autenticar\nsu navegador...',
-        description: 'Head back to your original tab to continue signing in.\n\nIf this is a separate device than the one you attempted to sign in from, please return to the sign-in page and use the magic code below to continue:',
+        description: 'Vuelve a la pestaña original para continuar con el inicio de sesión.\n\nSi se trata de un dispositivo distinto desde el que\nintentó iniciar sesión, vuelva a la página de inicio de sesión y utilice el\ncódigo mágico que aparece a continuación para continuar:',
     },
     iOUConfirmationList: {
         whoPaid: '¿Quién pago?',
