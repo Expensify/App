@@ -813,7 +813,7 @@ const CONST = {
     },
 
     // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
-    MAX_COMMENT_LENGTH: 15000,
+    MAX_COMMENT_LENGTH: 59959,
 
     FORM_CHARACTER_LIMIT: 50,
     AVATAR_CROP_MODAL: {

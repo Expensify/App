@@ -466,8 +466,7 @@ class ReportActionCompose extends React.Component {
     prepareCommentAndResetComposer() {
         const trimmedComment = this.comment.trim();
 
-        // Don't submit empty comments or comments that exceed the character limit
-        if (this.state.isCommentEmpty || trimmedComment.length > CONST.MAX_COMMENT_LENGTH) {
+        if (this.state.isCommentEmpty || ReportUtils.charLength(trimmedComment) > CONST.MAX_COMMENT_LENGTH) {
             return '';
         }
 
@@ -530,7 +529,8 @@ class ReportActionCompose extends React.Component {
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
-        const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
+        const encodedCommentLength = ReportUtils.charLength(this.comment);
+        const hasExceededMaxCommentLength = encodedCommentLength > CONST.MAX_COMMENT_LENGTH;
 
         return (
             <View style={[
@@ -725,7 +725,7 @@ class ReportActionCompose extends React.Component {
                 >
                     {!this.props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                     <ReportTypingIndicator reportID={this.props.reportID} />
-                    <ExceededCommentLength commentLength={this.comment.length} />
+                    <ExceededCommentLength commentLength={encodedCommentLength} />
                 </View>
                 {this.state.isDraggingOver && <ReportDropUI />}
             </View>
