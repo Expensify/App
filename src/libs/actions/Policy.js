@@ -102,7 +102,7 @@ function deleteWorkspace(policyID, reports, policyName) {
                 highestSequenceNumber + 1,
                 ownerEmail,
                 policyName,
-                CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED
+                CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED,
             );
             const optimisticReportActions = {};
             optimisticReportActions[optimisticClosedReportAction.clientID] = optimisticClosedReportAction;
@@ -110,7 +110,7 @@ function deleteWorkspace(policyID, reports, policyName) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
                 value: optimisticReportActions,
-            }
+            };
         }),
     ];
 
