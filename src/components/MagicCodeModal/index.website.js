@@ -1,13 +1,20 @@
 import React, { PureComponent } from "react";
+import PropTypes from 'prop-types';
 import { View } from "react-native";
 import colors from "../../styles/colors";
 import styles from '../../styles/styles';
 import Icon from "../Icon";
-import withLocalize from "../withLocalize";
+import withLocalize, {withLocalizePropTypes} from "../withLocalize";
 import Text from '../Text';
 import * as Expensicons from '../Icon/Expensicons';
 import * as Illustrations from '../Icon/Illustrations';
 
+const propTypes = {
+    /** Code to display. */
+    code: PropTypes.string.isRequired,
+
+    ...withLocalizePropTypes,
+};
 class MagicCodeModal extends PureComponent {
 
     render() {
@@ -31,7 +38,7 @@ class MagicCodeModal extends PureComponent {
                     </View>
                     <View style={styles.mt6}>
                         <Text style={styles.magicCodeDigits}>
-                            000000
+                            {this.props.code}
                         </Text>
                     </View>
                 </View>
@@ -48,4 +55,5 @@ class MagicCodeModal extends PureComponent {
     }
 }
 
+MagicCodeModal.propTypes = propTypes;
 export default withLocalize(MagicCodeModal);

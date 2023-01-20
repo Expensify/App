@@ -21,20 +21,20 @@ const defaultProps = {
 };
 class ValidateLoginPage extends Component {
     componentDidMount() {
-        const accountID = lodashGet(this.props.route.params, 'accountID', '');
-        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
 
         if(!this.isPasswordlessFlow()) {
-            User.validateLogin(accountID, validateCode);
+            User.validateLogin(this.accountID(), this.validateCode());
         }
     }
 
-    isPasswordlessFlow() {
-        return this.props.betas.includes(CONST.BETAS.PASSWORDLESS);
-    }
+    accountID = () => lodashGet(this.props.route.params, 'accountID', '');
+
+    validateCode = () => lodashGet(this.props.route.params, 'validateCode', '');
+
+    isPasswordlessFlow = () =>  this.props.betas.includes(CONST.BETAS.PASSWORDLESS);
 
     render() {
-        return (this.isPasswordlessFlow() ? <MagicCodeModal/> : <FullScreenLoadingIndicator />);
+        return (this.isPasswordlessFlow() ? <MagicCodeModal code={this.validateCode()}/> : <FullScreenLoadingIndicator />);
     }
 }
 
