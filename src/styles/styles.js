@@ -1328,6 +1328,7 @@ const styles = {
         flexShrink: 0,
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeSmall,
+        lineHeight: variables.lineHeightXLarge,
     },
 
     chatItemMessage: {
