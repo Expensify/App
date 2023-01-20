@@ -182,7 +182,7 @@ class ProfilePage extends Component {
                         defaultValue={this.state.logins.phone}
                     />
                     <MenuItem
-                        title={this.props.translate('personalDetailsPages.personalDetails')}
+                        title={this.props.translate('privatePersonalDetails.personalDetails')}
                         icon={Expensicons.User}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
                         shouldShowRightIcon

@@ -90,7 +90,7 @@ const PersonalDetailsInitialPage = (props) => {
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={props.translate('personalDetailsPages.personalDetails')}
+                title={props.translate('privatePersonalDetails.personalDetails')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -98,26 +98,26 @@ const PersonalDetailsInitialPage = (props) => {
             <View style={styles.flex1}>
                 <View style={[styles.ph5, styles.mb5]}>
                     <Text>
-                        {props.translate('personalDetailsPages.privateDataMessage')}
+                        {props.translate('privatePersonalDetails.privateDataMessage')}
                     </Text>
                 </View>
                 <MenuItemWithTopDescription
                     title={legalName}
-                    description={props.translate('personalDetailsPages.legalName')}
+                    description={props.translate('privatePersonalDetails.legalName')}
                     shouldShowRightIcon
                     wrapperStyle={[styles.ph2]}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_LEGAL_NAME)}
                 />
                 <MenuItemWithTopDescription
                     title={privateDetails.dateOfBirth || ''}
-                    description={props.translate('personalDetailsPages.dateOfBirth')}
+                    description={props.translate('privatePersonalDetails.dateOfBirth')}
                     shouldShowRightIcon
                     wrapperStyle={[styles.ph2]}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH)}
                 />
                 <MenuItemWithTopDescription
                     title={getFormattedAddress()}
-                    description={props.translate('personalDetailsPages.homeAddress')}
+                    description={props.translate('privatePersonalDetails.homeAddress')}
                     shouldShowRightIcon
                     wrapperStyle={[styles.ph2]}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS)}

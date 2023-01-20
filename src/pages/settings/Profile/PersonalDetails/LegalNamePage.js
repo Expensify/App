@@ -78,24 +78,24 @@ class LegalNamePage extends Component {
 
         if (!_.isEmpty(hasInvalidLegalFirstNameCharacter)) {
             errors.legalFirstName = Localize.translateLocal(
-                'personalDetailsPages.error.hasInvalidCharacter',
+                'privatePersonalDetails.error.hasInvalidCharacter',
                 {characterName: hasInvalidLegalFirstNameCharacter},
             );
         } else if (_.isEmpty(values.legalFirstName)) {
-            errors.legalFirstName = Localize.translateLocal('personalDetailsPages.error.legalFirstNameEmpty');
+            errors.legalFirstName = Localize.translateLocal('privatePersonalDetails.error.legalFirstNameEmpty');
         } else if (hasLegalFirstNameLengthError) {
-            errors.legalFirstName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.LEGAL_NAMES_CHARACTER_LIMIT});
+            errors.legalFirstName = Localize.translateLocal('common.error.characterLimit', {limit: CONST.LEGAL_NAMES_CHARACTER_LIMIT});
         }
 
         if (!_.isEmpty(hasInvalidLegalLastNameCharacter)) {
             errors.legalLastName = Localize.translateLocal(
-                'personalDetailsPages.error.hasInvalidCharacter',
+                'privatePersonalDetails.error.hasInvalidCharacter',
                 {characterName: hasInvalidLegalLastNameCharacter},
             );
         } else if (_.isEmpty(values.legalLastName)) {
-            errors.legalLastName = Localize.translateLocal('personalDetailsPages.error.legalLastNameEmpty');
+            errors.legalLastName = Localize.translateLocal('privatePersonalDetails.error.legalLastNameEmpty');
         } else if (hasLegalLastNameLengthError) {
-            errors.legalLastName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.LEGAL_NAMES_CHARACTER_LIMIT});
+            errors.legalLastName = Localize.translateLocal('common.error.characterLimit', {limit: CONST.LEGAL_NAMES_CHARACTER_LIMIT});
         }
 
         return errors;
@@ -107,7 +107,7 @@ class LegalNamePage extends Component {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
-                    title={this.props.translate('personalDetailsPages.legalName')}
+                    title={this.props.translate('privatePersonalDetails.legalName')}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -124,7 +124,7 @@ class LegalNamePage extends Component {
                         <TextInput
                             inputID="legalFirstName"
                             name="lfname"
-                            label={this.props.translate('personalDetailsPages.legalFirstName')}
+                            label={this.props.translate('privatePersonalDetails.legalFirstName')}
                             defaultValue={privateDetails.legalFirstName || ''}
                         />
                     </View>
@@ -132,7 +132,7 @@ class LegalNamePage extends Component {
                         <TextInput
                             inputID="legalLastName"
                             name="llname"
-                            label={this.props.translate('personalDetailsPages.legalLastName')}
+                            label={this.props.translate('privatePersonalDetails.legalLastName')}
                             defaultValue={privateDetails.legalLastName || ''}
                         />
                     </View>

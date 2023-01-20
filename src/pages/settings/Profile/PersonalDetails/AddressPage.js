@@ -127,7 +127,7 @@ class AddressPage extends Component {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
-                    title={this.props.translate('personalDetailsPages.homeAddress')}
+                    title={this.props.translate('privatePersonalDetails.homeAddress')}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
