@@ -15,6 +15,7 @@ import * as Report from '../../libs/actions/Report';
 import ONYXKEYS from '../../ONYXKEYS';
 import Permissions from '../../libs/Permissions';
 import * as ReportUtils from '../../libs/ReportUtils';
+import * as Browser from '../../libs/Browser';
 import ReportActionsView from './report/ReportActionsView';
 import CONST from '../../CONST';
 import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonView';
@@ -33,6 +34,7 @@ import withLocalize from '../../components/withLocalize';
 import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
+import variables from '../../styles/variables';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -108,7 +110,7 @@ class ReportScreen extends React.Component {
         super(props);
 
         this.onSubmitComment = this.onSubmitComment.bind(this);
-        this.updateViewportOffsetTop = this.updateViewportOffsetTop.bind(this);
+        this.updateViewportValues = this.updateViewportValues.bind(this);
         this.chatWithAccountManager = this.chatWithAccountManager.bind(this);
         this.dismissBanner = this.dismissBanner.bind(this);
         this.removeViewportResizeListener = () => {};
@@ -117,13 +119,15 @@ class ReportScreen extends React.Component {
             skeletonViewContainerHeight: reportActionsListViewHeight,
             viewportOffsetTop: 0,
             isBannerVisible: true,
+            viewportHeightWithKeyboard: 0,
         };
     }
 
     componentDidMount() {
         this.fetchReportIfNeeded();
         toggleReportActionComposeView(true);
-        this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportOffsetTop);
+        this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportValues);
+        this.setState({viewportHeightWithKeyboard: window.innerHeight});
     }
 
     componentDidUpdate(prevProps) {
@@ -175,9 +179,10 @@ class ReportScreen extends React.Component {
     /**
      * @param {SyntheticEvent} e
      */
-    updateViewportOffsetTop(e) {
+    updateViewportValues(e) {
         const viewportOffsetTop = lodashGet(e, 'target.offsetTop', 0);
-        this.setState({viewportOffsetTop});
+        const viewportHeightWithKeyboard = lodashGet(e, 'target.height', 0);
+        this.setState({viewportOffsetTop, viewportHeightWithKeyboard});
     }
 
     dismissBanner() {
@@ -226,6 +231,23 @@ class ReportScreen extends React.Component {
         // the moment the ReportScreen becomes unfrozen we want to start the animation of the placeholder skeleton content
         // (which is shown, until all the actual views of the ReportScreen have been rendered)
         const animatePlaceholder = !freeze;
+
+        // On mWeb, the submit button on the chat screen (report screen)
+        // gets blocked when soft keyboard appears.
+        // We use mobileViewStyle on mWeb to accommodate this issue,
+        // and switch to defaultViewStyle for the rest of the platforms (native, desktop, web).
+        const chatComposerTotalHeight = styles.chatItemComposeSecondaryRow.height
+            + styles.chatItemComposeSecondaryRow.marginTop
+            + styles.chatItemComposeSecondaryRow.marginBottom;
+
+        // Dropzone View's style for native, web, desktop
+        const defaultViewStyle = [styles.flex1, styles.justifyContentEnd, styles.overflowHidden];
+
+        // Dropzone View's style for mWeb
+        const mobileViewStyle = [styles.overflowHidden,
+            {
+                height: this.state.viewportHeightWithKeyboard - (variables.inputComponentSizeNormal + chatComposerTotalHeight),
+            }];
 
         return (
             <ScreenWrapper
@@ -277,7 +299,7 @@ class ReportScreen extends React.Component {
                         )}
                         <View
                             nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                            style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                            style={Browser.isMobile() ? mobileViewStyle : defaultViewStyle}
                             onLayout={(event) => {
                                 const skeletonViewContainerHeight = event.nativeEvent.layout.height;
 
