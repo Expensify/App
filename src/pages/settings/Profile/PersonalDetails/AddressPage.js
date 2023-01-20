@@ -61,7 +61,7 @@ class AddressPage extends Component {
 
         const currentCountry = lodashGet(props.privatePersonalDetails, 'address.country') || '';
         this.state = {
-            isUsaForm: currentCountry === 'USA',
+            isUsaForm: currentCountry === 'United States',
         };
     }
 
@@ -84,7 +84,7 @@ class AddressPage extends Component {
      * @param {String} newCountry - new country selected in form
      */
     onCountryUpdate(newCountry) {
-        if (newCountry === 'USA') {
+        if (newCountry === 'United States') {
             this.setState({isUsaForm: true});
         } else {
             this.setState({isUsaForm: false});

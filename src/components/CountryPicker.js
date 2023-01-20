@@ -1,19 +1,11 @@
 import _ from 'underscore';
 import React, {forwardRef} from 'react';
 import PropTypes from 'prop-types';
-import {CONST} from 'expensify-common/lib/CONST';
+import CONST from '../CONST';
 import Picker from './Picker';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
-// const COUNTRIES = _.map(CONST.STATES, ({stateISO}) => ({
-//     value: stateISO,
-//     label: stateISO,
-// }));
-const COUNTRIES = _.map([
-    'Egypt',
-    'Mexico',
-    'USA',
-], (countryName) => ({
+const COUNTRIES = _.map(CONST.ALL_COUNTRIES, (countryName) => ({
     value: countryName,
     label: countryName,
 }));
