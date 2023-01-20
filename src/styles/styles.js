@@ -709,7 +709,6 @@ const styles = {
     // Actions
     actionAvatar: {
         borderRadius: 20,
-        marginRight: variables.avatarChatSpacing,
     },
 
     componentHeightLarge: {
