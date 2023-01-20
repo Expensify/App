@@ -131,6 +131,7 @@ class WorkspaceNewRoomPage extends React.Component {
                 <Form
                     formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
                     submitButtonText={this.props.translate('newRoomPage.createRoom')}
+                    scrollContextEnabled
                     style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                     validate={this.validate}
                     onSubmit={this.submit}

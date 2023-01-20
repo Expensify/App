@@ -128,6 +128,7 @@ class ReportSettingsPage extends Component {
                     style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                     validate={this.validate}
                     onSubmit={this.updatePolicyRoomName}
+                    scrollContextEnabled
                     isSubmitButtonVisible={shouldShowRoomName && !shouldDisableRename}
                     enabledWhenOffline
                 >
