@@ -316,32 +316,35 @@ function addComment(reportID, text) {
  * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
  */
 function openReport(reportID, participantList = [], newReportObject = {}) {
+    const optimisticReportData = {
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            isLoadingReportActions: true,
+            isLoadingMoreReportActions: false,
+            lastReadTime: DateUtils.getDBTime(),
+            lastReadSequenceNumber: getMaxSequenceNumber(reportID),
+            reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
+        },
+    };
+    const reportSuccessData = {
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            isLoadingReportActions: false,
+            pendingFields: {
+                createChat: null,
+            },
+            errorFields: {
+                createChat: null,
+            },
+            isOptimisticReport: false,
+        },
+    };
+
     const onyxData = {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                isLoadingReportActions: true,
-                isLoadingMoreReportActions: false,
-                lastReadTime: DateUtils.getDBTime(),
-                lastReadSequenceNumber: getMaxSequenceNumber(reportID),
-                reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
-            },
-        }],
-        successData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                isLoadingReportActions: false,
-                pendingFields: {
-                    createChat: null,
-                },
-                errorFields: {
-                    createChat: null,
-                },
-                isOptimisticReport: false,
-            },
-        }],
+        optimisticData: [optimisticReportData],
+        successData: [reportSuccessData],
     };
 
     const params = {
@@ -354,10 +357,10 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
     if (!_.isEmpty(newReportObject)) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
-        onyxData.optimisticData[0].onyxMethod = CONST.ONYX.METHOD.SET;
-        onyxData.optimisticData[0].value = {
-            ...onyxData.optimisticData[0].value,
-            ...newReportObject,
+        optimisticReportData.onyxMethod = CONST.ONYX.METHOD.SET;
+        optimisticReportData.value = {
+            ...optimisticReportData.value,
+            newReportObject,
             pendingFields: {
                 createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
@@ -369,6 +372,11 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
+        });
+        onyxData.successData.push({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
         });
 
         // Add the createdReportActionID parameter to the API call
