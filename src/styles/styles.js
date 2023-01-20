@@ -2023,11 +2023,13 @@ const styles = {
         left: 0,
         backgroundColor: themeColors.overlay,
         opacity: variables.overlayOpacity,
+        borderRadius: 88,
     },
 
     avatarInnerTextChat: {
         color: themeColors.textLight,
-        fontSize: variables.fontSizeNormal,
+        fontSize: variables.fontSizeXLarge,
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
         textAlign: 'center',
         fontWeight: 'normal',
         position: 'absolute',
