@@ -46,12 +46,24 @@ const localeProviderPropTypes = {
     /** The user's preferred locale e.g. 'en', 'es-ES' */
     preferredLocale: PropTypes.string,
 
-    /* Actual content wrapped by this component */
+    /** Actual content wrapped by this component */
     children: PropTypes.node.isRequired,
+
+    /** The current user's personalDetails */
+    currentUserPersonalDetails: PropTypes.shape({
+
+        /** Timezone of the current user */
+        timezone: PropTypes.shape({
+
+            /** Value of the selected timezone */
+            selected: PropTypes.string,
+        }),
+    }),
 };
 
 const localeProviderDefaultProps = {
     preferredLocale: CONST.DEFAULT_LOCALE,
+    currentUserPersonalDetails: {},
 };
 
 class LocaleContextProvider extends React.Component {
