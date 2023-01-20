@@ -18,59 +18,13 @@ const isTextElement = (el) => {
     return false;
 };
 
-// ref: https://stackoverflow.com/a/4931963/1174657
 const getInputSelection = (el) => {
-    let start = 0;
-    let end = 0;
-    let normalizedValue;
-    let range;
-    let textInputRange;
-    let len;
-    let endRange;
-
-    if (typeof el.selectionStart === 'number' && typeof el.selectionEnd === 'number') {
-        start = el.selectionStart;
-        end = el.selectionEnd;
-    } else {
-        range = document.selection.createRange();
-
-        if (range && range.parentElement() === el) {
-            len = el.value.length;
-            normalizedValue = el.value.replace(/\r\n/g, '\n');
-
-            // Create a working TextRange that lives only in the input
-            textInputRange = el.createTextRange();
-            textInputRange.moveToBookmark(range.getBookmark());
-
-            // Check if the start and end of the selection are at the very end
-            // of the input, since moveStart/moveEnd doesn't return what we want
-            // in those cases
-            endRange = el.createTextRange();
-            endRange.collapse(false);
-
-            if (textInputRange.compareEndPoints('StartToEnd', endRange) > -1) {
-                start = len;
-                end = len;
-            } else {
-                start = -textInputRange.moveStart('character', -len);
-                start += normalizedValue.slice(0, start).split('\n').length - 1;
-
-                if (textInputRange.compareEndPoints('EndToEnd', endRange) > -1) {
-                    end = len;
-                } else {
-                    end = -textInputRange.moveEnd('character', -len);
-                    end += normalizedValue.slice(0, end).split('\n').length - 1;
-                }
-            }
-        }
-    }
-
     return {
-        start,
-        end,
+        start: el.selectionStart,
+        end: el.selectionEnd,
         direction: el.selectionDirection,
-    };
-};
+    }
+}
 
 const saveSelection = selection => [selection.anchorNode, selection.anchorOffset, selection.focusNode, selection.focusOffset];
 
