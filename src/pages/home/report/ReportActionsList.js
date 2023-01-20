@@ -176,7 +176,7 @@ class ReportActionsList extends React.Component {
                         // skeleton view above the created action in a newly generated optimistic chat or one with not
                         // that many comments.
                         const lastReportAction = _.last(this.props.sortedReportActions);
-                        if (this.props.report.isLoadingReportActions && lastReportAction.sequenceNumber > 0) {
+                        if (this.props.report.isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
                             return (
                                 <ReportActionsSkeletonView
                                     containerHeight={this.state.skeletonViewHeight}

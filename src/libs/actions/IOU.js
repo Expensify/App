@@ -75,7 +75,6 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
     } else {
         iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, preferredLocale);
     }
-    const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
 
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -95,8 +94,6 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         value: {
             ...chatReport,
             lastReadTime: DateUtils.getDBTime(),
-            lastReadSequenceNumber: newSequenceNumber,
-            maxSequenceNumber: newSequenceNumber,
             lastMessageText: optimisticReportAction.message[0].text,
             lastMessageHtml: optimisticReportAction.message[0].html,
             hasOutstandingIOU: iouReport.total !== 0,
@@ -239,7 +236,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         ? chatReports[`${ONYXKEYS.COLLECTION.REPORT}${existingGroupChatReportID}`]
         : ReportUtils.getChatByParticipants(participantLogins);
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participantLogins);
-    const groupChatReportMaxSequenceNumber = lodashGet(groupChatReport, 'maxSequenceNumber', 0);
     const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
         Math.round(amount * 100),
@@ -248,8 +244,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         participants,
     );
 
-    groupChatReport.maxSequenceNumber = groupChatReportMaxSequenceNumber + 1;
-    groupChatReport.lastReadSequenceNumber = groupChatReportMaxSequenceNumber + 1;
     groupChatReport.lastReadTime = DateUtils.getDBTime();
     groupChatReport.lastMessageText = groupIOUReportAction.message[0].text;
     groupChatReport.lastMessageHtml = groupIOUReportAction.message[0].html;
@@ -353,7 +347,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             oneOnOneChatReport.iouReportID = oneOnOneIOUReport.reportID;
         }
 
-        const oneOnOneChatReportMaxSequenceNumber = lodashGet(oneOnOneChatReport, 'maxSequenceNumber', 0);
         const oneOnOneIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
             CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             splitAmount,
@@ -365,8 +358,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             oneOnOneIOUReport.reportID,
         );
 
-        oneOnOneChatReport.maxSequenceNumber = oneOnOneChatReportMaxSequenceNumber + 1;
-        oneOnOneChatReport.lastReadSequenceNumber = oneOnOneChatReportMaxSequenceNumber + 1;
         oneOnOneChatReport.lastMessageText = oneOnOneIOUReportAction.message[0].text;
         oneOnOneChatReport.lastMessageHtml = oneOnOneIOUReportAction.message[0].html;
 
@@ -424,8 +415,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                     pendingFields: {createChat: null},
                     hasOutstandingIOU: existingOneOnOneChatReport ? existingOneOnOneChatReport.hasOutstandingIOU : false,
                     iouReportID: existingOneOnOneChatReport ? existingOneOnOneChatReport.iouReportID : null,
-                    maxSequenceNumber: oneOnOneChatReportMaxSequenceNumber,
-                    lastReadSequenceNumber: oneOnOneChatReportMaxSequenceNumber,
                 },
             },
             {
@@ -559,7 +548,6 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
 
     // Get the amount we are cancelling
     const amount = moneyRequestAction.originalMessage.amount;
-    const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
         type,
         amount,
@@ -574,8 +562,6 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
     const currentUserEmail = optimisticReportAction.actorEmail;
     const updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, moneyRequestAction.originalMessage.currency, type);
 
-    chatReport.maxSequenceNumber = newSequenceNumber;
-    chatReport.lastReadSequenceNumber = newSequenceNumber;
     chatReport.lastMessageText = optimisticReportAction.message[0].text;
     chatReport.lastMessageHtml = optimisticReportAction.message[0].html;
     chatReport.hasOutstandingIOU = updatedIOUReport.total !== 0;
@@ -691,9 +677,6 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
     }
     const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, managerEmail, amount, chatReport.reportID, currency, preferredLocale, true);
 
-    // This will be deprecated soon, in case the migration happens before this PR is merged we'll need to adjust the code here
-    const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
-
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount,
@@ -713,8 +696,6 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             ...chatReport,
             lastVisitedTimestamp: Date.now(),
             lastActionCreated: optimisticIOUReportAction.created,
-            lastReadSequenceNumber: newSequenceNumber,
-            maxSequenceNumber: newSequenceNumber,
             lastMessageText: optimisticIOUReportAction.message[0].text,
             lastMessageHtml: optimisticIOUReportAction.message[0].html,
         },
@@ -814,8 +795,6 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
  * @returns {Object}
  */
 function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMethodType) {
-    const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
-
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         iouReport.total,
@@ -836,8 +815,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 ...chatReport,
                 lastVisitedTimestamp: Date.now(),
                 lastActionCreated: optimisticIOUReportAction.created,
-                lastReadSequenceNumber: newSequenceNumber,
-                maxSequenceNumber: newSequenceNumber,
                 lastMessageText: optimisticIOUReportAction.message[0].text,
                 lastMessageHtml: optimisticIOUReportAction.message[0].html,
                 hasOutstandingIOU: false,

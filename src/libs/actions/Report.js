@@ -40,14 +40,6 @@ let conciergeChatReportID;
 const typingWatchTimers = {};
 
 /**
- * @param {String} reportID
- * @returns {Number}
- */
-function getMaxSequenceNumber(reportID) {
-    return lodashGet(allReports, [reportID, 'maxSequenceNumber'], 0);
-}
-
-/**
  * Get the private pusher channel name for a Report.
  *
  * @param {String} reportID
@@ -180,8 +172,6 @@ function addActions(reportID, text = '', file) {
     let attachmentAction;
     let commandName = 'AddComment';
 
-    const highestSequenceNumber = getMaxSequenceNumber(reportID);
-
     if (text) {
         const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text);
         reportCommentAction = reportComment.reportAction;
@@ -199,18 +189,12 @@ function addActions(reportID, text = '', file) {
     // Always prefer the file as the last action over text
     const lastAction = attachmentAction || reportCommentAction;
 
-    // Our report needs a new maxSequenceNumber that is n larger than the current depending on how many actions we are adding.
-    const actionCount = text && file ? 2 : 1;
-    const newSequenceNumber = highestSequenceNumber + actionCount;
     const currentTime = DateUtils.getDBTime();
 
-    // Update the report in Onyx to have the new sequence number
     const optimisticReport = {
-        maxSequenceNumber: newSequenceNumber,
         lastActionCreated: currentTime,
         lastMessageText: ReportUtils.formatReportLastMessageText(lastAction.message[0].text),
         lastActorEmail: currentUserEmail,
-        lastReadSequenceNumber: newSequenceNumber,
         lastReadTime: currentTime,
     };
 
@@ -318,7 +302,6 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             isLoadingReportActions: true,
             isLoadingMoreReportActions: false,
             lastReadTime: DateUtils.getDBTime(),
-            lastReadSequenceNumber: getMaxSequenceNumber(reportID),
             reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
         },
     };
@@ -624,7 +607,6 @@ function broadcastUserIsTyping(reportID) {
 
 /**
  * When a report changes in Onyx, this fetches the report from the API if the report doesn't have a name
- * and it keeps track of the max sequence number on the report actions.
  *
  * @param {Object} report
  */
@@ -1209,7 +1191,6 @@ export {
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
     clearIOUError,
-    getMaxSequenceNumber,
     subscribeToNewActionEvent,
     showReportActionNotification,
 };

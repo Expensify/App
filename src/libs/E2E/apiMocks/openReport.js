@@ -9,7 +9,6 @@ export default () => ({
                 chatType: '',
                 ownerEmail: '__fake__',
                 policyID: '_FAKE_',
-                maxSequenceNumber: 1,
                 participants: [
                     'fake1@gmail.com',
                     'fake2@gmail.com',
@@ -24,7 +23,6 @@ export default () => ({
                 lastVisitedTimestamp: 1671470568415,
                 lastReadTimestamp: 1671470568415,
                 lastReadCreated: '1980-01-01 00:00:00.000',
-                lastReadSequenceNumber: 1,
                 lastActionCreated: '2022-08-01 20:49:11',
                 lastMessageTimestamp: 1659386951000,
                 lastMessageText: 'Say hello\ud83d\ude10',

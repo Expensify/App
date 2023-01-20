@@ -136,8 +136,6 @@ function signInAndGetAppWithUnreadChat() {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                 reportID: REPORT_ID,
                 reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-                maxSequenceNumber: 9,
-                lastReadSequenceNumber: 1,
                 lastReadTime: reportAction3CreatedDate,
                 lastActionCreated: reportAction9CreatedDate,
                 lastMessageText: 'Test',
@@ -148,7 +146,6 @@ function signInAndGetAppWithUnreadChat() {
                 [createdReportActionID]: {
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     automatic: false,
-                    sequenceNumber: 0,
                     created: MOMENT_TEN_MINUTES_AGO.clone().format(MOMENT_FORMAT),
                     reportActionID: createdReportActionID,
                     message: [
@@ -164,6 +161,7 @@ function signInAndGetAppWithUnreadChat() {
                         },
                     ],
                 },
+                // TODO: Remove sequence number from buildTestReportComment
                 1: TestHelper.buildTestReportComment(USER_B_EMAIL, 1, MOMENT_TEN_MINUTES_AGO.clone().add(10, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '1'),
                 2: TestHelper.buildTestReportComment(USER_B_EMAIL, 2, MOMENT_TEN_MINUTES_AGO.clone().add(20, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '2'),
                 3: TestHelper.buildTestReportComment(USER_B_EMAIL, 3, reportAction3CreatedDate, USER_B_ACCOUNT_ID, '3'),
@@ -287,31 +285,28 @@ describe.skip('Unread Indicators', () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`, {
                     reportID: NEW_REPORT_ID,
                     reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-                    maxSequenceNumber: 1,
-                    lastReadSequenceNumber: 0,
                     lastReadTime: '',
                     lastActionCreated: DateUtils.getDBTime(NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf()),
                     lastMessageText: 'Comment 1',
                     participants: [USER_C_EMAIL],
                 });
                 const createdReportActionID = NumberUtils.rand64();
+                const commentReportActionID = NumberUtils.rand64();
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${NEW_REPORT_ID}`, {
                     [createdReportActionID]: {
                         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                         automatic: false,
-                        sequenceNumber: 0,
                         created: NEW_REPORT_CREATED_MOMENT.format(MOMENT_FORMAT),
                         reportActionID: createdReportActionID,
                     },
-                    1: {
+                    [commentReportActionID]: {
                         actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                         actorEmail: USER_C_EMAIL,
                         actorAccountID: USER_C_ACCOUNT_ID,
                         person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
-                        sequenceNumber: 1,
                         created: NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.format(MOMENT_FORMAT),
                         message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
-                        reportActionID: NumberUtils.rand64(),
+                        reportActionID: commentReportActionID,
                     },
                 });
                 Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
@@ -521,7 +516,6 @@ describe.skip('Unread Indicators', () => {
                     lastMessageText: lastReportAction.message[0].text,
                     lastActionCreated: DateUtils.getDBTime(lastReportAction.timestamp),
                     lastActorEmail: lastReportAction.actorEmail,
-                    maxSequenceNumber: lastReportAction.sequenceNumber,
                     reportID: REPORT_ID,
                 });
                 return waitForPromisesToResolve();
