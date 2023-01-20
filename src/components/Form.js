@@ -53,8 +53,8 @@ const propTypes = {
     /** Should the button be enabled when offline */
     enabledWhenOffline: PropTypes.bool,
 
-    /** Whether the action is dangerous */
-    isDangerousAction: PropTypes.bool,
+    /** Whether the form submit action is dangerous */
+    isSubmitActionDangerous: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
@@ -67,7 +67,7 @@ const defaultProps = {
     },
     draftValues: {},
     enabledWhenOffline: false,
-    isDangerousAction: false,
+    isSubmitActionDangerous: false,
 };
 
 class Form extends React.Component {
@@ -291,7 +291,7 @@ class Form extends React.Component {
                                 }}
                                 containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
                                 enabledWhenOffline={this.props.enabledWhenOffline}
-                                isDangerousAction={this.props.isDangerousAction}
+                                isSubmitActionDangerous={this.props.isSubmitActionDangerous}
                             />
                             )}
                         </View>
