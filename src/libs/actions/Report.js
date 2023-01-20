@@ -360,7 +360,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
         optimisticReportData.onyxMethod = CONST.ONYX.METHOD.SET;
         optimisticReportData.value = {
             ...optimisticReportData.value,
-            newReportObject,
+            ...newReportObject,
             pendingFields: {
                 createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
