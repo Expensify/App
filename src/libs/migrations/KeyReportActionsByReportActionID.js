@@ -45,7 +45,7 @@ export default function () {
                 }
 
                 if (_.isEmpty(newReportActions)) {
-                    Log.info('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID');
+                    Log.info('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID because there are no actions to migrate');
                     return resolve();
                 }
 
