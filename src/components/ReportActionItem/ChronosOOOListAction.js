@@ -8,6 +8,12 @@ import Text from '../Text';
 import styles from '../../styles/styles';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import Button from '../Button';
+import TextLink from '../TextLink';
+import PressableWithoutFocus from '../PressableWithoutFocus';
+import Icon from '../Icon';
+import themeColors from '../../styles/themes/default';
+import * as Expensicons from '../Icon/Expensicons';
 
 const datePropTypes = {
     /** The full date string */
@@ -40,24 +46,28 @@ const propTypes = {
 };
 
 const ChronosOOOListAction = (props) => {
-    const start = new moment(props.event.start.date);
-    const end = new moment(props.event.end.date);
+    const event = props.event;
+    const start = new moment(event.start.date);
+    const end = new moment(event.end.date);
+    const removeEvent = () => {
+        console.log('!!! remove event', event.id);
+    };
     return (
-        <View>
-            {props.event.lengthInDays > 0 ? (
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.pt, styles.ml18]}>
+            {event.lengthInDays > 0 ? (
                 <Text>
-                    {props.event.summary}
+                    {event.summary}
                     {' '}
                     {start.format('dddd MMM Do, YYYY')}
                     {' for '}
-                    {props.event.lengthInDays}
-                    {props.event.lengthInDays === 1 ? ' day' : 'days'}
+                    {event.lengthInDays}
+                    {event.lengthInDays === 1 ? ' day' : 'days'}
                     {' until '}
                     {end.format('dddd MMM Do, YYYY')}
                 </Text>
             ) : (
                 <Text>
-                    {props.event.summary}
+                    {event.summary}
                     {' from '}
                     {start.format('h:mma')}
                     {' - '}
@@ -66,6 +76,16 @@ const ChronosOOOListAction = (props) => {
                     {start.format('dddd MMM Do, YYYY')}
                 </Text>
             )}
+            <Button
+                small
+                style={[styles.pl2]}
+                onPress={removeEvent}
+                ContentComponent={() => (
+                    <Text style={styles.buttonSmallText}>
+                        {props.translate('common.remove')}
+                    </Text>
+                )}
+            />
         </View>
     );
 };
