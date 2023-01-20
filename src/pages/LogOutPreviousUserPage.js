@@ -27,7 +27,7 @@ class LogOutPreviousUserPage extends Component {
                     Session.signOutAndRedirectToSignIn();
                 }
 
-                // We need to signin and fetch a new authToken, if a user was already authenticated in NewDot, and was redirected to OlDot
+                // We need to signin and fetch a new authToken, if a user was already authenticated in NewDot, and was redirected to OldDot
                 // and their authToken stored in Onyx becomes invalid.
                 // This workflow is triggered while setting up VBBA. User is redirected from NewDot to OldDot to set up 2FA, and then redirected back to NewDot
                 // On Enabling 2FA, authToken stored in Onyx becomes expired and hence we need to fetch new authToken
