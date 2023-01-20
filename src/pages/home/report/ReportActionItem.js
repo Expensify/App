@@ -35,7 +35,7 @@ import * as ReportActions from '../../../libs/actions/ReportActions';
 import reportPropTypes from '../../reportPropTypes';
 import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext';
 import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
-import ChronosOOOListAction from '../../../components/ReportActionItem/ChronosOOOListAction';
+import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosOOOListActions';
 
 const propTypes = {
     /** Report for this action */
@@ -189,7 +189,6 @@ class ReportActionItem extends Component {
     }
 
     render() {
-        console.log('!!!', this.props.action.actionName)
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return <ReportActionItemCreated reportID={this.props.report.reportID} />;
         }
@@ -197,7 +196,7 @@ class ReportActionItem extends Component {
             return <RenameAction action={this.props.action} />;
         }
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOSOOOLIST) {
-            return <ChronosOOOListAction action={this.props.action} />;
+            return <ChronosOOOListActions action={this.props.action} />;
         }
         return (
             <PressableWithSecondaryInteraction
