@@ -65,26 +65,26 @@ class DisplayNamePage extends Component {
             errors,
             'firstName',
             !_.isEmpty(firstNameInvalidCharacter),
-            this.props.translateLocal(
+            [
                 'personalDetails.error.hasInvalidCharacter',
                 {invalidCharacter: firstNameInvalidCharacter},
-            ),
+            ],
         );
         this.assignError(
             errors,
             'lastName',
             !_.isEmpty(lastNameInvalidCharacter),
-            this.props.translateLocal(
+            [
                 'personalDetails.error.hasInvalidCharacter',
                 {invalidCharacter: lastNameInvalidCharacter},
-            ),
+            ],
         );
         if (!_.isEmpty(errors)) {
             return errors;
         }
 
         // Check the character limit for first and last name
-        const characterLimitError = this.props.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
+        const characterLimitError = ['personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT}];
         const [hasFirstNameError, hasLastNameError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
             CONST.FORM_CHARACTER_LIMIT,
             [values.firstName, values.lastName],
@@ -99,13 +99,13 @@ class DisplayNamePage extends Component {
      * @param {Object} errors
      * @param {String} errorKey
      * @param {Boolean} hasError
-     * @param {String} errorCopy
+     * @param {Array} errorCopy
      * @returns {Object} - An object containing the errors for each inputID
      */
     assignError(errors, errorKey, hasError, errorCopy) {
         const validateErrors = errors;
         if (hasError) {
-            validateErrors[errorKey] = errorCopy;
+            validateErrors[errorKey] = this.props.translateLocal(...errorCopy);
         }
         return validateErrors;
     }
