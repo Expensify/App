@@ -43,7 +43,7 @@ export default () => ({
             onyxMethod: 'merge',
             key: 'reportActions_98345625',
             value: {
-                0: {
+                226245034: {
                     reportActionID: '226245034',
                     actionName: 'CREATED',
                     created: '2022-08-01 20:48:58',
@@ -70,11 +70,10 @@ export default () => ({
                         },
                     ],
                     automatic: false,
-                    sequenceNumber: 0,
                     clientID: '',
                     shouldShow: true,
                 },
-                1: {
+                1082059149: {
                     person: [
                         {
                             type: 'TEXT',
@@ -101,7 +100,6 @@ export default () => ({
                     timestamp: 1659386951,
                     reportActionTimestamp: 1659386951000,
                     automatic: false,
-                    sequenceNumber: 1,
                     actionName: 'ADDCOMMENT',
                     shouldShow: true,
                     clientID: '1659386951676734',
