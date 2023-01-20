@@ -2877,6 +2877,13 @@ const styles = {
         paddingTop: 80,
         paddingBottom: 45,
     },
+
+    magicCodeDigits: {
+        color: themeColors.text,
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeXXLarge,
+        letterSpacing: 4,
+    },
 };
 
 export default styles;

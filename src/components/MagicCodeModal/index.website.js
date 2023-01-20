@@ -24,9 +24,14 @@ class MagicCodeModal extends PureComponent {
                     <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
                         {this.props.translate('magicCodeModal.title')}
                     </Text>
-                    <View style={styles.mt2}>
+                    <View style={[styles.mt2, styles.mb2]}>
                         <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
                             {this.props.translate('magicCodeModal.description')}
+                        </Text>
+                    </View>
+                    <View style={styles.mt6}>
+                        <Text style={styles.magicCodeDigits}>
+                            000000
                         </Text>
                     </View>
                 </View>
