@@ -985,22 +985,22 @@ function addPolicyReport(policy, reportName, visibility) {
     Navigation.navigate(ROUTES.getReportRoute(policyReport.reportID));
 }
 
-function joinWorkspaceRoom(reportID) {
-    const report = allReports[reportID];
-
-
-    const optimisticData = {
-
-    };
-
-    const successData = {
-
-    };
-
+function joinWorkspaceRoom(report) {
+    const participants = report.participants.concat([currentUserEmail]);
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {
+                participants,
+                permissions: 'read, write',
+            },
+        },
+    ];
     API.write(
         'JoinWorkspaceRoom',
-        {reportID},
-        {optimisticData, successData},
+        {reportID: report.reportID},
+        {optimisticData},
     );
 }
 

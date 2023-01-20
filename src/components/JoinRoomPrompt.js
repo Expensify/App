@@ -12,6 +12,8 @@ import * as ReportUtils from '../libs/ReportUtils';
 import CONST from '../CONST';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Report object for the current report */
@@ -22,9 +24,6 @@ const propTypes = {
         /** Name of the policy */
         name: PropTypes.string,
     }),
-
-    /** Offline status */
-    isOffline: PropTypes.bool.isRequired,
 
     ...windowDimensionsPropTypes,
 
@@ -68,14 +67,14 @@ const JoinRoomPrompt = (props) => {
                     innerStyles={[styles.joinRoomButton]}
                     text={props.translate('common.details')}
                     textStyles={[styles.joinRoomButtonText]}
-                    // onPress={event => }
+                    onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}
                 />
                 <Button
                     success
                     innerStyles={[styles.joinRoomButton]}
                     text={props.translate('joinRoomPrompt.joinRoom')}
                     textStyles={[styles.joinRoomButtonText]}
-                    onPress={() => Report.joinWorkspaceRoom(props.report.reportID)}
+                    onPress={() => Report.joinWorkspaceRoom(props.report)}
                     pressOnEnter
                 />
             </View>

@@ -81,7 +81,8 @@ class ReportDetailsPage extends Component {
             });
         }
 
-        if (ReportUtils.isRestrictedRoomParticipant(this.props.report) || ReportUtils.isUserCreatedPolicyRoom(this.props.report)) {
+        if (ReportUtils.isRestrictedRoomParticipant(this.props.report)
+            || (!ReportUtils.isRestrictedPolicyRoom(this.props.report) && ReportUtils.isUserCreatedPolicyRoom(this.props.report))) {
             this.menuItems.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
