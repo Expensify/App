@@ -9,6 +9,7 @@ import JewelBoxBlue from '../../../assets/images/product-illustrations/jewel-box
 import JewelBoxGreen from '../../../assets/images/product-illustrations/jewel-box--green.svg';
 import JewelBoxPink from '../../../assets/images/product-illustrations/jewel-box--pink.svg';
 import JewelBoxYellow from '../../../assets/images/product-illustrations/jewel-box--yellow.svg';
+import MagicCodeYellow from '../../../assets/images/product-illustrations/magic-code--yellow.svg';
 import MoneyEnvelopeBlue from '../../../assets/images/product-illustrations/money-envelope--blue.svg';
 import MoneyMousePink from '../../../assets/images/product-illustrations/money-mouse--pink.svg';
 import ReceiptsSearchYellow from '../../../assets/images/product-illustrations/receipts-search--yellow.svg';
@@ -47,6 +48,7 @@ export {
     JewelBoxGreen,
     JewelBoxPink,
     JewelBoxYellow,
+    MagicCodeYellow,
     MoneyEnvelopeBlue,
     MoneyMousePink,
     ReceiptsSearchYellow,
