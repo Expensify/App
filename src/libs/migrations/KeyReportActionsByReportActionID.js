@@ -33,7 +33,7 @@ export default function () {
                             if (!_.isNaN(Number(reportActionKey))
                                 && Number(reportActionKey) === Number(reportAction.reportActionID)
                                 && Number(reportActionKey) !== Number(reportAction.sequenceNumber)) {
-                                Log.info('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID');
+                                Log.info('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID because we already migrated it');
                                 return resolve();
                             }
 

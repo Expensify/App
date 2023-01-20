@@ -251,7 +251,7 @@ describe('Migrations', () => {
             })
                 .then(KeyReportActionsByReportActionID)
                 .then(() => {
-                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID');
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID because we already migrated it');
                     const connectionID = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                         waitForCollectionCallback: true,
