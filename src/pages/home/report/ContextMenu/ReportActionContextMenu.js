@@ -14,8 +14,8 @@ const contextMenuRef = React.createRef();
  * @param {String} draftMessage - ReportAction Draftmessage
  * @param {Function} [onShow=() => {}] - Run a callback when Menu is shown
  * @param {Function} [onHide=() => {}] - Run a callback when Menu is hidden
- * @param {Boolean} isArchivedRoom - isArchivedRoom
- * @param {Boolean} isChronosReport - isChronosReport
+ * @param {Boolean} isArchivedRoom - Whether the provided report is an archived room
+ * @param {Boolean} isChronosReport - Flag to check if the chat participant is Chronos
  */
 function showContextMenu(
     type,
