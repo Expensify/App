@@ -7,6 +7,7 @@ import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Button from '../Button';
 import * as Chronos from '../../libs/actions/Chronos';
+import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 
 const datePropTypes = {
     /** The full date string */
@@ -17,8 +18,8 @@ const datePropTypes = {
 };
 
 const propTypes = {
-    /** ID of the report action */
-    sequenceNumber: PropTypes.number,
+    /** All the data of the action */
+    action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** The OOO event data */
     event: PropTypes.shape({
@@ -72,7 +73,7 @@ const ChronosOOOListAction = (props) => {
             <Button
                 small
                 style={[styles.pl2]}
-                onPress={() => Chronos.removeEvent(event.id, props.sequenceNumber)}
+                onPress={() => Chronos.removeEvent(event.id, props.action, props.events)}
                 ContentComponent={() => (
                     <Text style={styles.buttonSmallText}>
                         {props.translate('common.remove')}
