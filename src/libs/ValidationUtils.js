@@ -220,15 +220,14 @@ function getAgeRequirementError(date, minimumAge, maximumAge) {
     const testDate = moment(date);
     if (!testDate.isValid()) {
         return Localize.translateLocal('privatePersonalDetails.error.dateInvalid');
-    } else if (testDate.isBetween(longAgoDate, recentDate)) {
+    }
+    if (testDate.isBetween(longAgoDate, recentDate)) {
         return '';
     }
-
     if (testDate.isAfter(recentDate)) {
         return Localize.translateLocal('privatePersonalDetails.error.dateTooRecent', {numYears: minimumAge});
-    } else {
-        return Localize.translateLocal('privatePersonalDetails.error.dateTooOld', {numYears: maximumAge});
     }
+    return Localize.translateLocal('privatePersonalDetails.error.dateTooOld', {numYears: maximumAge});
 }
 
 /**

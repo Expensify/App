@@ -207,6 +207,14 @@ function updateDateOfBirth(dateOfBirth) {
     Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
+/**
+ * @param {String} street
+ * @param {String} street2
+ * @param {String} city
+ * @param {String} state
+ * @param {String} zip
+ * @param {String} country
+ */
 function updateAddress(street, street2, city, state, zip, country) {
     API.write('UpdateHomeAddress', {
         addressStreet: street,

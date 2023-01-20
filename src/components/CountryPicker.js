@@ -5,7 +5,7 @@ import CONST from '../CONST';
 import Picker from './Picker';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
-const COUNTRIES = _.map(CONST.ALL_COUNTRIES, (countryName) => ({
+const COUNTRIES = _.map(CONST.ALL_COUNTRIES, countryName => ({
     value: countryName,
     label: countryName,
 }));
