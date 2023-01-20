@@ -39,6 +39,9 @@ const propTypes = {
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton: PropTypes.bool,
 
+    /** Are we loading payment methods? */
+    isLoadingPaymentMethods: PropTypes.bool,
+
     /** Type to filter the payment Method list */
     filterType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT, '']),
 
@@ -74,6 +77,7 @@ const defaultProps = {
         walletLinkedAccountID: 0,
         walletLinkedAccountType: '',
     },
+    isLoadingPaymentMethods: true,
     shouldShowAddPaymentMethodButton: true,
     filterType: '',
     actionPaymentMethodType: '',
@@ -231,7 +235,7 @@ class PaymentMethodList extends Component {
                                         text={this.props.translate('paymentMethodList.addPaymentMethod')}
                                         icon={Expensicons.CreditCard}
                                         onPress={e => this.props.onPress(e)}
-                                        isDisabled={this.props.isLoadingPayments || isOffline}
+                                        isDisabled={this.props.isLoadingPaymentMethods || isOffline}
                                         style={[styles.mh4, styles.buttonCTA]}
                                         iconStyles={[styles.buttonCTAIcon]}
                                         key="addPaymentMethodButton"
@@ -260,6 +264,9 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
+        },
+        isLoadingPaymentMethods: {
+            key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
         },
         payPalMeData: {
             key: ONYXKEYS.PAYPAL,
