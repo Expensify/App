@@ -66,7 +66,7 @@ class WorkspaceSettingsPage extends React.Component {
         const name = values.name.trim();
 
         if (this.hasHtml(name)) {
-            errors.name = 'HTML tags are not allowed in workspace names.';
+            errors.name = this.props.translate('workspace.editor.nameHasHtml');
         }
 
         if (!name || !name.length) {
