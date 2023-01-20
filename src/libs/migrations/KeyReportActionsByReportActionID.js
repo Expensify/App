@@ -17,7 +17,7 @@ export default function () {
                 Onyx.disconnect(connectionID);
 
                 if (!allReportActions) {
-                    Log.info('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID');
+                    Log.info('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID because there were no reportActions');
                     return resolve();
                 }
 
