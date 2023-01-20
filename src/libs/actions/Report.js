@@ -183,7 +183,7 @@ function addActions(reportID, text = '', file) {
     const highestSequenceNumber = getMaxSequenceNumber(reportID);
 
     if (text) {
-        const reportComment = ReportUtils.buildOptimisticReportAction(text);
+        const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text);
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
@@ -192,7 +192,7 @@ function addActions(reportID, text = '', file) {
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = 'AddAttachment';
-        const attachment = ReportUtils.buildOptimisticReportAction('', file);
+        const attachment = ReportUtils.buildOptimisticAddCommentReportAction('', file);
         attachmentAction = attachment.reportAction;
     }
 

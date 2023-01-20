@@ -642,7 +642,7 @@ function hasReportNameError(report) {
  * @param {File} [file]
  * @returns {Object}
  */
-function buildOptimisticReportAction(text, file) {
+function buildOptimisticAddCommentReportAction(text, file) {
     // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     const parser = new ExpensiMark();
@@ -1259,7 +1259,7 @@ export {
     buildOptimisticCreatedReportAction,
     buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,
-    buildOptimisticReportAction,
+    buildOptimisticAddCommentReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
     getAllPolicyReports,
