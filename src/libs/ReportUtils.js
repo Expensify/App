@@ -791,7 +791,6 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
 /**
  * Builds an optimistic IOU reportAction object
  *
- * @param {Number} sequenceNumber - Caller is responsible for providing a best guess at what the next sequenceNumber will be.
  * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split).
  * @param {Number} amount - IOU amount in cents.
  * @param {String} currency
@@ -804,7 +803,7 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, participants, paymentType = '', iouTransactionID = '', iouReportID = '', isSettlingUp = false) {
+function buildOptimisticIOUReportAction(type, amount, currency, comment, participants, paymentType = '', iouTransactionID = '', iouReportID = '', isSettlingUp = false) {
     const IOUTransactionID = iouTransactionID || NumberUtils.rand64();
     const IOUReportID = iouReportID || generateReportID();
     const originalMessage = {
@@ -845,7 +844,6 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
             type: 'TEXT',
         }],
         reportActionID: NumberUtils.rand64(),
-        sequenceNumber,
         shouldShow: true,
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
