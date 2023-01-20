@@ -53,8 +53,8 @@ const propTypes = {
     /** Should the button be enabled when offline */
     enabledWhenOffline: PropTypes.bool,
 
-    /** Whether the action is dangerous */
-    isDangerousAction: PropTypes.bool,
+    /** Whether the form submit action is dangerous */
+    isSubmitActionDangerous: PropTypes.bool,
 
     /** Defines wheter the overflow content of the form's ScrollView should be scrollable */
     scrollToOverflowEnabled: PropTypes.bool,
@@ -73,7 +73,7 @@ const defaultProps = {
     },
     draftValues: {},
     enabledWhenOffline: false,
-    isDangerousAction: false,
+    isSubmitActionDangerous: false,
     scrollToOverflowEnabled: false,
     scrollContextEnabled: false,
 };
@@ -287,12 +287,12 @@ class Form extends React.Component {
 
                         // We subtract 10 to scroll slightly above the input
                         if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
-                            focusInput.measureLayout(this.formRef.current, (x, y) => this.formRef.current.scrollTo({y: y - 10, animated: false}));
+                            focusInput.measureLayout(this.form, (x, y) => this.form.scrollTo({y: y - 10, animated: false}));
                         }
                     }}
                     containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
                     enabledWhenOffline={this.props.enabledWhenOffline}
-                    isDangerousAction={this.props.isDangerousAction}
+                    isSubmitActionDangerous={this.props.isSubmitActionDangerous}
                 />
                 )}
             </View>
