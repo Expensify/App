@@ -220,7 +220,7 @@ function isRestrictedPolicyRoom(report) {
  * @returns {Boolean}
  */
 function isRestrictedRoomParticipant(report) {
-    return isRestrictedPolicyRoom(report) && report.permissions.indexOf('read, write') !== -1;
+    return isRestrictedPolicyRoom(report) && lodashGet(report, 'permissions', '').indexOf('read, write') !== -1;
 }
 
 /**
@@ -929,6 +929,7 @@ function buildOptimisticChatReport(
         stateNum: 0,
         statusNum: 0,
         visibility,
+        permissions: visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? 'read, write' : null,
     };
 }
 
