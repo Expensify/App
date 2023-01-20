@@ -9,6 +9,7 @@ import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator
 import { compose } from 'underscore';
 import { withBetas } from '../components/OnyxProvider';
 import CONST from '../CONST';
+import MagicCodeModal from '../components/MagicCodeModal';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
@@ -33,7 +34,7 @@ class ValidateLoginPage extends Component {
     }
 
     render() {
-        return <FullScreenLoadingIndicator />;
+        return (this.isPasswordlessFlow() ? <MagicCodeModal/> : <FullScreenLoadingIndicator />);
     }
 }
 
