@@ -121,6 +121,9 @@ class BaseOptionsList extends Component {
 
             // Add section items
             for (let i = 0; i < section.data.length; i++) {
+                if (i > 0 && this.props.shouldHaveOptionSeparator) {
+                    offset += variables.optionRowBorderTopWidth;
+                }
                 flatArray.push({length: optionHeight, offset});
                 offset += optionHeight;
             }

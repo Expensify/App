@@ -1788,7 +1788,7 @@ const styles = {
     },
 
     borderTop: {
-        borderTopWidth: 1,
+        borderTopWidth: variables.optionRowBorderTopWidth,
         borderColor: themeColors.border,
     },
 

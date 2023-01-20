@@ -71,6 +71,7 @@ export default {
     popoverMenuShadow: '0px 4px 12px 0px rgba(0, 0, 0, 0.06)',
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
+    optionRowBorderTopWidth: 1,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(54, 60),
     overlayOpacity: 0.6,
     lineHeightSmall: getValueUsingPixelRatio(14, 16),
