@@ -952,10 +952,11 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
 
 /**
  * Returns the necessary reportAction onyx data to indicate that a chat has been archived
+ *
  * @param {Number} sequenceNumber
  * @param {String} ownerEmail
  * @param {String} policyName
- * @param {String} reason - Reason why the chat has been archived
+ * @param {String} reason - A reason why the chat has been archived
  * @returns {Object}
  */
 function buildOptimisticClosedReportAction(sequenceNumber, ownerEmail, policyName, reason = CONST.REPORT.ARCHIVE_REASON.DEFAULT) {
