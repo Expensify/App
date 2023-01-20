@@ -185,9 +185,9 @@ class Expensify extends PureComponent {
         }
 
         return (
-            <>
+            <DeeplinkWrapper>
                 {!this.state.isSplashShown && (
-                    <DeeplinkWrapper>
+                    <>
                         <GrowlNotification ref={Growl.growlRef} />
                         {/* We include the modal for showing a new update at the top level so the option is always present. */}
                         {this.props.updateAvailable ? <UpdateAppModal /> : null}
@@ -202,14 +202,14 @@ class Expensify extends PureComponent {
                                 isVisible
                             />
                         ) : null}
-                    </DeeplinkWrapper>
+                    </>
                 )}
 
                 <NavigationRoot
                     onReady={this.setNavigationReady}
                     authenticated={this.isAuthenticated()}
                 />
-            </>
+            </DeeplinkWrapper>
         );
     }
 }
