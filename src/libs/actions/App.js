@@ -179,7 +179,9 @@ function clearDownloads() {
             Onyx.disconnect(connectionID);
             const downloads = {};
             _.each(_.keys(records), recordKey => downloads[recordKey] = null);
-            Onyx.multiSet(downloads);
+            if (!_.isEmpty(downloads)) {
+                Onyx.multiSet(downloads);
+            }
         },
     });
 }
