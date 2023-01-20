@@ -22,7 +22,7 @@ export default function () {
                 }
 
                 const newReportActions = {};
-                const allReportActionsEntires = Object.entries(allReportActions || {});
+                const allReportActionsEntires = Object.entries(allReportActions);
                 for (let i = 0; i < allReportActionsEntires.length; i++) {
                     const [onyxKey, reportActionsForReport] = allReportActionsEntires[i];
                     if (reportActionsForReport) {
