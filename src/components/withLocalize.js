@@ -16,6 +16,9 @@ const withLocalizePropTypes = {
     /** Returns translated string for given locale and phrase */
     translate: PropTypes.func.isRequired,
 
+    /** Returns translated string for given locale and phrase .Uses the locale that's updated by the Onyx subscriber */
+    translateLocal: PropTypes.func.isRequired,
+
     /** Formats number formatted according to locale and options */
     numberFormat: PropTypes.func.isRequired,
 
@@ -58,6 +61,7 @@ class LocaleContextProvider extends React.Component {
     getContextValue() {
         return {
             translate: this.translate.bind(this),
+            translateLocal: this.translateLocal,
             numberFormat: this.numberFormat.bind(this),
             datetimeToRelative: this.datetimeToRelative.bind(this),
             datetimeToCalendarTime: this.datetimeToCalendarTime.bind(this),
@@ -76,6 +80,16 @@ class LocaleContextProvider extends React.Component {
      */
     translate(phrase, variables) {
         return Localize.translate(this.props.preferredLocale, phrase, variables);
+    }
+
+    /**
+     * *
+     * @param {String|Array} phrase
+     * @param {Object} [variables]
+     * @returns {String}
+     */
+    translateLocal(phrase, variables) {
+        return Localize.translateLocal(phrase, variables);
     }
 
     /**
