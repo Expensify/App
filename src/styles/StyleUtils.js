@@ -649,9 +649,21 @@ function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
     };
 }
 
+/**
+ * @param {Number} safeAreaPaddingBottom
+ * @returns {Object}
+ */
+function getErrorPageContainerStyle(safeAreaPaddingBottom = 0) {
+    return {
+        backgroundColor: themeColors.componentBG,
+        paddingBottom: 40 + safeAreaPaddingBottom,
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
+    getErrorPageContainerStyle,
     getSafeAreaPadding,
     getSafeAreaMargins,
     getNavigationDrawerStyle,

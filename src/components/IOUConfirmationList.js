@@ -101,22 +101,28 @@ class IOUConfirmationList extends Component {
             ...participant, selected: true,
         }));
 
-        this.splitOrRequestOptions = [{
-            text: props.translate(props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
-                amount: props.numberFormat(
-                    props.iouAmount,
-                    {style: 'currency', currency: props.iou.selectedCurrencyCode},
-                ),
-            }),
-            value: props.hasMultipleParticipants ? CONST.IOU.IOU_TYPE.SPLIT : CONST.IOU.IOU_TYPE.REQUEST,
-        }];
-
         this.state = {
             participants: formattedParticipants,
         };
 
         this.toggleOption = this.toggleOption.bind(this);
         this.confirm = this.confirm.bind(this);
+    }
+
+    /**
+     * Get the confirmation button options
+     * @returns {Array}
+     */
+    getSplitOrRequestOptions() {
+        return [{
+            text: this.props.translate(this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
+                amount: this.props.numberFormat(
+                    this.props.iouAmount,
+                    {style: 'currency', currency: this.props.iou.selectedCurrencyCode},
+                ),
+            }),
+            value: this.props.hasMultipleParticipants ? CONST.IOU.IOU_TYPE.SPLIT : CONST.IOU.IOU_TYPE.REQUEST,
+        }];
     }
 
     /**
@@ -309,7 +315,7 @@ class IOUConfirmationList extends Component {
                         <ButtonWithMenu
                             isDisabled={shouldDisableButton}
                             onPress={(_event, value) => this.confirm(value)}
-                            options={this.splitOrRequestOptions}
+                            options={this.getSplitOrRequestOptions()}
                         />
                     )}
             />
