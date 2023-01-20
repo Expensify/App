@@ -169,6 +169,22 @@ function reconnectApp() {
 }
 
 /**
+ * Clear downloads
+ */
+function clearDownloads() {
+    const connectionID = Onyx.connect({
+        key: ONYXKEYS.COLLECTION.DOWNLOAD,
+        waitForCollectionCallback: true,
+        callback: (records) => {
+            Onyx.disconnect(connectionID);
+            const downloads = {};
+            _.each(_.keys(records), recordKey => downloads[recordKey] = null);
+            Onyx.multiSet(downloads);
+        },
+    });
+}
+
+/**
  * This action runs when the Navigator is ready and the current route changes
  *
  * currentPath should be the path as reported by the NavigationContainer
@@ -277,4 +293,5 @@ export {
     openProfile,
     openApp,
     reconnectApp,
+    clearDownloads,
 };

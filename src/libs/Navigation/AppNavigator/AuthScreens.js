@@ -102,6 +102,7 @@ class AuthScreens extends React.Component {
 
         App.openApp();
         App.setUpPoliciesAndNavigate(this.props.session);
+        App.clearDownloads();
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
