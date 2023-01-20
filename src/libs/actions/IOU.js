@@ -731,36 +731,34 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
     );
 
     // First, add data that will be used in all cases
-    const optimisticData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: {
-                ...chatReport,
-                lastVisitedTimestamp: Date.now(),
-                lastActionCreated: optimisticIOUReportAction.created,
-                lastReadSequenceNumber: newSequenceNumber,
-                maxSequenceNumber: newSequenceNumber,
-                lastMessageText: optimisticIOUReportAction.message[0].text,
-                lastMessageHtml: optimisticIOUReportAction.message[0].html,
+    const optimisticChatReportData = {
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+        value: {
+            ...chatReport,
+            lastVisitedTimestamp: Date.now(),
+            lastActionCreated: optimisticIOUReportAction.created,
+            lastReadSequenceNumber: newSequenceNumber,
+            maxSequenceNumber: newSequenceNumber,
+            lastMessageText: optimisticIOUReportAction.message[0].text,
+            lastMessageHtml: optimisticIOUReportAction.message[0].html,
+        },
+    };
+    const optimisticIOUReportData = {
+        onyxMethod: CONST.ONYX.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticIOUReport.reportID}`,
+        value: optimisticIOUReport,
+    };
+    const optimisticReportActionsData = {
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+        value: {
+            [optimisticIOUReportAction.reportActionID]: {
+                ...optimisticIOUReportAction,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
         },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-            value: {
-                [optimisticIOUReportAction.reportActionID]: {
-                    ...optimisticIOUReportAction,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-            },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticIOUReport.reportID}`,
-            value: optimisticIOUReport,
-        },
-    ];
+    };
 
     const successData = [
         {
@@ -792,22 +790,30 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
 
     // Now, let's add the data we need just when we are creating a new chat report
     if (isNewChat) {
-        optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
-
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
-        optimisticData[0].onyxMethod = CONST.ONYX.METHOD.SET;
-        optimisticData[0].value = {
-            ...optimisticData[0].value,
-            pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
-        };
-        optimisticData[1].onyxMethod = CONST.ONYX.METHOD.SET;
-        optimisticData[1].value = {
-            ...{[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
-            ...optimisticData[1].value,
-        };
-        optimisticData[2].onyxMethod = CONST.ONYX.METHOD.SET;
+        optimisticChatReportData.onyxMethod = CONST.ONYX.METHOD.SET;
+        optimisticReportActionsData.onyxMethod = CONST.ONYX.METHOD.SET;
+        optimisticIOUReportData.onyxMethod = CONST.ONYX.METHOD.SET;
+
+        // Set and clear pending fields on the chat report
+        optimisticChatReportData.value.pendingFields = {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+        successData.push({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: optimisticChatReportData.key,
+            value: {pendingFields: null},
+        });
+
+        // Add an optimistic created action to the optimistic reportActions data
+        optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+        optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
     }
+
+    const optimisticData = [
+        optimisticChatReportData,
+        optimisticIOUReportData,
+        optimisticReportActionsData,
+    ];
 
     return {
         params: {
