@@ -99,7 +99,7 @@ class DisplayNamePage extends Component {
      * @param {Object} errors
      * @param {String} errorKey
      * @param {Boolean} hasError
-     * @param {Array} errorCopy
+     * @param {Array<[phrase, variables]>} errorCopy
      * @returns {Object} - An object containing the errors for each inputID
      */
     assignError(errors, errorKey, hasError, errorCopy) {
