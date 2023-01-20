@@ -1,19 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import moment from 'moment';
 import Text from '../Text';
 import styles from '../../styles/styles';
-import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Button from '../Button';
-import TextLink from '../TextLink';
-import PressableWithoutFocus from '../PressableWithoutFocus';
-import Icon from '../Icon';
-import themeColors from '../../styles/themes/default';
-import * as Expensicons from '../Icon/Expensicons';
+import * as Chronos from '../../libs/actions/Chronos';
 
 const datePropTypes = {
     /** The full date string */
@@ -24,6 +17,9 @@ const datePropTypes = {
 };
 
 const propTypes = {
+    /** ID of the report action */
+    sequenceNumber: PropTypes.number,
+
     /** The OOO event data */
     event: PropTypes.shape({
         /** The Google event ID */
@@ -49,9 +45,6 @@ const ChronosOOOListAction = (props) => {
     const event = props.event;
     const start = new moment(event.start.date);
     const end = new moment(event.end.date);
-    const removeEvent = () => {
-        console.log('!!! remove event', event.id);
-    };
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.pt, styles.ml18]}>
             {event.lengthInDays > 0 ? (
@@ -79,7 +72,7 @@ const ChronosOOOListAction = (props) => {
             <Button
                 small
                 style={[styles.pl2]}
-                onPress={removeEvent}
+                onPress={() => Chronos.removeEvent(event.id, props.sequenceNumber)}
                 ContentComponent={() => (
                     <Text style={styles.buttonSmallText}>
                         {props.translate('common.remove')}

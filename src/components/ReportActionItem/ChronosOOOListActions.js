@@ -16,7 +16,7 @@ const ChronosOOOListActions = (props) => {
 
     return (
         <View>
-            {_.map(events, event => <ChronosOOOListAction event={event} />)}
+            {_.map(events, event => <ChronosOOOListAction event={event} sequenceNumber={props.action.sequenceNumber} />)}
         </View>
     );
 };
