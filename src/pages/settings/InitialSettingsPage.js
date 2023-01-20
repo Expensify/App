@@ -246,7 +246,7 @@ class InitialSettingsPage extends React.Component {
                 />
                 <ScrollView style={[styles.settingsPageBackground]}>
                     <View style={styles.w100}>
-                        <View style={styles.pageWrapper}>
+                        <View style={styles.avatarSectionWrapper}>
                             <Pressable style={[styles.mb3]} onPress={this.openProfileSettings}>
                                 <Tooltip text={this.props.currentUserPersonalDetails.displayName}>
                                     <OfflineWithFeedback
