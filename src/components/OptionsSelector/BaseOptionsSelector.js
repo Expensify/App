@@ -39,9 +39,18 @@ class BaseOptionsSelector extends Component {
         this.relatedTarget = null;
 
         const allOptions = this.flattenSections();
+
+        let focusedIndex = this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0;
+
+        const focusedOptionIndex = _.findIndex(allOptions, option => option.text === this.props.focusedValue);
+
+        if (focusedOptionIndex >= 0) {
+            focusedIndex = focusedOptionIndex;
+        }
+
         this.state = {
             allOptions,
-            focusedIndex: this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0,
+            focusedIndex,
         };
     }
 
@@ -93,6 +102,8 @@ class BaseOptionsSelector extends Component {
         } else {
             this.textInput.focus();
         }
+
+        this.scrollToIndex(this.state.focusedIndex, false);
     }
 
     componentDidUpdate(prevProps) {
@@ -175,8 +186,9 @@ class BaseOptionsSelector extends Component {
      * Scrolls to the focused index within the SectionList
      *
      * @param {Number} index
+     * @param {Boolean} animated
      */
-    scrollToIndex(index) {
+    scrollToIndex(index, animated = true) {
         const option = this.state.allOptions[index];
         if (!this.list || !option) {
             return;
@@ -195,7 +207,7 @@ class BaseOptionsSelector extends Component {
             }
         }
 
-        this.list.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex});
+        this.list.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
     }
 
     /**
