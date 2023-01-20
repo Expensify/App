@@ -56,10 +56,16 @@ const propTypes = {
     /** Whether the form submit action is dangerous */
     isSubmitActionDangerous: PropTypes.bool,
 
-    /** Defines wheter the overflow content of the form's ScrollView should be scrollable */
+    /** Defines wheter the overflow content of the form's ScrollView should be scrollable
+     *  Should be set to true, when there's a nested Picker component relatively at the end of
+     *  the ScrollView's content, so the opening Picker modal doesn't get rendered over the Picker
+     *  Example can be found here: https://github.com/Expensify/App/issues/13909#issuecomment-1396859008
+    */
     scrollToOverflowEnabled: PropTypes.bool,
 
-    /** Defines wheter ScrollWithContext should be used instead of regular ScrollView */
+    /** Defines wheter ScrollWithContext should be used instead of regular ScrollView
+     *  Should be set to true, when there's a nested Picker component in the ScrollView's children
+    */
     scrollContextEnabled: PropTypes.bool,
 
     ...withLocalizePropTypes,
