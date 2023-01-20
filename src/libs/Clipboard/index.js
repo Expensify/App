@@ -6,6 +6,78 @@ import * as Browser from '../Browser';
 
 const canSetHtml = () => lodashGet(navigator, 'clipboard.write');
 
+const isTextElement = (el) => {
+    if (el instanceof HTMLInputElement) {
+        // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#input_types
+        if (/|text|email|number|password|search|tel|url/.test(el.type || '')) {
+            return true;
+        }
+    }
+    if (el instanceof HTMLTextAreaElement) { return true; }
+
+    return false;
+};
+
+// ref: https://stackoverflow.com/a/4931963/1174657
+const getInputSelection = (el) => {
+    let start = 0;
+    let end = 0;
+    let normalizedValue;
+    let range;
+    let textInputRange;
+    let len;
+    let endRange;
+
+    if (typeof el.selectionStart === 'number' && typeof el.selectionEnd === 'number') {
+        start = el.selectionStart;
+        end = el.selectionEnd;
+    } else {
+        range = document.selection.createRange();
+
+        if (range && range.parentElement() === el) {
+            len = el.value.length;
+            normalizedValue = el.value.replace(/\r\n/g, '\n');
+
+            // Create a working TextRange that lives only in the input
+            textInputRange = el.createTextRange();
+            textInputRange.moveToBookmark(range.getBookmark());
+
+            // Check if the start and end of the selection are at the very end
+            // of the input, since moveStart/moveEnd doesn't return what we want
+            // in those cases
+            endRange = el.createTextRange();
+            endRange.collapse(false);
+
+            if (textInputRange.compareEndPoints('StartToEnd', endRange) > -1) {
+                start = len;
+                end = len;
+            } else {
+                start = -textInputRange.moveStart('character', -len);
+                start += normalizedValue.slice(0, start).split('\n').length - 1;
+
+                if (textInputRange.compareEndPoints('EndToEnd', endRange) > -1) {
+                    end = len;
+                } else {
+                    end = -textInputRange.moveEnd('character', -len);
+                    end += normalizedValue.slice(0, end).split('\n').length - 1;
+                }
+            }
+        }
+    }
+
+    return {
+        start,
+        end,
+        direction: el.selectionDirection,
+    };
+};
+
+const saveSelection = selection => [selection.anchorNode, selection.anchorOffset, selection.focusNode, selection.focusOffset];
+
+const restoreSelection = (selection, savedSelection) => {
+    selection.setBaseAndExtent(savedSelection[0], savedSelection[1], savedSelection[2], savedSelection[3]);
+};
+
 /**
  * Deprecated method to write the content as HTML to clipboard.
  * @param {String} html HTML representation
@@ -32,10 +104,9 @@ function setHTMLSync(html, text) {
     let originalSelection = null;
     const firstAnchorChild = selection.anchorNode.firstChild;
 
-    if(firstAnchorChild && isTextElement(firstAnchorChild))
+    if (firstAnchorChild && isTextElement(firstAnchorChild)) {
         originalSelection = getInputSelection(firstAnchorChild);
-    else
-        originalSelection = saveSelection(selection);
+    } else { originalSelection = saveSelection(selection); }
 
     selection.removeAllRanges();
     const range = document.createRange();
@@ -51,10 +122,9 @@ function setHTMLSync(html, text) {
 
     selection.removeAllRanges();
 
-    if(firstAnchorChild && isTextElement(firstAnchorChild))
+    if (firstAnchorChild && isTextElement(firstAnchorChild)) {
         firstAnchorChild.setSelectionRange(originalSelection.start, originalSelection.end, originalSelection.direction);
-    else
-        restoreSelection(selection, originalSelection);
+    } else { restoreSelection(selection, originalSelection); }
 
     document.body.removeChild(node);
 }
@@ -98,75 +168,6 @@ const setHtml = (html, text) => {
 const setString = (text) => {
     Clipboard.setString(text);
 };
-
-const isTextElement = (el) => {
-    if (el instanceof HTMLInputElement) {
-        // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#input_types
-        if (/|text|email|number|password|search|tel|url/.test(el.type || '')) {
-            return true;
-        }
-    }
-    if (el instanceof HTMLTextAreaElement)
-        return true;
-
-    return false;
-}
-
-// ref: https://stackoverflow.com/a/4931963/1174657
-const getInputSelection = (el) => {
-    var start = 0, end = 0, normalizedValue, range,
-        textInputRange, len, endRange;
-
-    if (typeof el.selectionStart == "number" && typeof el.selectionEnd == "number") {
-        start = el.selectionStart;
-        end = el.selectionEnd;
-    } else {
-        range = document.selection.createRange();
-
-        if (range && range.parentElement() == el) {
-            len = el.value.length;
-            normalizedValue = el.value.replace(/\r\n/g, "\n");
-
-            // Create a working TextRange that lives only in the input
-            textInputRange = el.createTextRange();
-            textInputRange.moveToBookmark(range.getBookmark());
-
-            // Check if the start and end of the selection are at the very end
-            // of the input, since moveStart/moveEnd doesn't return what we want
-            // in those cases
-            endRange = el.createTextRange();
-            endRange.collapse(false);
-
-            if (textInputRange.compareEndPoints("StartToEnd", endRange) > -1) {
-                start = end = len;
-            } else {
-                start = -textInputRange.moveStart("character", -len);
-                start += normalizedValue.slice(0, start).split("\n").length - 1;
-
-                if (textInputRange.compareEndPoints("EndToEnd", endRange) > -1) {
-                    end = len;
-                } else {
-                    end = -textInputRange.moveEnd("character", -len);
-                    end += normalizedValue.slice(0, end).split("\n").length - 1;
-                }
-            }
-        }
-    }
-
-    return {
-        start: start,
-        end: end,
-        direction: el.selectionDirection,
-    };
-}
-
-const saveSelection = (selection) => {
-    return [selection.anchorNode, selection.anchorOffset, selection.focusNode, selection.focusOffset];
-}
-
-const restoreSelection = (selection, savedSelection) => {
-    selection.setBaseAndExtent(savedSelection[0], savedSelection[1], savedSelection[2], savedSelection[3]);
-}
 
 export default {
     setString,
