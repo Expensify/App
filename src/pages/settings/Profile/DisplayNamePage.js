@@ -66,7 +66,7 @@ class DisplayNamePage extends Component {
             errors,
             'firstName',
             !_.isEmpty(firstNameInvalidCharacter),
-            Localize.translateLocal(
+            this.props.translateLocal(
                 'personalDetails.error.hasInvalidCharacter',
                 {invalidCharacter: firstNameInvalidCharacter},
             ),
@@ -75,7 +75,7 @@ class DisplayNamePage extends Component {
             errors,
             'lastName',
             !_.isEmpty(lastNameInvalidCharacter),
-            Localize.translateLocal(
+            this.props.translateLocal(
                 'personalDetails.error.hasInvalidCharacter',
                 {invalidCharacter: lastNameInvalidCharacter},
             ),
@@ -85,7 +85,7 @@ class DisplayNamePage extends Component {
         }
 
         // Check the character limit for first and last name
-        const characterLimitError = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
+        const characterLimitError = this.props.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
         const [hasFirstNameError, hasLastNameError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
             CONST.FORM_CHARACTER_LIMIT,
             [values.firstName, values.lastName],
