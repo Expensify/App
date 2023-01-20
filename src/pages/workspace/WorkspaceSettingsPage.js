@@ -77,6 +77,7 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     hasHtml(name) {
+        // Searches for anything that looks like an html tag "< >""
         return name.search(/<(.|\n)*?>/g) != -1;
     }
 
