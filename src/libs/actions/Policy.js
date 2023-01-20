@@ -13,7 +13,7 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import * as ReportUtils from '../ReportUtils';
-import {getMaxSequenceNumber} from './Report';
+import * as Report from './Report';
 import Log from '../Log';
 
 const allPolicies = {};
@@ -97,7 +97,7 @@ function deleteWorkspace(policyID, reports, policyName) {
 
         // Add closed actions to all chat reports linked to this policy
         ..._.map(reports, ({reportID, ownerEmail}) => {
-            const highestSequenceNumber = getMaxSequenceNumber(reportID);
+            const highestSequenceNumber = Report.getMaxSequenceNumber(reportID);
             const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(
                 highestSequenceNumber + 1,
                 ownerEmail,
