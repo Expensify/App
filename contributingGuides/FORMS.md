@@ -261,3 +261,19 @@ Any `Form.js` that has a button will also add safe area padding by default. If t
     </Form>
 </ScreenWrapper>
 ```
+
+### Handling Picker's in forms
+
+#### Enable ScrollContext
+
+In case there's a Picker nested in a ScrollView in the form we need to add one or two additional props to the `<Form />`.
+
+To enable "scrolling-up" behaviour when a `<Picker />` is pressed, we need to add the `scrollContextEnabled` prop and set it to `true`.
+
+This is because in this case, instead of a regular `ScrollView` the `<ScrollViewWithContext />` component will be used, so that a ref to the `ScrollView` and the current vertical scroll offset get passed to the picker over a context. The picker then handles scrolling up when it gets pressed.
+
+#### Enable scrolling to overflow
+
+Additionally to the section above, we can also enable the `scrollToOverflowEnabled` prop in case a there is a nested `<Picker />` component relatively far at the end of the ScrollView's content.
+
+In this case, the opening Picker modal would get rendered over the Picker. (tbs., over the `TextInput` rendered by the `Picker`). We can prevent this behaviour by enabling scrolling to overflow in the `ScrollView`.
