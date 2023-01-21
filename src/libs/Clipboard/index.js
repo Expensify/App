@@ -56,7 +56,7 @@ function setHTMLSync(html, text) {
 
     const selection = window.getSelection();
     let originalSelection = null;
-    const firstAnchorChild = selection.anchorNode.firstChild;
+    const firstAnchorChild = selection.anchorNode?.firstChild;
 
     if (firstAnchorChild && isTextElement(firstAnchorChild)) {
         originalSelection = getInputSelection(firstAnchorChild);
@@ -120,7 +120,20 @@ const setHtml = (html, text) => {
  * @param {String} text
  */
 const setString = (text) => {
+    const selection = window.getSelection();
+    let originalSelection = null;
+    const firstAnchorChild = selection.anchorNode?.firstChild;
+
+    if (firstAnchorChild && isTextElement(firstAnchorChild)) {
+        originalSelection = getInputSelection(firstAnchorChild);
+    } else { originalSelection = saveSelection(selection); }
+
+
     Clipboard.setString(text);
+
+    if (firstAnchorChild && isTextElement(firstAnchorChild)) {
+        firstAnchorChild.setSelectionRange(originalSelection.start, originalSelection.end, originalSelection.direction);
+    } else { restoreSelection(selection, originalSelection); }
 };
 
 export default {
