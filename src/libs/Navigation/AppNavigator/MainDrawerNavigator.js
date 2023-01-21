@@ -73,7 +73,7 @@ class MainDrawerNavigator extends Component {
     render() {
         // Wait until reports are fetched and there is a reportID in initialParams
         if (!this.initialParams.reportID) {
-            return <FullScreenLoadingIndicator logDetail={{name: 'Main Drawer Loader', initialParams: this.initialParams}} />;
+            return <FullScreenLoadingIndicator />;
         }
 
         // After the app initializes and reports are available the home navigation is mounted
