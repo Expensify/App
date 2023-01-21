@@ -173,6 +173,46 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
     return ReportUtils.formatReportLastMessageText(messageText);
 }
 
+/**
+ * Given an array of Onyx updates, this function will filter out any which attempt to update reportActions data using reportActionID as the key.
+ * It is a TEMPORARY measure while we migrate the shape of reportActions Onyx data. Additional context:
+ *
+ * - In GitHub: https://github.com/Expensify/App/issues/14452
+ * - In Slack: https://expensify.slack.com/archives/C04DC6LU2UB/p1674243288556829?thread_ts=1674242808.964579&cid=C04DC6LU2UB
+ *
+ * @param {Array} onyxUpdates – each Onyx update typically has shape: {onyxMethod: string, key: string, value: object}
+ * @returns {Array}
+ */
+function filterReportActionIDKeyedOnyxUpdates(onyxUpdates) {
+    return _.reduce(
+        onyxUpdates,
+        (memo, onyxUpdate) => {
+            if (!onyxUpdate.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
+                memo.push(onyxUpdate);
+                return memo;
+            }
+
+            const newValue = {};
+            _.each(onyxUpdate.value, (reportAction, key) => {
+                if (reportAction.reportActionID === key) {
+                    return;
+                }
+                newValue[key] = reportAction;
+            });
+
+            if (_.isEmpty(newValue)) {
+                return memo;
+            }
+
+            // eslint-disable-next-line no-param-reassign
+            onyxUpdate.value = newValue;
+            memo.push(onyxUpdate);
+            return memo;
+        },
+        [],
+    );
+}
+
 export {
     getSortedReportActions,
     filterReportActionsForDisplay,
@@ -181,4 +221,5 @@ export {
     getMostRecentIOUReportActionID,
     isDeletedAction,
     isConsecutiveActionMadeByPreviousActor,
+    filterReportActionIDKeyedOnyxUpdates,
 };
