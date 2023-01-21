@@ -12,11 +12,11 @@ In Expensify, we use a prioritization system called called "Kernel Scheduler v2"
 
 ## Dashboard
 
-To help surface the issues and PRs that need the most #urgency, we've built a custom extension to use in GitHub. It looks like this:
+To help surface the issues and PRs that need the most `#urgency`, we've built a custom extension to use in GitHub. It looks like this:
 
 <img src="https://user-images.githubusercontent.com/6829422/213875977-8ff4cf19-7690-4203-ae13-a8da259be7d0.png" />
 
-In the dashboard, you can first see the PRs assigned to you as Reviewer. An engineer should review other people's code before working on their own code.
+In the dashboard, you can first see the PRs assigned to you as `Reviewer`. An engineer should review other people's code before working on their own code.
 
 Then you can see all issues assigned to you, prioritized from most urgent to least urgent. Issues will also change color depending on other factors - e.g. if they have "HOLD" in the title or if they have the `Overdue`, `Planning`, or `Waiting for copy` labels applied.
 
