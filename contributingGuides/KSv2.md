@@ -12,11 +12,13 @@ In Expensify, we use a prioritization system called called "Kernel Scheduler v2"
 
 ## Dashboard
 
-To help surface the issues that need the most #urgency, we've built a custom extension to use in GitHub. It looks like this:
+To help surface the issues and PRs that need the most #urgency, we've built a custom extension to use in GitHub. It looks like this:
 
-<img src="https://user-images.githubusercontent.com/6829422/212977549-7e1b0b48-1c6f-4c90-a05e-26e6e2ba9926.png" />
+<img src="https://user-images.githubusercontent.com/6829422/213875977-8ff4cf19-7690-4203-ae13-a8da259be7d0.png" />
 
-In the dashboard, you can see all issues assigned to you, prioritized from most urgent to least urgent. Issues will also change color depending on other factors - e.g. if they have "HOLD" in the title or if they have the `Overdue`, `Planning`, or `Waiting for copy` labels applied.
+In the dashboard, you can first see the PRs assigned to you as Reviewer. An engineer should review other people's code before working on their own code.
+
+Then you can see all issues assigned to you, prioritized from most urgent to least urgent. Issues will also change color depending on other factors - e.g. if they have "HOLD" in the title or if they have the `Overdue`, `Planning`, or `Waiting for copy` labels applied.
 
 If a GitHub issue has the `Overdue` label, it means that it hasn't been updated in the amount of time allotted for an update (ex - A weekly issue becomes overdue if it hasn't been updated in a week).
 
