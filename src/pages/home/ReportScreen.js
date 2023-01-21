@@ -219,7 +219,7 @@ class ReportScreen extends React.Component {
         // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
         const freeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
 
-        const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails) || isLoadingInitialReportActions;
+        const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails);
 
         // the moment the ReportScreen becomes unfrozen we want to start the animation of the placeholder skeleton content
         // (which is shown, until all the actual views of the ReportScreen have been rendered)
@@ -250,7 +250,7 @@ class ReportScreen extends React.Component {
                             Navigation.navigate(ROUTES.HOME);
                         }}
                     >
-                        {(isLoading && !isLoadingInitialReportActions) ? <ReportHeaderSkeletonView animate={animatePlaceholder} /> : (
+                        {isLoading ? <ReportHeaderSkeletonView animate={animatePlaceholder} /> : (
                             <>
                                 <OfflineWithFeedback
                                     pendingAction={addWorkspaceRoomOrChatPendingAction}
@@ -292,7 +292,7 @@ class ReportScreen extends React.Component {
                                 this.setState({skeletonViewContainerHeight});
                             }}
                         >
-                            {(this.isReportReadyForDisplay() && !isLoading) && (
+                            {(this.isReportReadyForDisplay() && !isLoadingInitialReportActions && !isLoading) && (
                                 <>
                                     <ReportActionsView
                                         reportActions={this.props.reportActions}
@@ -316,7 +316,7 @@ class ReportScreen extends React.Component {
 
                             {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
                             we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                            {(!this.isReportReadyForDisplay() || isLoading) && (
+                            {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions || isLoading) && (
                                 <>
                                     <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
                                     <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
