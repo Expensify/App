@@ -194,7 +194,7 @@ function filterReportActionIDKeyedOnyxUpdates(onyxUpdates) {
 
             const newValue = {};
             _.each(onyxUpdate.value, (reportAction, key) => {
-                if (reportAction.reportActionID === key) {
+                if (reportAction && reportAction.reportActionID === key) {
                     return;
                 }
                 newValue[key] = reportAction;

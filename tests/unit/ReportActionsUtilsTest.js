@@ -338,5 +338,22 @@ describe('ReportActionsUtils', () => {
 
             expect(ReportActionsUtils.filterReportActionIDKeyedOnyxUpdates(input)).toStrictEqual(expectedOutput);
         });
+
+        it('should not filter out the removal of any clientID-keyed reportAction', () => {
+            const onyxUpdates = [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4321`,
+                    value: {
+                        123135135: null,
+                        1: {
+                            sequenceNumber: 1,
+                            reportActionID: '54321',
+                        },
+                    },
+                },
+            ];
+            expect(ReportActionsUtils.filterReportActionIDKeyedOnyxUpdates(onyxUpdates)).toStrictEqual(onyxUpdates);
+        });
     });
 });
