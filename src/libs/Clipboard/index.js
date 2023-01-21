@@ -6,6 +6,11 @@ import * as Browser from '../Browser';
 
 const canSetHtml = () => lodashGet(navigator, 'clipboard.write');
 
+/**
+ * Check if an HTMLElement is text input or text area
+ * @param {HTMLElement} el
+ * @returns {Boolean}
+ */
 const isTextElement = (el) => {
     if (el instanceof HTMLInputElement) {
         // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#input_types
@@ -18,16 +23,29 @@ const isTextElement = (el) => {
     return false;
 };
 
-const getInputSelection = (el) => {
-    return {
-        start: el.selectionStart,
-        end: el.selectionEnd,
-        direction: el.selectionDirection,
-    }
-}
+/**
+ * Get input selection properties
+ * @param {HTMLInputElement|HTMLTextAreaElement} el HTML Text input element.
+ * @returns {Object} selection properties as an object
+ */
+const getInputSelection = el => ({
+    start: el.selectionStart,
+    end: el.selectionEnd,
+    direction: el.selectionDirection,
+});
 
+/**
+ * Save current selection properties
+ * @param {Selection} selection active text selection
+ * @returns {Array} selection properties
+ */
 const saveSelection = selection => [selection.anchorNode, selection.anchorOffset, selection.focusNode, selection.focusOffset];
 
+/**
+ * Restore saved selection
+ * @param {Selection} selection active text selection
+ * @param {Array} savedSelection
+ */
 const restoreSelection = (selection, savedSelection) => {
     selection.setBaseAndExtent(savedSelection[0], savedSelection[1], savedSelection[2], savedSelection[3]);
 };
@@ -56,7 +74,7 @@ function setHTMLSync(html, text) {
 
     const selection = window.getSelection();
     let originalSelection = null;
-    const firstAnchorChild = selection.anchorNode?.firstChild;
+    const firstAnchorChild = selection.anchorNode && selection.anchorNode.firstChild;
 
     if (firstAnchorChild && isTextElement(firstAnchorChild)) {
         originalSelection = getInputSelection(firstAnchorChild);
@@ -120,20 +138,7 @@ const setHtml = (html, text) => {
  * @param {String} text
  */
 const setString = (text) => {
-    const selection = window.getSelection();
-    let originalSelection = null;
-    const firstAnchorChild = selection.anchorNode?.firstChild;
-
-    if (firstAnchorChild && isTextElement(firstAnchorChild)) {
-        originalSelection = getInputSelection(firstAnchorChild);
-    } else { originalSelection = saveSelection(selection); }
-
-
     Clipboard.setString(text);
-
-    if (firstAnchorChild && isTextElement(firstAnchorChild)) {
-        firstAnchorChild.setSelectionRange(originalSelection.start, originalSelection.end, originalSelection.direction);
-    } else { restoreSelection(selection, originalSelection); }
 };
 
 export default {
