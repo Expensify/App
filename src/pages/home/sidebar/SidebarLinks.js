@@ -29,6 +29,7 @@ import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import LHNSkeletonView from '../../../components/LHNSkeletonView';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -81,6 +82,9 @@ const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 
+// Keep a reference to the screen height so we can use it when a new SidebarLinks component mounts
+let lhnListHeight = 0;
+
 class SidebarLinks extends React.Component {
     constructor(props) {
         super(props);
@@ -88,6 +92,10 @@ class SidebarLinks extends React.Component {
         this.showSearchPage = this.showSearchPage.bind(this);
         this.showSettingsPage = this.showSettingsPage.bind(this);
         this.showReportPage = this.showReportPage.bind(this);
+
+        this.state = {
+            skeletonViewContainerHeight: lhnListHeight,
+        }
     }
 
     showSearchPage() {
@@ -122,11 +130,13 @@ class SidebarLinks extends React.Component {
     }
 
     render() {
-        // Wait until the personalDetails are actually loaded before displaying the LHN
-        if (_.isEmpty(this.props.personalDetails)) {
-            return null;
-        }
+        const isLoading = _.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.chatReports);
+        const freeze = this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded;
+        const animatePlaceholder = !freeze;
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
+
+        const skeletonPlaceholder = <LHNSkeletonView containerHeight={this.state.skeletonViewContainerHeight} animate={animatePlaceholder} />;
+        
         return (
             <View
                 accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
@@ -156,6 +166,7 @@ class SidebarLinks extends React.Component {
                             accessibilityRole="button"
                             style={[styles.flexRow, styles.ph5]}
                             onPress={this.showSearchPage}
+                            disabled={isLoading}
                         >
                             <Icon src={Expensicons.MagnifyingGlass} />
                         </TouchableOpacity>
@@ -164,6 +175,7 @@ class SidebarLinks extends React.Component {
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
                         accessibilityRole="button"
                         onPress={this.showSettingsPage}
+                        disabled={isLoading}
                     >
                         <OfflineWithFeedback
                             pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
@@ -175,24 +187,43 @@ class SidebarLinks extends React.Component {
                         </OfflineWithFeedback>
                     </TouchableOpacity>
                 </View>
-                <Freeze freeze={this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded}>
-                    <LHNOptionsList
-                        contentContainerStyles={[
-                            styles.sidebarListContainer,
-                            {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
-                        ]}
-                        data={optionListItems}
-                        focusedIndex={_.findIndex(optionListItems, (
-                            option => option.toString() === this.props.reportIDFromRoute
-                        ))}
-                        onSelectRow={this.showReportPage}
-                        shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                        optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
-                        onLayout={() => {
-                            App.setSidebarLoaded();
-                            this.isSidebarLoaded = true;
+                <Freeze 
+                    freeze={freeze}
+                    placeholder={skeletonPlaceholder}>
+                    <View
+                        style={styles.flex1}
+                        onLayout={(event) => {
+                            const skeletonViewContainerHeight = event.nativeEvent.layout.height;
+        
+                            // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
+                            // takes up so we can set the skeleton view container height.
+                            if (skeletonViewContainerHeight === 0) {
+                                return;
+                            }
+                            lhnListHeight = skeletonViewContainerHeight;
+                            this.setState({skeletonViewContainerHeight});
                         }}
-                    />
+                    >
+                        {isLoading ? skeletonPlaceholder : (
+                            <LHNOptionsList
+                                contentContainerStyles={[
+                                    styles.sidebarListContainer,
+                                    {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
+                                ]}
+                                data={optionListItems}
+                                focusedIndex={_.findIndex(optionListItems, (
+                                    option => option.toString() === this.props.reportIDFromRoute
+                                ))}
+                                onSelectRow={this.showReportPage}
+                                shouldDisableFocusOptions={this.props.isSmallScreenWidth}
+                                optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
+                                onLayout={() => {
+                                    App.setSidebarLoaded();
+                                    this.isSidebarLoaded = true;
+                                }}
+                            />
+                        )}
+                    </View>
                 </Freeze>
             </View>
         );

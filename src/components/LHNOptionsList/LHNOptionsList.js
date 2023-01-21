@@ -1,8 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {View, FlatList} from 'react-native';
+import {FlatList} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
 import OptionRowLHN from './OptionRowLHN';
 import variables from '../../styles/variables';
 import CONST from '../../CONST';
@@ -84,24 +83,22 @@ class LHNOptionsList extends Component {
 
     render() {
         return (
-            <View style={[styles.flex1]}>
-                <FlatList
-                    indicatorStyle="white"
-                    keyboardShouldPersistTaps="always"
-                    contentContainerStyle={this.props.contentContainerStyles}
-                    showsVerticalScrollIndicator={false}
-                    data={this.props.data}
-                    keyExtractor={item => item}
-                    stickySectionHeadersEnabled={false}
-                    renderItem={this.renderItem}
-                    getItemLayout={this.getItemLayout}
-                    extraData={this.props.focusedIndex}
-                    initialNumToRender={5}
-                    maxToRenderPerBatch={5}
-                    windowSize={5}
-                    onLayout={this.props.onLayout}
-                />
-            </View>
+            <FlatList
+                indicatorStyle="white"
+                keyboardShouldPersistTaps="always"
+                contentContainerStyle={this.props.contentContainerStyles}
+                showsVerticalScrollIndicator={false}
+                data={this.props.data}
+                keyExtractor={item => item}
+                stickySectionHeadersEnabled={false}
+                renderItem={this.renderItem}
+                getItemLayout={this.getItemLayout}
+                extraData={this.props.focusedIndex}
+                initialNumToRender={5}
+                maxToRenderPerBatch={5}
+                windowSize={5}
+                onLayout={this.props.onLayout}
+            />
         );
     }
 }

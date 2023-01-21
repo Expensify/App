@@ -522,6 +522,7 @@ const CONST = {
             3: 100,
         },
     },
+    LHN_SKELETON_VIEW_HEIGHT: 64,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EMAIL: {
         CONCIERGE: 'concierge@expensify.com',

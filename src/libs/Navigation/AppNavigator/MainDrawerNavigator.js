@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 
-import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import ONYXKEYS from '../../../ONYXKEYS';
 import SCREENS from '../../../SCREENS';
 import Permissions from '../../Permissions';
@@ -14,6 +13,7 @@ import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import BaseDrawerNavigator from './BaseDrawerNavigator';
 import * as ReportUtils from '../../ReportUtils';
 import reportPropTypes from '../../../pages/reportPropTypes';
+import Navigation from '../Navigation';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
@@ -66,19 +66,14 @@ class MainDrawerNavigator extends Component {
             return false;
         }
 
+        if (!this.initialParams.reportID) {
+            Navigation.setParams(initialNextParams);
+        }
         this.initialParams = initialNextParams;
         return true;
     }
 
     render() {
-        // Wait until reports are fetched and there is a reportID in initialParams
-        if (!this.initialParams.reportID) {
-            return <FullScreenLoadingIndicator />;
-        }
-
-        // After the app initializes and reports are available the home navigation is mounted
-        // This way routing information is updated (if needed) based on the initial report ID resolved.
-        // This is usually needed after login/create account and re-launches
         return (
             <BaseDrawerNavigator
                 drawerContent={({navigation, state}) => {

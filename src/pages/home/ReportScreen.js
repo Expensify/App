@@ -156,7 +156,7 @@ class ReportScreen extends React.Component {
 
         // This is necessary so that when we are retrieving the next report data from Onyx the ReportActionsView will remount completely
         const isTransitioning = this.props.report && this.props.report.reportID !== reportIDFromPath;
-        return reportIDFromPath && this.props.report.reportID && !isTransitioning;
+        return reportIDFromPath !== '' && this.props.report.reportID && !isTransitioning;
     }
 
     fetchReportIfNeeded() {
@@ -189,10 +189,6 @@ class ReportScreen extends React.Component {
     }
 
     render() {
-        if (!this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails)) {
-            return null;
-        }
-
         // We create policy rooms for all policies, however we don't show them unless
         // - It's a free plan workspace
         // - The report includes guides participants (@team.expensify.com) for 1:1 Assigned
@@ -223,6 +219,8 @@ class ReportScreen extends React.Component {
         // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
         const freeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
 
+        const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails) || isLoadingInitialReportActions;
+
         // the moment the ReportScreen becomes unfrozen we want to start the animation of the placeholder skeleton content
         // (which is shown, until all the actual views of the ReportScreen have been rendered)
         const animatePlaceholder = !freeze;
@@ -244,7 +242,7 @@ class ReportScreen extends React.Component {
                     )}
                 >
                     <FullPageNotFoundView
-                        shouldShow={!this.props.report.reportID}
+                        shouldShow={!this.props.report.reportID && !isLoading}
                         subtitleKey="notFound.noAccess"
                         shouldShowCloseButton={false}
                         shouldShowBackButton={this.props.isSmallScreenWidth}
@@ -252,28 +250,32 @@ class ReportScreen extends React.Component {
                             Navigation.navigate(ROUTES.HOME);
                         }}
                     >
-                        <OfflineWithFeedback
-                            pendingAction={addWorkspaceRoomOrChatPendingAction}
-                            errors={addWorkspaceRoomOrChatErrors}
-                            shouldShowErrorMessages={false}
-                        >
-                            <HeaderView
-                                reportID={reportID}
-                                onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                                personalDetails={this.props.personalDetails}
-                                report={this.props.report}
-                                policies={this.props.policies}
-                            />
-                        </OfflineWithFeedback>
-                        {this.props.accountManagerReportID && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
-                            <Banner
-                                containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
-                                textStyles={[styles.colorReversed]}
-                                text={this.props.translate('reportActionsView.chatWithAccountManager')}
-                                onClose={this.dismissBanner}
-                                onPress={this.chatWithAccountManager}
-                                shouldShowCloseButton
-                            />
+                        {(isLoading && !isLoadingInitialReportActions) ? <ReportHeaderSkeletonView animate={animatePlaceholder} /> : (
+                            <>
+                                <OfflineWithFeedback
+                                    pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                    errors={addWorkspaceRoomOrChatErrors}
+                                    shouldShowErrorMessages={false}
+                                >
+                                    <HeaderView
+                                        reportID={reportID}
+                                        onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                                        personalDetails={this.props.personalDetails}
+                                        report={this.props.report}
+                                        policies={this.props.policies}
+                                    />
+                                </OfflineWithFeedback>
+                                {this.props.accountManagerReportID && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
+                                    <Banner
+                                        containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
+                                        textStyles={[styles.colorReversed]}
+                                        text={this.props.translate('reportActionsView.chatWithAccountManager')}
+                                        onClose={this.dismissBanner}
+                                        onPress={this.chatWithAccountManager}
+                                        shouldShowCloseButton
+                                    />
+                                )}
+                            </>
                         )}
                         <View
                             nativeID={CONST.REPORT.DROP_NATIVE_ID}
@@ -290,7 +292,7 @@ class ReportScreen extends React.Component {
                                 this.setState({skeletonViewContainerHeight});
                             }}
                         >
-                            {(this.isReportReadyForDisplay() && !isLoadingInitialReportActions) && (
+                            {(this.isReportReadyForDisplay() && !isLoading) && (
                                 <>
                                     <ReportActionsView
                                         reportActions={this.props.reportActions}
@@ -314,7 +316,7 @@ class ReportScreen extends React.Component {
 
                             {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
                             we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                            {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions) && (
+                            {(!this.isReportReadyForDisplay() || isLoading) && (
                                 <>
                                     <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
                                     <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
