@@ -95,7 +95,7 @@ class SidebarLinks extends React.Component {
 
         this.state = {
             skeletonViewContainerHeight: lhnListHeight,
-        }
+        };
     }
 
     showSearchPage() {
@@ -136,7 +136,7 @@ class SidebarLinks extends React.Component {
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
 
         const skeletonPlaceholder = <LHNSkeletonView containerHeight={this.state.skeletonViewContainerHeight} animate={animatePlaceholder} />;
-        
+
         return (
             <View
                 accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
@@ -187,14 +187,15 @@ class SidebarLinks extends React.Component {
                         </OfflineWithFeedback>
                     </TouchableOpacity>
                 </View>
-                <Freeze 
+                <Freeze
                     freeze={freeze}
-                    placeholder={skeletonPlaceholder}>
+                    placeholder={skeletonPlaceholder}
+                >
                     <View
                         style={styles.flex1}
                         onLayout={(event) => {
                             const skeletonViewContainerHeight = event.nativeEvent.layout.height;
-        
+
                             // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
                             // takes up so we can set the skeleton view container height.
                             if (skeletonViewContainerHeight === 0) {

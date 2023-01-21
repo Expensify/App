@@ -1,7 +1,9 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {Keyboard} from 'react-native';
-import {DrawerActions, getPathFromState, StackActions, CommonActions} from '@react-navigation/native';
+import {
+    DrawerActions, getPathFromState, StackActions, CommonActions,
+} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
 import linkTo from './linkTo';
@@ -162,8 +164,8 @@ function navigate(route = ROUTES.HOME) {
 
 /**
  * Update route params for the currently focused route.
- * 
- * @param {Object} params 
+ *
+ * @param {Object} params
  */
 function setParams(params) {
     navigationRef.current.dispatch(CommonActions.setParams(params));

@@ -18,7 +18,7 @@ const defaultTypes = {
     animate: true,
 };
 
-const LHNSkeletonView = props => {
+const LHNSkeletonView = (props) => {
     const skeletonHeight = CONST.LHN_SKELETON_VIEW_HEIGHT;
     const possibleVisibleContentItems = Math.round(props.containerHeight / skeletonHeight);
     const skeletonViewLines = [];
@@ -28,13 +28,13 @@ const LHNSkeletonView = props => {
         let lineWidth;
         switch (lengthIndex) {
             case 0:
-                lineWidth = "100%";
+                lineWidth = '100%';
                 break;
             case 1:
-                lineWidth = "50%";
+                lineWidth = '50%';
                 break;
             default:
-                lineWidth = "65%";
+                lineWidth = '65%';
         }
         skeletonViewLines.push(
             <SkeletonViewContentLoader
@@ -49,7 +49,7 @@ const LHNSkeletonView = props => {
                 <Rect x="76" y="18" width="20%" height="8" />
                 <Rect x="76" y="38" width={lineWidth} height="8" />
             </SkeletonViewContentLoader>
-        )
+        );
     }
     return <>{skeletonViewLines}</>;
 };
