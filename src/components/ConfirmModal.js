@@ -71,6 +71,8 @@ const ConfirmModal = props => (
     >
         <ConfirmContent
             title={props.title}
+
+            /* Disable onConfirm function if the modal is being dismissed */
             onConfirm={() => (props.isVisible ? props.onConfirm() : null)}
             onCancel={props.onCancel}
             confirmText={props.confirmText}
