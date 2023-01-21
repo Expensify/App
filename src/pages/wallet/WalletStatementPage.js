@@ -58,17 +58,13 @@ class WalletStatementPage extends React.Component {
     }
 
     componentDidMount() {
-        if (!this.yearMonth) {
+        const currentYearMonth = moment().format('YYYYMM');
+        if (!this.yearMonth || this.yearMonth.length !== 6 || this.yearMonth > currentYearMonth) {
             Navigation.dismissModal(true);
-        }
-
-        if (this.yearMonth && moment(this.yearMonth, 'YYYYMM').isValid()) {
-            const currentYearMonth = moment().format('YYYYMM');
-            if (this.yearMonth > currentYearMonth) {
-                Navigation.dismissModal(true);
-            }
-        }
+            return;
+        };
     }
+    
 
     processDownload(yearMonth) {
         if (this.props.walletStatement.isGenerating) {
@@ -84,7 +80,7 @@ class WalletStatementPage extends React.Component {
             return;
         }
 
-        Growl.show(this.props.translate('statementPage.generatingPDF'), CONST.GROWL.NOTICE, 5000);
+        Growl.show(this.props.translate('statementPage.generatingPDF'), CONST.GROWL.SUCCESS, 3000);
         User.generateStatementPDF(this.yearMonth);
     }
 
