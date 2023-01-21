@@ -180,7 +180,7 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
  * - In GitHub: https://github.com/Expensify/App/issues/14452
  * - In Slack: https://expensify.slack.com/archives/C04DC6LU2UB/p1674243288556829?thread_ts=1674242808.964579&cid=C04DC6LU2UB
  *
- * @param {Array} onyxUpdates – each Onyx update typically has shape: {onyxMethod: string, key: string, value: object}
+ * @param {Array} onyxUpdates – each Onyx update typically has shape: {onyxMethod: string, key: string, value: *}
  * @returns {Array}
  */
 function filterReportActionIDKeyedOnyxUpdates(onyxUpdates) {
