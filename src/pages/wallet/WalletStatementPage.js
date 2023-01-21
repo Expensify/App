@@ -57,6 +57,19 @@ class WalletStatementPage extends React.Component {
         this.yearMonth = lodashGet(this.props.route.params, 'yearMonth', null);
     }
 
+    componentDidMount() {
+        if (!this.yearMonth) {
+            Navigation.dismissModal(true);
+        }
+
+        if (this.yearMonth && moment(this.yearMonth, 'YYYYMM').isValid()) {
+            const currentYearMonth = moment().format('YYYYMM');
+            if (this.yearMonth > currentYearMonth) {
+                Navigation.dismissModal(true);
+            }
+        }
+    }
+
     processDownload(yearMonth) {
         if (this.props.walletStatement.isGenerating) {
             return;
