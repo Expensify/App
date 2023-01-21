@@ -168,7 +168,7 @@ function buildTestReportComment(actorEmail, created, actorAccountID, actionID = 
         actorEmail,
         person: [{type: 'TEXT', style: 'strong', text: 'User B'}],
         created,
-        message: [{type: 'COMMENT', html: 'kupo', text: 'kupo'}],
+        message: [{type: 'COMMENT', html: `Comment ${actionID}`, text: `Comment ${actionID}`}],
         reportActionID,
         actorAccountID,
     };
