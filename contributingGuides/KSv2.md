@@ -28,9 +28,15 @@ If a GitHub issue has the `Overdue` label, it means that it hasn't been updated 
 
 ## Your Pull Requests
 
-After the issues section you will find your PRs:
-
 <img src="https://user-images.githubusercontent.com/6829422/213875978-3df6bcd0-ee9a-472a-9a9f-6db70486bcf0.png" />
+
+After the issues section you will find a section that lists your created PRs.
+
+## WAQ issues
+
+<img src="https://user-images.githubusercontent.com/6829422/213875962-fb1f23d0-59b9-4d05-960e-160e34c83cf0.png" />
+
+The dashboard also shows a list of open issues in the App repo which are not on hold and don't have PRs yet, all ordered by their age (and grouped by how many weeks old they are).
 
 ## Installation
 
