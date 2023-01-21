@@ -22,12 +22,14 @@ const defaultProps = {
 const ReportHeaderSkeletonView = props => (
     <View style={[styles.appContentHeader]}>
         <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
-            <Pressable
-                onPress={() => {}}
-                style={[styles.LHNToggle]}
-            >
-                <Icon src={Expensicons.BackArrow} />
-            </Pressable>
+            {props.isSmallScreenWidth && (
+                <Pressable
+                    onPress={() => {}}
+                    style={[styles.LHNToggle]}
+                >
+                    <Icon src={Expensicons.BackArrow} />
+                </Pressable>
+            )}
             <SkeletonViewContentLoader
                 animate={props.animate}
                 width={styles.w100.width}
