@@ -48,7 +48,7 @@ const LHNSkeletonView = (props) => {
                 <Circle cx="40" cy="32" r="20" />
                 <Rect x="76" y="18" width="20%" height="8" />
                 <Rect x="76" y="38" width={lineWidth} height="8" />
-            </SkeletonViewContentLoader>
+            </SkeletonViewContentLoader>,
         );
     }
     return <>{skeletonViewLines}</>;
