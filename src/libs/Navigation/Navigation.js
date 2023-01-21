@@ -11,7 +11,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 
-/* eslint-disable @lwc/lwc/no-async-await */
 let resolveNavigationIsReadyPromise;
 const navigationIsReadyPromise = new Promise((resolve) => {
     resolveNavigationIsReadyPromise = resolve;
@@ -68,6 +67,10 @@ function canNavigate(methodName, params = {}) {
     });
 }
 
+/**
+ * Sets Navigation State
+ * @param {Boolean} isNavigatingValue
+ */
 function setIsNavigating(isNavigatingValue) {
     isNavigating = isNavigatingValue;
 }
@@ -76,23 +79,27 @@ function setIsNavigating(isNavigatingValue) {
  * Opens the LHN drawer.
  * @private
  */
-async function openDrawer() {
-    const navigationIsReady = await canNavigate('openDrawer');
-    if (navigationIsReady) {
+function openDrawer() {
+    canNavigate('openDrawer').then((navigationIsReady) => {
+        if (!navigationIsReady) {
+            return;
+        }
         navigationRef.current.dispatch(DrawerActions.openDrawer());
         Keyboard.dismiss();
-    }
+    });
 }
 
 /**
  * Close the LHN drawer.
  * @private
  */
-async function closeDrawer() {
-    const navigationIsReady = await canNavigate('closeDrawer');
-    if (navigationIsReady) {
+function closeDrawer() {
+    canNavigate('closeDrawer').then((navigationIsReady) => {
+        if (!navigationIsReady) {
+            return;
+        }
         navigationRef.current.dispatch(DrawerActions.closeDrawer());
-    }
+    });
 }
 
 /**
@@ -110,10 +117,11 @@ function getDefaultDrawerState(isSmallScreenWidth) {
  * @private
  * @param {Boolean} shouldOpenDrawer
  */
-async function goBack(shouldOpenDrawer = true) {
-    const navigationIsReady = await canNavigate('goBack');
-
-    if (navigationIsReady) {
+function goBack(shouldOpenDrawer = true) {
+    canNavigate('goBack').then((navigationIsReady) => {
+        if (!navigationIsReady) {
+            return;
+        }
         if (!navigationRef.current.canGoBack()) {
             Log.hmmm('[Navigation] Unable to go back');
             if (shouldOpenDrawer) {
@@ -123,7 +131,7 @@ async function goBack(shouldOpenDrawer = true) {
         }
 
         navigationRef.current.goBack();
-    }
+    });
 }
 
 /**
@@ -144,35 +152,36 @@ function isDrawerRoute(route) {
  * Main navigation method for redirecting to a route.
  * @param {String} route
  */
-async function navigate(route = ROUTES.HOME) {
-    const navigationIsReady = await canNavigate('navigate', {route});
-    if (!navigationIsReady) {
-        // Store intended route if the navigator is not yet available,
-        // we will try again after the NavigationContainer is ready
-        Log.hmmm(`[Navigation] Container not yet ready, storing route as pending: ${route}`);
-        pendingRoute = route;
-        return;
-    }
-
-    if (route === ROUTES.HOME) {
-        if (isLoggedIn && pendingRoute === null) {
-            openDrawer();
+function navigate(route = ROUTES.HOME) {
+    canNavigate('navigate', {route}).then((navigationIsReady) => {
+        if (!navigationIsReady) {
+            // Store intended route if the navigator is not yet available,
+            // we will try again after the NavigationContainer is ready
+            Log.hmmm(`[Navigation] Container not yet ready, storing route as pending: ${route}`);
+            pendingRoute = route;
             return;
         }
 
-        // If we're navigating to the signIn page while logged out, pop whatever screen is on top
-        // since it's guaranteed that the sign in page will be underneath (since it's the initial route).
-        // Also, if we're coming from a link to validate login (pendingRoute is not null), we want to pop the loading screen.
-        navigationRef.current.dispatch(StackActions.pop());
-        return;
-    }
+        if (route === ROUTES.HOME) {
+            if (isLoggedIn && pendingRoute === null) {
+                openDrawer();
+                return;
+            }
 
-    if (isDrawerRoute(route)) {
-        navigationRef.current.dispatch(DeprecatedCustomActions.pushDrawerRoute(route));
-        return;
-    }
+            // If we're navigating to the signIn page while logged out, pop whatever screen is on top
+            // since it's guaranteed that the sign in page will be underneath (since it's the initial route).
+            // Also, if we're coming from a link to validate login (pendingRoute is not null), we want to pop the loading screen.
+            navigationRef.current.dispatch(StackActions.pop());
+            return;
+        }
 
-    linkTo(navigationRef.current, route);
+        if (isDrawerRoute(route)) {
+            navigationRef.current.dispatch(DeprecatedCustomActions.pushDrawerRoute(route));
+            return;
+        }
+
+        linkTo(navigationRef.current, route);
+    });
 }
 
 /**
@@ -180,9 +189,11 @@ async function navigate(route = ROUTES.HOME) {
  *
  * @param {Boolean} [shouldOpenDrawer]
  */
-async function dismissModal(shouldOpenDrawer = false) {
-    const navigationIsReady = await canNavigate('dismissModal');
-    if (navigationIsReady) {
+function dismissModal(shouldOpenDrawer = false) {
+    canNavigate('dismissModal').then((navigationIsReady) => {
+        if (!navigationIsReady) {
+            return;
+        }
         const normalizedShouldOpenDrawer = _.isBoolean(shouldOpenDrawer)
             ? shouldOpenDrawer
             : false;
@@ -191,7 +202,7 @@ async function dismissModal(shouldOpenDrawer = false) {
         if (normalizedShouldOpenDrawer) {
             openDrawer();
         }
-    }
+    });
 }
 
 /**
