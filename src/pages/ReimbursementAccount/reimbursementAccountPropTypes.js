@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
+import BankAccount from '../../libs/models/BankAccount';
 
-export default PropTypes.shape({
+const reimbursementAccountPropTypes = PropTypes.shape({
     /** Whether we are loading the data via the API */
     isLoading: PropTypes.bool,
 
@@ -33,3 +34,16 @@ export default PropTypes.shape({
     /** Any additional error message to show */
     errors: PropTypes.objectOf(PropTypes.string),
 });
+
+const reimbursementAccountDefaultProps = {
+    achData: {
+        state: BankAccount.STATE.SETUP,
+    },
+    isLoading: false,
+    errorFields: {},
+    errors: {},
+    maxAttemptsReached: false,
+    shouldShowResetModal: false,
+};
+
+export {reimbursementAccountPropTypes, reimbursementAccountDefaultProps};

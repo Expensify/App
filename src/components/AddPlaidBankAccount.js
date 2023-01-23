@@ -5,8 +5,8 @@ import {
     View,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import Log from '../libs/Log';
 import PlaidLink from './PlaidLink';
 import * as BankAccounts from '../libs/actions/BankAccounts';
@@ -16,7 +16,7 @@ import themeColors from '../styles/themes/default';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Picker from './Picker';
-import plaidDataPropTypes from '../pages/ReimbursementAccount/plaidDataPropTypes';
+import {plaidDataPropTypes} from '../pages/ReimbursementAccount/plaidDataPropTypes';
 import Text from './Text';
 import getBankIcon from './Icon/BankIcons';
 import Icon from './Icon';
@@ -24,7 +24,7 @@ import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlocking
 
 const propTypes = {
     /** Contains plaid data */
-    plaidData: plaidDataPropTypes,
+    plaidData: plaidDataPropTypes.isRequired,
 
     /** Selected account ID from the Picker associated with the end of the Plaid flow */
     selectedPlaidAccountID: PropTypes.string,
@@ -57,14 +57,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    plaidData: {
-        bankName: '',
-        plaidAccessToken: '',
-        bankAccounts: [],
-        isLoading: false,
-        error: '',
-        errors: {},
-    },
     selectedPlaidAccountID: '',
     plaidLinkToken: '',
     onExitPlaid: () => {},
@@ -85,7 +77,9 @@ class AddPlaidBankAccount extends React.Component {
 
     componentDidMount() {
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
-        if ((this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken) || !_.isEmpty(this.props.plaidData)) {
+        if ((this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken)
+            || !_.isEmpty(lodashGet(this.props.plaidData, 'bankAccounts'))
+            || !_.isEmpty(lodashGet(this.props.plaidData, 'errors'))) {
             return;
         }
 
@@ -106,20 +100,22 @@ class AddPlaidBankAccount extends React.Component {
     }
 
     render() {
-        const plaidBankAccounts = lodashGet(this.props.plaidData, 'bankAccounts', []);
+        const plaidBankAccounts = lodashGet(this.props.plaidData, 'bankAccounts') || [];
         const token = this.getPlaidLinkToken();
         const options = _.map(plaidBankAccounts, account => ({
             value: account.plaidAccountID,
             label: `${account.addressName} ${account.mask}`,
         }));
         const {icon, iconSize} = getBankIcon();
-        const plaidDataErrorMessage = !_.isEmpty(this.props.plaidData.errors) ? _.chain(this.props.plaidData.errors).values().first().value() : this.props.plaidData.error;
+        const plaidErrors = lodashGet(this.props.plaidData, 'errors');
+        const plaidDataErrorMessage = !_.isEmpty(plaidErrors) ? _.chain(plaidErrors).values().first().value() : '';
+        const bankName = lodashGet(this.props.plaidData, 'bankName');
 
         // Plaid Link view
         if (!plaidBankAccounts.length) {
             return (
                 <FullPageOfflineBlockingView>
-                    {this.props.plaidData.isLoading && (
+                    {lodashGet(this.props.plaidData, 'isLoading') && (
                         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <ActivityIndicator color={themeColors.spinner} size="large" />
                         </View>
@@ -129,13 +125,12 @@ class AddPlaidBankAccount extends React.Component {
                             {plaidDataErrorMessage}
                         </Text>
                     )}
-                    {Boolean(token) && (
+                    {Boolean(token) && !bankName && (
                         <PlaidLink
                             token={token}
                             onSuccess={({publicToken, metadata}) => {
                                 Log.info('[PlaidLink] Success!');
                                 BankAccounts.openPlaidBankAccountSelector(publicToken, metadata.institution.name, this.props.allowDebit);
-                                BankAccounts.updatePlaidData({institution: metadata.institution});
                             }}
                             onError={(error) => {
                                 Log.hmmm('[PlaidLink] Error: ', error.message);
@@ -163,7 +158,7 @@ class AddPlaidBankAccount extends React.Component {
                         height={iconSize}
                         width={iconSize}
                     />
-                    <Text style={[styles.ml3, styles.textStrong]}>{this.props.plaidData.bankName}</Text>
+                    <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
                 </View>
                 <View style={[styles.mb5]}>
                     <Picker
@@ -188,9 +183,6 @@ AddPlaidBankAccount.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        plaidData: {
-            key: ONYXKEYS.PLAID_DATA,
-        },
         plaidLinkToken: {
             key: ONYXKEYS.PLAID_LINK_TOKEN,
             initWithStoredValues: false,
