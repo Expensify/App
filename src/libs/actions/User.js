@@ -285,9 +285,8 @@ function subscribeToUserEvents() {
     // Receive any relevant Onyx updates from the server
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE, currentUserAccountID, (pushJSON) => {
         SequentialQueue.getCurrentRequest().then(() => {
-            const filteredOnyxUpdate = ReportActionsUtils.filterReportActionIDKeyedOnyxUpdates(pushJSON);
-            Onyx.update(filteredOnyxUpdate);
-            triggerNotifications(filteredOnyxUpdate);
+            Onyx.update(pushJSON);
+            triggerNotifications(pushJSON);
         });
     });
 
