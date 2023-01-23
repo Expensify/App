@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
 /**
- * Immediate indication whether the an attachment is being downloaded.
+ * Sets whether the an attachment is being downloaded.
  *
  * @param {String} sourceID
  * @param {Boolean} isDownloading
