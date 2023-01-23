@@ -30,55 +30,54 @@ const defaultProps = {
     ...anchorForAttachmentsOnlyDefaultProps,
 };
 
-class BaseAnchorForAttachmentsOnly extends React.Component {
-    render() {
-        const sourceURL = this.props.source;
-        const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL);
-        const sourceID = (sourceURL.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
-        const fileName = this.props.displayName;
+const BaseAnchorForAttachmentsOnly = (props) => {
+    const sourceURL = props.source;
+    const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL);
+    const sourceID = (sourceURL.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
+    const fileName = props.displayName;
 
-        const isDownloading = this.props.download && this.props.download.isDownloading;
+    const isDownloading = props.download && props.download.isDownloading;
 
-        return (
-            <ShowContextMenuContext.Consumer>
-                {({
-                    anchor,
-                    reportID,
-                    action,
-                    checkIfContextMenuActive,
-                }) => (
-                    <Pressable
-                        style={this.props.style}
-                        onPress={() => {
-                            if (isDownloading) {
-                                return;
-                            }
-                            Download.setDownload(sourceID, true);
-                            fileDownload(sourceURLWithAuth, fileName).then(() => Download.setDownload(sourceID, false));
-                        }}
-                        onPressIn={this.props.onPressIn}
-                        onPressOut={this.props.onPressOut}
-                        onLongPress={event => showContextMenuForReport(
-                            event,
-                            anchor,
-                            reportID,
-                            action,
-                            checkIfContextMenuActive,
-                        )}
-                    >
-                        <AttachmentView
-                            sourceURL={sourceURLWithAuth}
-                            file={{name: fileName}}
-                            shouldShowDownloadIcon
-                            shouldShowLoadingSpinnerIcon={isDownloading}
-                        />
-                    </Pressable>
-                )}
-            </ShowContextMenuContext.Consumer>
-        );
-    }
-}
+    return (
+        <ShowContextMenuContext.Consumer>
+            {({
+                anchor,
+                reportID,
+                action,
+                checkIfContextMenuActive,
+            }) => (
+                <Pressable
+                    style={props.style}
+                    onPress={() => {
+                        if (isDownloading) {
+                            return;
+                        }
+                        Download.setDownload(sourceID, true);
+                        fileDownload(sourceURLWithAuth, fileName).then(() => Download.setDownload(sourceID, false));
+                    }}
+                    onPressIn={props.onPressIn}
+                    onPressOut={props.onPressOut}
+                    onLongPress={event => showContextMenuForReport(
+                        event,
+                        anchor,
+                        reportID,
+                        action,
+                        checkIfContextMenuActive,
+                    )}
+                >
+                    <AttachmentView
+                        sourceURL={sourceURLWithAuth}
+                        file={{name: fileName}}
+                        shouldShowDownloadIcon
+                        shouldShowLoadingSpinnerIcon={isDownloading}
+                    />
+                </Pressable>
+            )}
+        </ShowContextMenuContext.Consumer>
+    );
+};
 
+BaseAnchorForAttachmentsOnly.displayName = 'BaseAnchorForAttachmentsOnly';
 BaseAnchorForAttachmentsOnly.propTypes = propTypes;
 BaseAnchorForAttachmentsOnly.defaultProps = defaultProps;
 
