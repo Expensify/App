@@ -68,7 +68,7 @@ const JoinRoomPrompt = (props) => {
             </View>
             <View style={styles.joinRoomPromptButtonContainer}>
                 <Button
-                    innerStyles={[styles.joinRoomButton]}
+                    innerStyles={[styles.m1]}
                     text={props.translate('common.details')}
                     medium
                     onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}
@@ -76,7 +76,7 @@ const JoinRoomPrompt = (props) => {
                 />
                 <Button
                     success
-                    innerStyles={[styles.joinRoomButton]}
+                    innerStyles={[styles.m1]}
                     text={props.translate('joinRoomPrompt.joinRoom')}
                     medium
                     onPress={() => Report.joinWorkspaceRoom(props.report)}
