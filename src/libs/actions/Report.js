@@ -63,8 +63,7 @@ function getReportChannelName(reportID) {
 function subscribeToReportCommentPushNotifications() {
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, onyxData}) => {
         Log.info('[Report] Handled event sent by Airship', false, {reportID});
-        const filteredOnyxData = ReportActionsUtils.filterReportActionIDKeyedOnyxUpdates(onyxData);
-        Onyx.update(filteredOnyxData);
+        Onyx.update(onyxData);
     });
 
     // Open correct report when push notification is clicked
