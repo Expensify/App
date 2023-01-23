@@ -61,8 +61,8 @@ const propTypes = {
     */
     scrollToOverflowEnabled: PropTypes.bool,
 
-    /** Defines wheter ScrollWithContext should be used instead of regular ScrollView
-     *  Should be set to true, when there's a nested Picker component in the ScrollView's children
+    /** Whether ScrollWithContext should be used instead of regular ScrollView.
+     *  Set to true when there's a nested Picker component in Form.
     */
     scrollContextEnabled: PropTypes.bool,
 
