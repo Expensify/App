@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import OptionsSelector from '../../components/OptionsSelector';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -88,7 +89,7 @@ class IOUCurrencySelection extends Component {
      */
     changeSearchValue(searchValue) {
         const currencyOptions = this.getCurrencyOptions(this.props.currencyList);
-        const searchRegex = new RegExp(searchValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+        const searchRegex = Str.escapeForRegExp(searchValue);
         const filteredCurrencies = _.filter(currencyOptions, currencyOption => searchRegex.test(currencyOption.text));
 
         this.setState({
