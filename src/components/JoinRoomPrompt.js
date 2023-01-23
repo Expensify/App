@@ -38,17 +38,21 @@ const defaultProps = {
 const JoinRoomPrompt = (props) => {
     const icons = ReportUtils.getIcons(props.report);
     const subtitle = `${ReportUtils.getChatRoomSubtitle(props.report, props.policies)} - ${props.report.participants.length} member${props.report.participants.length > 1 ? 's' : ''}`;
+    console.log(">>>>", props.isSmallScreenWidth)
 
     return (
-        <View style={styles.joinRoomPromptContainer}>
-            <View style={[styles.dFlex, styles.flexRow, styles.flexGrow1, styles.flexShrink0]}>
+        <View style={[styles.joinRoomPromptContainer, props.isSmallScreenWidth && styles.flexColumn]}>
+            <View style={[styles.dFlex, styles.flexRow, styles.flex1, props.isSmallScreenWidth && [styles.flexShrink0, styles.mb2]]}>
                 <Avatar
                     source={icons[0]}
                     size={CONST.AVATAR_SIZE.MEDIUM}
                     containerStyles={[styles.mr3]}
                 />
                 <View style={styles.joinRoomPromptTextContainer}>
-                    <Text style={[styles.textHeadline]}>
+                    <Text
+                        style={[styles.textHeadline, styles.flexShrink0]}
+                        numberOfLines={1}
+                    >
                         {props.report.displayName}
                     </Text>
                     <Text
@@ -56,8 +60,8 @@ const JoinRoomPrompt = (props) => {
                             styles.sidebarLinkText,
                             styles.optionAlternateText,
                             styles.textLabelSupporting,
+                            styles.flex1,
                         ]}
-
                     >
                         {subtitle}
                     </Text>

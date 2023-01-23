@@ -2880,14 +2880,14 @@ const styles = {
         padding: 20,
         backgroundColor: themeColors.overlay,
         display: 'flex',
-        flexDirection: 'row',
-        flexWrap: 'wrap',
         overflow: 'wrap',
+        flexDirection: 'row',
     },
 
     joinRoomPromptTextContainer: {
         paddingTop: 3.5,
         paddingBottom: 3.5,
+        flex: 1,
     },
 
     joinRoomPromptButtonContainer: {
@@ -2895,8 +2895,7 @@ const styles = {
         flexDirection: 'row',
         justifyContent: 'flex-end',
         alignItems: 'center',
-        flexGrow: 1,
-        flexShrink: 0,
+        flexShrink: 1,
     },
 
     joinRoomButton: {
