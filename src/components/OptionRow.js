@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {memo, Component} from 'react';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {
     TouchableOpacity,
@@ -84,6 +84,19 @@ class OptionRow extends Component {
         };
     }
 
+    shouldComponentUpdate(prevProps, nextProps) {
+        return prevProps.optionIsFocused === nextProps.optionIsFocused
+            && prevProps.isSelected === nextProps.isSelected
+            && prevProps.option.alternateText === nextProps.option.alternateText
+            && prevProps.option.descriptiveText === nextProps.option.descriptiveText
+            && _.isEqual(prevProps.option.icons, nextProps.option.icons)
+            && prevProps.option.text === nextProps.option.text
+            && prevProps.showSelectedState === nextProps.showSelectedState
+            && prevProps.isDisabled === nextProps.isDisabled
+            && prevProps.showTitleTooltip === nextProps.showTitleTooltip
+            && prevProps.option.brickRoadIndicator === nextProps.option.brickRoadIndicator;
+    }
+
     componentDidUpdate(prevProps) {
         if (this.props.isDisabled === prevProps.isDisabled) {
             return;
@@ -139,13 +152,13 @@ class OptionRow extends Component {
                                     e.preventDefault();
                                 }
                                 const selectedOption = this.props.onSelectRow(this.props.option, touchableRef);
-                                // eslint-disable-next-line rulesdir/prefer-early-return
                                 InteractionManager.runAfterInteractions(() => {
-                                    if (selectedOption instanceof Promise) {
-                                        selectedOption.then(() => {
-                                            this.setState({isDisabled: this.props.isDisabled});
-                                        });
+                                    if (!(selectedOption instanceof Promise)) {
+                                        return;
                                     }
+                                    selectedOption.then(() => {
+                                        this.setState({isDisabled: this.props.isDisabled});
+                                    });
                                 });
                             }}
                             disabled={this.state.isDisabled}
@@ -262,14 +275,4 @@ class OptionRow extends Component {
 OptionRow.propTypes = propTypes;
 OptionRow.defaultProps = defaultProps;
 
-// It it very important to use React.memo here so SectionList items will not unnecessarily re-render
-export default withLocalize(memo(OptionRow, (prevProps, nextProps) => prevProps.optionIsFocused === nextProps.optionIsFocused
-    && prevProps.isSelected === nextProps.isSelected
-    && prevProps.option.alternateText === nextProps.option.alternateText
-    && prevProps.option.descriptiveText === nextProps.option.descriptiveText
-    && _.isEqual(prevProps.option.icons, nextProps.option.icons)
-    && prevProps.option.text === nextProps.option.text
-    && prevProps.showSelectedState === nextProps.showSelectedState
-    && prevProps.isDisabled === nextProps.isDisabled
-    && prevProps.showTitleTooltip === nextProps.showTitleTooltip
-    && prevProps.option.brickRoadIndicator === nextProps.option.brickRoadIndicator));
+export default withLocalize(OptionRow);
