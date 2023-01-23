@@ -16,6 +16,8 @@ import ONYXKEYS from '../../ONYXKEYS';
 import {withNetwork} from '../OnyxProvider';
 import {propTypes, defaultProps} from './propTypes';
 import SafeAreaConsumer from '../SafeAreaConsumer';
+import onScreenTransitionEnd from '../../libs/onScreenTransitionEnd';
+import onScreenTransitionStart from '../../libs/onScreenTransitionStart';
 
 class ScreenWrapper extends React.Component {
     constructor(props) {
@@ -36,14 +38,14 @@ class ScreenWrapper extends React.Component {
             Navigation.dismissModal();
         }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
 
-        this.unsubscribeTransitionEnd = this.props.navigation.addListener('transitionEnd', () => {
+        this.unsubscribeTransitionStart = onScreenTransitionStart(this.props.navigation, () => {
+            Navigation.setIsNavigating(true);
+        });
+
+        this.unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
             this.setState({didScreenTransitionEnd: true});
             this.props.onTransitionEnd();
             Navigation.setIsNavigating(false);
-        });
-
-        this.unsubscribeTransitionStart = this.props.navigation.addListener('transitionStart', () => {
-            Navigation.setIsNavigating(true);
         });
     }
 
