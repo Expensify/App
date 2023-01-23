@@ -2885,9 +2885,9 @@ const styles = {
     },
 
     joinRoomPromptTextContainer: {
-        paddingTop: 3.5,
-        paddingBottom: 3.5,
         flex: 1,
+        display: 'flex',
+        justifyContent: 'center',
     },
 
     joinRoomPromptButtonContainer: {
@@ -2899,7 +2899,6 @@ const styles = {
     },
 
     joinRoomButton: {
-        maxHeight: 40,
         margin: 4,
     },
 };
