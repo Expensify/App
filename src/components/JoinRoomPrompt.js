@@ -41,14 +41,14 @@ const JoinRoomPrompt = (props) => {
 
     return (
         <View style={styles.joinRoomPromptContainer}>
-            <View style={[styles.dFlex, styles.flexRow, styles.flex1]}>
+            <View style={[styles.dFlex, styles.flexRow, styles.flexGrow1, styles.flexShrink0]}>
                 <Avatar
                     source={icons[0]}
                     size={CONST.AVATAR_SIZE.MEDIUM}
                     containerStyles={[styles.mr3]}
                 />
                 <View style={styles.joinRoomPromptTextContainer}>
-                    <Text style={[styles.textHeadline]} numberOfLines={1}>
+                    <Text style={[styles.textHeadline]}>
                         {props.report.displayName}
                     </Text>
                     <Text
@@ -57,6 +57,7 @@ const JoinRoomPrompt = (props) => {
                             styles.optionAlternateText,
                             styles.textLabelSupporting,
                         ]}
+
                     >
                         {subtitle}
                     </Text>
@@ -66,16 +67,18 @@ const JoinRoomPrompt = (props) => {
                 <Button
                     innerStyles={[styles.joinRoomButton]}
                     text={props.translate('common.details')}
-                    textStyles={[styles.joinRoomButtonText]}
+                    medium
                     onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}
+                    style={[props.isSmallScreenWidth && styles.flexGrow1]}
                 />
                 <Button
                     success
                     innerStyles={[styles.joinRoomButton]}
                     text={props.translate('joinRoomPrompt.joinRoom')}
-                    textStyles={[styles.joinRoomButtonText]}
+                    medium
                     onPress={() => Report.joinWorkspaceRoom(props.report)}
                     pressOnEnter
+                    style={[props.isSmallScreenWidth && styles.flexGrow1]}
                 />
             </View>
         </View>

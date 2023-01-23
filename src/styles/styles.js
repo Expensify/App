@@ -2876,13 +2876,13 @@ const styles = {
     },
 
     joinRoomPromptContainer: {
-        maxHeight: 92,
-        height: 92,
         borderRadius: 18,
         padding: 20,
         backgroundColor: themeColors.overlay,
         display: 'flex',
         flexDirection: 'row',
+        flexWrap: 'wrap',
+        overflow: 'wrap',
     },
 
     joinRoomPromptTextContainer: {
@@ -2895,15 +2895,13 @@ const styles = {
         flexDirection: 'row',
         justifyContent: 'flex-end',
         alignItems: 'center',
+        flexGrow: 1,
+        flexShrink: 0,
     },
 
     joinRoomButton: {
         maxHeight: 40,
         margin: 4,
-    },
-
-    joinRoomButtonText: {
-        fontSize: 13,
     },
 };
 

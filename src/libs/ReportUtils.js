@@ -220,7 +220,7 @@ function isRestrictedPolicyRoom(report) {
  * @returns {Boolean}
  */
 function isRestrictedRoomParticipant(report) {
-    return isRestrictedPolicyRoom(report) && lodashGet(report, 'permissions', '').indexOf('read, write') !== -1;
+    return isRestrictedPolicyRoom(report) && report.permissions === 'read, write';
 }
 
 /**
