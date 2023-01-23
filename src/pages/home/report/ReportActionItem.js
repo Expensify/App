@@ -145,10 +145,6 @@ class ReportActionItem extends Component {
      */
     renderItemContent(hovered = false) {
         let children;
-        const message = _.last(lodashGet(this.props.action, 'message', [{}]));
-        const isAttachment = _.has(this.props.action, 'isAttachment')
-            ? this.props.action.isAttachment
-            : ReportUtils.isReportMessageAttachment(message);
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
             children = (
                 <IOUAction
@@ -161,6 +157,10 @@ class ReportActionItem extends Component {
                 />
             );
         } else {
+            const message = _.last(lodashGet(this.props.action, 'message', [{}]));
+            const isAttachment = _.has(this.props.action, 'isAttachment')
+                ? this.props.action.isAttachment
+                : ReportUtils.isReportMessageAttachment(message);
             children = (
                 <ShowContextMenuContext.Provider
                     value={{
