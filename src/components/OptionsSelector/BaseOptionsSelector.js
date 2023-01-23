@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, InteractionManager} from 'react-native';
 import Button from '../Button';
 import FixedFooter from '../FixedFooter';
 import OptionsList from '../OptionsList';
@@ -86,6 +86,10 @@ class BaseOptionsSelector extends Component {
             true,
         );
 
+        InteractionManager.runAfterInteractions(() => {
+            this.scrollToIndex(this.state.focusedIndex, false);
+        });
+
         if (!this.props.autoFocus) {
             return;
         }
@@ -95,8 +99,6 @@ class BaseOptionsSelector extends Component {
         } else {
             this.textInput.focus();
         }
-
-        this.scrollToIndex(this.state.focusedIndex, false);
     }
 
     componentDidUpdate(prevProps) {
