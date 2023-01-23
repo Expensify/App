@@ -145,6 +145,10 @@ class ReportActionItem extends Component {
      */
     renderItemContent(hovered = false) {
         let children;
+        const message = _.last(lodashGet(this.props.action, 'message', [{}]));
+        const isAttachment = _.has(this.props.action, 'isAttachment')
+            ? this.props.action.isAttachment
+            : ReportUtils.isReportMessageAttachment(message);
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
             children = (
                 <IOUAction
@@ -170,7 +174,7 @@ class ReportActionItem extends Component {
                         ? (
                             <ReportActionItemMessage
                                 action={this.props.action}
-                                style={(!this.props.displayAsGroup && this.props.action.isAttachment) ? [styles.mt2] : undefined}
+                                style={(!this.props.displayAsGroup && isAttachment) ? [styles.mt2] : undefined}
                             />
                         ) : (
                             <ReportActionItemMessageEdit
