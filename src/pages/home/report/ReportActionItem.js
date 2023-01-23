@@ -170,7 +170,7 @@ class ReportActionItem extends Component {
                         ? (
                             <ReportActionItemMessage
                                 action={this.props.action}
-                                style={[(!this.props.displayAsGroup && this.props.action.isAttachment) && styles.pt2]}
+                                style={(!this.props.displayAsGroup && this.props.action.isAttachment) ? [styles.pt2] : undefined}
                             />
                         ) : (
                             <ReportActionItemMessageEdit
