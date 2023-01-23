@@ -1,5 +1,6 @@
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
+import ONYXKEYS from '../../src/ONYXKEYS';
 
 describe('ReportActionsUtils', () => {
     describe('getSortedReportActions', () => {
@@ -190,6 +191,169 @@ describe('ReportActionsUtils', () => {
             const result = ReportActionsUtils.filterReportActionsForDisplay(input);
             input.pop();
             expect(result).toStrictEqual(input);
+        });
+    });
+
+    describe('filterReportActionIDKeyedOnyxUpdates', () => {
+        it('should not error with an empty value', () => {
+            expect(ReportActionsUtils.filterReportActionIDKeyedOnyxUpdates()).toStrictEqual([]);
+        });
+
+        it('should not error with an empty array', () => {
+            expect(ReportActionsUtils.filterReportActionIDKeyedOnyxUpdates([])).toStrictEqual([]);
+        });
+
+        it('should not affect any Onyx update not including reportActions data', () => {
+            const onyxUpdates = [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}1234`,
+                    value: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        errors: null,
+                    },
+                },
+            ];
+            expect(ReportActionsUtils.filterReportActionIDKeyedOnyxUpdates(onyxUpdates)).toStrictEqual(onyxUpdates);
+        });
+
+        it('should not affect a sequenceNumber-keyed Onyx update', () => {
+            const onyxUpdates = [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
+                    value: {
+                        reportID: 1234,
+                    },
+                },
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1234`,
+                    value: {
+                        1: {
+                            sequenceNumber: 1,
+                            reportActionID: '54321',
+                        },
+                    },
+                },
+            ];
+            expect(ReportActionsUtils.filterReportActionIDKeyedOnyxUpdates(onyxUpdates)).toStrictEqual(onyxUpdates);
+        });
+
+        it('should reject a reportActionID-keyed Onyx update', () => {
+            expect(ReportActionsUtils.filterReportActionIDKeyedOnyxUpdates([
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1234`,
+                    value: {
+                        54321: {
+                            sequenceNumber: 1,
+                            reportActionID: '54321',
+                        },
+                    },
+                },
+            ])).toStrictEqual([]);
+        });
+
+        it('should work with multiple reportActions Onyx updates', () => {
+            const onyxUpdates = [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1234`,
+                    value: {
+                        1: {
+                            sequenceNumber: 1,
+                            reportActionID: '54321',
+                        },
+                    },
+                },
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4321`,
+                    value: {
+                        1: {
+                            sequenceNumber: 1,
+                            reportActionID: '54321',
+                        },
+                    },
+                },
+            ];
+            expect(ReportActionsUtils.filterReportActionIDKeyedOnyxUpdates(onyxUpdates)).toStrictEqual(onyxUpdates);
+        });
+
+        it('should filter out reportAction Onyx updates keyed by reportActionID, leaving those keyed by sequenceNumber in place', () => {
+            const input = [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1234`,
+                    value: {
+                        1: {
+                            sequenceNumber: 1,
+                            reportActionID: '54321',
+                        },
+                        54321: {
+                            sequenceNumber: 1,
+                            reportActionID: '54321',
+                        },
+                    },
+                },
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4321`,
+                    value: {
+                        1: {
+                            sequenceNumber: 1,
+                            reportActionID: '54321',
+                        },
+                        54321: {
+                            sequenceNumber: 1,
+                            reportActionID: '54321',
+                        },
+                    },
+                },
+            ];
+
+            const expectedOutput = [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1234`,
+                    value: {
+                        1: {
+                            sequenceNumber: 1,
+                            reportActionID: '54321',
+                        },
+                    },
+                },
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4321`,
+                    value: {
+                        1: {
+                            sequenceNumber: 1,
+                            reportActionID: '54321',
+                        },
+                    },
+                },
+            ];
+
+            expect(ReportActionsUtils.filterReportActionIDKeyedOnyxUpdates(input)).toStrictEqual(expectedOutput);
+        });
+
+        it('should not filter out the removal of any clientID-keyed reportAction', () => {
+            const onyxUpdates = [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4321`,
+                    value: {
+                        123135135: null,
+                        1: {
+                            sequenceNumber: 1,
+                            reportActionID: '54321',
+                        },
+                    },
+                },
+            ];
+            expect(ReportActionsUtils.filterReportActionIDKeyedOnyxUpdates(onyxUpdates)).toStrictEqual(onyxUpdates);
         });
     });
 });
