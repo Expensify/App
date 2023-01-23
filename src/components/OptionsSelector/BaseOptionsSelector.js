@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View, InteractionManager} from 'react-native';
+import {View} from 'react-native';
 import Button from '../Button';
 import FixedFooter from '../FixedFooter';
 import OptionsList from '../OptionsList';
@@ -85,10 +85,6 @@ class BaseOptionsSelector extends Component {
             CTRLEnterConfig.modifiers,
             true,
         );
-
-        InteractionManager.runAfterInteractions(() => {
-            this.scrollToIndex(this.state.focusedIndex, false);
-        });
 
         if (!this.props.autoFocus) {
             return;
@@ -286,7 +282,13 @@ class BaseOptionsSelector extends Component {
                 showTitleTooltip={this.props.showTitleTooltip}
                 isDisabled={this.props.isDisabled}
                 shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
-                onLayout={this.props.onLayout}
+                onLayout={() => {
+                    this.scrollToIndex(this.state.focusedIndex, false);
+
+                    if (this.props.onLayout) {
+                        this.props.onLayout();
+                    }
+                }}
             />
         ) : <FullScreenLoadingIndicator />;
         return (
