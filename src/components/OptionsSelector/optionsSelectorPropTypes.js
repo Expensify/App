@@ -27,8 +27,8 @@ const propTypes = {
     /** Value in the search input field */
     value: PropTypes.string.isRequired,
 
-    /** Value of the option that we should focused on when first opening the options page */
-    focusedValue: PropTypes.string,
+    /** Key of the option that we should focus on when first opening the options list */
+    initialFocusedOptionKey: PropTypes.string,
 
     /** Callback fired when text changes */
     onChangeText: PropTypes.func.isRequired,

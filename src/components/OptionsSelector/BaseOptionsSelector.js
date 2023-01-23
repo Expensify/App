@@ -42,10 +42,10 @@ class BaseOptionsSelector extends Component {
 
         let focusedIndex = this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0;
 
-        const focusedOptionIndex = _.findIndex(allOptions, option => option.text === this.props.focusedValue);
+        const initialFocusedIndex = _.findIndex(allOptions, option => option.keyForList === this.props.initialFocusedOptionKey);
 
-        if (focusedOptionIndex >= 0) {
-            focusedIndex = focusedOptionIndex;
+        if (initialFocusedIndex >= 0) {
+            focusedIndex = initialFocusedIndex;
         }
 
         this.state = {

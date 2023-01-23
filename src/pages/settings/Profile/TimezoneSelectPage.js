@@ -61,9 +61,6 @@ class TimezoneSelectPage extends Component {
      */
     saveSelectedTimezone({text}) {
         PersonalDetails.updateSelectedTimezone(text);
-        this.setState({
-            timezoneInputText: text,
-        });
     }
 
     /**
@@ -93,7 +90,7 @@ class TimezoneSelectPage extends Component {
                     optionHoveredStyle={styles.hoveredComponentBG}
                     sections={[{data: this.state.timezoneOptions, indexOffset: 0}]}
                     shouldHaveOptionSeparator
-                    focusedValue={this.state.timezoneInputText}
+                    initialFocusedOptionKey={this.currentSelectedTimezone}
                 />
             </ScreenWrapper>
         );
