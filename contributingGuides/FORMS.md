@@ -262,18 +262,14 @@ Any `Form.js` that has a button will also add safe area padding by default. If t
 </ScreenWrapper>
 ```
 
-### Handling Picker's in forms
+### Handling nested Pickers in Form
+
+In case there's a nested Picker in Form, we should pass the props below to Form, as needed:
 
 #### Enable ScrollContext
 
-In case there's a Picker nested in a ScrollView in the form we need to add one or two additional props to the `<Form />`.
-
-To enable "scrolling-up" behaviour when a `<Picker />` is pressed, we need to add the `scrollContextEnabled` prop and set it to `true`.
-
-This is because in this case, instead of a regular `ScrollView` the `<ScrollViewWithContext />` component will be used, so that a ref to the `ScrollView` and the current vertical scroll offset get passed to the picker over a context. The picker then handles scrolling up when it gets pressed.
+Pass the `scrollContextEnabled` prop to enable scrolling up when Picker is pressed, making sure the Picker is always in view and doesn't get covered by virtual keyboards for example.
 
 #### Enable scrolling to overflow
 
-Additionally to the section above, we can also enable the `scrollToOverflowEnabled` prop in case a there is a nested `<Picker />` component relatively far at the end of the ScrollView's content.
-
-In this case, the opening Picker modal would get rendered over the Picker. (tbs., over the `TextInput` rendered by the `Picker`). We can prevent this behaviour by enabling scrolling to overflow in the `ScrollView`.
+In addition to the `scrollContextEnabled` prop, we can also pass `scrollToOverflowEnabled` when the nested Picker is at the bottom of the Form to prevent the popup selector from covering Picker.
