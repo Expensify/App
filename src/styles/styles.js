@@ -2038,6 +2038,13 @@ const styles = {
         padding: 20,
     },
 
+    avatarSectionWrapper: {
+        width: '100%',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingBottom: 20,
+    },
+
     selectCircle: {
         width: variables.componentSizeSmall,
         height: variables.componentSizeSmall,
@@ -2725,10 +2732,6 @@ const styles = {
     iPhoneXSafeArea: {
         backgroundColor: themeColors.inverse,
         flex: 1,
-    },
-
-    errorPageContainer: {
-        backgroundColor: themeColors.componentBG,
     },
 
     transferBalancePayment: {

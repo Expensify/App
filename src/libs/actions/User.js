@@ -18,6 +18,7 @@ import * as Link from './Link';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
 import * as Report from './Report';
+import * as ReportActionsUtils from '../ReportActionsUtils';
 
 let currentUserAccountID = '';
 Onyx.connect({
@@ -264,12 +265,9 @@ function triggerNotifications(onyxUpdates) {
         }
 
         const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-        const reportAction = _.chain(update.value)
-            .values()
-            .compact()
-            .first()
-            .value();
-        Report.showReportActionNotification(reportID, reportAction);
+        const reportActions = _.values(update.value);
+        const sortedReportActions = ReportActionsUtils.getSortedReportActions(reportActions);
+        Report.showReportActionNotification(reportID, _.last(sortedReportActions));
     });
 }
 

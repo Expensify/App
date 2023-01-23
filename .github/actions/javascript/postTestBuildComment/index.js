@@ -5,76 +5,62 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 2759:
+/***/ 2052:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const _ = __nccwpck_require__(3571);
-const lodashGet = __nccwpck_require__(6908);
 const core = __nccwpck_require__(2186);
 const {context} = __nccwpck_require__(5438);
-const ActionUtils = __nccwpck_require__(970);
 const GithubUtils = __nccwpck_require__(7999);
 
-const prList = ActionUtils.getJSONInput('PR_LIST', {required: true});
-const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true});
-const version = core.getInput('DEPLOY_VERSION', {required: true});
-
 /**
- * Return a nicely formatted message for the table based on the result of the GitHub action job
- *
- * @param {String} platformResult
  * @returns {String}
  */
-function getDeployTableMessage(platformResult) {
-    switch (platformResult) {
-        case 'success':
-            return `${platformResult} ✅`;
-        case 'cancelled':
-            return `${platformResult} 🔪`;
-        case 'skipped':
-            return `${platformResult} 🚫`;
-        case 'failure':
-        default:
-            return `${platformResult} ❌`;
-    }
-}
+function getTestBuildMessage() {
+    console.log('Input for android', core.getInput('ANDROID', {required: true}));
+    const androidSuccess = core.getInput('ANDROID', {required: true}) === 'success';
+    const desktopSuccess = core.getInput('DESKTOP', {required: true}) === 'success';
+    const iOSSuccess = core.getInput('IOS', {required: true}) === 'success';
+    const webSuccess = core.getInput('WEB', {required: true}) === 'success';
 
-const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}));
-const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', {required: true}));
-const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}));
-const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
+    const androidLink = androidSuccess ? core.getInput('ANDROID_LINK') : '❌ FAILED ❌';
+    const desktopLink = desktopSuccess ? core.getInput('DESKTOP_LINK') : '❌ FAILED ❌';
+    const iOSLink = iOSSuccess ? core.getInput('IOS_LINK') : '❌ FAILED ❌';
+    const webLink = webSuccess ? core.getInput('WEB_LINK') : '❌ FAILED ❌';
 
-const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`
-    + `/actions/runs/${process.env.GITHUB_RUN_ID}`;
+    const androidQRCode = androidSuccess
+        ? `![Android](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${androidLink})`
+        : "The QR code can't be generated, because the android build failed";
+    const desktopQRCode = desktopSuccess
+        ? `![Desktop](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${desktopLink})`
+        : "The QR code can't be generated, because the Desktop build failed";
+    const iOSQRCode = iOSSuccess
+        ? `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${iOSLink})`
+        : "The QR code can't be generated, because the iOS build failed";
+    const webQRCode = webSuccess
+        ? `![Web](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})`
+        : "The QR code can't be generated, because the web build failed";
 
-/**
- * @param {String} deployer
- * @param {String} deployVerb
- * @param {String} prTitle
- * @returns {String}
- */
-function getDeployMessage(deployer, deployVerb, prTitle) {
-    let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
-    message += ` by https://github.com/${deployer} in version: ${version} 🚀`;
-    message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
-    message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
-
-    if (deployVerb === 'Cherry-picked' && !(/no qa/gi).test(prTitle)) {
-        // eslint-disable-next-line max-len
-        message += '\n\n@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.';
-    }
+    const message = `:test_tube::test_tube: Use the links below to test this build in android and iOS. Happy testing! :test_tube::test_tube:
+| android :robot:  | iOS :apple: |
+| ------------- | ------------- |
+| ${androidLink}  | ${iOSLink}  |
+| ${androidQRCode}  | ${iOSQRCode}  |
+| desktop :computer: | web :spider_web: |
+| ${desktopLink}  | ${webLink}  |
+| ${desktopQRCode}  | ${webQRCode}  |`;
 
     return message;
 }
 
 /**
- * Comment Single PR
+ * Comment on a single PR
  *
  * @param {Number} PR
  * @param {String} message
  * @returns {Promise<void>}
  */
 function commentPR(PR, message) {
+    console.log(`Posting test build comment on #${PR}`);
     return GithubUtils.createComment(context.repo.repo, PR, message)
         .then(() => console.log(`Comment created on #${PR} successfully 🎉`))
         .catch((err) => {
@@ -84,69 +70,8 @@ function commentPR(PR, message) {
 }
 
 const run = function () {
-    if (isProd) {
-        // First find the deployer (who closed the last deploy checklist)?
-        return GithubUtils.octokit.issues.listForRepo({
-            owner: GithubUtils.GITHUB_OWNER,
-            repo: GithubUtils.APP_REPO,
-            labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
-            state: 'closed',
-        })
-            .then(({data}) => _.first(data).number)
-            .then(lastDeployChecklistNumber => GithubUtils.getActorWhoClosedIssue(lastDeployChecklistNumber))
-            .then((actor) => {
-                // Create comment on each pull request (one after another to avoid throttling issues)
-                const deployMessage = getDeployMessage(actor, 'Deployed');
-                _.reduce(prList, (promise, pr) => promise.then(() => commentPR(pr, deployMessage)), Promise.resolve());
-            });
-    }
-
-    // First find out if this is a normal staging deploy or a CP by looking at the commit message on the tag
-    return GithubUtils.octokit.repos.listTags({
-        owner: GithubUtils.GITHUB_OWNER,
-        repo: GithubUtils.APP_REPO,
-        per_page: 100,
-    })
-        .then(({data}) => {
-            const tagSHA = _.find(data, tag => tag.name === version).commit.sha;
-            return GithubUtils.octokit.git.getCommit({
-                owner: GithubUtils.GITHUB_OWNER,
-                repo: GithubUtils.APP_REPO,
-                commit_sha: tagSHA,
-            });
-        })
-        .then(({data}) => {
-            const isCP = /Merge pull request #\d+ from Expensify\/.*-?cherry-pick-staging-\d+/.test(data.message);
-            _.reduce(prList, (promise, PR) => promise
-
-                // Then, for each PR, find out who merged it and determine the deployer
-                .then(() => GithubUtils.octokit.pulls.get({
-                    owner: GithubUtils.GITHUB_OWNER,
-                    repo: GithubUtils.APP_REPO,
-                    pull_number: PR,
-                }))
-                .then((response) => {
-                    /*
-                     * The deployer for staging deploys is:
-                     *   1. For regular staging deploys, the person who merged the PR.
-                     *   2. For automatic CPs (using the label), the person who merged the PR.
-                     *   3. For manual CPs (using the GH UI), the person who triggered the workflow
-                     *      (reflected in the branch name).
-                     */
-                    let deployer = lodashGet(response, 'data.merged_by.login', '');
-                    const issueTitle = lodashGet(response, 'data.title', '');
-                    const CPActorMatches = data.message
-                        .match(/Merge pull request #\d+ from Expensify\/(.+)-cherry-pick-staging-\d+/);
-                    if (_.isArray(CPActorMatches) && CPActorMatches.length === 2 && CPActorMatches[1] !== 'OSBotify') {
-                        deployer = CPActorMatches[1];
-                    }
-
-                    // Finally, comment on the PR
-                    const deployMessage = getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', issueTitle);
-                    return commentPR(PR, deployMessage);
-                }),
-            Promise.resolve());
-        });
+    const PR_NUMBER = core.getInput('PR_NUMBER', {required: true});
+    return commentPR(PR_NUMBER, getTestBuildMessage()).then(() => Promise.resolve());
 };
 
 if (require.main === require.cache[eval('__filename')]) {
@@ -154,52 +79,6 @@ if (require.main === require.cache[eval('__filename')]) {
 }
 
 module.exports = run;
-
-
-/***/ }),
-
-/***/ 970:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const core = __nccwpck_require__(2186);
-
-/**
- * Safely parse a JSON input to a GitHub Action.
- *
- * @param {String} name - The name of the input.
- * @param {Object} options - Options to pass to core.getInput
- * @param {*} [defaultValue] - A default value to provide for the input.
- *                             Not required if the {required: true} option is given in the second arg to this function.
- * @returns {any}
- */
-function getJSONInput(name, options, defaultValue = undefined) {
-    const input = core.getInput(name, options);
-    if (input) {
-        return JSON.parse(input);
-    }
-    return defaultValue;
-}
-
-/**
- * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
- *
- * @param {String} name
- * @param {Object} options
- * @param {*} [defaultValue]
- * @returns {string|undefined}
- */
-function getStringInput(name, options, defaultValue = undefined) {
-    const input = core.getInput(name, options);
-    if (!input) {
-        return defaultValue;
-    }
-    return input;
-}
-
-module.exports = {
-    getJSONInput,
-    getStringInput,
-};
 
 
 /***/ }),
@@ -15935,6 +15814,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(2759);
+/******/ 	return __nccwpck_require__(2052);
 /******/ })()
 ;
