@@ -39,14 +39,7 @@ class BaseOptionsSelector extends Component {
         this.relatedTarget = null;
 
         const allOptions = this.flattenSections();
-
-        let focusedIndex = this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0;
-
-        const initialFocusedIndex = _.findIndex(allOptions, option => option.keyForList === this.props.initialFocusedOptionKey);
-
-        if (initialFocusedIndex >= 0) {
-            focusedIndex = initialFocusedIndex;
-        }
+        const focusedIndex = this.getInitialFocusedIndex(allOptions);
 
         this.state = {
             allOptions,
@@ -144,6 +137,20 @@ class BaseOptionsSelector extends Component {
         if (this.unsubscribeCTRLEnter) {
             this.unsubscribeCTRLEnter();
         }
+    }
+
+    /**
+     * @param {Array<Object>} allOptions
+     * @returns {Number}
+     */
+    getInitialFocusedIndex(allOptions) {
+        const initialFocusedIndex = _.findIndex(allOptions, option => option.keyForList === this.props.initialFocusedOptionKey);
+
+        if (initialFocusedIndex >= 0) {
+            return initialFocusedIndex;
+        }
+
+        return this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0;
     }
 
     /**

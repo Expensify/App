@@ -27,9 +27,6 @@ const propTypes = {
     /** Value in the search input field */
     value: PropTypes.string.isRequired,
 
-    /** Key of the option that we should focus on when first opening the options list */
-    initialFocusedOptionKey: PropTypes.string,
-
     /** Callback fired when text changes */
     onChangeText: PropTypes.func.isRequired,
 
@@ -92,6 +89,9 @@ const propTypes = {
 
     /** Whether to show a line separating options in list */
     shouldHaveOptionSeparator: PropTypes.bool,
+
+    /** Key of the option that we should focus on when first opening the options list */
+    initialFocusedOptionKey: PropTypes.string,
 };
 
 const defaultProps = {
@@ -116,6 +116,7 @@ const defaultProps = {
     disableArrowKeysActions: false,
     isDisabled: false,
     shouldHaveOptionSeparator: false,
+    initialFocusedOptionKey: undefined,
 };
 
 export {propTypes, defaultProps};
