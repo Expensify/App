@@ -1,24 +1,21 @@
-import _ from 'underscore';
 import Config from '../CONFIG';
 
+// Absolute URLs (`/` or `//`) should be resolved from API ROOT
+// Legacy attachments can come from either staging or prod, depending on the env they were uploaded by
+// Both should be replaced and loaded from API ROOT of the current environment
+const ORIGINS_TO_REPLACE = ['/+', Config.EXPENSIFY.EXPENSIFY_URL, Config.EXPENSIFY.STAGING_EXPENSIFY_URL];
+
+// Anything starting with a match from ORIGINS_TO_REPLACE
+const ORIGIN_PATTERN = new RegExp(`^(${ORIGINS_TO_REPLACE.join('|')})`);
+
 /**
- * Update the URL so images/files can be accessed depending on the config environment
+ * Updates URLs, so they are accessed relative to URL_API_ROOT
+ * Matches: absolute, prod or staging URLs
+ * Unmatched URLs aren't modified
  *
- * @param {String} urlString
+ * @param {String} url
  * @returns {String}
  */
-export default function replaceSourceOrigin(urlString) {
-    // Attachments can come from either staging or prod, depending on the env they were uploaded by
-    // Both should be replaced and loaded from API ROOT of the current environment
-    const originsToReplace = [Config.EXPENSIFY.EXPENSIFY_URL, Config.EXPENSIFY.STAGING_EXPENSIFY_URL];
-
-    const originToReplace = _.find(originsToReplace, origin => urlString.startsWith(origin));
-    if (!originToReplace) {
-        return urlString;
-    }
-
-    return urlString.replace(
-        originToReplace,
-        Config.EXPENSIFY.URL_API_ROOT,
-    );
+export default function replaceSourceOrigin(url) {
+    return url.replace(ORIGIN_PATTERN, Config.EXPENSIFY.URL_API_ROOT);
 }
