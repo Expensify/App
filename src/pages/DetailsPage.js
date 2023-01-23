@@ -23,6 +23,7 @@ import MenuItem from '../components/MenuItem';
 import AttachmentModal from '../components/AttachmentModal';
 import PressableWithoutFocus from '../components/PressableWithoutFocus';
 import * as Report from '../libs/actions/Report';
+import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import AutoUpdateTime from '../components/AutoUpdateTime';
 
 const matchType = PropTypes.shape({
@@ -119,7 +120,7 @@ class DetailsPage extends React.PureComponent {
                 >
                     {details ? (
                         <ScrollView>
-                            <View style={styles.pageWrapper}>
+                            <View style={styles.avatarSectionWrapper}>
                                 <AttachmentModal
                                     headerTitle={isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
                                     sourceURL={details.avatar}
@@ -130,23 +131,27 @@ class DetailsPage extends React.PureComponent {
                                             style={styles.noOutline}
                                             onPress={show}
                                         >
-                                            <Avatar
-                                                containerStyles={[styles.avatarLarge, styles.mb3]}
-                                                imageStyles={[styles.avatarLarge]}
-                                                source={details.avatar}
-                                                size={CONST.AVATAR_SIZE.LARGE}
-                                            />
+                                            <OfflineWithFeedback
+                                                pendingAction={lodashGet(details, 'pendingFields.avatar', null)}
+                                            >
+                                                <Avatar
+                                                    containerStyles={[styles.avatarLarge, styles.mb3]}
+                                                    imageStyles={[styles.avatarLarge]}
+                                                    source={details.avatar}
+                                                    size={CONST.AVATAR_SIZE.LARGE}
+                                                />
+                                            </OfflineWithFeedback>
                                         </PressableWithoutFocus>
                                     )}
                                 </AttachmentModal>
                                 {details.displayName && (
-                                    <Text style={[styles.displayName, styles.mb6]} numberOfLines={1}>
+                                    <Text style={[styles.textHeadline, styles.mb6]} numberOfLines={1}>
                                         {isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
                                     </Text>
                                 )}
                                 {details.login ? (
                                     <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
-                                        <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                        <Text style={[styles.textLabelSupporting, styles.mb2]} numberOfLines={1}>
                                             {this.props.translate(isSMSLogin
                                                 ? 'common.phoneNumber'
                                                 : 'common.email')}
@@ -164,7 +169,7 @@ class DetailsPage extends React.PureComponent {
                                 ) : null}
                                 {pronouns ? (
                                     <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                        <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                        <Text style={[styles.textLabelSupporting, styles.mb2]} numberOfLines={1}>
                                             {this.props.translate('profilePage.preferredPronouns')}
                                         </Text>
                                         <Text numberOfLines={1}>

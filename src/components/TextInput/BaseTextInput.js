@@ -66,7 +66,8 @@ class BaseTextInput extends Component {
         }
 
         if (this.props.shouldDelayFocus) {
-            return setTimeout(() => this.input.focus(), CONST.ANIMATED_TRANSITION);
+            this.focusTimeout = setTimeout(() => this.input.focus(), CONST.ANIMATED_TRANSITION);
+            return;
         }
         this.input.focus();
     }
@@ -94,6 +95,10 @@ class BaseTextInput extends Component {
     }
 
     componentWillUnmount() {
+        if (this.focusTimeout) {
+            clearTimeout(this.focusTimeout);
+        }
+
         if (!this.props.disableKeyboard || !this.appStateSubscription) {
             return;
         }
@@ -280,7 +285,10 @@ class BaseTextInput extends Component {
                                             (!hasLabel || this.props.multiline) && styles.pv0,
                                             this.props.prefixCharacter && StyleUtils.getPaddingLeft(this.state.prefixWidth + styles.pl1.paddingLeft),
                                             this.props.secureTextEntry && styles.secureInput,
-                                            !this.props.multiline && {height: this.state.height},
+
+                                            // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
+                                            // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
+                                            !this.props.multiline && {height: this.state.height, lineHeight: undefined},
                                         ]}
                                         multiline={this.props.multiline}
                                         maxLength={this.props.maxLength}

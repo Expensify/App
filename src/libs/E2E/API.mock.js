@@ -3,37 +3,24 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
 
+// mock functions
+import mockBeginSignin from './apiMocks/beginSignin';
+import mockSigninUser from './apiMocks/signinUser';
+import mockAuthenticatePusher from './apiMocks/authenticatePusher';
+import mockOpenApp from './apiMocks/openApp';
+import mockOpenReport from './apiMocks/openReport';
+
 /**
  * A dictionary which has the name of a API command as key, and a function which
  * receives the api command parameters as value and is expected to return a response
  * object.
  */
 const mocks = {
-    BeginSignIn: ({email}) => {
-        const response = require('../E2E/apiMocks/beginSignin.json');
-        response.onyxData.forEach((data) => {
-            if (data.key !== 'credentials') {
-                return;
-            }
-            // eslint-disable-next-line no-param-reassign
-            data.value.login = email;
-        });
-        return response;
-    },
-    SigninUser: ({email}) => {
-        const response = require('../E2E/apiMocks/signinUser.json');
-        response.onyxData.forEach((data) => {
-            if (data.key !== 'session') {
-                return;
-            }
-            // eslint-disable-next-line no-param-reassign
-            data.value.email = email;
-        });
-        return response;
-    },
-    OpenApp: () => require('../E2E/apiMocks/openApp.json'),
-    OpenReport: () => require('../E2E/apiMocks/openReport.json'),
-    AuthenticatePusher: () => require('../E2E/apiMocks/authenticatePusher.json'),
+    BeginSignIn: mockBeginSignin,
+    SigninUser: mockSigninUser,
+    OpenApp: mockOpenApp,
+    OpenReport: mockOpenReport,
+    AuthenticatePusher: mockAuthenticatePusher,
 };
 
 function mockCall(command, apiCommandParameters, tag) {
