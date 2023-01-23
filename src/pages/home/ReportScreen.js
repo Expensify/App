@@ -247,7 +247,7 @@ class ReportScreen extends React.Component {
         const mobileViewStyle = [styles.overflowHidden,
             {
                 height: this.state.viewportHeightWithKeyboard - (variables.inputComponentSizeNormal + chatComposerTotalHeight),
-            }, this.props.isComposerFullSize ? styles.chatItemComposeBoxExpanded : {transition: 'none'}];
+            }, this.props.isComposerFullSize && styles.chatItemComposeBoxExpanded];
 
         return (
             <ScreenWrapper
