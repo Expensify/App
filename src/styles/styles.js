@@ -1335,8 +1335,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.EXP_NEUE,
         lineHeight: variables.lineHeightXLarge,
-        marginTop: -2,
-        marginBottom: -2,
         maxWidth: '100%',
         cursor: 'auto',
         ...whiteSpace.preWrap,
