@@ -14,6 +14,7 @@ import BaseDrawerNavigator from './BaseDrawerNavigator';
 import * as ReportUtils from '../../ReportUtils';
 import reportPropTypes from '../../../pages/reportPropTypes';
 import Navigation from '../Navigation';
+import {withNavigationPropTypes} from '../../../components/withNavigation';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
@@ -30,6 +31,8 @@ const propTypes = {
         /** The type of the policy */
         type: PropTypes.string,
     })),
+
+    ...withNavigationPropTypes,
 };
 
 const defaultProps = {
