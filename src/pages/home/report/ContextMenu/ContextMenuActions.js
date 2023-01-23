@@ -53,7 +53,7 @@ export default [
             const attachmentDetails = getAttachmentDetails(html);
             const {originalFileName, sourceURL} = attachmentDetails;
             const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL);
-            const sourceID = (sourceURL.match(/chat-attachments\/(\d+)/) || [])[1];
+            const sourceID = (sourceURL.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
             Download.setDownload(sourceID, true);
             fileDownload(sourceURLWithAuth, originalFileName).then(() => Download.setDownload(sourceID, false));
             if (closePopover) {

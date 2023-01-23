@@ -6,6 +6,7 @@ import {
     propTypes as anchorForAttachmentsOnlyPropTypes,
     defaultProps as anchorForAttachmentsOnlyDefaultProps,
 } from './anchorForAttachmentsOnlyPropTypes';
+import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import AttachmentView from '../AttachmentView';
 import * as Download from '../../libs/actions/Download';
@@ -33,7 +34,7 @@ class BaseAnchorForAttachmentsOnly extends React.Component {
     render() {
         const sourceURL = this.props.source;
         const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL);
-        const sourceID = (sourceURL.match(/chat-attachments\/(\d+)/) || [])[1];
+        const sourceID = (sourceURL.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
         const fileName = this.props.displayName;
 
         const isDownloading = this.props.download && this.props.download.isDownloading;
@@ -84,7 +85,7 @@ BaseAnchorForAttachmentsOnly.defaultProps = defaultProps;
 export default withOnyx({
     download: {
         key: ({source}) => {
-            const sourceID = (source.match(/chat-attachments\/(\d+)/) || [])[1];
+            const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
             return `${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`;
         },
     },
