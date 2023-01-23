@@ -67,7 +67,9 @@ class MainDrawerNavigator extends Component {
         }
 
         if (!this.initialParams.reportID) {
-            Navigation.setParams(initialNextParams);
+            const state = this.props.navigation.getState();
+            const reportScreenKey = lodashGet(state, 'routes[0].state.routes[0].key', '');
+            Navigation.setParams(initialNextParams, reportScreenKey);
         }
         this.initialParams = initialNextParams;
         return true;

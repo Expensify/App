@@ -163,12 +163,16 @@ function navigate(route = ROUTES.HOME) {
 }
 
 /**
- * Update route params for the currently focused route.
+ * Update route params for the specified route.
  *
  * @param {Object} params
+ * @param {String} routeKey
  */
-function setParams(params) {
-    navigationRef.current.dispatch(CommonActions.setParams(params));
+function setParams(params, routeKey) {
+    navigationRef.current.dispatch({
+        ...CommonActions.setParams(params),
+        source: routeKey,
+    });
 }
 
 /**
