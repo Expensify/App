@@ -2878,7 +2878,7 @@ const styles = {
     joinRoomPromptContainer: {
         borderRadius: 18,
         padding: 20,
-        backgroundColor: themeColors.overlay,
+        backgroundColor: themeColors.highlightBG,
         display: 'flex',
         overflow: 'wrap',
         flexDirection: 'row',

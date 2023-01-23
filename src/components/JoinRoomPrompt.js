@@ -38,7 +38,6 @@ const defaultProps = {
 const JoinRoomPrompt = (props) => {
     const icons = ReportUtils.getIcons(props.report);
     const subtitle = `${ReportUtils.getChatRoomSubtitle(props.report, props.policies)} - ${props.report.participants.length} member${props.report.participants.length > 1 ? 's' : ''}`;
-    console.log(">>>>", props.isSmallScreenWidth)
 
     return (
         <View style={[styles.joinRoomPromptContainer, props.isSmallScreenWidth && styles.flexColumn]}>
