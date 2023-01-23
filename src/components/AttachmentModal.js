@@ -45,7 +45,7 @@ const propTypes = {
     /** A function as a child to pass modal launching methods to */
     children: PropTypes.func.isRequired,
 
-    /** Do the urls require an authToken? */
+    /** Whether source url requires authentication */
     isAuthTokenRequired: PropTypes.bool,
 
     /** Determines if download Button should be shown or not */
@@ -116,7 +116,7 @@ class AttachmentModal extends PureComponent {
      * @param {String} sourceURL
      */
     downloadAttachment(sourceURL) {
-        fileDownload(sourceURL, this.props.originalFileName);
+        fileDownload(this.props.isAuthTokenRequired ? addEncryptedAuthTokenToURL(sourceURL) : sourceURL, this.props.originalFileName);
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
@@ -230,9 +230,7 @@ class AttachmentModal extends PureComponent {
     }
 
     render() {
-        const sourceURL = this.props.isAuthTokenRequired
-            ? addEncryptedAuthTokenToURL(this.state.sourceURL)
-            : this.state.sourceURL;
+        const sourceURL = this.state.sourceURL;
 
         const {fileName, fileExtension} = FileUtils.splitExtensionFromFileName(this.props.originalFileName || lodashGet(this.state, 'file.name', ''));
 
@@ -267,6 +265,7 @@ class AttachmentModal extends PureComponent {
                     <View style={styles.imageModalImageCenterContainer}>
                         {this.state.sourceURL && (
                             <AttachmentView
+                                isAuthTokenRequired={this.props.isAuthTokenRequired}
                                 sourceURL={sourceURL}
                                 file={this.state.file}
                                 onToggleKeyboard={this.updateConfirmButtonVisibility}

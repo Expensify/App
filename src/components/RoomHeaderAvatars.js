@@ -76,7 +76,7 @@ const RoomHeaderAvatars = (props) => {
                             <>
                                 <View
                                     style={[
-                                        styles.roomHeaderAvatar,
+                                        ...iconStyle,
                                         styles.roomHeaderAvatarOverlay,
                                     ]}
                                 />

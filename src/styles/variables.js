@@ -18,7 +18,7 @@ export default {
     contentHeaderHeight: getValueUsingPixelRatio(65, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeNormal: 40,
-    inputComponentSizeNormal: 42,
+    inputComponentSizeNormal: 40,
     componentSizeLarge: 52,
     componentBorderRadius: 8,
     componentBorderRadiusSmall: 4,
@@ -85,4 +85,6 @@ export default {
     sliderBarHeight: 8,
     sliderKnobSize: 26,
     checkboxLabelActiveOpacity: 0.7,
+    avatarChatSpacing: 12,
+    chatInputSpacing: 52, // 40 + avatarChatSpacing
 };

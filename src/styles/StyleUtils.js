@@ -649,6 +649,23 @@ function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
     };
 }
 
+/**
+ * @param {Number} safeAreaPaddingBottom
+ * @returns {Object}
+ */
+function getErrorPageContainerStyle(safeAreaPaddingBottom = 0) {
+    return {
+        backgroundColor: themeColors.componentBG,
+        paddingBottom: 40 + safeAreaPaddingBottom,
+    };
+}
+
+/**
+ * Gets the correct size for the empty state background image based on screen dimensions
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
 function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth) {
     if (isSmallScreenWidth) {
         return {
@@ -663,6 +680,12 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth) {
     };
 }
 
+/**
+ * Gets the correct size for the empty state background image view based on screen dimensions
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
 function getReportWelcomeBackgroundImageViewStyle(isSmallScreenWidth) {
     if (isSmallScreenWidth) {
         return {
@@ -675,6 +698,12 @@ function getReportWelcomeBackgroundImageViewStyle(isSmallScreenWidth) {
     };
 }
 
+/**
+ * Gets the correct size for the empty state container based on screen dimensions
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
 function getReportWelcomeContainerStyle(isSmallScreenWidth) {
     if (isSmallScreenWidth) {
         return {
@@ -694,6 +723,7 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth) {
 export {
     getAvatarSize,
     getAvatarStyle,
+    getErrorPageContainerStyle,
     getSafeAreaPadding,
     getSafeAreaMargins,
     getNavigationDrawerStyle,

@@ -695,11 +695,11 @@ const styles = {
     },
 
     chatItemComposeSecondaryRowOffset: {
-        marginLeft: 48,
+        marginLeft: variables.chatInputSpacing,
     },
 
     offlineIndicator: {
-        marginLeft: 48,
+        marginLeft: variables.chatInputSpacing,
     },
 
     offlineIndicatorMobile: {
@@ -897,15 +897,6 @@ const styles = {
 
     lh16: {
         lineHeight: 16,
-    },
-
-    formLabel: {
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
-        color: themeColors.heading,
-        fontSize: variables.fontSizeLabel,
-        lineHeight: variables.lineHeightLarge,
-        marginBottom: 8,
     },
 
     formHelp: {
@@ -1310,7 +1301,7 @@ const styles = {
         flexShrink: 1,
         flexBasis: 0,
         position: 'relative',
-        marginLeft: 48,
+        marginLeft: variables.chatInputSpacing,
     },
 
     chatItemRight: {
@@ -1424,7 +1415,7 @@ const styles = {
         // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
-        paddingHorizontal: 8,
+        paddingHorizontal: variables.avatarChatSpacing,
         paddingTop: 0,
         paddingBottom: 0,
         alignSelf: 'center',
@@ -1455,7 +1446,7 @@ const styles = {
         backgroundColor: themeColors.transparent,
         height: 32,
         padding: 6,
-        margin: 4,
+        margin: 3,
         justifyContent: 'center',
     },
 
@@ -1529,8 +1520,7 @@ const styles = {
         alignSelf: 'flex-end',
         borderRadius: variables.buttonBorderRadius,
         height: 32,
-        marginVertical: 4,
-        marginLeft: 3,
+        marginVertical: 3,
         paddingHorizontal: 6,
         justifyContent: 'center',
     },
@@ -1543,27 +1533,19 @@ const styles = {
         backgroundColor: themeColors.buttonHoveredBG,
     },
 
-    chatItemAttachButton: {
-        alignItems: 'center',
-        alignSelf: 'flex-end',
+    chatItemAttachBorder: {
         borderRightColor: themeColors.border,
         borderRightWidth: 1,
-        height: 32,
-        width: 32,
-        marginBottom: 4,
-        marginTop: 4,
-        marginLeft: 4,
-        justifyContent: 'center',
     },
 
     composerSizeButton: {
-        alignItems: 'center',
-        alignSelf: 'flex-end',
-        height: 26,
-        marginBottom: 6,
-        marginTop: 6,
-        justifyContent: 'center',
+        alignSelf: 'center',
+        height: 32,
         width: 32,
+        padding: 6,
+        margin: 3,
+        borderRadius: variables.componentBorderRadiusRounded,
+        backgroundColor: themeColors.transparent,
     },
 
     chatItemAttachmentPlaceholder: {
@@ -1743,13 +1725,13 @@ const styles = {
     },
 
     emptyAvatar: {
-        marginRight: variables.componentSizeNormal - 24,
+        marginRight: variables.avatarChatSpacing,
         height: variables.avatarSizeNormal,
         width: variables.avatarSizeNormal,
     },
 
     emptyAvatarSmall: {
-        marginRight: variables.componentSizeNormal - 28,
+        marginRight: variables.avatarChatSpacing - 4,
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
     },
@@ -2045,6 +2027,13 @@ const styles = {
         padding: 20,
     },
 
+    avatarSectionWrapper: {
+        width: '100%',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingBottom: 20,
+    },
+
     selectCircle: {
         width: variables.componentSizeSmall,
         height: variables.componentSizeSmall,
@@ -2230,10 +2219,6 @@ const styles = {
         flexGrow: 1,
         paddingStart: 20,
         paddingEnd: 20,
-    },
-
-    noScrollbars: {
-        scrollbarWidth: 'none',
     },
 
     codeWordWrapper: {
@@ -2713,10 +2698,6 @@ const styles = {
         flex: 1,
     },
 
-    errorPageContainer: {
-        backgroundColor: themeColors.componentBG,
-    },
-
     transferBalancePayment: {
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
@@ -2859,12 +2840,6 @@ const styles = {
     saveButtonPadding: {
         paddingLeft: 18,
         paddingRight: 18,
-    },
-
-    pushToPageEmptyItemLabel: {
-        color: themeColors.textSupporting,
-        fontSize: variables.fontSizeNormal,
-        maxWidth: 240,
     },
 
     deeplinkWrapperContainer: {
