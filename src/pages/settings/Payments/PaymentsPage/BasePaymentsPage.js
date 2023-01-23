@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    View, InteractionManager, LayoutAnimation,
+    ActivityIndicator, View, InteractionManager, LayoutAnimation,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -33,6 +33,7 @@ import * as PaymentUtils from '../../../../libs/PaymentUtils';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import ConfirmContent from '../../../../components/ConfirmContent';
 import Button from '../../../../components/Button';
+import themeColors from '../../../../styles/themes/default';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
@@ -42,6 +43,7 @@ class BasePaymentsPage extends React.Component {
             shouldShowAddPaymentMenu: false,
             shouldShowDefaultDeleteMenu: false,
             shouldShowPasswordPrompt: false,
+            shouldShowLoadingSpinner: false,
             isSelectedPaymentMethodDefault: false,
             selectedPaymentMethod: {},
             formattedSelectedPaymentMethod: {
@@ -65,6 +67,8 @@ class BasePaymentsPage extends React.Component {
         this.navigateToTransferBalancePage = this.navigateToTransferBalancePage.bind(this);
         this.setMenuPosition = this.setMenuPosition.bind(this);
         this.listHeaderComponent = this.listHeaderComponent.bind(this);
+
+        this.debounceSetShouldShowLoadingSpinner = _.debounce(this.setShouldShowLoadingSpinner.bind(this), CONST.TIMING.SHOW_LOADING_SPINNER_DEBOUNCE_TIME);
     }
 
     componentDidMount() {
@@ -76,10 +80,27 @@ class BasePaymentsPage extends React.Component {
             this.setMenuPosition();
         }
 
+        // If the user was previously offline, skip debouncing showing the loader
+        if (prevProps.network.isOffline && !this.props.network.isOffline) {
+            this.setShouldShowLoadingSpinner();
+        } else {
+            this.debounceSetShouldShowLoadingSpinner();
+        }
+
+        // previously online OR currently offline, skip fetch
         if (!prevProps.network.isOffline || this.props.network.isOffline) {
             return;
         }
+
         this.fetchData();
+    }
+
+    setShouldShowLoadingSpinner() {
+        // In order to prevent a loop, only update state of the spinner if there is a change
+        const shouldShowLoadingSpinner = this.props.isLoadingPaymentMethods || false;
+        if (shouldShowLoadingSpinner !== this.state.shouldShowLoadingSpinner) {
+            this.setState({shouldShowLoadingSpinner: this.props.isLoadingPaymentMethods && !this.props.network.isOffline});
+        }
     }
 
     setMenuPosition() {
@@ -268,14 +289,18 @@ class BasePaymentsPage extends React.Component {
                 {Permissions.canUseWallet(this.props.betas) && (
                     <>
                         <View style={[styles.mv5]}>
-                            <OfflineWithFeedback
-                                pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
-                                errors={this.props.walletTerms.errors}
-                                onClose={PaymentMethods.clearWalletTermsError}
-                                errorRowStyles={[styles.ml10, styles.mr2]}
-                            >
-                                <CurrentWalletBalance />
-                            </OfflineWithFeedback>
+                            {this.state.shouldShowLoadingSpinner ? (
+                                <ActivityIndicator color={themeColors.spinner} size="large" />
+                            ) : (
+                                <OfflineWithFeedback
+                                    pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
+                                    errors={this.props.walletTerms.errors}
+                                    onClose={PaymentMethods.clearWalletTermsError}
+                                    errorRowStyles={[styles.ml10, styles.mr2]}
+                                >
+                                    <CurrentWalletBalance />
+                                </OfflineWithFeedback>
+                            )}
                         </View>
                         {this.props.userWallet.currentBalance > 0 && (
                             <KYCWall
@@ -464,7 +489,6 @@ class BasePaymentsPage extends React.Component {
                         this.makeDefaultPaymentMethod(password);
                     }}
                     submitButtonText={this.state.passwordButtonText}
-                    isDangerousAction
                 />
             </ScreenWrapper>
         );
@@ -496,6 +520,9 @@ export default compose(
         },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,
+        },
+        isLoadingPaymentMethods: {
+            key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
         },
     }),
 )(BasePaymentsPage);
