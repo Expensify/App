@@ -18,6 +18,7 @@ import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import * as User from '../../src/libs/actions/User';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import DateUtils from '../../src/libs/DateUtils';
+import * as NumberUtils from '../../src/libs/NumberUtils';
 
 jest.mock('../../src/libs/actions/Report', () => {
     const originalModule = jest.requireActual('../../src/libs/actions/Report');
@@ -65,8 +66,8 @@ describe('actions/Report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = 1;
-        const ACTION_ID = 1;
         const REPORT_ACTION = {
+            reportActionID: NumberUtils.rand64(),
             actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
             actorAccountID: TEST_USER_ACCOUNT_ID,
             actorEmail: TEST_USER_LOGIN,
@@ -74,7 +75,7 @@ describe('actions/Report', () => {
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
             message: [{type: 'COMMENT', html: 'Testing a comment', text: 'Testing a comment'}],
             person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
-            sequenceNumber: ACTION_ID,
+            sequenceNumber: 1,
             shouldShow: true,
         };
 
@@ -131,7 +132,7 @@ describe('actions/Report', () => {
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
                             [clientID]: null,
-                            [ACTION_ID]: actionWithoutLoading,
+                            1: actionWithoutLoading,
                         },
                     },
                 ]);
@@ -145,7 +146,7 @@ describe('actions/Report', () => {
                 // Verify there is only one action and our optimistic comment has been removed
                 expect(_.size(reportActions)).toBe(1);
 
-                const resultAction = reportActions[ACTION_ID];
+                const resultAction = reportActions[1];
 
                 // Verify that our action is no longer in the loading state
                 expect(resultAction.pendingAction).not.toBeDefined();
@@ -354,9 +355,9 @@ describe('actions/Report', () => {
                     onyxMethod: CONST.ONYX.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                     value: {
+                        [_.toArray(reportActions)[0].clientID]: null,
                         [_.toArray(reportActions)[1].clientID]: null,
                         [_.toArray(reportActions)[2].clientID]: null,
-                        [_.toArray(reportActions)[3].clientID]: null,
                         2: {
                             ...USER_1_BASE_ACTION,
                             message: [{type: 'COMMENT', html: 'Current User Comment 1', text: 'Current User Comment 1'}],
