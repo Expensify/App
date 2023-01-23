@@ -154,6 +154,14 @@ const ReportSettingsModalStackNavigator = createModalStackNavigator([{
     name: 'Report_Settings_Root',
 }]);
 
+const RoomInviteModalStackNavigator = createModalStackNavigator([{
+    getComponent: () => {
+        const RoomInvitePage = require('../../../pages/RoomInvitePage').default;
+        return RoomInvitePage;
+    },
+    name: 'Room_Invite_Root',
+}]);
+
 const ReportParticipantsModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -478,6 +486,7 @@ export {
     DetailsModalStackNavigator,
     ReportDetailsModalStackNavigator,
     ReportSettingsModalStackNavigator,
+    RoomInviteModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,

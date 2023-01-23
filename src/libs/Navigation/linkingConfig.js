@@ -164,6 +164,11 @@ export default {
                     Report_Settings_Root: ROUTES.REPORT_SETTINGS,
                 },
             },
+            Room_Invite: {
+                screens: {
+                    Room_Invite_Root: ROUTES.ROOM_INVITE,
+                },
+            },
             NewGroup: {
                 screens: {
                     NewGroup_Root: ROUTES.NEW_GROUP,

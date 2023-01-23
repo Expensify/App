@@ -85,7 +85,7 @@ class ReportDetailsPage extends Component {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
                 icon: Expensicons.Plus,
-                action: () => { /* Placeholder for when inviting other users is built in */ },
+                action: () => { Navigation.navigate(ROUTES.getRoomInviteRoute(props.report.reportID)); },
             },
             {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
