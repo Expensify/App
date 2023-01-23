@@ -1375,6 +1375,10 @@ const styles = {
         minHeight: variables.componentSizeNormal,
     },
 
+    chatItemComposeBoxExpanded: {
+        transition: '0.3s ease height',
+    },
+
     chatItemFullComposeBox: {
         ...flex.flex1,
         ...spacing.mt4,
