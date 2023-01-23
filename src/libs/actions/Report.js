@@ -63,7 +63,8 @@ function getReportChannelName(reportID) {
 function subscribeToReportCommentPushNotifications() {
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, onyxData}) => {
         Log.info('[Report] Handled event sent by Airship', false, {reportID});
-        Onyx.update(onyxData);
+        const filteredOnyxData = ReportActionsUtils.filterReportActionIDKeyedOnyxUpdates(onyxData);
+        Onyx.update(filteredOnyxData);
     });
 
     // Open correct report when push notification is clicked
@@ -161,6 +162,27 @@ function unsubscribeFromReportChannel(reportID) {
     const pusherChannelName = getReportChannelName(reportID);
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
     Pusher.unsubscribe(pusherChannelName);
+}
+
+const defaultNewActionSubscriber = {
+    reportID: '',
+    callback: () => {},
+};
+
+let newActionSubscriber = defaultNewActionSubscriber;
+
+/**
+ * Enables the Report actions file to let the ReportActionsView know that a new comment has arrived in realtime for the current report
+ *
+ * @param {String} reportID
+ * @param {Function} callback
+ * @returns {Function}
+ */
+function subscribeToNewActionEvent(reportID, callback) {
+    newActionSubscriber = {callback, reportID};
+    return () => {
+        newActionSubscriber = defaultNewActionSubscriber;
+    };
 }
 
 /**
@@ -265,6 +287,12 @@ function addActions(reportID, text = '', file) {
     API.write(commandName, parameters, {
         optimisticData,
     });
+
+    // Notify the ReportActionsView that a new comment has arrived
+    if (reportID === newActionSubscriber.reportID) {
+        const isFromCurrentUser = lastAction.actorAccountID === currentUserAccountID;
+        newActionSubscriber.callback(isFromCurrentUser, lastAction.reportActionID);
+    }
 }
 
 /**
@@ -1065,33 +1093,13 @@ function setIsComposerFullSize(reportID, isComposerFullSize) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, isComposerFullSize);
 }
 
-const defaultNewActionSubscriber = {
-    reportID: '',
-    callback: () => {},
-};
-
-let newActionSubscriber = defaultNewActionSubscriber;
-
-/**
- * Enables the Report actions file to let the ReportActionsView know that a new comment has arrived in realtime for the current report
- *
- * @param {String} reportID
- * @param {Function} callback
- * @returns {Function}
- */
-function subscribeToNewActionEvent(reportID, callback) {
-    newActionSubscriber = {callback, reportID};
-    return () => {
-        newActionSubscriber = defaultNewActionSubscriber;
-    };
-}
-
 /**
  * @param {String} reportID
  * @param {Object} action
  */
 function showReportActionNotification(reportID, action) {
     if (ReportActionsUtils.isDeletedAction(action)) {
+        Log.info('[LOCAL_NOTIFICATION] Skipping notification because the action was deleted', false, {reportID, action});
         return;
     }
 
@@ -1115,7 +1123,7 @@ function showReportActionNotification(reportID, action) {
 
     // If we are currently viewing this report do not show a notification.
     if (reportID === Navigation.getReportIDFromRoute() && Visibility.isVisible()) {
-        Log.info('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
+        Log.info('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report', false, {currentReport: Navigation.getReportIDFromRoute(), reportID, action});
         return;
     }
 
@@ -1126,7 +1134,7 @@ function showReportActionNotification(reportID, action) {
 
     // Don't show a notification if no comment exists
     if (!_.some(action.message, f => f.type === 'COMMENT')) {
-        Log.info('[LOCAL_NOTIFICATION] No notification because no comments exist for the current report');
+        Log.info('[LOCAL_NOTIFICATION] No notification because no comments exist for the current action');
         return;
     }
 
