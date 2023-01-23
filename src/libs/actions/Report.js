@@ -1012,6 +1012,13 @@ function addPolicyReport(policy, reportName, visibility) {
     Navigation.navigate(ROUTES.getReportRoute(policyReport.reportID));
 }
 
+function inviteToWorkspaceRoom(reportID, emails) {
+    API.write(
+        'InviteToWorkspaceRoom',
+        {emails},
+    )
+}
+
 /**
  * @param {String} reportID The reportID of the policy report (workspace room)
  */
@@ -1180,6 +1187,7 @@ export {
     navigateToConciergeChat,
     setReportWithDraft,
     addPolicyReport,
+    inviteToWorkspaceRoom,
     navigateToConciergeChatAndDeleteReport,
     setIsComposerFullSize,
     markCommentAsUnread,
