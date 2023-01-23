@@ -190,7 +190,7 @@ class BaseOptionsList extends Component {
                 // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
                 // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
                 <View style={styles.optionsListSectionHeader}>
-                    <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading, styles.textUppercase]}>
+                    <Text style={[styles.p5, styles.textLabelSupporting]}>
                         {title}
                     </Text>
                 </View>

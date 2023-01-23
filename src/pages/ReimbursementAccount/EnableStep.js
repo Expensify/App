@@ -1,8 +1,8 @@
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -14,17 +14,18 @@ import Button from '../../components/Button';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import MenuItem from '../../components/MenuItem';
 import getBankIcon from '../../components/Icon/BankIcons';
-import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
 import Section from '../../components/Section';
 import * as Illustrations from '../../components/Icon/Illustrations';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Link from '../../libs/actions/Link';
 import * as User from '../../libs/actions/User';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import * as BankAccounts from '../../libs/actions/ReimbursementAccount';
 
 const propTypes = {
     /** Bank account currently in setup */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
     /* Onyx Props */
     user: userPropTypes.isRequired,
@@ -34,17 +35,17 @@ const propTypes = {
 
 const EnableStep = (props) => {
     const isUsingExpensifyCard = props.user.isUsingExpensifyCard;
-    const reimbursementAccount = props.reimbursementAccount.achData || {};
-    const {icon, iconSize} = getBankIcon(reimbursementAccount.bankName);
-    const formattedBankAccountNumber = reimbursementAccount.accountNumber
+    const achData = lodashGet(props.reimbursementAccount, 'achData') || {};
+    const {icon, iconSize} = getBankIcon(achData.bankName);
+    const formattedBankAccountNumber = achData.accountNumber
         ? `${props.translate('paymentMethodList.accountLastFour')} ${
-            reimbursementAccount.accountNumber.slice(-4)
+            achData.accountNumber.slice(-4)
         }`
         : '';
-    const bankName = reimbursementAccount.addressName;
+    const bankName = achData.addressName;
 
     return (
-        <View style={[styles.flex1, styles.justifyContentBetween]}>
+        <ScreenWrapper style={[styles.flex1, styles.justifyContentBetween]} includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
                 title={props.translate('workspace.common.bankAccount')}
                 onCloseButtonPress={Navigation.dismissModal}
@@ -67,7 +68,6 @@ const EnableStep = (props) => {
                         disabled
                         interactive={false}
                         wrapperStyle={[styles.cardMenuItem, styles.mv3]}
-                        iconFill={themeColors.success}
                     />
                     <Text style={[styles.mv3]}>
                         {!isUsingExpensifyCard
@@ -93,7 +93,6 @@ const EnableStep = (props) => {
                         title={props.translate('workspace.bankAccount.disconnectBankAccount')}
                         icon={Expensicons.Close}
                         onPress={BankAccounts.requestResetFreePlanBankAccount}
-                        iconFill={themeColors.success}
                         wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                     />
                 </Section>
@@ -103,7 +102,7 @@ const EnableStep = (props) => {
                     </Text>
                 )}
             </ScrollView>
-        </View>
+        </ScreenWrapper>
     );
 };
 
@@ -113,9 +112,6 @@ EnableStep.propTypes = propTypes;
 export default compose(
     withLocalize,
     withOnyx({
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
         user: {
             key: ONYXKEYS.USER,
         },

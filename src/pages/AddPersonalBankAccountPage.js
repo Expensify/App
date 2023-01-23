@@ -15,10 +15,14 @@ import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import Form from '../components/Form';
 import ROUTES from '../ROUTES';
+import * as PlaidDataProps from './ReimbursementAccount/plaidDataPropTypes';
 import ConfirmationPage from '../components/ConfirmationPage';
 
 const propTypes = {
     ...withLocalizePropTypes,
+
+    /** Contains plaid data */
+    plaidData: PlaidDataProps.plaidDataPropTypes,
 
     /** The details about the Personal bank account we are adding saved in Onyx */
     personalBankAccount: PropTypes.shape({
@@ -37,6 +41,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    plaidData: PlaidDataProps.plaidDataDefaultProps,
     personalBankAccount: {
         error: '',
         shouldShowSuccess: false,
@@ -93,7 +98,10 @@ class AddPersonalBankAccountPage extends React.Component {
                         description={this.props.translate('addPersonalBankAccountPage.successMessage')}
                         shouldShowButton
                         buttonText={this.props.translate('common.continue')}
-                        onButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
+                        onButtonPress={() => {
+                            BankAccounts.clearPersonalBankAccount();
+                            Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
+                        }}
                     />
                 ) : (
                     <Form
@@ -109,6 +117,7 @@ class AddPersonalBankAccountPage extends React.Component {
                                 onSelect={(selectedPlaidAccountID) => {
                                     this.setState({selectedPlaidAccountID});
                                 }}
+                                plaidData={this.props.plaidData}
                                 onExitPlaid={Navigation.goBack}
                                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                                 selectedPlaidAccountID={this.state.selectedPlaidAccountID}

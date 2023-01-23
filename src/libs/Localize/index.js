@@ -14,48 +14,47 @@ LocaleListener.connect();
 /**
  * Return translated string for given locale and phrase
  *
- * @param {String} [locale] eg 'en', 'es-ES'
- * @param {String|Array} phrase
- * @param {Object} [variables]
+ * @param {String} [desiredLanguage] eg 'en', 'es-ES'
+ * @param {String|Array} phraseKey
+ * @param {Object} [phraseParameters] Parameters to supply if the phrase is a template literal.
  * @returns {String}
  */
-function translate(locale = CONST.DEFAULT_LOCALE, phrase, variables = {}) {
-    const localeLanguage = locale.substring(0, 2);
-    const fullLocale = lodashGet(translations, locale, {});
-    const language = lodashGet(translations, localeLanguage, {});
-    const defaultLanguage = lodashGet(translations, 'en', {});
+function translate(desiredLanguage = CONST.DEFAULT_LOCALE, phraseKey, phraseParameters = {}) {
+    const languageAbbreviation = desiredLanguage.substring(0, 2);
+    let translatedPhrase;
 
-    let translationValue;
-
-    // Search phrase in full locale
-    translationValue = lodashGet(fullLocale, phrase);
-    if (translationValue) {
-        return Str.result(translationValue, variables);
+    // Search phrase in full locale e.g. es-ES
+    const desiredLanguageDictionary = lodashGet(translations, desiredLanguage);
+    translatedPhrase = lodashGet(desiredLanguageDictionary, phraseKey);
+    if (translatedPhrase) {
+        return Str.result(translatedPhrase, phraseParameters);
     }
 
-    // Phrase is not found in full locale, search it in language
-    translationValue = lodashGet(language, phrase);
-    if (translationValue) {
-        return Str.result(translationValue, variables);
+    // Phrase is not found in full locale, search it in fallback language e.g. es
+    const fallbackLanguageDictionary = lodashGet(translations, languageAbbreviation);
+    translatedPhrase = lodashGet(fallbackLanguageDictionary, phraseKey);
+    if (translatedPhrase) {
+        return Str.result(translatedPhrase, phraseParameters);
     }
-    if (localeLanguage !== 'en') {
-        Log.alert(`${phrase} was not found in the ${localeLanguage} locale`);
+    if (languageAbbreviation !== 'en') {
+        Log.alert(`${phraseKey} was not found in the ${languageAbbreviation} locale`);
     }
 
     // Phrase is not translated, search it in default language (en)
-    translationValue = lodashGet(defaultLanguage, phrase);
-    if (translationValue) {
-        return Str.result(translationValue, variables);
+    const defaultLanguageDictionary = lodashGet(translations, 'en', {});
+    translatedPhrase = lodashGet(defaultLanguageDictionary, phraseKey);
+    if (translatedPhrase) {
+        return Str.result(translatedPhrase, phraseParameters);
     }
 
     // Phrase is not found in default language, on production log an alert to server
     // on development throw an error
     if (Config.IS_IN_PRODUCTION) {
-        const phraseString = _.isArray(phrase) ? phrase.join('.') : phrase;
+        const phraseString = _.isArray(phraseKey) ? phraseKey.join('.') : phraseKey;
         Log.alert(`${phraseString} was not found in the en locale`);
         return phraseString;
     }
-    throw new Error(`${phrase} was not found in the default language`);
+    throw new Error(`${phraseKey} was not found in the default language`);
 }
 
 /**

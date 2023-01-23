@@ -4,6 +4,9 @@ import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
+import * as PlaidDataProps from '../../pages/ReimbursementAccount/plaidDataPropTypes';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 export {
     goToWithdrawalAccountSetupStep,
@@ -28,17 +31,23 @@ export {
     acceptWalletTerms,
 } from './Wallet';
 
-function clearPersonalBankAccount() {
-    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
-}
-
 function clearPlaid() {
-    Onyx.set(ONYXKEYS.PLAID_DATA, {});
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
+
+    return Onyx.set(ONYXKEYS.PLAID_DATA, PlaidDataProps.plaidDataDefaultProps);
 }
 
-function updatePlaidData(plaidData) {
-    Onyx.merge(ONYXKEYS.PLAID_DATA, plaidData);
+function openPlaidView() {
+    clearPlaid().then(() => this.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
+}
+
+function openPersonalBankAccountSetupView() {
+    clearPlaid().then(() => Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
+}
+
+function clearPersonalBankAccount() {
+    clearPlaid();
+    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
 }
 
 function clearOnfidoToken() {
@@ -177,6 +186,16 @@ function deletePaymentBankAccount(bankAccountID) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
                 value: {[bankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+            },
+        ],
+
+        // Sometimes pusher updates aren't received when we close the App while still offline,
+        // so we are setting the bankAccount to null here to ensure that it gets cleared out once we come back online.
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
+                value: {[bankAccountID]: null},
             },
         ],
     });
@@ -331,7 +350,7 @@ function updateBeneficialOwnersForBankAccount(params) {
 /**
  * Create the bank account with manually entered data.
  *
- * @param {String} [bankAccountID]
+ * @param {number} [bankAccountID]
  * @param {String} [accountNumber]
  * @param {String} [routingNumber]
  * @param {String} [plaidMask]
@@ -377,14 +396,15 @@ export {
     clearOnfidoToken,
     clearPersonalBankAccount,
     clearPlaid,
+    openPlaidView,
     connectBankAccountManually,
     connectBankAccountWithPlaid,
     deletePaymentBankAccount,
+    openPersonalBankAccountSetupView,
     openReimbursementAccountPage,
     updateBeneficialOwnersForBankAccount,
     updateCompanyInformationForBankAccount,
     updatePersonalInformationForBankAccount,
-    updatePlaidData,
     openWorkspaceView,
     validateBankAccount,
     verifyIdentityForBankAccount,

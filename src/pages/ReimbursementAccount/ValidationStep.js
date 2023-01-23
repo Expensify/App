@@ -6,8 +6,8 @@ import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Report from '../../libs/actions/Report';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -17,10 +17,9 @@ import Text from '../../components/Text';
 import BankAccount from '../../libs/models/BankAccount';
 import TextLink from '../../components/TextLink';
 import ONYXKEYS from '../../ONYXKEYS';
-import compose from '../../libs/compose';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import EnableStep from './EnableStep';
-import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import Form from '../../components/Form';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
@@ -34,7 +33,9 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     /** Bank account currently in setup */
-    reimbursementAccount: reimbursementAccountPropTypes,
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
+
+    onBackButtonPress: PropTypes.func.isRequired,
 
     /** User's account who is setting up bank account */
     account: PropTypes.shape({
@@ -45,11 +46,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    reimbursementAccount: {
-        errorFields: {},
-        errors: {},
-        maxAttemptsReached: false,
-    },
     account: {
         requiresTwoFactorAuth: false,
     },
@@ -120,14 +116,14 @@ class ValidationStep extends React.Component {
     }
 
     render() {
-        const state = lodashGet(this.props, 'reimbursementAccount.achData.state');
+        const state = lodashGet(this.props.reimbursementAccount, 'achData.state');
 
         // If a user tries to navigate directly to the validate page we'll show them the EnableStep
         if (state === BankAccount.STATE.OPEN) {
             return <EnableStep />;
         }
 
-        const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
+        const maxAttemptsReached = lodashGet(this.props.reimbursementAccount, 'maxAttemptsReached');
         const isVerifying = !maxAttemptsReached && state === BankAccount.STATE.VERIFYING;
         const requiresTwoFactorAuth = lodashGet(this.props, 'account.requiresTwoFactorAuth');
 
@@ -137,7 +133,7 @@ class ValidationStep extends React.Component {
                     title={isVerifying ? this.props.translate('validationStep.headerTitle') : this.props.translate('workspace.common.testTransactions')}
                     stepCounter={{step: 5, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={this.props.onBackButtonPress}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
@@ -227,7 +223,6 @@ class ValidationStep extends React.Component {
                                 icon={Expensicons.RotateLeft}
                                 onPress={BankAccounts.requestResetFreePlanBankAccount}
                                 shouldShowRightIcon
-                                iconFill={themeColors.success}
                                 wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                             />
                         </Section>
@@ -247,9 +242,6 @@ ValidationStep.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
         account: {
             key: ONYXKEYS.ACCOUNT,
         },
