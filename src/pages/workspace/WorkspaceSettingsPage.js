@@ -81,6 +81,7 @@ class WorkspaceSettingsPage extends React.Component {
                         formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
                         submitButtonText={this.props.translate('workspace.editor.save')}
                         style={[styles.mh5, styles.flexGrow1]}
+                        scrollContextEnabled
                         validate={this.validate}
                         onSubmit={this.submit}
                         enabledWhenOffline
