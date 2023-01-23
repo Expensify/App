@@ -1319,7 +1319,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         lineHeight: variables.lineHeightXLarge,
-        height: variables.lineHeightXLarge,
         ...wordBreak.breakWord,
     },
 
@@ -1327,7 +1326,8 @@ const styles = {
         flexShrink: 0,
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeSmall,
-        lineHeight: variables.lineHeightXLarge,
+        paddingTop: 4,
+        lineHeight: variables.lineHeightNormal,
     },
 
     chatItemMessage: {
