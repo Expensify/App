@@ -2876,7 +2876,7 @@ const styles = {
     },
 
     joinRoomPromptContainer: {
-        borderRadius: 18,
+        borderRadius: variables.componentBorderRadiusRounded,
         padding: 20,
         backgroundColor: themeColors.highlightBG,
         display: 'flex',
