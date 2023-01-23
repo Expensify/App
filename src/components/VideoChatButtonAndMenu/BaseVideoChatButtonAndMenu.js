@@ -112,8 +112,8 @@ class BaseVideoChatButtonAndMenu extends Component {
                                 this.videoChatButton.blur();
 
                                 // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
-                                if (this.props.isConcierge) {
-                                    Navigation.navigate(ROUTES.getRequestCallRoute(CONST.GUIDES_CALL_TASK_IDS.CONCIERGE_DM));
+                                if (this.props.isConcierge && this.props.guideCalendarLink) {
+                                    Linking.openURL(this.props.guideCalendarLink);
                                     return;
                                 }
                                 this.toggleVideoChatMenu();
