@@ -134,16 +134,13 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
  *
  */
 function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, userWallet) {
-    const optimisticData = getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, userWallet);
-    const failureData = getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, userWallet, false);
-
     API.write('MakeDefaultPaymentMethod', {
         password,
         bankAccountID,
         fundID,
     }, {
-        optimisticData,
-        failureData,
+        optimisticData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, userWallet),
+        failureData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, userWallet, false),
     });
 }
 
