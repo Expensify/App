@@ -408,14 +408,31 @@ function isValidRoomName(roomName) {
 }
 
 /**
- * Checks if workspace name does not contain spaces
+ * Checks if workspace name is valid by checking that:
+ * - It's not empty or only contain spaces
+ * - It does not equal to zero
+ * - It does not contain spaces
  *
  * @param {String} workspaceName
- * @returns {Boolean}
+ * @returns {[String]}
  */
 
 function isValidWorkspaceName(workspaceName) {
-    return !/\s/.test(workspaceName.trim());
+    // Case Empty
+    if (!workspaceName || !workspaceName.trim().length) {
+        return ['workspace.editor.nameIsRequiredError'];
+    }
+
+    // Case Equals to Zero
+    if (workspaceName.trim() === '0') {
+        return ['workspace.editor.nameInvalidError'];
+    }
+
+    // Case contain Spaces
+    if (/\s/.test(workspaceName.trim())) {
+        return ['workspace.editor.nameContainSpaceError'];
+    }
+    return [];
 }
 
 /**

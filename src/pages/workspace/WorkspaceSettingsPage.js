@@ -65,28 +65,14 @@ class WorkspaceSettingsPage extends React.Component {
     validate(values) {
         const errors = {};
 
+        const workSpaceNameValidation = ValidationUtils.isValidWorkspaceName(values.name);
+
         // Case Name is empty
         ValidationUtils.assignError(
             errors,
             'name',
-            !values.name || !values.name.trim().length,
-            ['workspace.editor.nameIsRequiredError'],
-        );
-
-        // Case Name equals to 0
-        ValidationUtils.assignError(
-            errors,
-            'name',
-            values.name.trim() === '0',
-            ['workspace.editor.nameInvalidError'],
-        );
-
-        // Case Name have spaces
-        ValidationUtils.assignError(
-            errors,
-            'name',
-            !ValidationUtils.isValidWorkspaceName(values.name),
-            ['workspace.editor.nameContainSpaceError'],
+            !_.isEmpty(workSpaceNameValidation),
+            workSpaceNameValidation,
         );
 
         return errors;
