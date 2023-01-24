@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, FlatList, Pressable} from 'react-native';
+import {View, FlatList} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
