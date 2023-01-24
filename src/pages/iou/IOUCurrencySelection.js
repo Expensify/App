@@ -89,7 +89,7 @@ class IOUCurrencySelection extends Component {
      */
     changeSearchValue(searchValue) {
         const currencyOptions = this.getCurrencyOptions(this.props.currencyList);
-        const searchRegex = Str.escapeForRegExp(searchValue);
+        const searchRegex = new RegExp(Str.escapeForRegExp(searchValue), 'i');
         const filteredCurrencies = _.filter(currencyOptions, currencyOption => searchRegex.test(currencyOption.text));
 
         this.setState({
