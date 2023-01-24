@@ -21,6 +21,7 @@ import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import Form from '../../components/Form';
+import * as ValidationUtils from '../../libs/ValidationUtils';
 
 const propTypes = {
     ...policyPropTypes,
@@ -63,9 +64,31 @@ class WorkspaceSettingsPage extends React.Component {
 
     validate(values) {
         const errors = {};
-        if (!values.name || !values.name.trim().length) {
-            errors.name = this.props.translate('workspace.editor.nameIsRequiredError');
-        }
+
+        // Case Name is empty
+        ValidationUtils.assignError(
+            errors,
+            'name',
+            !values.name || !values.name.trim().length,
+            ['workspace.editor.nameIsRequiredError'],
+        );
+
+        // Case Name equals to 0
+        ValidationUtils.assignError(
+            errors,
+            'name',
+            values.name.trim() === '0',
+            ['workspace.editor.nameInvalidError'],
+        );
+
+        // Case Name have spaces
+        ValidationUtils.assignError(
+            errors,
+            'name',
+            !ValidationUtils.isValidWorkspaceName(values.name),
+            ['workspace.editor.nameContainSpaceError'],
+        );
+
         return errors;
     }
 
