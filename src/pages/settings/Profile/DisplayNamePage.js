@@ -57,7 +57,7 @@ class DisplayNamePage extends Component {
     validate(values) {
         const errors = {};
 
-        const firstNameValidation = ValidationUtils.isValidDisplayName('first name', values.firstName);
+        const firstNameValidation = ValidationUtils.isValidDisplayName('first name', values.firstName, true);
         const lastNameValidation = ValidationUtils.isValidDisplayName('last name', values.lastName);
 
         ValidationUtils.assignError(

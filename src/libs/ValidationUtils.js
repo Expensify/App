@@ -371,9 +371,10 @@ function findInvalidSymbols(valuesToBeValidated) {
  * - It includes comma or semicolon which are not accepted
  * @param {String} name
  * @param {String} valuesToBeValidated
+ * @param {Boolean} withRestrictedWords - if true , we should validate restricted words
  * @returns {[string,Object]}
  */
-function isValidDisplayName(name, valuesToBeValidated) {
+function isValidDisplayName(name, valuesToBeValidated, withRestrictedWords = false) {
     if (!valuesToBeValidated || !valuesToBeValidated.trim().length) {
         // we can display an error if empty
         return [];
@@ -389,6 +390,11 @@ function isValidDisplayName(name, valuesToBeValidated) {
     // Check for invalid characters in name
     if (!_.isEmpty(invalidCharacter)) {
         return ['personalDetails.error.hasInvalidCharacter', {invalidCharacter}];
+    }
+
+    // we should validate restricted words if withRestrictedWord is set to true
+    if (!withRestrictedWords) {
+        return [];
     }
 
     // check if name equals to Expensify
