@@ -33,7 +33,7 @@ Example:
     - etc.
 
 #### Writing style of steps
-For the test case steps we're asking to be created by the contributor whose PR solved the bug, it'll fall into a category known as bug fix verification. As such, the steps that should be proposed should contain the action element `Veryfiy` and should be tied to the expected behavior in question. 
+For the test case steps we're asking to be created by the contributor whose PR solved the bug, it'll fall into a category known as bug fix verification. As such, the steps that should be proposed should contain the action element `Verify` and should be tied to the expected behavior in question. 
 The steps should be broken out by individual actions taking place with the written style of communicating exact steps someone will replicate. As such, simplicity and succinctness is key. 
 
 Here are some below examples to illustrate the writing style that covers this:
