@@ -34,7 +34,7 @@ const CategoryShortcutButton = props => (
         style={({pressed}) => ([
             StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
             props.isHighlighted && styles.emojiItemHighlighted,
-            styles.emojiItem,
+            styles.categoryShortcutButton,
         ])}
     >
         <Text style={[styles.emojiText]}>

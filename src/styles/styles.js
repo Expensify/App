@@ -1512,6 +1512,15 @@ const styles = {
         borderRadius: variables.buttonBorderRadius,
     },
 
+    categoryShortcutButton: {
+        width: '10%',
+        textAlign: 'center',
+        borderRadius: 8,
+        paddingTop: 2,
+        paddingBottom: 2,
+        height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+    },
+
     chatItemEmojiButton: {
         alignSelf: 'flex-end',
         borderRadius: variables.buttonBorderRadius,
