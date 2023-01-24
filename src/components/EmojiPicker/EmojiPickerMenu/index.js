@@ -20,7 +20,6 @@ import getOperatingSystem from '../../../libs/getOperatingSystem';
 import * as User from '../../../libs/actions/User';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
-import getButtonState from "../../../libs/getButtonState";
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
