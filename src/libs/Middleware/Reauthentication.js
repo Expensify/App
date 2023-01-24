@@ -111,6 +111,15 @@ function Reauthentication(response, request, isFromSequentialQueue) {
 
             // Return response data so we can chain the response with the following middlewares.
             return data;
+        })
+        .catch(() => {
+            // Only deprecated api requests have a resolve function, so do nothing if this is not a deprecated api request
+            if (!request.resolve) {
+                return;
+            }
+
+            // If we have caught a networking error from a deprecated api request, resolve it as unable to retry, otherwise the request will never resolve or reject.
+            request.resolve({jsonCode: CONST.JSON_CODE.UNABLE_TO_RETRY});
         });
 }
 
