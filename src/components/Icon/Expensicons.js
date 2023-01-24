@@ -29,6 +29,7 @@ import Document from '../../../assets/images/document.svg';
 import DeletedRoomAvatar from '../../../assets/images/avatars/deleted-room.svg';
 import DomainRoomAvatar from '../../../assets/images/avatars/domain-room.svg';
 import DotIndicator from '../../../assets/images/dot-indicator.svg';
+import DotSeparator from '../../../assets/images/dot-separator.svg';
 import DownArrow from '../../../assets/images/down.svg';
 import Download from '../../../assets/images/download.svg';
 import Emoji from '../../../assets/images/emoji.svg';
@@ -130,6 +131,7 @@ export {
     Document,
     DomainRoomAvatar,
     DotIndicator,
+    DotSeparator,
     DownArrow,
     Download,
     DragAndDrop,

@@ -2519,6 +2519,10 @@ const styles = {
         alignItems: 'center',
     },
 
+    dotSeparator: {
+        marginHorizontal: variables.dotSeparatorHorizontalSpacing,
+    },
+
     sidebarPopover: {
         width: variables.sideBarWidth - 68,
     },

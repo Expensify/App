@@ -14,6 +14,10 @@ import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import themeColors from '../styles/themes/default';
+import variables from '../styles/variables';
 
 const propTypes = {
     /** Report object for the current report */
@@ -37,8 +41,8 @@ const defaultProps = {
 
 const JoinRoomPrompt = (props) => {
     const icons = ReportUtils.getIcons(props.report);
-    const subtitle = `${ReportUtils.getChatRoomSubtitle(props.report, props.policies)} - ${props.report.participants.length} member${props.report.participants.length > 1 ? 's' : ''}`;
-
+    const workspaceName = ReportUtils.getChatRoomSubtitle(props.report, props.policies);
+    const memberCount = `${props.report.participants.length} member${props.report.participants.length > 1 ? 's' : ''}`;
     return (
         <View style={[styles.joinRoomPromptContainer, props.isSmallScreenWidth && styles.flexColumn]}>
             <View style={[styles.dFlex, styles.flexRow, styles.flex1, props.isSmallScreenWidth && [styles.flexShrink0, styles.mb2]]}>
@@ -54,15 +58,33 @@ const JoinRoomPrompt = (props) => {
                     >
                         {props.report.displayName}
                     </Text>
-                    <Text
-                        style={[
-                            styles.sidebarLinkText,
-                            styles.optionAlternateText,
-                            styles.textLabelSupporting,
-                            styles.flex1,
-                        ]}
-                    >
-                        {subtitle}
+                    <Text style={[styles.alignItemsCenter, styles.dFlex, styles.flexRow, styles.justifyContentStart, styles.flex1]}>
+                        <Text
+                            style={[
+                                styles.sidebarLinkText,
+                                styles.optionAlternateText,
+                                styles.textLabelSupporting,
+                            ]}
+                        >
+                            {memberCount}
+                        </Text>
+                        <Icon
+                            src={Expensicons.DotSeparator}
+                            fill={themeColors.textSupporting}
+                            height={variables.iconSizeXXXSmall}
+                            width={variables.iconSizeXXXSmall}
+                            style={styles.dotSeparator}
+                            inline
+                        />
+                        <Text
+                            style={[
+                                styles.sidebarLinkText,
+                                styles.optionAlternateText,
+                                styles.textLabelSupporting,
+                            ]}
+                        >
+                            {workspaceName}
+                        </Text>
                     </Text>
                 </View>
             </View>

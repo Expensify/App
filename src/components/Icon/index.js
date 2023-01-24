@@ -6,6 +6,7 @@ import themeColors from '../../styles/themes/default';
 import variables from '../../styles/variables';
 import * as StyleUtils from '../../styles/StyleUtils';
 import IconWrapperStyles from './IconWrapperStyles';
+import stylePropTypes from '../../styles/stylePropTypes';
 
 const propTypes = {
     /** The asset to render. */
@@ -25,6 +26,9 @@ const propTypes = {
 
     /** Is inline icon */
     inline: PropTypes.bool,
+
+    /** Additional styles to apply */
+    style: stylePropTypes,
 };
 
 const defaultProps = {
@@ -33,6 +37,7 @@ const defaultProps = {
     fill: themeColors.icon,
     small: false,
     inline: false,
+    style: [],
 };
 
 // We must use a class component to create an animatable component with the Animated API
@@ -46,7 +51,7 @@ class Icon extends PureComponent {
             return (
                 <View
                     accessibilityHint={`${this.props.src.name} Icon`}
-                    style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible]}
+                    style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible, this.props.style]}
                 >
                     <View style={[StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute]}>
                         <this.props.src
@@ -60,7 +65,7 @@ class Icon extends PureComponent {
         }
 
         return (
-            <View accessibilityHint={`${this.props.src.name} Icon`}>
+            <View accessibilityHint={`${this.props.src.name} Icon`} style={this.props.style}>
                 <this.props.src
                     width={width}
                     height={height}
