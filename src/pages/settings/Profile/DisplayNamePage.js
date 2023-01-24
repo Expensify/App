@@ -57,28 +57,23 @@ class DisplayNamePage extends Component {
     validate(values) {
         const errors = {};
 
-        // Check for invalid characters in first and last name
-        const [firstNameInvalidCharacter, lastNameInvalidCharacter] = ValidationUtils.findInvalidSymbols(
-            [values.firstName, values.lastName],
-        );
-        this.assignError(
+        const firstNameValidation = ValidationUtils.isValidDisplayName('first name', values.firstName);
+        const lastNameValidation = ValidationUtils.isValidDisplayName('last name', values.lastName);
+
+        ValidationUtils.assignError(
             errors,
             'firstName',
-            !_.isEmpty(firstNameInvalidCharacter),
-            [
-                'personalDetails.error.hasInvalidCharacter',
-                {invalidCharacter: firstNameInvalidCharacter},
-            ],
+            !_.isEmpty(firstNameValidation),
+            firstNameValidation,
         );
-        this.assignError(
+
+        ValidationUtils.assignError(
             errors,
             'lastName',
-            !_.isEmpty(lastNameInvalidCharacter),
-            [
-                'personalDetails.error.hasInvalidCharacter',
-                {invalidCharacter: lastNameInvalidCharacter},
-            ],
+            !_.isEmpty(lastNameValidation),
+            lastNameValidation,
         );
+
         if (!_.isEmpty(errors)) {
             return errors;
         }
