@@ -16,8 +16,6 @@ import themeColors from '../../styles/themes/default';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 import Tooltip from '../Tooltip';
 import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
 
