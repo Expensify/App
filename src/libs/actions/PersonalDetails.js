@@ -192,15 +192,15 @@ function updateLegalName(legalFirstName, legalLastName) {
 }
 
 /**
- * @param {String} dateOfBirth
+ * @param {String} dob - date of birth
  */
-function updateDateOfBirth(dateOfBirth) {
-    API.write('UpdateDateOfBirth', {dob: dateOfBirth}, {
+function updateDateOfBirth(dob) {
+    API.write('UpdateDateOfBirth', {dob}, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
             value: {
-                dateOfBirth,
+                dob,
             },
         }],
     });

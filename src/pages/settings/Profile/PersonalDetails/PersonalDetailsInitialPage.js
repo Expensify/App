@@ -21,7 +21,7 @@ const propTypes = {
     privatePersonalDetails: PropTypes.shape({
         legalFirstName: PropTypes.string,
         legalLastName: PropTypes.string,
-        dateOfBirth: PropTypes.string,
+        dob: PropTypes.string,
 
         /** User's home address */
         address: PropTypes.shape({
@@ -40,7 +40,7 @@ const defaultProps = {
     privatePersonalDetails: {
         legalFirstName: '',
         legalLastName: '',
-        dateOfBirth: '',
+        dob: '',
         address: {
             street: '',
             street2: '',
@@ -109,7 +109,7 @@ const PersonalDetailsInitialPage = (props) => {
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_LEGAL_NAME)}
                 />
                 <MenuItemWithTopDescription
-                    title={privateDetails.dateOfBirth || ''}
+                    title={privateDetails.dob || ''}
                     description={props.translate('common.dob')}
                     shouldShowRightIcon
                     wrapperStyle={[styles.ph2]}

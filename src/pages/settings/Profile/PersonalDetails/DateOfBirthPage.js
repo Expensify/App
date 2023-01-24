@@ -21,14 +21,14 @@ const propTypes = {
 
     /** User's private personal details */
     privatePersonalDetails: PropTypes.shape({
-        dateOfBirth: PropTypes.string,
+        dob: PropTypes.string,
     }),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    dateOfBirth: '',
+    dob: '',
 };
 
 class DateOfBirthPage extends Component {
@@ -42,17 +42,17 @@ class DateOfBirthPage extends Component {
     /**
      * Submit form to update user's first and last legal name
      * @param {Object} values
-     * @param {String} values.dateOfBirth
+     * @param {String} values.dob - date of birth
      */
     updateDateOfBirth(values) {
         PersonalDetails.updateDateOfBirth(
-            values.dateOfBirth.trim(),
+            values.dob.trim(),
         );
     }
 
     /**
      * @param {Object} values
-     * @param {String} values.dateOfBirth
+     * @param {String} values.dob - date of birth
      * @returns {Object} - An object containing the errors for each inputID
      */
     validate(values) {
@@ -60,12 +60,12 @@ class DateOfBirthPage extends Component {
         const minimumAge = 5;
         const maximumAge = 150;
 
-        if (_.isEmpty(values.dateOfBirth)) {
-            errors.dateOfBirth = this.props.translate('privatePersonalDetails.error.dateInvalid');
+        if (_.isEmpty(values.dob)) {
+            errors.dob = this.props.translate('privatePersonalDetails.error.dateInvalid');
         }
-        const dateError = ValidationUtils.getAgeRequirementError(values.dateOfBirth, minimumAge, maximumAge);
+        const dateError = ValidationUtils.getAgeRequirementError(values.dob, minimumAge, maximumAge);
         if (dateError) {
-            errors.dateOfBirth = dateError;
+            errors.dob = dateError;
         }
 
         return errors;
@@ -91,9 +91,9 @@ class DateOfBirthPage extends Component {
                 >
                     <View>
                         <DatePicker
-                            inputID={'dateOfBirth'}
+                            inputID={'dob'}
                             label={this.props.translate('common.date')}
-                            defaultValue={privateDetails.dateOfBirth || ''}
+                            defaultValue={privateDetails.dob || ''}
                             shouldSaveDraft
                         />
                     </View>
