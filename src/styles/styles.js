@@ -1481,6 +1481,24 @@ const styles = {
         fontSize: variables.fontSizeSmall,
     },
 
+    emojiSuggestionsContainer: {
+        backgroundColor: themeColors.appBG,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: themeColors.border,
+        justifyContent: 'center',
+        overflow: 'hidden',
+        boxShadow: variables.popoverMenuShadow,
+        position: 'absolute',
+        paddingVertical: 8,
+    },
+
+    emojiSuggestionsText: {
+        fontFamily: fontFamily.EMOJI_TEXT_FONT,
+        fontSize: variables.fontSizeMedium,
+        marginRight: 20,
+    },
+
     // Emoji Picker Styles
     emojiText: {
         fontFamily: fontFamily.EMOJI_TEXT_FONT,
@@ -1545,7 +1563,6 @@ const styles = {
         borderRightWidth: 1,
         marginBottom: 3,
         marginTop: 3,
-
     },
 
     composerSizeButton: {
