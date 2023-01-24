@@ -84,8 +84,8 @@ class DisplayNamePage extends Component {
             CONST.FORM_CHARACTER_LIMIT,
             [values.firstName, values.lastName],
         );
-        this.assignError(errors, 'firstName', hasFirstNameError, characterLimitError);
-        this.assignError(errors, 'lastName', hasLastNameError, characterLimitError);
+        ValidationUtils.assignError(errors, 'firstName', hasFirstNameError, characterLimitError);
+        ValidationUtils.assignError(errors, 'lastName', hasLastNameError, characterLimitError);
 
         return errors;
     }
