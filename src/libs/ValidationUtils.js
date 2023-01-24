@@ -417,6 +417,22 @@ function isValidTaxID(taxID) {
     return taxID && CONST.REGEX.TAX_ID.test(taxID.replace(CONST.REGEX.NON_NUMERIC, ''));
 }
 
+/**
+ * @param {Object} errors
+ * @param {String} errorKey
+ * @param {Boolean} hasError
+ * @param {Array} errorCopy
+ * @returns {Object} - An object containing the errors for each inputID
+ */
+function assignError(errors, errorKey, hasError, errorCopy) {
+    const validateErrors = errors;
+    if (hasError) {
+        const [phrase, variables] = errorCopy;
+        validateErrors[errorKey] = Localize.translateLocal(phrase, variables);
+    }
+    return validateErrors;
+}
+
 export {
     meetsAgeRequirements,
     isValidAddress,
@@ -447,4 +463,5 @@ export {
     isValidRoomName,
     isValidTaxID,
     findInvalidSymbols,
+    assignError,
 };
