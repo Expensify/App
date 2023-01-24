@@ -13,7 +13,6 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import * as ReportUtils from '../ReportUtils';
-import * as Report from './Report';
 import Log from '../Log';
 
 const allPolicies = {};
