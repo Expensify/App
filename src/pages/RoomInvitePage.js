@@ -16,9 +16,7 @@ import * as OptionsListUtils from '../libs/OptionsListUtils';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import ROUTES from '../ROUTES';
-import * as Localize from '../libs/Localize';
 import {withNetwork} from '../components/OnyxProvider';
-import withPolicy, {policyPropTypes, policyDefaultProps} from './Workspace/withPolicy';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import networkPropTypes from '../components/networkPropTypes';
 import reportPropTypes from './reportPropTypes';
@@ -29,6 +27,7 @@ import CONST from '../CONST';
 import policyMemberPropType from './policyMemberPropType';
 import * as Report from '../libs/actions/Report';
 import personalDetailsPropType from './personalDetailsPropType';
+import { isUserCreatedPolicyRoom } from '../libs/ReportUtils';
 
 // const personalDetailsPropTypes = PropTypes.shape({
 //     /** The login of the person (either email or phone number) */
@@ -52,33 +51,16 @@ const propTypes = {
     /** The active report */
     report: reportPropTypes.isRequired,
 
-    /** URL Route params */
-    route: PropTypes.shape({
-        /** Params from the URL path */
-        params: PropTypes.shape({
-            /** policyID passed via route: /workspace/:policyID/invite */
-            policyID: PropTypes.string,
-        }),
-    }).isRequired,
-
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.shape({
-        /** The policy name */
-        name: PropTypes.string,
-
-        /** ID of the policy */
-        id: PropTypes.string,
-    }).isRequired,
-
     /** List of policy members */
     policyMemberList: PropTypes.objectOf(policyMemberPropType),
 
-    ...policyPropTypes,
     ...withLocalizePropTypes,
     network: networkPropTypes.isRequired,
 };
 
-const defaultProps = policyDefaultProps;
+const defaultProps = {
+    policyMemberList: {},
+};
 
 class RoomInvitePage extends React.Component {
     constructor(props) {
@@ -88,18 +70,14 @@ class RoomInvitePage extends React.Component {
         this.clearErrors = this.clearErrors.bind(this);
         this.inviteUser = this.inviteUser.bind(this);
         this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
+        this.getPolicyMemberPersonalDetails = this.getPolicyMemberPersonalDetails.bind(this);
         this.toggleOption = this.toggleOption.bind(this);
 
-        const policyMemberEmails = _.keys(props.policyMemberList[`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${props.report.policyID}`]);
-        const policyMemberPersonalDetails = {};
-        _.forEach(policyMemberEmails, (email) => {
-            policyMemberPersonalDetails[email] = props.personalDetails[email];
-        });
+        
         const {
             personalDetails,
-            userToInvite,
         } = OptionsListUtils.getMemberInviteOptions(
-            policyMemberPersonalDetails,
+            this.getPolicyMemberPersonalDetails(),
             props.betas,
             '',
             props.report.participants,
@@ -107,7 +85,6 @@ class RoomInvitePage extends React.Component {
 
         this.state = {
             personalDetails,
-            userToInvite,
             searchTerm: '',
             selectedOptions: [],
             shouldDisableButton: false,
@@ -115,10 +92,17 @@ class RoomInvitePage extends React.Component {
     }
 
     componentDidMount() {
+        // If a user tried to navigate to this page via the URL for a report that isn't a user created policy room
+        // kick them out
+        if (!isUserCreatedPolicyRoom(this.props.report)) {
+            Navigation.dismissModal();
+        }
+
         Report.openRoomInvitePage(this.props.report.policyID);
     }
 
     componentDidUpdate(prevProps) {
+
         if (!_.isEqual(prevProps.policyMemberList, this.props.policyMemberList)) {
             
         }
@@ -128,6 +112,15 @@ class RoomInvitePage extends React.Component {
      * Handle the invite button click
      */
     inviteUser() {
+    }
+
+    getPolicyMemberPersonalDetails() {
+        const policyMemberEmails = _.keys(this.props.policyMemberList[`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${this.props.report.policyID}`]);
+        const policyMemberPersonalDetails = {};
+        _.forEach(policyMemberEmails, (email) => {
+            policyMemberPersonalDetails[email] = this.props.personalDetails[email];
+        });
+        return policyMemberPersonalDetails;
     }
 
     /**
@@ -148,7 +141,6 @@ class RoomInvitePage extends React.Component {
         // Filtering out selected users from the search results
         const filterText = _.reduce(this.state.selectedOptions, (str, {login}) => `${str} ${login}`, '');
         const personalDetailsWithoutSelected = _.filter(this.state.personalDetails, ({login}) => !filterText.includes(login));
-        const hasUnselectedUserToInvite = this.state.userToInvite && !filterText.includes(this.state.userToInvite.login);
 
         sections.push({
             data: personalDetailsWithoutSelected,
@@ -157,31 +149,20 @@ class RoomInvitePage extends React.Component {
         });
         indexOffset += personalDetailsWithoutSelected.length;
 
-        if (hasUnselectedUserToInvite) {
-            sections.push(({
-                title: undefined,
-                data: [this.state.userToInvite],
-                shouldShow: true,
-                indexOffset,
-            }));
-        }
-
         return sections;
     }
 
     updateOptionsWithSearchTerm(searchTerm = '') {
         const {
             personalDetails,
-            userToInvite,
         } = OptionsListUtils.getMemberInviteOptions(
-            this.props.personalDetails,
+            this.getPolicyMemberPersonalDetails(),
             this.props.betas,
             searchTerm,
             this.props.report.participants,
         );
         this.setState({
             searchTerm,
-            userToInvite,
             personalDetails,
         });
     }
@@ -189,6 +170,7 @@ class RoomInvitePage extends React.Component {
     clearErrors(closeModal = false) {
         if (closeModal) {
             Navigation.dismissModal();
+            return;
         }
     }
 
@@ -214,16 +196,10 @@ class RoomInvitePage extends React.Component {
                 newSelectedOptions = [...prevState.selectedOptions, option];
             }
 
-            const policyMemberEmails = _.keys(this.props.policyMemberList[`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${this.props.report.policyID}`]);
-            const policyMemberPersonalDetails = {};
-            _.forEach(policyMemberEmails, (email) => {
-                policyMemberPersonalDetails[email] = this.props.personalDetails[email];
-            });
             const {
                 personalDetails,
-                userToInvite,
             } = OptionsListUtils.getMemberInviteOptions(
-                policyMemberPersonalDetails,
+                this.getPolicyMemberPersonalDetails(),
                 this.props.betas,
                 prevState.searchTerm,
                 this.props.report.participants,
@@ -232,7 +208,6 @@ class RoomInvitePage extends React.Component {
             return {
                 selectedOptions: newSelectedOptions,
                 personalDetails,
-                userToInvite,
                 searchTerm: prevState.searchTerm,
             };
         });
@@ -240,20 +215,19 @@ class RoomInvitePage extends React.Component {
 
     render() {
         const sections = this.getSections();
-        // const headerMessage = OptionsListUtils.getHeaderMessage(
-        //     this.state.personalDetails.length !== 0,
-        //     Boolean(this.state.userToInvite),
-        //     this.state.searchTerm,
-        // );
-        // const policyName = lodashGet(this.props.policy, 'name');
+        const headerMessage = OptionsListUtils.getHeaderMessage(
+            this.state.personalDetails.length !== 0,
+            false,
+            this.state.searchTerm,
+        );
+        const roomName = lodashGet(this.props.report, 'displayName');
 
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title={this.props.translate('workspace.invite.invitePeople')}
-                    // subtitle={policyName}
-                    // onCloseButtonPress={() => this.clearErrors(true)}
-                    shouldShowGetAssistanceButton
+                    title={this.props.translate('roomInvitePage.inviteToRoom')}
+                    subtitle={roomName}
+                    onCloseButtonPress={() => this.clearErrors(true)}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack()}
                 />
@@ -265,16 +239,16 @@ class RoomInvitePage extends React.Component {
                         selectedOptions={this.state.selectedOptions}
                         value={this.state.searchTerm}
                         onSelectRow={this.toggleOption}
-                        // onChangeText={this.updateOptionsWithSearchTerm}
-                        // onConfirmSelection={this.inviteUser}
-                        // headerMessage={headerMessage}
+                        onChangeText={this.updateOptionsWithSearchTerm}
+                        onConfirmSelection={this.inviteUser}
+                        headerMessage={headerMessage}
                         hideSectionHeaders
                         boldStyle
                         shouldFocusOnSelectRow
                         placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                     />
                 </View>
-                <View style={[styles.flexShrink0]}>
+                <View style={[styles.flexShrink0, styles.mb3]}>
                     <FormAlertWithSubmitButton
                         isDisabled={!this.state.selectedOptions.length || this.state.shouldDisableButton}
                         isAlertVisible={false}
@@ -284,18 +258,6 @@ class RoomInvitePage extends React.Component {
                         containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                         enabledWhenOffline
                     />
-                    <Pressable
-                        onPress={this.openPrivacyURL}
-                        accessibilityRole="link"
-                        href={CONST.PRIVACY_URL}
-                        style={[styles.mh5, styles.mv2, styles.alignSelfStart]}
-                    >
-                        <View style={[styles.flexRow]}>
-                            <Text style={[styles.mr1, styles.label, styles.link]}>
-                                {this.props.translate('common.privacy')}
-                            </Text>
-                        </View>
-                    </Pressable>
                 </View>
             </ScreenWrapper>
         );
@@ -318,9 +280,6 @@ export default compose(
         },
         policyMemberList: {
             key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,

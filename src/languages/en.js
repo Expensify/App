@@ -1049,6 +1049,9 @@ export default {
             private: 'Private',
         },
     },
+    roomInvitePage: {
+        inviteToRoom: 'Invite to room',
+    },
     statementPage: {
         generatingPDF: 'We\'re generating your PDF right now. Please come back later!',
     },

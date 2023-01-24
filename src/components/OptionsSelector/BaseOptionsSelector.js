@@ -47,10 +47,12 @@ class BaseOptionsSelector extends Component {
 
     componentDidMount() {
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+        console.log(">>>> mounting");
         this.unsubscribeEnter = KeyboardShortcut.subscribe(
             enterConfig.shortcutKey,
             () => {
                 const focusedOption = this.state.allOptions[this.state.focusedIndex];
+                console.log(">>>>", focusedOption);
                 if (!focusedOption) {
                     return;
                 }
