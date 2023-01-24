@@ -19,10 +19,10 @@ function clearDownloads() {
         waitForCollectionCallback: true,
         callback: (records) => {
             Onyx.disconnect(connectionID);
-            const downloads = {};
-            _.each(_.keys(records), recordKey => downloads[recordKey] = null);
-            if (!_.isEmpty(downloads)) {
-                Onyx.multiSet(downloads);
+            const downloadsToDelete = {};
+            _.each(_.keys(records), recordKey => downloadsToDelete[recordKey] = null);
+            if (!_.isEmpty(downloadsToDelete)) {
+                Onyx.multiSet(downloadsToDelete);
             }
         },
     });
