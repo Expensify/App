@@ -69,11 +69,12 @@ function openPaymentsPage() {
  * @param {Number} fundID
  * @param {Object} previousPaymentMethod
  * @param {Object} currentPaymentMethod
+ * @param {Object} userWallet
  * @param {Boolean} isOptimisticData
  * @return {Array}
  *
  */
-function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, isOptimisticData = true) {
+function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, userWallet, isOptimisticData = true) {
     const onyxData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -88,6 +89,10 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
     // Only clear the error if this is optimistic data. If this is failure data, we do not want to clear the error that came from the server.
     if (isOptimisticData) {
         onyxData[0].value.errors = null;
+    } else {
+        // If this is failureData then reset the wallet so that bankAccount/fund is not the default
+        onyxData[0].value.walletLinkedAccountID = userWallet.walletLinkedAccountID;
+        onyxData[0].value.walletLinkedAccountType = userWallet.walletLinkedAccountType;
     }
 
     if (previousPaymentMethod) {
@@ -125,16 +130,20 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
  * @param {Number} fundID
  * @param {Object} previousPaymentMethod
  * @param {Object} currentPaymentMethod
+ * @param {Object} userWallet
  *
  */
-function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod) {
+function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, userWallet) {
+    const optimisticData = getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, userWallet);
+    const failureData = getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, userWallet, false);
+
     API.write('MakeDefaultPaymentMethod', {
         password,
         bankAccountID,
         fundID,
     }, {
-        optimisticData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod),
-        failureData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, false),
+        optimisticData,
+        failureData,
     });
 }
 
