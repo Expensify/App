@@ -12,8 +12,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import {withDrawerPropTypes} from '../../../components/withDrawerState';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
-import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 import Performance from '../../../libs/Performance';
 import {withNetwork} from '../../../components/OnyxProvider';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
@@ -384,11 +382,6 @@ class ReportActionsView extends React.Component {
                             isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
                             loadMoreChats={this.loadMoreChats}
                             newMarkerReportActionID={this.state.newMarkerReportActionID}
-                        />
-                        <PopoverReportActionContextMenu
-                            ref={ReportActionContextMenu.contextMenuRef}
-                            isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
-                            isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
                         />
                     </>
                 )}
