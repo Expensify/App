@@ -340,17 +340,17 @@ class EmojiPickerMenu extends Component {
         }
     }
 
-    scrollToHeader() {
+    scrollToHeader(headerIndex) {
         // If there are headers in the emoji array, so we need to offset by their heights as well
         let numHeaders = 0;
         if (this.state.filteredEmojis.length === this.emojis.length) {
-            numHeaders = _.filter(this.unfilteredHeaderIndices, i => this.state.highlightedIndex > i * this.numColumns).length;
+            numHeaders = _.filter(this.unfilteredHeaderIndices, i => headerIndex > i * this.numColumns).length;
         }
 
         // Calculate the scroll offset at the top of the desired category
         // add 1 to number of headers so that we scroll to the top of the header row instead of the bottom
         // subtract new number of headers to get rid of those rows
-        const numEmojiRows = Math.floor(this.state.highlightedIndex / this.numColumns) - (numHeaders + 1);
+        const numEmojiRows = Math.floor(headerIndex / this.numColumns) - (numHeaders + 1);
 
         const testoffset = ((numEmojiRows) * CONST.EMOJI_PICKER_ITEM_HEIGHT) + (CONST.EMOJI_PICKER_HEADER_HEIGHT * (numHeaders + 1));
         this.emojiList.scrollToOffset({offset: testoffset, animated: false});
