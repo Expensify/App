@@ -51,7 +51,7 @@ Here are some below examples to illustrate the writing style that covers this:
   - Search the announce room and send a message
   - Pin the room and delete the workspace
   - Wait for a few seconds (Reload if the chat is still visible)
-  - Verify you are seeing a blank page
+  - Verify that you are not seeing a blank page
 
 ---
 
