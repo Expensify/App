@@ -115,6 +115,7 @@ class WorkspaceSettingsPage extends React.Component {
                         >
                             <TextInput
                                 inputID="name"
+                                maxLength={80}
                                 label={this.props.translate('workspace.editor.nameInputLabel')}
                                 containerStyles={[styles.mt4]}
                                 defaultValue={this.props.policy.name}
