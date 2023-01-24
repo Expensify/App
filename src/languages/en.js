@@ -945,6 +945,8 @@ export default {
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             nameIsRequiredError: 'You need to define a name for your workspace',
+            nameInvalidError: 'Invalid workspace name',
+            nameContainSpaceError: 'Workspace names can not contain spaces',
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
             save: 'Save',
