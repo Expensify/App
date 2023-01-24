@@ -7,6 +7,7 @@ const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
+const USA_COUNTRY_NAME = 'United States';
 
 const CONST = {
     ANDROID_PACKAGE_NAME,
@@ -884,6 +885,7 @@ const CONST = {
     TFA_CODE_LENGTH: 6,
     CHAT_ATTACHMENT_TOKEN_KEY: 'X-Chat-Attachment-Token',
 
+    USA_COUNTRY_NAME,
     ALL_COUNTRIES: [
         'Afghanistan',
         'Aland Islands',
@@ -1122,7 +1124,7 @@ const CONST = {
         'Ukraine',
         'United Arab Emirates',
         'United Kingdom',
-        'United States',
+        USA_COUNTRY_NAME,
         'Uruguay',
         'Uzbekistan',
         'Vanuatu',
