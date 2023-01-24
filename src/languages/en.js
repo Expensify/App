@@ -554,6 +554,8 @@ export default {
             lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
             characterLimit: ({limit}) => `Exceeds the max length of ${limit} characters`,
             hasInvalidCharacter: ({invalidCharacter}) => `Please remove the ${invalidCharacter} from the name field.`,
+            nameInvalidError: ({name}) => `Invalid ${name}`,
+            nameRestrictedError: ({restrictedWord, name}) => `${restrictedWord} is not allowed in your ${name}`,
             comma: 'comma',
             semicolon: 'semicolon',
         },
