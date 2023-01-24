@@ -21,9 +21,6 @@ const propTypes = {
 
     /** Whether this menu item is currently highlighted or not */
     isHighlighted: PropTypes.bool,
-
-    /** Whether the emoji is highlighted by the keyboard/mouse */
-    isUsingKeyboardMovement: PropTypes.bool,
 };
 
 const CategoryShortcutButton = props => (
