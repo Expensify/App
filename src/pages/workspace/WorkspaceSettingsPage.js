@@ -65,7 +65,8 @@ class WorkspaceSettingsPage extends React.Component {
         const errors = {};
         const name = values.name.trim();
 
-        if (this.hasHtml(name)) {
+        // Searches for anything that looks like an html tag "< >""
+        if (name.search(/<(.|\n)*?>/g) !== -1) {
             errors.name = this.props.translate('workspace.editor.nameHasHtml');
         }
 
@@ -74,11 +75,6 @@ class WorkspaceSettingsPage extends React.Component {
         }
 
         return errors;
-    }
-
-    hasHtml(name) {
-        // Searches for anything that looks like an html tag "< >""
-        return name.search(/<(.|\n)*?>/g) !== -1;
     }
 
     render() {
