@@ -37,7 +37,6 @@ class WorkspaceSettingsPage extends React.Component {
 
         this.getCurrencyItems = this.getCurrencyItems.bind(this);
         this.submit = this.submit.bind(this);
-        this.hasHtml = this.hasHtml.bind(this);
         this.validate = this.validate.bind(this);
     }
 
