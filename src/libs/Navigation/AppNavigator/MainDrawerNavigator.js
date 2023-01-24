@@ -30,6 +30,12 @@ const propTypes = {
         /** The type of the policy */
         type: PropTypes.string,
     })),
+
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            openOnAdminRoom: PropTypes.bool,
+        }),
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -62,7 +68,12 @@ class MainDrawerNavigator extends Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        const initialNextParams = getInitialReportScreenParams(nextProps.reports, !Permissions.canUseDefaultRooms(nextProps.betas), nextProps.policies);
+        const initialNextParams = getInitialReportScreenParams(
+            nextProps.reports,
+            !Permissions.canUseDefaultRooms(nextProps.betas),
+            nextProps.policies,
+            nextProps.route.params.openOnAdminRoom,
+        );
         if (this.initialParams.reportID === initialNextParams.reportID) {
             return false;
         }

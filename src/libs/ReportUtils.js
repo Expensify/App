@@ -908,7 +908,7 @@ function buildOptimisticChatReport(
         maxSequenceNumber: 0,
         notificationPreference,
         oldPolicyName,
-        ownerEmail,
+        ownerEmail: ownerEmail || CONST.REPORT.OWNER_EMAIL_FAKE,
         participants: participantList,
         policyID,
         reportID: generateReportID(),
