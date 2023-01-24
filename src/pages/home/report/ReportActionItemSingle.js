@@ -73,7 +73,7 @@ const ReportActionItemSingle = (props) => {
     return (
         <View style={props.wrapperStyles}>
             <Pressable
-                style={[styles.alignSelfStart]}
+                style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
                 onPressOut={ControlSelection.unblock}
                 onPress={() => showUserDetails(props.action.actorEmail)}
