@@ -1,5 +1,7 @@
 # Best Practices for Regression Test Proposals
+
 Welcome to the Regression Test Best Practices page! Thanks for taking the time to help us ensure bugs that are squashed don't come back!
+
 ---
 
 ## Context
