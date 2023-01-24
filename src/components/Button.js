@@ -181,6 +181,7 @@ class Button extends Component {
 
         const textComponent = (
             <Text
+                numberOfLines={1}
                 selectable={false}
                 style={[
                     this.props.isLoading && styles.opacity0,
@@ -201,7 +202,7 @@ class Button extends Component {
         if (this.props.icon) {
             return (
                 <View style={[styles.justifyContentBetween, styles.flexRow]}>
-                    <View style={[styles.alignItemsCenter, styles.flexRow]}>
+                    <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         <View style={[
                             styles.mr1,
                             ...this.props.iconStyles,

@@ -186,12 +186,12 @@ class DebitCardPage extends Component {
                     <CheckboxWithLabel
                         inputID="acceptedTerms"
                         LabelComponent={() => (
-                            <>
-                                <Text>{`${this.props.translate('common.iAcceptThe')}`}</Text>
+                            <Text>
+                                {`${this.props.translate('common.iAcceptThe')}`}
                                 <TextLink href="https://use.expensify.com/terms">
                                     {`${this.props.translate('addDebitCardPage.expensifyTermsOfService')}`}
                                 </TextLink>
-                            </>
+                            </Text>
                         )}
                         style={[styles.mt4]}
                     />

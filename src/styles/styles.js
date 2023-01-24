@@ -362,7 +362,7 @@ const styles = {
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.buttonBorderRadius,
-        height: variables.componentSizeLarge,
+        minHeight: variables.componentSizeLarge,
         justifyContent: 'center',
         ...spacing.ph3,
     },
@@ -378,6 +378,7 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         textAlign: 'center',
+        flexShrink: 1,
 
         // It is needed to unset the Lineheight. We don't need it for buttons as button always contains single line of text.
         // It allows to vertically center the text.
@@ -389,7 +390,7 @@ const styles = {
 
     buttonSmall: {
         borderRadius: variables.buttonBorderRadius,
-        height: variables.componentSizeSmall,
+        minHeight: variables.componentSizeSmall,
         paddingTop: 4,
         paddingHorizontal: 14,
         paddingBottom: 4,
@@ -398,7 +399,7 @@ const styles = {
 
     buttonMedium: {
         borderRadius: variables.buttonBorderRadius,
-        height: variables.componentSizeNormal,
+        minHeight: variables.componentSizeNormal,
         paddingTop: 12,
         paddingRight: 16,
         paddingBottom: 12,
@@ -408,7 +409,7 @@ const styles = {
 
     buttonLarge: {
         borderRadius: variables.buttonBorderRadius,
-        height: variables.componentSizeLarge,
+        minHeight: variables.componentSizeLarge,
         paddingTop: 8,
         paddingRight: 10,
         paddingBottom: 8,

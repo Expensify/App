@@ -115,10 +115,8 @@ class BankAccountManualStep extends React.Component {
                         style={styles.mt4}
                         inputID="acceptedTerms"
                         LabelComponent={() => (
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                <Text>
-                                    {this.props.translate('common.iAcceptThe')}
-                                </Text>
+                            <Text style={[styles.flexRow, styles.alignItemsCenter]}>
+                                {this.props.translate('common.iAcceptThe')}
                                 <TextLink
                                     href="https://use.expensify.com/terms"
 
@@ -127,7 +125,7 @@ class BankAccountManualStep extends React.Component {
                                 >
                                     {`Expensify ${this.props.translate('common.termsOfService')}`}
                                 </TextLink>
-                            </View>
+                            </Text>
                         )}
                         defaultValue={this.props.getDefaultStateForField('acceptTerms', false)}
                         shouldSaveDraft
