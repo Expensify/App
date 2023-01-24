@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, FlatList} from 'react-native';
+import {View, FlatList, Pressable} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -20,6 +20,7 @@ import getOperatingSystem from '../../../libs/getOperatingSystem';
 import * as User from '../../../libs/actions/User';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
+import getButtonState from "../../../libs/getButtonState";
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -340,6 +341,22 @@ class EmojiPickerMenu extends Component {
         }
     }
 
+    scrollToHeader() {
+        // If there are headers in the emoji array, so we need to offset by their heights as well
+        let numHeaders = 0;
+        if (this.state.filteredEmojis.length === this.emojis.length) {
+            numHeaders = _.filter(this.unfilteredHeaderIndices, i => this.state.highlightedIndex > i * this.numColumns).length;
+        }
+
+        // Calculate the scroll offset at the top of the desired category
+        // add 1 to number of headers so that we scroll to the top of the header row instead of the bottom
+        // subtract new number of headers to get rid of those rows
+        const numEmojiRows = Math.floor(this.state.highlightedIndex / this.numColumns) - (numHeaders + 1);
+
+        const testoffset = ((numEmojiRows) * CONST.EMOJI_PICKER_ITEM_HEIGHT) + (CONST.EMOJI_PICKER_HEADER_HEIGHT * (numHeaders + 1));
+        this.emojiList.scrollToOffset({offset: testoffset, animated: false});
+    }
+
     /**
      * Calculates the required scroll offset (aka distance from top) and scrolls the FlatList to the highlighted emoji
      * if any portion of it falls outside of the window.
@@ -472,6 +489,47 @@ class EmojiPickerMenu extends Component {
                 style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
+                <View style={[styles.pt4, styles.ph4, styles.pb1, styles.alignItemsStart, styles.flexRow]}>
+                    <Pressable
+                        onPress={() => this.setState({highlightedIndex: this.headerIndices[0]}, this.scrollToHeader)}
+                    >
+                        <Text style={[styles.emojiText]}>
+                            Recent
+                        </Text>
+                    </Pressable>
+                    <Pressable
+                        style={[styles.ph4]}
+                        onPress={() => this.setState({highlightedIndex: this.headerIndices[1]}, this.scrollToHeader)}
+                    >
+                        <Text style={[styles.emojiText]}>
+                            Smiley
+                        </Text>
+                    </Pressable>
+                    <Pressable
+                        style={[styles.ph4]}
+                        onPress={() => this.setState({highlightedIndex: this.headerIndices[2]}, this.scrollToHeader)}
+                    >
+                        <Text style={[styles.emojiText]}>
+                            People
+                        </Text>
+                    </Pressable>
+                    <Pressable
+                        style={[styles.ph4]}
+                        onPress={() => this.setState({highlightedIndex: this.headerIndices[3]}, this.scrollToHeader)}
+                    >
+                        <Text style={[styles.emojiText]}>
+                            Animals
+                        </Text>
+                    </Pressable>
+                    <Pressable
+                        style={[styles.ph4]}
+                        onPress={() => this.setState({highlightedIndex: this.headerIndices[4]}, this.scrollToHeader)}
+                    >
+                        <Text style={[styles.emojiText]}>
+                            Food
+                        </Text>
+                    </Pressable>
+                </View>
                 {!this.props.isSmallScreenWidth && (
                     <View style={[styles.pt4, styles.ph4, styles.pb1]}>
                         <Composer
