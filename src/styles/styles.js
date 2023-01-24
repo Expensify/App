@@ -1376,7 +1376,7 @@ const styles = {
     },
 
     chatItemComposeBoxExpanded: {
-        transition: '0.3s ease height',
+        transition: 'height 0.3s ease 0s',
     },
 
     chatItemFullComposeBox: {
