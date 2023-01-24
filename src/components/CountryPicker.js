@@ -20,7 +20,7 @@ const propTypes = {
     /** The value that needs to be selected */
     value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
-    /** The ID used to uniquely identify the input in a Form */
+    /** The ID used to uniquely identify the input in a form */
     inputID: PropTypes.string,
 
     /** Saves a draft of the input value when used in a form */
