@@ -997,10 +997,20 @@ function joinWorkspaceRoom(report) {
             },
         },
     ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {
+                participants: report.participants,
+                permissions: 'read',
+            },
+        },
+    ];
     API.write(
         'JoinWorkspaceRoom',
         {reportID: report.reportID},
-        {optimisticData},
+        {optimisticData, failureData},
     );
 }
 
