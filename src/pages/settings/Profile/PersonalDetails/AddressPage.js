@@ -122,7 +122,7 @@ class AddressPage extends Component {
 
     render() {
         const address = lodashGet(this.props.privatePersonalDetails, 'address') || {};
-        const [street1, street2] = address.street && address.street.split('\n');
+        const [street1, street2] = (address.street || '').split('\n');
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
