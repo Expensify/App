@@ -7,23 +7,6 @@ import * as Browser from '../Browser';
 const canSetHtml = () => lodashGet(navigator, 'clipboard.write');
 
 /**
- * Check if an HTMLElement is text input or text area
- * @param {HTMLElement} el
- * @returns {Boolean}
- */
-const isTextElement = (el) => {
-    if (el instanceof HTMLInputElement) {
-        // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#input_types
-        if (/|text|email|number|password|search|tel|url/.test(el.type || '')) {
-            return true;
-        }
-    }
-    if (el instanceof HTMLTextAreaElement) { return true; }
-
-    return false;
-};
-
-/**
  * Deprecated method to write the content as HTML to clipboard.
  * @param {String} html HTML representation
  * @param {String} text Plain text representation
@@ -48,8 +31,9 @@ function setHTMLSync(html, text) {
     const selection = window.getSelection();
     let originalSelection = null;
     const firstAnchorChild = selection.anchorNode && selection.anchorNode.firstChild;
+    const isComposer = firstAnchorChild instanceof HTMLTextAreaElement;
 
-    if (firstAnchorChild && isTextElement(firstAnchorChild)) {
+    if (isComposer) {
         originalSelection = {
             start: firstAnchorChild.selectionStart,
             end: firstAnchorChild.selectionEnd,
@@ -78,7 +62,7 @@ function setHTMLSync(html, text) {
 
     selection.removeAllRanges();
 
-    if (firstAnchorChild && isTextElement(firstAnchorChild)) {
+    if (isComposer) {
         firstAnchorChild.setSelectionRange(originalSelection.start, originalSelection.end, originalSelection.direction);
     } else {
         selection.setBaseAndExtent(originalSelection.anchorNode, originalSelection.anchorOffset, originalSelection.focusNode, originalSelection.focusOffset);
