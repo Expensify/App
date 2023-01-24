@@ -56,3 +56,4 @@ Here are some below examples to illustrate the writing style that covers this:
 ---
 
 Once the above proposal has been posted and agreed upon, a member of the Expensify team will then take care of getting it added to the appropriate test suite! If you have any further questions surrounding proposing regression tests, please feel free to ping in #expensify-open-source for further help. 
+
