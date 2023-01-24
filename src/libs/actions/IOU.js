@@ -183,9 +183,11 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
     ];
 
     const successData = [
-        chatReportSuccessData,
         reportActionsSuccessData,
     ];
+    if (!_.isEmpty(chatReportSuccessData)) {
+        successData.push(chatReportSuccessData);
+    }
 
     const failureData = [
         chatReportFailureData,
