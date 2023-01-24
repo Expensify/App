@@ -257,7 +257,21 @@ class ReportActionsView extends React.Component {
      * @returns {Array}
      */
     getSortedReportActionsForDisplay(reportActions) {
-        const sortedReportActions = ReportActionsUtils.getSortedReportActions(_.values(reportActions), true);
+        // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
+        // to prevent bugs during the migration from sequenceNumber -> reportActionID
+        const filteredReportActions = _.filter(reportActions, (reportAction, key) => {
+            if (!reportAction) {
+                return false;
+            }
+
+            if (String(reportAction.sequenceNumber) === key) {
+                return false;
+            }
+
+            return true;
+        });
+
+        const sortedReportActions = ReportActionsUtils.getSortedReportActions(filteredReportActions, true);
         return ReportActionsUtils.filterReportActionsForDisplay(sortedReportActions);
     }
 
