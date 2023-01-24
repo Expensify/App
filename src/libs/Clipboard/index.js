@@ -24,33 +24,6 @@ const isTextElement = (el) => {
 };
 
 /**
- * Get input selection properties
- * @param {HTMLInputElement|HTMLTextAreaElement} el HTML Text input element.
- * @returns {Object} selection properties as an object
- */
-const getInputSelection = el => ({
-    start: el.selectionStart,
-    end: el.selectionEnd,
-    direction: el.selectionDirection,
-});
-
-/**
- * Save current selection properties
- * @param {Selection} selection active text selection
- * @returns {Array} selection properties
- */
-const saveSelection = selection => [selection.anchorNode, selection.anchorOffset, selection.focusNode, selection.focusOffset];
-
-/**
- * Restore saved selection
- * @param {Selection} selection active text selection
- * @param {Array} savedSelection
- */
-const restoreSelection = (selection, savedSelection) => {
-    selection.setBaseAndExtent(savedSelection[0], savedSelection[1], savedSelection[2], savedSelection[3]);
-};
-
-/**
  * Deprecated method to write the content as HTML to clipboard.
  * @param {String} html HTML representation
  * @param {String} text Plain text representation
@@ -77,8 +50,19 @@ function setHTMLSync(html, text) {
     const firstAnchorChild = selection.anchorNode && selection.anchorNode.firstChild;
 
     if (firstAnchorChild && isTextElement(firstAnchorChild)) {
-        originalSelection = getInputSelection(firstAnchorChild);
-    } else { originalSelection = saveSelection(selection); }
+        originalSelection = {
+            start: firstAnchorChild.selectionStart,
+            end: firstAnchorChild.selectionEnd,
+            direction: firstAnchorChild.selectionDirection,
+        };
+    } else {
+        originalSelection = {
+            anchorNode: selection.anchorNode,
+            anchorOffset: selection.anchorOffset,
+            focusNode: selection.focusNode,
+            focusOffset: selection.focusOffset,
+        };
+    }
 
     selection.removeAllRanges();
     const range = document.createRange();
@@ -96,7 +80,9 @@ function setHTMLSync(html, text) {
 
     if (firstAnchorChild && isTextElement(firstAnchorChild)) {
         firstAnchorChild.setSelectionRange(originalSelection.start, originalSelection.end, originalSelection.direction);
-    } else { restoreSelection(selection, originalSelection); }
+    } else {
+        selection.setBaseAndExtent(originalSelection.anchorNode, originalSelection.anchorOffset, originalSelection.focusNode, originalSelection.focusOffset);
+    }
 
     document.body.removeChild(node);
 }
