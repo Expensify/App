@@ -63,7 +63,7 @@ class CompanyStep extends React.Component {
     validate(values) {
         const errors = {};
 
-        if (!values.companyName) {
+        if (!values.companyName || values.companyName.trim() === '0') {
             errors.companyName = this.props.translate('bankAccount.error.companyName');
         }
 
