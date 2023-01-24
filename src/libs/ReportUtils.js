@@ -951,6 +951,53 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
 }
 
 /**
+ * Returns the necessary reportAction onyx data to indicate that a chat has been archived
+ *
+ * @param {Number} sequenceNumber
+ * @param {String} ownerEmail
+ * @param {String} policyName
+ * @param {String} reason - A reason why the chat has been archived
+ * @returns {Object}
+ */
+function buildOptimisticClosedReportAction(sequenceNumber, ownerEmail, policyName, reason = CONST.REPORT.ARCHIVE_REASON.DEFAULT) {
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+        clientID: NumberUtils.generateReportActionClientID(),
+        created: DateUtils.getDBTime(),
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: ownerEmail === currentUserEmail ? 'You' : ownerEmail,
+            },
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: ' closed this report',
+            },
+        ],
+        originalMessage: {
+            policyName,
+            reason,
+        },
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        sequenceNumber,
+        shouldShow: true,
+    };
+}
+
+/**
  * @param {String} policyID
  * @param {String} policyName
  * @returns {Object}
@@ -1183,6 +1230,14 @@ function getChatByParticipants(newParticipantList) {
 }
 
 /**
+ * @param {String} policyID
+ * @returns {Array}
+ */
+function getAllPolicyReports(policyID) {
+    return _.filter(allReports, report => report && report.policyID === policyID);
+}
+
+/**
 * Returns true if Chronos is one of the chat participants (1:1)
 * @param {Object} report
 * @returns {Boolean}
@@ -1250,12 +1305,14 @@ export {
     isUnread,
     buildOptimisticWorkspaceChats,
     buildOptimisticChatReport,
+    buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
     buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
+    getAllPolicyReports,
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
     isIOUReport,

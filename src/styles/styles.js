@@ -141,6 +141,7 @@ const webViewStyles = {
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.EXP_NEUE,
         flex: 1,
+        lineHeight: variables.fontSizeNormalHeight,
     },
 };
 
@@ -709,7 +710,6 @@ const styles = {
     // Actions
     actionAvatar: {
         borderRadius: 20,
-        marginRight: variables.avatarChatSpacing,
     },
 
     componentHeightLarge: {
@@ -1538,34 +1538,19 @@ const styles = {
         backgroundColor: themeColors.buttonHoveredBG,
     },
 
-    chatItemAttachButton: {
-        alignSelf: 'flex-end',
-        borderRadius: variables.componentBorderRadiusRounded,
-        backgroundColor: themeColors.transparent,
-        height: 32,
-        padding: 6,
-        marginLeft: 3,
-        marginRight: 3,
-        justifyContent: 'center',
-    },
-
     chatItemAttachBorder: {
         borderRightColor: themeColors.border,
         borderRightWidth: 1,
-        marginBottom: 3,
-        marginTop: 3,
-
     },
 
     composerSizeButton: {
-        alignItems: 'center',
-        alignSelf: 'flex-end',
-        height: 26,
-        marginBottom: 6,
-        marginTop: 6,
-        marginRight: 4,
-        justifyContent: 'center',
+        alignSelf: 'center',
+        height: 32,
         width: 32,
+        padding: 6,
+        margin: 3,
+        borderRadius: variables.componentBorderRadiusRounded,
+        backgroundColor: themeColors.transparent,
     },
 
     chatItemAttachmentPlaceholder: {
@@ -2030,21 +2015,31 @@ const styles = {
         left: 0,
         backgroundColor: themeColors.overlay,
         opacity: variables.overlayOpacity,
+        borderRadius: 88,
     },
 
     avatarInnerTextChat: {
         color: themeColors.textLight,
-        fontSize: variables.fontSizeNormal,
-        left: 1,
+        fontSize: variables.fontSizeXLarge,
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
         textAlign: 'center',
         fontWeight: 'normal',
         position: 'absolute',
+        width: 88,
+        left: -16,
     },
 
     pageWrapper: {
         width: '100%',
         alignItems: 'center',
         padding: 20,
+    },
+
+    avatarSectionWrapper: {
+        width: '100%',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingBottom: 20,
     },
 
     selectCircle: {
@@ -2709,10 +2704,6 @@ const styles = {
     iPhoneXSafeArea: {
         backgroundColor: themeColors.inverse,
         flex: 1,
-    },
-
-    errorPageContainer: {
-        backgroundColor: themeColors.componentBG,
     },
 
     transferBalancePayment: {

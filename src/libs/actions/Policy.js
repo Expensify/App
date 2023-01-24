@@ -13,6 +13,7 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import * as ReportUtils from '../ReportUtils';
+import * as Report from './Report';
 import Log from '../Log';
 
 const allPolicies = {};
@@ -22,8 +23,20 @@ Onyx.connect({
         if (!key) {
             return;
         }
-
         if (val === null || val === undefined) {
+            // If we are deleting a policy, we have to check every report linked to that policy
+            // and unset the draft indicator (pencil icon) alongside removing any draft comments. Clearing these values will keep the newly archived chats from being displayed in the LHN.
+            // More info: https://github.com/Expensify/App/issues/14260
+            const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
+            const policyReports = ReportUtils.getAllPolicyReports(policyID);
+            const cleanUpMergeQueries = {};
+            const cleanUpSetQueries = {};
+            _.each(policyReports, ({reportID}) => {
+                cleanUpMergeQueries[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {hasDraft: false};
+                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
+            });
+            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
+            Onyx.multiSet(cleanUpSetQueries);
             delete allPolicies[key];
             return;
         }
@@ -59,8 +72,9 @@ function updateLastAccessedWorkspace(policyID) {
  *
  * @param {String} policyID
  * @param {Array<Object>} reports
+ * @param {String} policyName
  */
-function deleteWorkspace(policyID, reports) {
+function deleteWorkspace(policyID, reports, policyName) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -80,6 +94,24 @@ function deleteWorkspace(policyID, reports) {
                 oldPolicyName: allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`].name,
             },
         })),
+
+        // Add closed actions to all chat reports linked to this policy
+        ..._.map(reports, ({reportID, ownerEmail}) => {
+            const highestSequenceNumber = Report.getMaxSequenceNumber(reportID);
+            const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(
+                highestSequenceNumber + 1,
+                ownerEmail,
+                policyName,
+                CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED,
+            );
+            const optimisticReportActions = {};
+            optimisticReportActions[optimisticClosedReportAction.clientID] = optimisticClosedReportAction;
+            return {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: optimisticReportActions,
+            };
+        }),
     ];
 
     // Restore the old report stateNum and statusNum
@@ -911,10 +943,8 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
 /**
  *
  * @param {string} policyID
- * @param {string} subStep The sub step in first step of adding withdrawal bank account
- * @param {*} localCurrentStep The locally stored current step of adding a withdrawal bank account
  */
-function openWorkspaceReimburseView(policyID, subStep, localCurrentStep) {
+function openWorkspaceReimburseView(policyID) {
     if (!policyID) {
         Log.warn('openWorkspaceReimburseView invalid params', {policyID});
         return;
@@ -940,7 +970,7 @@ function openWorkspaceReimburseView(policyID, subStep, localCurrentStep) {
         ],
     };
 
-    API.read('OpenWorkspaceReimburseView', {policyID, subStep, localCurrentStep}, onyxData);
+    API.read('OpenWorkspaceReimburseView', {policyID}, onyxData);
 }
 
 function openWorkspaceMembersPage(policyID, clientMemberEmails) {
