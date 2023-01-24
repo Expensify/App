@@ -9,6 +9,7 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import TextInput from '../components/TextInput';
+import Text from '../components/Text';
 import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
 import OptionsSelector from '../components/OptionsSelector';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
@@ -25,6 +26,9 @@ import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
 import withReportOrNavigateHome from './home/report/withReportOrNavigateHome';
 import CONST from '../CONST';
+import policyMemberPropType from './policyMemberPropType';
+import * as Report from '../libs/actions/Report';
+import personalDetailsPropType from './personalDetailsPropType';
 
 // const personalDetailsPropTypes = PropTypes.shape({
 //     /** The login of the person (either email or phone number) */
@@ -39,6 +43,12 @@ import CONST from '../CONST';
 // });
 
 const propTypes = {
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
+    /** All of the personal details for everyone */
+    personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
+
     /** The active report */
     report: reportPropTypes.isRequired,
 
@@ -60,6 +70,9 @@ const propTypes = {
         id: PropTypes.string,
     }).isRequired,
 
+    /** List of policy members */
+    policyMemberList: PropTypes.objectOf(policyMemberPropType),
+
     ...policyPropTypes,
     ...withLocalizePropTypes,
     network: networkPropTypes.isRequired,
@@ -71,7 +84,30 @@ class RoomInvitePage extends React.Component {
     constructor(props) {
         super(props);
 
+        this.getSections = this.getSections.bind(this);
+        this.clearErrors = this.clearErrors.bind(this);
+        this.inviteUser = this.inviteUser.bind(this);
+        this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
+        this.toggleOption = this.toggleOption.bind(this);
+
+        const policyMemberEmails = _.keys(props.policyMemberList[`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${props.report.policyID}`]);
+        const policyMemberPersonalDetails = {};
+        _.forEach(policyMemberEmails, (email) => {
+            policyMemberPersonalDetails[email] = props.personalDetails[email];
+        });
+        const {
+            personalDetails,
+            userToInvite,
+        } = OptionsListUtils.getMemberInviteOptions(
+            policyMemberPersonalDetails,
+            props.betas,
+            '',
+            props.report.participants,
+        );
+
         this.state = {
+            personalDetails,
+            userToInvite,
             searchTerm: '',
             selectedOptions: [],
             shouldDisableButton: false,
@@ -79,9 +115,13 @@ class RoomInvitePage extends React.Component {
     }
 
     componentDidMount() {
-        // this.clearErrors();
+        Report.openRoomInvitePage(this.props.report.policyID);
+    }
 
-        
+    componentDidUpdate(prevProps) {
+        if (!_.isEqual(prevProps.policyMemberList, this.props.policyMemberList)) {
+            
+        }
     }
 
     /**
@@ -90,49 +130,116 @@ class RoomInvitePage extends React.Component {
     inviteUser() {
     }
 
-    // /**
-    //  * Returns the sections needed for the OptionsSelector
-    //  * @returns {Array}
-    //  */
-    // getSections() {
-    //     const sections = [];
-    //     let indexOffset = 0;
+    /**
+     * Returns the sections needed for the OptionsSelector
+     * @returns {Array}
+     */
+    getSections() {
+        const sections = [];
+        let indexOffset = 0;
 
-    //     sections.push({
-    //         title: undefined,
-    //         data: this.state.selectedOptions,
-    //         shouldShow: true,
-    //         indexOffset,
-    //     });
-    //     indexOffset += this.state.selectedOptions.length;
+        sections.push({
+            data: this.state.selectedOptions,
+            shouldShow: true,
+            indexOffset,
+        });
+        indexOffset += this.state.selectedOptions.length;
 
-    //     // Filtering out selected users from the search results
-    //     const filterText = _.reduce(this.state.selectedOptions, (str, {login}) => `${str} ${login}`, '');
-    //     const personalDetailsWithoutSelected = _.filter(this.state.personalDetails, ({login}) => !filterText.includes(login));
-    //     const hasUnselectedUserToInvite = this.state.userToInvite && !filterText.includes(this.state.userToInvite.login);
+        // Filtering out selected users from the search results
+        const filterText = _.reduce(this.state.selectedOptions, (str, {login}) => `${str} ${login}`, '');
+        const personalDetailsWithoutSelected = _.filter(this.state.personalDetails, ({login}) => !filterText.includes(login));
+        const hasUnselectedUserToInvite = this.state.userToInvite && !filterText.includes(this.state.userToInvite.login);
 
-    //     sections.push({
-    //         title: this.props.translate('common.contacts'),
-    //         data: personalDetailsWithoutSelected,
-    //         shouldShow: !_.isEmpty(personalDetailsWithoutSelected),
-    //         indexOffset,
-    //     });
-    //     indexOffset += personalDetailsWithoutSelected.length;
+        sections.push({
+            data: personalDetailsWithoutSelected,
+            shouldShow: !_.isEmpty(personalDetailsWithoutSelected),
+            indexOffset,
+        });
+        indexOffset += personalDetailsWithoutSelected.length;
 
-    //     if (hasUnselectedUserToInvite) {
-    //         sections.push(({
-    //             title: undefined,
-    //             data: [this.state.userToInvite],
-    //             shouldShow: true,
-    //             indexOffset,
-    //         }));
-    //     }
+        if (hasUnselectedUserToInvite) {
+            sections.push(({
+                title: undefined,
+                data: [this.state.userToInvite],
+                shouldShow: true,
+                indexOffset,
+            }));
+        }
 
-    //     return sections;
-    // }
+        return sections;
+    }
+
+    updateOptionsWithSearchTerm(searchTerm = '') {
+        const {
+            personalDetails,
+            userToInvite,
+        } = OptionsListUtils.getMemberInviteOptions(
+            this.props.personalDetails,
+            this.props.betas,
+            searchTerm,
+            this.props.report.participants,
+        );
+        this.setState({
+            searchTerm,
+            userToInvite,
+            personalDetails,
+        });
+    }
+
+    clearErrors(closeModal = false) {
+        if (closeModal) {
+            Navigation.dismissModal();
+        }
+    }
+
+    /**
+     * Removes a selected option from list if already selected. If not already selected add this option to the list.
+     * @param {Object} option
+     */
+    toggleOption(option) {
+        this.clearErrors();
+
+        this.setState((prevState) => {
+            const isOptionInList = _.some(prevState.selectedOptions, selectedOption => (
+                selectedOption.login === option.login
+            ));
+
+            let newSelectedOptions;
+
+            if (isOptionInList) {
+                newSelectedOptions = _.reject(prevState.selectedOptions, selectedOption => (
+                    selectedOption.login === option.login
+                ));
+            } else {
+                newSelectedOptions = [...prevState.selectedOptions, option];
+            }
+
+            const policyMemberEmails = _.keys(this.props.policyMemberList[`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${this.props.report.policyID}`]);
+            const policyMemberPersonalDetails = {};
+            _.forEach(policyMemberEmails, (email) => {
+                policyMemberPersonalDetails[email] = this.props.personalDetails[email];
+            });
+            const {
+                personalDetails,
+                userToInvite,
+            } = OptionsListUtils.getMemberInviteOptions(
+                policyMemberPersonalDetails,
+                this.props.betas,
+                prevState.searchTerm,
+                this.props.report.participants,
+            );
+
+            return {
+                selectedOptions: newSelectedOptions,
+                personalDetails,
+                userToInvite,
+                searchTerm: prevState.searchTerm,
+            };
+        });
+    }
 
     render() {
-        // const sections = this.getSections();
+        const sections = this.getSections();
         // const headerMessage = OptionsListUtils.getHeaderMessage(
         //     this.state.personalDetails.length !== 0,
         //     Boolean(this.state.userToInvite),
@@ -142,63 +249,54 @@ class RoomInvitePage extends React.Component {
 
         return (
             <ScreenWrapper>
-                {({didScreenTransitionEnd}) => (
-                    <>
-                        <HeaderWithCloseButton
-                            title={this.props.translate('workspace.invite.invitePeople')}
-                            // subtitle={policyName}
-                            onCloseButtonPress={() => this.clearErrors(true)}
-                            shouldShowGetAssistanceButton
-                            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                            shouldShowBackButton
-                            onBackButtonPress={() => Navigation.goBack()}
-                        />
-                        <View style={[styles.flex1]}>
-                            {didScreenTransitionEnd ? (
-                                <OptionsSelector
-                                    autoFocus={false}
-                                    canSelectMultipleOptions
-                                    // sections={sections}
-                                    selectedOptions={this.state.selectedOptions}
-                                    value={this.state.searchTerm}
-                                    onSelectRow={this.toggleOption}
-                                    onChangeText={this.updateOptionsWithSearchTerm}
-                                    onConfirmSelection={this.inviteUser}
-                                    // headerMessage={headerMessage}
-                                    hideSectionHeaders
-                                    boldStyle
-                                    shouldFocusOnSelectRow
-                                    placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                                />
-                            ) : (
-                                <FullScreenLoadingIndicator />
-                            )}
+                <HeaderWithCloseButton
+                    title={this.props.translate('workspace.invite.invitePeople')}
+                    // subtitle={policyName}
+                    // onCloseButtonPress={() => this.clearErrors(true)}
+                    shouldShowGetAssistanceButton
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+                <View style={[styles.flex1]}>
+                    <OptionsSelector
+                        autoFocus={false}
+                        canSelectMultipleOptions
+                        sections={sections}
+                        selectedOptions={this.state.selectedOptions}
+                        value={this.state.searchTerm}
+                        onSelectRow={this.toggleOption}
+                        // onChangeText={this.updateOptionsWithSearchTerm}
+                        // onConfirmSelection={this.inviteUser}
+                        // headerMessage={headerMessage}
+                        hideSectionHeaders
+                        boldStyle
+                        shouldFocusOnSelectRow
+                        placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                    />
+                </View>
+                <View style={[styles.flexShrink0]}>
+                    <FormAlertWithSubmitButton
+                        isDisabled={!this.state.selectedOptions.length || this.state.shouldDisableButton}
+                        isAlertVisible={false}
+                        buttonText={this.props.translate('common.invite')}
+                        onSubmit={this.inviteUser}
+                        // message={this.props.policy.alertMessage}
+                        containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                        enabledWhenOffline
+                    />
+                    <Pressable
+                        onPress={this.openPrivacyURL}
+                        accessibilityRole="link"
+                        href={CONST.PRIVACY_URL}
+                        style={[styles.mh5, styles.mv2, styles.alignSelfStart]}
+                    >
+                        <View style={[styles.flexRow]}>
+                            <Text style={[styles.mr1, styles.label, styles.link]}>
+                                {this.props.translate('common.privacy')}
+                            </Text>
                         </View>
-                        <View style={[styles.flexShrink0]}>
-                            <FormAlertWithSubmitButton
-                                isDisabled={!this.state.selectedOptions.length || this.state.shouldDisableButton}
-                                isAlertVisible={false}
-                                buttonText={this.props.translate('common.invite')}
-                                onSubmit={this.inviteUser}
-                                message={this.props.policy.alertMessage}
-                                containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                                enabledWhenOffline
-                            />
-                            <Pressable
-                                onPress={this.openPrivacyURL}
-                                accessibilityRole="link"
-                                href={CONST.PRIVACY_URL}
-                                style={[styles.mh5, styles.mv2, styles.alignSelfStart]}
-                            >
-                                <View style={[styles.flexRow]}>
-                                    <Text style={[styles.mr1, styles.label, styles.link]}>
-                                        {this.props.translate('common.privacy')}
-                                    </Text>
-                                </View>
-                            </Pressable>
-                        </View>
-                    </>
-                )}
+                    </Pressable>
+                </View>
             </ScreenWrapper>
         );
     }
@@ -212,6 +310,15 @@ export default compose(
     withReportOrNavigateHome,
     withNetwork(),
     withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+        policyMemberList: {
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
+        },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
         },

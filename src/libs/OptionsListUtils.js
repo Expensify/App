@@ -713,7 +713,7 @@ function getNewChatOptions(
 }
 
 /**
- * Build the options for the Workspace Member Invite view
+ * Build the options for the Workspace Member Invite and Room Invite views
  *
  * @param {Object} personalDetails
  * @param {Array<String>} betas
