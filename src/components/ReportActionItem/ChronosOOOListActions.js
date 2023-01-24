@@ -25,6 +25,14 @@ const ChronosOOOListActions = (props) => {
     const events = lodashGet(props.action, 'originalMessage.events', []);
     console.log('!!!', events);
 
+    if (!events.length) {
+        return (
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.pt, styles.ml18]}>
+                <Text>You haven&apos;t created any events</Text>
+            </View>
+        );
+    }
+
     return (
         <View>
             {_.map(events, (event) => {
