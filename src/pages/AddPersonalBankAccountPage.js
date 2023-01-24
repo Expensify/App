@@ -7,6 +7,7 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
 import * as BankAccounts from '../libs/actions/BankAccounts';
+import * as PaymentMethods from '../libs/actions/PaymentMethods';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import AddPlaidBankAccount from '../components/AddPlaidBankAccount';
 import getPlaidOAuthReceivedRedirectURI from '../libs/getPlaidOAuthReceivedRedirectURI';
@@ -99,6 +100,7 @@ class AddPersonalBankAccountPage extends React.Component {
                         shouldShowButton
                         buttonText={this.props.translate('common.continue')}
                         onButtonPress={() => {
+                            PaymentMethods.openPaymentsPage();
                             BankAccounts.clearPersonalBankAccount();
                             Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
                         }}
