@@ -1012,23 +1012,37 @@ function addPolicyReport(policy, reportName, visibility) {
     Navigation.navigate(ROUTES.getReportRoute(policyReport.reportID));
 }
 
+function openRoomInvitePage(policyID) {
+    API.read('OpenRoomInvitePage', {
+        policyID,
+    });
+}
+
+/**
+ * Invites user(s) to a user-created policy room
+ * @param {Object} report
+ * @param {Array} emails
+ */
 function inviteToWorkspaceRoom(report, emails) {
     const participants = report.participants.concat(emails);
-    const optimisticData = {
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-        value: {
-            participants,
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {
+                participants,
+            },
         },
-    };
-    const failureData = {
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-        value: {
-            participants: report.participants,
+    ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {
+                participants: report.participants,
+            },
         },
-    };
-
+    ];
     API.write(
         'InviteToWorkspaceRoom',
         {
@@ -1207,6 +1221,7 @@ export {
     navigateToConciergeChat,
     setReportWithDraft,
     addPolicyReport,
+    openRoomInvitePage,
     inviteToWorkspaceRoom,
     navigateToConciergeChatAndDeleteReport,
     setIsComposerFullSize,
