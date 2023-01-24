@@ -166,7 +166,6 @@ class SidebarLinks extends React.Component {
                             accessibilityRole="button"
                             style={[styles.flexRow, styles.ph5]}
                             onPress={this.showSearchPage}
-                            disabled={isLoading}
                         >
                             <Icon src={Expensicons.MagnifyingGlass} />
                         </TouchableOpacity>
@@ -175,7 +174,6 @@ class SidebarLinks extends React.Component {
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
                         accessibilityRole="button"
                         onPress={this.showSettingsPage}
-                        disabled={isLoading}
                     >
                         <OfflineWithFeedback
                             pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
