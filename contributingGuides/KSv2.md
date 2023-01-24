@@ -16,27 +16,39 @@ To help surface the issues and PRs that need the most `#urgency`, we've built a 
 
 <img src="https://user-images.githubusercontent.com/6829422/213875977-8ff4cf19-7690-4203-ae13-a8da259be7d0.png" />
 
-## Pull Requests for review
+### Pull Requests for review
 
 In the dashboard, you can first see the PRs assigned to you as `Reviewer`. As part of our engineering guidelines, an engineer (internal or external) should review other people's code before working on their own code.
 
-## Issues assigned to you
+### Issues assigned to you
 
 In the next section you can see all issues assigned to you, prioritized from most urgent to least urgent. Issues will also change color depending on other factors - e.g. if they have "HOLD" in the title or if they have the `Overdue`, `Planning`, or `Waiting for copy` labels applied.
 
 If a GitHub issue has the `Overdue` label, it means that it hasn't been updated in the amount of time allotted for an update (ex - A weekly issue becomes overdue if it hasn't been updated in a week).
 
-## Your Pull Requests
+### Your Pull Requests
 
 After the issues section you will find a section that lists your created PRs:
 
 <img src="https://user-images.githubusercontent.com/6829422/213875978-3df6bcd0-ee9a-472a-9a9f-6db70486bcf0.png" />
 
-## WAQ issues
+### WAQ issues
 
 The dashboard also shows a list of open issues in the App repo which are not on hold and don't have PRs yet, all ordered by their age (and grouped by how many weeks old they are):
 
 <img src="https://user-images.githubusercontent.com/6829422/213875962-fb1f23d0-59b9-4d05-960e-160e34c83cf0.png" />
+
+## Label buttons
+
+On the right side of GitHub issues, you’ll find buttons for the most common labels. Some of these labels are only for internal use, but there are other labels that can be used for public repos:
+
+<img src="https://user-images.githubusercontent.com/6829422/214215474-e7f03411-dea1-44ea-9ca0-3780d7ea2740.png" />
+
+## Reviewer Checklist button
+
+Additionally the extension provides a button that facilitates the creation of the Reviewer Checklist into a new comment:
+
+<img src="https://user-images.githubusercontent.com/6829422/214215497-ac268e40-0830-43bf-967d-fe667bc2de71.png" />
 
 ## Installation
 
