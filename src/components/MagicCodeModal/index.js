@@ -1,5 +1,5 @@
 import React, { PureComponent } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
+import FullScreenLoadingIndicator from "../FullscreenLoadingIndicator";
 
 class MagicCodeModal extends PureComponent {
 
