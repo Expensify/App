@@ -148,7 +148,6 @@ function getPlatformEquivalentForKeys(keys) {
  * @returns {Function} clean up method
  */
 function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0, shouldPreventDefault = true) {
-    console.log(">>>> in subscribe");
     const platformAdjustedModifiers = getPlatformEquivalentForKeys(modifiers);
     const displayName = getDisplayName(key, platformAdjustedModifiers);
     if (!_.has(eventHandlers, displayName)) {
@@ -156,7 +155,6 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
     }
 
     const callbackID = Str.guid();
-    console.log(">>>> setting up callback");
     eventHandlers[displayName].splice(priority, 0, {
         id: callbackID,
         callback,
@@ -164,7 +162,6 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
         shouldPreventDefault,
         shouldBubble,
     });
-    console.log(">>>> done setting up callback");
 
     if (descriptionKey) {
         documentedShortcuts[displayName] = {
@@ -175,7 +172,6 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
         };
     }
 
-    console.log(">>>> returning from subscribe");
     return () => unsubscribe(displayName, callbackID);
 }
 
