@@ -351,20 +351,18 @@ function doesFailCharacterLimitAfterTrim(maxLength, valuesToBeValidated) {
 /**
  * Checks if input value includes comma or semicolon which are not accepted
  *
- * @param {String[]} valuesToBeValidated
- * @returns {String[]}
+ * @param {String} valuesToBeValidated
+ * @returns {String}
  */
 function findInvalidSymbols(valuesToBeValidated) {
-    return _.map(valuesToBeValidated, (value) => {
-        if (!value) {
-            return '';
-        }
-        let inValidSymbol = value.replace(/[,]+/g, '') !== value ? Localize.translateLocal('personalDetails.error.comma') : '';
-        if (_.isEmpty(inValidSymbol)) {
-            inValidSymbol = value.replace(/[;]+/g, '') !== value ? Localize.translateLocal('personalDetails.error.semicolon') : '';
-        }
-        return inValidSymbol;
-    });
+    if (!valuesToBeValidated) {
+        return '';
+    }
+    let inValidSymbol = valuesToBeValidated.replace(/[,]+/g, '') !== valuesToBeValidated ? Localize.translateLocal('personalDetails.error.comma') : '';
+    if (_.isEmpty(inValidSymbol)) {
+        inValidSymbol = valuesToBeValidated.replace(/[;]+/g, '') !== valuesToBeValidated ? Localize.translateLocal('personalDetails.error.semicolon') : '';
+    }
+    return inValidSymbol;
 }
 
 /**
