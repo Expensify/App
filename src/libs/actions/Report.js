@@ -1012,11 +1012,31 @@ function addPolicyReport(policy, reportName, visibility) {
     Navigation.navigate(ROUTES.getReportRoute(policyReport.reportID));
 }
 
-function inviteToWorkspaceRoom(reportID, emails) {
+function inviteToWorkspaceRoom(report, emails) {
+    const participants = report.participants.concat(emails);
+    const optimisticData = {
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+        value: {
+            participants,
+        },
+    };
+    const failureData = {
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+        value: {
+            participants: report.participants,
+        },
+    };
+
     API.write(
         'InviteToWorkspaceRoom',
-        {emails},
-    )
+        {
+            reportID: report.reportID,
+            emails,
+        },
+        {optimisticData, failureData},
+    );
 }
 
 /**
