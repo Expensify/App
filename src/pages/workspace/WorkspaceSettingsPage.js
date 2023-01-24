@@ -67,7 +67,6 @@ class WorkspaceSettingsPage extends React.Component {
 
         const workSpaceNameValidation = ValidationUtils.isValidWorkspaceName(values.name);
 
-        // Case Name is empty
         ValidationUtils.assignError(
             errors,
             'name',
