@@ -408,6 +408,17 @@ function isValidRoomName(roomName) {
 }
 
 /**
+ * Checks if workspace name does not contain spaces
+ *
+ * @param {String} workspaceName
+ * @returns {Boolean}
+ */
+
+function isValidWorkspaceName(workspaceName) {
+    return !/\s/.test(workspaceName.trim());
+}
+
+/**
  * Checks if tax ID consists of 9 digits
  *
  * @param {String} taxID
@@ -464,4 +475,5 @@ export {
     isValidTaxID,
     findInvalidSymbols,
     assignError,
+    isValidWorkspaceName,
 };
