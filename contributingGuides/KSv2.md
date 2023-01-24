@@ -18,25 +18,25 @@ To help surface the issues and PRs that need the most `#urgency`, we've built a 
 
 ## Pull Requests for review
 
-In the dashboard, you can first see the PRs assigned to you as `Reviewer`. An engineer should review other people's code before working on their own code.
+In the dashboard, you can first see the PRs assigned to you as `Reviewer`. As part of our engineering guidelines, an engineer (internal or external) should review other people's code before working on their own code.
 
 ## Issues assigned to you
 
-Then you can see all issues assigned to you, prioritized from most urgent to least urgent. Issues will also change color depending on other factors - e.g. if they have "HOLD" in the title or if they have the `Overdue`, `Planning`, or `Waiting for copy` labels applied.
+In the next section you can see all issues assigned to you, prioritized from most urgent to least urgent. Issues will also change color depending on other factors - e.g. if they have "HOLD" in the title or if they have the `Overdue`, `Planning`, or `Waiting for copy` labels applied.
 
 If a GitHub issue has the `Overdue` label, it means that it hasn't been updated in the amount of time allotted for an update (ex - A weekly issue becomes overdue if it hasn't been updated in a week).
 
 ## Your Pull Requests
 
-<img src="https://user-images.githubusercontent.com/6829422/213875978-3df6bcd0-ee9a-472a-9a9f-6db70486bcf0.png" />
+After the issues section you will find a section that lists your created PRs:
 
-After the issues section you will find a section that lists your created PRs.
+<img src="https://user-images.githubusercontent.com/6829422/213875978-3df6bcd0-ee9a-472a-9a9f-6db70486bcf0.png" />
 
 ## WAQ issues
 
-<img src="https://user-images.githubusercontent.com/6829422/213875962-fb1f23d0-59b9-4d05-960e-160e34c83cf0.png" />
+The dashboard also shows a list of open issues in the App repo which are not on hold and don't have PRs yet, all ordered by their age (and grouped by how many weeks old they are):
 
-The dashboard also shows a list of open issues in the App repo which are not on hold and don't have PRs yet, all ordered by their age (and grouped by how many weeks old they are).
+<img src="https://user-images.githubusercontent.com/6829422/213875962-fb1f23d0-59b9-4d05-960e-160e34c83cf0.png" />
 
 ## Installation
 
