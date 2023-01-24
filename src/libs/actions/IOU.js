@@ -75,6 +75,8 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, preferredLocale);
     }
 
+    // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
+    const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         amount,
@@ -147,8 +149,6 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         },
     };
 
-    let optimisticCreatedAction;
-
     // Now, let's add the data we need just when we are creating a new chat report
     if (isNewChat) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
@@ -170,7 +170,6 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         chatReportFailureData.value.pendingFields = null;
 
         // Then add an optimistic created action
-        optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
         optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
         reportActionsSuccessData.value[optimisticCreatedAction.reportActionID] = {pendingAction: null};
         reportActionsFailureData.value[optimisticCreatedAction.reportActionID] = {pendingAction: null};
@@ -237,6 +236,9 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         ? chatReports[`${ONYXKEYS.COLLECTION.REPORT}${existingGroupChatReportID}`]
         : ReportUtils.getChatByParticipants(participantLogins);
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participantLogins);
+
+    // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
+    const groupCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
     const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
         Math.round(amount * 100),
@@ -250,9 +252,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     groupChatReport.lastMessageHtml = groupIOUReportAction.message[0].html;
 
     // If we have an existing groupChatReport use it's pending fields, otherwise indicate that we are adding a chat
-    let groupCreatedReportAction = {};
     if (!existingGroupChatReport) {
-        groupCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
         groupChatReport.pendingFields = {
             createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         };
@@ -348,6 +348,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             oneOnOneChatReport.iouReportID = oneOnOneIOUReport.reportID;
         }
 
+        // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
+        const oneOnOneCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
         const oneOnOneIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
             CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             splitAmount,
@@ -362,9 +364,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         oneOnOneChatReport.lastMessageText = oneOnOneIOUReportAction.message[0].text;
         oneOnOneChatReport.lastMessageHtml = oneOnOneIOUReportAction.message[0].html;
 
-        let oneOnOneCreatedReportAction = {};
         if (!existingOneOnOneChatReport) {
-            oneOnOneCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
             oneOnOneChatReport.pendingFields = {
                 createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             };
@@ -678,6 +678,8 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
     }
     const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, managerEmail, amount, chatReport.reportID, currency, preferredLocale, true);
 
+    // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
+    const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount,
@@ -743,8 +745,6 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         },
     ];
 
-    let optimisticCreatedAction;
-
     // Now, let's add the data we need just when we are creating a new chat report
     if (isNewChat) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
@@ -762,7 +762,6 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         });
 
         // Add an optimistic created action to the optimistic reportActions data
-        optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
         optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
     }
 
