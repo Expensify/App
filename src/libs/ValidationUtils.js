@@ -366,6 +366,45 @@ function findInvalidSymbols(valuesToBeValidated) {
 }
 
 /**
+ * Checks if a name is valid by checking that:
+ * - Equals to restricted words Expensify or Concierge or Zero
+ * - It includes comma or semicolon which are not accepted
+ * @param {String} name
+ * @param {String} valuesToBeValidated
+ * @returns {[string,Object]}
+ */
+function isValidDisplayName(name, valuesToBeValidated) {
+    if (!valuesToBeValidated || !valuesToBeValidated.trim().length) {
+        // we can display an error if empty
+        return [];
+    }
+    const value = valuesToBeValidated.trim();
+    const invalidCharacter = findInvalidSymbols(valuesToBeValidated);
+
+    // check if name equals to 0
+    if (value === '0') {
+        return ['personalDetails.error.nameInvalidError', {name}];
+    }
+
+    // Check for invalid characters in name
+    if (!_.isEmpty(invalidCharacter)) {
+        return ['personalDetails.error.hasInvalidCharacter', {invalidCharacter}];
+    }
+
+    // check if name equals to Expensify
+    if (value.toLowerCase() === 'expensify') {
+        return ['personalDetails.error.nameRestrictedError', {restrictedWord: 'Expensify', name}];
+    }
+
+    // check if name equals to Concierge
+    if (value.toLowerCase() === 'concierge') {
+        return ['personalDetails.error.nameRestrictedError', {restrictedWord: 'Concierge', name}];
+    }
+
+    return [];
+}
+
+/**
  * Checks if is one of the certain names which are reserved for default rooms
  * and should not be used for policy rooms.
  *
@@ -491,4 +530,5 @@ export {
     findInvalidSymbols,
     assignError,
     isValidWorkspaceName,
+    isValidDisplayName,
 };
