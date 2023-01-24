@@ -117,7 +117,7 @@ function subscribeToReportTypingEvents(reportID) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
 
     const pusherChannelName = getReportChannelName(reportID);
-    Pusher.subscribe(pusherChannelName, 'client-userIsTyping', (typingStatus) => {
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.USER_IS_TYPING, (typingStatus) => {
         const normalizedTypingStatus = getNormalizedTypingStatus(typingStatus);
         const login = _.first(_.keys(normalizedTypingStatus));
 
@@ -160,7 +160,7 @@ function unsubscribeFromReportChannel(reportID) {
 
     const pusherChannelName = getReportChannelName(reportID);
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
-    Pusher.unsubscribe(pusherChannelName);
+    Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.USER_IS_TYPING);
 }
 
 const defaultNewActionSubscriber = {
@@ -621,7 +621,7 @@ function broadcastUserIsTyping(reportID) {
     const privateReportChannelName = getReportChannelName(reportID);
     const typingStatus = {};
     typingStatus[currentUserEmail] = true;
-    Pusher.sendEvent(privateReportChannelName, 'client-userIsTyping', typingStatus);
+    Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_TYPING, typingStatus);
 }
 
 /**
