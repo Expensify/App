@@ -20,6 +20,8 @@ import getOperatingSystem from '../../../libs/getOperatingSystem';
 import * as User from '../../../libs/actions/User';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
+import CategoryShortcutButton from "../CategoryShortcutButton";
+import MenuItem from "../../MenuItem";
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -489,45 +491,12 @@ class EmojiPickerMenu extends Component {
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
                 <View style={[styles.pt4, styles.ph4, styles.pb1, styles.alignItemsStart, styles.flexRow]}>
-                    <Pressable
-                        onPress={() => this.setState({highlightedIndex: this.headerIndices[0]}, this.scrollToHeader)}
-                    >
-                        <Text style={[styles.emojiText]}>
-                            Recent
-                        </Text>
-                    </Pressable>
-                    <Pressable
-                        style={[styles.ph4]}
-                        onPress={() => this.setState({highlightedIndex: this.headerIndices[1]}, this.scrollToHeader)}
-                    >
-                        <Text style={[styles.emojiText]}>
-                            Smiley
-                        </Text>
-                    </Pressable>
-                    <Pressable
-                        style={[styles.ph4]}
-                        onPress={() => this.setState({highlightedIndex: this.headerIndices[2]}, this.scrollToHeader)}
-                    >
-                        <Text style={[styles.emojiText]}>
-                            People
-                        </Text>
-                    </Pressable>
-                    <Pressable
-                        style={[styles.ph4]}
-                        onPress={() => this.setState({highlightedIndex: this.headerIndices[3]}, this.scrollToHeader)}
-                    >
-                        <Text style={[styles.emojiText]}>
-                            Animals
-                        </Text>
-                    </Pressable>
-                    <Pressable
-                        style={[styles.ph4]}
-                        onPress={() => this.setState({highlightedIndex: this.headerIndices[4]}, this.scrollToHeader)}
-                    >
-                        <Text style={[styles.emojiText]}>
-                            Food
-                        </Text>
-                    </Pressable>
+                    {_.map(this.headerIndices, headerIndex => (
+                        <CategoryShortcutButton
+                            emoji={this.emojis[headerIndex + 8].code}
+                            onPress={() => this.scrollToHeader(headerIndex)}
+                        />
+                    ))}
                 </View>
                 {!this.props.isSmallScreenWidth && (
                     <View style={[styles.pt4, styles.ph4, styles.pb1]}>
