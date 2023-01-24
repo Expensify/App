@@ -110,7 +110,7 @@ const PersonalDetailsInitialPage = (props) => {
                 />
                 <MenuItemWithTopDescription
                     title={privateDetails.dateOfBirth || ''}
-                    description={props.translate('privatePersonalDetails.dateOfBirth')}
+                    description={props.translate('common.dob')}
                     shouldShowRightIcon
                     wrapperStyle={[styles.ph2]}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH)}

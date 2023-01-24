@@ -570,7 +570,6 @@ export default {
         legalName: 'Legal name',
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
-        dateOfBirth: 'Date of birth',
         homeAddress: 'Home address',
         error: {
             hasInvalidCharacter: ({characterName}) => `Please remove the ${characterName} from the field above.`,
