@@ -196,7 +196,7 @@ class ReportActionItem extends Component {
             return <RenameAction action={this.props.action} />;
         }
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOSOOOLIST) {
-            return <ChronosOOOListActions action={this.props.action} />;
+            return <ChronosOOOListActions action={this.props.action} reportID={this.props.report.reportID} />;
         }
         return (
             <PressableWithSecondaryInteraction

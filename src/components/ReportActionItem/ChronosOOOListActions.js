@@ -12,6 +12,9 @@ import * as Chronos from '../../libs/actions/Chronos';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
+    /** The ID of the report */
+    reportID: PropTypes.string.isRequired,
+
     /** All the data of the action */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
@@ -20,6 +23,7 @@ const propTypes = {
 
 const ChronosOOOListActions = (props) => {
     const events = lodashGet(props.action, 'originalMessage.events', []);
+    console.log('!!!', events);
 
     return (
         <View>
@@ -53,7 +57,7 @@ const ChronosOOOListActions = (props) => {
                         <Button
                             small
                             style={[styles.pl2]}
-                            onPress={() => Chronos.removeEvent(event.id, props.action, events)}
+                            onPress={() => Chronos.removeEvent(props.reportID, event.id, props.action, events)}
                             ContentComponent={() => (
                                 <Text style={styles.buttonSmallText}>
                                     {props.translate('common.remove')}
