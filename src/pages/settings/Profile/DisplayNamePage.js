@@ -90,21 +90,6 @@ class DisplayNamePage extends Component {
         return errors;
     }
 
-    /**
-     * @param {Object} errors
-     * @param {String} errorKey
-     * @param {Boolean} hasError
-     * @param {Array<[phrase, variables]>} errorCopy
-     * @returns {Object} - An object containing the errors for each inputID
-     */
-    assignError(errors, errorKey, hasError, errorCopy) {
-        const validateErrors = errors;
-        if (hasError) {
-            validateErrors[errorKey] = this.props.translateLocal(...errorCopy);
-        }
-        return validateErrors;
-    }
-
     render() {
         const currentUserDetails = this.props.currentUserPersonalDetails || {};
 
