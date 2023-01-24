@@ -4,7 +4,7 @@ import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
 
 export default {
     /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
-    reportActionID: PropTypes.string.isRequired,
+    reportActionID: PropTypes.string,
 
     /** Name of the action e.g. ADDCOMMENT */
     actionName: PropTypes.string,
