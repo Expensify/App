@@ -2521,6 +2521,7 @@ const styles = {
 
     dotSeparator: {
         marginHorizontal: variables.dotSeparatorHorizontalSpacing,
+        marginVertical: (variables.lineHeightSmall - variables.iconSizeXXXSmall) / 2,
     },
 
     sidebarPopover: {

@@ -58,12 +58,13 @@ const JoinRoomPrompt = (props) => {
                     >
                         {props.report.displayName}
                     </Text>
-                    <Text style={[styles.alignItemsCenter, styles.dFlex, styles.flexRow, styles.justifyContentStart, styles.flex1]}>
+                    <Text>
                         <Text
                             style={[
                                 styles.sidebarLinkText,
                                 styles.optionAlternateText,
                                 styles.textLabelSupporting,
+                                styles.flex1,
                             ]}
                         >
                             {memberCount}
@@ -81,6 +82,7 @@ const JoinRoomPrompt = (props) => {
                                 styles.sidebarLinkText,
                                 styles.optionAlternateText,
                                 styles.textLabelSupporting,
+                                styles.flex1,
                             ]}
                         >
                             {workspaceName}
