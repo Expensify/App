@@ -44,6 +44,8 @@ Here are some below examples to illustrate the writing style that covers this:
   - Navigate to any conversation
   - Focus on the compose box and scroll up
   - Verify that no white space appears under the compose box
+
+
 - Bug: A blank page is shown for an archived room with a message in it
 - Proposed Test Steps:
   - Create a workspace if you don't have any
