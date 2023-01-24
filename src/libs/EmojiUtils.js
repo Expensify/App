@@ -98,6 +98,22 @@ function getDynamicHeaderIndices(emojis) {
 }
 
 /**
+ * Get the header indices based on the max emojis per row
+ * @param {Object[]} emojis
+ * @returns {Number[]}
+ */
+function getHeaderIndices(emojis) {
+    const headerIndices = [];
+    _.each(emojis, (emoji, index) => {
+        if (!emoji.header) {
+            return;
+        }
+        headerIndices.push(index);
+    });
+    return headerIndices;
+}
+
+/**
  * Get number of empty spaces to be filled to get equal emojis for every row
  * @param {Number} emojiCount
  * @param {Number} suffix
@@ -247,6 +263,7 @@ function suggestEmojis(text, limit = 5) {
 
 export {
     getDynamicHeaderIndices,
+    getHeaderIndices,
     mergeEmojisWithFrequentlyUsedEmojis,
     addToFrequentlyUsedEmojis,
     containsOnlyEmojis,

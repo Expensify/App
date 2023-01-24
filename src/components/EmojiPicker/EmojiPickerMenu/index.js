@@ -70,6 +70,7 @@ class EmojiPickerMenu extends Component {
         // The positions are static, and are calculated as index/numColumns (8 in our case)
         // This is because each row of 8 emojis counts as one index
         this.unfilteredHeaderIndices = EmojiUtils.getDynamicHeaderIndices(allEmojis);
+        this.headerIndices = EmojiUtils.getHeaderIndices(allEmojis);
 
         // If we're on Windows, don't display the flag emojis (the last category),
         // since Windows doesn't support them (and only displays country codes instead)
