@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView} from 'react-native';
 import _ from 'underscore';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -19,10 +18,13 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import Section from '../../components/Section';
 import Text from '../../components/Text';
 import withPolicy from '../workspace/withPolicy';
-import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
 
 const propTypes = {
+    /** Callback to continue to the next step of the setup */
     continue: PropTypes.func.isRequired,
+
+    /** Callback to start over the setup */
+    startOver: PropTypes.func.isRequired,
 
     /** Policy values needed in the component */
     policy: PropTypes.shape({
@@ -33,7 +35,7 @@ const propTypes = {
 };
 
 const ContinueBankAccountSetup = props => (
-    <ScreenWrapper>
+    <ScreenWrapper includeSafeAreaPaddingBottom={false}>
         <FullPageNotFoundView shouldShow={_.isEmpty(props.policy)}>
             <HeaderWithCloseButton
                 title={props.translate('workspace.common.bankAccount')}
@@ -65,13 +67,12 @@ const ContinueBankAccountSetup = props => (
                     <MenuItem
                         title={props.translate('workspace.bankAccount.startOver')}
                         icon={Expensicons.RotateLeft}
-                        onPress={BankAccounts.requestResetFreePlanBankAccount}
+                        onPress={props.startOver}
                         shouldShowRightIcon
                         wrapperStyle={[styles.cardMenuItem]}
                     />
                 </Section>
             </ScrollView>
-            <WorkspaceResetBankAccountModal />
         </FullPageNotFoundView>
     </ScreenWrapper>
 );
