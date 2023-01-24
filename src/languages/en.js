@@ -88,7 +88,7 @@ export default {
             acceptedTerms: 'You must accept the Terms of Service to continue',
             phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'This field is required.',
-            characterLimit: ({limit}) => `Exceeds the max length of ${limit} characters`,
+            characterLimit: ({limit}) => `Exceeds the maximum length of ${limit} characters`,
         },
         please: 'Please',
         contactUs: 'contact us',
