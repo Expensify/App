@@ -100,10 +100,7 @@ class EmojiPickerMenu extends Component {
 
     scrollToHeader(headerIndex) {
         // If there are headers in the emoji array, so we need to offset by their heights as well
-        let numHeaders = 0;
-        if (this.state.filteredEmojis.length === this.emojis.length) {
-            numHeaders = _.filter(this.unfilteredHeaderIndices, i => headerIndex > i * this.numColumns).length;
-        }
+        const numHeaders = _.filter(this.unfilteredHeaderIndices, i => headerIndex > i * this.numColumns).length;
 
         // Calculate the scroll offset at the top of the desired category
         // add 1 to number of headers so that we scroll to the top of the header row instead of the bottom
