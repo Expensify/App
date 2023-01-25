@@ -53,23 +53,27 @@ const PronounsPage = (props) => {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithCloseButton
-                title={props.translate('pronounsPage.pronouns')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
-            />
-            <Text style={[styles.ph5, styles.mb6]}>
-                {props.translate('pronounsPage.isShownOnProfile')}
-            </Text>
-            <OptionsList
-                sections={[{data: pronounsList}]}
-                onSelectRow={option => updatePronouns(option.value)}
-                hideSectionHeaders
-                optionHoveredStyle={styles.hoveredComponentBG}
-                shouldHaveOptionSeparator
-                contentContainerStyles={[styles.ph5]}
-            />
+            {({safeAreaPaddingBottomStyle}) => (
+                <>
+                    <HeaderWithCloseButton
+                        title={props.translate('pronounsPage.pronouns')}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
+                        onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    />
+                    <Text style={[styles.ph5, styles.mb6]}>
+                        {props.translate('pronounsPage.isShownOnProfile')}
+                    </Text>
+                    <OptionsList
+                        sections={[{data: pronounsList}]}
+                        onSelectRow={option => updatePronouns(option.value)}
+                        hideSectionHeaders
+                        optionHoveredStyle={styles.hoveredComponentBG}
+                        shouldHaveOptionSeparator
+                        contentContainerStyles={[styles.ph5, safeAreaPaddingBottomStyle]}
+                    />
+                </>
+            )}
         </ScreenWrapper>
     );
 };

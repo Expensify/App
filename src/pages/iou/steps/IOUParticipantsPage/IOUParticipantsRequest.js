@@ -141,6 +141,7 @@ class IOUParticipantsRequest extends Component {
                 headerMessage={headerMessage}
                 placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                 boldStyle
+                safeAreaPaddingBottomStyle={this.props.safeAreaPaddingBottomStyle}
             />
         );
     }

@@ -229,6 +229,7 @@ class IOUParticipantsSplit extends Component {
                             confirmButtonText={this.props.translate('common.next')}
                             onConfirmSelection={this.finalizeParticipants}
                             placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         />
                     </View>
                 )}

@@ -260,6 +260,7 @@ class NewChatPage extends Component {
                                     confirmButtonText={this.props.translate('newChatPage.createGroup')}
                                     onConfirmSelection={this.createGroup}
                                     placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                    safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                                 />
                             ) : (
                                 <FullScreenLoadingIndicator />
