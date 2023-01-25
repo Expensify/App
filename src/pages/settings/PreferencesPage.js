@@ -55,6 +55,16 @@ const PreferencesPage = (props) => {
             description: props.translate('preferencesPage.focusModeDescription'),
         },
     };
+    const localesToLanguages = {
+        en: {
+            value: 'en',
+            label: props.translate('preferencesPage.languages.english'),
+        },
+        es: {
+            value: 'es',
+            label: props.translate('preferencesPage.languages.spanish'),
+        },
+    };
 
     return (
         <ScreenWrapper includeSafeAreaPadding={false}>
@@ -82,17 +92,18 @@ const PreferencesPage = (props) => {
                             />
                         </View>
                     </View>
-                    <View style={[styles.mb2, styles.w100]}>
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            title={priorityModes[props.priorityMode].label}
-                            description={props.translate('preferencesPage.priorityMode')}
-                        // onPress={() => Navigation.navigate(detail.pageRoute)}
-                        />
-                    </View>
-                    <View style={[styles.mb2]}>
-                        <LocalePicker />
-                    </View>
+                    <MenuItemWithTopDescription
+                        shouldShowRightIcon
+                        title={priorityModes[props.priorityMode].label}
+                        description={props.translate('preferencesPage.priorityMode')}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODES)}
+                    />
+                    <MenuItemWithTopDescription
+                        shouldShowRightIcon
+                        title={localesToLanguages[props.preferredLocale].label}
+                        description={props.translate('preferencesPage.language')}
+                    // onPress={() => Navigation.navigate(detail.pageRoute)}
+                    />
 
                     {/* If we are in the staging environment then we enable additional test features */
                         _.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], props.environment)
@@ -116,6 +127,9 @@ export default compose(
     withOnyx({
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
+        },
+        preferredLocale: {
+            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         },
         user: {
             key: ONYXKEYS.USER,
