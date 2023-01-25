@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {View, FlatList} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import _ from 'underscore/underscore-node.mjs';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
 import CONST from '../../../CONST';
@@ -14,8 +15,7 @@ import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import * as User from '../../../libs/actions/User';
-import _ from "underscore/underscore-node.mjs";
-import CategoryShortcutButton from "../CategoryShortcutButton";
+import CategoryShortcutButton from '../CategoryShortcutButton';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
