@@ -113,7 +113,7 @@ export default {
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
-        expensifyDoesntHaveAccessToCamera: 'Esta aplicación no tiene acceso a tu cámara, por favor activa el permiso y vuelve a intentarlo.',
+        expensifyDoesntHaveAccessToCamera: 'Expensify no tiene acceso a tu cámara. Para habilitar la cámara, entra en Preferencias y habilita el acceso',
         attachmentError: 'Error al adjuntar archivo',
         errorWhileSelectingAttachment: 'Ha ocurrido un error al seleccionar un adjunto, por favor inténtalo de nuevo',
         errorWhileSelectingCorruptedImage: 'Ha ocurrido un error al seleccionar un adjunto corrupto, por favor inténtalo con otro archivo',
@@ -1088,7 +1088,7 @@ export default {
             message: 'No se puede descargar el archivo adjunto',
         },
         permissionError: {
-            title: 'Se necesita acceso',
+            title: 'Se necesita permiso para guardar archivos',
             message: 'Expensify no tiene acceso para guardar archivos. Para habilitar la descarga de archivos, entra en Preferencias y habilita el acceso',
         },
     },
