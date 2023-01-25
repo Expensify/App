@@ -1186,7 +1186,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
     // which necessitates the use of the isLHNOptionsList flag.
     // If a user has 'read' permissions for a restricted room, we want it to be discoverable in the Search Page, but not in the LHN
     // Restricted rooms should be in the LHN only if the user has 'read, write, share' permissions
-    if (isLHNOptionsList && !isRestrictedRoomParticipant(report)) {
+    if (isLHNOptionsList && isRestrictedPolicyRoom(report) && !isRestrictedRoomParticipant(report)) {
         return false;
     }
 
