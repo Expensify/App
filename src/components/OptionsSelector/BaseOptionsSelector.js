@@ -101,7 +101,7 @@ class BaseOptionsSelector extends Component {
         }
 
         const newOptions = this.flattenSections();
-        const newFocusedIndex = this.props.shouldTextInputAppearBelowOptions ? newOptions.length : this.props.selectedOptions.length;
+        const newFocusedIndex = this.props.selectedOptions.length;
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({
             allOptions: newOptions,
