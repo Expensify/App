@@ -92,15 +92,12 @@ describe('Sidebar', () => {
             // Given three unread reports in the recently updated order of 3, 2, 1
             const report1 = {
                 ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
-                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
             };
             const report2 = {
                 ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
-                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
             };
             const report3 = {
                 ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1),
-                lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
             };
 
             return waitForPromisesToResolve()
