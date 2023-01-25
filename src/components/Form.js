@@ -13,6 +13,7 @@ import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 import FormSubmit from './FormSubmit';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import ScrollViewWithContext from './ScrollViewWithContext';
+import stylePropTypes from '../styles/stylePropTypes';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -68,6 +69,9 @@ const propTypes = {
      */
     scrollContextEnabled: PropTypes.bool,
 
+    /** Container styles */
+    style: stylePropTypes,
+
     ...withLocalizePropTypes,
 };
 
@@ -82,6 +86,7 @@ const defaultProps = {
     isSubmitActionDangerous: false,
     scrollToOverflowEnabled: false,
     scrollContextEnabled: false,
+    style: [],
 };
 
 class Form extends React.Component {
