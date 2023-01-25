@@ -18,7 +18,6 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import Switch from '../../components/Switch';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import Picker from '../../components/Picker';
 import withEnvironment, {environmentPropTypes} from '../../components/withEnvironment';
 import TestToolMenu from '../../components/TestToolMenu';
 import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
@@ -91,9 +90,6 @@ const PreferencesPage = (props) => {
                         // onPress={() => Navigation.navigate(detail.pageRoute)}
                         />
                     </View>
-                    <Text style={[styles.textLabel, styles.colorMuted, styles.mb6]}>
-                        {priorityModes[props.priorityMode].description}
-                    </Text>
                     <View style={[styles.mb2]}>
                         <LocalePicker />
                     </View>
