@@ -65,7 +65,7 @@ const PersonalDetailsInitialPage = (props) => {
      * @param {String} piece
      * @returns {String}
      */
-    const formatPiece = (piece) => piece ? `${piece}, ` : '';
+    const formatPiece = piece => (piece ? `${piece}, ` : '');
 
     /**
      * Formats an address object into an easily readable string
