@@ -10,6 +10,7 @@ import CONST from '../CONST';
 import Permissions from '../libs/Permissions';
 import * as Localize from '../libs/Localize';
 import Picker from './Picker';
+import styles from '../styles/styles';
 
 const propTypes = {
     /** Indicates which locale the user currently has selected */
@@ -59,6 +60,7 @@ const LocalePicker = (props) => {
             items={_.values(localesToLanguages)}
             size={props.size}
             value={props.preferredLocale}
+            containerStyles={[props.size === 'small' && [styles.pickerContainerSmall]]}
         />
     );
 };
