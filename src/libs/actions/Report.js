@@ -1026,7 +1026,7 @@ function joinWorkspaceRoom(report) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
                 participants,
-                permissions: 'read, write',
+                permissions: 'read, write, share',
             },
         },
     ];

@@ -220,7 +220,7 @@ function isRestrictedPolicyRoom(report) {
  * @returns {Boolean}
  */
 function isRestrictedRoomParticipant(report) {
-    return isRestrictedPolicyRoom(report) && report.permissions === 'read, write';
+    return isRestrictedPolicyRoom(report) && report.permissions === 'read, write, share';
 }
 
 /**
@@ -929,7 +929,7 @@ function buildOptimisticChatReport(
         stateNum: 0,
         statusNum: 0,
         visibility,
-        permissions: visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? 'read, write' : null,
+        permissions: visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? 'read, write, share' : null,
     };
 }
 
@@ -1185,7 +1185,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
     // We only need to filter out restricted rooms in the LHNOptionsList, not the Search Page,
     // which necessitates the use of the isLHNOptionsList flag.
     // If a user has 'read' permissions for a restricted room, we want it to be discoverable in the Search Page, but not in the LHN
-    // Restricted rooms should be in the LHN only if the user has 'read, write' permissions
+    // Restricted rooms should be in the LHN only if the user has 'read, write, share' permissions
     if (isLHNOptionsList && !isRestrictedRoomParticipant(report)) {
         return false;
     }
