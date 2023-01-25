@@ -6,7 +6,7 @@ import ThumbnailImage from '../../ThumbnailImage';
 import PressableWithoutFocus from '../../PressableWithoutFocus';
 import CONST from '../../../CONST';
 import {ShowContextMenuContext, showContextMenuForReport} from '../../ShowContextMenuContext';
-import replaceSourceOrigin from '../../../libs/replaceSourceOrigin';
+import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
 
 const ImageRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
@@ -30,8 +30,10 @@ const ImageRenderer = (props) => {
     //
     const isAttachment = Boolean(htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
     const originalFileName = htmlAttribs['data-name'];
-    const previewSource = replaceSourceOrigin(htmlAttribs.src);
-    const source = replaceSourceOrigin(isAttachment
+
+    // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
+    const previewSource = tryResolveUrlFromApiRoot(htmlAttribs.src);
+    const source = tryResolveUrlFromApiRoot(isAttachment
         ? htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]
         : htmlAttribs.src);
 

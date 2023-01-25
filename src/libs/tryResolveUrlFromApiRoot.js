@@ -9,13 +9,16 @@ const ORIGINS_TO_REPLACE = ['/+', Config.EXPENSIFY.EXPENSIFY_URL, Config.EXPENSI
 const ORIGIN_PATTERN = new RegExp(`^(${ORIGINS_TO_REPLACE.join('|')})`);
 
 /**
- * Updates URLs, so they are accessed relative to URL_API_ROOT
- * Matches: absolute, prod or staging URLs
- * Unmatched URLs aren't modified
+ * When possible resolve sources relative to API ROOT
+ * Updates applicable URLs, so they are accessed relative to URL_API_ROOT
+ * - Absolute URLs like `/{path}`, become: `https://{API_ROOT}/{path}`
+ * - Similarly for prod or staging URLs we replace the `https://www.expensify`
+ * or `https://staging.expensify` part, with `https://{API_ROOT}`
+ * - Unmatched URLs are returned with no modifications
  *
  * @param {String} url
  * @returns {String}
  */
-export default function replaceSourceOrigin(url) {
+export default function tryResolveUrlFromApiRoot(url) {
     return url.replace(ORIGIN_PATTERN, Config.EXPENSIFY.URL_API_ROOT);
 }
