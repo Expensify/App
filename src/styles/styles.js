@@ -2511,6 +2511,11 @@ const styles = {
         alignItems: 'center',
     },
 
+    dotSeparator: {
+        marginHorizontal: variables.dotSeparatorHorizontalSpacing,
+        marginVertical: (variables.lineHeightSmall - variables.iconSizeXXXSmall) / 2,
+    },
+
     sidebarPopover: {
         width: variables.sideBarWidth - 68,
     },
@@ -2861,6 +2866,33 @@ const styles = {
     deeplinkWrapperFooter: {
         paddingTop: 80,
         paddingBottom: 45,
+    },
+
+    joinRoomPromptContainer: {
+        borderRadius: variables.componentBorderRadiusRounded,
+        padding: 20,
+        backgroundColor: themeColors.highlightBG,
+        display: 'flex',
+        overflow: 'wrap',
+        flexDirection: 'row',
+    },
+
+    joinRoomPromptTextContainer: {
+        flex: 1,
+        display: 'flex',
+        justifyContent: 'center',
+    },
+
+    joinRoomPromptButtonContainer: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        flexShrink: 1,
+    },
+
+    joinRoomButton: {
+        margin: 4,
     },
 };
 

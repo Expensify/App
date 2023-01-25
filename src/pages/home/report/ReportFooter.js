@@ -12,6 +12,7 @@ import SwipeableView from '../../../components/SwipeableView';
 import OfflineIndicator from '../../../components/OfflineIndicator';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import ArchivedReportFooter from '../../../components/ArchivedReportFooter';
+import JoinRoomPrompt from '../../../components/JoinRoomPrompt';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -25,6 +26,12 @@ const propTypes = {
 
     /** Report actions for the current report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
+    /** The policies which the user has access to and which the report could be tied to */
+    policies: PropTypes.shape({
+        /** Name of the policy */
+        name: PropTypes.string,
+    }),
 
     /** Offline status */
     isOffline: PropTypes.bool.isRequired,
@@ -51,6 +58,7 @@ const propTypes = {
 const defaultProps = {
     report: {reportID: '0'},
     reportActions: {},
+    policies: {},
     onSubmitComment: () => {},
     errors: {},
     pendingAction: null,
@@ -72,7 +80,8 @@ class ReportFooter extends React.Component {
         if (isArchivedRoom) {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
-        const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors);
+        const shouldShowJoinRoomPrompt = ReportUtils.isRestrictedPolicyRoom(this.props.report) && !ReportUtils.isRestrictedRoomParticipant(this.props.report);
+        const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors) || shouldShowJoinRoomPrompt;
         return (
             <>
                 {(isArchivedRoom || hideComposer) && (
@@ -81,6 +90,13 @@ class ReportFooter extends React.Component {
                             <ArchivedReportFooter
                                 reportClosedAction={reportClosedAction}
                                 report={this.props.report}
+                            />
+                        )}
+                        {shouldShowJoinRoomPrompt && (
+                            <JoinRoomPrompt
+                                isOffline={this.props.isOffline}
+                                report={this.props.report}
+                                policies={this.props.policies}
                             />
                         )}
                         {!this.props.isSmallScreenWidth && (

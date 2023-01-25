@@ -1018,6 +1018,35 @@ function openRoomInvitePage(policyID) {
     });
 }
 
+function joinWorkspaceRoom(report) {
+    const participants = report.participants.concat([currentUserEmail]);
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {
+                participants,
+                permissions: 'read, write',
+            },
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {
+                participants: report.participants,
+                permissions: 'read',
+            },
+        },
+    ];
+    API.write(
+        'JoinWorkspaceRoom',
+        {reportID: report.reportID},
+        {optimisticData, failureData},
+    );
+}
+
 /**
  * Invites user(s) to a user-created policy room
  * @param {Object} report
@@ -1052,6 +1081,8 @@ function inviteToWorkspaceRoom(report, emails) {
         {optimisticData, failureData},
     );
 }
+
+
 
 /**
  * @param {String} reportID The reportID of the policy report (workspace room)
@@ -1221,8 +1252,12 @@ export {
     navigateToConciergeChat,
     setReportWithDraft,
     addPolicyReport,
+<<<<<<< HEAD
     openRoomInvitePage,
     inviteToWorkspaceRoom,
+=======
+    joinWorkspaceRoom,
+>>>>>>> 69d1dbe9316ffe78a236cd1ed685f04b72b8647a
     navigateToConciergeChatAndDeleteReport,
     setIsComposerFullSize,
     markCommentAsUnread,

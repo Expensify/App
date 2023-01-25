@@ -87,4 +87,5 @@ export default {
     checkboxLabelActiveOpacity: 0.7,
     avatarChatSpacing: 12,
     chatInputSpacing: 52, // 40 + avatarChatSpacing
+    dotSeparatorHorizontalSpacing: 6,
 };

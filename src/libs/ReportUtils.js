@@ -69,6 +69,10 @@ function getChatType(report) {
     return report ? report.chatType : '';
 }
 
+function getVisibility(report) {
+    return report ? report.visibility : '';
+}
+
 /**
  * Returns the concatenated title for the PrimaryLogins of a report
  *
@@ -199,6 +203,24 @@ function isDomainRoom(report) {
  */
 function isUserCreatedPolicyRoom(report) {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
+}
+
+/**
+ * Whether the provided report is a restricted policy room
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isRestrictedPolicyRoom(report) {
+    return isUserCreatedPolicyRoom(report) && getVisibility(report) === CONST.REPORT.VISIBILITY.RESTRICTED;
+}
+
+/**
+ * Whether the current user is a participant of the restricted policy room, if one is given
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isRestrictedRoomParticipant(report) {
+    return isRestrictedPolicyRoom(report) && report.permissions === 'read, write';
 }
 
 /**
@@ -907,6 +929,7 @@ function buildOptimisticChatReport(
         stateNum: 0,
         statusNum: 0,
         visibility,
+        permissions: visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? 'read, write' : null,
     };
 }
 
@@ -1103,9 +1126,10 @@ function isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports = {}) {
  * @param {Object} iouReports
  * @param {String[]} betas
  * @param {Object} policies
+ * @param {Boolean} isLHNOptionsList
  * @returns {boolean}
  */
-function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies) {
+function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies, isLHNOptionsList = true) {
     const isInDefaultMode = !isInGSDMode;
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -1155,6 +1179,14 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
 
     // Include user created policy rooms if the user isn't on the policy rooms beta
     if (isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
+        return false;
+    }
+
+    // We only need to filter out restricted rooms in the LHNOptionsList, not the Search Page,
+    // which necessitates the use of the isLHNOptionsList flag.
+    // If a user has 'read' permissions for a restricted room, we want it to be discoverable in the Search Page, but not in the LHN
+    // Restricted rooms should be in the LHN only if the user has 'read, write' permissions
+    if (isLHNOptionsList && !isRestrictedRoomParticipant(report)) {
         return false;
     }
 
@@ -1232,6 +1264,8 @@ export {
     isAdminRoom,
     isAnnounceRoom,
     isUserCreatedPolicyRoom,
+    isRestrictedPolicyRoom,
+    isRestrictedRoomParticipant,
     isChatRoom,
     getChatRoomSubtitle,
     getPolicyName,
