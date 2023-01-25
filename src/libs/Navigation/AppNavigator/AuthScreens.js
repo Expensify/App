@@ -156,7 +156,7 @@ class AuthScreens extends React.Component {
             isModal: true,
         };
         const url = getCurrentUrl();
-        const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : false;
+        const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : '';
 
         return (
             <RootStack.Navigator
@@ -185,7 +185,7 @@ class AuthScreens extends React.Component {
                         const MainDrawerNavigator = require('./MainDrawerNavigator').default;
                         return MainDrawerNavigator;
                     }}
-                    initialParams={{openOnAdminRoom}}
+                    initialParams={{openOnAdminRoom: openOnAdminRoom === 'true'}}
                 />
                 <RootStack.Screen
                     name="ValidateLogin"
