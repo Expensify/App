@@ -24,6 +24,8 @@ import * as User from './libs/actions/User';
 import NetworkConnection from './libs/NetworkConnection';
 import Navigation from './libs/Navigation/Navigation';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
+import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
+import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
@@ -189,6 +191,9 @@ class Expensify extends PureComponent {
                 {!this.state.isSplashShown && (
                     <>
                         <GrowlNotification ref={Growl.growlRef} />
+                        <PopoverReportActionContextMenu
+                            ref={ReportActionContextMenu.contextMenuRef}
+                        />
                         {/* We include the modal for showing a new update at the top level so the option is always present. */}
                         {this.props.updateAvailable ? <UpdateAppModal /> : null}
                         {this.props.screenShareRequest ? (
