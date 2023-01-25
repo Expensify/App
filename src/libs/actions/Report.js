@@ -1020,9 +1020,7 @@ function addPolicyReport(policy, reportName, visibility) {
 }
 
 function openRoomInvitePage(policyID) {
-    API.read('OpenRoomInvitePage', {
-        policyID,
-    });
+    API.read('OpenRoomInvitePage', {policyID});
 }
 
 function joinWorkspaceRoom(report) {
