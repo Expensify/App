@@ -65,7 +65,7 @@ class ReportDetailsPage extends Component {
         }
 
         const shouldShowSettingsOption = (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report))
-            && (!ReportUtils.isRestrictedPolicyRoom(this.props.report) || ReportUtils.isRestrictedRoomParticipant(this.props.report))
+            && (!ReportUtils.isRestrictedPolicyRoom(this.props.report) || ReportUtils.isRestrictedRoomParticipant(this.props.report));
         const shouldShowInviteAndLeaveOptions = ReportUtils.isRestrictedRoomParticipant(this.props.report)
             || (!ReportUtils.isRestrictedPolicyRoom(this.props.report) && ReportUtils.isUserCreatedPolicyRoom(this.props.report));
 
