@@ -1050,10 +1050,10 @@ function joinWorkspaceRoom(report) {
 /**
  * Invites user(s) to a user-created policy room
  * @param {Object} report
- * @param {Array} emails
+ * @param {Array} emailList
  */
-function inviteToWorkspaceRoom(report, emails) {
-    const participants = report.participants.concat(emails);
+function inviteToWorkspaceRoom(report, emailList) {
+    const participants = report.participants.concat(emailList);
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -1076,7 +1076,7 @@ function inviteToWorkspaceRoom(report, emails) {
         'InviteToWorkspaceRoom',
         {
             reportID: report.reportID,
-            emails,
+            emailList: JSON.stringify(emailList),
         },
         {optimisticData, failureData},
     );
@@ -1252,12 +1252,9 @@ export {
     navigateToConciergeChat,
     setReportWithDraft,
     addPolicyReport,
-<<<<<<< HEAD
     openRoomInvitePage,
     inviteToWorkspaceRoom,
-=======
     joinWorkspaceRoom,
->>>>>>> 69d1dbe9316ffe78a236cd1ed685f04b72b8647a
     navigateToConciergeChatAndDeleteReport,
     setIsComposerFullSize,
     markCommentAsUnread,

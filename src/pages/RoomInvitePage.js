@@ -73,7 +73,6 @@ class RoomInvitePage extends React.Component {
         this.getPolicyMemberPersonalDetails = this.getPolicyMemberPersonalDetails.bind(this);
         this.toggleOption = this.toggleOption.bind(this);
 
-        
         const {
             personalDetails,
         } = OptionsListUtils.getMemberInviteOptions(
@@ -99,19 +98,6 @@ class RoomInvitePage extends React.Component {
         }
 
         Report.openRoomInvitePage(this.props.report.policyID);
-    }
-
-    componentDidUpdate(prevProps) {
-
-        if (!_.isEqual(prevProps.policyMemberList, this.props.policyMemberList)) {
-            
-        }
-    }
-
-    /**
-     * Handle the invite button click
-     */
-    inviteUser() {
     }
 
     getPolicyMemberPersonalDetails() {
@@ -152,6 +138,34 @@ class RoomInvitePage extends React.Component {
         return sections;
     }
 
+    /**
+     * Handle the invite button click
+     */
+    inviteUser() {
+        if (!this.validate()) {
+            return;
+        }
+
+        this.setState({shouldDisableButton: true}, () => {
+            const logins = _.map(this.state.selectedOptions, option => option.login);
+            const filteredLogins = _.uniq(_.compact(_.map(logins, login => login.toLowerCase().trim())));
+            Report.inviteToWorkspaceRoom(this.props.report, filteredLogins);
+            Navigation.goBack();
+        });
+    }
+
+    /**
+     * @returns {Boolean}
+     */
+    validate() {
+        const errors = {};
+        if (this.state.selectedOptions.length <= 0) {
+            errors.noUserSelected = true;
+        }
+
+        return _.size(errors) <= 0;
+    }
+
     updateOptionsWithSearchTerm(searchTerm = '') {
         const {
             personalDetails,
@@ -172,6 +186,8 @@ class RoomInvitePage extends React.Component {
             Navigation.dismissModal();
             return;
         }
+        
+        // TODO
     }
 
     /**
