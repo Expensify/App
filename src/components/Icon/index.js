@@ -27,8 +27,8 @@ const propTypes = {
     /** Is inline icon */
     inline: PropTypes.bool,
 
-    /** Additional styles to apply */
-    style: stylePropTypes,
+    /** Additional styles to apply to the container wrapping the icon */
+    containerStyles: stylePropTypes,
 };
 
 const defaultProps = {
@@ -37,7 +37,7 @@ const defaultProps = {
     fill: themeColors.icon,
     small: false,
     inline: false,
-    style: [],
+    containerStyles: [],
 };
 
 // We must use a class component to create an animatable component with the Animated API
@@ -51,7 +51,7 @@ class Icon extends PureComponent {
             return (
                 <View
                     accessibilityHint={`${this.props.src.name} Icon`}
-                    style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible, this.props.style]}
+                    style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible, this.props.containerStyles]}
                 >
                     <View style={[StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute]}>
                         <this.props.src
@@ -65,7 +65,7 @@ class Icon extends PureComponent {
         }
 
         return (
-            <View accessibilityHint={`${this.props.src.name} Icon`} style={this.props.style}>
+            <View accessibilityHint={`${this.props.src.name} Icon`} style={this.props.containerStyles}>
                 <this.props.src
                     width={width}
                     height={height}
