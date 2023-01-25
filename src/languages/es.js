@@ -90,6 +90,8 @@ export default {
             characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
             dateInvalid: 'Ingresa una fecha válida',
         },
+        comma: 'la coma',
+        semicolon: 'el punto y coma',
         please: 'Por favor',
         contactUs: 'contáctenos',
         pleaseEnterEmailOrPhoneNumber: 'Por favor escribe un email o número de teléfono',
@@ -560,8 +562,6 @@ export default {
             firstNameLength: 'El nombre no debe tener más de 50 caracteres',
             lastNameLength: 'El apellido no debe tener más de 50 caracteres',
             hasInvalidCharacter: ({invalidCharacter}) => `Por favor elimina ${invalidCharacter} del campo nombre.`,
-            comma: 'la coma',
-            semicolon: 'el punto y coma',
         },
     },
     privatePersonalDetails: {
@@ -572,9 +572,9 @@ export default {
         legalLastName: 'Apellidos',
         homeAddress: 'Domicilio',
         error: {
-            hasInvalidCharacter: '',
-            dateTooRecent: ({numYears}) => ``,
-            dateTooOld: ({numYears}) => ``,
+            hasInvalidCharacter: ({invalidCharacter}) => `Por favor elimina ${invalidCharacter}`,
+            dateTooRecent: ({numYears}) => `La fecha debe ser de hace más de ${numYears} años.`,
+            dateTooOld: ({numYears}) => `La fecha no puede ser de hace más de ${numYears} años.`,
         },
     },
     resendValidationForm: {

@@ -90,6 +90,8 @@ export default {
             characterLimit: ({limit}) => `Exceeds the maximum length of ${limit} characters`,
             dateInvalid: 'Please enter a valid date',
         },
+        comma: 'comma',
+        semicolon: 'semicolon',
         please: 'Please',
         contactUs: 'contact us',
         pleaseEnterEmailOrPhoneNumber: 'Please enter an email or phone number',
@@ -560,8 +562,6 @@ export default {
             firstNameLength: 'First name shouldn\'t be longer than 50 characters',
             lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
             hasInvalidCharacter: ({invalidCharacter}) => `Please remove the ${invalidCharacter} from the name field.`,
-            comma: 'comma',
-            semicolon: 'semicolon',
         },
     },
     privatePersonalDetails: {
@@ -572,7 +572,7 @@ export default {
         legalLastName: 'Legal last name',
         homeAddress: 'Home address',
         error: {
-            hasInvalidCharacter: ({characterName}) => `Please remove the ${characterName} from the field above.`,
+            hasInvalidCharacter: ({invalidCharacter}) => `Please remove the ${invalidCharacter} from the field above.`,
             dateTooRecent: ({numYears}) => `Date needs to be more than ${numYears} years ago.`,
             dateTooOld: ({numYears}) => `Date cannot be more than ${numYears} years ago.`,
         },
