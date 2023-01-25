@@ -10,27 +10,18 @@ We use a third party to run QA on our new application (the one you're helping bu
 ## Formatting of regression test step proposals
 
 #### Location and format of the proposal post
-1. All proposals for test steps should occur in Slack in the #expensify-bugs channel  
-2. All proposals should link the GH issue created for the reported bug 
-3. All proposals should give an overview of the bug
-4. All proposals should note that it's a Regression Test Proposal
-5. All proposals should mention the Expensify employees associated with the issue
-6. All proposals should post the proposed steps in the thread of the comment 
-7. All proposals should ask for a 👍 or 👎 as confirmation and agreement on the steps outlined in thread
+1. All proposals should note that it's a Regression Test Proposal
+2. All proposals for test steps should occur as a comment in the GH issue it's related to
+3. All test steps in the proposal should mirror the writing style noted below  
+4. All proposals should ask for a 👍 or 👎 as confirmation and agreement on the steps outlined in thread
 
 Example: 
 
 **Regression Test Proposal**
-  - GitHub link: [here](link GH issue)
-  - Bug overview: A white space appeared under the compose box when scrolling up in any conversation
-  - Recommendation: Proposed steps in 🧵
-  - Assignees: @expensifyemployee1 @expensifyemployee2
-  - Do we agree with these steps? 👍 or 👎
-  - (In Thread)
-    - Step 1
-    - Step 2
-    - Step 3
-    - etc.
+  - Step 1
+  - Step 2
+  - Step 3
+  - Do we agree 👍 or 👎
 
 #### Writing style of steps
 For the test case steps we're asking to be created by the contributor whose PR solved the bug, it'll fall into a category known as bug fix verification. As such, the steps that should be proposed should contain the action element `Verify` and should be tied to the expected behavior in question. 
@@ -57,5 +48,5 @@ Here are some below examples to illustrate the writing style that covers this:
 
 ---
 
-Once the above proposal has been posted and agreed upon, a member of the Expensify team will then take care of getting it added to the appropriate test suite! If you have any further questions surrounding proposing regression tests, please feel free to ping in #expensify-open-source for further help. 
+Once the above proposal has been posted and agreed upon, a member of the Expensify team will then take care of getting it added to the appropriate test suite! If you have any further questions surrounding proposing regression tests, please feel free to ping anyone in the issue for further help. 
 
