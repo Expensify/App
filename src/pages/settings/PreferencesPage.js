@@ -21,6 +21,7 @@ import compose from '../../libs/compose';
 import Picker from '../../components/Picker';
 import withEnvironment, {environmentPropTypes} from '../../components/withEnvironment';
 import TestToolMenu from '../../components/TestToolMenu';
+import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
 
 const propTypes = {
     /** The chat priority mode */
@@ -69,7 +70,7 @@ const PreferencesPage = (props) => {
                     <Text style={[styles.textLabelSupporting, styles.mb2]} numberOfLines={1}>
                         {props.translate('common.notifications')}
                     </Text>
-                    <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
+                    <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween]}>
                         <View style={styles.flex4}>
                             <Text>
                                 {props.translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
@@ -83,13 +84,11 @@ const PreferencesPage = (props) => {
                         </View>
                     </View>
                     <View style={[styles.mb2, styles.w100]}>
-                        <Picker
-                            label={props.translate('preferencesPage.priorityMode')}
-                            onInputChange={
-                                mode => User.updateChatPriorityMode(mode)
-                            }
-                            items={_.values(priorityModes)}
-                            value={props.priorityMode}
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon
+                            title={priorityModes[props.priorityMode].label}
+                            description={props.translate('preferencesPage.priorityMode')}
+                        // onPress={() => Navigation.navigate(detail.pageRoute)}
                         />
                     </View>
                     <Text style={[styles.textLabel, styles.colorMuted, styles.mb6]}>
