@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -14,7 +15,6 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import DatePicker from '../../../../components/DatePicker';
-import { withOnyx } from 'react-native-onyx';
 
 const propTypes = {
     /* Onyx Props */
@@ -28,7 +28,9 @@ const propTypes = {
 };
 
 const defaultProps = {
-    dob: '',
+    privatePersonalDetails: {
+        dob: '',
+    },
 };
 
 class DateOfBirthPage extends Component {
@@ -91,7 +93,7 @@ class DateOfBirthPage extends Component {
                 >
                     <View>
                         <DatePicker
-                            inputID={'dob'}
+                            inputID="dob"
                             label={this.props.translate('common.date')}
                             defaultValue={privateDetails.dob || ''}
                             shouldSaveDraft

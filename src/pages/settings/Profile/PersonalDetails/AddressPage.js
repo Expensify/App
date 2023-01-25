@@ -80,16 +80,16 @@ class AddressPage extends Component {
      * Submit form to update user's first and last legal name
      * @param {Object} values - form input values
      */
-        updateAddress(values) {
-            PersonalDetails.updateAddress(
-                values.addressLine1.trim(),
-                values.addressLine2.trim(),
-                values.city.trim(),
-                values.state.trim(),
-                values.zipPostCode,
-                values.country,
-            );
-        }
+    updateAddress(values) {
+        PersonalDetails.updateAddress(
+            values.addressLine1.trim(),
+            values.addressLine2.trim(),
+            values.city.trim(),
+            values.state.trim(),
+            values.zipPostCode,
+            values.country,
+        );
+    }
 
     /**
      * @param {Object} values - form input values
@@ -113,9 +113,10 @@ class AddressPage extends Component {
 
         // Add "Field required" errors if any required field is empty
         _.each(requiredFields, (fieldKey) => {
-            if (_.isEmpty(values[fieldKey])) {
-                errors[fieldKey] = this.props.translate('common.error.fieldRequired');
+            if (!_.isEmpty(values[fieldKey])) {
+                return;
             }
+            errors[fieldKey] = this.props.translate('common.error.fieldRequired');
         });
 
         return errors;

@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -11,7 +12,6 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import compose from '../../../../libs/compose';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
-import { withOnyx } from 'react-native-onyx';
 import ONYXKEYS from '../../../../ONYXKEYS';
 
 const propTypes = {
@@ -65,9 +65,7 @@ const PersonalDetailsInitialPage = (props) => {
      * @param {String} piece
      * @returns {String}
      */
-    const formatPiece = (piece) => {
-        return piece ? `${piece}, ` : '';
-    }
+    const formatPiece = (piece) => piece ? `${piece}, ` : '';
 
     /**
      * Formats an address object into an easily readable string
@@ -85,7 +83,7 @@ const PersonalDetailsInitialPage = (props) => {
 
         // Remove the last comma of the address
         return formattedAddress.trim().replace(/,$/, '');
-    }
+    };
 
     return (
         <ScreenWrapper>
@@ -125,7 +123,7 @@ const PersonalDetailsInitialPage = (props) => {
             </View>
         </ScreenWrapper>
     );
-}
+};
 
 PersonalDetailsInitialPage.propTypes = propTypes;
 PersonalDetailsInitialPage.defaultProps = defaultProps;
