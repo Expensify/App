@@ -49,6 +49,7 @@ function getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone = 
     if (!datetime) {
         return moment.tz(currentSelectedTimezone);
     }
+
     return moment.utc(datetime).tz(currentSelectedTimezone);
 }
 
@@ -63,11 +64,12 @@ function getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone = 
  * @param {String} locale
  * @param {String} datetime
  * @param {Boolean} includeTimeZone
+ * @param {String} [currentSelectedTimezone]
  *
  * @returns {String}
  */
-function datetimeToCalendarTime(locale, datetime, includeTimeZone = false) {
-    const date = getLocalMomentFromDatetime(locale, datetime);
+function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, currentSelectedTimezone) {
+    const date = getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
 
     const todayAt = Localize.translate(locale, 'common.todayAt');
