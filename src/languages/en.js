@@ -113,7 +113,7 @@ export default {
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
-        expensifyDoesntHaveAccessToCamera: 'Expensify does not have access to your camera. To enable access, go to Settings and allow access.',
+        expensifyDoesntHaveAccessToCamera: 'Expensify does not have access to your camera. To enable access, go to Settings and allow access',
         attachmentError: 'Attachment error',
         errorWhileSelectingAttachment: 'An error occurred while selecting an attachment, please try again',
         errorWhileSelectingCorruptedImage: 'An error occurred while selecting a corrupted attachment, please try another file',
