@@ -84,6 +84,7 @@ class OptionRow extends Component {
         };
     }
 
+    // It is very important to use shouldComponentUpdate here so SectionList items will not unnecessarily re-render
     shouldComponentUpdate(prevProps, nextProps) {
         return prevProps.optionIsFocused === nextProps.optionIsFocused
             && prevProps.isSelected === nextProps.isSelected

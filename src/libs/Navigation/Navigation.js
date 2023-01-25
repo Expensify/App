@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {Keyboard, InteractionManager} from 'react-native';
+import {Keyboard} from 'react-native';
 import {DrawerActions, getPathFromState, StackActions} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
@@ -56,14 +56,12 @@ function canNavigate(methodName, params = {}) {
         });
     }
     return new Promise((resolve) => {
-        InteractionManager.runAfterInteractions(() => {
-            if (navigationRef.isReady() && !isNavigating) {
-                resolve(true);
-            } else {
-                Log.hmmm(`[Navigation] ${methodName} failed because navigation ref was not yet ready`, params);
-                resolve(false);
-            }
-        });
+        if (navigationRef.isReady() && !isNavigating) {
+            resolve(true);
+        } else {
+            Log.hmmm(`[Navigation] ${methodName} failed because navigation ref was not yet ready`, params);
+            resolve(false);
+        }
     });
 }
 
