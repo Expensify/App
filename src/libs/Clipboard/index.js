@@ -29,10 +29,9 @@ function setHTMLSync(html, text) {
     document.body.appendChild(node);
 
     const selection = window.getSelection();
-    let originalSelection = null;
     const firstAnchorChild = selection.anchorNode && selection.anchorNode.firstChild;
     const isComposer = firstAnchorChild instanceof HTMLTextAreaElement;
-
+    let originalSelection = null;
     if (isComposer) {
         originalSelection = {
             start: firstAnchorChild.selectionStart,
