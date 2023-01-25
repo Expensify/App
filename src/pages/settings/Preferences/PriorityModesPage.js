@@ -8,6 +8,13 @@ import CONST from '../../../CONST';
 import OptionsList from "../../../components/OptionsList";
 import styles from "../../../styles/styles";
 import Text from "../../../components/Text";
+import themeColors from '../../../styles/themes/default';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import { compose } from "underscore";
+import { withOnyx } from "react-native-onyx";
+import ONYXKEYS from "../../../ONYXKEYS";
+
+const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -19,16 +26,24 @@ const PriorityModesPage = (props) => {
         {
             value: CONST.PRIORITY_MODE.DEFAULT,
             text: props.translate('preferencesPage.mostRecent'),
-            keyForList: 'default',
             description: props.translate('preferencesPage.mostRecentModeDescription'),
         },
         {
             value: CONST.PRIORITY_MODE.GSD,
             text: props.translate('preferencesPage.focus'),
-            keyForList: 'gsd',
             description: props.translate('preferencesPage.focusModeDescription'),
         },
-    ];
+    ].map(mode => {
+        return {
+            ...mode,
+
+            // Include the green checkmark icon to indicate the currently selected value
+            customIcon: props.priorityMode === mode.value ? greenCheckmark : undefined,
+
+            // This property will make the currently selected value have bold text
+            boldStyle: props.priorityMode === mode.value,
+        }
+    });
 
     return (<ScreenWrapper includeSafeAreaPaddingBottom={false}>
         <HeaderWithCloseButton
@@ -53,4 +68,11 @@ const PriorityModesPage = (props) => {
 
 PriorityModesPage.propTypes = propTypes;
 
-export default withLocalize(PriorityModesPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        priorityMode: {
+            key: ONYXKEYS.NVP_PRIORITY_MODE,
+        },
+    }),
+)(PriorityModesPage);
