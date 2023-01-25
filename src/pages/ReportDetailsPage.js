@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import {View, ScrollView} from 'react-native';
 import lodashGet from 'lodash/get';
 import RoomHeaderAvatars from '../components/RoomHeaderAvatars';
@@ -57,45 +56,60 @@ class ReportDetailsPage extends Component {
     constructor(props) {
         super(props);
 
-        this.menuItems = [];
+        this.renderOptions = this.renderOptions.bind(this);
+    }
+
+    renderOptions() {
         if (ReportUtils.isArchivedRoom(this.props.report)) {
-            return;
+            return null;
         }
 
-        // All nonarchived chats should let you see their members
-        this.menuItems.push({
-            key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
-            translationKey: 'common.members',
-            icon: Expensicons.Users,
-            subtitle: lodashGet(props.report, 'participants', []).length,
-            action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
-        });
+        const shouldShowSettingsOption = (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report))
+            && (!ReportUtils.isRestrictedPolicyRoom(this.props.report) || ReportUtils.isRestrictedRoomParticipant(this.props.report))
+        const shouldShowInviteAndLeaveOptions = ReportUtils.isRestrictedRoomParticipant(this.props.report)
+            || (!ReportUtils.isRestrictedPolicyRoom(this.props.report) && ReportUtils.isUserCreatedPolicyRoom(this.props.report));
 
-        if ((ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report))
-            && (!ReportUtils.isRestrictedPolicyRoom(this.props.report) || ReportUtils.isRestrictedRoomParticipant(this.props.report))) {
-            this.menuItems.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
-                translationKey: 'common.settings',
-                icon: Expensicons.Gear,
-                action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
-            });
-        }
-
-        if (ReportUtils.isRestrictedRoomParticipant(this.props.report)
-            || (!ReportUtils.isRestrictedPolicyRoom(this.props.report) && ReportUtils.isUserCreatedPolicyRoom(this.props.report))) {
-            this.menuItems.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
-                translationKey: 'common.invite',
-                icon: Expensicons.Plus,
-                action: () => { /* Placeholder for when inviting other users is built in */ },
-            },
-            {
-                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
-                translationKey: 'common.leaveRoom',
-                icon: Expensicons.Exit,
-                action: () => { /* Placeholder for when leaving rooms is built in */ },
-            });
-        }
+        return (
+            <>
+                { /* All nonarchived chats should let you see their members */}
+                <MenuItem
+                    key={CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS}
+                    title={this.props.translate('common.members')}
+                    subtitle={lodashGet(this.props.report, 'participants', []).length}
+                    icon={Expensicons.Users}
+                    onPress={() => { Navigation.navigate(ROUTES.getReportParticipantsRoute(this.props.report.reportID)); }}
+                    shouldShowRightIcon
+                    brickRoadIndicator={ReportUtils.hasReportNameError(this.props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                />
+                {shouldShowSettingsOption && (
+                    <MenuItem
+                        key={CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS}
+                        title={this.props.translate('common.settings')}
+                        icon={Expensicons.Gear}
+                        onPress={() => { Navigation.navigate(ROUTES.getReportSettingsRoute(this.props.report.reportID)); }}
+                        shouldShowRightIcon
+                    />
+                )}
+                {shouldShowInviteAndLeaveOptions && (
+                    <>
+                        <MenuItem
+                            key={CONST.REPORT_DETAILS_MENU_ITEM.INVITE}
+                            title={this.props.translate('common.invite')}
+                            icon={Expensicons.Plus}
+                            onPress={() => { /* Placeholder for when inviting other users is built in */ }}
+                            shouldShowRightIcon
+                        />
+                        <MenuItem
+                            key={CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM}
+                            title={this.props.translate('common.leaveRoom')}
+                            icon={Expensicons.Exit}
+                            onPress={() => { /* Placeholder for when leaving rooms is built in */ }}
+                            shouldShowRightIcon
+                        />
+                    </>
+                )}
+            </>
+        );
     }
 
     render() {
@@ -108,6 +122,7 @@ class ReportDetailsPage extends Component {
             OptionsListUtils.getPersonalDetailsForLogins(participants, this.props.personalDetails),
             isMultipleParticipant,
         );
+
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -151,25 +166,7 @@ class ReportDetailsPage extends Component {
                             </View>
                         </View>
                     </View>
-                    {_.map(this.menuItems, (item) => {
-                        const brickRoadIndicator = (
-                            ReportUtils.hasReportNameError(this.props.report)
-                            && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS
-                        )
-                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                            : '';
-                        return (
-                            <MenuItem
-                                key={item.key}
-                                title={this.props.translate(item.translationKey)}
-                                subtitle={item.subtitle}
-                                icon={item.icon}
-                                onPress={item.action}
-                                shouldShowRightIcon
-                                brickRoadIndicator={brickRoadIndicator}
-                            />
-                        );
-                    })}
+                    {this.renderOptions()}
                 </ScrollView>
             </ScreenWrapper>
         );
