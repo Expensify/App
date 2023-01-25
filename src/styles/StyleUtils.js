@@ -22,7 +22,9 @@ function getAvatarSize(size) {
         [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
         [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
         [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
+        [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
     };
+
     return AVATAR_SIZES[size];
 }
 
