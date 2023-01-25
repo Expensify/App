@@ -366,8 +366,19 @@ function findInvalidSymbols(valuesToBeValidated) {
 }
 
 /**
+ * Checks if a name includes a restricted Word
+ * @param {String} name
+ * @param {String} restrictedWord
+ * @returns {boolean}
+ */
+function hasRestrictedWord(name, restrictedWord) {
+    return new RegExp(restrictedWord, 'i').test(name);
+}
+
+/**
  * Checks if a name is valid by checking that:
- * - Equals to restricted words Expensify or Concierge or Zero
+ * - Includes a restricted words Expensify or Concierge
+ * - Equals to Zero
  * - It includes comma or semicolon which are not accepted
  * @param {String} name
  * @param {String} valuesToBeValidated
@@ -381,6 +392,7 @@ function isValidDisplayName(name, valuesToBeValidated, withRestrictedWords = fal
     }
     const value = valuesToBeValidated.trim();
     const invalidCharacter = findInvalidSymbols(valuesToBeValidated);
+    const restrictedWords = ['Expensify', 'Concierge'];
 
     // check if name equals to 0
     if (value === '0') {
@@ -397,17 +409,15 @@ function isValidDisplayName(name, valuesToBeValidated, withRestrictedWords = fal
         return [];
     }
 
-    // check if name equals to Expensify
-    if (value.toLowerCase() === 'expensify') {
-        return ['personalDetails.error.nameRestrictedError', {restrictedWord: 'Expensify', name}];
-    }
+    // check if name equals to Expensify or Concierge
+    const restrictedWordsErrors = _.compact(
+        _.map(
+            restrictedWords,
+            word => (hasRestrictedWord(value, word) ? ['personalDetails.error.nameRestrictedError', {restrictedWord: word, name}] : null),
+        ),
+    );
 
-    // check if name equals to Concierge
-    if (value.toLowerCase() === 'concierge') {
-        return ['personalDetails.error.nameRestrictedError', {restrictedWord: 'Concierge', name}];
-    }
-
-    return [];
+    return _.flatten(restrictedWordsErrors);
 }
 
 /**
