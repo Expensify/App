@@ -1187,13 +1187,11 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
     // If a user has 'read' permissions for a restricted room, we want it to be discoverable in the Search Page, but not in the LHN
     // Restricted rooms should be in the LHN only if the user has 'read, write, share' permissions
     if (isLHNOptionsList && isRestrictedPolicyRoom(report) && !isRestrictedRoomParticipant(report)) {
-        console.log(">>>>1 returning false for", report)
         return false;
     }
 
     // Include policy expense chats if the user isn't in the policy expense chat beta
     if (isPolicyExpenseChat(report) && !Permissions.canUsePolicyExpenseChat(betas)) {
-        console.log(">>>>2 returning false for", report)
         return false;
     }
 
