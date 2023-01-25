@@ -4,6 +4,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
+import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -19,7 +20,6 @@ import compose from '../../../../libs/compose';
 import AddressSearch from '../../../../components/AddressSearch';
 import CountryPicker from '../../../../components/CountryPicker';
 import StatePicker from '../../../../components/StatePicker';
-import { withOnyx } from 'react-native-onyx';
 
 const propTypes = {
     /* Onyx Props */
@@ -35,7 +35,7 @@ const propTypes = {
             country: PropTypes.string,
         }),
     }),
-    
+
     ...withLocalizePropTypes,
 };
 
@@ -66,21 +66,6 @@ class AddressPage extends Component {
     }
 
     /**
-     * Submit form to update user's first and last legal name
-     * @param {Object} values - form input values
-     */
-    updateAddress(values) {
-        PersonalDetails.updateAddress(
-            values.addressLine1.trim(),
-            values.addressLine2.trim(),
-            values.city.trim(),
-            values.state.trim(),
-            values.zipPostCode,
-            values.country,
-        );
-    }
-
-    /**
      * @param {String} newCountry - new country selected in form
      */
     onCountryUpdate(newCountry) {
@@ -90,6 +75,21 @@ class AddressPage extends Component {
             this.setState({isUsaForm: false});
         }
     }
+
+    /**
+     * Submit form to update user's first and last legal name
+     * @param {Object} values - form input values
+     */
+        updateAddress(values) {
+            PersonalDetails.updateAddress(
+                values.addressLine1.trim(),
+                values.addressLine2.trim(),
+                values.city.trim(),
+                values.state.trim(),
+                values.zipPostCode,
+                values.country,
+            );
+        }
 
     /**
      * @param {Object} values - form input values
@@ -105,6 +105,7 @@ class AddressPage extends Component {
             'country',
             'state',
         ];
+
         // Check "State" dropdown is a valid state if selected Country is USA.
         if (this.state.isUsaForm && !COMMON_CONST.STATES[values.state]) {
             errors.state = this.props.translate('common.error.fieldRequired');
