@@ -67,6 +67,7 @@ class EmojiPickerMenu extends Component {
         this.isMobileLandscape = this.isMobileLandscape.bind(this);
         this.updatePreferredSkinTone = this.updatePreferredSkinTone.bind(this);
         this.scrollToHeader = this.scrollToHeader.bind(this);
+        this.getItemLayout = this.getItemLayout.bind(this);
     }
 
     /**
@@ -96,6 +97,10 @@ class EmojiPickerMenu extends Component {
         }
 
         User.updatePreferredSkinTone(skinTone);
+    }
+
+    getItemLayout(data, index) {
+        return {length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index};
     }
 
     scrollToHeader(headerIndex) {
@@ -167,6 +172,7 @@ class EmojiPickerMenu extends Component {
                         this.isMobileLandscape() && styles.emojiPickerListLandscape,
                     ]}
                     stickyHeaderIndices={this.unfilteredHeaderIndices}
+                    getItemLayout={this.getItemLayout}
                 />
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}
