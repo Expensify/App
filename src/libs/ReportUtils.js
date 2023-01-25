@@ -248,7 +248,7 @@ function hasExpensifyGuidesEmails(emails) {
  * @param {Boolean} openOnAdminRoom
  * @returns {Object}
  */
-function findLastAccessedReport(reports, ignoreDefaultRooms, policies, openOnAdminRoom) {
+function findLastAccessedReport(reports, ignoreDefaultRooms, policies, openOnAdminRoom = false) {
     let sortedReports = sortReportsByLastRead(reports);
 
     if (ignoreDefaultRooms) {

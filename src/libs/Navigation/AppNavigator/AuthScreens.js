@@ -155,8 +155,8 @@ class AuthScreens extends React.Component {
             // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
             isModal: true,
         };
-        const url = new URL(getCurrentUrl());
-        const openOnAdminRoom = url.searchParams.get('openOnAdminRoom');
+        const url = getCurrentUrl();
+        const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : false;
 
         return (
             <RootStack.Navigator
@@ -185,7 +185,7 @@ class AuthScreens extends React.Component {
                         const MainDrawerNavigator = require('./MainDrawerNavigator').default;
                         return MainDrawerNavigator;
                     }}
-                    initialParams={{openOnAdminRoom: openOnAdminRoom === 'true'}}
+                    initialParams={{openOnAdminRoom}}
                 />
                 <RootStack.Screen
                     name="ValidateLogin"
