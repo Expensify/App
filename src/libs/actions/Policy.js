@@ -13,7 +13,6 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import * as ReportUtils from '../ReportUtils';
-import * as Report from './Report';
 import Log from '../Log';
 
 const allPolicies = {};
@@ -97,15 +96,13 @@ function deleteWorkspace(policyID, reports, policyName) {
 
         // Add closed actions to all chat reports linked to this policy
         ..._.map(reports, ({reportID, ownerEmail}) => {
-            const highestSequenceNumber = Report.getMaxSequenceNumber(reportID);
             const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(
-                highestSequenceNumber + 1,
                 ownerEmail,
                 policyName,
                 CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED,
             );
             const optimisticReportActions = {};
-            optimisticReportActions[optimisticClosedReportAction.clientID] = optimisticClosedReportAction;
+            optimisticReportActions[optimisticClosedReportAction.reportActionID] = optimisticClosedReportAction;
             return {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -764,171 +761,177 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
         expenseCreatedReportActionID,
     },
     {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                id: policyID,
-                type: CONST.POLICY.TYPE.FREE,
-                name: workspaceName,
-                role: CONST.POLICY.ROLE.ADMIN,
-                owner: sessionEmail,
-                outputCurrency: 'USD',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
-            value: {
-                [sessionEmail]: {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.FREE,
+                    name: workspaceName,
                     role: CONST.POLICY.ROLE.ADMIN,
-                    errors: {},
+                    owner: sessionEmail,
+                    outputCurrency: 'USD',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
-            value: {
-                pendingFields: {
-                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
+                value: {
+                    [sessionEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        errors: {},
+                    },
                 },
-                ...announceChatData,
             },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
-            value: announceReportActionData,
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
-            value: {
-                pendingFields: {
-                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
+                value: {
+                    pendingFields: {
+                        addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                    ...announceChatData,
                 },
-                ...adminsChatData,
             },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
-            value: adminsReportActionData,
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
-            value: {
-                pendingFields: {
-                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
+                value: announceReportActionData,
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+                value: {
+                    pendingFields: {
+                        addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                    ...adminsChatData,
                 },
-                ...expenseChatData,
             },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
-            value: expenseReportActionData,
-        }],
-        successData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {pendingAction: null},
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
-            value: {
-                pendingFields: {
-                    addWorkspaceRoom: null,
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+                value: adminsReportActionData,
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+                value: {
+                    pendingFields: {
+                        addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                    ...expenseChatData,
                 },
-                pendingAction: null,
             },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
-            value: {
-                0: {
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+                value: expenseReportActionData,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {pendingAction: null},
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
+                value: {
+                    pendingFields: {
+                        addWorkspaceRoom: null,
+                    },
                     pendingAction: null,
                 },
             },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
-            value: {
-                pendingFields: {
-                    addWorkspaceRoom: null,
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
+                value: {
+                    [_.keys(announceChatData)[0]]: {
+                        pendingAction: null,
+                    },
                 },
-                pendingAction: null,
             },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
-            value: {
-                0: {
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+                value: {
+                    pendingFields: {
+                        addWorkspaceRoom: null,
+                    },
                     pendingAction: null,
                 },
             },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
-            value: {
-                pendingFields: {
-                    addWorkspaceRoom: null,
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+                value: {
+                    [_.keys(adminsChatData)[0]]: {
+                        pendingAction: null,
+                    },
                 },
-                pendingAction: null,
             },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
-            value: {
-                0: {
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+                value: {
+                    pendingFields: {
+                        addWorkspaceRoom: null,
+                    },
                     pendingAction: null,
                 },
             },
-        }],
-        failureData: [{
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
-            value: null,
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
-            value: null,
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
-            value: null,
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
-            value: null,
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
-            value: null,
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
-            value: null,
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
-            value: null,
-        }],
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+                value: {
+                    [_.keys(expenseChatData)[0]]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
+                value: null,
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
+                value: null,
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
+                value: null,
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+                value: null,
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+                value: null,
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+                value: null,
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+                value: null,
+            },
+        ],
     });
 
     Navigation.isNavigationReady()
