@@ -88,7 +88,17 @@ const AddressSearch = (props) => {
             return;
         }
 
+        const bondy = GooglePlacesUtils.getAddressComponents(addressComponents, {
+            street_number: 'long_name',
+            route: 'long_name',
+            locality: 'long_name',
+            sublocality: 'long_name',
+            postal_code: 'long_name',
+            administrative_area_level_1: 'short_name',
+        });
+
         // Gather the values from the Google details
+        const startTime = performance.now()
         const streetNumber = GooglePlacesUtils.getAddressComponent(addressComponents, 'street_number', 'long_name') || '';
         const streetName = GooglePlacesUtils.getAddressComponent(addressComponents, 'route', 'long_name') || '';
         const street = `${streetNumber} ${streetName}`.trim();
@@ -99,6 +109,8 @@ const AddressSearch = (props) => {
         }
         const zipCode = GooglePlacesUtils.getAddressComponent(addressComponents, 'postal_code', 'long_name');
         const state = GooglePlacesUtils.getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
+        const endTime = performance.now()
+        console.log(`Call to getAddressComponent took ${endTime - startTime} milliseconds`);
 
         const values = {
             street: props.value ? props.value.trim() : '',
