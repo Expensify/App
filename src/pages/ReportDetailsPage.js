@@ -122,7 +122,6 @@ class ReportDetailsPage extends Component {
             OptionsListUtils.getPersonalDetailsForLogins(participants, this.props.personalDetails),
             isMultipleParticipant,
         );
-
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
