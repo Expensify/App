@@ -1051,6 +1051,7 @@ export default {
     },
     roomInvitePage: {
         inviteToRoom: 'Invite to room',
+    },
     joinRoomPrompt: {
         joinRoom: 'Join room',
     },
