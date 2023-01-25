@@ -1087,8 +1087,6 @@ function inviteToWorkspaceRoom(report, emailList) {
     );
 }
 
-
-
 /**
  * @param {String} reportID The reportID of the policy report (workspace room)
  */
