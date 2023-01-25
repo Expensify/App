@@ -13,6 +13,7 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import { compose } from "underscore";
 import { withOnyx } from "react-native-onyx";
 import ONYXKEYS from "../../../ONYXKEYS";
+import * as User from '../../../libs/actions/User';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -57,7 +58,10 @@ const PriorityModesPage = (props) => {
         </Text>
         <OptionsList
             sections={[{ data: priorityModes }]}
-            // onSelectRow={option => updatePronouns(option.value)}
+            onSelectRow={mode => {
+                User.updateChatPriorityMode(mode.value);
+                Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+            }}
             hideSectionHeaders
             optionHoveredStyle={styles.hoveredComponentBG}
             shouldHaveOptionSeparator
