@@ -500,6 +500,9 @@ export default {
             spanish: 'Spanish',
         },
     },
+    priorityModesPage: {
+        explainerText: 'Choose whether to show all chats by default sorted with most recent with pinned items at the top, or #focus on unread pinned items, sorted alphabetically.',  
+    },
     signInPage: {
         expensifyDotCash: 'New Expensify',
         theCode: 'the code',

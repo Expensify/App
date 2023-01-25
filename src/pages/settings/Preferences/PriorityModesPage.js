@@ -1,12 +1,13 @@
-import React, { Component } from "react";
+import React from "react";
 import HeaderWithCloseButton from "../../../components/HeaderWithCloseButton";
 import ScreenWrapper from "../../../components/ScreenWrapper";
-import withLocalize, {withLocalizePropTypes} from "../../../components/withLocalize";
+import withLocalize, { withLocalizePropTypes } from "../../../components/withLocalize";
 import Navigation from "../../../libs/Navigation/Navigation";
 import ROUTES from "../../../ROUTES";
 import CONST from '../../../CONST';
 import OptionsList from "../../../components/OptionsList";
 import styles from "../../../styles/styles";
+import Text from "../../../components/Text";
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -29,22 +30,25 @@ const PriorityModesPage = (props) => {
         },
     ];
 
-        return (<ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithCloseButton
-                title={props.translate('preferencesPage.priorityMode')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
-            />
-            <OptionsList
-                sections={[{data: priorityModes}]}
-                // onSelectRow={option => updatePronouns(option.value)}
-                hideSectionHeaders
-                optionHoveredStyle={styles.hoveredComponentBG}
-                shouldHaveOptionSeparator
-                contentContainerStyles={[styles.ph5]}
-            />
-        </ScreenWrapper>);
+    return (<ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <HeaderWithCloseButton
+            title={props.translate('preferencesPage.priorityMode')}
+            shouldShowBackButton
+            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
+            onCloseButtonPress={() => Navigation.dismissModal(true)}
+        />
+        <Text style={[styles.ml5, styles.mt4, styles.mr5, styles.mb4]}>
+            {props.translate('priorityModesPage.explainerText')}
+        </Text>
+        <OptionsList
+            sections={[{ data: priorityModes }]}
+            // onSelectRow={option => updatePronouns(option.value)}
+            hideSectionHeaders
+            optionHoveredStyle={styles.hoveredComponentBG}
+            shouldHaveOptionSeparator
+            contentContainerStyles={[styles.ph5]}
+        />
+    </ScreenWrapper>);
 }
 
 PriorityModesPage.propTypes = propTypes;

@@ -500,6 +500,9 @@ export default {
             spanish: 'Español',
         },
     },
+    priorityModesPage: {
+        explainerText: 'Elija si desea mostrar todos los chats de forma predeterminada ordenados con los más recientes con elementos anclados en la parte superior, o #centrarse en los elementos anclados no leídos, ordenados alfabéticamente.',  
+    },
     signInPage: {
         expensifyDotCash: 'Nuevo Expensify',
         theCode: 'el código',
