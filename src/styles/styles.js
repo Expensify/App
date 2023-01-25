@@ -212,6 +212,10 @@ const styles = {
         textAlign: 'right',
     },
 
+    textAlignLeft: {
+        textAlign: 'left',
+    },
+
     textUnderline: {
         textDecorationLine: 'underline',
     },
