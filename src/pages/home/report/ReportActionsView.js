@@ -25,8 +25,6 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
-    /* Onyx Props */
-
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
 
@@ -257,7 +255,21 @@ class ReportActionsView extends React.Component {
      * @returns {Array}
      */
     getSortedReportActionsForDisplay(reportActions) {
-        const sortedReportActions = ReportActionsUtils.getSortedReportActions(_.values(reportActions), true);
+        // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
+        // to prevent bugs during the migration from sequenceNumber -> reportActionID
+        const filteredReportActions = _.filter(reportActions, (reportAction, key) => {
+            if (!reportAction) {
+                return false;
+            }
+
+            if (String(reportAction.sequenceNumber) === key) {
+                return false;
+            }
+
+            return true;
+        });
+
+        const sortedReportActions = ReportActionsUtils.getSortedReportActions(filteredReportActions, true);
         return ReportActionsUtils.filterReportActionsForDisplay(sortedReportActions);
     }
 
@@ -288,19 +300,15 @@ class ReportActionsView extends React.Component {
             return;
         }
 
-        const minSequenceNumber = _.chain(this.props.reportActions)
-            .pluck('sequenceNumber')
-            .min()
-            .value();
+        const oldestReportAction = _.last(this.sortedAndFilteredReportActions);
 
-        if (minSequenceNumber === 0) {
+        // Don't load more chats if we're already at the beginning of the chat history
+        if (oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return;
         }
 
-        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
-        // case just get everything starting from 0.
-        const oldestActionSequenceNumber = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
-        Report.readOldestAction(this.props.report.reportID, oldestActionSequenceNumber);
+        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
+        Report.readOldestAction(this.props.report.reportID, oldestReportAction.reportActionID);
     }
 
     scrollToBottomAndMarkReportAsRead() {

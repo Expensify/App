@@ -65,7 +65,7 @@ class ReportDetailsPage extends Component {
         }
 
         const shouldShowSettingsOption = (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report))
-            && (!ReportUtils.isRestrictedPolicyRoom(this.props.report) || ReportUtils.isRestrictedRoomParticipant(this.props.report))
+            && (!ReportUtils.isRestrictedPolicyRoom(this.props.report) || ReportUtils.isRestrictedRoomParticipant(this.props.report));
         const shouldShowInviteAndLeaveOptions = ReportUtils.isRestrictedRoomParticipant(this.props.report)
             || (!ReportUtils.isRestrictedPolicyRoom(this.props.report) && ReportUtils.isUserCreatedPolicyRoom(this.props.report));
 
@@ -137,7 +137,6 @@ class ReportDetailsPage extends Component {
                             <View style={styles.mb4}>
                                 <RoomHeaderAvatars
                                     icons={ReportUtils.getIcons(this.props.report, this.props.personalDetails, this.props.policies)}
-                                    shouldShowLargeAvatars={isPolicyExpenseChat}
                                 />
                             </View>
                             <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
