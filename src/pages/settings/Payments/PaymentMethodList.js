@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import {FlatList} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import {withNetwork} from '../../../components/OnyxProvider';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import MenuItem from '../../../components/MenuItem';
@@ -124,6 +125,11 @@ class PaymentMethodList extends Component {
 
         if (!_.isEmpty(this.props.filterType)) {
             combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
+        }
+
+        if (!this.props.network.isOffline) {
+            combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+                || !_.isEmpty(paymentMethod.errors));
         }
 
         combinedPaymentMethods = _.map(combinedPaymentMethods, paymentMethod => ({
@@ -258,6 +264,7 @@ PaymentMethodList.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,

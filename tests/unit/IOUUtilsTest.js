@@ -8,7 +8,6 @@ const managerEmail = 'manager@iou.com';
 
 function createIOUReportAction(type, amount, currency, {IOUTransactionID, isOnline} = {}) {
     const moneyRequestAction = ReportUtils.buildOptimisticIOUReportAction(
-        1,
         type,
         amount,
         currency,
