@@ -11,7 +11,7 @@ import * as API from '../API';
  * @param {Object[]} events
  */
 const removeEvent = (reportID, eventID, reportAction, events) => {
-    console.log('!!!', reportID, reportAction.sequenceNumber, eventID, _.omit(events, event => event.id === eventID))
+    console.log('!!!', reportID, reportAction.sequenceNumber, eventID, _.filter(events, event => event.id !== eventID))
     const sequenceNumber = reportAction.sequenceNumber;
     const optimisticData = [
         {
@@ -21,7 +21,7 @@ const removeEvent = (reportID, eventID, reportAction, events) => {
                 [sequenceNumber]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     originalMessage: {
-                        events: _.omit(events, event => event.id === eventID),
+                        events: _.filter(events, event => event.id !== eventID),
                     },
                 },
             },
@@ -54,7 +54,7 @@ const removeEvent = (reportID, eventID, reportAction, events) => {
     ];
 
     API.write('Chronos_RemoveOOOEvent', {
-        eventID,
+        googleEventID: eventID,
         sequenceNumber: reportAction.sequenceNumber,
         reportActionID: reportAction.reportActionID,
     }, {optimisticData, successData, failureData});
