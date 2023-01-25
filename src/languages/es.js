@@ -88,6 +88,7 @@ export default {
             phoneNumber: `Ingresa un teléfono válido, incluyendo el código de país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Este campo es obligatorio.',
             characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
+            dateInvalid: 'Ingresa una fecha válida',
         },
         please: 'Por favor',
         contactUs: 'contáctenos',
@@ -572,7 +573,6 @@ export default {
         homeAddress: 'Domicilio',
         error: {
             hasInvalidCharacter: '',
-            dateInvalid: 'Ingresa una fecha válida',
             dateTooRecent: ({numYears}) => ``,
             dateTooOld: ({numYears}) => ``,
         },
@@ -634,7 +634,6 @@ export default {
             addressCity: 'Ingresa una ciudad válida',
             addressStreet: 'Ingresa una calle de dirección válida que no sea un apartado postal',
             addressState: 'Por favor, selecciona un estado',
-            incorporationDate: 'Ingresa una fecha válida',
             incorporationDateFuture: 'La fecha de incorporación no puede ser futura',
             incorporationState: 'Ingresa un estado válido',
             industryCode: 'Ingresa un código de clasificación de industria válido',
