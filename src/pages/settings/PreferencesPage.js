@@ -57,19 +57,19 @@ const PreferencesPage = (props) => {
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper includeSafeAreaPadding={false}>
             <HeaderWithCloseButton
                 title={props.translate('common.preferences')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                <View style={[styles.settingsPageBody, styles.mb6]}>
-                    <Text style={[styles.textLabelSupporting, styles.mb2]} numberOfLines={1}>
+            <ScrollView style={styles.flex1}>
+                <View style={styles.mb6}>
+                    <Text style={[styles.textLabelSupporting, styles.mb2, styles.ml8, styles.mr8]} numberOfLines={1}>
                         {props.translate('common.notifications')}
                     </Text>
-                    <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween]}>
+                    <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.ml8, styles.mr8]}>
                         <View style={styles.flex4}>
                             <Text>
                                 {props.translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
@@ -94,8 +94,12 @@ const PreferencesPage = (props) => {
                         <LocalePicker />
                     </View>
 
-                    {/* If we are in the staging environment then we enable additional test features */}
-                    {_.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], props.environment) && <TestToolMenu />}
+                    {/* If we are in the staging environment then we enable additional test features */
+                        _.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], props.environment)
+                        && <View style={[styles.ml8, styles.mr8]}>
+                            <TestToolMenu />
+                        </View>
+                    }
                 </View>
             </ScrollView>
         </ScreenWrapper>
