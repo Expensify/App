@@ -192,6 +192,7 @@ class Button extends Component {
                     this.props.large && styles.buttonLargeText,
                     this.props.success && styles.buttonSuccessText,
                     this.props.danger && styles.buttonDangerText,
+                    this.props.icon && styles.textAlignLeft,
                     ...this.props.textStyles,
                 ]}
             >
