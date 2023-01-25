@@ -1051,6 +1051,9 @@ export default {
             private: 'Privada',
         },
     },
+    joinRoomPrompt: {
+        joinRoom: 'Unirse a la sala',
+    },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
     },
