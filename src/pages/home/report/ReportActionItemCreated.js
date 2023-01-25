@@ -42,7 +42,6 @@ const defaultProps = {
 };
 
 const ReportActionItemCreated = (props) => {
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
 
     return (
@@ -69,7 +68,6 @@ const ReportActionItemCreated = (props) => {
                     >
                         <RoomHeaderAvatars
                             icons={icons}
-                            shouldShowLargeAvatars={isPolicyExpenseChat}
                         />
                     </Pressable>
                     <View style={[styles.ph5]}>
