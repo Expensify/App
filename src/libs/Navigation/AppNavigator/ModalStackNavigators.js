@@ -261,6 +261,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsPreferencesPriorityModesPage = require('../../../pages/settings/Preferences/PriorityModesPage').default;
+            return SettingsPreferencesPriorityModesPage;
+        },
+        name: 'Settings_Preferences_PriorityModes',
+    },
+    {
+        getComponent: () => {
             const SettingsPasswordPage = require('../../../pages/settings/PasswordPage').default;
             return SettingsPasswordPage;
         },

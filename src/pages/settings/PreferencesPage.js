@@ -67,7 +67,7 @@ const PreferencesPage = (props) => {
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPadding={false}>
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
                 title={props.translate('common.preferences')}
                 shouldShowBackButton
