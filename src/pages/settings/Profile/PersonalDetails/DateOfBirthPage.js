@@ -61,7 +61,7 @@ class DateOfBirthPage extends Component {
         const maximumAge = 150;
 
         if (_.isEmpty(values.dob)) {
-            errors.dob = this.props.translate('privatePersonalDetails.error.dateInvalid');
+            errors.dob = this.props.translate('common.error.fieldRequired');
         }
         const dateError = ValidationUtils.getAgeRequirementError(values.dob, minimumAge, maximumAge);
         if (dateError) {

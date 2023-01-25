@@ -66,7 +66,6 @@ export default {
         country: 'Country',
         zip: 'Zip code',
         zipPostCode: 'Zip / Postcode',
-        isRequiredField: 'is a required field',
         whatThis: 'What\'s this?',
         iAcceptThe: 'I accept the ',
         remove: 'Remove',
@@ -573,8 +572,6 @@ export default {
         homeAddress: 'Home address',
         error: {
             hasInvalidCharacter: ({characterName}) => `Please remove the ${characterName} from the field above.`,
-            legalFirstNameEmpty: 'Please enter a valid legal first name',
-            legalLastNameEmpty: 'Please enter a valid legal last name',
             dateInvalid: 'Please enter a valid date.',
             dateTooRecent: ({numYears}) => `Date needs to be less than ${numYears} years ago.`,
             dateTooOld: ({numYears}) => `Date cannot be more than ${numYears} years ago.`,
