@@ -36,7 +36,6 @@ const defaultProps = {
 };
 
 const ReportActionItemCreated = (props) => {
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
     return (
         <OfflineWithFeedback
@@ -57,7 +56,6 @@ const ReportActionItemCreated = (props) => {
                     <Pressable onPress={() => ReportUtils.navigateToDetailsPage(props.report)}>
                         <RoomHeaderAvatars
                             icons={icons}
-                            shouldShowLargeAvatars={isPolicyExpenseChat}
                         />
                     </Pressable>
                     <ReportWelcomeText report={props.report} />

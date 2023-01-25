@@ -350,6 +350,10 @@ export default {
         paddingTop: 20,
     },
 
+    pt10: {
+        paddingTop: 40,
+    },
+
     pb1: {
         paddingBottom: 4,
     },

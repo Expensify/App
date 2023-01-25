@@ -12,9 +12,12 @@ export {
 } from './errors';
 
 /**
- * Set the current sub step in first step of adding withdrawal bank account
+ * Set the current sub step in first step of adding withdrawal bank account:
+ * - `null` if we want to go back to the view where the user selects between connecting via Plaid or connecting manually
+ * - CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL to ask them to enter their accountNumber and routingNumber
+ * - CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID to ask them to login to their bank via Plaid
  *
- * @param {String} subStep - One of {CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL, CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID, null}
+ * @param {String} subStep
  */
 function setBankAccountSubStep(subStep) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
