@@ -115,7 +115,7 @@ class BankAccountManualStep extends React.Component {
                         style={styles.mt4}
                         inputID="acceptedTerms"
                         LabelComponent={() => (
-                            <Text style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <Text>
                                 {this.props.translate('common.iAcceptThe')}
                                 <TextLink
                                     href="https://use.expensify.com/terms"
