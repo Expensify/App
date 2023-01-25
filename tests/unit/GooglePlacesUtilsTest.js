@@ -1,7 +1,7 @@
 import * as GooglePlacesUtils from '../../src/libs/GooglePlacesUtils';
 
 describe('GooglePlacesUtilsTest', () => {
-    describe('getAddressComponent', () => {
+    describe('getAddressComponents', () => {
         it('should find address components by type', () => {
             const addressComponents = [
                 {
@@ -30,10 +30,21 @@ describe('GooglePlacesUtilsTest', () => {
                     types: ['postal_code'],
                 },
             ];
-            expect(GooglePlacesUtils.getAddressComponent(addressComponents, 'sublocality', 'long_name')).toStrictEqual('Brooklyn');
-            expect(GooglePlacesUtils.getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name')).toStrictEqual('NY');
-            expect(GooglePlacesUtils.getAddressComponent(addressComponents, 'postal_code', 'long_name')).toStrictEqual('11206');
-            expect(GooglePlacesUtils.getAddressComponent(addressComponents, 'doesn-exist', 'long_name')).toStrictEqual(undefined);
+            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {sublocality: 'long_name'})).toStrictEqual({sublocality: 'Brooklyn'});
+            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {administrative_area_level_1: 'short_name'})).toStrictEqual({administrative_area_level_1: 'NY'});
+            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {postal_code: 'long_name'})).toStrictEqual({postal_code: '11206'});
+            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {'doesnt-exist': 'long_name'})).toStrictEqual({'doesnt-exist': ''});
+            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {
+                sublocality: 'long_name',
+                administrative_area_level_1: 'short_name',
+                postal_code: 'long_name',
+                'doesnt-exist': 'long_name',
+            })).toStrictEqual({
+                sublocality: 'Brooklyn',
+                administrative_area_level_1: 'NY',
+                postal_code: '11206',
+                'doesnt-exist': '',
+            });
         });
     });
 });
