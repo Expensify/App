@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {ScrollView} from 'react-native';
+import {ScrollView, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -279,7 +279,7 @@ class Form extends React.Component {
 
     render() {
         const scrollViewContent = safeAreaPaddingBottomStyle => (
-            <FormSubmit style={[this.props.style, safeAreaPaddingBottomStyle]} onSubmit={this.submit}>
+            <FormSubmit style={StyleSheet.flatten([this.props.style, safeAreaPaddingBottomStyle])} onSubmit={this.submit}>
                 {this.childrenWrapperWithProps(this.props.children)}
                 {this.props.isSubmitButtonVisible && (
                 <FormAlertWithSubmitButton
