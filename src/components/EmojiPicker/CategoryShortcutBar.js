@@ -13,6 +13,7 @@ import Activities from '../../../assets/images/emojiCategoryIcons/soccer-ball.sv
 import Objects from '../../../assets/images/emojiCategoryIcons/light-bulb.svg';
 import Symbols from '../../../assets/images/emojiCategoryIcons/peace-sign.svg';
 import Flags from '../../../assets/images/emojiCategoryIcons/flag.svg';
+import Recent from '../../../assets/images/history.svg';
 import _ from "underscore/underscore-node.mjs";
 import CategoryShortcutButton from "./CategoryShortcutButton";
 
@@ -31,7 +32,7 @@ const propTypes = {
 };
 
 const CategoryShortcutBar = (props) => {
-    const icons = [Smiley, Smiley, AnimalsAndNature, FoodAndDrink, TravelAndPlaces, Activities, Objects, Symbols, Flags];
+    const icons = [Recent, Smiley, AnimalsAndNature, FoodAndDrink, TravelAndPlaces, Activities, Objects, Symbols, Flags];
 
     return (
         <View style={[styles.pt4, styles.ph4, styles.pb1, styles.alignItemsStart, styles.flexRow]}>
