@@ -144,6 +144,15 @@ Additionally if you want to discuss an idea with the open source community witho
 15. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, Android, and Mobile Web) to confirm the fix works as expected and there are no regressions.
 16. Please add a screenshot of the app running on each platform (Web, Desktop, iOS, Android, Mobile Web).
 
+### Completing the final checklist
+17. Once your PR has deployed to production, a checklist will automatically be commented in the GH issue. You're required to complete the steps that have your name mentioned before payment will be issued.
+18. The items requiring your completion consist of: 
+    1. Proposing steps to take for a regression test to ensure the bug doesn't occur again (For information on how to successfully complete this, head here.)
+    2. Identifying and noting the offending PR that caused the bug (if any) 
+    3. Commenting on the offending PR to note the bug it caused and why (if applicable) 
+    4. Starting a conversation on if any additional steps should be taken to prevent further bugs similar to the one fixed from occurring again. 
+20. Once the above items have been successfully completed, then payments will begin to be issued. 
+
 #### Timeline expectations and asking for help along the way
 - If you have made a change to your pull request and are ready for another review, leave a comment that says "Updated" on the pull request  itself.
 - Please keep the conversation in GitHub, and do not ping individual reviewers in Slack or Upwork to get their attention.
