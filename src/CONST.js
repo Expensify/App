@@ -378,7 +378,6 @@ const CONST = {
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
         TOOLTIP_SENSE: 1000,
-        SPINNER_TIMEOUT: 15 * 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
     },
     PRIORITY_MODE: {
@@ -485,6 +484,7 @@ const CONST = {
         DECIMAL_PAD: 'decimal-pad',
         VISIBLE_PASSWORD: 'visible-password',
         EMAIL_ADDRESS: 'email-address',
+        ASCII_CAPABLE: 'ascii-capable',
     },
 
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
@@ -740,6 +740,7 @@ const CONST = {
         SMALL_SUBSCRIPT: 'small-subscript',
         MID_SUBSCRIPT: 'mid-subscript',
         HEADER: 'header',
+        LARGE_BORDERED: 'large-bordered',
     },
     OPTION_MODE: {
         COMPACT: 'compact',

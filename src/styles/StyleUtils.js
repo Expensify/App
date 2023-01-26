@@ -24,8 +24,9 @@ function getAvatarSize(size) {
         [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
         [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
         [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
-
+        [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
     };
+
     return AVATAR_SIZES[size];
 }
 
@@ -665,10 +666,22 @@ function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
     };
 }
 
+/**
+ * @param {Number} safeAreaPaddingBottom
+ * @returns {Object}
+ */
+function getErrorPageContainerStyle(safeAreaPaddingBottom = 0) {
+    return {
+        backgroundColor: themeColors.componentBG,
+        paddingBottom: 40 + safeAreaPaddingBottom,
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
     getAvatarSVGBorder,
+    getErrorPageContainerStyle,
     getSafeAreaPadding,
     getSafeAreaMargins,
     getNavigationDrawerStyle,

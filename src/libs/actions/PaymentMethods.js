@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import {createRef} from 'react';
-import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
@@ -10,7 +9,6 @@ import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
 import * as User from './User';
-import * as store from './ReimbursementAccount/store';
 import ROUTES from '../../ROUTES';
 
 function deletePayPalMe() {
@@ -35,19 +33,6 @@ function continueSetup() {
     // Close the screen (Add Debit Card, Add Bank Account, or Enable Payments) on success and continue with setup
     Navigation.goBack();
     kycWallRef.current.continue();
-}
-
-/**
- * Clears local reimbursement account if it doesn't exist in bankAccounts
- * @param {Object[]} bankAccounts
- */
-function cleanLocalReimbursementData(bankAccounts) {
-    const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
-
-    // We check if the bank account list doesn't have the reimbursementAccount
-    if (!_.find(bankAccounts, bankAccount => bankAccount.bankAccountID === bankAccountID)) {
-        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: null, shouldShowResetModal: false});
-    }
 }
 
 function openPaymentsPage() {
@@ -359,7 +344,6 @@ export {
     resetWalletTransferData,
     saveWalletTransferAccountTypeAndID,
     saveWalletTransferMethodType,
-    cleanLocalReimbursementData,
     hasPaymentMethodError,
     clearDeletePaymentMethodError,
     clearAddPaymentMethodError,
