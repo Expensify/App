@@ -68,6 +68,28 @@ const getLibraryAdjustedModifiers = (modifiers) => {
     return undefined;
 };
 
+const getLibraryAdjustedInput = (input) => {
+    const key = input.toLowerCase();
+
+    if (_.isEqual(key, 'escape')) {
+        return KeyCommand.constants.keyInputEscape;
+    }
+
+    if (_.isEqual(key, 'enter')) {
+        return KeyCommand.constants.keyInputEnter;
+    }
+
+    if (_.isEqual(key, 'arrowup')) {
+        return KeyCommand.constants.keyInputUpArrow;
+    }
+
+    if (_.isEqual(key, 'arrowdown')) {
+        return KeyCommand.constants.keyInputDownArrow;
+    }
+
+    return key;
+};
+
 /**
  * Subscribes to a keyboard event.
  * @param {String} key The key to watch, i.e. 'K' or 'Escape'
@@ -83,12 +105,14 @@ const getLibraryAdjustedModifiers = (modifiers) => {
 function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0, shouldPreventDefault = true) {
     const platformAdjustedModifiers = getPlatformEquivalentForKeys(modifiers);
     const libraryAdjustedModifiers = getLibraryAdjustedModifiers(modifiers);
+    const libraryAdjustedInput = getLibraryAdjustedInput(key);
     const displayName = getDisplayName(key, platformAdjustedModifiers);
+
     if (!_.has(eventHandlers, displayName)) {
         eventHandlers[displayName] = [];
     }
 
-    KeyCommand.addListener({input: key.toLowerCase(), modifierFlags: libraryAdjustedModifiers}, (payload, event) => {
+    KeyCommand.addListener({input: libraryAdjustedInput, modifierFlags: libraryAdjustedModifiers}, (payload, event) => {
         keyboard.bindHandlerToKeydownEvent(event, {
             captureOnInputs,
             shouldBubble,
