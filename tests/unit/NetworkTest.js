@@ -420,6 +420,11 @@ describe('NetworkTests', () => {
                     expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})}),
                 ]);
 
+                // We need to wait for the request throttle back off timer because the request won't we retried until then
+                jest.runOnlyPendingTimers();
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
                 // Finally, after it succeeds the queue should be empty
                 xhrCalls[2].resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
                 return waitForPromisesToResolve();
