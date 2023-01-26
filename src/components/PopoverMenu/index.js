@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
+import Animated, {FadeIn} from 'react-native-reanimated';
 import Popover from '../Popover';
 import styles from '../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
@@ -112,16 +113,18 @@ class PopoverMenu extends PureComponent {
                         onFocusedIndexChanged={index => this.setState({focusedIndex: index})}
                     >
                         {_.map(this.props.menuItems, (item, menuIndex) => (
-                            <MenuItem
-                                key={item.text}
-                                icon={item.icon}
-                                iconWidth={item.iconWidth}
-                                iconHeight={item.iconHeight}
-                                title={item.text}
-                                description={item.description}
-                                onPress={() => this.selectItem(item)}
-                                focused={this.state.focusedIndex === menuIndex}
-                            />
+                            <Animated.View entering={FadeIn} key={item.text}>
+                                <MenuItem
+                                    key={item.text}
+                                    icon={item.icon}
+                                    iconWidth={item.iconWidth}
+                                    iconHeight={item.iconHeight}
+                                    title={item.text}
+                                    description={item.description}
+                                    onPress={() => this.selectItem(item)}
+                                    focused={this.state.focusedIndex === menuIndex}
+                                />
+                            </Animated.View>
                         ))}
                     </ArrowKeyFocusManager>
                 </View>
