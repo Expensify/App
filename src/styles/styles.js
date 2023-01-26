@@ -2108,6 +2108,31 @@ const styles = {
         alignSelf: 'flex-start',
     },
 
+    attachmentModalArrowsContainer: {
+        display: 'flex',
+        justifyContent: 'center',
+        cursor: 'unset',
+        height: '100%',
+        width: '100%',
+    },
+
+    leftAttachmentArrow: {
+        zIndex: 23,
+        position: 'absolute',
+        left: 32,
+    },
+
+    rightAttachmentArrow: {
+        zIndex: 23,
+        position: 'absolute',
+        right: 32,
+    },
+
+    arrowIcon: {
+        height: 52,
+        width: 52,
+    },
+
     detailsPageSectionVersion: {
         alignSelf: 'center',
         color: themeColors.textSupporting,

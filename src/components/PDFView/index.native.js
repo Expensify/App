@@ -161,6 +161,7 @@ class PDFView extends Component {
                             onError={this.handleFailureToLoadPDF}
                             password={this.state.password}
                             onLoadComplete={this.finishPDFLoad}
+                            onPageSingleTap={this.props.onPress}
                         />
                     </TouchableWithoutFeedback>
                 )}

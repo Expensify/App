@@ -295,20 +295,7 @@ class ReportActionsView extends React.Component {
      * displaying.
      */
     loadMoreChats() {
-        // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (this.props.report.isLoadingMoreReportActions) {
-            return;
-        }
-
-        const oldestReportAction = _.last(this.sortedAndFilteredReportActions);
-
-        // Don't load more chats if we're already at the beginning of the chat history
-        if (oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-            return;
-        }
-
-        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
-        Report.readOldestAction(this.props.report.reportID, oldestReportAction.reportActionID);
+        Report.loadMoreActions(this.props.report.reportID, this.props.reportActions, this.props.report.isLoadingMoreReportActions);
     }
 
     scrollToBottomAndMarkReportAsRead() {

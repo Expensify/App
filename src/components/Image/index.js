@@ -2,6 +2,7 @@ import React from 'react';
 import {Image as RNImage} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
@@ -10,20 +11,24 @@ class Image extends React.Component {
     constructor(props) {
         super(props);
 
+        this.debouncedConfigureImageSource = _.debounce(this.configureImageSource, 220);
+
         this.state = {
             imageSource: undefined,
         };
     }
 
     componentDidMount() {
-        this.configureImageSource();
+        this.debouncedConfigureImageSource();
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.source === this.props.source) {
+        if (prevProps.source.uri === this.props.source.uri) {
             return;
         }
-        this.configureImageSource();
+
+        this.debouncedConfigureImageSource.cancel();
+        this.debouncedConfigureImageSource();
     }
 
     /**
@@ -48,6 +53,7 @@ class Image extends React.Component {
         if (this.props.onLoad == null) {
             return;
         }
+
         RNImage.getSize(imageSource.uri, (width, height) => {
             this.props.onLoad({nativeEvent: {width, height}});
         });

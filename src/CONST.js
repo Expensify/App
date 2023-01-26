@@ -770,6 +770,10 @@ const CONST = {
         EMOJIS: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
+
+        // Extract attachment's source from the data's html string
+        ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
+
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,

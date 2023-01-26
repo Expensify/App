@@ -56,6 +56,14 @@ class ImageView extends PureComponent {
         this.configureImageZoom = this.configureImageZoom.bind(this);
     }
 
+    componentDidUpdate(prevProps) {
+        // Resize the image when cycled through
+        if (!this.state.containerHeight || this.state.isLoading || prevProps.url === this.props.url) {
+            return;
+        }
+        this.calculateImageSize();
+    }
+
     componentWillUnmount() {
         if (!this.state.interactionPromise) {
             return;

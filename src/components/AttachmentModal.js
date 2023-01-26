@@ -6,8 +6,10 @@ import lodashGet from 'lodash/get';
 import lodashExtend from 'lodash/extend';
 import _ from 'underscore';
 import CONST from '../CONST';
+import Navigation from '../libs/Navigation/Navigation';
 import Modal from './Modal';
 import AttachmentView from './AttachmentView';
+import AttachmentCarousel from './AttachmentCarousel';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
@@ -30,7 +32,7 @@ import SafeAreaConsumer from './SafeAreaConsumer';
  */
 
 const propTypes = {
-    /** Optional source URL for the image shown. If not passed in via props must be specified when modal is opened. */
+    /** Optional source URL for the image shown also initializes Carousel's data. If not passed in via props must be specified when modal is opened. */
     sourceURL: PropTypes.string,
 
     /** Optional callback to fire when we want to preview an image and approve it for use. */
@@ -62,7 +64,7 @@ const propTypes = {
 const defaultProps = {
     sourceURL: null,
     onConfirm: null,
-    originalFileName: null,
+    originalFileName: '',
     isAuthTokenRequired: false,
     allowDownload: false,
     headerTitle: null,
@@ -75,20 +77,32 @@ class AttachmentModal extends PureComponent {
 
         this.state = {
             isModalOpen: false,
+            isConfirmModalOpen: false,
+            reportId: null,
+            file: {name: lodashGet(props, 'originalFileName', '')},
             isAttachmentInvalid: false,
             attachmentInvalidReasonTitle: null,
             attachmentInvalidReason: null,
-            file: null,
-            sourceURL: props.sourceURL,
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
             isConfirmButtonDisabled: false,
             confirmButtonFadeAnimation: new Animated.Value(1),
+            sourceURL: props.isAuthTokenRequired ? addEncryptedAuthTokenToURL(props.sourceURL) : props.sourceURL,
         };
 
         this.submitAndClose = this.submitAndClose.bind(this);
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
+        this.onNavigate = this.onNavigate.bind(this);
         this.validateAndDisplayFileToUpload = this.validateAndDisplayFileToUpload.bind(this);
         this.updateConfirmButtonVisibility = this.updateConfirmButtonVisibility.bind(this);
+    }
+
+    /**
+     * Helps to navigate between next/previous attachments
+     * by setting sourceURL and file in state
+     * @param {Object} attachmentData
+     */
+    onNavigate(attachmentData) {
+        this.setState(attachmentData);
     }
 
     /**
@@ -116,7 +130,8 @@ class AttachmentModal extends PureComponent {
      * @param {String} sourceURL
      */
     downloadAttachment(sourceURL) {
-        fileDownload(this.props.isAuthTokenRequired ? addEncryptedAuthTokenToURL(sourceURL) : sourceURL, this.props.originalFileName);
+        const originalFileName = lodashGet(this.state, 'file.name') || this.props.originalFileName;
+        fileDownload(sourceURL, originalFileName);
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
@@ -230,9 +245,8 @@ class AttachmentModal extends PureComponent {
     }
 
     render() {
-        const sourceURL = this.state.sourceURL;
-
-        const {fileName, fileExtension} = FileUtils.splitExtensionFromFileName(this.props.originalFileName || lodashGet(this.state, 'file.name', ''));
+        const originalFileName = lodashGet(this.state, 'file.name') || this.props.originalFileName;
+        const {fileName, fileExtension} = FileUtils.splitExtensionFromFileName(originalFileName);
 
         return (
             <>
@@ -251,7 +265,7 @@ class AttachmentModal extends PureComponent {
                         title={this.props.headerTitle || this.props.translate('common.attachment')}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={this.props.allowDownload}
-                        onDownloadButtonPress={() => this.downloadAttachment(sourceURL)}
+                        onDownloadButtonPress={() => this.downloadAttachment(this.state.sourceURL)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                         subtitle={fileName ? (
                             <TextWithEllipsis
@@ -263,16 +277,23 @@ class AttachmentModal extends PureComponent {
                         ) : ''}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
-                        {this.state.sourceURL && (
-                            <AttachmentView
-                                isAuthTokenRequired={this.props.isAuthTokenRequired}
-                                sourceURL={sourceURL}
-                                file={this.state.file}
+                        {this.state.reportId ? (
+                            <AttachmentCarousel
+                                reportId={this.state.reportId}
+                                onNavigate={this.onNavigate}
+                                sourceURL={this.props.sourceURL}
                                 onToggleKeyboard={this.updateConfirmButtonVisibility}
                             />
+                        ) : (this.state.sourceURL
+                            && (
+                                <AttachmentView
+                                    sourceURL={this.state.sourceURL}
+                                    file={this.state.file}
+                                    onToggleKeyboard={this.updateConfirmButtonVisibility}
+                                />
+                            )
                         )}
                     </View>
-
                     {/* If we have an onConfirm method show a confirmation button */}
                     {this.props.onConfirm && (
                         <SafeAreaConsumer>
@@ -306,7 +327,12 @@ class AttachmentModal extends PureComponent {
                 {this.props.children({
                     displayFileInModal: this.validateAndDisplayFileToUpload,
                     show: () => {
-                        this.setState({isModalOpen: true});
+                        const route = Navigation.getActiveRoute();
+                        let reportId = null;
+                        if (route.includes('/r/')) {
+                            reportId = route.replace('/r/', '');
+                        }
+                        this.setState({isModalOpen: true, reportId});
                     },
                 })}
             </>

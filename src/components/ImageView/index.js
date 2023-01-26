@@ -56,6 +56,7 @@ class ImageView extends PureComponent {
         if (this.canUseTouchScreen) {
             return;
         }
+
         document.addEventListener('mousemove', this.trackMovement);
         document.addEventListener('mouseup', this.trackPointerPosition);
     }
@@ -276,7 +277,6 @@ class ImageView extends PureComponent {
                 >
                     <Image
                         source={{uri: this.props.url}}
-                        isAuthTokenRequired={this.props.isAuthTokenRequired}
                         style={this.state.zoomScale === 0 ? undefined : [
                             styles.h100,
                             styles.w100,
