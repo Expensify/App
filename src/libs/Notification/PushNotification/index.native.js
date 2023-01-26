@@ -2,8 +2,17 @@ import _ from 'underscore';
 import {AppState} from 'react-native';
 import {UrbanAirship, EventType, iOS} from 'urbanairship-react-native';
 import lodashGet from 'lodash/get';
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '../../../ONYXKEYS';
 import Log from '../../Log';
 import NotificationType from './NotificationType';
+import * as User from '../../actions/User';
+
+let isUserOptedInToPushNotifications = null;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
+    callback: val => isUserOptedInToPushNotifications = val,
+});
 
 const notificationEventActionMap = {};
 
@@ -46,6 +55,22 @@ function pushNotificationEventCallback(eventType, notification) {
 }
 
 /**
+ * Check if a user is opted-in to push notifications and update the `pushNotificationsEnabled` NVP accordingly.
+ */
+function refreshNotificationOptInStatus() {
+    UrbanAirship.getNotificationStatus()
+        .then((notificationStatus) => {
+            const isOptedIn = notificationStatus.airshipOptIn && notificationStatus.systemEnabled;
+            if (isOptedIn === isUserOptedInToPushNotifications) {
+                return;
+            }
+
+            Log.info('[PUSH_NOTIFICATION] Push notification opt-in status changed.', false, {isOptedIn});
+            User.setPushNotificationOptInStatus(isOptedIn);
+        });
+}
+
+/**
  * Register push notification callbacks. This is separate from namedUser registration because it needs to be executed
  * from a headless JS process, outside of any react lifecycle.
  *
@@ -55,6 +80,11 @@ function pushNotificationEventCallback(eventType, notification) {
 function init() {
     // Setup event listeners
     UrbanAirship.addListener(EventType.PushReceived, (notification) => {
+        // By default, refresh notification opt-in status to true if we receive a notification
+        if (!isUserOptedInToPushNotifications) {
+            User.setPushNotificationOptInStatus(true);
+        }
+
         // If a push notification is received while the app is in foreground,
         // we'll assume pusher is connected so we'll ignore it and not fetch the same data twice.
         if (AppState.currentState === 'active') {
@@ -70,6 +100,9 @@ function init() {
     UrbanAirship.addListener(EventType.NotificationResponse, (event) => {
         pushNotificationEventCallback(EventType.NotificationResponse, event.notification);
     });
+
+    // Keep track of which users have enabled push notifications via an NVP.
+    UrbanAirship.addListener(EventType.NotificationOptInStatus, refreshNotificationOptInStatus);
 
     // This statement has effect on iOS only.
     // It enables the App to display push notifications when the App is in foreground.
@@ -107,6 +140,9 @@ function register(accountID) {
     // Regardless of the user's opt-in status, we still want to receive silent push notifications.
     Log.info(`[PUSH_NOTIFICATIONS] Subscribing to notifications for account ID ${accountID}`);
     UrbanAirship.setNamedUser(accountID.toString());
+
+    // Refresh notification opt-in status NVP for the new user.
+    refreshNotificationOptInStatus();
 }
 
 /**
