@@ -421,7 +421,7 @@ describe('NetworkTests', () => {
                 ]);
 
                 // We need to advance past the request throttle back off timer because the request won't be retried until then
-                jest.advanceTimersByTime(100);
+                jest.advanceTimersByTime(CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME);
                 return waitForPromisesToResolve();
             })
             .then(() => {
