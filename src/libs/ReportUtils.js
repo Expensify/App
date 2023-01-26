@@ -65,6 +65,13 @@ Onyx.connect({
     callback: val => allReports = val,
 });
 
+let domainHasApprovedAccountant;
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    waitForCollectionCallback: true,
+    callback: val => domainHasApprovedAccountant = val.domainHasApprovedAccountant,
+});
+
 function getChatType(report) {
     return report ? report.chatType : '';
 }
@@ -1176,6 +1183,11 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
 
     // Include default rooms for free plan policies
     if (isDefaultRoom(report) && getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE) {
+        return true;
+    }
+
+    // Include domain rooms for accounts that are on a domain with an Approved Accountant
+    if (isDomainRoom(report) && domainHasApprovedAccountant) {
         return true;
     }
 
