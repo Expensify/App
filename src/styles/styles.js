@@ -1458,7 +1458,7 @@ const styles = {
     emojiHeaderContainer: {
         backgroundColor: themeColors.componentBG,
         display: 'flex',
-        height: 32,
+        height: CONST.EMOJI_PICKER_HEADER_HEIGHT,
         justifyContent: 'center',
         width: '100%',
     },
