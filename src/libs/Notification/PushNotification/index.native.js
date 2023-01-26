@@ -5,7 +5,7 @@ import lodashGet from 'lodash/get';
 import Log from '../../Log';
 import NotificationType from './NotificationType';
 import PushNotification from '.';
-import Report from '.';
+import * as Report from '../../../libs/actions/Report';
 
 const notificationEventActionMap = {};
 
