@@ -1513,7 +1513,7 @@ const styles = {
     },
 
     categoryShortcutButton: {
-        width: '10%',
+        width: '11.11%',
         textAlign: 'center',
         borderRadius: 8,
         paddingTop: 2,
