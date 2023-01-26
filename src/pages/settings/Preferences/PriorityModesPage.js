@@ -26,17 +26,18 @@ const PriorityModesPage = (props) => {
     const priorityModes = [
         {
             value: CONST.PRIORITY_MODE.DEFAULT,
-            text: props.translate('preferencesPage.mostRecent'),
-            description: props.translate('preferencesPage.mostRecentModeDescription'),
+            text: props.translate('priorityModesPage.mostRecent'),
+            description: props.translate('priorityModesPage.mostRecentModeDescription'),
         },
         {
             value: CONST.PRIORITY_MODE.GSD,
-            text: props.translate('preferencesPage.focus'),
-            description: props.translate('preferencesPage.focusModeDescription'),
+            text: props.translate('priorityModesPage.focus'),
+            description: props.translate('priorityModesPage.focusModeDescription'),
         },
     ].map(mode => {
         return {
             ...mode,
+            keyForList: mode.value,
 
             // Include the green checkmark icon to indicate the currently selected value
             customIcon: props.priorityMode === mode.value ? greenCheckmark : undefined,
@@ -48,7 +49,7 @@ const PriorityModesPage = (props) => {
 
     return (<ScreenWrapper includeSafeAreaPaddingBottom={false}>
         <HeaderWithCloseButton
-            title={props.translate('preferencesPage.priorityMode')}
+            title={props.translate('priorityModesPage.priorityMode')}
             shouldShowBackButton
             onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
             onCloseButtonPress={() => Navigation.dismissModal(true)}

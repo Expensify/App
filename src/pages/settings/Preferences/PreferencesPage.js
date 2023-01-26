@@ -5,22 +5,22 @@ import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import LocalePicker from '../../components/LocalePicker';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import ONYXKEYS from '../../ONYXKEYS';
-import styles from '../../styles/styles';
-import Text from '../../components/Text';
-import CONST from '../../CONST';
-import * as User from '../../libs/actions/User';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import Switch from '../../components/Switch';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import withEnvironment, {environmentPropTypes} from '../../components/withEnvironment';
-import TestToolMenu from '../../components/TestToolMenu';
-import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
+import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import LocalePicker from '../../../components/LocalePicker';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
+import ONYXKEYS from '../../../ONYXKEYS';
+import styles from '../../../styles/styles';
+import Text from '../../../components/Text';
+import CONST from '../../../CONST';
+import * as User from '../../../libs/actions/User';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+import Switch from '../../../components/Switch';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import compose from '../../../libs/compose';
+import withEnvironment, {environmentPropTypes} from '../../../components/withEnvironment';
+import TestToolMenu from '../../../components/TestToolMenu';
+import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 
 const propTypes = {
     /** The chat priority mode */
@@ -46,13 +46,11 @@ const PreferencesPage = (props) => {
     const priorityModes = {
         default: {
             value: CONST.PRIORITY_MODE.DEFAULT,
-            label: props.translate('preferencesPage.mostRecent'),
-            description: props.translate('preferencesPage.mostRecentModeDescription'),
+            label: props.translate('priorityModesPage.mostRecent'),
         },
         gsd: {
             value: CONST.PRIORITY_MODE.GSD,
-            label: props.translate('preferencesPage.focus'),
-            description: props.translate('preferencesPage.focusModeDescription'),
+            label: props.translate('priorityModesPage.focus'),
         },
     };
     const localesToLanguages = {
@@ -95,7 +93,7 @@ const PreferencesPage = (props) => {
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
                         title={priorityModes[props.priorityMode].label}
-                        description={props.translate('preferencesPage.priorityMode')}
+                        description={props.translate('priorityModesPage.priorityMode')}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODES)}
                     />
                     <MenuItemWithTopDescription
