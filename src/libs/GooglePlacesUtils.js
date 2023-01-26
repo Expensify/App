@@ -21,7 +21,8 @@ function getAddressComponents(addressComponents, fieldsToExtract) {
             if (!_.has(fieldsToExtract, addressType) || !_.isEmpty(result[addressType])) {
                 return;
             }
-            result[addressType] = lodashGet(addressComponent, fieldsToExtract[addressType], '');
+            const value = addressComponent[fieldsToExtract[addressType]] ? addressComponent[fieldsToExtract[addressType]] : '';
+            result[addressType] = value;
         });
     });
     return result;
