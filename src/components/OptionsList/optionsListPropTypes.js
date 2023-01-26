@@ -70,6 +70,9 @@ const propTypes = {
 
     /** Whether to show a line separating options in list */
     shouldHaveOptionSeparator: PropTypes.bool,
+
+    /** Whether to disable the inner padding in rows */
+    disableRowInnerPadding: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -90,6 +93,7 @@ const defaultProps = {
     isDisabled: false,
     onLayout: undefined,
     shouldHaveOptionSeparator: false,
+    disableRowInnerPadding: false,
 };
 
 export {propTypes, defaultProps};

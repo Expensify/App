@@ -57,6 +57,9 @@ const propTypes = {
     /** Whether to show a line separating options in list */
     shouldHaveOptionSeparator: PropTypes.bool,
 
+    /** Whether to disable the inner padding */
+    disableInnerPadding: PropTypes.bool,
+
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     ...withLocalizePropTypes,
@@ -73,6 +76,7 @@ const defaultProps = {
     optionIsFocused: false,
     style: null,
     shouldHaveOptionSeparator: false,
+    disableInnerPadding: false,
 };
 
 const OptionRow = (props) => {
@@ -130,7 +134,7 @@ const OptionRow = (props) => {
                             styles.alignItemsCenter,
                             styles.justifyContentBetween,
                             styles.sidebarLink,
-                            styles.sidebarLinkInner,
+                            !props.disableInnerPadding && styles.sidebarLinkInner,
                             props.optionIsFocused ? styles.sidebarLinkActive : null,
                             hovered && !props.optionIsFocused ? props.hoverStyle : null,
                             props.isDisabled && styles.cursorDisabled,

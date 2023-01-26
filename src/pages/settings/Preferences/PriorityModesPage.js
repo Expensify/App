@@ -64,8 +64,9 @@ const PriorityModesPage = (props) => {
                 Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
             }}
             hideSectionHeaders
-            optionHoveredStyle={styles.hoveredComponentBG}
+            optionHoveredStyle={[styles.hoveredComponentBG, styles.mln5, styles.mrn5, styles.pl5, styles.pr5]}
             shouldHaveOptionSeparator
+            disableRowInnerPadding
             contentContainerStyles={[styles.ph5]}
         />
     </ScreenWrapper>);
