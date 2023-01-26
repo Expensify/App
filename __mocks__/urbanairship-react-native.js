@@ -21,6 +21,7 @@ const UrbanAirship = {
     removeAllListeners: jest.fn(),
     setBadgeNumber: jest.fn(),
     setForegroundPresentationOptions: jest.fn(),
+    getNotificationStatus: jest.fn(),
 };
 
 export default UrbanAirship;
