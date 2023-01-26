@@ -32,6 +32,27 @@ Onyx.connect({
     },
 });
 
+let isUserOptedInToPushNotifications = false;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
+    callback: (val) => {
+        const pushNotificationOptInRecord = lodashGet(val, deviceID, []);
+        const mostRecentNVPValue = _.last(pushNotificationOptInRecord);
+        if (!_.has(mostRecentNVPValue, 'isEnabled')) {
+            return;
+        }
+        isUserOptedInToPushNotifications = mostRecentNVPValue.isEnabled;
+    },
+});
+
+/**
+ * @returns {Boolean}
+ */
+function isUserOptedIntoPushNotifications() {
+    return isUserOptedInToPushNotifications;
+}
+
+
 /**
  * Changes a password for a given account
  *
@@ -517,4 +538,5 @@ export {
     addPaypalMeAddress,
     updateChatPriorityMode,
     setPushNotificationOptInStatus,
+    isUserOptedIntoPushNotifications,
 };
