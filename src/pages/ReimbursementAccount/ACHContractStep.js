@@ -186,10 +186,6 @@ class ACHContractStep extends React.Component {
                 >
                     {({inputValues}) => (
                         <>
-                            {
-                                // eslint-disable-next-line no-console
-                                console.log(inputValues.hasOtherBeneficialOwners)
-                            }
                             <Text style={[styles.mb5]}>
                                 <Text>{this.props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>
                             </Text>
@@ -210,6 +206,7 @@ class ACHContractStep extends React.Component {
                                         this.setState(prevState => ({beneficialOwners: prevState.beneficialOwners.slice(0, -1)}));
                                     }
                                 }}
+                                defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'ownsMoreThan25Percent', false)}
                                 shouldSaveDraft
                             />
                             <CheckboxWithLabel
@@ -227,6 +224,7 @@ class ACHContractStep extends React.Component {
                                         this.addBeneficialOwner();
                                     }
                                 }}
+                                defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'hasOtherBeneficialOwners', false)}
                                 shouldSaveDraft
                             />
                             {inputValues.hasOtherBeneficialOwners && (
@@ -290,6 +288,7 @@ class ACHContractStep extends React.Component {
                                         </TextLink>
                                     </View>
                                 )}
+                                defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'acceptTermsAndConditions', false)}
                                 shouldSaveDraft
                             />
                             <CheckboxWithLabel
@@ -298,6 +297,7 @@ class ACHContractStep extends React.Component {
                                 LabelComponent={() => (
                                     <Text>{this.props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>
                                 )}
+                                defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'certifyTrueInformation', false)}
                                 shouldSaveDraft
                             />
                         </>

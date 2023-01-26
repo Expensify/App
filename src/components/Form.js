@@ -80,7 +80,7 @@ class Form extends React.Component {
 
         this.state = {
             errors: {},
-            inputValues: {},
+            inputValues: this.props.draftValues,
         };
 
         this.inputRefs = {};
