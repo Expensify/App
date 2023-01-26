@@ -7,6 +7,13 @@ import ROUTES from "../../../ROUTES";
 import { compose } from "underscore";
 import { withOnyx } from "react-native-onyx";
 import ONYXKEYS from "../../../ONYXKEYS";
+import OptionsList from "../../../components/OptionsList";
+import styles from "../../../styles/styles";
+import themeColors from '../../../styles/themes/default';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import * as App from '../../../libs/actions/App';
+
+const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -14,12 +21,48 @@ const propTypes = {
 
 const LanguagesPage = (props) => {
 
+    const localesToLanguages = [
+        {
+            value: 'en',
+            text: props.translate('languagesPage.languages.english'),
+        },
+        {
+            value: 'es',
+            text: props.translate('languagesPage.languages.spanish'),
+        },
+    ].map(language => {
+        return {
+            ...language,
+            keyForList: language.value,
+
+            // Include the green checkmark icon to indicate the currently selected value
+            customIcon: props.preferredLocale === language.value ? greenCheckmark : undefined,
+
+            // This property will make the currently selected value have bold text
+            boldStyle: props.preferredLocale === language.value,
+        }
+    });
+
     return (<ScreenWrapper includeSafeAreaPaddingBottom={false}>
         <HeaderWithCloseButton
             title={props.translate('languagesPage.language')}
             shouldShowBackButton
             onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
             onCloseButtonPress={() => Navigation.dismissModal(true)}
+        />
+        <OptionsList
+            sections={[{ data: localesToLanguages }]}
+            onSelectRow={language => {
+                if (language.value === props.preferredLocale) {
+                    return;
+                }
+                App.setLocale(language.value);
+                Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+            }}
+            hideSectionHeaders
+            optionHoveredStyle={styles.hoveredComponentBG}
+            shouldHaveOptionSeparator
+            contentContainerStyles={[styles.ph5]}
         />
     </ScreenWrapper>);
 }
