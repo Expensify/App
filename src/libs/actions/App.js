@@ -15,6 +15,7 @@ import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
 import getCurrentUrl from '../Navigation/currentUrl';
 import * as Session from './Session';
+import getDeviceID from '../getDeviceID';
 
 let currentUserAccountID;
 let currentUserEmail = '';
@@ -286,6 +287,27 @@ function openProfile() {
     Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
+/**
+ * Saves a unique deviceID into Onyx.
+ */
+function setDeviceID() {
+    const connectionID = Onyx.connect({
+        key: ONYXKEYS.DEVICE_ID,
+        callback: (deviceID) => {
+            Onyx.disconnect(connectionID);
+            if (deviceID) {
+                Log.info('Found existing deviceID', false, deviceID);
+                return;
+            }
+
+            getDeviceID().then((uniqueID) => {
+                Log.info('Setting new deviceID', false, uniqueID);
+                Onyx.set(ONYXKEYS.DEVICE_ID, uniqueID);
+            });
+        },
+    });
+}
+
 export {
     setLocale,
     setLocaleAndNavigate,
@@ -294,4 +316,5 @@ export {
     openProfile,
     openApp,
     reconnectApp,
+    setDeviceID,
 };
