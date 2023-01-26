@@ -16,6 +16,7 @@ import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import * as User from '../../../libs/actions/User';
 import CategoryShortcutButton from '../CategoryShortcutButton';
+import CategoryShortcutBar from "../CategoryShortcutBar";
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -70,6 +71,10 @@ class EmojiPickerMenu extends Component {
         this.getItemLayout = this.getItemLayout.bind(this);
     }
 
+    getItemLayout(data, index) {
+        return {length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index};
+    }
+
     /**
      * @param {String} emoji
      * @param {Object} emojiObject
@@ -99,13 +104,9 @@ class EmojiPickerMenu extends Component {
         User.updatePreferredSkinTone(skinTone);
     }
 
-    getItemLayout(data, index) {
-        return {length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index};
-    }
-
     scrollToHeader(headerIndex) {
         // If there are headers in the emoji array, so we need to offset by their heights as well
-        const numHeaders = _.filter(this.unfilteredHeaderIndices, i => headerIndex > i * this.numColumns).length;
+        const numHeaders = _.filter(this.headerIndices, i => headerIndex > i * this.numColumns).length;
 
         // Calculate the scroll offset at the top of the desired category
         // add 1 to number of headers so that we scroll to the top of the header row instead of the bottom
@@ -113,7 +114,7 @@ class EmojiPickerMenu extends Component {
         const numEmojiRows = Math.floor(headerIndex / this.numColumns) - (numHeaders + 1);
 
         const testoffset = ((numEmojiRows) * CONST.EMOJI_PICKER_ITEM_HEIGHT) + (CONST.EMOJI_PICKER_HEADER_HEIGHT * (numHeaders + 1));
-        this.emojiList.scrollToOffset({offset: testoffset, animated: false});
+        this.emojiList.scrollToOffset({offset: testoffset, animated: true});
     }
 
     /**
@@ -153,13 +154,11 @@ class EmojiPickerMenu extends Component {
     render() {
         return (
             <View style={styles.emojiPickerContainer}>
-                <View style={[styles.pt4, styles.ph4, styles.pb1, styles.alignItemsStart, styles.flexRow]}>
-                    {_.map(this.headerIndices, headerIndex => (
-                        <CategoryShortcutButton
-                            emoji={this.emojis[headerIndex + 8].code}
-                            onPress={() => this.scrollToHeader(headerIndex)}
-                        />
-                    ))}
+                <View style={[styles.flexRow]}>
+                    <CategoryShortcutBar
+                        headerIndices={this.headerIndices}
+                        onPress={this.scrollToHeader}
+                    />
                 </View>
                 <FlatList
                     ref={el => this.emojiList = el}
