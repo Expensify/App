@@ -1,4 +1,10 @@
 import * as GooglePlacesUtils from '../../src/libs/GooglePlacesUtils';
+const standardObjectToFind = {
+    sublocality: 'long_name',
+    administrative_area_level_1: 'short_name',
+    postal_code: 'long_name',
+    'doesnt-exist': 'long_name',
+};
 
 const bigObjectToFind = {
     sublocality: 'long_name',
@@ -87,93 +93,6 @@ const bigObjectToFind = {
     '20doesnt-exist': 'long_name',
 };
 
-const bigObjectMatch = {
-    sublocality: 'Brooklyn',
-    administrative_area_level_1: 'NY',
-    postal_code: '11206',
-    'doesnt-exist': '',
-    s1ublocality: '',
-    a1dministrative_area_level_1: '',
-    p1ostal_code: '',
-    '1doesnt-exist': '',
-    s2ublocality: '',
-    a2dministrative_area_level_1: '',
-    p2ostal_code: '',
-    '2doesnt-exist': '',
-    s3ublocality: '',
-    a3dministrative_area_level_1: '',
-    p3ostal_code: '',
-    '3doesnt-exist': '',
-    s4ublocality: '',
-    a4dministrative_area_level_1: '',
-    p4ostal_code: '',
-    '4doesnt-exist': '',
-    s5ublocality: '',
-    a5dministrative_area_level_1: '',
-    p5ostal_code: '',
-    '5doesnt-exist': '',
-    s6ublocality: '',
-    a6dministrative_area_level_1: '',
-    p6ostal_code: '',
-    '6doesnt-exist': '',
-    s7ublocality: '',
-    a7dministrative_area_level_1: '',
-    p7ostal_code: '',
-    '7doesnt-exist': '',
-    s8ublocality: '',
-    a8dministrative_area_level_1: '',
-    p8ostal_code: '',
-    '8doesnt-exist': '',
-    s9ublocality: '',
-    a9dministrative_area_level_1: '',
-    p9ostal_code: '',
-    '9doesnt-exist': '',
-    s10ublocality: '',
-    a10dministrative_area_level_1: '',
-    p10ostal_code: '',
-    '10doesnt-exist': '',
-    s11ublocality: '',
-    a11dministrative_area_level_1: '',
-    p11ostal_code: '',
-    '11doesnt-exist': '',
-    s12ublocality: '',
-    a12dministrative_area_level_1: '',
-    p12ostal_code: '',
-    '12doesnt-exist': '',
-    s13ublocality: '',
-    a13dministrative_area_level_1: '',
-    p13ostal_code: '',
-    '13doesnt-exist': '',
-    s14ublocality: '',
-    a14dministrative_area_level_1: '',
-    p14ostal_code: '',
-    '14doesnt-exist': '',
-    s15ublocality: '',
-    a15dministrative_area_level_1: '',
-    p15ostal_code: '',
-    '15doesnt-exist': '',
-    s16ublocality: '',
-    a16dministrative_area_level_1: '',
-    p16ostal_code: '',
-    '16doesnt-exist': '',
-    s17ublocality: '',
-    a17dministrative_area_level_1: '',
-    p17ostal_code: '',
-    '17doesnt-exist': '',
-    s18ublocality: '',
-    a18dministrative_area_level_1: '',
-    p18ostal_code: '',
-    '18doesnt-exist': '',
-    s19ublocality: '',
-    a19dministrative_area_level_1: '',
-    p19ostal_code: '',
-    '19doesnt-exist': '',
-    s20ublocality: '',
-    a20dministrative_area_level_1: '',
-    p20ostal_code: '',
-    '20doesnt-exist': '',
-};
-
 describe('GooglePlacesUtilsTest', () => {
     describe('getAddressComponent', () => {
         it('should find address components by type', () => {
@@ -204,13 +123,10 @@ describe('GooglePlacesUtilsTest', () => {
                     types: ['postal_code'],
                 },
             ];
-            const startTime = performance.now();
             expect(GooglePlacesUtils.getAddressComponent(addressComponents, 'sublocality', 'long_name')).toStrictEqual('Brooklyn');
             expect(GooglePlacesUtils.getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name')).toStrictEqual('NY');
             expect(GooglePlacesUtils.getAddressComponent(addressComponents, 'postal_code', 'long_name')).toStrictEqual('11206');
             expect(GooglePlacesUtils.getAddressComponent(addressComponents, 'doesn-exist', 'long_name')).toStrictEqual(undefined);
-            const endTime = performance.now();
-            console.log(`Call to getAddressComponent took ${endTime - startTime}ms`);
         });
     });
     describe('getAddressComponents', () => {
@@ -246,23 +162,25 @@ describe('GooglePlacesUtilsTest', () => {
             expect(GooglePlacesUtils.getAddressComponents(addressComponents, {administrative_area_level_1: 'short_name'})).toStrictEqual({administrative_area_level_1: 'NY'});
             expect(GooglePlacesUtils.getAddressComponents(addressComponents, {postal_code: 'long_name'})).toStrictEqual({postal_code: '11206'});
             expect(GooglePlacesUtils.getAddressComponents(addressComponents, {'doesnt-exist': 'long_name'})).toStrictEqual({'doesnt-exist': ''});
-            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {
-                sublocality: 'long_name',
-                administrative_area_level_1: 'short_name',
-                postal_code: 'long_name',
-                'doesnt-exist': 'long_name',
-            })).toStrictEqual({
+            expect(GooglePlacesUtils.getAddressComponents(addressComponents, standardObjectToFind)).toStrictEqual({
                 sublocality: 'Brooklyn',
                 administrative_area_level_1: 'NY',
                 postal_code: '11206',
                 'doesnt-exist': '',
             });
+            console.log('addressComponents standard object');
+            let startTime = performance.now();
+            for (let i = 100; i > 0; i--) {
+                GooglePlacesUtils.getAddressComponents(addressComponents, standardObjectToFind);
+            }
+            let endTime = performance.now();
+            console.log(`Call to looping 100 times took ${endTime - startTime}ms`);
             console.log('addressComponents Big Object');
-            const startTime = performance.now();
+            startTime = performance.now();
             for (let i = 100; i > 0; i--) {
                 GooglePlacesUtils.getAddressComponents(addressComponents, bigObjectToFind);
             }
-            const endTime = performance.now();
+            endTime = performance.now();
             console.log(`Call to looping 100 times took ${endTime - startTime}ms`);
         });
     });
@@ -310,12 +228,19 @@ describe('GooglePlacesUtilsTest', () => {
                 postal_code: '11206',
                 'doesnt-exist': '',
             });
+            console.log('addressComponentsNeseted standard object');
+            let startTime = performance.now();
+            for (let i = 100; i > 0; i--) {
+                GooglePlacesUtils.getAddressComponentsNested(addressComponents, standardObjectToFind);
+            }
+            let endTime = performance.now();
+            console.log(`Call to looping 100 times took ${endTime - startTime}ms`);
             console.log('addressComponentsNested Big Object');
-            const startTime = performance.now();
+            startTime = performance.now();
             for (let i = 100; i > 0; i--) {
                 GooglePlacesUtils.getAddressComponentsNested(addressComponents, bigObjectToFind);
             }
-            const endTime = performance.now();
+            endTime = performance.now();
             console.log(`Call to looping 100 times took ${endTime - startTime}ms`);
         });
     });
@@ -363,12 +288,19 @@ describe('GooglePlacesUtilsTest', () => {
                 postal_code: '11206',
                 'doesnt-exist': '',
             });
+            console.log('addressComponentsUnderscore standard object');
+            let startTime = performance.now();
+            for (let i = 100; i > 0; i--) {
+                GooglePlacesUtils.getAddressComponentsUnderscore(addressComponents, standardObjectToFind);
+            }
+            let endTime = performance.now();
+            console.log(`Call to looping 100 times took ${endTime - startTime}ms`);
             console.log('addressComponentsUnderscore Big Object');
-            const startTime = performance.now();
+            startTime = performance.now();
             for (let i = 100; i > 0; i--) {
                 GooglePlacesUtils.getAddressComponentsUnderscore(addressComponents, bigObjectToFind);
             }
-            const endTime = performance.now();
+            endTime = performance.now();
             console.log(`Call to looping 100 times took ${endTime - startTime}ms`);
         });
     });
