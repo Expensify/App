@@ -16,7 +16,7 @@ const LanguagesPage = (props) => {
 
     return (<ScreenWrapper includeSafeAreaPaddingBottom={false}>
         <HeaderWithCloseButton
-            title={props.translate('preferencesPage.language')}
+            title={props.translate('languagesPage.language')}
             shouldShowBackButton
             onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
             onCloseButtonPress={() => Navigation.dismissModal(true)}

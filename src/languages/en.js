@@ -489,11 +489,6 @@ export default {
     },
     preferencesPage: {
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',
-        language: 'Language',
-        languages: {
-            english: 'English',
-            spanish: 'Spanish',
-        },
     },
     priorityModesPage: {
         priorityMode: 'Priority mode',
@@ -502,6 +497,13 @@ export default {
         mostRecentModeDescription: 'This will display all chats by default, sorted by most recent, with pinned items at the top.',
         focus: '#focus',
         focusModeDescription: '#focus – This will only display unread and pinned chats, all sorted alphabetically.',
+    },
+    languagesPage: {
+        language: 'Language',
+        languages: {
+            english: 'English',
+            spanish: 'Spanish',
+        },
     },
     signInPage: {
         expensifyDotCash: 'New Expensify',

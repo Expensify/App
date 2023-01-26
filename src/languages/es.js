@@ -489,11 +489,6 @@ export default {
     },
     preferencesPage: {
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recibir noticias sobre Expensify y actualizaciones del producto',
-        language: 'Idioma',
-        languages: {
-            english: 'Inglés',
-            spanish: 'Español',
-        },
     },
     priorityModesPage: {
         priorityMode: 'Modo prioridad',
@@ -502,6 +497,13 @@ export default {
         mostRecentModeDescription: 'Esta opción muestra por defecto todos los chats, ordenados a partir del más reciente, con los chats destacados arriba de todo.',
         focus: '#concentración',
         focusModeDescription: '#concentración – Muestra sólo los chats no leídos y destacados ordenados alfabéticamente.',
+    },
+    languagesPage: {
+        language: 'Idioma',
+        languages: {
+            english: 'Inglés',
+            spanish: 'Español',
+        },
     },
     signInPage: {
         expensifyDotCash: 'Nuevo Expensify',

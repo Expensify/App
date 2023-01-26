@@ -55,11 +55,11 @@ const PreferencesPage = (props) => {
     const localesToLanguages = {
         en: {
             value: 'en',
-            label: props.translate('preferencesPage.languages.english'),
+            label: props.translate('languagesPage.languages.english'),
         },
         es: {
             value: 'es',
-            label: props.translate('preferencesPage.languages.spanish'),
+            label: props.translate('languagesPage.languages.spanish'),
         },
     };
 
@@ -98,7 +98,7 @@ const PreferencesPage = (props) => {
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
                         title={localesToLanguages[props.preferredLocale].label}
-                        description={props.translate('preferencesPage.language')}
+                        description={props.translate('languagesPage.language')}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGES)}
                     />
 
