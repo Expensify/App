@@ -1521,6 +1521,12 @@ const styles = {
         height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
     },
 
+    categoryShortcutIcon: {
+        width: '100%',
+        height: '100%',
+        backgroundColor: themeColors.icon,
+    },
+
     chatItemEmojiButton: {
         alignSelf: 'flex-end',
         borderRadius: variables.buttonBorderRadius,

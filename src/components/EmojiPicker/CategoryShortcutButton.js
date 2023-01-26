@@ -35,7 +35,7 @@ const CategoryShortcutButton = props => (
         ])}
     >
         <Image
-            style={styles.emojiText}
+            style={styles.categoryShortcutIcon}
             source={{uri: props.emoji}}
         />
     </Pressable>
