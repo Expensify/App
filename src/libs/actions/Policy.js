@@ -1027,5 +1027,5 @@ export {
     openWorkspaceMembersPage,
     openWorkspaceInvitePage,
     removeWorkspace,
-    allPolicies
+    allPolicies,
 };

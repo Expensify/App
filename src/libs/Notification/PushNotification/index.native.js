@@ -5,7 +5,7 @@ import lodashGet from 'lodash/get';
 import Log from '../../Log';
 import NotificationType from './NotificationType';
 import PushNotification from '.';
-import * as Report from '../../../libs/actions/Report';
+import * as Report from '../../actions/Report';
 
 const notificationEventActionMap = {};
 
@@ -110,11 +110,11 @@ function register(accountID) {
     Log.info(`[PUSH_NOTIFICATIONS] Subscribing to notifications for account ID ${accountID}`);
     UrbanAirship.setNamedUser(accountID.toString());
 
-    // When the user logged out and then logged in with a different account 
+    // When the user logged out and then logged in with a different account
     // while the app is still in background, we must resubscribe to the report
     // push notification in order to render the report click behaviour correctly
     PushNotification.init();
-    Report.subscribeToReportCommentPushNotifications();   
+    Report.subscribeToReportCommentPushNotifications();
 }
 
 /**

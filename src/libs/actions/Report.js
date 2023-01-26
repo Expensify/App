@@ -68,7 +68,7 @@ function subscribeToReportCommentPushNotifications() {
             Navigation.isDrawerReady()
                 .then(() => {
                     Navigation.navigate(ROUTES.getReportRoute(reportID));
-                })
+                });
         } else {
             // Navigation container is not yet ready, use deeplinking to open to correct report instead
             Navigation.setDidTapNotification();
