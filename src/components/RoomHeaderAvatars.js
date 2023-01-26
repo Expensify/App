@@ -50,7 +50,7 @@ const RoomHeaderAvatars = (props) => {
                         <Avatar
                             source={val}
                             fill={themeColors.iconSuccessFill}
-                            size={CONST.AVATAR_SIZE.HEADER}
+                            size={CONST.AVATAR_SIZE.LARGE}
                             containerStyles={iconStyle}
                         />
                         {index === CONST.REPORT.MAX_PREVIEW_AVATARS - 1 && props.icons.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (
