@@ -6,7 +6,6 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
-import LocalePicker from '../../../components/LocalePicker';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -100,7 +99,7 @@ const PreferencesPage = (props) => {
                         shouldShowRightIcon
                         title={localesToLanguages[props.preferredLocale].label}
                         description={props.translate('preferencesPage.language')}
-                    // onPress={() => Navigation.navigate(detail.pageRoute)}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGES)}
                     />
 
                     {/* If we are in the staging environment then we enable additional test features */

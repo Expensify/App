@@ -268,6 +268,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsPreferencesLanguagesPage = require('../../../pages/settings/Preferences/LanguagesPage').default;
+            return SettingsPreferencesLanguagesPage;
+        },
+        name: 'Settings_Preferences_Languages',
+    },
+    {
+        getComponent: () => {
             const SettingsPasswordPage = require('../../../pages/settings/PasswordPage').default;
             return SettingsPasswordPage;
         },

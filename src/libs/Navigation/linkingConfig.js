@@ -48,6 +48,10 @@ export default {
                         path: ROUTES.SETTINGS_PRIORITY_MODES,
                         exact: true,
                     },
+                    Settings_Preferences_Languages: {
+                        path: ROUTES.SETTINGS_LANGUAGES,
+                        exact: true,
+                    },
                     Settings_Close: {
                         path: ROUTES.SETTINGS_CLOSE,
                         exact: true,
