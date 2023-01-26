@@ -93,71 +93,36 @@ const bigObjectToFind = {
     '20doesnt-exist': 'long_name',
 };
 
+const addressComponents = [
+    {
+        long_name: 'Bushwick',
+        short_name: 'Bushwick',
+        types: ['neighborhood', 'political'],
+    },
+    {
+        long_name: 'Brooklyn',
+        short_name: 'Brooklyn',
+        types: ['sublocality_level_1', 'sublocality', 'political'],
+    },
+    {
+        long_name: 'New York',
+        short_name: 'NY',
+        types: ['administrative_area_level_1', 'political'],
+    },
+    {
+        long_name: 'United States',
+        short_name: 'US',
+        types: ['country', 'political'],
+    },
+    {
+        long_name: '11206',
+        short_name: '11206',
+        types: ['postal_code'],
+    },
+];
 describe('GooglePlacesUtilsTest', () => {
-    describe('getAddressComponent', () => {
-        it('should find address components by type', () => {
-            const addressComponents = [
-                {
-                    long_name: 'Bushwick',
-                    short_name: 'Bushwick',
-                    types: ['neighborhood', 'political'],
-                },
-                {
-                    long_name: 'Brooklyn',
-                    short_name: 'Brooklyn',
-                    types: ['sublocality_level_1', 'sublocality', 'political'],
-                },
-                {
-                    long_name: 'New York',
-                    short_name: 'NY',
-                    types: ['administrative_area_level_1', 'political'],
-                },
-                {
-                    long_name: 'United States',
-                    short_name: 'US',
-                    types: ['country', 'political'],
-                },
-                {
-                    long_name: '11206',
-                    short_name: '11206',
-                    types: ['postal_code'],
-                },
-            ];
-            expect(GooglePlacesUtils.getAddressComponent(addressComponents, 'sublocality', 'long_name')).toStrictEqual('Brooklyn');
-            expect(GooglePlacesUtils.getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name')).toStrictEqual('NY');
-            expect(GooglePlacesUtils.getAddressComponent(addressComponents, 'postal_code', 'long_name')).toStrictEqual('11206');
-            expect(GooglePlacesUtils.getAddressComponent(addressComponents, 'doesn-exist', 'long_name')).toStrictEqual(undefined);
-        });
-    });
     describe('getAddressComponents', () => {
         it('should find address components by type', () => {
-            const addressComponents = [
-                {
-                    long_name: 'Bushwick',
-                    short_name: 'Bushwick',
-                    types: ['neighborhood', 'political'],
-                },
-                {
-                    long_name: 'Brooklyn',
-                    short_name: 'Brooklyn',
-                    types: ['sublocality_level_1', 'sublocality', 'political'],
-                },
-                {
-                    long_name: 'New York',
-                    short_name: 'NY',
-                    types: ['administrative_area_level_1', 'political'],
-                },
-                {
-                    long_name: 'United States',
-                    short_name: 'US',
-                    types: ['country', 'political'],
-                },
-                {
-                    long_name: '11206',
-                    short_name: '11206',
-                    types: ['postal_code'],
-                },
-            ];
             expect(GooglePlacesUtils.getAddressComponents(addressComponents, {sublocality: 'long_name'})).toStrictEqual({sublocality: 'Brooklyn'});
             expect(GooglePlacesUtils.getAddressComponents(addressComponents, {administrative_area_level_1: 'short_name'})).toStrictEqual({administrative_area_level_1: 'NY'});
             expect(GooglePlacesUtils.getAddressComponents(addressComponents, {postal_code: 'long_name'})).toStrictEqual({postal_code: '11206'});
@@ -168,140 +133,34 @@ describe('GooglePlacesUtilsTest', () => {
                 postal_code: '11206',
                 'doesnt-exist': '',
             });
-            console.log('addressComponents standard object');
-            let startTime = performance.now();
+        });
+    });
+    describe('getAddressComponents small data set timing', () => {
+        it('should not be slow when executing', () => {
+            const startTime = performance.now();
             for (let i = 100; i > 0; i--) {
                 GooglePlacesUtils.getAddressComponents(addressComponents, standardObjectToFind);
             }
-            let endTime = performance.now();
-            console.log(`Call to looping 100 times took ${endTime - startTime}ms`);
-            console.log('addressComponents Big Object');
-            startTime = performance.now();
+            const endTime = performance.now();
+            const executionTime = endTime - startTime;
+
+            // When timing this method it was roughly 0.45087499999999636ms so this would be almost twice as slow
+            // which I think is a meaningful regression we should avoid
+            expect(executionTime).toBeLessThan(1.0);
+        });
+    });
+    describe('getAddressComponents big data set timing', () => {
+        it('should not be slow when executing', () => {
+            const startTime = performance.now();
             for (let i = 100; i > 0; i--) {
                 GooglePlacesUtils.getAddressComponents(addressComponents, bigObjectToFind);
             }
-            endTime = performance.now();
-            console.log(`Call to looping 100 times took ${endTime - startTime}ms`);
-        });
-    });
-    describe('getAddressComponentsNested', () => {
-        it('should find address components by type', () => {
-            const addressComponents = [
-                {
-                    long_name: 'Bushwick',
-                    short_name: 'Bushwick',
-                    types: ['neighborhood', 'political'],
-                },
-                {
-                    long_name: 'Brooklyn',
-                    short_name: 'Brooklyn',
-                    types: ['sublocality_level_1', 'sublocality', 'political'],
-                },
-                {
-                    long_name: 'New York',
-                    short_name: 'NY',
-                    types: ['administrative_area_level_1', 'political'],
-                },
-                {
-                    long_name: 'United States',
-                    short_name: 'US',
-                    types: ['country', 'political'],
-                },
-                {
-                    long_name: '11206',
-                    short_name: '11206',
-                    types: ['postal_code'],
-                },
-            ];
-            expect(GooglePlacesUtils.getAddressComponentsNested(addressComponents, {sublocality: 'long_name'})).toStrictEqual({sublocality: 'Brooklyn'});
-            expect(GooglePlacesUtils.getAddressComponentsNested(addressComponents, {administrative_area_level_1: 'short_name'})).toStrictEqual({administrative_area_level_1: 'NY'});
-            expect(GooglePlacesUtils.getAddressComponentsNested(addressComponents, {postal_code: 'long_name'})).toStrictEqual({postal_code: '11206'});
-            expect(GooglePlacesUtils.getAddressComponentsNested(addressComponents, {'doesnt-exist': 'long_name'})).toStrictEqual({'doesnt-exist': ''});
-            expect(GooglePlacesUtils.getAddressComponentsNested(addressComponents, {
-                sublocality: 'long_name',
-                administrative_area_level_1: 'short_name',
-                postal_code: 'long_name',
-                'doesnt-exist': 'long_name',
-            })).toStrictEqual({
-                sublocality: 'Brooklyn',
-                administrative_area_level_1: 'NY',
-                postal_code: '11206',
-                'doesnt-exist': '',
-            });
-            console.log('addressComponentsNeseted standard object');
-            let startTime = performance.now();
-            for (let i = 100; i > 0; i--) {
-                GooglePlacesUtils.getAddressComponentsNested(addressComponents, standardObjectToFind);
-            }
-            let endTime = performance.now();
-            console.log(`Call to looping 100 times took ${endTime - startTime}ms`);
-            console.log('addressComponentsNested Big Object');
-            startTime = performance.now();
-            for (let i = 100; i > 0; i--) {
-                GooglePlacesUtils.getAddressComponentsNested(addressComponents, bigObjectToFind);
-            }
-            endTime = performance.now();
-            console.log(`Call to looping 100 times took ${endTime - startTime}ms`);
-        });
-    });
-    describe('getAddressComponentsUnderscore', () => {
-        it('should find address components by type', () => {
-            const addressComponents = [
-                {
-                    long_name: 'Bushwick',
-                    short_name: 'Bushwick',
-                    types: ['neighborhood', 'political'],
-                },
-                {
-                    long_name: 'Brooklyn',
-                    short_name: 'Brooklyn',
-                    types: ['sublocality_level_1', 'sublocality', 'political'],
-                },
-                {
-                    long_name: 'New York',
-                    short_name: 'NY',
-                    types: ['administrative_area_level_1', 'political'],
-                },
-                {
-                    long_name: 'United States',
-                    short_name: 'US',
-                    types: ['country', 'political'],
-                },
-                {
-                    long_name: '11206',
-                    short_name: '11206',
-                    types: ['postal_code'],
-                },
-            ];
-            expect(GooglePlacesUtils.getAddressComponentsUnderscore(addressComponents, {sublocality: 'long_name'})).toStrictEqual({sublocality: 'Brooklyn'});
-            expect(GooglePlacesUtils.getAddressComponentsUnderscore(addressComponents, {administrative_area_level_1: 'short_name'})).toStrictEqual({administrative_area_level_1: 'NY'});
-            expect(GooglePlacesUtils.getAddressComponentsUnderscore(addressComponents, {postal_code: 'long_name'})).toStrictEqual({postal_code: '11206'});
-            expect(GooglePlacesUtils.getAddressComponentsUnderscore(addressComponents, {'doesnt-exist': 'long_name'})).toStrictEqual({'doesnt-exist': ''});
-            expect(GooglePlacesUtils.getAddressComponentsUnderscore(addressComponents, {
-                sublocality: 'long_name',
-                administrative_area_level_1: 'short_name',
-                postal_code: 'long_name',
-                'doesnt-exist': 'long_name',
-            })).toStrictEqual({
-                sublocality: 'Brooklyn',
-                administrative_area_level_1: 'NY',
-                postal_code: '11206',
-                'doesnt-exist': '',
-            });
-            console.log('addressComponentsUnderscore standard object');
-            let startTime = performance.now();
-            for (let i = 100; i > 0; i--) {
-                GooglePlacesUtils.getAddressComponentsUnderscore(addressComponents, standardObjectToFind);
-            }
-            let endTime = performance.now();
-            console.log(`Call to looping 100 times took ${endTime - startTime}ms`);
-            console.log('addressComponentsUnderscore Big Object');
-            startTime = performance.now();
-            for (let i = 100; i > 0; i--) {
-                GooglePlacesUtils.getAddressComponentsUnderscore(addressComponents, bigObjectToFind);
-            }
-            endTime = performance.now();
-            console.log(`Call to looping 100 times took ${endTime - startTime}ms`);
+            const endTime = performance.now();
+            const executionTime = endTime - startTime;
+
+            // When timing this method it was roughly 1.211708999999928ms so this would be almost 3x as slow
+            // which I think is a meaningful regression we should avoid
+            expect(executionTime).toBeLessThan(3.00);
         });
     });
 });
