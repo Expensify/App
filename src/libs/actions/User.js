@@ -21,6 +21,8 @@ import PusherUtils from '../PusherUtils';
 import * as Report from './Report';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 
+const deviceID = DeviceInfo.getDeviceId();
+
 let currentUserAccountID = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -33,7 +35,8 @@ let isUserOptedInToPushNotifications = false;
 Onyx.connect({
     key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
     callback: (val) => {
-        const mostRecentNVPValue = _.last(val);
+        const pushNotificationOptInRecord = lodashGet(val, deviceID, []);
+        const mostRecentNVPValue = _.last(pushNotificationOptInRecord);
         if (!_.has(mostRecentNVPValue, 'isEnabled')) {
             return;
         }
@@ -487,7 +490,6 @@ function generateStatementPDF(period) {
  * @param {Boolean} isOptingIn
  */
 function setPushNotificationOptInStatus(isOptingIn) {
-    const deviceID = DeviceInfo.getDeviceId();
     const commandName = isOptingIn ? 'OptInToPushNotifications' : 'OptOutOfPushNotifications';
     const optimisticData = [
         {
