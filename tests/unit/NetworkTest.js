@@ -420,8 +420,8 @@ describe('NetworkTests', () => {
                     expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})}),
                 ]);
 
-                // We need to wait for the request throttle back off timer because the request won't we retried until then
-                jest.runOnlyPendingTimers();
+                // We need to advance past the request throttle back off timer because the request won't be retried until then
+                jest.advanceTimersByTime(100);
                 return waitForPromisesToResolve();
             })
             .then(() => {
