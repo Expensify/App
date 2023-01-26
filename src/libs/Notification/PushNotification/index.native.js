@@ -24,6 +24,13 @@ Onyx.connect({
     },
 });
 
+/**
+ * @returns {Boolean}
+ */
+function isUserOptedIn() {
+    return isUserOptedInToPushNotifications;
+}
+
 const notificationEventActionMap = {};
 
 /**
@@ -213,6 +220,7 @@ function clearNotifications() {
 }
 
 export default {
+    isUserOptedIn,
     init,
     register,
     deregister,

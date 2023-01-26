@@ -20,6 +20,7 @@ import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
 import * as Report from './Report';
 import * as ReportActionsUtils from '../ReportActionsUtils';
+import PushNotification from '../Notification/PushNotification';
 
 const deviceID = DeviceInfo.getDeviceId();
 
@@ -28,19 +29,6 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         currentUserAccountID = lodashGet(val, 'accountID', '');
-    },
-});
-
-let isUserOptedInToPushNotifications = false;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
-    callback: (val) => {
-        const pushNotificationOptInRecord = lodashGet(val, deviceID, []);
-        const mostRecentNVPValue = _.last(pushNotificationOptInRecord);
-        if (!_.has(mostRecentNVPValue, 'isEnabled')) {
-            return;
-        }
-        isUserOptedInToPushNotifications = mostRecentNVPValue.isEnabled;
     },
 });
 
@@ -502,7 +490,7 @@ function setPushNotificationOptInStatus(isOptingIn) {
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
-            value: {[deviceID]: isUserOptedInToPushNotifications},
+            value: {[deviceID]: PushNotification.isUserOptedIn()},
         },
     ];
     API.write(commandName, {deviceID}, {optimisticData, failureData});
