@@ -83,7 +83,7 @@ describe('GooglePlacesUtilsTest', () => {
                 postal_code: '11206',
                 'doesnt-exist': '',
             });
-            console.log('addressComponents bigArray');
+            console.log('addressComponents Big Object');
             expect(GooglePlacesUtils.getAddressComponents(addressComponents, {
                 sublocality: 'long_name',
                 administrative_area_level_1: 'short_name',
@@ -301,7 +301,7 @@ describe('GooglePlacesUtilsTest', () => {
                 postal_code: '11206',
                 'doesnt-exist': '',
             });
-            console.log('addressComponentsNested bigArray');
+            console.log('addressComponentsNested Big Object');
             expect(GooglePlacesUtils.getAddressComponentsNested(addressComponents, {
                 sublocality: 'long_name',
                 administrative_area_level_1: 'short_name',
@@ -519,7 +519,7 @@ describe('GooglePlacesUtilsTest', () => {
                 postal_code: '11206',
                 'doesnt-exist': '',
             });
-            console.log('addressComponentsUnderscore bigArray');
+            console.log('addressComponentsUnderscore Big Object');
             expect(GooglePlacesUtils.getAddressComponentsUnderscore(addressComponents, {
                 sublocality: 'long_name',
                 administrative_area_level_1: 'short_name',
