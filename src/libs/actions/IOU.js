@@ -697,6 +697,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
         value: {
             ...chatReport,
+            lastReadTime: DateUtils.getDBTime(),
             lastActionCreated: optimisticIOUReportAction.created,
             lastMessageText: optimisticIOUReportAction.message[0].text,
             lastMessageHtml: optimisticIOUReportAction.message[0].html,
@@ -812,6 +813,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
                 ...chatReport,
+                lastReadTime: DateUtils.getDBTime(),
                 lastActionCreated: optimisticIOUReportAction.created,
                 lastMessageText: optimisticIOUReportAction.message[0].text,
                 lastMessageHtml: optimisticIOUReportAction.message[0].html,
