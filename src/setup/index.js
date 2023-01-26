@@ -4,6 +4,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import platformSetup from './platformSetup';
 import * as Metrics from '../libs/Metrics';
+import * as App from '../libs/actions/App';
 
 export default function () {
     /*
@@ -39,6 +40,8 @@ export default function () {
             [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
         },
     });
+
+    App.setDeviceID();
 
     // Force app layout to work left to right because our design does not currently support devices using this mode
     I18nManager.allowRTL(false);
