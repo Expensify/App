@@ -43,7 +43,7 @@ class ButtonWithMenu extends PureComponent {
         super(props);
 
         this.state = {
-            selectedItem: props.options[0],
+            selectedItemIndex: 0,
             isMenuVisible: false,
         };
     }
@@ -53,15 +53,15 @@ class ButtonWithMenu extends PureComponent {
     }
 
     render() {
-        const selectedItemText = this.state.selectedItem.text;
+        const selectedItem = this.props.options[this.state.selectedItemIndex];
         return (
             <View>
                 {this.props.options.length > 1 ? (
                     <ButtonWithDropdown
-                        buttonText={selectedItemText}
+                        buttonText={selectedItem.text}
                         isLoading={this.props.isLoading}
                         isDisabled={this.props.isDisabled}
-                        onButtonPress={event => this.props.onPress(event, this.state.selectedItem.value)}
+                        onButtonPress={event => this.props.onPress(event, selectedItem.value)}
                         onDropdownPress={() => {
                             this.setMenuVisibility(true);
                         }}
@@ -72,7 +72,7 @@ class ButtonWithMenu extends PureComponent {
                         isDisabled={this.props.isDisabled}
                         style={[styles.w100]}
                         isLoading={this.props.isLoading}
-                        text={selectedItemText}
+                        text={selectedItem.text}
                         onPress={event => this.props.onPress(event, this.props.options[0].value)}
                         pressOnEnter
                     />
@@ -84,10 +84,10 @@ class ButtonWithMenu extends PureComponent {
                         onItemSelected={() => this.setMenuVisibility(false)}
                         anchorPosition={styles.createMenuPositionRightSidepane}
                         headerText={this.props.menuHeaderText}
-                        menuItems={_.map(this.props.options, item => ({
+                        menuItems={_.map(this.props.options, (item, index) => ({
                             ...item,
                             onSelected: () => {
-                                this.setState({selectedItem: item});
+                                this.setState({selectedItemIndex: index});
                             },
                         }))}
                     />

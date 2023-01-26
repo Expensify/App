@@ -14,6 +14,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as Policy from '../../libs/actions/Policy';
 import TextInput from '../../components/TextInput';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
+import FormSubmit from '../../components/FormSubmit';
 import OptionsSelector from '../../components/OptionsSelector';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
@@ -25,6 +26,7 @@ import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
 import ROUTES from '../../ROUTES';
+import * as Localize from '../../libs/Localize';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -99,6 +101,13 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (
+            prevProps.preferredLocale !== this.props.preferredLocale
+            && this.state.welcomeNote === Localize.translate(prevProps.preferredLocale, 'workspace.invite.welcomeNote', {workspaceName: this.props.policy.name})
+        ) {
+            this.setState({welcomeNote: this.getWelcomeNote()});
+        }
+
         const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
         if (!isReconnecting) {
             return;
@@ -293,7 +302,7 @@ class WorkspaceInvitePage extends React.Component {
                         shouldShow={_.isEmpty(this.props.policy)}
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                     >
-                        <>
+                        <FormSubmit style={[styles.flex1]} onSubmit={this.inviteUser}>
                             <HeaderWithCloseButton
                                 title={this.props.translate('workspace.invite.invitePeople')}
                                 subtitle={policyName}
@@ -346,6 +355,7 @@ class WorkspaceInvitePage extends React.Component {
                                     message={this.props.policy.alertMessage}
                                     containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                                     enabledWhenOffline
+                                    disablePressOnEnter
                                 />
                                 <Pressable
                                     onPress={this.openPrivacyURL}
@@ -355,12 +365,12 @@ class WorkspaceInvitePage extends React.Component {
                                 >
                                     <View style={[styles.flexRow]}>
                                         <Text style={[styles.mr1, styles.label, styles.link]}>
-                                            {this.props.translate('common.privacyPolicy')}
+                                            {this.props.translate('common.privacy')}
                                         </Text>
                                     </View>
                                 </Pressable>
                             </View>
-                        </>
+                        </FormSubmit>
                     </FullPageNotFoundView>
                 )}
             </ScreenWrapper>

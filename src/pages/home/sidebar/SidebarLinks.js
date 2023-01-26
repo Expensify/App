@@ -225,8 +225,6 @@ const chatReportSelector = (report) => {
         errorFields: {
             addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
         },
-        maxSequenceNumber: report.maxSequenceNumber,
-        lastReadSequenceNumber: report.lastReadSequenceNumber,
         lastReadTime: report.lastReadTime,
         lastMessageText: report.lastMessageText,
         lastActionCreated: report.lastActionCreated,

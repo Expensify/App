@@ -30,7 +30,7 @@ class RoomNameInput extends Component {
     }
 
     render() {
-        const keyboardType = getOperatingSystem() === CONST.OS.IOS ? 'default' : 'visible-password';
+        const keyboardType = getOperatingSystem() === CONST.OS.IOS ? CONST.KEYBOARD_TYPE.ASCII_CAPABLE : CONST.KEYBOARD_TYPE.VISIBLE_PASSWORD;
         return (
             <TextInput
                 ref={this.props.forwardedRef}
@@ -45,6 +45,7 @@ class RoomNameInput extends Component {
                 keyboardType={keyboardType} // this is a bit hacky solution to a RN issue https://github.com/facebook/react-native/issues/27449
                 onBlur={this.props.onBlur}
                 autoFocus={this.props.autoFocus}
+                autoCapitalize="none"
             />
         );
     }
