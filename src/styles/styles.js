@@ -351,6 +351,10 @@ const styles = {
         paddingLeft: 0,
     },
 
+    pl8: {
+        paddingLeft: 8,
+    },
+
     textDanger: {
         color: themeColors.danger,
     },
