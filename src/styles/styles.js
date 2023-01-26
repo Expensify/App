@@ -141,6 +141,7 @@ const webViewStyles = {
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.EXP_NEUE,
         flex: 1,
+        lineHeight: variables.fontSizeNormalHeight,
     },
 };
 
@@ -2005,15 +2006,18 @@ const styles = {
         left: 0,
         backgroundColor: themeColors.overlay,
         opacity: variables.overlayOpacity,
+        borderRadius: 88,
     },
 
     avatarInnerTextChat: {
         color: themeColors.textLight,
-        fontSize: variables.fontSizeNormal,
-        left: 1,
+        fontSize: variables.fontSizeXLarge,
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
         textAlign: 'center',
         fontWeight: 'normal',
         position: 'absolute',
+        width: 88,
+        left: -16,
     },
 
     pageWrapper: {
