@@ -2,6 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import moment from 'moment';
+import DeviceInfo from 'react-native-device-info';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
@@ -26,6 +27,12 @@ Onyx.connect({
     callback: (val) => {
         currentUserAccountID = lodashGet(val, 'accountID', '');
     },
+});
+
+let isUserOptedInToPushNotifications = false;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
+    callback: (val) => isUserOptedInToPushNotifications = val,
 });
 
 /**
@@ -467,6 +474,47 @@ function generateStatementPDF(period) {
     });
 }
 
+/**
+ * A private helper function for optInToPushNotifications and optOutOfPushNotifications.
+ *
+ * @param {Boolean} isOptingIn
+ */
+function setPushNotificationOptInStatus(isOptingIn) {
+    const deviceID = DeviceInfo.getDeviceId();
+    const commandName = isOptingIn ? 'OptInToPushNotifications' ? 'OptOutOfPushNotifications';
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
+            value: {[deviceID]: isOptingIn},
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
+            value: {[deviceID]: isUserOptedInToPushNotifications},
+        },
+    ];
+    API.write(commandName, {deviceID}, {optimisticData, failureData});
+}
+
+/**
+ * Record that user opted-in to push notifications on the current device.
+ * NOTE: This is purely for record-keeping purposes, and does not affect whether our server will attempt to send notifications to this user.
+ */
+function optInToPushNotifications() {
+    setPushNotificationOptInStatus(true);
+}
+
+/**
+ * Record that user opted-out from push notifications on the current device.
+ * NOTE: This is purely for record-keeping purposes, and does not affect whether our server will attempt to send notifications to this user.
+ */
+function optOutOfPushNotifications() {
+    setPushNotificationOptInStatus(false);
+}
+
 export {
     updatePassword,
     closeAccount,
@@ -487,4 +535,6 @@ export {
     deletePaypalMeAddress,
     addPaypalMeAddress,
     updateChatPriorityMode,
+    optInToPushNotifications,
+    optOutOfPushNotifications,
 };
