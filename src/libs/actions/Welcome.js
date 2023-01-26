@@ -65,7 +65,6 @@ Onyx.connect({
     },
 });
 
-const allPolicies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (val, key) => {
@@ -73,7 +72,7 @@ Onyx.connect({
             return;
         }
 
-        allPolicies[key] = {...allPolicies[key], ...val};
+        Policy.allPolicies[key] = {...Policy.allPolicies[key], ...val};
     },
 });
 
@@ -120,7 +119,7 @@ function show({routes, showCreateMenu}) {
 
         // If user is not already an admin of a free policy and we are not navigating them to their workspace or creating a new workspace via workspace/new then
         // we will show the create menu.
-        if (!Policy.isAdminOfFreePolicy(allPolicies) && !isDisplayingWorkspaceRoute) {
+        if (!Policy.isAdminOfFreePolicy(Policy.allPolicies) && !isDisplayingWorkspaceRoute) {
             showCreateMenu();
         }
     });
