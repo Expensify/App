@@ -495,7 +495,7 @@ class EmojiPickerMenu extends Component {
                     onPress={this.scrollToHeader}
                 />
                 {!this.props.isSmallScreenWidth && (
-                    <View style={[styles.pt1, styles.ph4, styles.pb1]}>
+                    <View style={[styles.ph4, styles.pb1]}>
                         <Composer
                             textAlignVertical="top"
                             placeholder={this.props.translate('common.search')}

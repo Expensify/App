@@ -1518,6 +1518,7 @@ const styles = {
         paddingTop: 2,
         paddingBottom: 2,
         height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+        justifyContent: 'center',
     },
 
     chatItemEmojiButton: {

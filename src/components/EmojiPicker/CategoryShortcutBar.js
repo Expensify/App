@@ -20,25 +20,17 @@ const propTypes = {
 
     /** The indices that the icons should link to */
     headerIndices: PropTypes.arrayOf(PropTypes.number).isRequired,
-
-    /** Handles what to do when we hover over this item with our cursor */
-    onHoverIn: PropTypes.func,
-
-    /** Handles what to do when the hover is out */
-    onHoverOut: PropTypes.func,
 };
 
 const CategoryShortcutBar = (props) => {
     const icons = [Recent, Smiley, AnimalsAndNature, FoodAndDrink, TravelAndPlaces, Activities, Objects, Symbols, Flags];
 
     return (
-        <View style={[styles.pt4, styles.ph4, styles.alignItemsStart, styles.flexRow]}>
+        <View style={[styles.pv2, styles.ph4, styles.flexRow]}>
             {_.map(props.headerIndices, (headerIndex, i) => (
                 <CategoryShortcutButton
-                    emoji={icons[i]}
+                    icon={icons[i]}
                     onPress={() => props.onPress(headerIndex)}
-                    onHoverIn={props.onHoverIn}
-                    onHoverOut={props.onHoverOut}
                     key={`categoryShortcut${i}`}
                 />
             ))}
