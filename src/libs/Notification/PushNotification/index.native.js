@@ -1,34 +1,9 @@
 import _ from 'underscore';
 import {UrbanAirship, EventType, iOS} from 'urbanairship-react-native';
 import lodashGet from 'lodash/get';
-import Onyx from 'react-native-onyx';
-import DeviceInfo from 'react-native-device-info';
-import ONYXKEYS from '../../../ONYXKEYS';
 import Log from '../../Log';
 import NotificationType from './NotificationType';
 import * as User from '../../actions/User';
-
-const deviceID = DeviceInfo.getDeviceId();
-
-let isUserOptedInToPushNotifications = false;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
-    callback: (val) => {
-        const pushNotificationOptInRecord = lodashGet(val, deviceID, []);
-        const mostRecentNVPValue = _.last(pushNotificationOptInRecord);
-        if (!_.has(mostRecentNVPValue, 'isEnabled')) {
-            return;
-        }
-        isUserOptedInToPushNotifications = mostRecentNVPValue.isEnabled;
-    },
-});
-
-/**
- * @returns {Boolean}
- */
-function isUserOptedIn() {
-    return isUserOptedInToPushNotifications;
-}
 
 const notificationEventActionMap = {};
 
@@ -77,7 +52,7 @@ function refreshNotificationOptInStatus() {
     UrbanAirship.getNotificationStatus()
         .then((notificationStatus) => {
             const isOptedIn = notificationStatus.airshipOptIn && notificationStatus.systemEnabled;
-            if (isOptedIn === isUserOptedInToPushNotifications) {
+            if (isOptedIn === User.isUserOptedIntoPushNotifications()) {
                 return;
             }
 
@@ -97,7 +72,7 @@ function init() {
     // Setup event listeners
     UrbanAirship.addListener(EventType.PushReceived, (notification) => {
         // By default, refresh notification opt-in status to true if we receive a notification
-        if (!isUserOptedInToPushNotifications) {
+        if (!User.isUserOptedIntoPushNotifications()) {
             User.setPushNotificationOptInStatus(true);
         }
 
@@ -212,7 +187,6 @@ function clearNotifications() {
 }
 
 export default {
-    isUserOptedIn,
     init,
     register,
     deregister,
