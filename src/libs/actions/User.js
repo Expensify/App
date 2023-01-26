@@ -475,7 +475,8 @@ function generateStatementPDF(period) {
 }
 
 /**
- * A private helper function for optInToPushNotifications and optOutOfPushNotifications.
+ * Record that user opted-in or opted-out of push notifications on the current device.
+ * NOTE: This is purely for record-keeping purposes, and does not affect whether our server will attempt to send notifications to this user.
  *
  * @param {Boolean} isOptingIn
  */
@@ -499,22 +500,6 @@ function setPushNotificationOptInStatus(isOptingIn) {
     API.write(commandName, {deviceID}, {optimisticData, failureData});
 }
 
-/**
- * Record that user opted-in to push notifications on the current device.
- * NOTE: This is purely for record-keeping purposes, and does not affect whether our server will attempt to send notifications to this user.
- */
-function optInToPushNotifications() {
-    setPushNotificationOptInStatus(true);
-}
-
-/**
- * Record that user opted-out from push notifications on the current device.
- * NOTE: This is purely for record-keeping purposes, and does not affect whether our server will attempt to send notifications to this user.
- */
-function optOutOfPushNotifications() {
-    setPushNotificationOptInStatus(false);
-}
-
 export {
     updatePassword,
     closeAccount,
@@ -535,6 +520,5 @@ export {
     deletePaypalMeAddress,
     addPaypalMeAddress,
     updateChatPriorityMode,
-    optInToPushNotifications,
-    optOutOfPushNotifications,
+    setPushNotificationOptInStatus,
 };
