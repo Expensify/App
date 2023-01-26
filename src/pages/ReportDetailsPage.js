@@ -54,34 +54,33 @@ const propTypes = {
 };
 
 class ReportDetailsPage extends Component {
-    constructor(props) {
-        super(props);
-
-        this.menuItems = [];
+    getMenuItems() {
         if (ReportUtils.isArchivedRoom(this.props.report)) {
             return;
         }
 
+        const menuItems = [];
+
         // All nonarchived chats should let you see their members
-        this.menuItems.push({
+        menuItems.push({
             key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
             translationKey: 'common.members',
             icon: Expensicons.Users,
-            subtitle: lodashGet(props.report, 'participants', []).length,
-            action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
+            subtitle: lodashGet(this.props.report, 'participants', []).length,
+            action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(this.props.report.reportID)); },
         });
 
         if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report)) {
-            this.menuItems.push({
+            menuItems.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
                 translationKey: 'common.settings',
                 icon: Expensicons.Gear,
-                action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID)); },
+                action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(this.props.report.reportID)); },
             });
         }
 
         if (ReportUtils.isUserCreatedPolicyRoom(this.props.report)) {
-            this.menuItems.push({
+            menuItems.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
                 icon: Expensicons.Plus,
@@ -94,6 +93,7 @@ class ReportDetailsPage extends Component {
                 action: () => { /* Placeholder for when leaving rooms is built in */ },
             });
         }
+        return menuItems;
     }
 
     render() {
@@ -106,6 +106,7 @@ class ReportDetailsPage extends Component {
             OptionsListUtils.getPersonalDetailsForLogins(participants, this.props.personalDetails),
             isMultipleParticipant,
         );
+        const menuItems = this.getMenuItems();
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -148,7 +149,7 @@ class ReportDetailsPage extends Component {
                             </View>
                         </View>
                     </View>
-                    {_.map(this.menuItems, (item) => {
+                    {_.map(menuItems, (item) => {
                         const brickRoadIndicator = (
                             ReportUtils.hasReportNameError(this.props.report)
                             && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS
