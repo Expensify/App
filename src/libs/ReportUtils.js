@@ -114,36 +114,31 @@ function sortReportsByLastRead(reports) {
 }
 
 /**
- * Can only edit if it's an ADDCOMMENT that is not an attachment,
- * the author is this user and it's not an optimistic response.
- * If it's an optimistic response comment it will not have a reportActionID,
- * and we should wait until it does before we show the actions
+ * Can only edit if:
+ *
+ * - It was written by the current user
+ * - It's an ADDCOMMENT that is not an attachment
+ * - It's not pending deletion
  *
  * @param {Object} reportAction
  * @returns {Boolean}
  */
 function canEditReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
-        && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
         && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {}))
-        && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
         && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 /**
- * Can only delete if it's an ADDCOMMENT, the author is this user and it's not an optimistic response.
- * If it's an optimistic response comment it will not have a reportActionID,
- * and we should wait until it does before we show the actions
+ * Can only delete if it's an ADDCOMMENT, the author is this user.
  *
  * @param {Object} reportAction
  * @returns {Boolean}
  */
 function canDeleteReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
-        && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
-        && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
         && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 

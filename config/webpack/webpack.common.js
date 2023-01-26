@@ -142,6 +142,13 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 ],
             },
 
+            // We are importing this worker as a string by using asset/source otherwise it will default to loading via an HTTPS request later.
+            // This causes issues if we have gone offline before the pdfjs web worker is set up as we won't be able to load it from the server.
+            {
+                test: new RegExp('node_modules/pdfjs-dist/legacy/build/pdf.worker.js'),
+                type: 'asset/source',
+            },
+
             // Rule for react-native-web-webview
             {
                 test: /postMock.html$/,
