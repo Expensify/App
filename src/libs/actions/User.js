@@ -32,7 +32,7 @@ Onyx.connect({
 let isUserOptedInToPushNotifications = false;
 Onyx.connect({
     key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
-    callback: (val) => isUserOptedInToPushNotifications = val,
+    callback: val => isUserOptedInToPushNotifications = val,
 });
 
 /**
