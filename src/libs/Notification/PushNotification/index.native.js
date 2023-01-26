@@ -8,10 +8,16 @@ import Log from '../../Log';
 import NotificationType from './NotificationType';
 import * as User from '../../actions/User';
 
-let isUserOptedInToPushNotifications = null;
+let isUserOptedInToPushNotifications = false;
 Onyx.connect({
     key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
-    callback: val => isUserOptedInToPushNotifications = val,
+    callback: (val) => {
+        const mostRecentNVPValue = _.last(val);
+        if (!_.has(mostRecentNVPValue, 'isEnabled')) {
+            return;
+        }
+        isUserOptedInToPushNotifications = mostRecentNVPValue.isEnabled;
+    },
 });
 
 const notificationEventActionMap = {};
