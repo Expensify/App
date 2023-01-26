@@ -1461,6 +1461,7 @@ const styles = {
         height: 32,
         display: 'flex',
         alignItems: 'center',
+        justifyContent: 'center',
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
