@@ -483,7 +483,7 @@ function generateStatementPDF(period) {
  */
 function setPushNotificationOptInStatus(isOptingIn) {
     const deviceID = DeviceInfo.getDeviceId();
-    const commandName = isOptingIn ? 'OptInToPushNotifications' ? 'OptOutOfPushNotifications';
+    const commandName = isOptingIn ? 'OptInToPushNotifications' : 'OptOutOfPushNotifications';
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
