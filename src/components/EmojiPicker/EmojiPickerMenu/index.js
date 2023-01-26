@@ -21,6 +21,7 @@ import * as User from '../../../libs/actions/User';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import CategoryShortcutButton from '../CategoryShortcutButton';
+import CategoryShortcutBar from "../CategoryShortcutBar";
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -489,14 +490,10 @@ class EmojiPickerMenu extends Component {
                 style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
-                <View style={[styles.pt4, styles.ph4, styles.pb1, styles.alignItemsStart, styles.flexRow]}>
-                    {_.map(this.headerIndices, headerIndex => (
-                        <CategoryShortcutButton
-                            emoji={this.emojis[headerIndex + 8].code}
-                            onPress={() => this.scrollToHeader(headerIndex)}
-                        />
-                    ))}
-                </View>
+                <CategoryShortcutBar
+                    headerIndices={this.headerIndices}
+                    onPress={this.scrollToHeader}
+                />
                 {!this.props.isSmallScreenWidth && (
                     <View style={[styles.pt4, styles.ph4, styles.pb1]}>
                         <Composer
