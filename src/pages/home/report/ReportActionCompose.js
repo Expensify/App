@@ -553,10 +553,13 @@ class ReportActionCompose extends React.Component {
                     <AttachmentModal
                         headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
                         onConfirm={this.addAttachment}
+                        onModalHide={() => this.focus(true)}
                     >
                         {({displayFileInModal}) => (
                             <>
-                                <AttachmentPicker>
+                                <AttachmentPicker
+                                    onClose={() => this.focus(true)}
+                                >
                                     {({openPicker}) => (
                                         <>
                                             <View style={[
@@ -608,6 +611,7 @@ class ReportActionCompose extends React.Component {
 
                                                                 // Drop focus to avoid blue focus ring.
                                                                 this.actionButton.blur();
+                                                                this.textInput.blur();
                                                                 this.setMenuVisibility(true);
                                                             }}
                                                             style={styles.chatItemAttachButton}
@@ -621,7 +625,10 @@ class ReportActionCompose extends React.Component {
                                             <PopoverMenu
                                                 animationInTiming={CONST.ANIMATION_IN_TIMING}
                                                 isVisible={this.state.isMenuVisible}
-                                                onClose={() => this.setMenuVisibility(false)}
+                                                onClose={() => {
+                                                    this.setMenuVisibility(false);
+                                                    this.focus(true);
+                                                }}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
                                                 anchorPosition={styles.createMenuPositionReportActionCompose}
                                                 menuItems={[...this.getIOUOptions(reportParticipants),

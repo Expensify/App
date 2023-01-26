@@ -24,10 +24,12 @@ const propTypes = {
 
     /** The types of files that can be selected with this picker. */
     type: PropTypes.oneOf([CONST.ATTACHMENT_PICKER_TYPE.FILE, CONST.ATTACHMENT_PICKER_TYPE.IMAGE]),
+    onClose: PropTypes.func,
 };
 
 const defaultProps = {
     type: CONST.ATTACHMENT_PICKER_TYPE.FILE,
+    onClose: () => {},
 };
 
 export {

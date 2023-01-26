@@ -142,6 +142,7 @@ class AttachmentPicker extends Component {
       */
     pickAttachment(attachments = []) {
         if (attachments.length === 0) {
+            this.props.onClose();
             return;
         }
 
@@ -311,7 +312,10 @@ class AttachmentPicker extends Component {
         return (
             <>
                 <Popover
-                    onClose={this.close}
+                    onClose={() => {
+                        this.close();
+                        this.props.onClose();
+                    }}
                     isVisible={this.state.isVisible}
                     anchorPosition={styles.createMenuPosition}
                     onModalHide={this.onModalHide}
