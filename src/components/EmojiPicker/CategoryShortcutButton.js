@@ -1,7 +1,9 @@
 import React from 'react';
+import Icon from '../Icon';
 import PropTypes from 'prop-types';
-import {Image, Pressable} from 'react-native';
+import {Image, Pressable, View} from 'react-native';
 import styles from '../../styles/styles';
+import colors from '../../styles/colors';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
 import Text from '../Text';
@@ -34,10 +36,12 @@ const CategoryShortcutButton = props => (
             styles.categoryShortcutButton,
         ])}
     >
-        <Image
-            style={styles.categoryShortcutIcon}
-            source={{uri: props.emoji}}
-        />
+        <View style={styles.alignSelfCenter}>
+            <Icon
+                fill={colors.green}
+                src={props.emoji}
+            />
+        </View>
     </Pressable>
 
 );
