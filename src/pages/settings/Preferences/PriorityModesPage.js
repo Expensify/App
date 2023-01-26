@@ -27,12 +27,12 @@ const PriorityModesPage = (props) => {
         {
             value: CONST.PRIORITY_MODE.DEFAULT,
             text: props.translate('priorityModesPage.mostRecent'),
-            description: props.translate('priorityModesPage.mostRecentModeDescription'),
+            alternateText: props.translate('priorityModesPage.mostRecentModeDescription'),
         },
         {
             value: CONST.PRIORITY_MODE.GSD,
             text: props.translate('priorityModesPage.focus'),
-            description: props.translate('priorityModesPage.focusModeDescription'),
+            alternateText: props.translate('priorityModesPage.focusModeDescription'),
         },
     ].map(mode => {
         return {

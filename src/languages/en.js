@@ -494,9 +494,9 @@ export default {
         priorityMode: 'Priority mode',
         explainerText: 'Choose whether to show all chats by default sorted with most recent with pinned items at the top, or #focus on unread pinned items, sorted alphabetically.',  
         mostRecent: 'Most recent',
-        mostRecentModeDescription: 'This will display all chats by default, sorted by most recent, with pinned items at the top.',
+        mostRecentModeDescription: 'Show all chats sorted by most recent',
         focus: '#focus',
-        focusModeDescription: '#focus – This will only display unread and pinned chats, all sorted alphabetically.',
+        focusModeDescription: 'Only show unread sorted alphabetically',
     },
     languagesPage: {
         language: 'Language',

@@ -53,10 +53,9 @@ const LanguagesPage = (props) => {
         <OptionsList
             sections={[{ data: localesToLanguages }]}
             onSelectRow={language => {
-                if (language.value === props.preferredLocale) {
-                    return;
+                if (language.value !== props.preferredLocale) {
+                    App.setLocale(language.value);   
                 }
-                App.setLocale(language.value);
                 Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
             }}
             hideSectionHeaders
