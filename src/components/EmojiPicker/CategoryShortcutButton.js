@@ -1,6 +1,7 @@
 import React from 'react';
 import Icon from '../Icon';
 import PropTypes from 'prop-types';
+import variables from '../../styles/variables';
 import {Image, Pressable, View} from 'react-native';
 import styles from '../../styles/styles';
 import colors from '../../styles/colors';
@@ -40,6 +41,8 @@ const CategoryShortcutButton = props => (
             <Icon
                 fill={colors.green}
                 src={props.emoji}
+                height={variables.iconSizeNormal}
+                width={variables.iconSizeNormal}
             />
         </View>
     </Pressable>

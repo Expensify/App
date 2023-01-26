@@ -1514,17 +1514,10 @@ const styles = {
 
     categoryShortcutButton: {
         width: '11.11%',
-        textAlign: 'center',
         borderRadius: 8,
         paddingTop: 2,
         paddingBottom: 2,
         height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
-    },
-
-    categoryShortcutIcon: {
-        width: '100%',
-        height: '100%',
-        backgroundColor: themeColors.icon,
     },
 
     chatItemEmojiButton: {
