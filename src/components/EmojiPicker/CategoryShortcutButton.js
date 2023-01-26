@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Pressable} from 'react-native';
+import {Image, Pressable} from 'react-native';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
@@ -8,7 +8,7 @@ import Text from '../Text';
 
 const propTypes = {
     /** The unicode that is used to display the emoji */
-    emoji: PropTypes.string.isRequired,
+    emoji: PropTypes.func.isRequired,
 
     /** The function to call when an emoji is selected */
     onPress: PropTypes.func.isRequired,
@@ -25,7 +25,7 @@ const propTypes = {
 
 const CategoryShortcutButton = props => (
     <Pressable
-        onPress={() => props.onPress(props.emoji)}
+        onPress={props.onPress}
         onHoverIn={props.onHoverIn}
         onHoverOut={props.onHoverOut}
         style={({pressed}) => ([
@@ -34,9 +34,10 @@ const CategoryShortcutButton = props => (
             styles.categoryShortcutButton,
         ])}
     >
-        <Text style={[styles.emojiText]}>
-            {props.emoji}
-        </Text>
+        <Image
+            style={styles.emojiText}
+            source={{uri: props.emoji}}
+        />
     </Pressable>
 
 );
