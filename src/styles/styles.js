@@ -1455,12 +1455,15 @@ const styles = {
         height: 240,
     },
 
-    emojiHeaderStyle: {
+    emojiHeaderContainer: {
         backgroundColor: themeColors.componentBG,
-        width: '100%',
-        height: 32,
         display: 'flex',
-        alignItems: 'center',
+        height: 32,
+        justifyContent: 'center',
+        width: '100%',
+    },
+
+    emojiHeaderStyle: {
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
