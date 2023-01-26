@@ -188,7 +188,7 @@ class ACHContractStep extends React.Component {
                         <>
                             {
                                 // eslint-disable-next-line no-console
-                                console.log(inputValues)
+                                console.log(inputValues.hasOtherBeneficialOwners)
                             }
                             <Text style={[styles.mb5]}>
                                 <Text>{this.props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>
