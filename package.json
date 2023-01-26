@@ -41,7 +41,7 @@
     "test:e2e": "node tests/e2e/testRunner.js --development"
   },
   "dependencies": {
-    "@expensify/react-native-web": "0.18.9",
+    "@expensify/react-native-web": "0.18.10",
     "@formatjs/intl-getcanonicallocales": "^1.5.8",
     "@formatjs/intl-locale": "^2.4.21",
     "@formatjs/intl-numberformat": "^6.2.5",
