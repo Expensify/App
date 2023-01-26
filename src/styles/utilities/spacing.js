@@ -330,6 +330,10 @@ export default {
         paddingTop: 0,
     },
 
+    pt1: {
+        paddingTop: 4,
+    },
+
     pt2: {
         paddingTop: 8,
     },

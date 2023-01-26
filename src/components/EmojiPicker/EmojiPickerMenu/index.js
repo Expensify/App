@@ -90,6 +90,7 @@ class EmojiPickerMenu extends Component {
         this.updatePreferredSkinTone = this.updatePreferredSkinTone.bind(this);
         this.setFirstNonHeaderIndex = this.setFirstNonHeaderIndex.bind(this);
         this.getItemLayout = this.getItemLayout.bind(this);
+        this.scrollToHeader = this.scrollToHeader.bind(this);
 
         this.currentScrollOffset = 0;
         this.firstNonHeaderIndex = 0;
@@ -494,7 +495,7 @@ class EmojiPickerMenu extends Component {
                     onPress={this.scrollToHeader}
                 />
                 {!this.props.isSmallScreenWidth && (
-                    <View style={[styles.ph4, styles.pb1]}>
+                    <View style={[styles.pt1, styles.ph4, styles.pb1]}>
                         <Composer
                             textAlignVertical="top"
                             placeholder={this.props.translate('common.search')}
