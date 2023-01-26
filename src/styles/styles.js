@@ -26,12 +26,12 @@ const picker = {
     fontFamily: fontFamily.EXP_NEUE,
     fontSize: variables.fontSizeNormal,
     lineHeight: variables.fontSizeNormalHeight,
-    paddingHorizontal: 11,
     paddingBottom: 8,
     paddingTop: 23,
+    paddingLeft: 0,
+    paddingRight: 25,
     height: variables.inputHeight,
     borderWidth: 0,
-    borderRadius: variables.componentBorderRadiusNormal,
     textAlign: 'left',
 };
 
@@ -561,8 +561,8 @@ const styles = {
         inputIOS: {
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
-            paddingLeft: 9,
-            paddingRight: 25,
+            paddingLeft: 0,
+            paddingRight: 17,
             paddingTop: 6,
             paddingBottom: 6,
             borderRadius: variables.componentBorderRadius,
@@ -575,8 +575,8 @@ const styles = {
         inputWeb: {
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
-            paddingLeft: 9,
-            paddingRight: 25,
+            paddingLeft: 0,
+            paddingRight: 17,
             paddingTop: 6,
             paddingBottom: 6,
             borderWidth: 0,
@@ -591,8 +591,8 @@ const styles = {
         inputAndroid: {
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
-            paddingLeft: 9,
-            paddingRight: 25,
+            paddingLeft: 0,
+            paddingRight: 17,
             paddingTop: 6,
             paddingBottom: 6,
             borderWidth: 0,
@@ -603,7 +603,6 @@ const styles = {
         },
         iconContainer: {
             top: 7,
-            right: 8,
             ...pointerEventsNone,
         },
         icon: {
@@ -718,24 +717,22 @@ const styles = {
 
     textInputContainer: {
         flex: 1,
-        borderRadius: variables.componentBorderRadiusNormal,
         justifyContent: 'center',
         height: '100%',
-        backgroundColor: themeColors.componentBG,
-        borderWidth: 1,
+        backgroundColor: 'transparent',
+        borderBottomWidth: 2,
         borderColor: themeColors.border,
         overflow: 'hidden',
     },
 
     textInputLabel: {
         position: 'absolute',
-        left: 11,
+        left: 0,
         top: 0,
         fontSize: variables.fontSizeNormal,
         color: themeColors.textSupporting,
         fontFamily: fontFamily.EXP_NEUE,
         width: '100%',
-        textAlign: 'left',
     },
 
     textInputLabelBackground: {
@@ -744,8 +741,6 @@ const styles = {
         width: '100%',
         height: 25,
         backgroundColor: themeColors.componentBG,
-        borderTopRightRadius: variables.componentBorderRadiusNormal,
-        borderTopLeftRadius: variables.componentBorderRadiusNormal,
     },
 
     textInputLabelDesktop: {
@@ -767,7 +762,7 @@ const styles = {
         color: themeColors.text,
         paddingTop: 23,
         paddingBottom: 8,
-        paddingHorizontal: 11,
+        paddingLeft: 0,
         borderWidth: 0,
     },
 
@@ -789,8 +784,6 @@ const styles = {
     textInputDesktop: addOutlineWidth({}, 0),
 
     secureInputShowPasswordButton: {
-        borderTopRightRadius: 6,
-        borderBottomRightRadius: 6,
         paddingHorizontal: 11,
         justifyContent: 'center',
         margin: 1,
@@ -802,7 +795,7 @@ const styles = {
     },
 
     textInput: {
-        backgroundColor: themeColors.componentBG,
+        backgroundColor: 'transparent',
         borderRadius: variables.componentBorderRadiusNormal,
         height: variables.inputComponentSizeNormal,
         borderColor: themeColors.border,
@@ -832,30 +825,43 @@ const styles = {
     },
 
     pickerContainer: {
-        borderWidth: 1,
+        borderBottomWidth: 2,
+        paddingLeft: 0,
         borderStyle: 'solid',
         borderColor: themeColors.border,
-        borderRadius: variables.componentBorderRadiusNormal,
         justifyContent: 'center',
-        backgroundColor: themeColors.componentBG,
+        backgroundColor: 'transparent',
+        height: variables.inputHeight,
     },
+
+    pickerContainerSmall: {
+        height: variables.inputHeightSmall,
+    },
+
     pickerLabel: {
         position: 'absolute',
-        left: 11,
+        left: 0,
         top: 6,
     },
+
     picker: (disabled = false) => ({
         iconContainer: {
             top: Math.round(variables.inputHeight * 0.5) - 11,
-            right: 10,
+            right: 0,
             zIndex: -1,
         },
+
         inputWeb: {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...picker,
         },
-        inputNative: {
+
+        inputIOS: {
+            ...picker,
+        },
+
+        inputAndroid: {
             ...picker,
         },
     }),
@@ -867,16 +873,6 @@ const styles = {
     inputDisabled: {
         backgroundColor: themeColors.highlightBG,
         color: themeColors.icon,
-    },
-
-    textInputReversed: addOutlineWidth({
-        backgroundColor: themeColors.heading,
-        borderColor: themeColors.text,
-        color: themeColors.textReversed,
-    }, 0),
-
-    textInputReversedFocus: {
-        borderColor: themeColors.icon,
     },
 
     noOutline: addOutlineWidth({}, 0),
@@ -1403,7 +1399,6 @@ const styles = {
         fontFamily: fontFamily.EMOJI_TEXT_FONT,
         fontSize: variables.fontSizeNormal,
         borderWidth: 0,
-        borderRadius: variables.componentBorderRadiusRounded,
         height: 'auto',
         lineHeight: variables.lineHeightXLarge,
         ...overflowXHidden,
@@ -1426,6 +1421,7 @@ const styles = {
     },
 
     editInputComposeSpacing: {
+        backgroundColor: themeColors.transparent,
         marginVertical: 6,
     },
 
@@ -1798,6 +1794,7 @@ const styles = {
 
     borderNone: {
         borderWidth: 0,
+        borderBottomWidth: 0,
     },
 
     borderRight: {
