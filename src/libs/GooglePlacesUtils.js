@@ -23,7 +23,7 @@ function getAddressComponent(addressComponents, type, key) {
 }
 
 function getAddressComponentsUnderscore(addressComponents, fieldsToExtract) {
-    const startTime = performance.now()
+    //const startTime = performance.now();
     const result = _.mapObject(fieldsToExtract, () => '');
     _.each(addressComponents, (addressComponent) => {
         _.each(addressComponent.types, (addressType) => {
@@ -33,13 +33,13 @@ function getAddressComponentsUnderscore(addressComponents, fieldsToExtract) {
             result[addressType] = lodashGet(addressComponent, fieldsToExtract[addressType], '');
         });
     });
-    const endTime = performance.now()
-    console.log(`Call to getAddressComponentsUnderscore took ${endTime - startTime}ms`);
+    //const endTime = performance.now();
+    //console.log(`Call to getAddressComponentsUnderscore took ${endTime - startTime}ms`);
     return result;
 }
 
 function getAddressComponentsNested(addressComponents, fieldsToExtract) {
-    const startTime = performance.now()
+    //const startTime = performance.now();
 
     const result = {};
     for(const field in fieldsToExtract) {
@@ -57,13 +57,13 @@ function getAddressComponentsNested(addressComponents, fieldsToExtract) {
 
         result[typeToFind] = addressComponent ? addressComponent[nameToFind] : '';
     }
-    const endTime = performance.now()
-    console.log(`Call to getAddressComponentsNested took ${endTime - startTime}ms`);
+    //const endTime = performance.now();
+    //console.log(`Call to getAddressComponentsNested took ${endTime - startTime}ms`);
     return result;
 }
 
 function getAddressComponents(addressComponents, fieldsToExtract) {
-    const startTime = performance.now()
+    //const startTime = performance.now();
     // We want to avoid using a nested loops in conjunction with nested array built-ins so that we avoid
     // large O(n^2) complexity so separate out finding the objects we want from the loop of building an object to return
     const typesToFind = Object.keys(fieldsToExtract);
@@ -74,8 +74,8 @@ function getAddressComponents(addressComponents, fieldsToExtract) {
         return {...obj, [type]: (matchedComponents[indx] ? matchedComponents[indx][nameToFind[indx]] : '')};
     }, {});
 
-    const endTime = performance.now()
-    console.log(`Call to getAddressComponents took ${endTime - startTime}ms`);
+    //const endTime = performance.now();
+    //console.log(`Call to getAddressComponents took ${endTime - startTime}ms`);
     return result;
 }
 
