@@ -91,6 +91,7 @@
     "react-native-blob-util": "^0.16.2",
     "react-native-collapsible": "^1.6.0",
     "react-native-config": "^1.4.5",
+    "react-native-device-info": "^10.3.0",
     "react-native-document-picker": "^8.0.0",
     "react-native-fast-image": "^8.6.3",
     "react-native-gesture-handler": "2.6.0",
