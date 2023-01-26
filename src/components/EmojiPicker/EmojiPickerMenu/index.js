@@ -20,8 +20,7 @@ import getOperatingSystem from '../../../libs/getOperatingSystem';
 import * as User from '../../../libs/actions/User';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
-import CategoryShortcutButton from '../CategoryShortcutButton';
-import CategoryShortcutBar from "../CategoryShortcutBar";
+import CategoryShortcutBar from '../CategoryShortcutBar';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -495,7 +494,7 @@ class EmojiPickerMenu extends Component {
                     onPress={this.scrollToHeader}
                 />
                 {!this.props.isSmallScreenWidth && (
-                    <View style={[styles.pt1, styles.ph4, styles.pb1]}>
+                    <View style={[styles.ph4, styles.pb1]}>
                         <Composer
                             textAlignVertical="top"
                             placeholder={this.props.translate('common.search')}

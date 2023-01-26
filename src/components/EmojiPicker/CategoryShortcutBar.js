@@ -1,10 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Pressable, View} from 'react-native';
+import {View} from 'react-native';
+import _ from 'underscore/underscore-node.mjs';
 import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
-import getButtonState from '../../libs/getButtonState';
-import Text from '../Text';
 import Smiley from '../../../assets/images/emoji.svg';
 import AnimalsAndNature from '../../../assets/images/emojiCategoryIcons/plant.svg';
 import FoodAndDrink from '../../../assets/images/emojiCategoryIcons/hamburger.svg';
@@ -14,8 +12,7 @@ import Objects from '../../../assets/images/emojiCategoryIcons/light-bulb.svg';
 import Symbols from '../../../assets/images/emojiCategoryIcons/peace-sign.svg';
 import Flags from '../../../assets/images/emojiCategoryIcons/flag.svg';
 import Recent from '../../../assets/images/history.svg';
-import _ from "underscore/underscore-node.mjs";
-import CategoryShortcutButton from "./CategoryShortcutButton";
+import CategoryShortcutButton from './CategoryShortcutButton';
 
 const propTypes = {
     /** The function to call when an emoji is selected */
