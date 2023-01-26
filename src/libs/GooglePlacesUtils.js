@@ -34,22 +34,39 @@ function getAddressComponents(addressComponents, fieldsToExtract) {
     //    });
     //});
 
-    const result = {};
-    for(const field in fieldsToExtract) {
-        const typeToFind = field;
-        const nameToFind = fieldsToExtract[field];
-        const addressComponent = addressComponents.find((elm, indx) => {
-            if (_.isArray(elm['types'])) {
-                return elm.types.find((type) => {
-                    return type === typeToFind;
-                })
-            } else {
-                return false;
-            }
-        });
+    //const result = {};
+    //for(const field in fieldsToExtract) {
+    //    const typeToFind = field;
+    //    const nameToFind = fieldsToExtract[field];
+    //    const addressComponent = addressComponents.find((elm, indx) => {
+    //        if (_.isArray(elm['types'])) {
+    //            return elm.types.find((type) => {
+    //                return type === typeToFind;
+    //            })
+    //        } else {
+    //            return false;
+    //        }
+    //    });
 
-        result[typeToFind] = addressComponent ? addressComponent[nameToFind] : '';
-    }
+    //    result[typeToFind] = addressComponent ? addressComponent[nameToFind] : '';
+    //}
+
+    // We want to avoid using a nested loops in conjunction with nested array built-ins so that we avoid
+    // large O(n^2) complexity so separate out finding the objects we want from the loop of building an object to return
+    const typesToFind = Object.keys(fieldsToExtract);
+    const nameToFind = Object.values(fieldsToExtract);
+    console.log({typesToFind, nameToFind});
+    const matchedComponents = addressComponents.filter(component => component['types'] && component['types'].some(type => typesToFind.indexOf(type) >= 0));
+    console.log(matchedComponents);
+
+    const result = typesToFind.reduce((obj, type, indx) => {
+        console.log(matchedComponents[indx]);
+        console.log(nameToFind[indx]);
+        console.log(obj);
+        return {...obj, [type]: (matchedComponents[indx] ? matchedComponents[indx][nameToFind[indx]] : '')};
+    }, {});
+
+    console.log(result);
 
     const endTime = performance.now()
     console.log(`Call to getAddressComponents took ${endTime - startTime} milliseconds`);
