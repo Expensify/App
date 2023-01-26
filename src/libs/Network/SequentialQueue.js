@@ -70,7 +70,7 @@ function process() {
         // If the request failed and we want to retry it:
         // - Sleep for a period of time
         // - Call process again. This will retry the same request since we have not removed it from the queue
-        requestThrottle.sleep().then(() => process());
+        return requestThrottle.sleep().then(process);
     });
 }
 
