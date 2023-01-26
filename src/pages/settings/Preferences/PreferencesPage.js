@@ -71,7 +71,7 @@ const PreferencesPage = (props) => {
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <ScrollView style={styles.flex1}>
+            <ScrollView style={[styles.flex1, styles.mt3]}>
                 <View style={styles.mb6}>
                     <Text style={[styles.textLabelSupporting, styles.mb2, styles.ml8, styles.mr8]} numberOfLines={1}>
                         {props.translate('common.notifications')}
@@ -104,7 +104,7 @@ const PreferencesPage = (props) => {
 
                     {/* If we are in the staging environment then we enable additional test features */
                         _.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], props.environment)
-                        && <View style={[styles.ml8, styles.mr8]}>
+                        && <View style={[styles.ml8, styles.mt6, styles.mr8]}>
                             <TestToolMenu />
                         </View>
                     }
