@@ -115,7 +115,6 @@ class PopoverMenu extends PureComponent {
                         {_.map(this.props.menuItems, (item, menuIndex) => (
                             <Animated.View entering={FadeIn} key={item.text}>
                                 <MenuItem
-                                    key={item.text}
                                     icon={item.icon}
                                     iconWidth={item.iconWidth}
                                     iconHeight={item.iconHeight}
