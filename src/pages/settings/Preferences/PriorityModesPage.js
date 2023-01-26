@@ -14,6 +14,7 @@ import { compose } from "underscore";
 import { withOnyx } from "react-native-onyx";
 import ONYXKEYS from "../../../ONYXKEYS";
 import * as User from '../../../libs/actions/User';
+import * as StyleUtils from '../../../styles/StyleUtils';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -64,7 +65,7 @@ const PriorityModesPage = (props) => {
                 Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
             }}
             hideSectionHeaders
-            optionHoveredStyle={[styles.hoveredComponentBG, styles.mln5, styles.mrn5, styles.pl5, styles.pr5]}
+            optionHoveredStyle={{...styles.hoveredComponentBG, ...styles.mln5, ...styles.mrn5, ...styles.pl5, ...styles.pr5}}
             shouldHaveOptionSeparator
             disableRowInnerPadding
             contentContainerStyles={[styles.ph5]}
