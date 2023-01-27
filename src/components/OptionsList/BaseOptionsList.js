@@ -121,11 +121,12 @@ class BaseOptionsList extends Component {
 
             // Add section items
             for (let i = 0; i < section.data.length; i++) {
+                let totalOptionHeight = optionHeight;
                 if (i > 0 && this.props.shouldHaveOptionSeparator) {
-                    offset += variables.borderTopWidth;
+                    totalOptionHeight += variables.borderTopWidth;
                 }
-                flatArray.push({length: optionHeight, offset});
-                offset += optionHeight;
+                flatArray.push({length: totalOptionHeight, offset});
+                offset += totalOptionHeight;
             }
 
             // Add the section footer
