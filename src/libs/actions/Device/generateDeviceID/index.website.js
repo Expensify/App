@@ -1,4 +1,4 @@
-import Str from 'expensify-common';
+import Str from 'expensify-common/lib/str';
 
 const uniqueID = Str.guid();
 
