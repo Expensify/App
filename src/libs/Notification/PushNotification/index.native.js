@@ -79,21 +79,22 @@ function refreshNotificationOptInStatus() {
 function init() {
     // Setup event listeners
     UrbanAirship.addListener(EventType.PushReceived, (notification) => {
-        PermissionTracker.isUserOptedIntoPushNotifications((isUserOptedIntoPushNotifications) => {
-            // By default, refresh notification opt-in status to true if we receive a notification
-            if (!isUserOptedIntoPushNotifications) {
-                PushNotification.setPushNotificationOptInStatus(true);
-            }
+        PermissionTracker.isUserOptedIntoPushNotifications()
+            .then((isUserOptedIntoPushNotifications) => {
+                // By default, refresh notification opt-in status to true if we receive a notification
+                if (!isUserOptedIntoPushNotifications) {
+                    PushNotification.setPushNotificationOptInStatus(true);
+                }
 
-            // If a push notification is received while the app is in foreground,
-            // we'll assume pusher is connected so we'll ignore it and not fetch the same data twice.
-            if (AppState.currentState === 'active') {
-                Log.info('[PUSH_NOTIFICATION] Push received while app is in foreground, not executing any callback.');
-                return;
-            }
+                // If a push notification is received while the app is in foreground,
+                // we'll assume pusher is connected so we'll ignore it and not fetch the same data twice.
+                if (AppState.currentState === 'active') {
+                    Log.info('[PUSH_NOTIFICATION] Push received while app is in foreground, not executing any callback.');
+                    return;
+                }
 
-            pushNotificationEventCallback(EventType.PushReceived, notification);
-        });
+                pushNotificationEventCallback(EventType.PushReceived, notification);
+            });
     });
 
     // Note: the NotificationResponse event has a nested PushReceived event,
