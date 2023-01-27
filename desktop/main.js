@@ -12,6 +12,7 @@ const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
 const {autoUpdater} = require('electron-updater');
 const log = require('electron-log');
+const {machineId} = require('node-machine-id');
 const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 const checkForUpdates = require('../src/libs/checkForUpdates');
 const CONFIG = require('../src/CONFIG').default;
@@ -281,6 +282,8 @@ const mainWindow = (() => {
                 },
                 titleBarStyle: 'hidden',
             });
+
+            ipcMain.handle(ELECTRON_EVENTS.REQUEST_DEVICE_ID, () => machineId());
 
             /*
              * The default origin of our Electron app is app://- instead of https://new.expensify.com or https://staging.new.expensify.com
