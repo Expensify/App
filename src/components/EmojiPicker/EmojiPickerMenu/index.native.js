@@ -112,8 +112,10 @@ class EmojiPickerMenu extends Component {
         // subtract new number of headers to get rid of those rows
         const numEmojiRows = Math.floor(headerIndex / this.numColumns) - (numHeaders + 1);
 
+        const test = Math.floor(headerIndex / 8);
         const testoffset = ((numEmojiRows) * CONST.EMOJI_PICKER_ITEM_HEIGHT) + (CONST.EMOJI_PICKER_HEADER_HEIGHT * (numHeaders + 1));
-        this.emojiList.scrollToOffset({offset: testoffset, animated: true});
+        this.emojiList.flashScrollIndicators();
+        this.emojiList.scrollToIndex({index: test, animated: true});
     }
 
     /**
@@ -171,6 +173,7 @@ class EmojiPickerMenu extends Component {
                     ]}
                     stickyHeaderIndices={this.unfilteredHeaderIndices}
                     getItemLayout={this.getItemLayout}
+                    showsVerticalScrollIndicator
                 />
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}
