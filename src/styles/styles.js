@@ -212,6 +212,10 @@ const styles = {
         textAlign: 'right',
     },
 
+    textAlignLeft: {
+        textAlign: 'left',
+    },
+
     textUnderline: {
         textDecorationLine: 'underline',
     },
@@ -362,7 +366,7 @@ const styles = {
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.buttonBorderRadius,
-        height: variables.componentSizeLarge,
+        minHeight: variables.componentSizeLarge,
         justifyContent: 'center',
         ...spacing.ph3,
     },
@@ -378,6 +382,7 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         textAlign: 'center',
+        flexShrink: 1,
 
         // It is needed to unset the Lineheight. We don't need it for buttons as button always contains single line of text.
         // It allows to vertically center the text.
@@ -389,7 +394,7 @@ const styles = {
 
     buttonSmall: {
         borderRadius: variables.buttonBorderRadius,
-        height: variables.componentSizeSmall,
+        minHeight: variables.componentSizeSmall,
         paddingTop: 4,
         paddingHorizontal: 14,
         paddingBottom: 4,
@@ -398,7 +403,7 @@ const styles = {
 
     buttonMedium: {
         borderRadius: variables.buttonBorderRadius,
-        height: variables.componentSizeNormal,
+        minHeight: variables.componentSizeNormal,
         paddingTop: 12,
         paddingRight: 16,
         paddingBottom: 12,
@@ -408,7 +413,7 @@ const styles = {
 
     buttonLarge: {
         borderRadius: variables.buttonBorderRadius,
-        height: variables.componentSizeLarge,
+        minHeight: variables.componentSizeLarge,
         paddingTop: 8,
         paddingRight: 10,
         paddingBottom: 8,
@@ -815,7 +820,6 @@ const styles = {
         left: 0,
         top: 0,
         height: '100%',
-        paddingLeft: 11,
         paddingTop: 23,
         paddingBottom: 8,
         color: themeColors.text,
@@ -1455,12 +1459,15 @@ const styles = {
         height: 240,
     },
 
-    emojiHeaderStyle: {
+    emojiHeaderContainer: {
         backgroundColor: themeColors.componentBG,
-        width: '100%',
-        height: 32,
         display: 'flex',
-        alignItems: 'center',
+        height: CONST.EMOJI_PICKER_HEADER_HEIGHT,
+        justifyContent: 'center',
+        width: '100%',
+    },
+
+    emojiHeaderStyle: {
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
