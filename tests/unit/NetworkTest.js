@@ -18,6 +18,9 @@ import Log from '../../src/libs/Log';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import * as MainQueue from '../../src/libs/Network/MainQueue';
 import * as Request from '../../src/libs/Request';
+import * as RequestThrottleMock from '../../src/libs/__mocks__/RequestThrottle';
+
+jest.mock('../../src/libs/RequestThrottle');
 
 jest.useFakeTimers();
 
@@ -442,20 +445,6 @@ describe('NetworkTests', () => {
             .mockRejectedValueOnce(new Error(CONST.ERROR.FAILED_TO_FETCH))
             .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS});
 
-        const initialRequestWaitTime = 50;
-        jest.mock('../../src/libs/RequestThrottle', () => {
-            jest.fn().mockImplementation(() => {
-                const RequestThrottle = jest.requireActual('../../src/libs/RequestThrottle');
-                class MockedRequestThrottle extends RequestThrottle {
-                    constructor() {
-                        super();
-                        this.waitTime = initialRequestWaitTime;
-                    }
-                }
-                return new MockedRequestThrottle();
-            });
-        });
-
         // Given we have a request made while we're offline
         return Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
             .then(() => {
@@ -478,7 +467,7 @@ describe('NetworkTests', () => {
                 ]);
 
                 // After the initial wait time
-                jest.advanceTimersByTime(initialRequestWaitTime);
+                jest.advanceTimersByTime(RequestThrottleMock.initialRequestWaitTime);
                 return waitForPromisesToResolve();
             })
             .then(() => {
