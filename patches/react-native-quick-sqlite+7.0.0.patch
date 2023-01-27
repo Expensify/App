@@ -1,0 +1,492 @@
+diff --git a/node_modules/react-native-quick-sqlite/android/.project b/node_modules/react-native-quick-sqlite/android/.project
+deleted file mode 100644
+index 0e0a1ba..0000000
+--- a/node_modules/react-native-quick-sqlite/android/.project
++++ /dev/null
+@@ -1,17 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<projectDescription>
+-	<name>android_</name>
+-	<comment>Project android_ created by Buildship.</comment>
+-	<projects>
+-	</projects>
+-	<buildSpec>
+-		<buildCommand>
+-			<name>org.eclipse.buildship.core.gradleprojectbuilder</name>
+-			<arguments>
+-			</arguments>
+-		</buildCommand>
+-	</buildSpec>
+-	<natures>
+-		<nature>org.eclipse.buildship.core.gradleprojectnature</nature>
+-	</natures>
+-</projectDescription>
+diff --git a/node_modules/react-native-quick-sqlite/android/.settings/org.eclipse.buildship.core.prefs b/node_modules/react-native-quick-sqlite/android/.settings/org.eclipse.buildship.core.prefs
+deleted file mode 100644
+index 8c253d6..0000000
+--- a/node_modules/react-native-quick-sqlite/android/.settings/org.eclipse.buildship.core.prefs
++++ /dev/null
+@@ -1,13 +0,0 @@
+-arguments=
+-auto.sync=false
+-build.scans.enabled=false
+-connection.gradle.distribution=GRADLE_DISTRIBUTION(VERSION(6.0))
+-connection.project.dir=
+-eclipse.preferences.version=1
+-gradle.user.home=
+-java.home=/Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/Contents/Home
+-jvm.arguments=
+-offline.mode=false
+-override.workspace.settings=true
+-show.console.view=true
+-show.executions.view=true
+diff --git a/node_modules/react-native-quick-sqlite/android/CMakeLists.txt b/node_modules/react-native-quick-sqlite/android/CMakeLists.txt
+index 4e11a59..530576c 100644
+--- a/node_modules/react-native-quick-sqlite/android/CMakeLists.txt
++++ b/node_modules/react-native-quick-sqlite/android/CMakeLists.txt
+@@ -1,39 +1,17 @@
+-cmake_minimum_required(VERSION 3.10.2)
+-
+-set (CMAKE_VERBOSE_MAKEFILE ON)
+-set (CMAKE_CXX_STANDARD 14)
+-#set (CMAKE_CXX_FLAGS "-DFOLLY_NO_CONFIG=1 -DFOLLY_HAVE_CLOCK_GETTIME=1 -DFOLLY_HAVE_MEMRCHR=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_MOBILE=1 -DON_ANDROID -DONANDROID -DFOR_HERMES=${FOR_HERMES}")
++project(ReactNativeQuickSQLite)
++cmake_minimum_required(VERSION 3.9.0)
+ 
+ set (PACKAGE_NAME "react-native-quick-sqlite")
++set (CMAKE_VERBOSE_MAKEFILE ON)
++set (CMAKE_CXX_STANDARD 17)
+ set (BUILD_DIR ${CMAKE_SOURCE_DIR}/build)
+-set (RN_SO_DIR ${NODE_MODULES_DIR}/react-native/ReactAndroid/src/main/jni/first-party/react/jni)
+-
+-if(${REACT_NATIVE_VERSION} LESS 66)
+-        set (
+-                INCLUDE_JSI_CPP
+-                "${NODE_MODULES_DIR}/react-native/ReactCommon/jsi/jsi/jsi.cpp"
+-        )
+-        set (
+-                INCLUDE_JSIDYNAMIC_CPP
+-                "${NODE_MODULES_DIR}/react-native/ReactCommon/jsi/jsi/JSIDynamic.cpp"
+-        )
+-endif()
+-
+-file (GLOB LIBFBJNI_INCLUDE_DIR "${BUILD_DIR}/fbjni-*-headers.jar/")
+ 
+ include_directories(
+   ../cpp
+-  "${NODE_MODULES_DIR}/react-native/React"
+-  "${NODE_MODULES_DIR}/react-native/React/Base"
+-  "${NODE_MODULES_DIR}/react-native/ReactCommon/jsi"
+-  "${NODE_MODULES_DIR}/react-native/ReactCommon/callinvoker"
+-  "${NODE_MODULES_DIR}/react-native/ReactAndroid/src/main/java/com/facebook/react/turbomodule/core/jni"
+-  "${NODE_MODULES_DIR}/react-native/ReactCommon"
+-  "${NODE_MODULES_DIR}/react-native/ReactCommon/callinvoker"
+-  "${NODE_MODULES_DIR}/react-native/ReactCommon/jsi"
+-  "${NODE_MODULES_DIR}/hermes-engine/android/include/"
+-  ${INCLUDE_JSI_CPP} # only on older RN versions
+-  ${INCLUDE_JSIDYNAMIC_CPP} # only on older RN versions
++)
++
++add_definitions(
++  ${SQLITE_FLAGS}
+ )
+ 
+ add_library(
+@@ -57,70 +35,23 @@ add_library(
+   cpp-adapter.cpp
+ )
+ 
+-add_definitions(
+-  ${SQLITE_FLAGS}
++set_target_properties(
++  ${PACKAGE_NAME} PROPERTIES
++  CXX_STANDARD 17
++  CXX_EXTENSIONS OFF
++  POSITION_INDEPENDENT_CODE ON
+ )
+ 
+-# find fbjni package
+-file (GLOB LIBFBJNI_INCLUDE_DIR "${BUILD_DIR}/fbjni-*-headers.jar/")
++find_package(ReactAndroid REQUIRED CONFIG)
++find_package(fbjni REQUIRED CONFIG)
++find_library(LOG_LIB log)
+ 
+-target_include_directories(
+-        ${PACKAGE_NAME}
+-        PRIVATE
+-        # --- fbjni ---
+-        "${LIBFBJNI_INCLUDE_DIR}"
+-        # --- React Native ---
+-        "${NODE_MODULES_DIR}/react-native/React"
+-        "${NODE_MODULES_DIR}/react-native/React/Base"
+-        "${NODE_MODULES_DIR}/react-native/ReactAndroid/src/main/jni"
+-        "${NODE_MODULES_DIR}/react-native/ReactAndroid/src/main/java/com/facebook/react/turbomodule/core/jni"
+-        "${NODE_MODULES_DIR}/react-native/ReactCommon"
+-        "${NODE_MODULES_DIR}/react-native/ReactCommon/callinvoker"
+-        "${NODE_MODULES_DIR}/react-native/ReactCommon/jsi"
+-        "${NODE_MODULES_DIR}/hermes-engine/android/include/"
+-        ${INCLUDE_JSI_CPP} # only on older RN versions
+-        ${INCLUDE_JSIDYNAMIC_CPP} # only on older RN versions
+-)
+-
+-file (GLOB LIBRN_DIR "${BUILD_DIR}/react-native-0*/jni/${ANDROID_ABI}")
+-
+-find_library(
+-        FBJNI_LIB
+-        fbjni
+-        PATHS ${LIBRN_DIR}
+-        NO_CMAKE_FIND_ROOT_PATH
+-)
+-
+-find_library(
+-        REACT_NATIVE_JNI_LIB
+-        reactnativejni
+-        PATHS ${LIBRN_DIR}
+-        NO_CMAKE_FIND_ROOT_PATH
+-)
+-if(${REACT_NATIVE_VERSION} LESS 66)
+-        # JSI lib didn't exist on RN 0.65 and before. Simply omit it.
+-        set (JSI_LIB "")
+-else()
+-        # RN 0.66 distributes libjsi.so, can be used instead of compiling jsi.cpp manually.
+-        find_library(
+-                JSI_LIB
+-                jsi
+-                PATHS ${LIBRN_DIR}
+-                NO_CMAKE_FIND_ROOT_PATH
+-        )
+-endif()
+-
+-find_library(
+-        LOG_LIB
+-        log
+-)
+-
+-# target_link_libraries(sequel fbjni::fbjni android log)
+ target_link_libraries(
+-        ${PACKAGE_NAME}
+-        ${LOG_LIB}
+-        ${JSI_LIB}
+-        ${REACT_NATIVE_JNI_LIB}
+-        ${FBJNI_LIB}
+-        android
++  ${PACKAGE_NAME}
++  ${LOG_LIB}
++  fbjni::fbjni
++  ReactAndroid::jsi
++  ReactAndroid::turbomodulejsijni
++  ReactAndroid::react_nativemodule_core
++  android
+ )
+diff --git a/node_modules/react-native-quick-sqlite/android/build.gradle b/node_modules/react-native-quick-sqlite/android/build.gradle
+index 1073322..00e5fa6 100644
+--- a/node_modules/react-native-quick-sqlite/android/build.gradle
++++ b/node_modules/react-native-quick-sqlite/android/build.gradle
+@@ -1,69 +1,41 @@
+-import org.apache.tools.ant.filters.ReplaceTokens
+-import java.nio.file.Paths
+-import groovy.json.JsonSlurper
+-
+-buildscript {
+-  repositories {
+-    google()
+-    jcenter()
+-    mavenCentral()
+-  }
+-
+-  dependencies {
+-    classpath 'com.android.tools.build:gradle:4.2.2'
+-    classpath 'de.undercouch:gradle-download-task:4.1.2'
+-  }
+-}
++def SQLITE_FLAGS = rootProject.properties['quickSqliteFlags']
+ 
+ apply plugin: 'com.android.library'
+-apply plugin: 'de.undercouch.download'
+ 
+-def getExtOrDefault(name) {
+-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['Sequel_' + name]
++def safeExtGet(prop, fallback) {
++  rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+ }
+ 
+-def getExtOrIntegerDefault(name) {
+-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties['Sequel_' + name]).toInteger()
++def reactNativeArchitectures() {
++  def value = project.getProperties().get("reactNativeArchitectures")
++  return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
+ }
+ 
+-static def findNodeModules(baseDir) {
+-  def basePath = baseDir.toPath().normalize()
+-  // Node's module resolution algorithm searches up to the root directory,
+-  // after which the base path will be null
+-  while (basePath) {
+-    def nodeModulesPath = Paths.get(basePath.toString(), "node_modules")
+-    def reactNativePath = Paths.get(nodeModulesPath.toString(), "react-native")
+-    if (nodeModulesPath.toFile().exists() && reactNativePath.toFile().exists()) {
+-      return nodeModulesPath.toString()
+-    }
+-    basePath = basePath.getParent()
+-  }
+-  throw new GradleException("react-native-quick-sqlite: Failed to find node_modules/ path!")
++repositories {
++  mavenCentral()
+ }
+ 
+-def nodeModules = findNodeModules(projectDir);
+-logger.warn("react-native-quick-sqlite: node_modules/ found at: ${nodeModules}");
++android {
+ 
+-def reactNative = new File("$nodeModules/react-native")
+-def reactNativeManifest = file("$reactNative/package.json")
+-def reactNativeManifestAsJson = new JsonSlurper().parseText(reactNativeManifest.text)
+-def reactNativeVersion = reactNativeManifestAsJson.version as String
+-def (major, minor, patch) = reactNativeVersion.tokenize('.')
+-def rnMinorVersion = Integer.parseInt(minor)
++  compileSdkVersion safeExtGet("compileSdkVersion", 28)
+ 
+-def reactProperties = new Properties()
+-file("$nodeModules/react-native/ReactAndroid/gradle.properties").withInputStream { reactProperties.load(it) }
+-def REACT_NATIVE_VERSION = reactProperties.getProperty("VERSION_NAME").split("\\.")[1].toInteger()
+-def SQLITE_FLAGS = rootProject.properties['quickSqliteFlags']
++  // Used to override the NDK path/version on internal CI or by allowing
++  // users to customize the NDK path/version from their root project (e.g. for M1 support)
++  if (rootProject.hasProperty("ndkPath")) {
++    ndkPath rootProject.ext.ndkPath
++  }
++  if (rootProject.hasProperty("ndkVersion")) {
++    ndkVersion rootProject.ext.ndkVersion
++  }
+ 
+-android {
++  buildFeatures {
++    prefab true
++  }
+ 
+-  compileSdkVersion getExtOrIntegerDefault('compileSdkVersion')
+-  buildToolsVersion getExtOrDefault('buildToolsVersion')
+ 
+   defaultConfig {
+     minSdkVersion 21
+-    targetSdkVersion getExtOrIntegerDefault('targetSdkVersion')
++    targetSdkVersion safeExtGet('targetSdkVersion', 28)
+     versionCode 1
+     versionName "1.0"
+ 
+@@ -72,183 +44,42 @@ android {
+             cppFlags "-O2", "-fexceptions", "-frtti", "-std=c++1y", "-DONANDROID"
+             abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
+             arguments '-DANDROID_STL=c++_shared',
+-              "-DREACT_NATIVE_VERSION=${REACT_NATIVE_VERSION}",
+-              "-DNODE_MODULES_DIR=${nodeModules}",
+               "-DSQLITE_FLAGS='${SQLITE_FLAGS ? SQLITE_FLAGS : ''}'"
++            abiFilters (*reactNativeArchitectures())
+         }
+     }
+ 
+   }
+ 
+-  externalNativeBuild {
+-      cmake {
+-          path "CMakeLists.txt"
+-      }
+-  }
+-
+-  packagingOptions {
+-    // Exclude all Libraries that are already present in the user's app (through React Native or by him installing REA)
+-    excludes = ["**/libc++_shared.so", "**/libfbjni.so", "**/libjsi.so", "**/libreactnativejni.so", "**/libfolly_json.so", "**/libjscexecutor.so", "**/libhermes.so"]
+-    exclude "META-INF/**"
+-  }
+-  
+-  buildTypes {
+-    release {
+-      minifyEnabled false
+-    }
+-  }
+-  lintOptions {
+-    disable 'GradleCompatible'
+-  }
+   compileOptions {
+     sourceCompatibility JavaVersion.VERSION_1_8
+     targetCompatibility JavaVersion.VERSION_1_8
+   }
+ 
+-  configurations {
+-    extractHeaders
+-    extractJNI
+-  }
+-}
+-
+-repositories {
+-  mavenCentral()
+-  google()
+-
+-  def found = false
+-  def defaultDir = null
+-  def androidSourcesName = 'React Native sources'
+-
+-  if (rootProject.ext.has('reactNativeAndroidRoot')) {
+-    defaultDir = rootProject.ext.get('reactNativeAndroidRoot')
+-  } else {
+-    defaultDir = file("$nodeModules/react-native/android")
+-  }
+-
+-  if (defaultDir.exists()) {
+-    maven {
+-      url defaultDir.toString()
+-      name androidSourcesName
++  externalNativeBuild {
++    cmake {
++      path "CMakeLists.txt"
+     }
+-
+-    logger.info(":${project.name}:reactNativeAndroidRoot ${defaultDir.canonicalPath}")
+-    found = true
+-  } else {
+-    def parentDir = rootProject.projectDir
+-
+-    1.upto(5, {
+-      if (found) return true
+-      parentDir = parentDir.parentFile
+-
+-      def androidSourcesDir = new File(
+-              parentDir,
+-              'node_modules/react-native'
+-      )
+-
+-      def androidPrebuiltBinaryDir = new File(
+-              parentDir,
+-              'node_modules/react-native/android'
+-      )
+-
+-      if (androidPrebuiltBinaryDir.exists()) {
+-        maven {
+-          url androidPrebuiltBinaryDir.toString()
+-          name androidSourcesName
+-        }
+-
+-        logger.info(":${project.name}:reactNativeAndroidRoot ${androidPrebuiltBinaryDir.canonicalPath}")
+-        found = true
+-      } else if (androidSourcesDir.exists()) {
+-        maven {
+-          url androidSourcesDir.toString()
+-          name androidSourcesName
+-        }
+-
+-        logger.info(":${project.name}:reactNativeAndroidRoot ${androidSourcesDir.canonicalPath}")
+-        found = true
+-      }
+-    })
+   }
+ 
+-  if (!found) {
+-    throw new GradleException(
+-            "${project.name}: unable to locate React Native android sources. " +
+-                    "Ensure you have you installed React Native as a dependency in your project and try again."
+-    )
++  packagingOptions {
++    excludes = [
++      "META-INF",
++      "META-INF/**",
++      "**/libc++_shared.so",
++      "**/libfbjni.so",
++      "**/libjsi.so",
++      "**/libfolly_json.so",
++      "**/libfolly_runtime.so",
++      "**/libglog.so",
++      "**/libreactnativejni.so",
++      "**/libturbomodulejsijni.so",
++      "**/libreact_nativemodule_core.so",
++    ]
+   }
+ }
+ 
+-
+ dependencies {
+-  // noinspection GradleDynamicVersion
+-  api 'com.facebook.react:react-native:+'
+-
+-  //noinspection GradleDynamicVersion
+-  extractHeaders("com.facebook.fbjni:fbjni:+:headers")
+   //noinspection GradleDynamicVersion
+-  extractJNI("com.facebook.fbjni:fbjni:+")
+-
+-  def buildType = "debug"
+-  tasks.all({ task ->
+-    if (task.name == "buildCMakeRelease") {
+-      buildType = "release"
+-    }
+-  })
+-  def rnAarMatcher = "**/react-native/**/*${buildType}.aar"
+-  if (rnMinorVersion < 69) {
+-      rnAarMatcher = "**/**/*.aar"
+-  }
+-  def rnAAR = fileTree("$reactNative/android").matching({ it.include rnAarMatcher }).singleFile
+-  def jscAAR = fileTree("${nodeModules}/jsc-android/dist/org/webkit/android-jsc").matching({ it.include "**/**/*.aar" }).singleFile
+-
+-  extractJNI(files(rnAAR, jscAAR))
+-}
+-
+-def downloadsDir = new File("$buildDir/downloads")
+-
+-task createNativeDepsDirectories {
+-  doLast {
+-    downloadsDir.mkdirs()
+-  }
+-}
+-
+-
+-task extractAARHeaders {
+-  doLast {
+-    configurations.extractHeaders.files.each {
+-      def file = it.absoluteFile
+-      copy {
+-        from zipTree(file)
+-        into "$buildDir/$file.name"
+-        include "**/*.h"
+-      }
+-    }
+-  }
+-}
+-
+-extractAARHeaders.mustRunAfter createNativeDepsDirectories
+-
+-task extractJNIFiles {
+-  doLast {
+-    configurations.extractJNI.files.each {
+-      def file = it.absoluteFile
+-
+-      copy {
+-        from zipTree(file)
+-        into "$buildDir/$file.name"
+-        include "jni/**/*"
+-      }
+-    }
+-  }
+-}
+-
+-extractJNIFiles.mustRunAfter extractAARHeaders
+-
+-// pre-native build pipeline
+-
+-tasks.whenTaskAdded { task ->
+-  if (!task.name.contains('Clean') && (task.name.contains('externalNative') || task.name.contains('CMake'))) {
+-    task.dependsOn(extractAARHeaders)
+-    task.dependsOn(extractJNIFiles)
+-  }
++  implementation 'com.facebook.react:react-native:+'
+ }
+diff --git a/node_modules/react-native-quick-sqlite/android/gradle.properties b/node_modules/react-native-quick-sqlite/android/gradle.properties
+index 3dd260a..34d60e0 100644
+--- a/node_modules/react-native-quick-sqlite/android/gradle.properties
++++ b/node_modules/react-native-quick-sqlite/android/gradle.properties
+@@ -1,4 +1,4 @@
+ Sequel_kotlinVersion=1.6.0
+-Sequel_compileSdkVersion=30
+-Sequel_buildToolsVersion=30
+-Sequel_targetSdkVersion=30
+\ No newline at end of file
++Sequel_compileSdkVersion=31
++Sequel_buildToolsVersion=31
++Sequel_targetSdkVersion=31

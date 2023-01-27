@@ -50,7 +50,7 @@
     "@oguzhnatly/react-native-image-manipulator": "github:Expensify/react-native-image-manipulator#c5f654fc9d0ad7cc5b89d50b34ecf8b0e3f4d050",
     "@onfido/react-native-sdk": "7.0.1",
     "@react-native-async-storage/async-storage": "^1.17.10",
-    "@react-native-community/cameraroll": "git+https://github.com/react-native-cameraroll/react-native-cameraroll.git#3f0aed96db68e134f199171c7b06c1b4d6cb382b",
+    "@react-native-camera-roll/camera-roll": "^5.2.3",
     "@react-native-community/clipboard": "^1.5.1",
     "@react-native-community/datetimepicker": "^3.5.2",
     "@react-native-community/netinfo": "^8.3.0",
@@ -83,11 +83,11 @@
     "process": "^0.11.10",
     "prop-types": "^15.7.2",
     "pusher-js": "^7.0.6",
-    "react": "18.1.0",
+    "react": "18.2.0",
     "react-collapse": "^5.1.0",
     "react-content-loader": "^6.1.0",
     "react-dom": "18.1.0",
-    "react-native": "npm:@expensify/react-native@0.70.4-alpha.2",
+    "react-native": "https://github.com/janicduplessis/react-native/releases/download/expensify-0.71.3/react-native-0.71.3.tgz",
     "react-native-blob-util": "^0.16.2",
     "react-native-collapsible": "^1.6.0",
     "react-native-config": "^1.4.5",
@@ -106,8 +106,8 @@
     "react-native-permissions": "^3.0.1",
     "react-native-picker-select": "git+https://github.com/Expensify/react-native-picker-select.git#77cc9d42c474a693755941b10ee4c2d6f50e5346",
     "react-native-plaid-link-sdk": "^7.2.0",
-    "react-native-quick-sqlite": "^5.0.3",
-    "react-native-reanimated": "3.0.0-rc.6",
+    "react-native-quick-sqlite": "^7.0.0",
+    "react-native-reanimated": "3.0.0-rc.10",
     "react-native-render-html": "6.3.1",
     "react-native-safe-area-context": "4.4.1",
     "react-native-screens": "3.17.0",
@@ -196,9 +196,6 @@
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.9.3",
     "webpack-merge": "^5.8.0"
-  },
-  "overrides": {
-    "react-native": "$react-native"
   },
   "engines": {
     "node": "16.15.1",
