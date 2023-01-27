@@ -19,7 +19,6 @@ import * as ComponentUtils from '../../libs/ComponentUtils';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
-import * as ErrorUtils from '../../libs/ErrorUtils';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import OfflineIndicator from '../../components/OfflineIndicator';
@@ -57,7 +56,6 @@ class PasswordForm extends React.Component {
         this.clearSignInData = this.clearSignInData.bind(this);
 
         this.state = {
-            formError: false,
             password: '',
             twoFactorAuthCode: '',
         };
@@ -99,7 +97,6 @@ class PasswordForm extends React.Component {
         if (this.input2FA) {
             this.setState({twoFactorAuthCode: ''}, this.input2FA.clear);
         }
-        this.setState({formError: false});
         Session.resetPassword();
     }
 
@@ -107,7 +104,6 @@ class PasswordForm extends React.Component {
     * Clears local and Onyx sign in states
     */
     clearSignInData() {
-        this.setState({twoFactorAuthCode: '', formError: false});
         Session.clearSignInData();
     }
 
