@@ -57,7 +57,7 @@ const propTypes = {
     /** Whether to show a line separating options in list */
     shouldHaveOptionSeparator: PropTypes.bool,
 
-    /** Whether to disable the inner padding */
+    /** Whether to remove the lateral padding and align the content with the margins */
     disableInnerPadding: PropTypes.bool,
 
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
