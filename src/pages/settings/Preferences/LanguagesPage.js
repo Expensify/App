@@ -1,11 +1,13 @@
+import _ from 'underscore';
+import {compose} from 'underscore';
 import React from 'react';
+import {withOnyx} from 'react-native-onyx';
+
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import {compose} from 'underscore';
-import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
 import OptionsList from '../../../components/OptionsList';
 import styles from '../../../styles/styles';
@@ -20,28 +22,28 @@ const propTypes = {
 };
 
 const LanguagesPage = (props) => {
+    const localesToLanguages = _.map(
+        [
+            {
+                value: 'en',
+                text: props.translate('languagesPage.languages.english'),
+            },
+            {
+                value: 'es',
+                text: props.translate('languagesPage.languages.spanish'),
+            },
+        ], (language) => {
+            return {
+                ...language,
+                keyForList: language.value,
 
-    const localesToLanguages = [
-        {
-            value: 'en',
-            text: props.translate('languagesPage.languages.english'),
-        },
-        {
-            value: 'es',
-            text: props.translate('languagesPage.languages.spanish'),
-        },
-    ].map(language => {
-        return {
-            ...language,
-            keyForList: language.value,
+                // Include the green checkmark icon to indicate the currently selected value
+                customIcon: props.preferredLocale === language.value ? greenCheckmark : undefined,
 
-            // Include the green checkmark icon to indicate the currently selected value
-            customIcon: props.preferredLocale === language.value ? greenCheckmark : undefined,
-
-            // This property will make the currently selected value have bold text
-            boldStyle: props.preferredLocale === language.value,
-        }
-    });
+                // This property will make the currently selected value have bold text
+                boldStyle: props.preferredLocale === language.value,
+            };
+        });
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -53,12 +55,14 @@ const LanguagesPage = (props) => {
             />
             <OptionsList
                 sections={[{ data: localesToLanguages }]}
-                onSelectRow={language => {
-                    if (language.value !== props.preferredLocale) {
-                        App.setLocale(language.value);
+                onSelectRow={
+                    (language) => {
+                        if (language.value !== props.preferredLocale) {
+                            App.setLocale(language.value);
+                        }
+                        Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
                     }
-                    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
-                }}
+                }
                 hideSectionHeaders
                 optionHoveredStyle={{ ...styles.hoveredComponentBG, ...styles.mln5, ...styles.mrn5, ...styles.pl5, ...styles.pr5 }}
                 shouldHaveOptionSeparator
