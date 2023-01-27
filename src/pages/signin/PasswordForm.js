@@ -162,6 +162,7 @@ class PasswordForm extends React.Component {
                 >
                     <View style={[styles.mv3]}>
                         <TextInput
+                            inputID="password"
                             ref={el => this.inputPassword = el}
                             label={this.props.translate('common.password')}
                             secureTextEntry
@@ -169,9 +170,6 @@ class PasswordForm extends React.Component {
                             textContentType="password"
                             nativeID="password"
                             name="password"
-                            value={this.state.password}
-                            onChangeText={text => this.setState({password: text})}
-                            onSubmitEditing={this.validateAndSubmitForm}
                             blurOnSubmit={false}
                         />
                         <View style={[styles.changeExpensifyLoginLinkContainer]}>
@@ -189,13 +187,11 @@ class PasswordForm extends React.Component {
                     {this.props.account.requiresTwoFactorAuth && (
                         <View style={[styles.mv3]}>
                             <TextInput
+                                inputID="twoFactorCode"
                                 ref={el => this.input2FA = el}
                                 label={this.props.translate('passwordForm.twoFactorCode')}
-                                value={this.state.twoFactorAuthCode}
                                 placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}
                                 placeholderTextColor={themeColors.placeholderText}
-                                onChangeText={text => this.setState({twoFactorAuthCode: text})}
-                                onSubmitEditing={this.validateAndSubmitForm}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                 blurOnSubmit={false}
                                 maxLength={CONST.TFA_CODE_LENGTH}
