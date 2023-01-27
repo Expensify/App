@@ -55,6 +55,13 @@ class ImageView extends PureComponent {
         this.configureImageZoom = this.configureImageZoom.bind(this);
     }
 
+    componentWillUpdate(prevProps) {
+        if (this.props.url === prevProps.url || !this.interactionPromise) {
+            return;
+        }
+        this.state.interactionPromise.cancel();
+    }
+
     componentWillUnmount() {
         if (!this.state.interactionPromise) {
             return;
