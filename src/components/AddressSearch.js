@@ -151,6 +151,7 @@ const AddressSearch = (props) => {
         >
             <View style={styles.w100}>
                 <GooglePlacesAutocomplete
+                    disableScroll
                     fetchDetails
                     suppressDefaultStyles
                     enablePoweredByContainer={false}

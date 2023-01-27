@@ -3,14 +3,13 @@ import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import RNPickerSelect from 'react-native-picker-select';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import FormHelpMessage from '../FormHelpMessage';
-import Text from '../Text';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import pickerStyles from './pickerStyles';
-import {ScrollContext} from '../ScrollViewWithContext';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import FormHelpMessage from './FormHelpMessage';
+import Text from './Text';
+import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
+import {ScrollContext} from './ScrollViewWithContext';
 
 const propTypes = {
     /** Picker label */
@@ -170,7 +169,7 @@ class Picker extends PureComponent {
 
                         // We add a text color to prevent white text on white background dropdown items on Windows
                         items={_.map(this.props.items, item => ({...item, color: themeColors.pickerOptionsTextColor}))}
-                        style={this.props.size === 'normal' ? pickerStyles(this.props.isDisabled) : styles.pickerSmall}
+                        style={this.props.size === 'normal' ? styles.picker(this.props.isDisabled) : styles.pickerSmall}
                         useNativeAndroidPickerStyle={false}
                         placeholder={this.placeholder}
                         value={this.props.value}

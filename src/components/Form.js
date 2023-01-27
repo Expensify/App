@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {ScrollView, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -10,8 +10,10 @@ import * as FormActions from '../libs/actions/FormActions';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import styles from '../styles/styles';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
+import FormSubmit from './FormSubmit';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import ScrollViewWithContext from './ScrollViewWithContext';
+import stylePropTypes from '../styles/stylePropTypes';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -67,6 +69,9 @@ const propTypes = {
      */
     scrollContextEnabled: PropTypes.bool,
 
+    /** Container styles */
+    style: stylePropTypes,
+
     ...withLocalizePropTypes,
 };
 
@@ -81,6 +86,7 @@ const defaultProps = {
     isSubmitActionDangerous: false,
     scrollToOverflowEnabled: false,
     scrollContextEnabled: false,
+    style: [],
 };
 
 class Form extends React.Component {
@@ -273,7 +279,7 @@ class Form extends React.Component {
 
     render() {
         const scrollViewContent = safeAreaPaddingBottomStyle => (
-            <View style={[this.props.style, safeAreaPaddingBottomStyle]}>
+            <FormSubmit style={StyleSheet.flatten([this.props.style, safeAreaPaddingBottomStyle])} onSubmit={this.submit}>
                 {this.childrenWrapperWithProps(this.props.children)}
                 {this.props.isSubmitButtonVisible && (
                 <FormAlertWithSubmitButton
@@ -298,9 +304,10 @@ class Form extends React.Component {
                     containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
                     enabledWhenOffline={this.props.enabledWhenOffline}
                     isSubmitActionDangerous={this.props.isSubmitActionDangerous}
+                    disablePressOnEnter
                 />
                 )}
-            </View>
+            </FormSubmit>
         );
 
         return (
