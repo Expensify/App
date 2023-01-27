@@ -39,9 +39,5 @@ const CategoryShortcutBar = (props) => {
 };
 CategoryShortcutBar.propTypes = propTypes;
 CategoryShortcutBar.displayName = 'CategoryShortcutBar';
-CategoryShortcutBar.defaultProps = {
-    onHoverIn: () => {},
-    onHoverOut: () => {},
-};
 
 export default CategoryShortcutBar;

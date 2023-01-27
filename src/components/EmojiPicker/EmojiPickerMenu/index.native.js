@@ -15,8 +15,7 @@ import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import * as User from '../../../libs/actions/User';
-import CategoryShortcutButton from '../CategoryShortcutButton';
-import CategoryShortcutBar from "../CategoryShortcutBar";
+import CategoryShortcutBar from '../CategoryShortcutBar';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */

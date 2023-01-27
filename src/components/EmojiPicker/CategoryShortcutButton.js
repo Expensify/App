@@ -1,6 +1,6 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {Animated, Pressable, View} from 'react-native';
+import {Pressable, View} from 'react-native';
 import Icon from '../Icon';
 import variables from '../../styles/variables';
 import styles from '../../styles/styles';
@@ -49,6 +49,5 @@ class CategoryShortcutButton extends PureComponent {
     }
 }
 CategoryShortcutButton.propTypes = propTypes;
-CategoryShortcutButton.displayName = 'CategoryShortcutButton';
 
 export default CategoryShortcutButton;
