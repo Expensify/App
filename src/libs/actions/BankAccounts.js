@@ -260,8 +260,6 @@ function validateBankAccount(bankAccountID, validateCode) {
 }
 
 function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
-    // Show loader right away, as optimisticData might be set only later in case multiple calls are in the queue
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: true});
     const onyxData = {
         optimisticData: [
             {
