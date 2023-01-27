@@ -37,7 +37,6 @@ class ImageView extends PureComponent {
             imageWidth: 0,
             imageHeight: 0,
             interactionPromise: undefined,
-            containerHeight: undefined,
         };
 
         // Use the default double click interval from the ImageZoom library
@@ -80,6 +79,9 @@ class ImageView extends PureComponent {
     }
 
     imageLoadStart() {
+        if (this.state.imageWidth !== 0 && this.state.imageHeight !== 0) {
+            return;
+        }
         this.setState({isLoading: true});
     }
 
@@ -96,7 +98,7 @@ class ImageView extends PureComponent {
             let imageWidth = nativeEvent.width;
             let imageHeight = nativeEvent.height;
             const containerWidth = Math.round(this.props.windowWidth);
-            const containerHeight = Math.round(this.state.containerHeight);
+            const containerHeight = Math.round(this.props.windowHeight);
 
             const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
 
@@ -130,12 +132,6 @@ class ImageView extends PureComponent {
                     styles.justifyContentCenter,
                     styles.overflowHidden,
                 ]}
-                onLayout={(event) => {
-                    const layout = event.nativeEvent.layout;
-                    this.setState({
-                        containerHeight: layout.height,
-                    });
-                }}
             >
                 <ImageZoom
                     ref={el => this.zoom = el}
