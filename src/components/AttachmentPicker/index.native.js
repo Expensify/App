@@ -67,10 +67,6 @@ const documentPickerOptions = {
   */
 function getDataForUpload(fileData) {
     let fileName = fileData.fileName || fileData.name || 'chat_attachment';
-    const fileExtension = `.${_.last(fileData.type.split('/'))}`;
-    if (!Str.endsWith(fileName, fileExtension)) {
-        fileName = `${fileName}${fileExtension}`;
-    }
     const fileResult = {
         name: fileName,
         type: fileData.type,
