@@ -2,7 +2,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import moment from 'moment';
-import DeviceInfo from 'react-native-device-info';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
@@ -20,9 +19,6 @@ import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
 import * as Report from './Report';
 import * as ReportActionsUtils from '../ReportActionsUtils';
-import PushNotificationPermissionTracker from '../Notification/PushNotification/permissionTracker';
-
-const deviceID = DeviceInfo.getDeviceId();
 
 let currentUserAccountID = '';
 Onyx.connect({
@@ -471,34 +467,6 @@ function generateStatementPDF(period) {
     });
 }
 
-/**
- * Record that user opted-in or opted-out of push notifications on the current device.
- * NOTE: This is purely for record-keeping purposes, and does not affect whether our server will attempt to send notifications to this user.
- *
- * @param {Boolean} isOptingIn
- */
-function setPushNotificationOptInStatus(isOptingIn) {
-    PushNotificationPermissionTracker.isUserOptedIntoPushNotifications()
-        .then((isUserOptedInToPushNotifications) => {
-            const commandName = isOptingIn ? 'OptInToPushNotifications' : 'OptOutOfPushNotifications';
-            const optimisticData = [
-                {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
-                    value: {[deviceID]: isOptingIn},
-                },
-            ];
-            const failureData = [
-                {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
-                    value: {[deviceID]: isUserOptedInToPushNotifications},
-                },
-            ];
-            API.write(commandName, {deviceID}, {optimisticData, failureData});
-        });
-}
-
 export {
     updatePassword,
     closeAccount,
@@ -519,5 +487,4 @@ export {
     deletePaypalMeAddress,
     addPaypalMeAddress,
     updateChatPriorityMode,
-    setPushNotificationOptInStatus,
 };

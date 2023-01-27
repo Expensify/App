@@ -4,8 +4,8 @@ import {UrbanAirship, EventType, iOS} from 'urbanairship-react-native';
 import lodashGet from 'lodash/get';
 import Log from '../../Log';
 import NotificationType from './NotificationType';
+import * as PushNotification from '../../actions/PushNotification';
 import PermissionTracker from './permissionTracker';
-import * as User from '../../actions/User';
 
 const notificationEventActionMap = {};
 
@@ -65,7 +65,7 @@ function refreshNotificationOptInStatus() {
             }
 
             Log.info('[PUSH_NOTIFICATION] Push notification opt-in status changed.', false, {isOptedIn});
-            User.setPushNotificationOptInStatus(isOptedIn);
+            PushNotification.setPushNotificationOptInStatus(isOptedIn);
         });
 }
 
@@ -82,7 +82,7 @@ function init() {
         PermissionTracker.isUserOptedIntoPushNotifications((isUserOptedIntoPushNotifications) => {
             // By default, refresh notification opt-in status to true if we receive a notification
             if (!isUserOptedIntoPushNotifications) {
-                User.setPushNotificationOptInStatus(true);
+                PushNotification.setPushNotificationOptInStatus(true);
             }
 
             // If a push notification is received while the app is in foreground,
