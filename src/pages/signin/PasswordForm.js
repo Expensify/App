@@ -188,18 +188,6 @@ class PasswordForm extends React.Component {
                             />
                         </View>
                     )}
-
-                    {!this.state.formError && this.props.account && !_.isEmpty(this.props.account.errors) && (
-                        <Text style={[styles.formError]}>
-                            {ErrorUtils.getLatestErrorMessage(this.props.account)}
-                        </Text>
-                    )}
-
-                    {this.state.formError && (
-                        <Text style={[styles.formError]}>
-                            {this.props.translate(this.state.formError)}
-                        </Text>
-                    )}
                 </Form>
                 <ChangeExpensifyLoginLink onPress={this.clearSignInData} />
                 <OfflineIndicator containerStyles={[styles.mv5]} />
