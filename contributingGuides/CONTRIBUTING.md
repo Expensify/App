@@ -149,7 +149,7 @@ Additionally if you want to discuss an idea with the open source community witho
 18. The items requiring your completion consist of: 
     1. Proposing steps to take for a regression test to ensure the bug doesn't occur again (For information on how to successfully complete this, head [here](https://github.com/Expensify/App/blob/main/contributingGuides/REGRESSION_TEST_BEST_PRACTICES.md).)
     2. Identifying and noting the offending PR that caused the bug (if any) 
-    3. Commenting on the offending PR to note the bug it caused and why (if applicable) 
+    3. Commenting on the offending PR to note the bug it caused and why (if applicable).
     4. Starting a conversation on if any additional steps should be taken to prevent further bugs similar to the one fixed from occurring again. 
 20. Once the above items have been successfully completed, then payments will begin to be issued. 
 
