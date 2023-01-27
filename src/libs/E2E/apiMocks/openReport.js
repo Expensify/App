@@ -9,7 +9,6 @@ export default () => ({
                 chatType: '',
                 ownerEmail: '__fake__',
                 policyID: '_FAKE_',
-                maxSequenceNumber: 1,
                 participants: [
                     'fake1@gmail.com',
                     'fake2@gmail.com',
@@ -21,10 +20,8 @@ export default () => ({
                     'fake8@gmail.com',
                 ],
                 isPinned: false,
-                lastVisitedTimestamp: 1671470568415,
                 lastReadTimestamp: 1671470568415,
                 lastReadCreated: '1980-01-01 00:00:00.000',
-                lastReadSequenceNumber: 1,
                 lastActionCreated: '2022-08-01 20:49:11',
                 lastMessageTimestamp: 1659386951000,
                 lastMessageText: 'Say hello\ud83d\ude10',
@@ -43,7 +40,7 @@ export default () => ({
             onyxMethod: 'merge',
             key: 'reportActions_98345625',
             value: {
-                0: {
+                226245034: {
                     reportActionID: '226245034',
                     actionName: 'CREATED',
                     created: '2022-08-01 20:48:58',
@@ -70,11 +67,9 @@ export default () => ({
                         },
                     ],
                     automatic: false,
-                    sequenceNumber: 0,
-                    clientID: '',
                     shouldShow: true,
                 },
-                1: {
+                1082059149: {
                     person: [
                         {
                             type: 'TEXT',
@@ -93,7 +88,6 @@ export default () => ({
                         },
                     ],
                     originalMessage: {
-                        clientID: '1659386951676734',
                         html: 'Say hello\ud83d\ude10',
                     },
                     avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/301e37631eca9e3127d6b668822e3a53771551f6_128.jpeg',
@@ -101,10 +95,8 @@ export default () => ({
                     timestamp: 1659386951,
                     reportActionTimestamp: 1659386951000,
                     automatic: false,
-                    sequenceNumber: 1,
                     actionName: 'ADDCOMMENT',
                     shouldShow: true,
-                    clientID: '1659386951676734',
                     reportActionID: '1082059149',
                 },
             },
