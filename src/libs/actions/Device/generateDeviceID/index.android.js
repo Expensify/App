@@ -19,8 +19,8 @@ const uniqueID = Str.guid(deviceID);
  *   - The user manually clears Onyx data
  *
  * While this isn't perfect, it's the best we can do without violating the Google Play Store guidelines, and it's probably good enough for most real-world users.
- * Furthermore, the deviceID prefix is not unique to a specific device, but is likely to change from one type of device to another.
  *
+ * Furthermore, the deviceID prefix is not unique to a specific device, but is likely to change from one type of device to another.
  * Including this prefix will tell us with a reasonable degree of confidence if the user just uninstalled and reinstalled the app, or if they got a new device.
  *
  * @returns {Promise<String>}
