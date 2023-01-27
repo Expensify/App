@@ -90,7 +90,7 @@ class TimezoneSelectPage extends Component {
                     optionHoveredStyle={styles.hoveredComponentBG}
                     sections={[{data: this.state.timezoneOptions, indexOffset: 0}]}
                     shouldHaveOptionSeparator
-                    initialFocusedOptionKey={this.currentSelectedTimezone}
+                    initiallyFocusedOptionKey={this.currentSelectedTimezone}
                 />
             </ScreenWrapper>
         );

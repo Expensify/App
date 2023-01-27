@@ -39,7 +39,7 @@ class BaseOptionsSelector extends Component {
         this.relatedTarget = null;
 
         const allOptions = this.flattenSections();
-        const focusedIndex = this.getInitialFocusedIndex(allOptions);
+        const focusedIndex = this.getInitiallyFocusedIndex(allOptions);
 
         this.state = {
             allOptions,
@@ -141,11 +141,11 @@ class BaseOptionsSelector extends Component {
      * @param {Array<Object>} allOptions
      * @returns {Number}
      */
-    getInitialFocusedIndex(allOptions) {
-        const initialFocusedIndex = _.findIndex(allOptions, option => option.keyForList === this.props.initialFocusedOptionKey);
+    getInitiallyFocusedIndex(allOptions) {
+        const indexOfInitiallyFocusedOption = _.findIndex(allOptions, option => option.keyForList === this.props.initiallyFocusedOptionKey);
 
-        if (initialFocusedIndex >= 0) {
-            return initialFocusedIndex;
+        if (indexOfInitiallyFocusedOption >= 0) {
+            return indexOfInitiallyFocusedOption;
         }
 
         return this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0;

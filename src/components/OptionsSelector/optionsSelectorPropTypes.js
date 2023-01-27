@@ -91,7 +91,7 @@ const propTypes = {
     shouldHaveOptionSeparator: PropTypes.bool,
 
     /** Key of the option that we should focus on when first opening the options list */
-    initialFocusedOptionKey: PropTypes.string,
+    initiallyFocusedOptionKey: PropTypes.string,
 };
 
 const defaultProps = {
@@ -116,7 +116,7 @@ const defaultProps = {
     disableArrowKeysActions: false,
     isDisabled: false,
     shouldHaveOptionSeparator: false,
-    initialFocusedOptionKey: undefined,
+    initiallyFocusedOptionKey: undefined,
 };
 
 export {propTypes, defaultProps};
