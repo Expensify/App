@@ -6,7 +6,6 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import Button from '../../components/Button';
 import Text from '../../components/Text';
 import themeColors from '../../styles/themes/default';
 import * as Session from '../../libs/actions/Session';
@@ -52,7 +51,7 @@ const defaultProps = {
 class PasswordForm extends React.Component {
     constructor(props) {
         super(props);
-        this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
+        this.submit = this.submit.bind(this);
         this.validate = this.validate.bind(this);
         this.resetPassword = this.resetPassword.bind(this);
         this.clearSignInData = this.clearSignInData.bind(this);
@@ -136,43 +135,10 @@ class PasswordForm extends React.Component {
     }
 
     /**
-     * Check that all the form fields are valid, then trigger the submit callback
+     * @param {Object} values - form input values passed by the Form component
      */
-    validateAndSubmitForm() {
-        const password = this.state.password.trim();
-        const twoFactorCode = this.state.twoFactorAuthCode.trim();
-        const requiresTwoFactorAuth = this.props.account.requiresTwoFactorAuth;
-
-        if (!password && requiresTwoFactorAuth && !twoFactorCode) {
-            this.setState({formError: 'passwordForm.pleaseFillOutAllFields'});
-            return;
-        }
-
-        if (!password) {
-            this.setState({formError: 'passwordForm.pleaseFillPassword'});
-            return;
-        }
-
-        if (!ValidationUtils.isValidPassword(password)) {
-            this.setState({formError: 'passwordForm.error.incorrectPassword'});
-            return;
-        }
-
-        if (requiresTwoFactorAuth && !twoFactorCode) {
-            this.setState({formError: 'passwordForm.pleaseFillTwoFactorAuth'});
-            return;
-        }
-
-        if (requiresTwoFactorAuth && !ValidationUtils.isValidTwoFactorCode(twoFactorCode)) {
-            this.setState({formError: 'passwordForm.error.incorrect2fa'});
-            return;
-        }
-
-        this.setState({
-            formError: null,
-        });
-
-        Session.signIn(password, twoFactorCode);
+    submit(values) {
+        Session.signIn(values.password.trim(), values.twoFactorAuthCode.trim());
     }
 
     render() {
@@ -182,7 +148,7 @@ class PasswordForm extends React.Component {
                     formID="PasswordForm"
                     submitButtonText={this.props.translate('common.signIn')}
                     validate={this.validate}
-                    onSubmit={this.validateAndSubmitForm}
+                    onSubmit={this.submit}
                 >
                     <View style={[styles.mv3]}>
                         <TextInput
