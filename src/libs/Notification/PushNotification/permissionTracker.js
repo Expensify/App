@@ -24,8 +24,7 @@ const getDeviceIDPromise = Device.getDeviceID()
  * @returns {Promise<Boolean>}
  */
 function isUserOptedIntoPushNotifications() {
-    return getDeviceIDPromise
-        .then(() => isUserOptedInToPushNotifications);
+    return getDeviceIDPromise.then(() => isUserOptedInToPushNotifications);
 }
 
 export default {
