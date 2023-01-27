@@ -1,14 +1,14 @@
-import React from "react";
-import HeaderWithCloseButton from "../../../components/HeaderWithCloseButton";
-import ScreenWrapper from "../../../components/ScreenWrapper";
-import withLocalize, { withLocalizePropTypes } from "../../../components/withLocalize";
-import Navigation from "../../../libs/Navigation/Navigation";
-import ROUTES from "../../../ROUTES";
-import { compose } from "underscore";
-import { withOnyx } from "react-native-onyx";
-import ONYXKEYS from "../../../ONYXKEYS";
-import OptionsList from "../../../components/OptionsList";
-import styles from "../../../styles/styles";
+import React from 'react';
+import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
+import {compose} from 'underscore';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../../../ONYXKEYS';
+import OptionsList from '../../../components/OptionsList';
+import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as App from '../../../libs/actions/App';
@@ -43,30 +43,33 @@ const LanguagesPage = (props) => {
         }
     });
 
-    return (<ScreenWrapper includeSafeAreaPaddingBottom={false}>
-        <HeaderWithCloseButton
-            title={props.translate('languagesPage.language')}
-            shouldShowBackButton
-            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
-            onCloseButtonPress={() => Navigation.dismissModal(true)}
-        />
-        <OptionsList
-            sections={[{ data: localesToLanguages }]}
-            onSelectRow={language => {
-                if (language.value !== props.preferredLocale) {
-                    App.setLocale(language.value);   
-                }
-                Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
-            }}
-            hideSectionHeaders
-            optionHoveredStyle={{...styles.hoveredComponentBG, ...styles.mln5, ...styles.mrn5, ...styles.pl5, ...styles.pr5}}
-            shouldHaveOptionSeparator
-            disableRowInnerPadding
-            contentContainerStyles={[styles.ph5]}
-        />
-    </ScreenWrapper>);
-}
+    return (
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <HeaderWithCloseButton
+                title={props.translate('languagesPage.language')}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
+                onCloseButtonPress={() => Navigation.dismissModal(true)}
+            />
+            <OptionsList
+                sections={[{ data: localesToLanguages }]}
+                onSelectRow={language => {
+                    if (language.value !== props.preferredLocale) {
+                        App.setLocale(language.value);
+                    }
+                    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+                }}
+                hideSectionHeaders
+                optionHoveredStyle={{ ...styles.hoveredComponentBG, ...styles.mln5, ...styles.mrn5, ...styles.pl5, ...styles.pr5 }}
+                shouldHaveOptionSeparator
+                disableRowInnerPadding
+                contentContainerStyles={[styles.ph5]}
+            />
+        </ScreenWrapper>
+    );
+};
 
+LanguagesPage.displayName = 'LanguagesPage';
 LanguagesPage.propTypes = propTypes;
 
 export default compose(
