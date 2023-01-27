@@ -1,8 +1,14 @@
+import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import * as Device from './Device';
-import PushNotificationPermissionTracker from '../Notification/PushNotification/permissionTracker';
+
+let isUserOptedInToPushNotifications = false;
+Onyx.connect({
+    key: ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED,
+    callback: val => isUserOptedInToPushNotifications = val,
+});
 
 /**
  * Record that user opted-in or opted-out of push notifications on the current device.
@@ -11,14 +17,8 @@ import PushNotificationPermissionTracker from '../Notification/PushNotification/
  * @param {Boolean} isOptingIn
  */
 function setPushNotificationOptInStatus(isOptingIn) {
-    Promise.all([
-        Device.getDeviceID(),
-        PushNotificationPermissionTracker.isUserOptedIntoPushNotifications(),
-    ])
-        .then(([
-            deviceID,
-            isUserOptedInToPushNotifications,
-        ]) => {
+    Device.getDeviceID()
+        .then((deviceID) => {
             const commandName = isOptingIn ? 'OptInToPushNotifications' : 'OptOutOfPushNotifications';
             const optimisticData = [
                 {

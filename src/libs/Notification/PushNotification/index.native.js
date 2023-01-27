@@ -1,11 +1,18 @@
 import _ from 'underscore';
 import {AppState} from 'react-native';
+import Onyx from 'react-native-onyx';
 import {UrbanAirship, EventType, iOS} from 'urbanairship-react-native';
 import lodashGet from 'lodash/get';
 import Log from '../../Log';
 import NotificationType from './NotificationType';
 import * as PushNotification from '../../actions/PushNotification';
-import PermissionTracker from './permissionTracker';
+import ONYXKEYS from '../../../ONYXKEYS';
+
+let isUserOptedInToPushNotifications = false;
+Onyx.connect({
+    key: ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED,
+    callback: val => isUserOptedInToPushNotifications = val,
+});
 
 const notificationEventActionMap = {};
 
@@ -51,16 +58,10 @@ function pushNotificationEventCallback(eventType, notification) {
  * Check if a user is opted-in to push notifications and update the `pushNotificationsEnabled` NVP accordingly.
  */
 function refreshNotificationOptInStatus() {
-    Promise.all([
-        UrbanAirship.getNotificationStatus(),
-        PermissionTracker.isUserOptedIntoPushNotifications(),
-    ])
-        .then(([
-            notificationStatusFromAirship,
-            notificationStatusFromOnyx,
-        ]) => {
-            const isOptedIn = notificationStatusFromAirship.airshipOptIn && notificationStatusFromAirship.systemEnabled;
-            if (isOptedIn === notificationStatusFromOnyx) {
+    UrbanAirship.getNotificationStatus()
+        .then((notificationStatus) => {
+            const isOptedIn = notificationStatus.airshipOptIn && notificationStatus.systemEnabled;
+            if (isOptedIn === isUserOptedInToPushNotifications) {
                 return;
             }
 
@@ -79,22 +80,19 @@ function refreshNotificationOptInStatus() {
 function init() {
     // Setup event listeners
     UrbanAirship.addListener(EventType.PushReceived, (notification) => {
-        PermissionTracker.isUserOptedIntoPushNotifications()
-            .then((isUserOptedIntoPushNotifications) => {
-                // By default, refresh notification opt-in status to true if we receive a notification
-                if (!isUserOptedIntoPushNotifications) {
-                    PushNotification.setPushNotificationOptInStatus(true);
-                }
+        // By default, refresh notification opt-in status to true if we receive a notification
+        if (!isUserOptedInToPushNotifications) {
+            PushNotification.setPushNotificationOptInStatus(true);
+        }
 
-                // If a push notification is received while the app is in foreground,
-                // we'll assume pusher is connected so we'll ignore it and not fetch the same data twice.
-                if (AppState.currentState === 'active') {
-                    Log.info('[PUSH_NOTIFICATION] Push received while app is in foreground, not executing any callback.');
-                    return;
-                }
+        // If a push notification is received while the app is in foreground,
+        // we'll assume pusher is connected so we'll ignore it and not fetch the same data twice.
+        if (AppState.currentState === 'active') {
+            Log.info('[PUSH_NOTIFICATION] Push received while app is in foreground, not executing any callback.');
+            return;
+        }
 
-                pushNotificationEventCallback(EventType.PushReceived, notification);
-            });
+        pushNotificationEventCallback(EventType.PushReceived, notification);
     });
 
     // Note: the NotificationResponse event has a nested PushReceived event,
