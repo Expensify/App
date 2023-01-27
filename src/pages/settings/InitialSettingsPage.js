@@ -175,6 +175,8 @@ class InitialSettingsPage extends React.Component {
                 translationKey: 'initialSettingsPage.help',
                 icon: Expensicons.QuestionMark,
                 action: () => { Link.openExternalLink(CONST.NEWHELP_URL); },
+                shouldShowRightIcon: true,
+                iconRight: Expensicons.NewWindow,
             },
             {
                 translationKey: 'initialSettingsPage.about',
@@ -203,6 +205,7 @@ class InitialSettingsPage extends React.Component {
                 iconStyles={item.iconStyles}
                 iconFill={item.iconFill}
                 shouldShowRightIcon
+                iconRight={item.iconRight}
                 badgeText={this.getWalletBalance(isPaymentItem)}
                 fallbackIcon={item.fallbackIcon}
                 brickRoadIndicator={item.brickRoadIndicator}
