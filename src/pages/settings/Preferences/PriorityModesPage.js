@@ -1,4 +1,4 @@
-import {compose} from 'underscore';
+import _, {compose} from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 
@@ -13,7 +13,7 @@ import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
-import ONYXKEYS from "../../../ONYXKEYS";
+import ONYXKEYS from '../../../ONYXKEYS';
 import * as User from '../../../libs/actions/User';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
@@ -35,9 +35,8 @@ const PriorityModesPage = (props) => {
                 text: props.translate('priorityModesPage.focus'),
                 alternateText: props.translate('priorityModesPage.focusModeDescription'),
             },
-        ],
-        (mode) => {
-            return {
+        ], mode => (
+            {
                 ...mode,
                 keyForList: mode.value,
 
@@ -47,7 +46,7 @@ const PriorityModesPage = (props) => {
                 // This property will make the currently selected value have bold text
                 boldStyle: props.priorityMode === mode.value,
             }
-        }
+        ),
     );
 
     return (
@@ -64,20 +63,23 @@ const PriorityModesPage = (props) => {
             <OptionsList
                 sections={[{data: priorityModes}]}
                 onSelectRow={
-                    mode => {
+                    (mode) => {
                         User.updateChatPriorityMode(mode.value);
                         Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
                     }
                 }
                 hideSectionHeaders
-                optionHoveredStyle={{...styles.hoveredComponentBG, ...styles.mln5, ...styles.mrn5, ...styles.pl5, ...styles.pr5}}
+                optionHoveredStyle={
+                    {...styles.hoveredComponentBG, ...styles.mln5, ...styles.mrn5, ...styles.pl5, ...styles.pr5}
+                }
                 shouldHaveOptionSeparator
                 disableRowInnerPadding
                 contentContainerStyles={[styles.ph5]}
             />
         </ScreenWrapper>);
-}
+};
 
+PriorityModesPage.displayName = 'PriorityModesPage';
 PriorityModesPage.propTypes = propTypes;
 
 export default compose(

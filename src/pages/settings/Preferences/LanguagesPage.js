@@ -1,5 +1,4 @@
-import _ from 'underscore';
-import {compose} from 'underscore';
+import _, {compose} from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 
@@ -15,7 +14,7 @@ import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as App from '../../../libs/actions/App';
 
-const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
+const greenCheckmark = { src: Expensicons.Checkmark, color: themeColors.success };
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -32,8 +31,8 @@ const LanguagesPage = (props) => {
                 value: 'es',
                 text: props.translate('languagesPage.languages.spanish'),
             },
-        ], (language) => {
-            return {
+        ], language => (
+            {
                 ...language,
                 keyForList: language.value,
 
@@ -42,8 +41,9 @@ const LanguagesPage = (props) => {
 
                 // This property will make the currently selected value have bold text
                 boldStyle: props.preferredLocale === language.value,
-            };
-        });
+            }
+        ),
+    );
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -54,7 +54,7 @@ const LanguagesPage = (props) => {
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <OptionsList
-                sections={[{ data: localesToLanguages }]}
+                sections={[{data: localesToLanguages}]}
                 onSelectRow={
                     (language) => {
                         if (language.value !== props.preferredLocale) {
@@ -64,7 +64,9 @@ const LanguagesPage = (props) => {
                     }
                 }
                 hideSectionHeaders
-                optionHoveredStyle={{ ...styles.hoveredComponentBG, ...styles.mln5, ...styles.mrn5, ...styles.pl5, ...styles.pr5 }}
+                optionHoveredStyle={
+                    {...styles.hoveredComponentBG, ...styles.mln5, ...styles.mrn5, ...styles.pl5, ...styles.pr5}
+                }
                 shouldHaveOptionSeparator
                 disableRowInnerPadding
                 contentContainerStyles={[styles.ph5]}
