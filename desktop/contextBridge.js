@@ -61,7 +61,7 @@ contextBridge.exposeInMainWorld('electron', {
     },
 
     /**
-     * Wait for an event to be emitted by the main process and sent to the renderer process.
+     * Execute a function in the main process and return a promise that resolves with its response.
      *
      * @param {String} channel
      * @param {*} args
