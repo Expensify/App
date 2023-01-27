@@ -29,5 +29,5 @@ function isUserOptedIntoPushNotifications() {
 }
 
 export default {
-    isUserOptedInToPushNotifications,
+    isUserOptedIntoPushNotifications,
 };

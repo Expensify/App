@@ -480,7 +480,7 @@ function generateStatementPDF(period) {
  * @param {Boolean} isOptingIn
  */
 function setPushNotificationOptInStatus(isOptingIn) {
-    PushNotificationPermissionTracker.isUserOptedInToPushNotifications()
+    PushNotificationPermissionTracker.isUserOptedIntoPushNotifications()
         .then((isUserOptedInToPushNotifications) => {
             const commandName = isOptingIn ? 'OptInToPushNotifications' : 'OptOutOfPushNotifications';
             const optimisticData = [
