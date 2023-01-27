@@ -151,7 +151,6 @@ class PasswordForm extends React.Component {
     }
 
     render() {
-        const hasError = this.state.formError || (this.props.account && !_.isEmpty(this.props.account.errors));
         return (
             <>
                 <View style={[styles.mv3]}>
@@ -167,7 +166,6 @@ class PasswordForm extends React.Component {
                         onChangeText={text => this.setState({password: text})}
                         onSubmitEditing={this.validateAndSubmitForm}
                         blurOnSubmit={false}
-                        hasError={hasError}
                     />
                     <View style={[styles.changeExpensifyLoginLinkContainer]}>
                         <TouchableOpacity
@@ -194,7 +192,6 @@ class PasswordForm extends React.Component {
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             blurOnSubmit={false}
                             maxLength={CONST.TFA_CODE_LENGTH}
-                            hasError={hasError}
                         />
                     </View>
                 )}
