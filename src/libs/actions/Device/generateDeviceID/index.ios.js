@@ -7,9 +7,9 @@ const deviceID = DeviceInfo.getDeviceId();
  *
  * @returns {Promise<String>}
  */
-function getDeviceID() {
+function generateDeviceID() {
     return DeviceInfo.getUniqueId()
         .then(uniqueID => `${deviceID}_${uniqueID}`);
 }
 
-export default getDeviceID;
+export default generateDeviceID;
