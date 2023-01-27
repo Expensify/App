@@ -183,6 +183,7 @@ class LoginForm extends React.Component {
                         autoCapitalize="none"
                         autoCorrect={false}
                         keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                        hasError={Boolean(error)}
                     />
                 </View>
                 {!_.isEmpty(this.props.account.success) && (
