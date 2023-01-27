@@ -44,7 +44,6 @@ function process() {
     // If we have no persisted requests or we are offline we don't want to make any requests so we return early
     if (_.isEmpty(persistedRequests) || NetworkStore.isOffline()) {
         isSequentialQueueRunning = false;
-        requestThrottle.clear();
         return Promise.resolve();
     }
 
@@ -64,6 +63,7 @@ function process() {
         // If a request fails with a non-retryable error we just remove it from the queue and move on to the next request
         if (!_.contains(errorsToRetry, error.message)) {
             PersistedRequests.remove(currentRequest);
+            requestThrottle.clear();
             return process();
         }
 
