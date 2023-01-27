@@ -261,3 +261,15 @@ Any `Form.js` that has a button will also add safe area padding by default. If t
     </Form>
 </ScreenWrapper>
 ```
+
+### Handling nested Pickers in Form
+
+In case there's a nested Picker in Form, we should pass the props below to Form, as needed:
+
+#### Enable ScrollContext
+
+Pass the `scrollContextEnabled` prop to enable scrolling up when Picker is pressed, making sure the Picker is always in view and doesn't get covered by virtual keyboards for example.
+
+#### Enable scrolling to overflow
+
+In addition to the `scrollContextEnabled` prop, we can also pass `scrollToOverflowEnabled` when the nested Picker is at the bottom of the Form to prevent the popup selector from covering Picker.

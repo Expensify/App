@@ -9,7 +9,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: 8398a7/action-slack@2780b654eb23ee546e54052f0d2b0ed66ea30eaa
+    - uses: 8398a7/action-slack@7dc038dcfbfff230b5f4d0e756653f822038fef5
       name: Job failed Slack notification
       with:
         status: custom
