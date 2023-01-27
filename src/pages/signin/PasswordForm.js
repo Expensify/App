@@ -24,6 +24,7 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import OfflineIndicator from '../../components/OfflineIndicator';
+import Form from '../../components/Form';
 
 const propTypes = {
     /* Onyx Props */
@@ -152,7 +153,12 @@ class PasswordForm extends React.Component {
 
     render() {
         return (
-            <>
+            <Form
+                formID="PasswordForm"
+                submitButtonText={this.props.translate('common.saveAndContinue')}
+                onSubmit={this.validateAndSubmitForm}
+                validate={this.validateAndSubmitForm}
+            >
                 <View style={[styles.mv3]}>
                     <TextInput
                         ref={el => this.inputPassword = el}
@@ -219,7 +225,7 @@ class PasswordForm extends React.Component {
                     <ChangeExpensifyLoginLink onPress={this.clearSignInData} />
                 </View>
                 <OfflineIndicator containerStyles={[styles.mv5]} />
-            </>
+            </Form>
         );
     }
 }
