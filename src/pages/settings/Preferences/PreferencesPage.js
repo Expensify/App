@@ -103,8 +103,9 @@ const PreferencesPage = (props) => {
                     />
 
                     {/* If we are in the staging environment then we enable additional test features */
-                        (_.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], props.environment) &&
-                            <View style={[styles.ml8, styles.mt6, styles.mr8]}>
+                        (
+                            _.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], props.environment)
+                            && <View style={[styles.ml8, styles.mt6, styles.mr8]}>
                                 <TestToolMenu />
                             </View>
                         )

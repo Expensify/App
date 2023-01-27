@@ -14,7 +14,7 @@ import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as App from '../../../libs/actions/App';
 
-const greenCheckmark = { src: Expensicons.Checkmark, color: themeColors.success };
+const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -65,7 +65,13 @@ const LanguagesPage = (props) => {
                 }
                 hideSectionHeaders
                 optionHoveredStyle={
-                    {...styles.hoveredComponentBG, ...styles.mln5, ...styles.mrn5, ...styles.pl5, ...styles.pr5}
+                    {
+                        ...styles.hoveredComponentBG,
+                        ...styles.mln5,
+                        ...styles.mrn5,
+                        ...styles.pl5,
+                        ...styles.pr5,
+                    }
                 }
                 shouldHaveOptionSeparator
                 disableRowInnerPadding

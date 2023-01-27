@@ -70,13 +70,20 @@ const PriorityModesPage = (props) => {
                 }
                 hideSectionHeaders
                 optionHoveredStyle={
-                    {...styles.hoveredComponentBG, ...styles.mln5, ...styles.mrn5, ...styles.pl5, ...styles.pr5}
+                    {
+                        ...styles.hoveredComponentBG,
+                        ...styles.mln5,
+                        ...styles.mrn5,
+                        ...styles.pl5,
+                        ...styles.pr5,
+                    }
                 }
                 shouldHaveOptionSeparator
                 disableRowInnerPadding
                 contentContainerStyles={[styles.ph5]}
             />
-        </ScreenWrapper>);
+        </ScreenWrapper>
+    );
 };
 
 PriorityModesPage.displayName = 'PriorityModesPage';
