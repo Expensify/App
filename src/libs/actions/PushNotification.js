@@ -23,15 +23,15 @@ function setPushNotificationOptInStatus(isOptingIn) {
             const optimisticData = [
                 {
                     onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
-                    value: {[deviceID]: isOptingIn},
+                    key: ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED,
+                    value: isOptingIn,
                 },
             ];
             const failureData = [
                 {
                     onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
-                    value: {[deviceID]: isUserOptedInToPushNotifications},
+                    key: ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED,
+                    value: isUserOptedInToPushNotifications,
                 },
             ];
             API.write(commandName, {deviceID}, {optimisticData, failureData});
