@@ -175,7 +175,7 @@ class ReportActionsList extends React.Component {
                         // Make sure the oldest report action loaded is not the first. This is so we do not show the
                         // skeleton view above the created action in a newly generated optimistic chat or one with not
                         // that many comments.
-                        const lastReportAction = _.last(this.props.sortedReportActions);
+                        const lastReportAction = _.last(this.props.sortedReportActions) || {};
                         if (this.props.report.isLoadingReportActions && lastReportAction.sequenceNumber > 0) {
                             return (
                                 <ReportActionsSkeletonView
