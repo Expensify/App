@@ -156,7 +156,7 @@ class PasswordForm extends React.Component {
             <>
                 <Form
                     formID="PasswordForm"
-                    submitButtonText={this.props.translate('common.saveAndContinue')}
+                    submitButtonText={this.props.translate('common.signIn')}
                     onSubmit={this.validateAndSubmitForm}
                     validate={this.validateAndSubmitForm}
                 >
