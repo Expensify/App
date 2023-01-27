@@ -20,8 +20,6 @@ const propTypes = {
     /** Callback function called with boolean value for if the password form is valid  */
     updateIsFormValid: PropTypes.func.isRequired,
 
-    /** Callback function for when form is submitted  */
-    onSubmitEditing: PropTypes.func.isRequired,
     ...withLocalizePropTypes,
 };
 
@@ -78,7 +76,6 @@ class NewPasswordForm extends React.Component {
                     value={this.props.password}
                     onChangeText={password => this.props.updatePassword(password)}
                     onBlur={() => this.onBlurNewPassword()}
-                    onSubmitEditing={() => this.props.onSubmitEditing()}
                 />
                 <Text
                     style={[
