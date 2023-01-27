@@ -144,7 +144,7 @@ Additionally if you want to discuss an idea with the open source community witho
 15. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, Android, and Mobile Web) to confirm the fix works as expected and there are no regressions.
 16. Please add a screenshot of the app running on each platform (Web, Desktop, iOS, Android, Mobile Web).
 
-### Completing the final checklist
+#### Completing the final checklist
 17. Once your PR has deployed to production, a checklist will automatically be commented in the GH issue. You're required to complete the steps that have your name mentioned before payment will be issued.
 18. The items requiring your completion consist of: 
     1. Proposing steps to take for a regression test to ensure the bug doesn't occur again (For information on how to successfully complete this, head here.)
