@@ -53,7 +53,7 @@ function pushNotificationEventCallback(eventType, notification) {
 function refreshNotificationOptInStatus() {
     Promise.all([
         UrbanAirship.getNotificationStatus(),
-        PermissionTracker.isUserOptedInToPushNotifications(),
+        PermissionTracker.isUserOptedIntoPushNotifications(),
     ])
         .then(([
             notificationStatusFromAirship,
@@ -79,7 +79,7 @@ function refreshNotificationOptInStatus() {
 function init() {
     // Setup event listeners
     UrbanAirship.addListener(EventType.PushReceived, (notification) => {
-        PermissionTracker.isUserOptedInToPushNotifications((isUserOptedIntoPushNotifications) => {
+        PermissionTracker.isUserOptedIntoPushNotifications((isUserOptedIntoPushNotifications) => {
             // By default, refresh notification opt-in status to true if we receive a notification
             if (!isUserOptedIntoPushNotifications) {
                 User.setPushNotificationOptInStatus(true);
