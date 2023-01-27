@@ -53,6 +53,7 @@ class PasswordForm extends React.Component {
     constructor(props) {
         super(props);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
+        this.validate = this.validate.bind(this);
         this.resetPassword = this.resetPassword.bind(this);
         this.clearSignInData = this.clearSignInData.bind(this);
 
@@ -112,6 +113,29 @@ class PasswordForm extends React.Component {
     }
 
     /**
+     * @param {Object} values - form input values passed by the Form component
+     * @returns {Boolean}
+     */
+    validate(values) {
+        const requiresTwoFactorAuth = this.props.account.requiresTwoFactorAuth;
+        const errors = {};
+
+        if (!values.password || !values.password.trim()) {
+            errors.password = this.props.translate('passwordForm.pleaseFillPassword');
+        } else if (!ValidationUtils.isValidPassword(values.password.trim())) {
+            errors.password = this.props.translate('passwordForm.error.incorrectPassword');
+        }
+
+        if (requiresTwoFactorAuth && !values.twoFactorAuthCode.trim()) {
+            errors.twoFactorAuthCode = this.props.translate('passwordForm.pleaseFillTwoFactorAuth');
+        } else if (requiresTwoFactorAuth && !ValidationUtils.isValidTwoFactorCode(values.twoFactorAuthCode.trim())) {
+            errors.twoFactorAuthCode = this.props.translate('passwordForm.error.incorrect2fa');
+        }
+
+        return errors;
+    }
+
+    /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
     validateAndSubmitForm() {
@@ -157,8 +181,8 @@ class PasswordForm extends React.Component {
                 <Form
                     formID="PasswordForm"
                     submitButtonText={this.props.translate('common.signIn')}
+                    validate={this.validate}
                     onSubmit={this.validateAndSubmitForm}
-                    validate={this.validateAndSubmitForm}
                 >
                     <View style={[styles.mv3]}>
                         <TextInput
@@ -187,7 +211,7 @@ class PasswordForm extends React.Component {
                     {this.props.account.requiresTwoFactorAuth && (
                         <View style={[styles.mv3]}>
                             <TextInput
-                                inputID="twoFactorCode"
+                                inputID="twoFactorAuthCode"
                                 ref={el => this.input2FA = el}
                                 label={this.props.translate('passwordForm.twoFactorCode')}
                                 placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}
