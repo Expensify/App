@@ -79,6 +79,9 @@ export default {
     // Plaid data (access tokens, bank accounts ...)
     PLAID_DATA: 'plaidData',
 
+    // If we disabled Plaid because of too many attempts
+    IS_PLAID_DISABLED: 'isPlaidDisabled',
+
     // Token needed to initialize Plaid link
     PLAID_LINK_TOKEN: 'plaidLinkToken',
 
