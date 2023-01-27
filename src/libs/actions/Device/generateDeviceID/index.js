@@ -25,8 +25,8 @@ const uniqueID = Str.guid(deviceID);
  *
  * @returns {Promise<String>}
  */
-function getDeviceID() {
+function generateDeviceID() {
     return Promise.resolve(uniqueID);
 }
 
-export default getDeviceID;
+export default generateDeviceID;
