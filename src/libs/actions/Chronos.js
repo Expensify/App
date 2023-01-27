@@ -11,7 +11,7 @@ import * as API from '../API';
  * @param {Object[]} events
  */
 const removeEvent = (reportID, eventID, reportAction, events) => {
-    console.log('!!!', reportID, reportAction.sequenceNumber, eventID, _.filter(events, event => event.id !== eventID))
+    console.log('!!! removeEvent()', reportID, reportAction.sequenceNumber, eventID, _.filter(events, event => event.id !== eventID))
     const sequenceNumber = reportAction.sequenceNumber;
     const optimisticData = [
         {
@@ -27,6 +27,7 @@ const removeEvent = (reportID, eventID, reportAction, events) => {
             },
         },
     ];
+    console.log('!!! optimistic data', optimisticData);
 
     const failureData = [
         {
@@ -55,8 +56,8 @@ const removeEvent = (reportID, eventID, reportAction, events) => {
 
     API.write('Chronos_RemoveOOOEvent', {
         googleEventID: eventID,
-        sequenceNumber: reportAction.sequenceNumber,
         reportActionID: reportAction.reportActionID,
+        sequenceNumber,
     }, {optimisticData, successData, failureData});
 };
 
