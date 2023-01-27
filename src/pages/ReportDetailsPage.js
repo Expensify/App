@@ -55,11 +55,11 @@ const propTypes = {
 
 class ReportDetailsPage extends Component {
     getMenuItems() {
-        if (ReportUtils.isArchivedRoom(this.props.report)) {
-            return;
-        }
+	const menuItems = [];
 
-        const menuItems = [];
+        if (ReportUtils.isArchivedRoom(this.props.report)) {
+            return [];
+        }
 
         // All nonarchived chats should let you see their members
         menuItems.push({
