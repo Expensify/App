@@ -15,7 +15,7 @@ const uniqueID = Str.guid(deviceID);
  *
  * This GUID is stored in Onyx under ONYXKEYS.DEVICE_ID and is preserved on logout, such that the deviceID will only change if:
  *
- *   - The user uninstalls and reinstalls the app (Android/desktop), OR
+ *   - The user uninstalls and reinstalls the app (Android), OR
  *   - The user opens the app on a different browser or in an incognito window (web), OR
  *   - The user manually clears Onyx data
  *
