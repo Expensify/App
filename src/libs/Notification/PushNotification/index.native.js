@@ -4,6 +4,7 @@ import {UrbanAirship, EventType, iOS} from 'urbanairship-react-native';
 import lodashGet from 'lodash/get';
 import Log from '../../Log';
 import NotificationType from './NotificationType';
+import PermissionTracker from './permissionTracker';
 import * as User from '../../actions/User';
 
 const notificationEventActionMap = {};
@@ -50,10 +51,16 @@ function pushNotificationEventCallback(eventType, notification) {
  * Check if a user is opted-in to push notifications and update the `pushNotificationsEnabled` NVP accordingly.
  */
 function refreshNotificationOptInStatus() {
-    UrbanAirship.getNotificationStatus()
-        .then((notificationStatus) => {
-            const isOptedIn = notificationStatus.airshipOptIn && notificationStatus.systemEnabled;
-            if (isOptedIn === User.isUserOptedIntoPushNotifications()) {
+    Promise.all([
+        UrbanAirship.getNotificationStatus(),
+        PermissionTracker.isUserOptedInToPushNotifications(),
+    ])
+        .then(([
+            notificationStatusFromAirship,
+            notificationStatusFromOnyx,
+        ]) => {
+            const isOptedIn = notificationStatusFromAirship.airshipOptIn && notificationStatusFromAirship.systemEnabled;
+            if (isOptedIn === notificationStatusFromOnyx) {
                 return;
             }
 
@@ -72,19 +79,21 @@ function refreshNotificationOptInStatus() {
 function init() {
     // Setup event listeners
     UrbanAirship.addListener(EventType.PushReceived, (notification) => {
-        // By default, refresh notification opt-in status to true if we receive a notification
-        if (!User.isUserOptedIntoPushNotifications()) {
-            User.setPushNotificationOptInStatus(true);
-        }
+        PermissionTracker.isUserOptedInToPushNotifications((isUserOptedIntoPushNotifications) => {
+            // By default, refresh notification opt-in status to true if we receive a notification
+            if (!isUserOptedIntoPushNotifications) {
+                User.setPushNotificationOptInStatus(true);
+            }
 
-        // If a push notification is received while the app is in foreground,
-        // we'll assume pusher is connected so we'll ignore it and not fetch the same data twice.
-        if (AppState.currentState === 'active') {
-            Log.info('[PUSH_NOTIFICATION] Push received while app is in foreground, not executing any callback.');
-            return;
-        }
+            // If a push notification is received while the app is in foreground,
+            // we'll assume pusher is connected so we'll ignore it and not fetch the same data twice.
+            if (AppState.currentState === 'active') {
+                Log.info('[PUSH_NOTIFICATION] Push received while app is in foreground, not executing any callback.');
+                return;
+            }
 
-        pushNotificationEventCallback(EventType.PushReceived, notification);
+            pushNotificationEventCallback(EventType.PushReceived, notification);
+        });
     });
 
     // Note: the NotificationResponse event has a nested PushReceived event,

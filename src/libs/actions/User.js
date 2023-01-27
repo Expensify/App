@@ -20,7 +20,7 @@ import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
 import * as Report from './Report';
 import * as ReportActionsUtils from '../ReportActionsUtils';
-import PushNotification from '../Notification/PushNotification';
+import PushNotificationPermissionTracker from '../Notification/PushNotification/permissionTracker';
 
 const deviceID = DeviceInfo.getDeviceId();
 
@@ -31,27 +31,6 @@ Onyx.connect({
         currentUserAccountID = lodashGet(val, 'accountID', '');
     },
 });
-
-let isUserOptedInToPushNotifications = false;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
-    callback: (val) => {
-        const pushNotificationOptInRecord = lodashGet(val, deviceID, []);
-        const mostRecentNVPValue = _.last(pushNotificationOptInRecord);
-        if (!_.has(mostRecentNVPValue, 'isEnabled')) {
-            return;
-        }
-        isUserOptedInToPushNotifications = mostRecentNVPValue.isEnabled;
-    },
-});
-
-/**
- * @returns {Boolean}
- */
-function isUserOptedIntoPushNotifications() {
-    return isUserOptedInToPushNotifications;
-}
-
 
 /**
  * Changes a password for a given account
@@ -499,22 +478,25 @@ function generateStatementPDF(period) {
  * @param {Boolean} isOptingIn
  */
 function setPushNotificationOptInStatus(isOptingIn) {
-    const commandName = isOptingIn ? 'OptInToPushNotifications' : 'OptOutOfPushNotifications';
-    const optimisticData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
-            value: {[deviceID]: isOptingIn},
-        },
-    ];
-    const failureData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
-            value: {[deviceID]: PushNotification.isUserOptedIn()},
-        },
-    ];
-    API.write(commandName, {deviceID}, {optimisticData, failureData});
+    PushNotificationPermissionTracker.isUserOptedInToPushNotifications()
+        .then((isUserOptedInToPushNotifications) => {
+            const commandName = isOptingIn ? 'OptInToPushNotifications' : 'OptOutOfPushNotifications';
+            const optimisticData = [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
+                    value: {[deviceID]: isOptingIn},
+                },
+            ];
+            const failureData = [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
+                    value: {[deviceID]: isUserOptedInToPushNotifications},
+                },
+            ];
+            API.write(commandName, {deviceID}, {optimisticData, failureData});
+        });
 }
 
 export {
@@ -538,5 +520,4 @@ export {
     addPaypalMeAddress,
     updateChatPriorityMode,
     setPushNotificationOptInStatus,
-    isUserOptedIntoPushNotifications,
 };
