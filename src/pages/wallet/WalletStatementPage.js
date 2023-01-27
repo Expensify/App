@@ -62,9 +62,8 @@ class WalletStatementPage extends React.Component {
         if (!this.yearMonth || this.yearMonth.length !== 6 || this.yearMonth > currentYearMonth) {
             Navigation.dismissModal(true);
             return;
-        };
+        }
     }
-    
 
     processDownload(yearMonth) {
         if (this.props.walletStatement.isGenerating) {
