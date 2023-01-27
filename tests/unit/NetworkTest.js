@@ -2,7 +2,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 
 import {
-    beforeEach, jest, describe, test, expect, afterEach,
+    beforeEach, describe, test, expect, afterEach,
 } from '@jest/globals';
 import * as DeprecatedAPI from '../../src/libs/deprecatedAPI';
 import * as TestHelper from '../utils/TestHelper';
@@ -434,10 +434,27 @@ describe('NetworkTests', () => {
             });
     });
 
-    test(`persisted request should be retried up to ${CONST.NETWORK.MAX_REQUEST_RETRIES} times`, () => {
-        // We're setting up xhr handler that always rejects with a fetch error
+    test('persisted requests should be retried using exponential backoff', () => {
+        // We're setting up xhr handler that rejects with a fetch error 3 times and then succeeds
         const xhr = jest.spyOn(HttpUtils, 'xhr')
-            .mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
+            .mockRejectedValueOnce(new Error(CONST.ERROR.FAILED_TO_FETCH))
+            .mockRejectedValueOnce(new Error(CONST.ERROR.FAILED_TO_FETCH))
+            .mockRejectedValueOnce(new Error(CONST.ERROR.FAILED_TO_FETCH))
+            .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS});
+
+        const initialRequestWaitTime = 50;
+        jest.mock('../../src/libs/RequestThrottle', () => {
+            jest.fn().mockImplementation(() => {
+                const RequestThrottle = jest.requireActual('../../src/libs/RequestThrottle');
+                class MockedRequestThrottle extends RequestThrottle {
+                    constructor() {
+                        super();
+                        this.waitTime = initialRequestWaitTime;
+                    }
+                }
+                return new MockedRequestThrottle();
+            });
+        });
 
         // Given we have a request made while we're offline
         return Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
@@ -451,13 +468,22 @@ describe('NetworkTests', () => {
             .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
             .then(waitForPromisesToResolve)
             .then(() => {
-                // The request should be retried a number of times
-                expect(xhr).toHaveBeenCalledTimes(CONST.NETWORK.MAX_REQUEST_RETRIES);
-                _.each(xhr.mock.calls, (args) => {
-                    expect(args).toEqual(
-                        expect.arrayContaining(['mock command', expect.objectContaining({param1: 'value1', persist: true})]),
-                    );
-                });
+                // Then there has only been one request so far
+                expect(xhr).toHaveBeenCalledTimes(1);
+
+                // And we still have 1 persisted request
+                expect(_.size(PersistedRequests.getAll())).toEqual(1);
+                expect(PersistedRequests.getAll()).toEqual([
+                    expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})}),
+                ]);
+
+                // After the initial wait time
+                jest.advanceTimersByTime(initialRequestWaitTime);
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                // Then we have made another request
+                expect(xhr).toHaveBeenCalledTimes(2);
             });
     });
 
