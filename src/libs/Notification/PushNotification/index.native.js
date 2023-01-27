@@ -78,14 +78,15 @@ function refreshNotificationOptInStatus() {
 function init() {
     // Setup event listeners
     UrbanAirship.addListener(EventType.PushReceived, (notification) => {
-        PermissionTracker.isUserOptedIntoPushNotifications((isUserOptedIntoPushNotifications) => {
-            // By default, refresh notification opt-in status to true if we receive a notification
-            if (!isUserOptedIntoPushNotifications) {
-                PushNotification.setPushNotificationOptInStatus(true);
-            }
+        PermissionTracker.isUserOptedIntoPushNotifications()
+            .then((isUserOptedIntoPushNotifications) => {
+                // By default, refresh notification opt-in status to true if we receive a notification
+                if (!isUserOptedIntoPushNotifications) {
+                    PushNotification.setPushNotificationOptInStatus(true);
+                }
 
-            pushNotificationEventCallback(EventType.PushReceived, notification);
-        });
+                pushNotificationEventCallback(EventType.PushReceived, notification);
+            });
     });
 
     // Note: the NotificationResponse event has a nested PushReceived event,
