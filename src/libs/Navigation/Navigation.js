@@ -49,15 +49,12 @@ function setDidTapNotification() {
  * @returns {Boolean}
  */
 function canNavigate(methodName, params = {}) {
-    if (isNavigating) {
-        return new Promise((resolve) => {
-            Log.hmmm(`[Navigation] ${methodName} failed because navigation is progress`, params);
-            resolve(false);
-        });
-    }
     return new Promise((resolve) => {
         if (navigationRef.isReady() && !isNavigating) {
             resolve(true);
+        } else if (isNavigating) {
+            Log.hmmm(`[Navigation] ${methodName} failed because navigation is progress`, params);
+            resolve(false);
         } else {
             Log.hmmm(`[Navigation] ${methodName} failed because navigation ref was not yet ready`, params);
             resolve(false);
