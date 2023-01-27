@@ -1492,7 +1492,6 @@ const styles = {
     },
 
     emojiItem: {
-        width: '12.5%',
         textAlign: 'center',
         borderRadius: 8,
         paddingTop: 2,

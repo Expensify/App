@@ -16,6 +16,7 @@ import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import * as User from '../../../libs/actions/User';
 import CategoryShortcutBar from '../CategoryShortcutBar';
+import {FlashList} from "@shopify/flash-list";
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -114,8 +115,7 @@ class EmojiPickerMenu extends Component {
 
         const test = Math.floor(headerIndex / 8);
         const testoffset = ((numEmojiRows) * CONST.EMOJI_PICKER_ITEM_HEIGHT) + (CONST.EMOJI_PICKER_HEADER_HEIGHT * (numHeaders + 1));
-        this.emojiList.flashScrollIndicators();
-        this.emojiList.scrollToIndex({index: test, animated: true});
+        this.emojiList.scrollToIndex({index: headerIndex, animated: true});
     }
 
     /**
@@ -161,20 +161,20 @@ class EmojiPickerMenu extends Component {
                         onPress={this.scrollToHeader}
                     />
                 </View>
-                <FlatList
-                    ref={el => this.emojiList = el}
-                    data={this.emojis}
-                    renderItem={this.renderItem}
-                    keyExtractor={item => (`emoji_picker_${item.code}`)}
-                    numColumns={this.numColumns}
-                    style={[
-                        styles.emojiPickerList,
-                        this.isMobileLandscape() && styles.emojiPickerListLandscape,
-                    ]}
-                    stickyHeaderIndices={this.unfilteredHeaderIndices}
-                    getItemLayout={this.getItemLayout}
-                    showsVerticalScrollIndicator
-                />
+                <View style={[
+                    styles.emojiPickerList,
+                    this.isMobileLandscape() && styles.emojiPickerListLandscape,
+                ]}>
+                    <FlashList
+                        ref={el => this.emojiList = el}
+                        data={this.emojis}
+                        renderItem={this.renderItem}
+                        numColumns={this.numColumns}
+                        stickyHeaderIndices={this.headerIndices}
+                        estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
+                        showsVerticalScrollIndicator
+                    />
+                </View>
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}
                     preferredSkinTone={this.props.preferredSkinTone}

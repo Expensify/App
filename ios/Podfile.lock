@@ -594,6 +594,8 @@ PODS:
     - Firebase/Performance (= 8.8.0)
     - React-Core
     - RNFBApp
+  - RNFlashList (1.4.1):
+    - React-Core
   - RNGestureHandler (2.6.0):
     - React-Core
   - RNPermissions (3.6.1):
@@ -735,6 +737,7 @@ DEPENDENCIES:
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBCrashlytics (from `../node_modules/@react-native-firebase/crashlytics`)"
   - "RNFBPerf (from `../node_modules/@react-native-firebase/perf`)"
+  - "RNFlashList (from `../node_modules/@shopify/flash-list`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
@@ -911,6 +914,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-firebase/crashlytics"
   RNFBPerf:
     :path: "../node_modules/@react-native-firebase/perf"
+  RNFlashList:
+    :path: "../node_modules/@shopify/flash-list"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
   RNPermissions:
@@ -1024,6 +1029,7 @@ SPEC CHECKSUMS:
   RNFBApp: 729c0666395b1953198dc4a1ec6deb8fbe1c302e
   RNFBCrashlytics: 2061ca863e8e2fa1aae9b12477d7dfa8e88ca0f9
   RNFBPerf: 389914cda4000fe0d996a752532a591132cbf3f9
+  RNFlashList: 8ec7f7454721145fe84566bb9e88bcf58981c9fe
   RNGestureHandler: 920eb17f5b1e15dae6e5ed1904045f8f90e0b11e
   RNPermissions: dcdb7b99796bbeda6975a6e79ad519c41b251b1c
   RNReactNativeHapticFeedback: 1e3efeca9628ff9876ee7cdd9edec1b336913f8c
