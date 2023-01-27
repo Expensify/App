@@ -815,7 +815,6 @@ const styles = {
         left: 0,
         top: 0,
         height: '100%',
-        paddingLeft: 11,
         paddingTop: 23,
         paddingBottom: 8,
         color: themeColors.text,
