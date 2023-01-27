@@ -65,11 +65,11 @@ Onyx.connect({
     callback: val => allReports = val,
 });
 
-let domainHasApprovedAccountant;
+let doesDomainHaveApprovedAccountant;
 Onyx.connect({
     key: ONYXKEYS.ACCOUNT,
     waitForCollectionCallback: true,
-    callback: val => domainHasApprovedAccountant = val.domainHasApprovedAccountant,
+    callback: val => doesDomainHaveApprovedAccountant = val.doesDomainHaveApprovedAccountant,
 });
 
 function getChatType(report) {
@@ -376,8 +376,17 @@ function chatIncludesConcierge(report) {
  * @param {Array} emails
  * @returns {Boolean}
  */
-function hasExpensifyEmails(emails) {
+function hasAutomatedExpensifyEmails(emails) {
     return _.intersection(emails, CONST.EXPENSIFY_EMAILS).length > 0;
+}
+
+/**
+ * Returns true if there are any Expensify accounts (i.e. with domain 'expensify.com') in the set of emails.
+ *
+ * @param emails
+ */
+function hasExpensifyEmails(emails) {
+    return _.some(emails, email => Str.extractEmailDomain(email) === CONST.EXPENSIFY_PARTNER_NAME);
 }
 
 /**
@@ -1186,8 +1195,8 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         return true;
     }
 
-    // Include domain rooms for accounts that are on a domain with an Approved Accountant
-    if (isDomainRoom(report) && domainHasApprovedAccountant) {
+    // Include domain rooms with Partner Managers (Expensify accounts) in them for accounts that are on a domain with an Approved Accountant
+    if (isDomainRoom(report) && doesDomainHaveApprovedAccountant && hasExpensifyEmails(lodashGet(report, ['participants'], []))) {
         return true;
     }
 
@@ -1281,6 +1290,7 @@ export {
     getPolicyType,
     isArchivedRoom,
     isConciergeChatReport,
+    hasAutomatedExpensifyEmails,
     hasExpensifyEmails,
     hasExpensifyGuidesEmails,
     hasOutstandingIOU,
