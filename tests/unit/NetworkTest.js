@@ -437,7 +437,7 @@ describe('NetworkTests', () => {
             });
     });
 
-    test('persisted requests should be retried using exponential backoff', () => {
+    test('persisted requests should be retried using exponential back off', () => {
         // We're setting up xhr handler that rejects with a fetch error 3 times and then succeeds
         const xhr = jest.spyOn(HttpUtils, 'xhr')
             .mockRejectedValueOnce(new Error(CONST.ERROR.FAILED_TO_FETCH))
@@ -471,8 +471,27 @@ describe('NetworkTests', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // Then we have made another request
+                // Then we have retried the failing request
                 expect(xhr).toHaveBeenCalledTimes(2);
+
+                // Now we will double the wait time before the next retry
+                jest.advanceTimersByTime(RequestThrottleMock.initialRequestWaitTime * 2);
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                // Then we have retried again
+                expect(xhr).toHaveBeenCalledTimes(3);
+
+                // Now we double the wait time again
+                jest.advanceTimersByTime(RequestThrottleMock.initialRequestWaitTime * 2 * 2);
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                // Then the request is retried again
+                expect(xhr).toHaveBeenCalledTimes(4);
+
+                // The request succeeds so the queue is empty
+                expect(_.size(PersistedRequests.getAll())).toEqual(0);
             });
     });
 
