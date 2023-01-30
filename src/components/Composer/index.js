@@ -147,7 +147,7 @@ class Composer extends React.Component {
         if (!prevProps.shouldClear && this.props.shouldClear) {
             this.textInput.clear();
             // eslint-disable-next-line react/no-did-update-set-state
-            this.setState({numberOfLines: 1});
+            this.setState({numberOfLines: 1, value: ''});
             this.props.onClear();
         }
 
