@@ -52,7 +52,12 @@ Additionally, the extension provides a button that facilitates the creation of t
 
 ## Installation
 
-You can install the KSv2 extension from [here](https://github.com/Expensify/k2-extension/). As a best practice, before you start working on assigned tasks, go to the [K2 dashboard](https://github.com/Expensify/Expensify#k2). At the top of the page, it lists all your assigned issues organized by priority. Anything with red text is overdue - make sure to address these first. That's it!
+You can install the KSv2 extension from [here](https://github.com/Expensify/k2-extension/).
+
+## Best Practices
+- Look at the dashboard every day
+- Look at the dashboard first before you start any work
+- Work your way down from the top to the bottom (look at PRs you need to review first > provide updates for issues assigned to you > check the progress on PRs you've written > find something new to work on)
 
 ## Why is it called "Kernel Scheduler v2?"
 KSv2 is a shout-out to Windows 95 improving the kernel scheduler used in Windows 3.1. In Windows 3.1, if a program was in the foreground, it was given 100% of the CPU time. This meant that if you watched a background application like the clock, it wouldn't update its time until the foreground application was no longer in the foreground. Then the clock could "catch up" and update to show the current time. Windows 95 made it so that background applications could update by dedicating a small amount of the foreground CPU usage as "spare cycles" for background apps to use. This meant that the clock could now update in real-time, even though it was running in the background.
