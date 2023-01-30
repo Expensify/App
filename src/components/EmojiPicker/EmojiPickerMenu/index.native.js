@@ -115,7 +115,7 @@ class EmojiPickerMenu extends Component {
         const test = Math.floor(headerIndex / 8);
         const testoffset = ((numEmojiRows) * CONST.EMOJI_PICKER_ITEM_HEIGHT) + (CONST.EMOJI_PICKER_HEADER_HEIGHT * (numHeaders + 1));
         this.emojiList.flashScrollIndicators();
-        this.emojiList.scrollToOffset({offset: testoffset, animated: true});
+        this.emojiList.scrollToOffset({offset: testoffset, animated: false});
     }
 
     /**
