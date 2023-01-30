@@ -142,13 +142,18 @@ class BaseOptionsSelector extends Component {
      * @returns {Number}
      */
     getInitiallyFocusedIndex(allOptions) {
+        const defaultIndex = this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0;
+        if (_.isUndefined(this.props.initiallyFocusedOptionKey)) {
+            return defaultIndex;
+        }
+
         const indexOfInitiallyFocusedOption = _.findIndex(allOptions, option => option.keyForList === this.props.initiallyFocusedOptionKey);
 
         if (indexOfInitiallyFocusedOption >= 0) {
             return indexOfInitiallyFocusedOption;
         }
 
-        return this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0;
+        return defaultIndex;
     }
 
     /**
