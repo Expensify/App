@@ -51,8 +51,8 @@ const ReportActionItemCreated = (props) => {
             errorRowStyles={[styles.ml10, styles.mr2]}
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
-            <View pointerEvents="none" style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
-                <View style={StyleUtils.getReportWelcomeBackgroundImageViewStyle(props.isSmallScreenWidth)}>
+            <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
+                <View pointerEvents="none" style={StyleUtils.getReportWelcomeBackgroundImageViewStyle(props.isSmallScreenWidth)}>
                     <ImageBackground
                         source={EmptyStateBackgroundImage}
                         style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
