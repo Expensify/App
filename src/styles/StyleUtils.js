@@ -260,18 +260,15 @@ function getBadgeColorStyle(success, error, isPressed = false) {
  * Generate a style for the background color of the button, based on its current state.
  *
  * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
- * @param {Boolean} isMenuItem - whether this icon is apart of a list
+ * @param {Boolean} isMenuItem - whether this button is apart of a list
  * @returns {Object}
  */
 function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false) {
     switch (buttonState) {
-        case CONST.BUTTON_STATES.ACTIVE:
-            if (isMenuItem) {
-                return {backgroundColor: themeColors.border};
-            }
-            return {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.PRESSED:
             return {backgroundColor: themeColors.buttonPressedBG};
+        case CONST.BUTTON_STATES.ACTIVE:
+            return isMenuItem ? {backgroundColor: themeColors.border} : {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.DISABLED:
         case CONST.BUTTON_STATES.DEFAULT:
         default:
@@ -638,7 +635,7 @@ function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
     let backgroundColor = themeColors.appBG;
 
     if (isHovered) {
-        backgroundColor = themeColors.buttonHoveredBG;
+        backgroundColor = themeColors.border;
     }
 
     if (isPressed) {
