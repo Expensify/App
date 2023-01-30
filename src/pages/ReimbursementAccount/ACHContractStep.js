@@ -259,12 +259,12 @@ class ACHContractStep extends React.Component {
                         isChecked={this.state.acceptTermsAndConditions}
                         onInputChange={() => this.toggleCheckbox('acceptTermsAndConditions')}
                         LabelComponent={() => (
-                            <View style={[styles.flexRow]}>
-                                <Text>{this.props.translate('common.iAcceptThe')}</Text>
+                            <Text>
+                                {this.props.translate('common.iAcceptThe')}
                                 <TextLink href="https://use.expensify.com/achterms">
                                     {`${this.props.translate('beneficialOwnersStep.termsAndConditions')}`}
                                 </TextLink>
-                            </View>
+                            </Text>
                         )}
                         errorText={this.getErrorText('acceptTermsAndConditions')}
                         hasError={this.getErrors().acceptTermsAndConditions}
