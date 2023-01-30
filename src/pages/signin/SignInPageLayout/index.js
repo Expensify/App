@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import SignInPageContent from './SignInPageContent';
+import Footer from './Footer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import styles from '../../../styles/styles';
 import SignInPageGraphics from './SignInPageGraphics';
@@ -39,7 +40,10 @@ const SignInPageLayout = (props) => {
                     {props.children}
                 </SignInPageContent>
                 {!props.isSmallScreenWidth && (
-                    <SignInPageGraphics />
+                    <>
+                        <SignInPageGraphics />
+                        <Footer />
+                    </>
                 )}
             </View>
         </View>
