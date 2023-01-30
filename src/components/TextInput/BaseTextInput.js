@@ -124,7 +124,9 @@ class BaseTextInput extends Component {
         if (this.props.disabled) {
             return;
         }
-        if (this.props.onFocus) { this.props.onFocus(event); }
+        if (this.props.onFocus) {
+            this.props.onFocus(event);
+        }
         this.setState({isFocused: true});
         this.activateLabel();
     }
