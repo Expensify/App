@@ -123,7 +123,7 @@ function splitExtensionFromFileName(fullFileName) {
  * @returns {String}
  */
 function cleanFileName(fileName) {
-    return fileName.replace(/[^a-zA-Z0-9\-\._]/g, '_');
+    return fileName.replace(/[^a-zA-Z0-9\-._]/g, '_');
 }
 
 export {
