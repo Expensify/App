@@ -22,7 +22,7 @@ In the dashboard, you can first see the PRs assigned to you as `Reviewer`. As pa
 
 ### Issues assigned to you
 
-In the next section you can see all issues assigned to you, prioritized from most urgent to least urgent. Issues will also change color depending on other factors - e.g. if they have "HOLD" in the title or if they have the `Overdue`, `Planning`, or `Waiting for copy` labels applied.
+In the next section you can see all issues assigned to you, prioritized from most urgent (on the left) to least urgent (on the right). Issues will also change color depending on other factors - e.g. if they have "HOLD" in the title or if they have the `Overdue`, `Planning`, or `Waiting for copy` labels applied.
 
 If a GitHub issue has the `Overdue` label, it means that it hasn't been updated in the amount of time allotted for an update (ex - A weekly issue becomes overdue if it hasn't been updated in a week).
 
