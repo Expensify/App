@@ -64,26 +64,24 @@ const getLibraryAdjustedModifiers = (modifiers) => {
     if (_.isEqual(modifiers, ['CTRL'])) {
         return KeyCommand.constants.keyModifierCommand;
     }
-
-    return undefined;
 };
 
 const getLibraryAdjustedInput = (input) => {
     const key = input.toLowerCase();
 
-    if (_.isEqual(key, 'escape')) {
+    if (key === 'escape') {
         return KeyCommand.constants.keyInputEscape;
     }
 
-    if (_.isEqual(key, 'enter')) {
+    if (key === 'enter') {
         return KeyCommand.constants.keyInputEnter;
     }
 
-    if (_.isEqual(key, 'arrowup')) {
+    if (key === 'arrowup') {
         return KeyCommand.constants.keyInputUpArrow;
     }
 
-    if (_.isEqual(key, 'arrowdown')) {
+    if (key === 'arrowdown') {
         return KeyCommand.constants.keyInputDownArrow;
     }
 
