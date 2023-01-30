@@ -998,7 +998,7 @@ export default {
         subtitle: '¡Estamos aquí para ayudarte!',
         description: 'Elige una de las siguientes opciones:',
         chatWithConcierge: 'Chatear con Concierge',
-        requestSetupCall: 'Llámame por teléfono',
+        scheduleSetupCall: 'Concertar una llamada',
         questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
         exploreHelpDocs: 'Explorar la documentación de ayuda',
     },
