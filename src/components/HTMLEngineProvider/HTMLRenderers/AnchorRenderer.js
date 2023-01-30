@@ -27,7 +27,7 @@ const AnchorRenderer = (props) => {
     const attrHref = htmlAttribs.href || '';
     const attrPath = lodashGet(Url.getURLObject(attrHref), 'path', '').replace('/', '');
     const internalNewExpensifyPath = (Url.hasSameExpensifyOrigin(attrHref, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(attrHref, CONST.STAGING_NEW_EXPENSIFY_URL)) && attrPath;
-    const internalExpensifyPath = Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.EXPENSIFY_URL)
+    const internalExpensifyPath = (Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.STAGING_EXPENSIFY_URL))
                                     && !attrPath.startsWith(CONFIG.EXPENSIFY.CONCIERGE_URL_PATHNAME)
                                     && attrPath;
     const navigateToLink = () => {
