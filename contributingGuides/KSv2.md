@@ -16,6 +16,8 @@ To help surface the issues and PRs that need the most `#urgency`, we've built a 
 
 <img src="https://user-images.githubusercontent.com/6829422/213875977-8ff4cf19-7690-4203-ae13-a8da259be7d0.png" />
 
+Once you have the extension installed, you can access it by going to https://github.com/Expensify/Expensify#k2 or clicking on the K2 tab at the top of a repo (between pull requests and GH actions).
+
 ### Pull Requests for review
 
 In the dashboard, you can first see the PRs assigned to you as `Reviewer`. As part of our engineering guidelines, an engineer (internal or external) should review other people's code before working on their own code.
