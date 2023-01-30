@@ -34,7 +34,7 @@ After the issues section you will find a section that lists the PRs you've creat
 
 ### WAQ issues
 
-The dashboard also shows a list of open issues in the App repo which are not on hold and don't have PRs yet, all ordered by their age (and grouped by how many weeks old they are):
+This section displays a list of open issues in the App repo which are not on hold and don't have PRs yet, all ordered by their age (and grouped by how many weeks old they are):
 
 <img src="https://user-images.githubusercontent.com/6829422/213875962-fb1f23d0-59b9-4d05-960e-160e34c83cf0.png" />
 
