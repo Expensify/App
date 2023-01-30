@@ -37,6 +37,7 @@ class Image extends React.Component {
      * and as a result the `onLoad` event needs to be maunually invoked to return these dimensions
      */
     configureImageSource() {
+        this.props.onLoadStart();
         const source = this.props.source;
         let imageSource = source;
         if (this.props.isAuthTokenRequired) {

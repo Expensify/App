@@ -86,9 +86,6 @@ class ImageView extends PureComponent {
     }
 
     imageLoadStart() {
-        if (this.state.imageWidth !== 0 && this.state.imageHeight !== 0) {
-            return;
-        }
         this.setState({isLoading: true});
     }
 
