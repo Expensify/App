@@ -149,7 +149,7 @@ class ProfilePage extends Component {
                     >
                         <AvatarWithImagePicker
                             isUsingDefaultAvatar={ReportUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
-                            source={ReportUtils.getAvatar(currentUserDetails.avatar, currentUserDetails.login)}
+                            source={ReportUtils.getAvatar(lodashGet(currentUserDetails, 'avatar', ''), lodashGet(currentUserDetails, 'login', ''))}
                             onImageSelected={PersonalDetails.updateAvatar}
                             onImageRemoved={PersonalDetails.deleteAvatar}
                             anchorPosition={styles.createMenuPositionProfile}
