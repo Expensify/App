@@ -349,7 +349,7 @@ class ReportActionsView extends React.Component {
         }
 
         this.didLayout = true;
-        Timing.end(CONST.TIMING.SWITCH_REPORT, this.hasCachedActions ? CONST.Timing.WARM : CONST.TIMING.COLD);
+        Timing.end(CONST.TIMING.SWITCH_REPORT, this.hasCachedActions ? CONST.TIMING.WARM : CONST.TIMING.COLD);
 
         // Capture the init measurement only once not per each chat switch as the value gets overwritten
         if (!ReportActionsView.initMeasured) {
