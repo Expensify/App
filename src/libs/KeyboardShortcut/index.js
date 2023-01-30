@@ -57,12 +57,20 @@ function getPlatformEquivalentForKeys(keys) {
 }
 
 const getLibraryAdjustedModifiers = (modifiers) => {
+    const operatingSystem = getOperatingSystem();
+
     if (_.isEqual(modifiers, ['CTRL', 'SHIFT'])) {
-        return KeyCommand.constants.keyModifierShiftCommand;
+        if (_.includes([CONST.OS.MAC_OS, CONST.OS.IOS], operatingSystem)) {
+            return KeyCommand.constants.keyModifierShiftCommand;
+        }
+        return KeyCommand.constants.keyModifierControlShift;
     }
 
     if (_.isEqual(modifiers, ['CTRL'])) {
-        return KeyCommand.constants.keyModifierCommand;
+        if (_.includes([CONST.OS.MAC_OS, CONST.OS.IOS], operatingSystem)) {
+            return KeyCommand.constants.keyModifierCommand;
+        }
+        return KeyCommand.constants.keyModifierControl;
     }
 };
 
