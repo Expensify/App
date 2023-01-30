@@ -54,11 +54,6 @@ const propTypes = {
 };
 
 class ReportDetailsPage extends Component {
-    // eslint-disable-next-line no-useless-constructor
-    constructor(props) {
-        super(props);
-    }
-
     getMenuItems() {
         const menuItems = [];
 
