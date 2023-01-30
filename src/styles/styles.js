@@ -2512,8 +2512,9 @@ const styles = {
     },
 
     dotSeparator: {
-        marginHorizontal: variables.dotSeparatorHorizontalSpacing,
-        marginVertical: (variables.lineHeightSmall - variables.iconSizeXXXSmall) / 2,
+        paddingHorizontal: variables.dotSeparatorHorizontalSpacing,
+        paddingVertical: (variables.lineHeightSmall - variables.iconSizeXXXSmall) / 2,
+        alignItems: 'center',
     },
 
     sidebarPopover: {
@@ -2877,6 +2878,8 @@ const styles = {
         flexWrap: 'wrap',
     },
 
+    getJoinRoomPromptContainerSmallScreenStyles: isSmallScreenWidth => (isSmallScreenWidth && [{minHeight: 150, flexDirection: 'column'}]),
+
     joinRoomPromptTitleContainer: {
         display: 'flex',
         flexDirection: 'row',
@@ -2886,8 +2889,6 @@ const styles = {
 
     joinRoomPromptTextContainer: {
         flex: 1,
-        display: 'flex',
-        justifyContent: 'center',
     },
 
     joinRoomPromptButtonContainer: {

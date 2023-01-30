@@ -44,7 +44,7 @@ const JoinRoomPrompt = (props) => {
     const workspaceName = ReportUtils.getChatRoomSubtitle(props.report, props.policies);
     const memberCount = `${props.report.participants.length} member${props.report.participants.length > 1 ? 's' : ''}`;
     return (
-        <View style={[styles.joinRoomPromptContainer, props.isSmallScreenWidth && styles.flexColumn]}>
+        <View style={[styles.joinRoomPromptContainer, styles.getJoinRoomPromptContainerSmallScreenStyles(props.isSmallScreenWidth)]}>
             <View style={[styles.joinRoomPromptTitleContainer, props.isSmallScreenWidth && [styles.flexShrink0, styles.mb2]]}>
                 <Avatar
                     source={icons[0]}
