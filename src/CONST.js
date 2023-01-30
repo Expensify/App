@@ -372,6 +372,7 @@ const CONST = {
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
         COLD: 'cold',
+        WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
         TOOLTIP_SENSE: 1000,
@@ -735,6 +736,7 @@ const CONST = {
         SMALLER: 'smaller',
         SUBSCRIPT: 'subscript',
         SMALL_SUBSCRIPT: 'small-subscript',
+        LARGE_BORDERED: 'large-bordered',
     },
     OPTION_MODE: {
         COMPACT: 'compact',
@@ -773,6 +775,7 @@ const CONST = {
         EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         CODE_2FA: /^\d{6}$/,
+        ATTACHMENT_ID: /chat-attachments\/(\d+)/,
     },
 
     PRONOUNS: {
