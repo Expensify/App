@@ -28,6 +28,7 @@ import * as ModalStackNavigators from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
+import * as Download from '../../actions/Download';
 import * as Session from '../../actions/Session';
 
 let currentUserEmail;
@@ -102,6 +103,7 @@ class AuthScreens extends React.Component {
 
         App.openApp();
         App.setUpPoliciesAndNavigate(this.props.session);
+        Download.clearDownloads();
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
