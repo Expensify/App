@@ -1,7 +1,7 @@
 import React from 'react';
 import CONST from '../../CONST';
 import { propTypes, defaultProps } from './attachmentPickerPropTypes';
-import { cleanFileName } from '../../libs//fileDownload/'
+import {cleanFileName} from '../../libs/fileDownload/FileUtils';
 
 /**
  * Returns acceptable FileTypes based on ATTACHMENT_PICKER_TYPE
