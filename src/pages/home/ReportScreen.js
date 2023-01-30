@@ -1,7 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, Linking} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {Freeze} from 'react-freeze';
@@ -123,6 +123,14 @@ class ReportScreen extends React.Component {
         this.fetchReportIfNeeded();
         toggleReportActionComposeView(true);
         this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportOffsetTop);
+
+        // Display chat report on mWeb when the link is opened directly in the browser
+        const reportIDFromPath = getReportID(this.props.route);
+        if (reportIDFromPath) {
+            Navigation.isDrawerReady().then(() => {
+                Navigation.navigate(ROUTES.getReportRoute(reportIDFromPath));
+            });
+        }
     }
 
     componentDidUpdate(prevProps) {
