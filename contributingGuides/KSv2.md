@@ -28,7 +28,7 @@ If a GitHub issue has the `Overdue` label, the text will be red. This means that
 
 ### Your Pull Requests
 
-After the issues section you will find a section that lists your created PRs:
+After the issues section you will find a section that lists the PRs you've created.
 
 <img src="https://user-images.githubusercontent.com/6829422/213875978-3df6bcd0-ee9a-472a-9a9f-6db70486bcf0.png" />
 
