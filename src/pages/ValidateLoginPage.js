@@ -11,9 +11,8 @@ import { withBetas } from '../components/OnyxProvider';
 import CONST from '../CONST';
 import MagicCodeModal from '../components/MagicCodeModal';
 import { withOnyx } from 'react-native-onyx';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
 import ONYXKEYS from '../ONYXKEYS';
+import * as Session from '../libs/actions/Session';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
@@ -26,15 +25,13 @@ const defaultProps = {
 class ValidateLoginPage extends Component {
     
     componentDidMount() {
-
-        // if(this.isAuthenticated()) {
-        //     Navigation.navigate(ROUTES.HOME);
-        //     return;
-        // }
-
-        // if(!this.isPasswordlessFlow()) {
+        if (this.isPasswordlessFlow()) {
+            if (!this.isAuthenticated()) {
+                Session.signInFromMagicLink(this.accountID(), this.validateCode());
+            } 
+        } else {
             User.validateLogin(this.accountID(), this.validateCode());
-        // }
+        }
     }
 
     /**
