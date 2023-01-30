@@ -57,8 +57,7 @@ Additionally, the extension provides a button that facilitates the creation of t
 You can install the KSv2 extension from [here](https://github.com/Expensify/k2-extension/).
 
 ## Best Practices
-- Look at the dashboard every day
-- Look at the dashboard first before you start any work
+- Look at the dashboard every day, before you start any work
 - Work your way down from the top to the bottom (look at PRs you need to review first > provide updates for issues assigned to you > check the progress on PRs you've written > find something new to work on)
 
 ## Why is it called "Kernel Scheduler v2?"
