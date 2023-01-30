@@ -131,6 +131,22 @@ class ReportScreen extends React.Component {
                 Navigation.navigate(ROUTES.getReportRoute(reportIDFromPath));
             });
         }
+
+        // Open chat report from a deep link
+        Linking.addEventListener('url', (state) => {
+            // console.log('url:', state.url);
+            // Navigation.navigate(ROUTES.getReportRoute('1242891003599332'));
+
+            const index = state.url.indexOf('r/');
+            if (index > -1) {
+                const reportIDFromPathDeepLink = state.url.substring(index + 2);
+                console.log('reportIDFromPathDeepLink:', reportIDFromPathDeepLink);
+
+                Navigation.isDrawerReady().then(() => {
+                    Navigation.navigate(ROUTES.getReportRoute(reportIDFromPathDeepLink));
+                });
+            }
+        });
     }
 
     componentDidUpdate(prevProps) {
