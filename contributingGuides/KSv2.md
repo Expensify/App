@@ -40,7 +40,7 @@ This section displays a list of open issues in the App repo which are not on hol
 
 ## Label buttons
 
-On the right side of GitHub issues, you’ll find buttons for the most common labels. Some of these labels are only for internal use, but there are other labels that can be used for public repos:
+The page for a GitHub issue will have buttons on the right side for the most common labels. Some of these labels are only for internal use, but there are other labels that can be used for public repos:
 
 <img src="https://user-images.githubusercontent.com/6829422/214215474-e7f03411-dea1-44ea-9ca0-3780d7ea2740.png" />
 
