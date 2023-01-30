@@ -347,18 +347,6 @@ const styles = {
         opacity: 1,
     },
 
-    pr0: {
-        paddingRight: 0,
-    },
-
-    pl0: {
-        paddingLeft: 0,
-    },
-
-    pl8: {
-        paddingLeft: 8,
-    },
-
     textDanger: {
         color: themeColors.danger,
     },
