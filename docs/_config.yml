@@ -12,7 +12,7 @@ defaults:
     values:
       layout: "default"
 
-exclude: [README.md, TEMPLATE.md]
+exclude: [README.md, TEMPLATE.md, vendor]
 
 plugins:
   - jekyll-seo-tag

@@ -1,56 +1,91 @@
 import React from 'react';
 import {Pressable} from 'react-native';
-import * as anchorForAttachmentsOnlyPropTypes from './anchorForAttachmentsOnlyPropTypes';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
+import {
+    propTypes as anchorForAttachmentsOnlyPropTypes,
+    defaultProps as anchorForAttachmentsOnlyDefaultProps,
+} from './anchorForAttachmentsOnlyPropTypes';
+import CONST from '../../CONST';
+import ONYXKEYS from '../../ONYXKEYS';
 import AttachmentView from '../AttachmentView';
+import * as Download from '../../libs/actions/Download';
 import fileDownload from '../../libs/fileDownload';
 import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
+import {ShowContextMenuContext, showContextMenuForReport} from '../ShowContextMenuContext';
 
-class BaseAnchorForAttachmentsOnly extends React.Component {
-    constructor(props) {
-        super(props);
+const propTypes = {
+    /** Press in handler for the link */
+    onPressIn: PropTypes.func,
 
-        this.state = {
-            isDownloading: false,
-        };
-        this.processDownload = this.processDownload.bind(this);
-    }
+    /** Press out handler for the link */
+    onPressOut: PropTypes.func,
 
-    /**
-     * Initiate file downloading and update downloading flags
-     *
-     * @param {String} href
-     * @param {String} fileName
-     */
-    processDownload(href, fileName) {
-        this.setState({isDownloading: true});
-        fileDownload(href, fileName).then(() => this.setState({isDownloading: false}));
-    }
+    ...anchorForAttachmentsOnlyPropTypes,
+};
 
-    render() {
-        const source = addEncryptedAuthTokenToURL(this.props.source);
+const defaultProps = {
+    onPressIn: undefined,
+    onPressOut: undefined,
+    ...anchorForAttachmentsOnlyDefaultProps,
+};
 
-        return (
-            <Pressable
-                style={this.props.style}
-                onPress={() => {
-                    if (this.state.isDownloading) {
-                        return;
-                    }
-                    this.processDownload(source, this.props.displayName);
-                }}
-            >
-                <AttachmentView
-                    sourceURL={source}
-                    file={{name: this.props.displayName}}
-                    shouldShowDownloadIcon
-                    shouldShowLoadingSpinnerIcon={this.state.isDownloading}
-                />
-            </Pressable>
-        );
-    }
-}
+const BaseAnchorForAttachmentsOnly = (props) => {
+    const sourceURL = props.source;
+    const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL);
+    const sourceID = (sourceURL.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
+    const fileName = props.displayName;
 
-BaseAnchorForAttachmentsOnly.propTypes = anchorForAttachmentsOnlyPropTypes.propTypes;
-BaseAnchorForAttachmentsOnly.defaultProps = anchorForAttachmentsOnlyPropTypes.defaultProps;
+    const isDownloading = props.download && props.download.isDownloading;
 
-export default BaseAnchorForAttachmentsOnly;
+    return (
+        <ShowContextMenuContext.Consumer>
+            {({
+                anchor,
+                reportID,
+                action,
+                checkIfContextMenuActive,
+            }) => (
+                <Pressable
+                    style={props.style}
+                    onPress={() => {
+                        if (isDownloading) {
+                            return;
+                        }
+                        Download.setDownload(sourceID, true);
+                        fileDownload(sourceURLWithAuth, fileName).then(() => Download.setDownload(sourceID, false));
+                    }}
+                    onPressIn={props.onPressIn}
+                    onPressOut={props.onPressOut}
+                    onLongPress={event => showContextMenuForReport(
+                        event,
+                        anchor,
+                        reportID,
+                        action,
+                        checkIfContextMenuActive,
+                    )}
+                >
+                    <AttachmentView
+                        sourceURL={sourceURLWithAuth}
+                        file={{name: fileName}}
+                        shouldShowDownloadIcon
+                        shouldShowLoadingSpinnerIcon={isDownloading}
+                    />
+                </Pressable>
+            )}
+        </ShowContextMenuContext.Consumer>
+    );
+};
+
+BaseAnchorForAttachmentsOnly.displayName = 'BaseAnchorForAttachmentsOnly';
+BaseAnchorForAttachmentsOnly.propTypes = propTypes;
+BaseAnchorForAttachmentsOnly.defaultProps = defaultProps;
+
+export default withOnyx({
+    download: {
+        key: ({source}) => {
+            const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
+            return `${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`;
+        },
+    },
+})(BaseAnchorForAttachmentsOnly);

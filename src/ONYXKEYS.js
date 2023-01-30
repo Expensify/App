@@ -79,6 +79,9 @@ export default {
     // Plaid data (access tokens, bank accounts ...)
     PLAID_DATA: 'plaidData',
 
+    // If we disabled Plaid because of too many attempts
+    IS_PLAID_DISABLED: 'isPlaidDisabled',
+
     // Token needed to initialize Plaid link
     PLAID_LINK_TOKEN: 'plaidLinkToken',
 
@@ -95,6 +98,7 @@ export default {
         POLICY: 'policy_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         POLICY_MEMBER_LIST: 'policyMemberList_',
+        DOWNLOAD: 'download_',
     },
 
     // Indicates which locale should be used
@@ -111,9 +115,6 @@ export default {
 
     // Stores information about additional details form entry
     WALLET_ADDITIONAL_DETAILS: 'walletAdditionalDetails',
-
-    // Stores values put into the additional details step of the wallet KYC flow
-    WALLET_ADDITIONAL_DETAILS_DRAFT: 'walletAdditionalDetailsDraft',
 
     // Object containing Wallet terms step state
     WALLET_TERMS: 'walletTerms',
