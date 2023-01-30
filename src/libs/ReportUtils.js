@@ -463,7 +463,7 @@ function isDefaultAvatar(avatarURL) {
         return true;
     }
 
-    // if null URL, we should also use a default avatar
+    // If null URL, we should also use a default avatar
     if (!avatarURL) {
         return true;
     }
