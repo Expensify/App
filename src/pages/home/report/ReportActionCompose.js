@@ -460,9 +460,10 @@ class ReportActionCompose extends React.PureComponent {
     }
 
     /**
+     * @param {Function} onDone called when all state updates completed
      * @returns {String}
      */
-    prepareCommentAndResetComposer() {
+    prepareCommentAndResetComposer(onDone) {
         const trimmedComment = this.comment.trim();
 
         // Don't submit empty comments or comments that exceed the character limit
@@ -476,7 +477,7 @@ class ReportActionCompose extends React.PureComponent {
         if (this.props.isComposerFullSize) {
             Report.setIsComposerFullSize(this.props.reportID, false);
         }
-        this.setState({isFullComposerAvailable: false});
+        this.setState({isFullComposerAvailable: false}, onDone);
 
         return trimmedComment;
     }
@@ -486,8 +487,9 @@ class ReportActionCompose extends React.PureComponent {
      */
     addAttachment(file) {
         const comment = this.prepareCommentAndResetComposer();
-        Report.addAttachment(this.props.reportID, file, comment);
-        this.setTextInputShouldClear(false);
+        Report.addAttachment(this.props.reportID, file, comment, () => {
+            this.setTextInputShouldClear(false);
+        });
     }
 
     /**
