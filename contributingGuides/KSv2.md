@@ -20,7 +20,7 @@ Once you have the extension installed, you can access it by going to https://git
 
 ### Pull Requests for review
 
-In the dashboard, you can first see the PRs assigned to you as `Reviewer`. As part of our engineering guidelines, an engineer (internal or external) should review other people's code before working on their own code.
+In the dashboard, you can first see the PRs assigned to you as `Reviewer`. As part of our engineering guidelines, an engineer (internal or external) should review other people's code before working on their own code. This helps unblock others so that everyone can be as efficient as possible getting stuff done.
 
 ### Issues assigned to you
 
