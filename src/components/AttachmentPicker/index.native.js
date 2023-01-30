@@ -18,7 +18,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import launchCamera from './launchCamera';
 import CONST from '../../CONST';
-import {cleanFileName} from '../../libs/fileDownload/FileUtils';
+import * as FileUtils from '../../libs/fileDownload/FileUtils';
 
 const propTypes = {
     ...basePropTypes,
@@ -73,7 +73,7 @@ function getDataForUpload(fileData) {
         fileName = `${fileName}${fileExtension}`;
     }
     const fileResult = {
-        name: cleanFileName(fileName),
+        name: FileUtils.cleanFileName(fileName),
         type: fileData.type,
         width: fileData.width,
         height: fileData.height,

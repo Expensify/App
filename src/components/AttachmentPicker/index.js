@@ -1,7 +1,7 @@
 import React from 'react';
 import CONST from '../../CONST';
-import { propTypes, defaultProps } from './attachmentPickerPropTypes';
-import {cleanFileName} from '../../libs/fileDownload/FileUtils';
+import {propTypes, defaultProps} from './attachmentPickerPropTypes';
+import * as FileUtils from '../../libs/fileDownload/FileUtils';
 
 /**
  * Returns acceptable FileTypes based on ATTACHMENT_PICKER_TYPE
@@ -35,7 +35,7 @@ class AttachmentPicker extends React.Component {
                         const file = e.target.files[0];
 
                         if (file) {
-                            const cleanName = cleanFileName(file.name);
+                            const cleanName = FileUtils.cleanFileName(file.name);
                             file.uri = URL.createObjectURL(file);
                             const updatedFile = new File([file], cleanName);
                             this.onPicked(updatedFile);
