@@ -46,7 +46,7 @@ The page for a GitHub issue will have buttons on the right side for the most com
 
 ## Reviewer Checklist button
 
-Additionally the extension provides a button that facilitates the creation of the Reviewer Checklist into a new comment:
+Additionally, the extension provides a button that facilitates the creation of the Reviewer Checklist into a new comment:
 
 <img src="https://user-images.githubusercontent.com/6829422/214215497-ac268e40-0830-43bf-967d-fe667bc2de71.png" />
 
