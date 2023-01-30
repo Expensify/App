@@ -16,28 +16,19 @@ import styles from '../../styles/styles';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize from '../../components/withLocalize';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import Picker from '../../components/Picker';
 import AddressForm from './AddressForm';
-import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
-import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
-import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import Form from '../../components/Form';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
-    /** The bank account currently in setup */
-    /* eslint-disable-next-line react/no-unused-prop-types */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
-
-    /** The draft values of the bank account being setup */
-    /* eslint-disable-next-line react/no-unused-prop-types */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
-
-    ...withLocalizePropTypes,
+    ...StepPropTypes,
 };
 
 class CompanyStep extends React.Component {
@@ -54,6 +45,18 @@ class CompanyStep extends React.Component {
 
     componentWillUnmount() {
         BankAccounts.resetReimbursementAccount();
+    }
+
+    /**
+     * @param {Array} fieldNames
+     *
+     * @returns {*}
+     */
+    getBankAccountFields(fieldNames) {
+        return {
+            ..._.pick(lodashGet(this.props.reimbursementAccount, 'achData'), ...fieldNames),
+            ..._.pick(this.props.reimbursementAccountDraft, ...fieldNames),
+        };
     }
 
     /**
@@ -118,8 +121,10 @@ class CompanyStep extends React.Component {
 
     submit(values) {
         const bankAccount = {
+            bankAccountID: lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0,
+
             // Fields from BankAccount step
-            ...ReimbursementAccountUtils.getBankAccountFields(this.props, ['bankAccountID', 'routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
+            ...this.getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
 
             // Fields from Company step
             ...values,
@@ -132,25 +137,27 @@ class CompanyStep extends React.Component {
     }
 
     render() {
-        const bankAccountID = ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0);
-        const shouldDisableCompanyName = bankAccountID && ReimbursementAccountUtils.getDefaultStateForField(this.props, 'companyName');
-        const shouldDisableCompanyTaxID = bankAccountID && ReimbursementAccountUtils.getDefaultStateForField(this.props, 'companyTaxID');
+        const bankAccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0;
+        const shouldDisableCompanyName = bankAccountID && this.props.getDefaultStateForField('companyName');
+        const shouldDisableCompanyTaxID = bankAccountID && this.props.getDefaultStateForField('companyTaxID');
 
         return (
-            <>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('companyStep.headerTitle')}
                     stepCounter={{step: 2, total: 5}}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
-                    onBackButtonPress={() => BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)}
+                    onBackButtonPress={this.props.onBackButtonPress}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 <Form
                     formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                     validate={this.validate}
                     onSubmit={this.submit}
+                    scrollContextEnabled
+                    scrollToOverflowEnabled
                     submitButtonText={this.props.translate('common.saveAndContinue')}
                     style={[styles.ph5, styles.flexGrow1]}
                 >
@@ -160,16 +167,16 @@ class CompanyStep extends React.Component {
                         inputID="companyName"
                         containerStyles={[styles.mt4]}
                         disabled={shouldDisableCompanyName}
-                        defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'companyName')}
+                        defaultValue={this.props.getDefaultStateForField('companyName')}
                         shouldSaveDraft
                     />
                     <AddressForm
                         translate={this.props.translate}
                         defaultValues={{
-                            street: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressStreet'),
-                            city: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressCity'),
-                            state: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressState'),
-                            zipCode: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressZipCode'),
+                            street: this.props.getDefaultStateForField('addressStreet'),
+                            city: this.props.getDefaultStateForField('addressCity'),
+                            state: this.props.getDefaultStateForField('addressState'),
+                            zipCode: this.props.getDefaultStateForField('addressZipCode'),
                         }}
                         inputKeys={{
                             street: 'addressStreet', city: 'addressCity', state: 'addressState', zipCode: 'addressZipCode',
@@ -183,14 +190,14 @@ class CompanyStep extends React.Component {
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                         placeholder={this.props.translate('common.phoneNumberPlaceholder')}
-                        defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'companyPhone')}
+                        defaultValue={this.props.getDefaultStateForField('companyPhone')}
                         shouldSaveDraft
                     />
                     <TextInput
                         inputID="website"
                         label={this.props.translate('companyStep.companyWebsite')}
                         containerStyles={[styles.mt4]}
-                        defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'website', this.defaultWebsite)}
+                        defaultValue={this.props.getDefaultStateForField('website', this.defaultWebsite)}
                         shouldSaveDraft
                         hint={this.props.translate('common.websiteExample')}
                     />
@@ -201,7 +208,7 @@ class CompanyStep extends React.Component {
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableCompanyTaxID}
                         placeholder={this.props.translate('companyStep.taxIDNumberPlaceholder')}
-                        defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'companyTaxID')}
+                        defaultValue={this.props.getDefaultStateForField('companyTaxID')}
                         shouldSaveDraft
                     />
                     <View style={styles.mt4}>
@@ -210,7 +217,7 @@ class CompanyStep extends React.Component {
                             label={this.props.translate('companyStep.companyType')}
                             items={_.map(this.props.translate('companyStep.incorporationTypes'), (label, value) => ({value, label}))}
                             placeholder={{value: '', label: '-'}}
-                            defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'incorporationType')}
+                            defaultValue={this.props.getDefaultStateForField('incorporationType')}
                             shouldSaveDraft
                         />
                     </View>
@@ -219,7 +226,7 @@ class CompanyStep extends React.Component {
                             inputID="incorporationDate"
                             label={this.props.translate('companyStep.incorporationDate')}
                             placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
-                            defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'incorporationDate')}
+                            defaultValue={this.props.getDefaultStateForField('incorporationDate')}
                             shouldSaveDraft
                         />
                     </View>
@@ -227,29 +234,29 @@ class CompanyStep extends React.Component {
                         <StatePicker
                             inputID="incorporationState"
                             label={this.props.translate('companyStep.incorporationState')}
-                            defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'incorporationState')}
+                            defaultValue={this.props.getDefaultStateForField('incorporationState')}
                             shouldSaveDraft
                         />
                     </View>
                     <CheckboxWithLabel
                         inputID="hasNoConnectionToCannabis"
-                        defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'hasNoConnectionToCannabis', false)}
+                        defaultValue={this.props.getDefaultStateForField('hasNoConnectionToCannabis', false)}
                         LabelComponent={() => (
-                            <>
-                                <Text>{`${this.props.translate('companyStep.confirmCompanyIsNot')} `}</Text>
+                            <Text>
+                                {`${this.props.translate('companyStep.confirmCompanyIsNot')} `}
                                 <TextLink
                                     // eslint-disable-next-line max-len
                                     href="https://community.expensify.com/discussion/6191/list-of-restricted-businesses"
                                 >
                                     {`${this.props.translate('companyStep.listOfRestrictedBusinesses')}.`}
                                 </TextLink>
-                            </>
+                            </Text>
                         )}
                         style={[styles.mt4]}
                         shouldSaveDraft
                     />
                 </Form>
-            </>
+            </ScreenWrapper>
         );
     }
 }
@@ -259,13 +266,6 @@ CompanyStep.propTypes = propTypes;
 export default compose(
     withLocalize,
     withOnyx({
-        // Needed to retrieve errorFields
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        reimbursementAccountDraft: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
-        },
         session: {
             key: ONYXKEYS.SESSION,
         },

@@ -482,6 +482,7 @@ const CONST = {
         DECIMAL_PAD: 'decimal-pad',
         VISIBLE_PASSWORD: 'visible-password',
         EMAIL_ADDRESS: 'email-address',
+        ASCII_CAPABLE: 'ascii-capable',
     },
 
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
@@ -735,6 +736,7 @@ const CONST = {
         SMALLER: 'smaller',
         SUBSCRIPT: 'subscript',
         SMALL_SUBSCRIPT: 'small-subscript',
+        LARGE_BORDERED: 'large-bordered',
     },
     OPTION_MODE: {
         COMPACT: 'compact',
@@ -773,6 +775,7 @@ const CONST = {
         EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         CODE_2FA: /^\d{6}$/,
+        ATTACHMENT_ID: /chat-attachments\/(\d+)/,
     },
 
     PRONOUNS: {

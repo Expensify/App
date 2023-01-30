@@ -610,7 +610,7 @@ class ReportActionCompose extends React.Component {
                                                                 this.actionButton.blur();
                                                                 this.setMenuVisibility(true);
                                                             }}
-                                                            style={styles.chatItemAttachButton}
+                                                            style={styles.composerSizeButton}
                                                             disabled={isBlockedFromConcierge || this.props.disabled}
                                                         >
                                                             <Icon src={Expensicons.Plus} />

@@ -215,7 +215,7 @@ class BasePaymentsPage extends React.Component {
         }
 
         if (paymentType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
+            BankAccounts.openPersonalBankAccountSetupView();
             return;
         }
 

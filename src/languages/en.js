@@ -982,7 +982,7 @@ export default {
         subtitle: 'We\'re here to clear your path to greatness!',
         description: 'Choose from the support options below:',
         chatWithConcierge: 'Chat with Concierge',
-        requestSetupCall: 'Request a setup call',
+        scheduleSetupCall: 'Schedule a setup call',
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
     },
