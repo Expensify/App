@@ -114,6 +114,7 @@ function splitExtensionFromFileName(fullFileName) {
     const splitFileName = fileName.split('.');
     const fileExtension = splitFileName.pop();
     return {fileName: splitFileName.join('.'), fileExtension};
+}
 
 /**
  * Returns the filename replacing special characters with underscore
