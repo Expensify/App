@@ -45,7 +45,7 @@ const JoinRoomPrompt = (props) => {
     const memberCount = `${props.report.participants.length} member${props.report.participants.length > 1 ? 's' : ''}`;
     return (
         <View style={[styles.joinRoomPromptContainer, props.isSmallScreenWidth && styles.flexColumn]}>
-            <View style={[styles.dFlex, styles.flexRow, styles.flex1, props.isSmallScreenWidth && [styles.flexShrink0, styles.mb2]]}>
+            <View style={[styles.joinRoomPromptTitleContainer, props.isSmallScreenWidth && [styles.flexShrink0, styles.mb2]]}>
                 <Avatar
                     source={icons[0]}
                     size={CONST.AVATAR_SIZE.MEDIUM}
@@ -74,7 +74,7 @@ const JoinRoomPrompt = (props) => {
                             fill={themeColors.textSupporting}
                             height={variables.iconSizeXXXSmall}
                             width={variables.iconSizeXXXSmall}
-                            style={styles.dotSeparator}
+                            containerStyles={styles.dotSeparator}
                             inline
                         />
                         <Text

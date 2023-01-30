@@ -2873,8 +2873,15 @@ const styles = {
         padding: 20,
         backgroundColor: themeColors.highlightBG,
         display: 'flex',
-        overflow: 'wrap',
         flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
+
+    joinRoomPromptTitleContainer: {
+        display: 'flex',
+        flexDirection: 'row',
+        flex: 1,
+        flexWrap: 'wrap',
     },
 
     joinRoomPromptTextContainer: {
