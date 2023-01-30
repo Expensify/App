@@ -126,7 +126,6 @@ class ReportScreen extends React.Component {
         this.fetchReportIfNeeded();
         toggleReportActionComposeView(true);
         this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportValues);
-        this.setState({viewportHeightWithKeyboard: window.innerHeight});
     }
 
     componentDidUpdate(prevProps) {
@@ -243,10 +242,11 @@ class ReportScreen extends React.Component {
         const defaultViewStyle = [styles.flex1, styles.justifyContentEnd, styles.overflowHidden];
 
         // Dropzone View's style for mWeb
+        // will only be used when composer is full size.
         const mobileViewStyle = [styles.overflowHidden,
             {
                 height: this.state.viewportHeightWithKeyboard - (variables.inputComponentSizeNormal + chatComposerTotalHeight),
-            }, this.props.isComposerFullSize && styles.chatItemComposeBoxExpanded];
+            }, styles.chatItemComposeBoxExpanded];
 
         return (
             <ScreenWrapper
@@ -298,7 +298,7 @@ class ReportScreen extends React.Component {
                         )}
                         <View
                             nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                            style={Browser.isMobile() ? mobileViewStyle : defaultViewStyle}
+                            style={Browser.isMobile() && this.props.isComposerFullSize ? mobileViewStyle : defaultViewStyle}
                             onLayout={(event) => {
                                 const skeletonViewContainerHeight = event.nativeEvent.layout.height;
 
