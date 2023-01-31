@@ -26,7 +26,7 @@ const CategoryShortcutBar = (props) => {
     const icons = [Recent, Smiley, AnimalsAndNature, FoodAndDrink, TravelAndPlaces, Activities, Objects, Symbols, Flags];
 
     return (
-        <View style={[styles.pv2, styles.ph4, styles.flexRow]}>
+        <View style={[styles.pt2, styles.ph4, styles.flexRow]}>
             {_.map(props.headerIndices, (headerIndex, i) => (
                 <CategoryShortcutButton
                     icon={icons[i]}

@@ -12,7 +12,6 @@ import themeColors from '../../../styles/themes/default';
 import emojis from '../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import Text from '../../Text';
-import Composer from '../../Composer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import compose from '../../../libs/compose';
@@ -21,6 +20,7 @@ import * as User from '../../../libs/actions/User';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import CategoryShortcutBar from '../CategoryShortcutBar';
+import TextInput from '../../TextInput';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -488,12 +488,9 @@ class EmojiPickerMenu extends Component {
                 />
                 {!this.props.isSmallScreenWidth && (
                     <View style={[styles.ph4, styles.pb1]}>
-                        <Composer
-                            textAlignVertical="top"
-                            placeholder={this.props.translate('common.search')}
-                            placeholderTextColor={themeColors.textSupporting}
+                        <TextInput
+                            label={this.props.translate('common.search')}
                             onChangeText={this.filterEmojis}
-                            style={[styles.textInput, this.state.isFocused && styles.borderColorFocus]}
                             defaultValue=""
                             ref={el => this.searchInput = el}
                             autoFocus
