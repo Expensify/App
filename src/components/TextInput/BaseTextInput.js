@@ -121,12 +121,7 @@ class BaseTextInput extends Component {
     }
 
     onFocus(event) {
-        if (this.props.disabled) {
-            return;
-        }
-        if (this.props.onFocus) {
-            this.props.onFocus(event);
-        }
+        if (this.props.onFocus) { this.props.onFocus(event); }
         this.setState({isFocused: true});
         this.activateLabel();
     }
@@ -306,7 +301,6 @@ class BaseTextInput extends Component {
                                         keyboardType={getSecureEntryKeyboardType(this.props.keyboardType, this.props.secureTextEntry, this.state.passwordHidden)}
                                         value={this.state.value}
                                         selection={this.state.selection}
-                                        editable={!this.props.disabled}
 
                                         // FormSubmit Enter key handler does not have access to direct props.
                                         // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
