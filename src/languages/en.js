@@ -206,8 +206,8 @@ export default {
         deleteConfirmation: 'Are you sure you want to delete this comment?',
     },
     reportActionsView: {
-        begginningOfArchivedRoomPartOne: 'You missed the party in ',
-        begginningOfArchivedRoomPartTwo: ', there\'s nothing to see here.',
+        beginningOfArchivedRoomPartOne: 'You missed the party in ',
+        beginningOfArchivedRoomPartTwo: ', there\'s nothing to see here.',
         beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}) => `Collaboration with everyone at ${domainRoom} starts here! 🎉\nUse `,
         beginningOfChatHistoryDomainRoomPartTwo: ' to chat with colleagues, share tips, and ask questions.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
@@ -221,6 +221,8 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
         chatWithAccountManager: 'Chat with your account manager here',
+        sayHello: 'Say hello!',
+        usePlusButton: '\n\nYou can also use the + button below to send or request money!',
     },
     newMessages: 'New messages',
     reportTypingIndicator: {
@@ -944,7 +946,8 @@ export default {
         editor: {
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
-            nameIsRequiredError: 'You need to define a name for your workspace',
+            nameIsRequiredError: 'You need to define a name for your workspace.',
+            nameHasHtml: 'HTML tags are not allowed in workspace names.',
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
             save: 'Save',
