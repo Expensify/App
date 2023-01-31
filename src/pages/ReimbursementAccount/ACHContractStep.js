@@ -41,7 +41,7 @@ class ACHContractStep extends React.Component {
 
         this.state = {
 
-            // This variable determines how many Identity Forms will be rendered
+            // Array of strings containing the keys to render associated Identity Forms
             beneficialOwners: props.getDefaultStateForField('beneficialOwners', []),
         };
     }
