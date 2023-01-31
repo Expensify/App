@@ -3,8 +3,7 @@ import {AppState} from 'react-native';
 import {UrbanAirship, EventType, iOS} from 'urbanairship-react-native';
 import lodashGet from 'lodash/get';
 import Log from '../../Log';
-import PushNotification from '.';
-import * as Report from '../../actions/Report';
+import {subscribeToReportCommentPushNotifications} from '../../actions/Report';
 
 const notificationEventActionMap = {};
 
@@ -113,7 +112,7 @@ function register(accountID) {
     // while the app is still in background, we must resubscribe to the report
     // push notification in order to render the report click behaviour correctly
     PushNotification.init();
-    Report.subscribeToReportCommentPushNotifications();
+    subscribeToReportCommentPushNotifications();
 }
 
 /**
