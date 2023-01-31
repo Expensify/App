@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
-import lodashUnionWith from 'lodash/unionWith';
 import ONYXKEYS from '../../ONYXKEYS';
 import RetryCounter from '../RetryCounter';
 
@@ -21,7 +20,7 @@ function clear() {
  * @param {Array} requestsToPersist
  */
 function save(requestsToPersist) {
-    persistedRequests = lodashUnionWith(persistedRequests, requestsToPersist, _.isEqual);
+    persistedRequests = persistedRequests.concat(requestsToPersist);
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
 
