@@ -14,6 +14,7 @@ import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import * as User from '../../../libs/actions/User';
+import CategoryShortcutBar from '../CategoryShortcutBar';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -108,7 +109,7 @@ class EmojiPickerMenu extends Component {
         if (item.header) {
             return (
                 <View style={styles.emojiHeaderContainer}>
-                    <Text style={styles.emojiHeaderStyle}>
+                    <Text style={styles.textLabelSupporting}>
                         {this.props.translate(`emojiPicker.headers.${item.code}`)}
                     </Text>
                 </View>
@@ -130,16 +131,25 @@ class EmojiPickerMenu extends Component {
     render() {
         return (
             <View style={styles.emojiPickerContainer}>
+                <View style={[styles.flexRow]}>
+                    <CategoryShortcutBar
+                        headerIndices={this.headerIndices}
+                        onPress={this.scrollToHeader}
+                    />
+                </View>
                 <FlatList
+                    ref={el => this.emojiList = el}
                     data={this.emojis}
                     renderItem={this.renderItem}
                     keyExtractor={item => (`emoji_picker_${item.code}`)}
-                    numColumns={this.numColumns}
+                    numColumns={CONST.EMOJI_NUM_PER_ROW}
                     style={[
                         styles.emojiPickerList,
                         this.isMobileLandscape() && styles.emojiPickerListLandscape,
                     ]}
-                    stickyHeaderIndices={this.unfilteredHeaderIndices}
+                    stickyHeaderIndices={this.headerRowIndices}
+                    getItemLayout={this.getItemLayout}
+                    showsVerticalScrollIndicator
                 />
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}
