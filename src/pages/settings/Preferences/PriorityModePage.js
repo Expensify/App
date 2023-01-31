@@ -22,30 +22,20 @@ const propTypes = {
 };
 
 const PriorityModePage = (props) => {
-    const priorityModes = _.map(
-        [
-            {
-                value: CONST.PRIORITY_MODE.DEFAULT,
-                text: props.translate('priorityModePage.mostRecent'),
-                alternateText: props.translate('priorityModePage.mostRecentModeDescription'),
-            },
-            {
-                value: CONST.PRIORITY_MODE.GSD,
-                text: props.translate('priorityModePage.focus'),
-                alternateText: props.translate('priorityModePage.focusModeDescription'),
-            },
-        ], mode => (
-            {
-                ...mode,
-                keyForList: mode.value,
+    const priorityModes = _.map(props.translate('priorityModePage.priorityModes'), (mode, key) => (
+        {
+            value: key,
+            text: mode.label,
+            alternateText: mode.description,
+            keyForList: key,
 
-                // Include the green checkmark icon to indicate the currently selected value
-                customIcon: props.priorityMode === mode.value ? greenCheckmark : undefined,
+            // Include the green checkmark icon to indicate the currently selected value
+            customIcon: props.priorityMode === key ? greenCheckmark : undefined,
 
-                // This property will make the currently selected value have bold text
-                boldStyle: props.priorityMode === mode.value,
-            }
-        ),
+            // This property will make the currently selected value have bold text
+            boldStyle: props.priorityMode === key,
+        }
+    ),
     );
 
     return (
@@ -61,20 +51,14 @@ const PriorityModePage = (props) => {
             </Text>
             <OptionsList
                 sections={[{data: priorityModes}]}
-                onSelectRow={
-                    (mode) => {
-                        User.updateChatPriorityMode(mode.value);
-                        Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
-                    }
-                }
+                onSelectRow={(mode) => User.updateChatPriorityMode(mode.value)}
                 hideSectionHeaders
                 optionHoveredStyle={
                     {
                         ...styles.hoveredComponentBG,
                         ...styles.mln5,
                         ...styles.mrn5,
-                        ...styles.pl5,
-                        ...styles.pr5,
+                        ...styles.ph5,
                     }
                 }
                 shouldHaveOptionSeparator

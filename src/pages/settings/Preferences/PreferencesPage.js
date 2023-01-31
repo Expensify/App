@@ -28,7 +28,6 @@ const propTypes = {
     user: PropTypes.shape({
         /** Whether or not the user is subscribed to news updates */
         isSubscribedToNewsletter: PropTypes.bool,
-        shouldUseStagingServer: PropTypes.bool,
     }),
 
     ...withLocalizePropTypes,
@@ -41,16 +40,7 @@ const defaultProps = {
 };
 
 const PreferencesPage = (props) => {
-    const priorityModes = {
-        default: {
-            value: CONST.PRIORITY_MODE.DEFAULT,
-            label: props.translate('priorityModePage.mostRecent'),
-        },
-        gsd: {
-            value: CONST.PRIORITY_MODE.GSD,
-            label: props.translate('priorityModePage.focus'),
-        },
-    };
+    const priorityModes = props.translate('priorityModePage.priorityModes');
     const localesToLanguages = {
         en: {
             value: 'en',

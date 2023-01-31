@@ -493,10 +493,16 @@ export default {
     priorityModePage: {
         priorityMode: 'Modo prioridad',
         explainerText: 'Elija si desea mostrar por defecto todos los chats ordenados desde el más reciente y con los elementos anclados en la parte superior, o elija el modo #concentración, con los elementos no leídos anclados en la parte superior y ordenados alfabéticamente.',
-        mostRecent: 'Más recientes',
-        mostRecentModeDescription: 'Mostrar todos los chats ordenados desde el más reciente',
-        focus: '#concentración',
-        focusModeDescription: 'Mostrar sólo los no leídos ordenados alfabéticamente',
+        priorityModes : {
+            default: {
+                label: 'Más recientes',
+                description: 'Mostrar todos los chats ordenados desde el más reciente',
+            },
+            gsd: {
+                label: '#concentración',
+                description: 'Mostrar sólo los no leídos ordenados alfabéticamente',
+            },
+        },
     },
     languagePage: {
         language: 'Idioma',
