@@ -21,7 +21,10 @@ function getAvatarSize(size) {
         [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
         [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
         [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
+        [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
+        [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
     };
+
     return AVATAR_SIZES[size];
 }
 
@@ -257,18 +260,15 @@ function getBadgeColorStyle(success, error, isPressed = false) {
  * Generate a style for the background color of the button, based on its current state.
  *
  * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
- * @param {Boolean} isMenuItem - whether this icon is apart of a list
+ * @param {Boolean} isMenuItem - whether this button is apart of a list
  * @returns {Object}
  */
 function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false) {
     switch (buttonState) {
-        case CONST.BUTTON_STATES.ACTIVE:
-            if (isMenuItem) {
-                return {backgroundColor: themeColors.border};
-            }
-            return {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.PRESSED:
             return {backgroundColor: themeColors.buttonPressedBG};
+        case CONST.BUTTON_STATES.ACTIVE:
+            return isMenuItem ? {backgroundColor: themeColors.border} : {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.DISABLED:
         case CONST.BUTTON_STATES.DEFAULT:
         default:
@@ -635,7 +635,7 @@ function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
     let backgroundColor = themeColors.appBG;
 
     if (isHovered) {
-        backgroundColor = themeColors.buttonHoveredBG;
+        backgroundColor = themeColors.border;
     }
 
     if (isPressed) {
@@ -648,9 +648,21 @@ function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
     };
 }
 
+/**
+ * @param {Number} safeAreaPaddingBottom
+ * @returns {Object}
+ */
+function getErrorPageContainerStyle(safeAreaPaddingBottom = 0) {
+    return {
+        backgroundColor: themeColors.componentBG,
+        paddingBottom: 40 + safeAreaPaddingBottom,
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
+    getErrorPageContainerStyle,
     getSafeAreaPadding,
     getSafeAreaMargins,
     getNavigationDrawerStyle,

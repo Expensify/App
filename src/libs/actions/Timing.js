@@ -32,29 +32,32 @@ function end(eventName, secondaryName = '') {
         return;
     }
 
-    const {startTime, shouldUseFirebase} = timestampData[eventName];
-    const eventTime = Date.now() - startTime;
+    Environment.getEnvironment().then((envName) => {
+        const {startTime, shouldUseFirebase} = timestampData[eventName];
+        const eventTime = Date.now() - startTime;
 
-    if (shouldUseFirebase) {
-        Firebase.stopTrace(eventName);
-    }
+        if (shouldUseFirebase) {
+            Firebase.stopTrace(eventName);
+        }
 
-    const grafanaEventName = secondaryName
-        ? `expensify.cash.${eventName}.${secondaryName}`
-        : `expensify.cash.${eventName}`;
+        const baseEventName = `${envName}.new.expensify.${eventName}`;
+        const grafanaEventName = secondaryName
+            ? `${baseEventName}.${secondaryName}`
+            : baseEventName;
 
-    console.debug(`Timing:${grafanaEventName}`, eventTime);
-    delete timestampData[eventName];
+        console.debug(`Timing:${grafanaEventName}`, eventTime);
+        delete timestampData[eventName];
 
-    if (Environment.isDevelopment()) {
-        // Don't create traces on dev as this will mess up the accuracy of data in release builds of the app
-        return;
-    }
+        if (Environment.isDevelopment()) {
+            // Don't create traces on dev as this will mess up the accuracy of data in release builds of the app
+            return;
+        }
 
-    API.write('SendPerformanceTiming', {
-        name: grafanaEventName,
-        value: eventTime,
-        platform: `${getPlatform()}`,
+        API.write('SendPerformanceTiming', {
+            name: grafanaEventName,
+            value: eventTime,
+            platform: `${getPlatform()}`,
+        });
     });
 }
 

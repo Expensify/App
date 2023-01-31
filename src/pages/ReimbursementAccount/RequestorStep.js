@@ -1,11 +1,10 @@
 import React from 'react';
-import lodashGet from 'lodash/get';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize from '../../components/withLocalize';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
@@ -15,55 +14,25 @@ import Text from '../../components/Text';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import IdentityForm from './IdentityForm';
 import * as ValidationUtils from '../../libs/ValidationUtils';
-import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import RequestorOnfidoStep from './RequestorOnfidoStep';
 import Form from '../../components/Form';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
-    /** The bank account currently in setup */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    ...StepPropTypes,
 
-    /** The token required to initialize the Onfido SDK */
-    onfidoToken: PropTypes.string,
-
-    ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    onfidoToken: '',
+    /** If we should show Onfido flow */
+    shouldShowOnfido: PropTypes.bool.isRequired,
 };
 
 class RequestorStep extends React.Component {
     constructor(props) {
         super(props);
 
-        this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
         this.validate = this.validate.bind(this);
         this.submit = this.submit.bind(this);
-        this.setOnfidoAsComplete = this.setOnfidoAsComplete.bind(this);
-
-        this.state = {
-            isOnfidoSetupComplete: lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false),
-        };
-    }
-
-    /**
-     * Update state to indicate that the user has completed the Onfido verification process
-     */
-    setOnfidoAsComplete() {
-        this.setState({isOnfidoSetupComplete: true});
-    }
-
-    /**
-     * Get default value from reimbursementAccount or achData
-     * @param {String} fieldName
-     * @param {*} defaultValue
-     * @returns {String}
-     */
-    getDefaultStateForField(fieldName, defaultValue) {
-        return lodashGet(this.props, ['reimbursementAccount', 'achData', fieldName], defaultValue);
     }
 
     /**
@@ -122,7 +91,7 @@ class RequestorStep extends React.Component {
 
     submit(values) {
         const payload = {
-            bankAccountID: this.getDefaultStateForField('bankAccountID', 0),
+            bankAccountID: lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0,
             ...values,
             dob: moment(values.dob).format(CONST.DATE.MOMENT_FORMAT_STRING),
         };
@@ -131,134 +100,120 @@ class RequestorStep extends React.Component {
     }
 
     render() {
-        const achData = this.props.reimbursementAccount.achData;
-        const shouldShowOnfido = achData.useOnfido && this.props.onfidoToken && !this.state.isOnfidoSetupComplete;
+        if (this.props.shouldShowOnfido) {
+            return (
+                <RequestorOnfidoStep
+                    reimbursementAccount={this.props.reimbursementAccount}
+                    reimbursementAccountDraft={this.props.reimbursementAccountDraft}
+                    onBackButtonPress={this.props.onBackButtonPress}
+                    getDefaultStateForField={this.props.getDefaultStateForField}
+                />
+            );
+        }
 
         return (
-            <>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('requestorStep.headerTitle')}
                     stepCounter={{step: 3, total: 5}}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
-                    onBackButtonPress={() => {
-                        if (shouldShowOnfido) {
-                            BankAccounts.clearOnfidoToken();
-                        } else {
-                            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
-                        }
-                    }}
+                    onBackButtonPress={this.props.onBackButtonPress}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                {shouldShowOnfido ? (
-                    <RequestorOnfidoStep
-                        onComplete={this.setOnfidoAsComplete}
+                <Form
+                    formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+                    submitButtonText={this.props.translate('common.saveAndContinue')}
+                    validate={this.validate}
+                    scrollContextEnabled
+                    onSubmit={this.submit}
+                    style={[styles.mh5, styles.flexGrow1]}
+                >
+                    <Text>{this.props.translate('requestorStep.subtitle')}</Text>
+                    <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>
+                        <TextLink
+                            style={[styles.textMicro]}
+                            // eslint-disable-next-line max-len
+                            href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account"
+                        >
+                            {`${this.props.translate('requestorStep.learnMore')}`}
+                        </TextLink>
+                        <Text style={[styles.textMicroSupporting]}>{' | '}</Text>
+                        <TextLink
+                            style={[styles.textMicro, styles.textLink]}
+                            // eslint-disable-next-line max-len
+                            href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information"
+                        >
+                            {`${this.props.translate('requestorStep.isMyDataSafe')}`}
+                        </TextLink>
+                    </View>
+                    <IdentityForm
+                        translate={this.props.translate}
+                        defaultValues={{
+                            firstName: this.props.getDefaultStateForField('firstName'),
+                            lastName: this.props.getDefaultStateForField('lastName'),
+                            street: this.props.getDefaultStateForField('requestorAddressStreet'),
+                            city: this.props.getDefaultStateForField('requestorAddressCity'),
+                            state: this.props.getDefaultStateForField('requestorAddressState'),
+                            zipCode: this.props.getDefaultStateForField('requestorAddressZipCode'),
+                            dob: this.props.getDefaultStateForField('dob'),
+                            ssnLast4: this.props.getDefaultStateForField('ssnLast4'),
+                        }}
+                        inputKeys={{
+                            firstName: 'firstName',
+                            lastName: 'lastName',
+                            dob: 'dob',
+                            ssnLast4: 'ssnLast4',
+                            street: 'requestorAddressStreet',
+                            city: 'requestorAddressCity',
+                            state: 'requestorAddressState',
+                            zipCode: 'requestorAddressZipCode',
+                        }}
+                        shouldSaveDraft
                     />
-                ) : (
-                    <Form
-                        formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-                        submitButtonText={this.props.translate('common.saveAndContinue')}
-                        validate={this.validate}
-                        onSubmit={this.submit}
-                        style={[styles.mh5, styles.flexGrow1]}
-                    >
-                        <Text>{this.props.translate('requestorStep.subtitle')}</Text>
-                        <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>
-                            <TextLink
-                                style={[styles.textMicro]}
-                                // eslint-disable-next-line max-len
-                                href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account"
-                            >
-                                {`${this.props.translate('requestorStep.learnMore')}`}
-                            </TextLink>
-                            <Text style={[styles.textMicroSupporting]}>{' | '}</Text>
-                            <TextLink
-                                style={[styles.textMicro, styles.textLink]}
-                                // eslint-disable-next-line max-len
-                                href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information"
-                            >
-                                {`${this.props.translate('requestorStep.isMyDataSafe')}`}
-                            </TextLink>
-                        </View>
-                        <IdentityForm
-                            translate={this.props.translate}
-                            defaultValues={{
-                                firstName: this.getDefaultStateForField('firstName'),
-                                lastName: this.getDefaultStateForField('lastName'),
-                                street: this.getDefaultStateForField('requestorAddressStreet'),
-                                city: this.getDefaultStateForField('requestorAddressCity'),
-                                state: this.getDefaultStateForField('requestorAddressState'),
-                                zipCode: this.getDefaultStateForField('requestorAddressZipCode'),
-                                dob: this.getDefaultStateForField('dob'),
-                                ssnLast4: this.getDefaultStateForField('ssnLast4'),
-                            }}
-                            inputKeys={{
-                                firstName: 'firstName',
-                                lastName: 'lastName',
-                                dob: 'dob',
-                                ssnLast4: 'ssnLast4',
-                                street: 'requestorAddressStreet',
-                                city: 'requestorAddressCity',
-                                state: 'requestorAddressState',
-                                zipCode: 'requestorAddressZipCode',
-                            }}
-                            shouldSaveDraft
-                        />
-                        <CheckboxWithLabel
-                            inputID="isControllingOfficer"
-                            defaultValue={this.getDefaultStateForField('isControllingOfficer', false)}
-                            LabelComponent={() => (
-                                <View style={[styles.flex1, styles.pr1]}>
-                                    <Text>
-                                        {this.props.translate('requestorStep.isControllingOfficer')}
-                                    </Text>
-                                </View>
-                            )}
-                            style={[styles.mt4]}
-                            shouldSaveDraft
-                        />
-                        <Text style={[styles.mt3, styles.textMicroSupporting]}>
-                            {this.props.translate('requestorStep.onFidoConditions')}
-                            <TextLink
-                                href="https://onfido.com/facial-scan-policy-and-release/"
-                                style={styles.textMicro}
-                            >
-                                {this.props.translate('onfidoStep.facialScan')}
-                            </TextLink>
-                            {', '}
-                            <TextLink
-                                href="https://onfido.com/privacy/"
-                                style={styles.textMicro}
-                            >
-                                {this.props.translate('common.privacyPolicy')}
-                            </TextLink>
-                            {` ${this.props.translate('common.and')} `}
-                            <TextLink
-                                href="https://onfido.com/terms-of-service/"
-                                style={styles.textMicro}
-                            >
-                                {this.props.translate('common.termsOfService')}
-                            </TextLink>
-                        </Text>
-                    </Form>
-                )}
-            </>
+                    <CheckboxWithLabel
+                        inputID="isControllingOfficer"
+                        defaultValue={this.props.getDefaultStateForField('isControllingOfficer', false)}
+                        LabelComponent={() => (
+                            <View style={[styles.flex1, styles.pr1]}>
+                                <Text>
+                                    {this.props.translate('requestorStep.isControllingOfficer')}
+                                </Text>
+                            </View>
+                        )}
+                        style={[styles.mt4]}
+                        shouldSaveDraft
+                    />
+                    <Text style={[styles.mt3, styles.textMicroSupporting]}>
+                        {this.props.translate('requestorStep.onFidoConditions')}
+                        <TextLink
+                            href="https://onfido.com/facial-scan-policy-and-release/"
+                            style={[styles.textMicro]}
+                        >
+                            {this.props.translate('onfidoStep.facialScan')}
+                        </TextLink>
+                        {', '}
+                        <TextLink
+                            href="https://onfido.com/privacy/"
+                            style={[styles.textMicro]}
+                        >
+                            {this.props.translate('common.privacy')}
+                        </TextLink>
+                        {` ${this.props.translate('common.and')} `}
+                        <TextLink
+                            href="https://onfido.com/terms-of-service/"
+                            style={[styles.textMicro]}
+                        >
+                            {this.props.translate('common.termsOfService')}
+                        </TextLink>
+                    </Text>
+                </Form>
+            </ScreenWrapper>
         );
     }
 }
 
 RequestorStep.propTypes = propTypes;
-RequestorStep.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        onfidoToken: {
-            key: ONYXKEYS.ONFIDO_TOKEN,
-        },
-    }),
-)(RequestorStep);
+export default withLocalize(RequestorStep);

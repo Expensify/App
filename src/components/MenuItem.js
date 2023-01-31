@@ -58,7 +58,7 @@ const MenuItem = (props) => {
         (props.shouldShowBasicTitle ? undefined : styles.textStrong),
         (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
     ], props.style);
-    const descriptionTextStyle = StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml3, styles.breakAll, styles.lh16], props.style);
+    const descriptionTextStyle = StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml3, styles.breakAll, styles.lineHeightNormal], props.style);
 
     return (
         <Pressable
@@ -143,7 +143,14 @@ const MenuItem = (props) => {
                         </View>
                     </View>
                     <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
-                        {props.badgeText && <Badge text={props.badgeText} badgeStyles={[styles.alignSelfCenter, (props.brickRoadIndicator ? styles.mr2 : undefined)]} />}
+                        {props.badgeText && (
+                        <Badge
+                            text={props.badgeText}
+                            badgeStyles={[styles.alignSelfCenter, (props.brickRoadIndicator ? styles.mr2 : undefined),
+                                (props.focused || hovered || pressed) ? styles.hoveredButton : {},
+                            ]}
+                        />
+                        )}
                         {/* Since subtitle can be of type number, we should allow 0 to be shown */}
                         {(props.subtitle || props.subtitle === 0) && (
                             <View style={[styles.justifyContentCenter, styles.mr1]}>

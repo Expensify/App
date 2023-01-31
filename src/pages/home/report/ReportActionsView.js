@@ -12,8 +12,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import {withDrawerPropTypes} from '../../../components/withDrawerState';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
-import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 import Performance from '../../../libs/Performance';
 import {withNetwork} from '../../../components/OnyxProvider';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
@@ -27,8 +25,6 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
-    /* Onyx Props */
-
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
 
@@ -64,6 +60,7 @@ class ReportActionsView extends React.Component {
         this.didLayout = false;
         this.didSubscribeToReportTypingEvents = false;
         this.unsubscribeVisibilityListener = null;
+        this.hasCachedActions = _.size(props.reportActions) > 0;
 
         // We need this.sortedAndFilteredReportActions to be set before this.state is initialized because the function to calculate the newMarkerReportActionID uses the sorted report actions
         this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(props.reportActions);
@@ -208,6 +205,12 @@ class ReportActionsView extends React.Component {
             this.openReportIfNecessary();
         }
 
+        // If the report is unread, we want to check if the number of actions has decreased. If so, then it seems that one of them was deleted. In this case, if the deleted action was the
+        // one marking the unread point, we need to recalculate which action should be the unread marker.
+        if (ReportUtils.isUnread(this.props.report) && ReportActionsUtils.filterReportActionsForDisplay(prevProps.reportActions).length > this.sortedAndFilteredReportActions.length) {
+            this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions)});
+        }
+
         // When the user navigates to the LHN the ReportActionsView doesn't unmount and just remains hidden.
         // The next time we navigate to the same report (e.g. by swiping or tapping the LHN row) we want the new marker to clear.
         const didSidebarOpen = !prevProps.isDrawerOpen && this.props.isDrawerOpen;
@@ -253,7 +256,21 @@ class ReportActionsView extends React.Component {
      * @returns {Array}
      */
     getSortedReportActionsForDisplay(reportActions) {
-        const sortedReportActions = ReportActionsUtils.getSortedReportActions(_.values(reportActions), true);
+        // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
+        // to prevent bugs during the migration from sequenceNumber -> reportActionID
+        const filteredReportActions = _.filter(reportActions, (reportAction, key) => {
+            if (!reportAction) {
+                return false;
+            }
+
+            if (String(reportAction.sequenceNumber) === key) {
+                return false;
+            }
+
+            return true;
+        });
+
+        const sortedReportActions = ReportActionsUtils.getSortedReportActions(filteredReportActions, true);
         return ReportActionsUtils.filterReportActionsForDisplay(sortedReportActions);
     }
 
@@ -284,19 +301,15 @@ class ReportActionsView extends React.Component {
             return;
         }
 
-        const minSequenceNumber = _.chain(this.props.reportActions)
-            .pluck('sequenceNumber')
-            .min()
-            .value();
+        const oldestReportAction = _.last(this.sortedAndFilteredReportActions);
 
-        if (minSequenceNumber === 0) {
+        // Don't load more chats if we're already at the beginning of the chat history
+        if (oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return;
         }
 
-        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
-        // case just get everything starting from 0.
-        const oldestActionSequenceNumber = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
-        Report.readOldestAction(this.props.report.reportID, oldestActionSequenceNumber);
+        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
+        Report.readOldestAction(this.props.report.reportID, oldestReportAction.reportActionID);
     }
 
     scrollToBottomAndMarkReportAsRead() {
@@ -336,7 +349,7 @@ class ReportActionsView extends React.Component {
         }
 
         this.didLayout = true;
-        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
+        Timing.end(CONST.TIMING.SWITCH_REPORT, this.hasCachedActions ? CONST.TIMING.WARM : CONST.TIMING.COLD);
 
         // Capture the init measurement only once not per each chat switch as the value gets overwritten
         if (!ReportActionsView.initMeasured) {
@@ -370,11 +383,6 @@ class ReportActionsView extends React.Component {
                             isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
                             loadMoreChats={this.loadMoreChats}
                             newMarkerReportActionID={this.state.newMarkerReportActionID}
-                        />
-                        <PopoverReportActionContextMenu
-                            ref={ReportActionContextMenu.contextMenuRef}
-                            isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
-                            isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
                         />
                     </>
                 )}

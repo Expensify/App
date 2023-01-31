@@ -12,27 +12,23 @@ import styles from '../../styles/styles';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
 import IdentityForm from './IdentityForm';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize from '../../components/withLocalize';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import * as ValidationUtils from '../../libs/ValidationUtils';
-import ONYXKEYS from '../../ONYXKEYS';
-import compose from '../../libs/compose';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
-import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import ONYXKEYS from '../../ONYXKEYS';
 import Form from '../../components/Form';
 import * as FormActions from '../../libs/actions/FormActions';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
+    ...StepPropTypes,
+
     /** Name of the company */
     companyName: PropTypes.string.isRequired,
-
-    ...withLocalizePropTypes,
-
-    /** Bank account currently in setup */
-    // eslint-disable-next-line react/no-unused-prop-types
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
 };
 
 class ACHContractStep extends React.Component {
@@ -44,8 +40,9 @@ class ACHContractStep extends React.Component {
         this.submit = this.submit.bind(this);
 
         this.state = {
-            // These variables determine how many Identity Forms will be rendered
-            beneficialOwners: ReimbursementAccountUtils.getDefaultStateForField(props, 'beneficialOwners', []),
+
+            // This variable determines how many Identity Forms will be rendered
+            beneficialOwners: props.getDefaultStateForField('beneficialOwners', []),
         };
     }
 
@@ -138,7 +135,7 @@ class ACHContractStep extends React.Component {
      * @param {Object} values - object containing form input values
      */
     submit(values) {
-        const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
+        const bankAccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0;
 
         const beneficialOwners = !values.hasOtherBeneficialOwners ? []
             : _.map(this.state.beneficialOwners, ownerKey => ({
@@ -164,15 +161,12 @@ class ACHContractStep extends React.Component {
 
     render() {
         return (
-            <>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('beneficialOwnersStep.additionalInformation')}
                     stepCounter={{step: 4, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
-                    onBackButtonPress={() => {
-                        BankAccounts.clearOnfidoToken();
-                        BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
-                    }}
+                    onBackButtonPress={this.props.onBackButtonPress}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
@@ -206,7 +200,7 @@ class ACHContractStep extends React.Component {
                                         this.setState(prevState => ({beneficialOwners: prevState.beneficialOwners.slice(0, -1)}));
                                     }
                                 }}
-                                defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'ownsMoreThan25Percent', false)}
+                                defaultValue={this.props.getDefaultStateForField('ownsMoreThan25Percent', false)}
                                 shouldSaveDraft
                             />
                             <CheckboxWithLabel
@@ -224,7 +218,7 @@ class ACHContractStep extends React.Component {
                                         this.addBeneficialOwner();
                                     }
                                 }}
-                                defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'hasOtherBeneficialOwners', false)}
+                                defaultValue={this.props.getDefaultStateForField('hasOtherBeneficialOwners', false)}
                                 shouldSaveDraft
                             />
                             {inputValues.hasOtherBeneficialOwners && (
@@ -238,14 +232,14 @@ class ACHContractStep extends React.Component {
                                                 translate={this.props.translate}
                                                 style={[styles.mb2]}
                                                 defaultValues={{
-                                                    firstName: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_firstName`),
-                                                    lastName: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_lastName`),
-                                                    street: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_street`),
-                                                    city: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_city`),
-                                                    state: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_state`),
-                                                    zipCode: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_zipCode`),
-                                                    dob: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_dob`),
-                                                    ssnLast4: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_ssnLast4`),
+                                                    firstName: this.props.getDefaultStateForField(`beneficialOwner_${ownerKey}_firstName`, ''),
+                                                    lastName: this.props.getDefaultStateForField(`beneficialOwner_${ownerKey}_lastName`, ''),
+                                                    street: this.props.getDefaultStateForField(`beneficialOwner_${ownerKey}_street`, ''),
+                                                    city: this.props.getDefaultStateForField(`beneficialOwner_${ownerKey}_city`, ''),
+                                                    state: this.props.getDefaultStateForField(`beneficialOwner_${ownerKey}_state`, ''),
+                                                    zipCode: this.props.getDefaultStateForField(`beneficialOwner_${ownerKey}_zipCode`, ''),
+                                                    dob: this.props.getDefaultStateForField(`beneficialOwner_${ownerKey}_dob`, ''),
+                                                    ssnLast4: this.props.getDefaultStateForField(`beneficialOwner_${ownerKey}_ssnLast4`, ''),
                                                 }}
                                                 inputKeys={{
                                                     firstName: `beneficialOwner_${ownerKey}_firstName`,
@@ -281,14 +275,14 @@ class ACHContractStep extends React.Component {
                                 inputID="acceptTermsAndConditions"
                                 style={[styles.mt4]}
                                 LabelComponent={() => (
-                                    <View style={[styles.flexRow]}>
-                                        <Text>{this.props.translate('common.iAcceptThe')}</Text>
+                                    <Text>
+                                        {this.props.translate('common.iAcceptThe')}
                                         <TextLink href="https://use.expensify.com/achterms">
                                             {`${this.props.translate('beneficialOwnersStep.termsAndConditions')}`}
                                         </TextLink>
-                                    </View>
+                                    </Text>
                                 )}
-                                defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'acceptTermsAndConditions', false)}
+                                defaultValue={this.props.getDefaultStateForField('acceptTermsAndConditions', false)}
                                 shouldSaveDraft
                             />
                             <CheckboxWithLabel
@@ -297,26 +291,16 @@ class ACHContractStep extends React.Component {
                                 LabelComponent={() => (
                                     <Text>{this.props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>
                                 )}
-                                defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'certifyTrueInformation', false)}
+                                defaultValue={this.props.getDefaultStateForField('certifyTrueInformation', false)}
                                 shouldSaveDraft
                             />
                         </>
                     )}
                 </Form>
-            </>
+            </ScreenWrapper>
         );
     }
 }
 
 ACHContractStep.propTypes = propTypes;
-export default compose(
-    withLocalize,
-    withOnyx({
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        reimbursementAccountDraft: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
-        },
-    }),
-)(ACHContractStep);
+export default withLocalize(ACHContractStep);

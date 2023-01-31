@@ -285,7 +285,10 @@ class BaseTextInput extends Component {
                                             (!hasLabel || this.props.multiline) && styles.pv0,
                                             this.props.prefixCharacter && StyleUtils.getPaddingLeft(this.state.prefixWidth + styles.pl1.paddingLeft),
                                             this.props.secureTextEntry && styles.secureInput,
-                                            !this.props.multiline && {height: this.state.height},
+
+                                            // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
+                                            // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
+                                            !this.props.multiline && {height: this.state.height, lineHeight: undefined},
                                         ]}
                                         multiline={this.props.multiline}
                                         maxLength={this.props.maxLength}
@@ -298,6 +301,11 @@ class BaseTextInput extends Component {
                                         keyboardType={getSecureEntryKeyboardType(this.props.keyboardType, this.props.secureTextEntry, this.state.passwordHidden)}
                                         value={this.state.value}
                                         selection={this.state.selection}
+
+                                        // FormSubmit Enter key handler does not have access to direct props.
+                                        // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
+                                        dataSet={{submitOnEnter: this.props.multiline && this.props.submitOnEnter}}
+
                                     />
                                     {this.props.secureTextEntry && (
                                         <Checkbox

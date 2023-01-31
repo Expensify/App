@@ -12,14 +12,10 @@ import * as StyleUtils from '../styles/StyleUtils';
 const propTypes = {
     /** Array of avatar URLs or icons */
     icons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])),
-
-    /** Whether show large Avatars */
-    shouldShowLargeAvatars: PropTypes.bool,
 };
 
 const defaultProps = {
     icons: [],
-    shouldShowLargeAvatars: false,
 };
 
 const RoomHeaderAvatars = (props) => {
@@ -38,41 +34,26 @@ const RoomHeaderAvatars = (props) => {
         );
     }
 
-    if (props.shouldShowLargeAvatars) {
-        return (
-            <View style={[styles.flexRow, styles.wAuto, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <View style={styles.leftSideLargeAvatar}>
-                    <Avatar
-                        source={props.icons[1]}
-                        imageStyles={[styles.avatarLarge]}
-                        size={CONST.AVATAR_SIZE.LARGE}
-                        fill={themeColors.iconSuccessFill}
-                    />
-                </View>
-                <View style={[styles.rightSideLargeAvatar, StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG)]}>
-                    <Avatar
-                        source={props.icons[0]}
-                        imageStyles={[styles.avatarLarge]}
-                        size={CONST.AVATAR_SIZE.LARGE}
-                    />
-                </View>
-            </View>
-        );
-    }
-
     const iconsToDisplay = props.icons.slice(0, CONST.REPORT.MAX_PREVIEW_AVATARS);
+
+    const iconStyle = [
+        styles.roomHeaderAvatar,
+
+        // Due to border-box box-sizing, the Avatars have to be larger when bordered to visually match size with non-bordered Avatars
+        StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.LARGE_BORDERED),
+    ];
     return (
         <View pointerEvents="none">
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
                 {_.map(iconsToDisplay, (val, index) => (
                     <View key={`${val}${index}`} style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
-                        <Image source={{uri: val}} style={[styles.roomHeaderAvatar]} />
+                        <Image source={{uri: val}} style={iconStyle} />
 
                         {index === CONST.REPORT.MAX_PREVIEW_AVATARS - 1 && props.icons.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (
                             <>
                                 <View
                                     style={[
-                                        styles.roomHeaderAvatar,
+                                        ...iconStyle,
                                         styles.roomHeaderAvatarOverlay,
                                     ]}
                                 />
