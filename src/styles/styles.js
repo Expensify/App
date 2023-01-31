@@ -279,6 +279,11 @@ const styles = {
         fontSize: variables.fontSizeXXXLarge,
     },
 
+    textHero: {
+        fontSize: variables.fontSizeHero,
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+    },
+
     textStrong: {
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
@@ -2760,12 +2765,6 @@ const styles = {
         fontSize: variables.fontSizeLabel,
         fontFamily: fontFamily.EXP_NEUE,
         marginLeft: 6,
-    },
-
-    addWorkspaceRoomErrorRow: {
-        paddingHorizontal: 20,
-        maxWidth: 450,
-        alignSelf: 'center',
     },
 
     fullScreenTransparentOverlay: {
