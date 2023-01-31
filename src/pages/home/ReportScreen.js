@@ -34,7 +34,6 @@ import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
 import onScreenTransitionEnd from '../../libs/onScreenTransitionEnd';
-import withNavigation from '../../components/withNavigation';
 import linkingConfig from '../../libs/Navigation/linkingConfig';
 
 const propTypes = {
@@ -157,10 +156,6 @@ class ReportScreen extends React.Component {
                 });
             });
         });
-    }
-
-    shouldComponentUpdate(nextProps) {
-        return getReportID(nextProps.route) === getReportID(this.props.route);
     }
 
     componentDidUpdate(prevProps) {
@@ -370,7 +365,6 @@ ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
 export default compose(
-    withNavigation,
     withLocalize,
     withWindowDimensions,
     withDrawerState,
