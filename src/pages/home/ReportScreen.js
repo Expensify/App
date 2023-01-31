@@ -120,7 +120,6 @@ class ReportScreen extends React.Component {
             viewportOffsetTop: 0,
             isBannerVisible: true,
         };
-        this.lastReportIDFromPath = null;
     }
 
     componentDidMount() {
@@ -165,7 +164,6 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        this.lastReportIDFromPath = getReportID(this.props.route);
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
@@ -228,13 +226,6 @@ class ReportScreen extends React.Component {
     }
 
     render() {
-        const reportID = getReportID(this.props.route);
-
-        // if (this.lastReportIDFromPath !== reportID) {
-        //     console.log('this.lastReportIDFromPath !== reportID');
-        //     return null;
-        // }
-
         if (!this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails)) {
             return null;
         }
@@ -258,6 +249,7 @@ class ReportScreen extends React.Component {
 
         // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to be pending, or to have errors for the same report at the same time, so
         // simply looking up the first truthy value for each case will get the relevant property if it's set.
+        const reportID = getReportID(this.props.route);
         const addWorkspaceRoomOrChatPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(this.props.report, 'pendingFields.createChat');
         const addWorkspaceRoomOrChatErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom') || lodashGet(this.props.report, 'errorFields.createChat');
         const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}];
@@ -266,8 +258,6 @@ class ReportScreen extends React.Component {
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
 
         // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
-        // const freeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
-
         const freeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
 
         // the moment the ReportScreen becomes unfrozen we want to start the animation of the placeholder skeleton content
