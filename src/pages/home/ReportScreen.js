@@ -35,6 +35,7 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
 import onScreenTransitionEnd from '../../libs/onScreenTransitionEnd';
 import withNavigation from '../../components/withNavigation';
+import linkingConfig from '../../libs/Navigation/linkingConfig';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -137,35 +138,24 @@ class ReportScreen extends React.Component {
 
         // Open chat report from a deep link
         Linking.addEventListener('url', (state) => {
-            // console.log('url:', state.url);
-            // Navigation.navigate(ROUTES.getReportRoute('1242891003599332'));
-
             Navigation.dismissModal();
-
-            // setTimeout(() => {
             this.unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
-            // const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
+                let route = state.url;
+                _.each(linkingConfig.prefixes, (prefix) => {
+                    if (!route.startsWith(prefix)) {
+                        return;
+                    }
+                    route = route.replace(prefix, '');
+                });
+                console.log('state', state);
+                console.log('route', route);
 
-                const index = state.url.indexOf('r/');
-                if (index > -1) {
-                    const reportIDFromPathDeepLink = state.url.substring(index + 2);
-                    console.log('reportIDFromPathDeepLink:', reportIDFromPathDeepLink);
-
+                const {reportID} = ROUTES.parseReportRouteParams(route);
+                if (reportID) {
                     Navigation.isDrawerReady().then(() => {
-                        Navigation.navigate(ROUTES.getReportRoute(reportIDFromPathDeepLink));
-
-                    // this.unsubscribeTransitionEnd2 = onScreenTransitionEnd(this.props.navigation, () => {
-                    //     // setTimeout(() => this.setState({isChatReportLoading: false}));
-                    //     this.setState({isChatReportLoading: false});
-                    //     this.unsubscribeTransitionEnd2();
+                        Navigation.navigate(ROUTES.getReportRoute(reportID));
                     });
-
-                // setTimeout(() => this.setState({isChatReportLoading: false}), 2000);
-                // });
                 }
-
-            // this.props.onTransitionEnd();
-            // });
             });
         });
     }
