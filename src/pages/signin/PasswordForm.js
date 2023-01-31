@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../../styles/styles';
+import Button from '../../components/Button';
 import Text from '../../components/Text';
 import themeColors from '../../styles/themes/default';
 import * as Session from '../../libs/actions/Session';
@@ -20,8 +21,10 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import * as ErrorUtils from '../../libs/ErrorUtils';
+import {withNetwork} from '../../components/OnyxProvider';
+import networkPropTypes from '../../components/networkPropTypes';
 import OfflineIndicator from '../../components/OfflineIndicator';
-import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
+import FormHelpMessage from '../../components/FormHelpMessage';
 
 const propTypes = {
     /* Onyx Props */
@@ -34,6 +37,9 @@ const propTypes = {
         /** Whether or not a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
     }),
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 
     ...withLocalizePropTypes,
     ...toggleVisibilityViewPropTypes,
@@ -159,7 +165,6 @@ class PasswordForm extends React.Component {
     }
 
     render() {
-        const serverError = ErrorUtils.getLatestErrorMessage(this.props.account);
         return (
             <>
                 <View style={[styles.mv3]}>
@@ -207,14 +212,17 @@ class PasswordForm extends React.Component {
                     </View>
                 )}
 
-                <View style={[styles.mt5]}>
-                    <FormAlertWithSubmitButton
-                        buttonText={this.props.translate('common.signIn')}
+                {this.props.account && !_.isEmpty(this.props.account.errors) && (
+                    <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(this.props.account)} />
+                )}
+                <View>
+                    <Button
+                        isDisabled={this.props.network.isOffline}
+                        success
+                        style={[styles.mv3]}
+                        text={this.props.translate('common.signIn')}
                         isLoading={this.props.account.isLoading}
-                        onSubmit={this.validateAndSubmitForm}
-                        message={serverError}
-                        isAlertVisible={!_.isEmpty(serverError)}
-                        containerStyles={[styles.mh0]}
+                        onPress={this.validateAndSubmitForm}
                     />
                     <ChangeExpensifyLoginLink onPress={this.clearSignInData} />
                 </View>
@@ -233,4 +241,5 @@ export default compose(
         account: {key: ONYXKEYS.ACCOUNT},
     }),
     withToggleVisibilityView,
+    withNetwork(),
 )(PasswordForm);
