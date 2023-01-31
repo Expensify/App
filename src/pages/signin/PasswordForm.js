@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../../styles/styles';
+import Button from '../../components/Button';
 import Text from '../../components/Text';
 import themeColors from '../../styles/themes/default';
 import * as Session from '../../libs/actions/Session';
@@ -19,10 +20,10 @@ import * as ComponentUtils from '../../libs/ComponentUtils';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import OfflineIndicator from '../../components/OfflineIndicator';
-import Form from '../../components/Form';
 
 const propTypes = {
     /* Onyx Props */
@@ -50,12 +51,12 @@ const defaultProps = {
 class PasswordForm extends React.Component {
     constructor(props) {
         super(props);
-        this.submit = this.submit.bind(this);
-        this.validate = this.validate.bind(this);
+        this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
         this.resetPassword = this.resetPassword.bind(this);
         this.clearSignInData = this.clearSignInData.bind(this);
 
         this.state = {
+            formError: false,
             password: '',
             twoFactorAuthCode: '',
         };
@@ -69,7 +70,7 @@ class PasswordForm extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        if (!prevProps.isVisible && this.props.isVisible) {
+        if (this.inputPassword && !prevProps.isVisible && this.props.isVisible) {
             this.inputPassword.focus();
         }
         if (prevProps.isVisible && !this.props.isVisible && this.state.password) {
@@ -97,6 +98,7 @@ class PasswordForm extends React.Component {
         if (this.input2FA) {
             this.setState({twoFactorAuthCode: ''}, this.input2FA.clear);
         }
+        this.setState({formError: false});
         Session.resetPassword();
     }
 
@@ -104,88 +106,118 @@ class PasswordForm extends React.Component {
     * Clears local and Onyx sign in states
     */
     clearSignInData() {
+        this.setState({twoFactorAuthCode: '', formError: false});
         Session.clearSignInData();
     }
 
     /**
-     * @param {Object} values - form input values passed by the Form component
-     * @returns {Boolean}
+     * Check that all the form fields are valid, then trigger the submit callback
      */
-    validate(values) {
+    validateAndSubmitForm() {
+        const password = this.state.password.trim();
+        const twoFactorCode = this.state.twoFactorAuthCode.trim();
         const requiresTwoFactorAuth = this.props.account.requiresTwoFactorAuth;
-        const errors = {};
 
-        if (!values.password || !values.password.trim()) {
-            errors.password = this.props.translate('passwordForm.pleaseFillPassword');
-        } else if (!ValidationUtils.isValidPassword(values.password.trim())) {
-            errors.password = this.props.translate('passwordForm.error.incorrectPassword');
+        if (!password && requiresTwoFactorAuth && !twoFactorCode) {
+            this.setState({formError: 'passwordForm.pleaseFillOutAllFields'});
+            return;
         }
 
-        if (requiresTwoFactorAuth && !values.twoFactorAuthCode.trim()) {
-            errors.twoFactorAuthCode = this.props.translate('passwordForm.pleaseFillTwoFactorAuth');
-        } else if (requiresTwoFactorAuth && !ValidationUtils.isValidTwoFactorCode(values.twoFactorAuthCode.trim())) {
-            errors.twoFactorAuthCode = this.props.translate('passwordForm.error.incorrect2fa');
+        if (!password) {
+            this.setState({formError: 'passwordForm.pleaseFillPassword'});
+            return;
         }
 
-        return errors;
-    }
+        if (!ValidationUtils.isValidPassword(password)) {
+            this.setState({formError: 'passwordForm.error.incorrectPassword'});
+            return;
+        }
 
-    /**
-     * @param {Object} values - form input values passed by the Form component
-     */
-    submit(values) {
-        Session.signIn(values.password.trim(), values.twoFactorAuthCode.trim());
+        if (requiresTwoFactorAuth && !twoFactorCode) {
+            this.setState({formError: 'passwordForm.pleaseFillTwoFactorAuth'});
+            return;
+        }
+
+        if (requiresTwoFactorAuth && !ValidationUtils.isValidTwoFactorCode(twoFactorCode)) {
+            this.setState({formError: 'passwordForm.error.incorrect2fa'});
+            return;
+        }
+
+        this.setState({
+            formError: null,
+        });
+
+        Session.signIn(password, twoFactorCode);
     }
 
     render() {
         return (
             <>
-                <Form
-                    formID="PasswordForm"
-                    submitButtonText={this.props.translate('common.signIn')}
-                    validate={this.validate}
-                    onSubmit={this.submit}
-                >
+                <View style={[styles.mv3]}>
+                    <TextInput
+                        ref={el => this.inputPassword = el}
+                        label={this.props.translate('common.password')}
+                        secureTextEntry
+                        autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
+                        textContentType="password"
+                        nativeID="password"
+                        name="password"
+                        value={this.state.password}
+                        onChangeText={text => this.setState({password: text})}
+                        onSubmitEditing={this.validateAndSubmitForm}
+                        blurOnSubmit={false}
+                    />
+                    <View style={[styles.changeExpensifyLoginLinkContainer]}>
+                        <TouchableOpacity
+                            style={[styles.mt2]}
+                            onPress={this.resetPassword}
+                        >
+                            <Text style={[styles.link]}>
+                                {this.props.translate('passwordForm.forgot')}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {this.props.account.requiresTwoFactorAuth && (
                     <View style={[styles.mv3]}>
                         <TextInput
-                            inputID="password"
-                            ref={el => this.inputPassword = el}
-                            label={this.props.translate('common.password')}
-                            secureTextEntry
-                            autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
-                            textContentType="password"
-                            nativeID="password"
-                            name="password"
+                            ref={el => this.input2FA = el}
+                            label={this.props.translate('passwordForm.twoFactorCode')}
+                            value={this.state.twoFactorAuthCode}
+                            placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}
+                            placeholderTextColor={themeColors.placeholderText}
+                            onChangeText={text => this.setState({twoFactorAuthCode: text})}
+                            onSubmitEditing={this.validateAndSubmitForm}
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             blurOnSubmit={false}
+                            maxLength={CONST.TFA_CODE_LENGTH}
                         />
-                        <View style={[styles.changeExpensifyLoginLinkContainer]}>
-                            <TouchableOpacity
-                                style={[styles.mt2]}
-                                onPress={this.resetPassword}
-                            >
-                                <Text style={[styles.link]}>
-                                    {this.props.translate('passwordForm.forgot')}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
                     </View>
+                )}
 
-                    {this.props.account.requiresTwoFactorAuth && (
-                        <View style={[styles.mv3]}>
-                            <TextInput
-                                inputID="twoFactorAuthCode"
-                                ref={el => this.input2FA = el}
-                                label={this.props.translate('passwordForm.twoFactorCode')}
-                                placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}
-                                placeholderTextColor={themeColors.placeholderText}
-                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                blurOnSubmit={false}
-                                maxLength={CONST.TFA_CODE_LENGTH}
-                            />
-                        </View>
-                    )}
-                </Form>
-                <ChangeExpensifyLoginLink onPress={this.clearSignInData} />
+                {!this.state.formError && this.props.account && !_.isEmpty(this.props.account.errors) && (
+                    <Text style={[styles.formError]}>
+                        {ErrorUtils.getLatestErrorMessage(this.props.account)}
+                    </Text>
+                )}
+
+                {this.state.formError && (
+                    <Text style={[styles.formError]}>
+                        {this.props.translate(this.state.formError)}
+                    </Text>
+                )}
+                <View>
+                    <Button
+                        isDisabled={this.props.network.isOffline}
+                        success
+                        style={[styles.mv3]}
+                        text={this.props.translate('common.signIn')}
+                        isLoading={this.props.account.isLoading}
+                        onPress={this.validateAndSubmitForm}
+                    />
+                    <ChangeExpensifyLoginLink onPress={this.clearSignInData} />
+                </View>
                 <OfflineIndicator containerStyles={[styles.mv5]} />
             </>
         );
