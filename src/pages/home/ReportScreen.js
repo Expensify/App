@@ -118,7 +118,6 @@ class ReportScreen extends React.Component {
             skeletonViewContainerHeight: reportActionsListViewHeight,
             viewportOffsetTop: 0,
             isBannerVisible: true,
-            isChatReportLoading: false,
         };
         this.lastReportIDFromPath = null;
     }
@@ -138,8 +137,6 @@ class ReportScreen extends React.Component {
 
         // Open chat report from a deep link
         Linking.addEventListener('url', (state) => {
-            this.setState({isChatReportLoading: true});
-
             // console.log('url:', state.url);
             // Navigation.navigate(ROUTES.getReportRoute('1242891003599332'));
 
@@ -147,7 +144,7 @@ class ReportScreen extends React.Component {
 
             // setTimeout(() => {
             this.unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
-                // const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
+            // const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
 
                 const index = state.url.indexOf('r/');
                 if (index > -1) {
@@ -157,20 +154,19 @@ class ReportScreen extends React.Component {
                     Navigation.isDrawerReady().then(() => {
                         Navigation.navigate(ROUTES.getReportRoute(reportIDFromPathDeepLink));
 
-                        this.unsubscribeTransitionEnd2 = onScreenTransitionEnd(this.props.navigation, () => {
-                            // setTimeout(() => this.setState({isChatReportLoading: false}));
-                            this.setState({isChatReportLoading: false});
-                            this.unsubscribeTransitionEnd2();
-                        });
-
-                        // setTimeout(() => this.setState({isChatReportLoading: false}), 2000);
+                    // this.unsubscribeTransitionEnd2 = onScreenTransitionEnd(this.props.navigation, () => {
+                    //     // setTimeout(() => this.setState({isChatReportLoading: false}));
+                    //     this.setState({isChatReportLoading: false});
+                    //     this.unsubscribeTransitionEnd2();
                     });
+
+                // setTimeout(() => this.setState({isChatReportLoading: false}), 2000);
+                // });
                 }
 
-                // this.props.onTransitionEnd();
-            });
-
+            // this.props.onTransitionEnd();
             // });
+            });
         });
     }
 
@@ -282,7 +278,7 @@ class ReportScreen extends React.Component {
         // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
         // const freeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
 
-        const freeze = (this.props.isSmallScreenWidth && this.props.isDrawerOpen) || this.state.isChatReportLoading;
+        const freeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
 
         // the moment the ReportScreen becomes unfrozen we want to start the animation of the placeholder skeleton content
         // (which is shown, until all the actual views of the ReportScreen have been rendered)
