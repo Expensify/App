@@ -33,6 +33,8 @@ import withLocalize from '../../components/withLocalize';
 import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
+import onScreenTransitionEnd from '../../libs/onScreenTransitionEnd';
+import withNavigation from '../../components/withNavigation';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -117,6 +119,7 @@ class ReportScreen extends React.Component {
             viewportOffsetTop: 0,
             isBannerVisible: true,
         };
+        this.lastReportIDFromPath = null;
     }
 
     componentDidMount() {
@@ -137,19 +140,31 @@ class ReportScreen extends React.Component {
             // console.log('url:', state.url);
             // Navigation.navigate(ROUTES.getReportRoute('1242891003599332'));
 
-            const index = state.url.indexOf('r/');
-            if (index > -1) {
-                const reportIDFromPathDeepLink = state.url.substring(index + 2);
-                console.log('reportIDFromPathDeepLink:', reportIDFromPathDeepLink);
+            Navigation.dismissModal();
+            this.unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
+                // const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
 
-                Navigation.isDrawerReady().then(() => {
-                    Navigation.navigate(ROUTES.getReportRoute(reportIDFromPathDeepLink));
-                });
-            }
+                const index = state.url.indexOf('r/');
+                if (index > -1) {
+                    const reportIDFromPathDeepLink = state.url.substring(index + 2);
+                    console.log('reportIDFromPathDeepLink:', reportIDFromPathDeepLink);
+
+                    Navigation.isDrawerReady().then(() => {
+                        Navigation.navigate(ROUTES.getReportRoute(reportIDFromPathDeepLink));
+                    });
+                }
+
+                // this.props.onTransitionEnd();
+            });
         });
     }
 
+    shouldComponentUpdate(nextProps) {
+        return getReportID(nextProps.route) === getReportID(this.props.route);
+    }
+
     componentDidUpdate(prevProps) {
+        this.lastReportIDFromPath = getReportID(this.props.route);
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
@@ -212,6 +227,13 @@ class ReportScreen extends React.Component {
     }
 
     render() {
+        const reportID = getReportID(this.props.route);
+
+        // if (this.lastReportIDFromPath !== reportID) {
+        //     console.log('this.lastReportIDFromPath !== reportID');
+        //     return null;
+        // }
+
         if (!this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails)) {
             return null;
         }
@@ -235,7 +257,6 @@ class ReportScreen extends React.Component {
 
         // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to be pending, or to have errors for the same report at the same time, so
         // simply looking up the first truthy value for each case will get the relevant property if it's set.
-        const reportID = getReportID(this.props.route);
         const addWorkspaceRoomOrChatPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(this.props.report, 'pendingFields.createChat');
         const addWorkspaceRoomOrChatErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom') || lodashGet(this.props.report, 'errorFields.createChat');
         const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}];
@@ -356,6 +377,7 @@ ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
 export default compose(
+    withNavigation,
     withLocalize,
     withWindowDimensions,
     withDrawerState,
