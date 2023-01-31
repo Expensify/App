@@ -354,19 +354,11 @@ class EmojiPickerMenu extends Component {
      * Doing this because scrollToIndex doesn't work as expected.
      */
     scrollToHighlightedIndex() {
-        // If there are headers in the emoji array, so we need to offset by their heights as well
-        let numHeaders = 0;
-        if (this.state.filteredEmojis.length === this.emojis.length) {
-            numHeaders = _.filter(this.unfilteredHeaderIndices, i => this.state.highlightedIndex > i * this.numColumns).length;
-        }
-
-        // Calculate the scroll offset at the bottom of the currently highlighted emoji
-        // (subtract numHeaders because the highlightedIndex includes them, and add 1 to include the current row)
-        const numEmojiRows = (Math.floor(this.state.highlightedIndex / this.numColumns) - numHeaders) + 1;
+        // Calculate the number of rows above the current row, then add 1 to include the current row
+        const numRows = Math.floor(this.state.highlightedIndex / this.numColumns) + 1;
 
         // The scroll offsets at the top and bottom of the highlighted emoji
-        const offsetAtEmojiBottom = ((numHeaders) * CONST.EMOJI_PICKER_HEADER_HEIGHT)
-            + (numEmojiRows * CONST.EMOJI_PICKER_ITEM_HEIGHT);
+        const offsetAtEmojiBottom = numRows * CONST.EMOJI_PICKER_HEADER_HEIGHT;
         const offsetAtEmojiTop = offsetAtEmojiBottom - CONST.EMOJI_PICKER_ITEM_HEIGHT;
 
         // Scroll to fit the entire highlighted emoji into the window if we need to
