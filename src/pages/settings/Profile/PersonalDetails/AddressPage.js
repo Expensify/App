@@ -155,6 +155,7 @@ class AddressPage extends Component {
                                 zipCode: 'zipPostCode',
                                 country: 'country',
                             }}
+                            maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                         />
                     </View>
                     <View style={styles.mb4}>

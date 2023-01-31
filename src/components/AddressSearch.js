@@ -59,6 +59,9 @@ const propTypes = {
         zipCode: PropTypes.string,
     }),
 
+    /** Maximum number of characters allowed in search input */
+    maxInputLength: PropTypes.number,
+
     ...withLocalizePropTypes,
 };
 
@@ -78,6 +81,9 @@ const defaultProps = {
         state: 'addressState',
         zipCode: 'addressZipCode',
     },
+
+    // A maximum of -1 means the user can enter as many characters as they want
+    maxInputLength: -1,
 };
 
 // Do not convert to class component! It's been tried before and presents more challenges than it's worth.
@@ -216,6 +222,7 @@ const AddressSearch = (props) => {
                                 setDisplayListViewBorder(false);
                             }
                         },
+                        maxLength: props.maxInputLength,
                     }}
                     styles={{
                         textInputContainer: [styles.flexColumn],
