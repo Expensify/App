@@ -1,12 +1,10 @@
 import _, {compose} from 'underscore';
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes, localeProviderPropTypes} from '../../../components/withLocalize';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import ONYXKEYS from '../../../ONYXKEYS';
 import OptionsList from '../../../components/OptionsList';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
@@ -17,6 +15,7 @@ const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 const propTypes = {
     ...withLocalizePropTypes,
+    ...localeProviderPropTypes,
 };
 
 const LanguagePage = (props) => {
@@ -85,9 +84,4 @@ LanguagePage.propTypes = propTypes;
 
 export default compose(
     withLocalize,
-    withOnyx({
-        preferredLocale: {
-            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-        },
-    }),
 )(LanguagePage);
