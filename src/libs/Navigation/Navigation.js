@@ -88,7 +88,7 @@ function openDrawer() {
  * @private
  */
 function closeDrawer() {
-    if (!canNavigate('openDrawer')) {
+    if (!canNavigate('closeDrawer')) {
         return;
     }
 
