@@ -86,6 +86,8 @@ class BaseOptionsSelector extends Component {
             true,
         );
 
+        this.scrollToIndex(this.state.focusedIndex, false);
+
         if (!this.props.autoFocus) {
             return;
         }
