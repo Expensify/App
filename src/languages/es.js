@@ -530,13 +530,12 @@ export default {
     },
     validateCodeForm: {
         magicCodeNotReceived: '¿No recibiste un código mágico?',
-        fillTwoFactorAuthOrRecoveryCode: 'Introduce el código de dos factores o código de recuperación',
-        enterTwoFactorOrRecoveryCode: 'Introduce el código de dos factores o código de recuperación',
+        enterAuthenticatorCode: 'Por favor ingresa su código de autenticador',
         twoFactorCode: 'Autenticación de 2 factores',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
         error: {
             pleaseFillMagicCode: 'Por favor, introduce el código mágico',
-            incorrectMagicCode: 'Código mágico incorrecto. Inténtalo de nuevo.',
+            incorrectMagicCode: 'Código mágico incorrecto.',
             pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
         },
     },
@@ -966,6 +965,7 @@ export default {
             nameInputLabel: 'Nombre',
             nameInputHelpText: 'Este es el nombre que verás en tu espacio de trabajo.',
             nameIsRequiredError: 'Debes definir un nombre para tu espacio de trabajo.',
+            nameHasHtml: 'Las etiquetas HTML no están permitidas en los nombres de los espacios de trabajo.',
             currencyInputLabel: 'Moneda por defecto',
             currencyInputHelpText: 'Todas los gastos en este espacio de trabajo serán convertidos a esta moneda.',
             save: 'Guardar',

@@ -530,13 +530,12 @@ export default {
     },
     validateCodeForm: {
         magicCodeNotReceived: "Didn't receive a magic code?",
-        fillTwoFactorAuthOrRecoveryCode: 'Please enter your two factor code or recovery code',
-        enterTwoFactorOrRecoveryCode: 'Enter your two factor code or recovery code',
+        enterAuthenticatorCode: 'Please enter your authenticator code',
         twoFactorCode: 'Two factor code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
-            incorrectMagicCode: 'Incorrect magic code. Please try again.',
+            incorrectMagicCode: 'Incorrect magic code.',
             pleaseFillTwoFactorAuth: 'Please enter your two factor code',
         },
     },
@@ -963,7 +962,8 @@ export default {
         editor: {
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
-            nameIsRequiredError: 'You need to define a name for your workspace',
+            nameIsRequiredError: 'You need to define a name for your workspace.',
+            nameHasHtml: 'HTML tags are not allowed in workspace names.',
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
             save: 'Save',

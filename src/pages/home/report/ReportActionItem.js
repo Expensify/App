@@ -157,6 +157,10 @@ class ReportActionItem extends Component {
                 />
             );
         } else {
+            const message = _.last(lodashGet(this.props.action, 'message', [{}]));
+            const isAttachment = _.has(this.props.action, 'isAttachment')
+                ? this.props.action.isAttachment
+                : ReportUtils.isReportMessageAttachment(message);
             children = (
                 <ShowContextMenuContext.Provider
                     value={{
@@ -168,7 +172,10 @@ class ReportActionItem extends Component {
                 >
                     {!this.props.draftMessage
                         ? (
-                            <ReportActionItemMessage action={this.props.action} />
+                            <ReportActionItemMessage
+                                action={this.props.action}
+                                style={(!this.props.displayAsGroup && isAttachment) ? [styles.mt2] : undefined}
+                            />
                         ) : (
                             <ReportActionItemMessageEdit
                                 action={this.props.action}
