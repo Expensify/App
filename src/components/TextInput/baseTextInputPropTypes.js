@@ -73,9 +73,6 @@ const propTypes = {
 
     /** Indicate whether pressing Enter on multiline input is allowed to submit the form. */
     submitOnEnter: PropTypes.bool,
-
-    /** Whether the input should be disabled. */
-    disabled: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -108,7 +105,6 @@ const defaultProps = {
     onInputChange: () => {},
     shouldDelayFocus: false,
     submitOnEnter: false,
-    disabled: false,
 };
 
 export {propTypes, defaultProps};
