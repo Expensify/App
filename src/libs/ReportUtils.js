@@ -383,7 +383,8 @@ function hasAutomatedExpensifyEmails(emails) {
 /**
  * Returns true if there are any Expensify accounts (i.e. with domain 'expensify.com') in the set of emails.
  *
- * @param emails
+ * @param {Array<String>} emails
+ * @return {Boolean}
  */
 function hasExpensifyEmails(emails) {
     return _.some(emails, email => Str.extractEmailDomain(email) === CONST.EXPENSIFY_PARTNER_NAME);
