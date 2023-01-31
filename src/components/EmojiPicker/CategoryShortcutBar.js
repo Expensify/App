@@ -2,6 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View, Text} from 'react-native';
 import styles from '../../styles/styles';
+import Recent from '../../../assets/images/history.svg';
+import Smiley from '../../../assets/images/emoji.svg';
 
 const propTypes = {
     /** The function to call when an emoji is selected */
@@ -12,6 +14,7 @@ const propTypes = {
 };
 
 const CategoryShortcutBar = (props) => {
+    const icons = [Recent, Smiley];
 
     return (
         <View style={[styles.pt2, styles.ph4, styles.flexRow]}>
