@@ -151,10 +151,7 @@ class ReportScreen extends React.Component {
                 return;
             }
 
-            // Dismiss modal if it is opened with another chat report
-            Navigation.dismissModal();
-
-            // Navigate to the chat report
+            // Since NavigationContainer already handles the deep link for the ReportScreen, we need to wait for it to finish to then navigate to the desired chat report
             this.unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
                 Navigation.isDrawerReady().then(() => {
                     Navigation.navigate(ROUTES.getReportRoute(reportID));
