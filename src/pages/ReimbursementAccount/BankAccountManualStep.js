@@ -100,6 +100,7 @@ class BankAccountManualStep extends React.Component {
                         defaultValue={this.props.getDefaultStateForField('routingNumber', '')}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableInputs}
+                        editable={!shouldDisableInputs}
                         shouldSaveDraft
                     />
                     <TextInput
@@ -109,6 +110,7 @@ class BankAccountManualStep extends React.Component {
                         defaultValue={this.props.getDefaultStateForField('accountNumber', '')}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableInputs}
+                        editable={!shouldDisableInputs}
                         shouldSaveDraft
                     />
                     <CheckboxWithLabel
