@@ -573,8 +573,8 @@ export default {
         homeAddress: 'Domicilio',
         error: {
             hasInvalidCharacter: ({invalidCharacter}) => `Por favor elimina ${invalidCharacter}`,
-            dateTooRecent: ({numYears}) => `La fecha debe ser de hace más de ${numYears} años.`,
-            dateTooOld: ({numYears}) => `La fecha no puede ser de hace más de ${numYears} años.`,
+            dateShouldBeBefore: ({dateString}) => `La fecha debe ser anterior a ${dateString}.`,
+            dateShouldBeAfter: ({dateString}) => `La fecha debe ser posterior a ${dateString}.`,
         },
     },
     resendValidationForm: {

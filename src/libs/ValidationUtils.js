@@ -225,9 +225,9 @@ function getAgeRequirementError(date, minimumAge, maximumAge) {
         return '';
     }
     if (testDate.isAfter(recentDate)) {
-        return Localize.translateLocal('privatePersonalDetails.error.dateTooRecent', {numYears: minimumAge});
+        return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: recentDate.format('MMM Do, YYYY')});
     }
-    return Localize.translateLocal('privatePersonalDetails.error.dateTooOld', {numYears: maximumAge});
+    return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: longAgoDate.format('MMM Do, YYYY')});
 }
 
 /**
