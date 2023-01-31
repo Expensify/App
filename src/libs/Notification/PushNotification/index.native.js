@@ -2,7 +2,6 @@ import _ from 'underscore';
 import {UrbanAirship, EventType, iOS} from 'urbanairship-react-native';
 import lodashGet from 'lodash/get';
 import Log from '../../Log';
-import NotificationType from './NotificationType';
 import PushNotification from '.';
 import * as Report from '../../actions/Report';
 
@@ -172,6 +171,5 @@ export default {
     deregister,
     onReceived,
     onSelected,
-    TYPE: NotificationType,
     clearNotifications,
 };
