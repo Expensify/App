@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import {View, FlatList} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
 import CONST from '../../../CONST';
@@ -15,7 +14,6 @@ import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import * as User from '../../../libs/actions/User';
-import CategoryShortcutBar from '../CategoryShortcutBar';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -45,28 +43,23 @@ class EmojiPickerMenu extends Component {
     constructor(props) {
         super(props);
 
-        // Ref for emoji FlatList
-        this.emojiList = undefined;
+        // This is the number of columns in each row of the picker.
+        // Because of how flatList implements these rows, each row is an index rather than each element
+        // For this reason to make headers work, we need to have the header be the only rendered element in its row
+        // If this number is changed, emojis.js will need to be updated to have the proper number of spacer elements
+        // around each header.
+        this.numColumns = CONST.EMOJI_NUM_PER_ROW;
 
         this.emojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis, this.props.frequentlyUsedEmojis);
 
-        // This is the actual header index starting at the first emoji and counting each one
-        this.headerIndices = EmojiUtils.getHeaderIndices(this.emojis);
-
-        // This is the indices of each header's Row
+        // This is the indices of each category of emojis
         // The positions are static, and are calculated as index/numColumns (8 in our case)
-        // This is because each row of 8 emojis counts as one index to the flatlist
-        this.headerRowIndices = _.map(this.headerIndices, headerIndex => Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW));
+        // This is because each row of 8 emojis counts as one index
+        this.unfilteredHeaderIndices = EmojiUtils.getDynamicHeaderIndices(this.emojis);
 
         this.renderItem = this.renderItem.bind(this);
         this.isMobileLandscape = this.isMobileLandscape.bind(this);
         this.updatePreferredSkinTone = this.updatePreferredSkinTone.bind(this);
-        this.scrollToHeader = this.scrollToHeader.bind(this);
-        this.getItemLayout = this.getItemLayout.bind(this);
-    }
-
-    getItemLayout(data, index) {
-        return {length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index};
     }
 
     /**
@@ -98,12 +91,6 @@ class EmojiPickerMenu extends Component {
         User.updatePreferredSkinTone(skinTone);
     }
 
-    scrollToHeader(headerIndex) {
-        const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
-        this.emojiList.flashScrollIndicators();
-        this.emojiList.scrollToOffset({offset: calculatedOffset, animated: false});
-    }
-
     /**
      * Given an emoji item object, render a component based on its type.
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
@@ -121,7 +108,7 @@ class EmojiPickerMenu extends Component {
         if (item.header) {
             return (
                 <View style={styles.emojiHeaderContainer}>
-                    <Text style={styles.textLabelSupporting}>
+                    <Text style={styles.emojiHeaderStyle}>
                         {this.props.translate(`emojiPicker.headers.${item.code}`)}
                     </Text>
                 </View>
@@ -143,25 +130,16 @@ class EmojiPickerMenu extends Component {
     render() {
         return (
             <View style={styles.emojiPickerContainer}>
-                <View style={[styles.flexRow]}>
-                    <CategoryShortcutBar
-                        headerIndices={this.headerIndices}
-                        onPress={this.scrollToHeader}
-                    />
-                </View>
                 <FlatList
-                    ref={el => this.emojiList = el}
                     data={this.emojis}
                     renderItem={this.renderItem}
                     keyExtractor={item => (`emoji_picker_${item.code}`)}
-                    numColumns={CONST.EMOJI_NUM_PER_ROW}
+                    numColumns={this.numColumns}
                     style={[
                         styles.emojiPickerList,
                         this.isMobileLandscape() && styles.emojiPickerListLandscape,
                     ]}
-                    stickyHeaderIndices={this.headerRowIndices}
-                    getItemLayout={this.getItemLayout}
-                    showsVerticalScrollIndicator
+                    stickyHeaderIndices={this.unfilteredHeaderIndices}
                 />
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}
