@@ -4,6 +4,7 @@ import {View, Text} from 'react-native';
 import styles from '../../styles/styles';
 import Recent from '../../../assets/images/history.svg';
 import Smiley from '../../../assets/images/emoji.svg';
+import CategoryShortcutButton from './CategoryShortcutButton';
 
 const propTypes = {
     /** The function to call when an emoji is selected */
