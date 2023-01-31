@@ -231,7 +231,7 @@ class OptionRow extends Component {
                                         ) : null}
                                     </View>
                                     {this.props.option.descriptiveText ? (
-                                        <View style={[styles.flexWrap]}>
+                                        <View style={[styles.flexWrap, styles.pl2]}>
                                             <Text style={[styles.textLabel]}>
                                                 {this.props.option.descriptiveText}
                                             </Text>
