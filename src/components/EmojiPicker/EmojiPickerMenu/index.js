@@ -8,9 +8,11 @@ import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import themeColors from '../../../styles/themes/default';
 import emojis from '../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import Text from '../../Text';
+import Composer from '../../Composer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import compose from '../../../libs/compose';
@@ -18,8 +20,6 @@ import getOperatingSystem from '../../../libs/getOperatingSystem';
 import * as User from '../../../libs/actions/User';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
-import CategoryShortcutBar from '../CategoryShortcutBar';
-import TextInput from '../../TextInput';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -57,20 +57,24 @@ class EmojiPickerMenu extends Component {
         // Ref for emoji FlatList
         this.emojiList = undefined;
 
+        // This is the number of columns in each row of the picker.
+        // Because of how flatList implements these rows, each row is an index rather than each element
+        // For this reason to make headers work, we need to have the header be the only rendered element in its row
+        // If this number is changed, emojis.js will need to be updated to have the proper number of spacer elements
+        // around each header.
+        this.numColumns = CONST.EMOJI_NUM_PER_ROW;
+
         const allEmojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis, this.props.frequentlyUsedEmojis);
 
-        // This is the actual header index starting at the first emoji and counting each one
-        this.headerIndices = EmojiUtils.getHeaderIndices(allEmojis);
-
-        // This is the indices of each header's Row
+        // This is the indices of each category of emojis
         // The positions are static, and are calculated as index/numColumns (8 in our case)
-        // This is because each row of 8 emojis counts as one index to the flatlist
-        this.headerRowIndices = _.map(this.headerIndices, headerIndex => Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW));
+        // This is because each row of 8 emojis counts as one index
+        this.unfilteredHeaderIndices = EmojiUtils.getDynamicHeaderIndices(allEmojis);
 
         // If we're on Windows, don't display the flag emojis (the last category),
         // since Windows doesn't support them (and only displays country codes instead)
         this.emojis = getOperatingSystem() === CONST.OS.WINDOWS
-            ? allEmojis.slice(0, this.headerRowIndices.pop() * CONST.EMOJI_NUM_PER_ROW)
+            ? allEmojis.slice(0, this.unfilteredHeaderIndices.pop() * this.numColumns)
             : allEmojis;
 
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
@@ -84,14 +88,13 @@ class EmojiPickerMenu extends Component {
         this.updatePreferredSkinTone = this.updatePreferredSkinTone.bind(this);
         this.setFirstNonHeaderIndex = this.setFirstNonHeaderIndex.bind(this);
         this.getItemLayout = this.getItemLayout.bind(this);
-        this.scrollToHeader = this.scrollToHeader.bind(this);
 
         this.currentScrollOffset = 0;
         this.firstNonHeaderIndex = 0;
 
         this.state = {
             filteredEmojis: this.emojis,
-            headerIndices: this.headerRowIndices,
+            headerIndices: this.unfilteredHeaderIndices,
             highlightedIndex: -1,
             arePointerEventsDisabled: false,
             selection: {
@@ -251,10 +254,10 @@ class EmojiPickerMenu extends Component {
             }
 
             if (arrowKey === 'ArrowRight'
-                && !(
-                    this.searchInput.value.length === this.state.selection.start
-                    && this.state.selection.start === this.state.selection.end
-                )
+                  && !(
+                      this.searchInput.value.length === this.state.selection.start
+                      && this.state.selection.start === this.state.selection.end
+                  )
             ) {
                 return;
             }
@@ -298,8 +301,8 @@ class EmojiPickerMenu extends Component {
         switch (arrowKey) {
             case 'ArrowDown':
                 move(
-                    CONST.EMOJI_NUM_PER_ROW,
-                    () => this.state.highlightedIndex + CONST.EMOJI_NUM_PER_ROW > this.state.filteredEmojis.length - 1,
+                    this.numColumns,
+                    () => this.state.highlightedIndex + this.numColumns > this.state.filteredEmojis.length - 1,
                 );
                 break;
             case 'ArrowLeft':
@@ -316,8 +319,8 @@ class EmojiPickerMenu extends Component {
                 break;
             case 'ArrowUp':
                 move(
-                    -CONST.EMOJI_NUM_PER_ROW,
-                    () => this.state.highlightedIndex - CONST.EMOJI_NUM_PER_ROW < this.firstNonHeaderIndex,
+                    -this.numColumns,
+                    () => this.state.highlightedIndex - this.numColumns < this.firstNonHeaderIndex,
                     () => {
                         // Reaching start of the list, arrow up set the focus to searchInput.
                         this.focusInputWithTextSelect();
@@ -336,23 +339,25 @@ class EmojiPickerMenu extends Component {
         }
     }
 
-    scrollToHeader(headerIndex) {
-        const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
-        this.emojiList.flashScrollIndicators();
-        this.emojiList.scrollToOffset({offset: calculatedOffset, animated: false});
-    }
-
     /**
      * Calculates the required scroll offset (aka distance from top) and scrolls the FlatList to the highlighted emoji
      * if any portion of it falls outside of the window.
      * Doing this because scrollToIndex doesn't work as expected.
      */
     scrollToHighlightedIndex() {
-        // Calculate the number of rows above the current row, then add 1 to include the current row
-        const numRows = Math.floor(this.state.highlightedIndex / CONST.EMOJI_NUM_PER_ROW) + 1;
+        // If there are headers in the emoji array, so we need to offset by their heights as well
+        let numHeaders = 0;
+        if (this.state.filteredEmojis.length === this.emojis.length) {
+            numHeaders = _.filter(this.unfilteredHeaderIndices, i => this.state.highlightedIndex > i * this.numColumns).length;
+        }
+
+        // Calculate the scroll offset at the bottom of the currently highlighted emoji
+        // (subtract numHeaders because the highlightedIndex includes them, and add 1 to include the current row)
+        const numEmojiRows = (Math.floor(this.state.highlightedIndex / this.numColumns) - numHeaders) + 1;
 
         // The scroll offsets at the top and bottom of the highlighted emoji
-        const offsetAtEmojiBottom = numRows * CONST.EMOJI_PICKER_HEADER_HEIGHT;
+        const offsetAtEmojiBottom = ((numHeaders) * CONST.EMOJI_PICKER_HEADER_HEIGHT)
+            + (numEmojiRows * CONST.EMOJI_PICKER_ITEM_HEIGHT);
         const offsetAtEmojiTop = offsetAtEmojiBottom - CONST.EMOJI_PICKER_ITEM_HEIGHT;
 
         // Scroll to fit the entire highlighted emoji into the window if we need to
@@ -383,7 +388,7 @@ class EmojiPickerMenu extends Component {
             // There are no headers when searching, so we need to re-make them sticky when there is no search term
             this.setState({
                 filteredEmojis: this.emojis,
-                headerIndices: this.headerRowIndices,
+                headerIndices: this.unfilteredHeaderIndices,
                 highlightedIndex: -1,
             });
             this.setFirstNonHeaderIndex(this.emojis);
@@ -434,7 +439,7 @@ class EmojiPickerMenu extends Component {
         if (header) {
             return (
                 <View style={styles.emojiHeaderContainer}>
-                    <Text style={styles.textLabelSupporting}>
+                    <Text style={styles.emojiHeaderStyle}>
                         {this.props.translate(`emojiPicker.headers.${code}`)}
                     </Text>
                 </View>
@@ -468,15 +473,14 @@ class EmojiPickerMenu extends Component {
                 style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
-                <CategoryShortcutBar
-                    headerIndices={this.headerIndices}
-                    onPress={this.scrollToHeader}
-                />
                 {!this.props.isSmallScreenWidth && (
-                    <View style={[styles.ph4, styles.pb1]}>
-                        <TextInput
-                            label={this.props.translate('common.search')}
+                    <View style={[styles.pt4, styles.ph4, styles.pb1]}>
+                        <Composer
+                            textAlignVertical="top"
+                            placeholder={this.props.translate('common.search')}
+                            placeholderTextColor={themeColors.textSupporting}
                             onChangeText={this.filterEmojis}
+                            style={[styles.textInput, this.state.isFocused && styles.borderColorFocus]}
                             defaultValue=""
                             ref={el => this.searchInput = el}
                             autoFocus
@@ -508,13 +512,13 @@ class EmojiPickerMenu extends Component {
                             data={this.state.filteredEmojis}
                             renderItem={this.renderItem}
                             keyExtractor={item => `emoji_picker_${item.code}`}
-                            numColumns={CONST.EMOJI_NUM_PER_ROW}
+                            numColumns={this.numColumns}
                             style={[
                                 styles.emojiPickerList,
                                 this.isMobileLandscape() && styles.emojiPickerListLandscape,
                             ]}
                             extraData={
-                                [this.state.filteredEmojis, this.state.highlightedIndex, this.props.preferredSkinTone]
+                              [this.state.filteredEmojis, this.state.highlightedIndex, this.props.preferredSkinTone]
                             }
                             stickyHeaderIndices={this.state.headerIndices}
                             onScroll={e => this.currentScrollOffset = e.nativeEvent.contentOffset.y}
