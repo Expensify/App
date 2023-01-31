@@ -151,8 +151,8 @@ class PasswordForm extends React.Component {
     }
 
     render() {
-        const hasPasswordError = !this.state.formError && this.props.account && !_.isEmpty(this.props.account.errors)
-        const hasTwoFactorCodeError = false;
+        const hasPasswordError = !this.state.formError && this.props.account && !_.isEmpty(this.props.account.errors);
+        const hasTwoFactorCodeError = true;
         return (
             <>
                 <View style={[styles.mv3]}>
