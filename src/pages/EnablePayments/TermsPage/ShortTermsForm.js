@@ -4,7 +4,7 @@ import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import * as Localize from '../../../libs/Localize';
 import CONST from '../../../CONST';
-import * as Link from '../../../libs/actions/Link';
+import TextLink from '../../../components/TextLink';
 
 const ShortTermsForm = () => (
     <>
@@ -19,7 +19,7 @@ const ShortTermsForm = () => (
                         <Text style={styles.textLarge}>{Localize.translateLocal('termsStep.monthlyFee')}</Text>
                     </View>
                     <View style={styles.flexRow}>
-                        <Text style={styles.textXXXLarge}>{Localize.translateLocal('termsStep.feeAmountZero')}</Text>
+                        <Text style={[styles.textHeadline, styles.textXXXLarge]}>{Localize.translateLocal('termsStep.feeAmountZero')}</Text>
                     </View>
                 </View>
                 <View style={[styles.flex2]}>
@@ -28,7 +28,7 @@ const ShortTermsForm = () => (
                             <Text style={styles.textLarge}>{Localize.translateLocal('termsStep.shortTermsForm.perPurchase')}</Text>
                         </View>
                         <View style={styles.flexRow}>
-                            <Text style={styles.textXXXLarge}>{Localize.translateLocal('termsStep.feeAmountZero')}</Text>
+                            <Text style={[styles.textHeadline, styles.textXXXLarge]}>{Localize.translateLocal('termsStep.feeAmountZero')}</Text>
                         </View>
                     </View>
                 </View>
@@ -40,7 +40,7 @@ const ShortTermsForm = () => (
                         <Text style={styles.textLarge}>{Localize.translateLocal('termsStep.shortTermsForm.atmWithdrawal')}</Text>
                     </View>
                     <View style={styles.flexRow}>
-                        <Text style={styles.textXXXLarge}>{Localize.translateLocal('common.na')}</Text>
+                        <Text style={[styles.textHeadline, styles.textXXXLarge]}>{Localize.translateLocal('common.na')}</Text>
                     </View>
                     <View style={styles.flexRow}>
                         <Text style={styles.textLabelSupporting}>
@@ -48,7 +48,7 @@ const ShortTermsForm = () => (
                         </Text>
                     </View>
                     <View style={[styles.flexRow, styles.mt1]}>
-                        <Text style={styles.textXXXLarge}>{Localize.translateLocal('common.na')}</Text>
+                        <Text style={[styles.textHeadline, styles.textXXXLarge]}>{Localize.translateLocal('common.na')}</Text>
                     </View>
                     <View style={styles.flexRow}>
                         <Text style={styles.textLabelSupporting}>
@@ -62,7 +62,7 @@ const ShortTermsForm = () => (
                             <Text style={styles.textLarge}>{Localize.translateLocal('termsStep.shortTermsForm.cashReload')}</Text>
                         </View>
                         <View style={styles.flexRow}>
-                            <Text style={styles.textXXXLarge}>{Localize.translateLocal('common.na')}</Text>
+                            <Text style={[styles.textHeadline, styles.textXXXLarge]}>{Localize.translateLocal('common.na')}</Text>
                         </View>
                     </View>
                 </View>
@@ -152,23 +152,17 @@ const ShortTermsForm = () => (
                 <Text style={styles.mb3}>
                     {Localize.translateLocal('termsStep.shortTermsForm.generalInfo')}
                     {' '}
-                    <Text
-                        style={styles.link}
-                        onPress={() => Link.openExternalLink(CONST.CFPB_PREPAID_URL)}
-                    >
+                    <TextLink href={CONST.CFPB_PREPAID_URL}>
                         {CONST.TERMS.CFPB_PREPAID}
-                    </Text>
+                    </TextLink>
                     .
                 </Text>
                 <Text>
                     {Localize.translateLocal('termsStep.shortTermsForm.conditionsDetails')}
                     {' '}
-                    <Text
-                        style={styles.link}
-                        onPress={() => Link.openExternalLink(CONST.FEES_URL)}
-                    >
+                    <TextLink href={CONST.FEES_URL}>
                         {CONST.TERMS.USE_EXPENSIFY_FEES}
-                    </Text>
+                    </TextLink>
                     {' '}
                     {Localize.translateLocal('termsStep.shortTermsForm.conditionsPhone')}
                 </Text>

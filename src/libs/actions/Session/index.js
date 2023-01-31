@@ -9,7 +9,6 @@ import PushNotification from '../../Notification/PushNotification';
 import Timing from '../Timing';
 import CONST from '../../../CONST';
 import * as Localize from '../../Localize';
-import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
 import Timers from '../../Timers';
 import * as Pusher from '../../Pusher/pusher';
 import * as Authentication from '../../Authentication';
@@ -25,23 +24,37 @@ Onyx.connect({
 });
 
 /**
+ * Manage push notification subscriptions on sign-in/sign-out.
+ *
+ * On Android, AuthScreens unmounts when the app is closed with the back button so we manage the
+ * push subscription when the session changes here.
+ */
+let previousAccountID;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        const accountID = lodashGet(session, 'accountID');
+        if (previousAccountID === accountID) {
+            return;
+        }
+
+        if (accountID) {
+            PushNotification.register(accountID);
+        } else {
+            PushNotification.deregister();
+            PushNotification.clearNotifications();
+        }
+
+        previousAccountID = accountID;
+    },
+});
+
+/**
  * Clears the Onyx store and redirects user to the sign in page
  */
 function signOut() {
     Log.info('Flushing logs before signing out', true, {}, true);
 
-    const optimisticData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: ONYXKEYS.SESSION,
-            value: null,
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: ONYXKEYS.CREDENTIALS,
-            value: {},
-        },
-    ];
     API.write('LogOut', {
         // Send current authToken because we will immediately clear it once triggering this command
         authToken: NetworkStore.getAuthToken(),
@@ -49,7 +62,7 @@ function signOut() {
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         shouldRetry: false,
-    }, {optimisticData});
+    });
 
     Timing.clearData();
 }
@@ -310,10 +323,6 @@ function clearSignInData() {
  * Put any logic that needs to run when we are signed out here. This can be triggered when the current tab or another tab signs out.
  */
 function cleanupSession() {
-    // We got signed out in this tab or another so clean up any subscriptions and timers
-    UnreadIndicatorUpdater.stopListeningForReportChanges();
-    PushNotification.deregister();
-    PushNotification.clearNotifications();
     Pusher.disconnect();
     Timers.clearAll();
     Welcome.resetReadyCheck();
@@ -449,13 +458,13 @@ export {
     updatePasswordAndSignin,
     signIn,
     signInWithShortLivedAuthToken,
+    cleanupSession,
     signOut,
     signOutAndRedirectToSignIn,
     resendValidationLink,
     resetPassword,
     resendResetPassword,
     clearSignInData,
-    cleanupSession,
     clearAccountMessages,
     authenticatePusher,
     reauthenticatePusher,

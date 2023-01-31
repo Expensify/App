@@ -87,21 +87,19 @@ class TermsStep extends React.Component {
                         isChecked={this.state.hasAcceptedPrivacyPolicyAndWalletAgreement}
                         onInputChange={this.togglePrivacyPolicy}
                         LabelComponent={() => (
-                            <>
-                                <Text>
-                                    {`${this.props.translate('termsStep.agreeToThe')} `}
-                                </Text>
+                            <Text>
+                                {`${this.props.translate('termsStep.agreeToThe')} `}
 
                                 <TextLink href="https://use.expensify.com/privacy">
-                                    {`${this.props.translate('common.privacyPolicy')} `}
+                                    {`${this.props.translate('common.privacy')} `}
                                 </TextLink>
 
-                                <Text>{`${this.props.translate('common.and')} `}</Text>
+                                {`${this.props.translate('common.and')} `}
 
                                 <TextLink href="https://use.expensify.com/walletagreement">
                                     {`${this.props.translate('termsStep.walletAgreement')}.`}
                                 </TextLink>
-                            </>
+                            </Text>
                         )}
                     />
                     <FormAlertWithSubmitButton

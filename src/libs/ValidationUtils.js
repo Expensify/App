@@ -207,11 +207,14 @@ function meetsAgeRequirements(date) {
 }
 
 /**
+ * Similar to backend, checks whether a website has a valid URL or not.
+ * http/https/ftp URL scheme required.
+ *
  * @param {String} url
  * @returns {Boolean}
  */
-function isValidURL(url) {
-    return CONST.REGEX.HYPERLINK.test(url);
+function isValidWebsite(url) {
+    return CONST.REGEX.WEBSITE.test(url);
 }
 
 /**
@@ -272,6 +275,14 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional) {
  */
 function isValidPassword(password) {
     return password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
+}
+
+/**
+ * @param {String} code
+ * @returns {Boolean}
+ */
+function isValidTwoFactorCode(code) {
+    return Boolean(code.match(CONST.REGEX.CODE_2FA));
 }
 
 /**
@@ -384,6 +395,19 @@ function isExistingRoomName(roomName, reports, policyID) {
 }
 
 /**
+ * Checks if a room name is valid by checking that:
+ * - It starts with a hash '#'
+ * - After the first character, it contains only lowercase letters, numbers, and dashes
+ * - It's between 1 and MAX_ROOM_NAME_LENGTH characters long
+ *
+ * @param {String} roomName
+ * @returns {Boolean}
+ */
+function isValidRoomName(roomName) {
+    return CONST.REGEX.ROOM_NAME.test(roomName);
+}
+
+/**
  * Checks if tax ID consists of 9 digits
  *
  * @param {String} taxID
@@ -406,9 +430,10 @@ export {
     isValidZipCode,
     isRequiredFulfilled,
     isValidUSPhone,
-    isValidURL,
+    isValidWebsite,
     validateIdentity,
     isValidPassword,
+    isValidTwoFactorCode,
     isPositiveInteger,
     isNumericWithSpecialChars,
     isValidPaypalUsername,
@@ -419,6 +444,7 @@ export {
     doesFailCharacterLimitAfterTrim,
     isReservedRoomName,
     isExistingRoomName,
+    isValidRoomName,
     isValidTaxID,
     findInvalidSymbols,
 };

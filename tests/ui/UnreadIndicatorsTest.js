@@ -18,6 +18,10 @@ import LocalNotification from '../../src/libs/Notification/LocalNotification';
 import * as Report from '../../src/libs/actions/Report';
 import * as CollectionUtils from '../../src/libs/CollectionUtils';
 import DateUtils from '../../src/libs/DateUtils';
+import * as User from '../../src/libs/actions/User';
+import * as Pusher from '../../src/libs/Pusher/pusher';
+import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
+import CONFIG from '../../src/CONFIG';
 
 jest.mock('../../src/libs/Notification/LocalNotification');
 
@@ -33,6 +37,14 @@ beforeAll(() => {
     jest.setTimeout(30000);
     Linking.setInitialURL('https://new.expensify.com/r/1');
     appSetup();
+
+    // Connect to Pusher
+    PusherConnectionManager.init();
+    Pusher.init({
+        appKey: CONFIG.PUSHER.APP_KEY,
+        cluster: CONFIG.PUSHER.CLUSTER,
+        authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=AuthenticatePusher`,
+    });
 });
 
 /**
@@ -128,6 +140,10 @@ function signInAndGetAppWithUnreadChat() {
             return TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
         })
         .then(() => {
+            User.subscribeToUserEvents();
+            return waitForPromisesToResolve();
+        })
+        .then(() => {
             const MOMENT_TEN_MINUTES_AGO = moment().subtract(10, 'minutes');
             reportAction3CreatedDate = MOMENT_TEN_MINUTES_AGO.clone().add(30, 'seconds').format(MOMENT_FORMAT);
             reportAction9CreatedDate = MOMENT_TEN_MINUTES_AGO.clone().add(90, 'seconds').format(MOMENT_FORMAT);
@@ -136,19 +152,18 @@ function signInAndGetAppWithUnreadChat() {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                 reportID: REPORT_ID,
                 reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-                maxSequenceNumber: 9,
-                lastReadSequenceNumber: 1,
-                lastActionCreated: DateUtils.getDBTime(MOMENT_TEN_MINUTES_AGO.clone().utc().valueOf()),
+                lastReadTime: reportAction3CreatedDate,
+                lastActionCreated: reportAction9CreatedDate,
                 lastMessageText: 'Test',
                 participants: [USER_B_EMAIL],
             });
+            const createdReportActionID = NumberUtils.rand64();
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-                0: {
+                [createdReportActionID]: {
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     automatic: false,
-                    sequenceNumber: 0,
                     created: MOMENT_TEN_MINUTES_AGO.clone().format(MOMENT_FORMAT),
-                    reportActionID: NumberUtils.rand64(),
+                    reportActionID: createdReportActionID,
                     message: [
                         {
                             style: 'strong',
@@ -162,15 +177,15 @@ function signInAndGetAppWithUnreadChat() {
                         },
                     ],
                 },
-                1: TestHelper.buildTestReportComment(USER_B_EMAIL, 1, MOMENT_TEN_MINUTES_AGO.clone().add(10, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                2: TestHelper.buildTestReportComment(USER_B_EMAIL, 2, MOMENT_TEN_MINUTES_AGO.clone().add(20, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                3: TestHelper.buildTestReportComment(USER_B_EMAIL, 3, reportAction3CreatedDate, USER_B_ACCOUNT_ID),
-                4: TestHelper.buildTestReportComment(USER_B_EMAIL, 4, MOMENT_TEN_MINUTES_AGO.clone().add(40, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                5: TestHelper.buildTestReportComment(USER_B_EMAIL, 5, MOMENT_TEN_MINUTES_AGO.clone().add(50, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                6: TestHelper.buildTestReportComment(USER_B_EMAIL, 6, MOMENT_TEN_MINUTES_AGO.clone().add(60, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                7: TestHelper.buildTestReportComment(USER_B_EMAIL, 7, MOMENT_TEN_MINUTES_AGO.clone().add(70, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                8: TestHelper.buildTestReportComment(USER_B_EMAIL, 8, MOMENT_TEN_MINUTES_AGO.clone().add(80, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                9: TestHelper.buildTestReportComment(USER_B_EMAIL, 9, reportAction9CreatedDate, USER_B_ACCOUNT_ID),
+                1: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(10, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '1'),
+                2: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(20, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '2'),
+                3: TestHelper.buildTestReportComment(USER_B_EMAIL, reportAction3CreatedDate, USER_B_ACCOUNT_ID, '3'),
+                4: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(40, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '4'),
+                5: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(50, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '5'),
+                6: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(60, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '6'),
+                7: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(70, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '7'),
+                8: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(80, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '8'),
+                9: TestHelper.buildTestReportComment(USER_B_EMAIL, reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9'),
             });
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
                 [USER_B_EMAIL]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
@@ -184,7 +199,10 @@ function signInAndGetAppWithUnreadChat() {
 }
 
 describe('Unread Indicators', () => {
-    afterEach(Onyx.clear);
+    afterEach(() => {
+        jest.clearAllMocks();
+        Onyx.clear();
+    });
 
     it('Display bold in the LHN for unread chat and new line indicator above the chat message when we navigate to it', () => {
         let renderedApp;
@@ -220,12 +238,12 @@ describe('Unread Indicators', () => {
                 const reportComments = renderedApp.queryAllByA11yLabel('Chat message');
                 expect(reportComments).toHaveLength(9);
 
-                // Since the last read sequenceNumber is 1 we should have an unread indicator above the next "unread" action which will
-                // have a sequenceNumber of 2
+                // Since the last read timestamp is the timestamp of action 3 we should have an unread indicator above the next "unread" action which will
+                // have actionID of 4
                 const unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
                 expect(unreadIndicator).toHaveLength(1);
-                const sequenceNumber = lodashGet(unreadIndicator, [0, 'props', 'data-sequence-number']);
-                expect(sequenceNumber).toBe(2);
+                const reportActionID = lodashGet(unreadIndicator, [0, 'props', 'data-action-id']);
+                expect(reportActionID).toBe('4');
 
                 // Scroll up and verify that the "New messages" badge appears
                 scrollUpToRevealNewMessagesBadge(renderedApp);
@@ -278,44 +296,62 @@ describe('Unread Indicators', () => {
                 renderedApp = testInstance;
 
                 // Simulate a new report arriving via Pusher along with reportActions and personalDetails for the other participant
+                // We set the created moment 5 seconds in the past to ensure that time has passed when we open the report
                 const NEW_REPORT_ID = '2';
-                const NEW_REPORT_CREATED_MOMENT = moment();
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`, {
-                    reportID: NEW_REPORT_ID,
-                    reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-                    maxSequenceNumber: 1,
-                    lastReadSequenceNumber: 0,
-                    lastActionCreated: DateUtils.getDBTime(NEW_REPORT_CREATED_MOMENT.utc().valueOf()),
-                    lastMessageText: 'Comment 1',
-                    participants: [USER_C_EMAIL],
-                });
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${NEW_REPORT_ID}`, {
-                    0: {
-                        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                        automatic: false,
-                        sequenceNumber: 0,
-                        created: NEW_REPORT_CREATED_MOMENT.format(MOMENT_FORMAT),
-                        reportActionID: NumberUtils.rand64(),
+                const NEW_REPORT_CREATED_MOMENT = moment().subtract(5, 'seconds');
+                const NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT = NEW_REPORT_CREATED_MOMENT.add(1, 'seconds');
+
+                const createdReportActionID = NumberUtils.rand64();
+                const commentReportActionID = NumberUtils.rand64();
+                const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${USER_A_ACCOUNT_ID}${CONFIG.PUSHER.SUFFIX}`);
+                channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
+                    {
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`,
+                        value: {
+                            reportID: NEW_REPORT_ID,
+                            reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+                            lastReadTime: '',
+                            lastActionCreated: DateUtils.getDBTime(NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf()),
+                            lastMessageText: 'Comment 1',
+                            participants: [USER_C_EMAIL],
+                        },
                     },
-                    1: {
-                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-                        actorEmail: USER_C_EMAIL,
-                        actorAccountID: USER_C_ACCOUNT_ID,
-                        person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
-                        sequenceNumber: 1,
-                        created: NEW_REPORT_CREATED_MOMENT.add(5, 'seconds').format(MOMENT_FORMAT),
-                        message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
-                        reportActionID: NumberUtils.rand64(),
+                    {
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${NEW_REPORT_ID}`,
+                        value: {
+                            [createdReportActionID]: {
+                                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                                automatic: false,
+                                created: NEW_REPORT_CREATED_MOMENT.format(MOMENT_FORMAT),
+                                reportActionID: createdReportActionID,
+                            },
+                            [commentReportActionID]: {
+                                actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                                actorEmail: USER_C_EMAIL,
+                                actorAccountID: USER_C_ACCOUNT_ID,
+                                person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
+                                created: NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.format(MOMENT_FORMAT),
+                                message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
+                                reportActionID: commentReportActionID,
+                            },
+                        },
+                        shouldNotify: true,
                     },
-                });
-                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
-                    [USER_C_EMAIL]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
-                });
+                    {
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS,
+                        value: {
+                            [USER_C_EMAIL]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
+                        },
+                    },
+                ]);
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // Verify notification was created as the new message that has arrived is very recent
-                expect(LocalNotification.showCommentNotification.mock.calls).toHaveLength(1);
+                // Verify notification was created
+                expect(LocalNotification.showCommentNotification).toBeCalled();
 
                 // // Navigate back to the sidebar
                 return navigateToSidebar(renderedApp);
@@ -350,7 +386,7 @@ describe('Unread Indicators', () => {
             });
     });
 
-    it('Manually marking a chat message as read shows the new line indicator and updates the LHN', () => {
+    it('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () => {
         let renderedApp;
         return signInAndGetAppWithUnreadChat()
             .then((testInstance) => {
@@ -362,15 +398,15 @@ describe('Unread Indicators', () => {
             .then(() => {
                 // It's difficult to trigger marking a report comment as unread since we would have to mock the long press event and then
                 // another press on the context menu item so we will do it via the action directly and then test if the UI has updated properly
-                Report.markCommentAsUnread(REPORT_ID, reportAction3CreatedDate, 3);
+                Report.markCommentAsUnread(REPORT_ID, reportAction3CreatedDate);
                 return waitForPromisesToResolve();
             })
             .then(() => {
                 // Verify the indicator appears above the last action
                 const unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
                 expect(unreadIndicator).toHaveLength(1);
-                const sequenceNumber = lodashGet(unreadIndicator, [0, 'props', 'data-sequence-number']);
-                expect(sequenceNumber).toBe(3);
+                const reportActionID = lodashGet(unreadIndicator, [0, 'props', 'data-action-id']);
+                expect(reportActionID).toBe('3');
 
                 // Scroll up and verify the new messages badge appears
                 scrollUpToRevealNewMessagesBadge(renderedApp);
@@ -471,7 +507,7 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(0);
 
                 // Mark a previous comment as unread and verify the unread action indicator returns
-                Report.markCommentAsUnread(REPORT_ID, reportAction9CreatedDate, 9);
+                Report.markCommentAsUnread(REPORT_ID, reportAction9CreatedDate);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -511,17 +547,11 @@ describe('Unread Indicators', () => {
             .then(() => {
                 // Simulate the response from the server so that the comment can be deleted in this test
                 lastReportAction = {...CollectionUtils.lastItem(reportActions)};
-                delete lastReportAction[lastReportAction.clientID];
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                     lastMessageText: lastReportAction.message[0].text,
                     lastActionCreated: DateUtils.getDBTime(lastReportAction.timestamp),
                     lastActorEmail: lastReportAction.actorEmail,
-                    maxSequenceNumber: lastReportAction.sequenceNumber,
                     reportID: REPORT_ID,
-                });
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-                    [lastReportAction.clientID]: null,
-                    10: lastReportAction,
                 });
                 return waitForPromisesToResolve();
             })

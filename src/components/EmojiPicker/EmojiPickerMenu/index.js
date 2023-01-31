@@ -87,6 +87,7 @@ class EmojiPickerMenu extends Component {
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.updatePreferredSkinTone = this.updatePreferredSkinTone.bind(this);
         this.setFirstNonHeaderIndex = this.setFirstNonHeaderIndex.bind(this);
+        this.getItemLayout = this.getItemLayout.bind(this);
 
         this.currentScrollOffset = 0;
         this.firstNonHeaderIndex = 0;
@@ -188,6 +189,20 @@ class EmojiPickerMenu extends Component {
             this.setState({arePointerEventsDisabled: false});
         };
         document.addEventListener('mousemove', this.mouseMoveHandler);
+    }
+
+    /**
+     * This function will be used with FlatList getItemLayout property for optimization purpose that allows skipping
+     * the measurement of dynamic content if we know the size (height or width) of items ahead of time.
+     * Generate and return an object with properties length(height of each individual row),
+     * offset(distance of the current row from the top of the FlatList), index(current row index)
+     *
+     * @param {*} data FlatList item
+     * @param {Number} index row index
+     * @returns {Object}
+     */
+    getItemLayout(data, index) {
+        return {length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index};
     }
 
     /**
@@ -379,15 +394,7 @@ class EmojiPickerMenu extends Component {
             this.setFirstNonHeaderIndex(this.emojis);
             return;
         }
-
-        // Skip "Frequently Used" emojis to avoid duplicate results.
-        // Frequently used emojis are on the 0th index category. Hence, slice the array from the 1st index category onwards.
-        const uniqueEmojis = _.isEmpty(this.props.frequentlyUsedEmojis) ? this.emojis : this.emojis.slice(this.unfilteredHeaderIndices[1] * this.numColumns);
-        const newFilteredEmojiList = _.filter(uniqueEmojis, emoji => (
-            !emoji.header
-            && !emoji.spacer
-            && _.find(emoji.keywords, keyword => keyword.includes(normalizedSearchTerm))
-        ));
+        const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, this.emojis.length);
 
         // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
         this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: 0});
@@ -431,9 +438,11 @@ class EmojiPickerMenu extends Component {
 
         if (header) {
             return (
-                <Text style={styles.emojiHeaderStyle}>
-                    {this.props.translate(`emojiPicker.headers.${code}`)}
-                </Text>
+                <View style={styles.emojiHeaderContainer}>
+                    <Text style={styles.emojiHeaderStyle}>
+                        {this.props.translate(`emojiPicker.headers.${code}`)}
+                    </Text>
+                </View>
             );
         }
 
@@ -513,6 +522,7 @@ class EmojiPickerMenu extends Component {
                             }
                             stickyHeaderIndices={this.state.headerIndices}
                             onScroll={e => this.currentScrollOffset = e.nativeEvent.contentOffset.y}
+                            getItemLayout={this.getItemLayout}
                         />
                     )}
                 <EmojiSkinToneList

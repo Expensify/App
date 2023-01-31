@@ -34,14 +34,8 @@ export default PropTypes.shape({
     /** The time of the last message on the report */
     lastActionCreated: PropTypes.string,
 
-    /** The sequence number of the last action read by the user */
-    lastReadSequenceNumber: PropTypes.number,
-
     /** The last time the report was visited */
-    lastReadTimestamp: PropTypes.number,
-
-    /** The largest sequenceNumber on this report */
-    maxSequenceNumber: PropTypes.number,
+    lastReadTime: PropTypes.string,
 
     /** The current user's notification preference for this report */
     notificationPreference: PropTypes.oneOfType([
