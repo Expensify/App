@@ -279,6 +279,11 @@ const styles = {
         fontSize: variables.fontSizeXXXLarge,
     },
 
+    textHero: {
+        fontSize: variables.fontSizeHero,
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+    },
+
     textStrong: {
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
@@ -345,14 +350,6 @@ const styles = {
 
     opacity1: {
         opacity: 1,
-    },
-
-    pr0: {
-        paddingRight: 0,
-    },
-
-    pl0: {
-        paddingLeft: 0,
     },
 
     textDanger: {
@@ -1320,7 +1317,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         lineHeight: variables.lineHeightXLarge,
-        paddingBottom: 4,
         ...wordBreak.breakWord,
     },
 
@@ -1328,8 +1324,7 @@ const styles = {
         flexShrink: 0,
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeSmall,
-        height: 24,
-        lineHeight: variables.lineHeightXLarge,
+        paddingTop: 2,
     },
 
     chatItemMessage: {
@@ -1337,8 +1332,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.EXP_NEUE,
         lineHeight: variables.lineHeightXLarge,
-        marginTop: -2,
-        marginBottom: -2,
         maxWidth: '100%',
         cursor: 'auto',
         ...whiteSpace.preWrap,
@@ -2774,12 +2767,6 @@ const styles = {
         fontSize: variables.fontSizeLabel,
         fontFamily: fontFamily.EXP_NEUE,
         marginLeft: 6,
-    },
-
-    addWorkspaceRoomErrorRow: {
-        paddingHorizontal: 20,
-        maxWidth: 450,
-        alignSelf: 'center',
     },
 
     fullScreenTransparentOverlay: {
