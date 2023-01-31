@@ -56,7 +56,7 @@ class PasswordForm extends React.Component {
         this.clearSignInData = this.clearSignInData.bind(this);
 
         this.state = {
-            formError: false,
+            formError: {},
             password: '',
             twoFactorAuthCode: '',
         };
@@ -98,7 +98,7 @@ class PasswordForm extends React.Component {
         if (this.input2FA) {
             this.setState({twoFactorAuthCode: ''}, this.input2FA.clear);
         }
-        this.setState({formError: false});
+        this.setState({formError: {}});
         Session.resetPassword();
     }
 
@@ -106,7 +106,7 @@ class PasswordForm extends React.Component {
     * Clears local and Onyx sign in states
     */
     clearSignInData() {
-        this.setState({twoFactorAuthCode: '', formError: false});
+        this.setState({twoFactorAuthCode: '', formError: {}});
         Session.clearSignInData();
     }
 
@@ -118,41 +118,34 @@ class PasswordForm extends React.Component {
         const twoFactorCode = this.state.twoFactorAuthCode.trim();
         const requiresTwoFactorAuth = this.props.account.requiresTwoFactorAuth;
 
-        if (!password && requiresTwoFactorAuth && !twoFactorCode) {
-            this.setState({formError: 'passwordForm.pleaseFillOutAllFields'});
-            return;
-        }
-
         if (!password) {
-            this.setState({formError: 'passwordForm.pleaseFillPassword'});
+            this.setState({formError: {password: 'passwordForm.pleaseFillPassword'}});
             return;
         }
 
         if (!ValidationUtils.isValidPassword(password)) {
-            this.setState({formError: 'passwordForm.error.incorrectPassword'});
+            this.setState({formError: {password: 'passwordForm.error.incorrectPassword'}});
             return;
         }
 
         if (requiresTwoFactorAuth && !twoFactorCode) {
-            this.setState({formError: 'passwordForm.pleaseFillTwoFactorAuth'});
+            this.setState({formError: {twoFactorCode: 'passwordForm.pleaseFillTwoFactorAuth'}});
             return;
         }
 
         if (requiresTwoFactorAuth && !ValidationUtils.isValidTwoFactorCode(twoFactorCode)) {
-            this.setState({formError: 'passwordForm.error.incorrect2fa'});
+            this.setState({formError: {twoFactorCode: 'passwordForm.error.incorrect2fa'}});
             return;
         }
 
         this.setState({
-            formError: null,
+            formError: {},
         });
 
         Session.signIn(password, twoFactorCode);
     }
 
     render() {
-        const hasPasswordError = !this.state.formError && this.props.account && !_.isEmpty(this.props.account.errors);
-        const hasTwoFactorCodeError = true;
         return (
             <>
                 <View style={[styles.mv3]}>
@@ -168,7 +161,7 @@ class PasswordForm extends React.Component {
                         onChangeText={text => this.setState({password: text})}
                         onSubmitEditing={this.validateAndSubmitForm}
                         blurOnSubmit={false}
-                        hasError={hasPasswordError}
+                        errorText={this.state.formError.password ? this.props.translate(this.state.formError.password) : ''}
                     />
                     <View style={[styles.changeExpensifyLoginLinkContainer]}>
                         <TouchableOpacity
@@ -195,20 +188,14 @@ class PasswordForm extends React.Component {
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             blurOnSubmit={false}
                             maxLength={CONST.TFA_CODE_LENGTH}
-                            hasError={hasTwoFactorCodeError}
+                            errorText={this.state.formError.twoFactorCode ? this.props.translate(this.state.formError.twoFactorCode) : ''}
                         />
                     </View>
                 )}
 
-                {!this.state.formError && this.props.account && !_.isEmpty(this.props.account.errors) && (
+                {this.props.account && !_.isEmpty(this.props.account.errors) && (
                     <Text style={[styles.formError]}>
                         {ErrorUtils.getLatestErrorMessage(this.props.account)}
-                    </Text>
-                )}
-
-                {this.state.formError && (
-                    <Text style={[styles.formError]}>
-                        {this.props.translate(this.state.formError)}
                     </Text>
                 )}
                 <View>
