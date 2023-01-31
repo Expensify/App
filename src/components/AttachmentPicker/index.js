@@ -32,13 +32,15 @@ class AttachmentPicker extends React.Component {
                     type="file"
                     ref={el => this.fileInput = el}
                     onChange={(e) => {
-                        const file = e.target.files[0];
+                        let file = e.target.files[0];
 
                         if (file) {
                             const cleanName = FileUtils.cleanFileName(file.name);
                             file.uri = URL.createObjectURL(file);
-                            const updatedFile = new File([file], cleanName);
-                            this.onPicked(updatedFile);
+                            if (file.name !== cleanName) {
+                                file = new File([file], cleanName);    
+                            }
+                            this.onPicked(file);
                         }
 
                         // Cleanup after selecting a file to start from a fresh state
