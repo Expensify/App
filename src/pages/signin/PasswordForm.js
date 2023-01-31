@@ -70,7 +70,7 @@ class PasswordForm extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        if (this.inputPassword && !prevProps.isVisible && this.props.isVisible) {
+        if (!prevProps.isVisible && this.props.isVisible) {
             this.inputPassword.focus();
         }
         if (prevProps.isVisible && !this.props.isVisible && this.state.password) {
