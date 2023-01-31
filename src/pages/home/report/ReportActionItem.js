@@ -205,6 +205,7 @@ class ReportActionItem extends Component {
         }
         return (
             <PressableWithSecondaryInteraction
+                pointerEvents={this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? 'none' : 'auto'}
                 ref={el => this.popoverAnchor = el}
                 onPressIn={() => this.props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
