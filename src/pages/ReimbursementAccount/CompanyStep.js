@@ -137,7 +137,7 @@ class CompanyStep extends React.Component {
     }
 
     render() {
-        const bankAccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0;
+        const bankAccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID', 0);
         const shouldDisableCompanyName = Boolean(bankAccountID && this.props.getDefaultStateForField('companyName'));
         const shouldDisableCompanyTaxID = Boolean(bankAccountID && this.props.getDefaultStateForField('companyTaxID'));
 
