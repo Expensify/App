@@ -79,25 +79,23 @@ class SignInPage extends Component {
         // - A login has been entered
         // - AND is not validated or password is forgotten
         // - AND user is not on 'passwordless' beta
-        const showSendValidateCodeForm = this.props.credentials.login
+        const showResendValidationForm = this.props.credentials.login
             && (!this.props.account.validated || this.props.account.forgotPassword)
             && !Permissions.canUsePasswordlessLogins(this.props.betas);
 
-        let welcomeText;
+        let welcomeText = '';
         if (showValidateCodeForm) {
             if (this.props.account.requiresTwoFactorAuth) {
                 // We will only know this after a user signs in successfully, without their 2FA code
                 welcomeText = this.props.translate('validateCodeForm.enterTwoFactorOrRecoveryCode');
-            } else if (this.props.account.validated) {
-                welcomeText = this.props.translate('welcomeText.welcomeBackEnterMagicCode', {login: this.props.credentials.login});
-            } else if (!this.props.account.validated) {
-                welcomeText = this.props.translate('welcomeText.welcomeEnterMagicCode', {login: this.props.credentials.login});
+            } else {
+                welcomeText = this.props.account.validated
+                    ? this.props.translate('welcomeText.welcomeBackEnterMagicCode', {login: this.props.credentials.login})
+                    : this.props.translate('welcomeText.welcomeEnterMagicCode', {login: this.props.credentials.login});
             }
-        } else if (showSendValidateCodeForm) {
-            welcomeText = '';
         } else if (showPasswordForm) {
             welcomeText = this.props.translate('welcomeText.welcomeBack');
-        } else {
+        } else if (!showResendValidationForm) {
             welcomeText = this.props.translate('welcomeText.welcome');
         }
 
@@ -105,7 +103,7 @@ class SignInPage extends Component {
             <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout
                     welcomeText={welcomeText}
-                    shouldShowWelcomeText={showLoginForm || showPasswordForm || showValidateCodeForm || !showSendValidateCodeForm}
+                    shouldShowWelcomeText={showLoginForm || showPasswordForm || showValidateCodeForm || !showResendValidationForm}
                 >
                     {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
                     so that password managers can access the values. Conditionally rendering these components will break this feature. */}
@@ -115,7 +113,7 @@ class SignInPage extends Component {
                     ) : (
                         <PasswordForm isVisible={showPasswordForm} />
                     )}
-                    {showSendValidateCodeForm && <ResendValidationForm />}
+                    {showResendValidationForm && <ResendValidationForm />}
                 </SignInPageLayout>
             </SafeAreaView>
         );

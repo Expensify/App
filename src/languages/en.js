@@ -532,7 +532,7 @@ export default {
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
-            incorrectMagicCode: 'Incorrect magic code. Please try again.',
+            incorrectMagicCode: 'Incorrect magic code.',
             pleaseFillTwoFactorAuth: 'Please enter your two factor code',
         },
     },

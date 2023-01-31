@@ -532,7 +532,7 @@ export default {
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
         error: {
             pleaseFillMagicCode: 'Por favor, introduce el código mágico',
-            incorrectMagicCode: 'Código mágico incorrecto. Inténtalo de nuevo.',
+            incorrectMagicCode: 'Código mágico incorrecto.',
             pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
         },
     },

@@ -59,7 +59,7 @@ class ValidateCodeForm extends React.Component {
     constructor(props) {
         super(props);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
-        this.resetValidateCode = this.resetValidateCode.bind(this);
+        this.resendValidateCode = this.resendValidateCode.bind(this);
         this.clearSignInData = this.clearSignInData.bind(this);
 
         this.state = {
@@ -101,7 +101,7 @@ class ValidateCodeForm extends React.Component {
     /**
      * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
-    resetValidateCode() {
+    resendValidateCode() {
         if (this.input2FA) {
             this.setState({twoFactorAuthCode: ''}, this.input2FA.clear);
         }
@@ -177,7 +177,7 @@ class ValidateCodeForm extends React.Component {
                         <View style={[styles.changeExpensifyLoginLinkContainer]}>
                             <TouchableOpacity
                                 style={[styles.mt2]}
-                                onPress={this.resetValidateCode}
+                                onPress={this.resendValidateCode}
                                 underlayColor={themeColors.componentBG}
                             >
                                 <Text style={[styles.link]}>
