@@ -659,6 +659,66 @@ function getErrorPageContainerStyle(safeAreaPaddingBottom = 0) {
     };
 }
 
+/**
+ * Gets the correct size for the empty state background image based on screen dimensions
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
+function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth) {
+    if (isSmallScreenWidth) {
+        return {
+            height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
+            width: '100%',
+        };
+    }
+
+    return {
+        height: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT,
+        width: '100%',
+    };
+}
+
+/**
+ * Gets the correct size for the empty state background image view based on screen dimensions
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
+function getReportWelcomeBackgroundImageViewStyle(isSmallScreenWidth) {
+    if (isSmallScreenWidth) {
+        return {
+            height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.VIEW_HEIGHT,
+        };
+    }
+
+    return {
+        height: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.VIEW_HEIGHT,
+    };
+}
+
+/**
+ * Gets the correct size for the empty state container based on screen dimensions
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
+function getReportWelcomeContainerStyle(isSmallScreenWidth) {
+    if (isSmallScreenWidth) {
+        return {
+            minHeight: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.CONTAINER_MINHEIGHT,
+            display: 'flex',
+            justifyContent: 'space-between',
+        };
+    }
+
+    return {
+        minHeight: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.CONTAINER_MINHEIGHT,
+        display: 'flex',
+        justifyContent: 'space-between',
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -695,4 +755,7 @@ export {
     getHeight,
     fade,
     getHorizontalStackedAvatarBorderStyle,
+    getReportWelcomeBackgroundImageStyle,
+    getReportWelcomeBackgroundImageViewStyle,
+    getReportWelcomeContainerStyle,
 };
