@@ -175,6 +175,9 @@ class ReimbursementAccountPage extends React.Component {
      * @param {boolean} ignoreLocalCurrentStep Pass true if you want the last "updated" view (from db), not the last "viewed" view (from onyx).
      */
     fetchData(ignoreLocalCurrentStep) {
+        // Show loader right away, as optimisticData might be set only later in case multiple calls are in the queue
+        BankAccounts.setReimbursementAccountLoading(true);
+
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
         const stepToOpen = this.getStepToOpenFromRouteParams();
