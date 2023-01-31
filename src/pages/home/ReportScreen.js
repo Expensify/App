@@ -136,26 +136,29 @@ class ReportScreen extends React.Component {
             });
         }
 
-        // Open chat report from a deep link
+        // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            Navigation.dismissModal();
-            this.unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
-                let route = state.url;
-                _.each(linkingConfig.prefixes, (prefix) => {
-                    if (!route.startsWith(prefix)) {
-                        return;
-                    }
-                    route = route.replace(prefix, '');
-                });
-                console.log('state', state);
-                console.log('route', route);
-
-                const {reportID} = ROUTES.parseReportRouteParams(route);
-                if (reportID) {
-                    Navigation.isDrawerReady().then(() => {
-                        Navigation.navigate(ROUTES.getReportRoute(reportID));
-                    });
+            // Get the reportID from the deep link
+            let route = state.url;
+            _.each(linkingConfig.prefixes, (prefix) => {
+                if (!route.startsWith(prefix)) {
+                    return;
                 }
+                route = route.replace(prefix, '');
+            });
+            const {reportID} = ROUTES.parseReportRouteParams(route);
+            if (!reportID) {
+                return;
+            }
+
+            // Dismiss modal if it is opened with another chat report
+            Navigation.dismissModal();
+
+            // Navigate to the chat report
+            this.unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
+                Navigation.isDrawerReady().then(() => {
+                    Navigation.navigate(ROUTES.getReportRoute(reportID));
+                });
             });
         });
     }
