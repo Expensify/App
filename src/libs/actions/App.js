@@ -9,7 +9,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
-import Timing from './Timing';
 import * as Policy from './Policy';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -95,7 +94,6 @@ function setSidebarLoaded() {
     }
 
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
-    Timing.end(CONST.TIMING.SIDEBAR_LOADED);
     Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
     Performance.markStart(CONST.TIMING.REPORT_INITIAL_RENDER);
 }
