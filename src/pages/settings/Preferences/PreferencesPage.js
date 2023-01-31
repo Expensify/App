@@ -45,11 +45,11 @@ const PreferencesPage = (props) => {
     const priorityModes = {
         default: {
             value: CONST.PRIORITY_MODE.DEFAULT,
-            label: props.translate('priorityModesPage.mostRecent'),
+            label: props.translate('priorityModePage.mostRecent'),
         },
         gsd: {
             value: CONST.PRIORITY_MODE.GSD,
-            label: props.translate('priorityModesPage.focus'),
+            label: props.translate('priorityModePage.focus'),
         },
     };
     const localesToLanguages = {
@@ -92,7 +92,7 @@ const PreferencesPage = (props) => {
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
                         title={priorityModes[props.priorityMode].label}
-                        description={props.translate('priorityModesPage.priorityMode')}
+                        description={props.translate('priorityModePage.priorityMode')}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODES)}
                     />
                     <MenuItemWithTopDescription

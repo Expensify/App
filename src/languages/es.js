@@ -490,7 +490,7 @@ export default {
     preferencesPage: {
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recibir noticias sobre Expensify y actualizaciones del producto',
     },
-    priorityModesPage: {
+    priorityModePage: {
         priorityMode: 'Modo prioridad',
         explainerText: 'Elija si desea mostrar por defecto todos los chats ordenados desde el más reciente y con los elementos anclados en la parte superior, o elija el modo #concentración, con los elementos no leídos anclados en la parte superior y ordenados alfabéticamente.',
         mostRecent: 'Más recientes',

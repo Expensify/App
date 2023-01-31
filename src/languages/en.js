@@ -490,7 +490,7 @@ export default {
     preferencesPage: {
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',
     },
-    priorityModesPage: {
+    priorityModePage: {
         priorityMode: 'Priority mode',
         explainerText: 'Choose whether to show all chats by default sorted with most recent with pinned items at the top, or #focus on unread pinned items, sorted alphabetically.',
         mostRecent: 'Most recent',

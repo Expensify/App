@@ -22,18 +22,18 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const PriorityModesPage = (props) => {
+const PriorityModePage = (props) => {
     const priorityModes = _.map(
         [
             {
                 value: CONST.PRIORITY_MODE.DEFAULT,
-                text: props.translate('priorityModesPage.mostRecent'),
-                alternateText: props.translate('priorityModesPage.mostRecentModeDescription'),
+                text: props.translate('priorityModePage.mostRecent'),
+                alternateText: props.translate('priorityModePage.mostRecentModeDescription'),
             },
             {
                 value: CONST.PRIORITY_MODE.GSD,
-                text: props.translate('priorityModesPage.focus'),
-                alternateText: props.translate('priorityModesPage.focusModeDescription'),
+                text: props.translate('priorityModePage.focus'),
+                alternateText: props.translate('priorityModePage.focusModeDescription'),
             },
         ], mode => (
             {
@@ -52,13 +52,13 @@ const PriorityModesPage = (props) => {
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
-                title={props.translate('priorityModesPage.priorityMode')}
+                title={props.translate('priorityModePage.priorityMode')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <Text style={[styles.ml5, styles.mt4, styles.mr5, styles.mb4]}>
-                {props.translate('priorityModesPage.explainerText')}
+                {props.translate('priorityModePage.explainerText')}
             </Text>
             <OptionsList
                 sections={[{data: priorityModes}]}
@@ -86,8 +86,8 @@ const PriorityModesPage = (props) => {
     );
 };
 
-PriorityModesPage.displayName = 'PriorityModesPage';
-PriorityModesPage.propTypes = propTypes;
+PriorityModePage.displayName = 'PriorityModePage';
+PriorityModePage.propTypes = propTypes;
 
 export default compose(
     withLocalize,
@@ -96,4 +96,4 @@ export default compose(
             key: ONYXKEYS.NVP_PRIORITY_MODE,
         },
     }),
-)(PriorityModesPage);
+)(PriorityModePage);

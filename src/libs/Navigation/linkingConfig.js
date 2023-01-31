@@ -44,7 +44,7 @@ export default {
                         path: ROUTES.SETTINGS_PREFERENCES,
                         exact: true,
                     },
-                    Settings_Preferences_PriorityModes: {
+                    Settings_Preferences_PriorityMode: {
                         path: ROUTES.SETTINGS_PRIORITY_MODES,
                         exact: true,
                     },

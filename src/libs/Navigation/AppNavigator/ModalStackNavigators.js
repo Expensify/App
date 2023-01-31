@@ -261,10 +261,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const SettingsPreferencesPriorityModesPage = require('../../../pages/settings/Preferences/PriorityModesPage').default;
-            return SettingsPreferencesPriorityModesPage;
+            const SettingsPreferencesPriorityModePage = require('../../../pages/settings/Preferences/PriorityModePage').default;
+            return SettingsPreferencesPriorityModePage;
         },
-        name: 'Settings_Preferences_PriorityModes',
+        name: 'Settings_Preferences_PriorityMode',
     },
     {
         getComponent: () => {
