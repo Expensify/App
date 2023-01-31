@@ -22,20 +22,21 @@ const propTypes = {
 };
 
 const PriorityModePage = (props) => {
-    const priorityModes = _.map(props.translate('priorityModePage.priorityModes'), (mode, key) => (
-        {
-            value: key,
-            text: mode.label,
-            alternateText: mode.description,
-            keyForList: key,
+    const priorityModes = _.map(props.translate('priorityModePage.priorityModes'),
+        (mode, key) => (
+            {
+                value: key,
+                text: mode.label,
+                alternateText: mode.description,
+                keyForList: key,
 
-            // Include the green checkmark icon to indicate the currently selected value
-            customIcon: props.priorityMode === key ? greenCheckmark : undefined,
+                // Include the green checkmark icon to indicate the currently selected value
+                customIcon: props.priorityMode === key ? greenCheckmark : undefined,
 
-            // This property will make the currently selected value have bold text
-            boldStyle: props.priorityMode === key,
-        }
-    ),
+                // This property will make the currently selected value have bold text
+                boldStyle: props.priorityMode === key,
+            }
+        ),
     );
 
     return (
@@ -46,7 +47,7 @@ const PriorityModePage = (props) => {
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <Text style={[styles.ml5, styles.mt4, styles.mr5, styles.mb4]}>
+            <Text style={[styles.mh5, styles.mv4]}>
                 {props.translate('priorityModePage.explainerText')}
             </Text>
             <OptionsList

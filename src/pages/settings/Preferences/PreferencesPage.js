@@ -14,7 +14,7 @@ import CONST from '../../../CONST';
 import * as User from '../../../libs/actions/User';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Switch from '../../../components/Switch';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes, localeProviderDefaultProps} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import withEnvironment, {environmentPropTypes} from '../../../components/withEnvironment';
 import TestToolMenu from '../../../components/TestToolMenu';
@@ -31,6 +31,7 @@ const propTypes = {
     }),
 
     ...withLocalizePropTypes,
+    ...localeProviderDefaultProps,
     ...environmentPropTypes,
 };
 
@@ -41,16 +42,7 @@ const defaultProps = {
 
 const PreferencesPage = (props) => {
     const priorityModes = props.translate('priorityModePage.priorityModes');
-    const localesToLanguages = {
-        en: {
-            value: 'en',
-            label: props.translate('languagePage.languages.english'),
-        },
-        es: {
-            value: 'es',
-            label: props.translate('languagePage.languages.spanish'),
-        },
-    };
+    const languages = props.translate('languagePage.languages');
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -86,7 +78,7 @@ const PreferencesPage = (props) => {
                     />
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
-                        title={localesToLanguages[props.preferredLocale].label}
+                        title={languages[props.preferredLocale].label}
                         description={props.translate('languagePage.language')}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGES)}
                     />
@@ -116,9 +108,6 @@ export default compose(
     withOnyx({
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
-        },
-        preferredLocale: {
-            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         },
         user: {
             key: ONYXKEYS.USER,

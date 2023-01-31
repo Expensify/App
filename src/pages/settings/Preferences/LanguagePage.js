@@ -19,26 +19,18 @@ const propTypes = {
 };
 
 const LanguagePage = (props) => {
-    const localesToLanguages = _.map(
-        [
+    const localesToLanguages = _.map(props.translate('languagePage.languages'),
+        (language, key) => (
             {
-                value: 'en',
-                text: props.translate('languagePage.languages.english'),
-            },
-            {
-                value: 'es',
-                text: props.translate('languagePage.languages.spanish'),
-            },
-        ], language => (
-            {
-                ...language,
-                keyForList: language.value,
+                value: key,
+                text: language.label,
+                keyForList: key,
 
                 // Include the green checkmark icon to indicate the currently selected value
-                customIcon: props.preferredLocale === language.value ? greenCheckmark : undefined,
+                customIcon: props.preferredLocale === key ? greenCheckmark : undefined,
 
                 // This property will make the currently selected value have bold text
-                boldStyle: props.preferredLocale === language.value,
+                boldStyle: props.preferredLocale === key,
             }
         ),
     );
@@ -67,8 +59,7 @@ const LanguagePage = (props) => {
                         ...styles.hoveredComponentBG,
                         ...styles.mln5,
                         ...styles.mrn5,
-                        ...styles.pl5,
-                        ...styles.pr5,
+                        ...styles.ph5,
                     }
                 }
                 shouldHaveOptionSeparator

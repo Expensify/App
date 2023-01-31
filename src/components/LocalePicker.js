@@ -34,11 +34,11 @@ const defaultProps = {
 const localesToLanguages = {
     default: {
         value: 'en',
-        label: Localize.translate('en', 'languagePage.languages.english'),
+        label: Localize.translate('en', 'languagePage.languages.en.label'),
     },
     es: {
         value: 'es',
-        label: Localize.translate('es', 'languagePage.languages.spanish'),
+        label: Localize.translate('es', 'languagePage.languages.es.label'),
     },
 };
 

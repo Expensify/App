@@ -507,8 +507,12 @@ export default {
     languagePage: {
         language: 'Idioma',
         languages: {
-            english: 'Inglés',
-            spanish: 'Español',
+            en: {
+                label: 'Inglés',
+            },
+            es: {
+                label: 'Español',
+            },
         },
     },
     signInPage: {
