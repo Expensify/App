@@ -51,13 +51,7 @@ class EmojiPickerMenu extends Component {
         // around each header.
         this.numColumns = CONST.EMOJI_NUM_PER_ROW;
 
-        // Ref for emoji FlatList
-        this.emojiList = undefined;
-
         this.emojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis, this.props.frequentlyUsedEmojis);
-
-        // This is the actual header index starting at the first emoji and counting each one
-        this.headerIndices = EmojiUtils.getHeaderIndices(this.emojis);
 
         // This is the indices of each category of emojis
         // The positions are static, and are calculated as index/numColumns (8 in our case)
@@ -144,18 +138,15 @@ class EmojiPickerMenu extends Component {
                     />
                 </View>
                 <FlatList
-                    ref={el => this.emojiList = el}
                     data={this.emojis}
                     renderItem={this.renderItem}
                     keyExtractor={item => (`emoji_picker_${item.code}`)}
-                    numColumns={CONST.EMOJI_NUM_PER_ROW}
+                    numColumns={this.numColumns}
                     style={[
                         styles.emojiPickerList,
                         this.isMobileLandscape() && styles.emojiPickerListLandscape,
                     ]}
                     stickyHeaderIndices={this.unfilteredHeaderIndices}
-                    getItemLayout={this.getItemLayout}
-                    showsVerticalScrollIndicator
                 />
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}
