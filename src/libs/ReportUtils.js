@@ -1292,7 +1292,6 @@ export {
     isArchivedRoom,
     isConciergeChatReport,
     hasAutomatedExpensifyEmails,
-    hasExpensifyEmails,
     hasExpensifyGuidesEmails,
     hasOutstandingIOU,
     isIOUOwnedByCurrentUser,
