@@ -1,7 +1,6 @@
 import _, {compose} from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
