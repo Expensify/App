@@ -86,22 +86,6 @@ function containsOnlyEmojis(message) {
  * @param {Object[]} emojis
  * @returns {Number[]}
  */
-function getDynamicHeaderIndices(emojis) {
-    const headerIndices = [];
-    _.each(emojis, (emoji, index) => {
-        if (!emoji.header) {
-            return;
-        }
-        headerIndices.push(Math.floor(index / CONST.EMOJI_NUM_PER_ROW));
-    });
-    return headerIndices;
-}
-
-/**
- * Get the header indices based on the max emojis per row
- * @param {Object[]} emojis
- * @returns {Number[]}
- */
 function getHeaderIndices(emojis) {
     const headerIndices = [];
     _.each(emojis, (emoji, index) => {
@@ -262,7 +246,6 @@ function suggestEmojis(text, limit = 5) {
 }
 
 export {
-    getDynamicHeaderIndices,
     getHeaderIndices,
     mergeEmojisWithFrequentlyUsedEmojis,
     addToFrequentlyUsedEmojis,

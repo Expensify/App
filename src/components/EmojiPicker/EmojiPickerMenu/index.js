@@ -66,16 +66,18 @@ class EmojiPickerMenu extends Component {
 
         const allEmojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis, this.props.frequentlyUsedEmojis);
 
-        // This is the indices of each category of emojis
-        // The positions are static, and are calculated as index/numColumns (8 in our case)
-        // This is because each row of 8 emojis counts as one index
-        this.unfilteredHeaderIndices = EmojiUtils.getDynamicHeaderIndices(allEmojis);
+        // This is the actual header index starting at the first emoji and counting each one
         this.headerIndices = EmojiUtils.getHeaderIndices(allEmojis);
+
+        // This is the indices of each header's Row
+        // The positions are static, and are calculated as index/numColumns (8 in our case)
+        // This is because each row of 8 emojis counts as one index to the flatlist
+        this.headerRowIndices = _.map(this.headerIndices, (headerIndex) => Math.floor(headerIndex / this.numColumns));
 
         // If we're on Windows, don't display the flag emojis (the last category),
         // since Windows doesn't support them (and only displays country codes instead)
         this.emojis = getOperatingSystem() === CONST.OS.WINDOWS
-            ? allEmojis.slice(0, this.unfilteredHeaderIndices.pop() * this.numColumns)
+            ? allEmojis.slice(0, this.headerRowIndices.pop() * this.numColumns)
             : allEmojis;
 
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
@@ -96,7 +98,7 @@ class EmojiPickerMenu extends Component {
 
         this.state = {
             filteredEmojis: this.emojis,
-            headerIndices: this.unfilteredHeaderIndices,
+            headerIndices: this.headerRowIndices,
             highlightedIndex: -1,
             arePointerEventsDisabled: false,
             selection: {
@@ -388,7 +390,7 @@ class EmojiPickerMenu extends Component {
             // There are no headers when searching, so we need to re-make them sticky when there is no search term
             this.setState({
                 filteredEmojis: this.emojis,
-                headerIndices: this.unfilteredHeaderIndices,
+                headerIndices: this.headerRowIndices,
                 highlightedIndex: -1,
             });
             this.setFirstNonHeaderIndex(this.emojis);
