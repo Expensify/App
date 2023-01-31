@@ -422,8 +422,6 @@ function hashLogin(login, range) {
  * @returns {String}
  */
 function getDefaultAvatar(login = '') {
-    // There are 24 possible default avatars, so we choose which one this user has based
-    // on a simple hash of their login
     if (!login) {
         return Expensicons.FallbackAvatar;
     }
@@ -431,6 +429,8 @@ function getDefaultAvatar(login = '') {
         return Expensicons.ConciergeAvatar;
     }
 
+    // There are 24 possible default avatars, so we choose which one this user has based
+    // on a simple hash of their login
     const loginHashBucket = hashLogin(login, CONST.DEFAULT_AVATAR_COUNT);
 
     return defaultAvatars[`Avatar${loginHashBucket}`];
@@ -443,11 +443,12 @@ function getDefaultAvatar(login = '') {
  * @returns {String}
  */
 function getOldDotDefaultAvatar(login = '') {
-    // There are 8 possible old dot default avatars, so we choose which one this user has based
-    // on a simple hash of their login
     if (login === CONST.EMAIL.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
     }
+
+    // There are 8 possible old dot default avatars, so we choose which one this user has based
+    // on a simple hash of their login
     const loginHashBucket = hashLogin(login, CONST.OLD_DEFAULT_AVATAR_COUNT);
 
     return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
