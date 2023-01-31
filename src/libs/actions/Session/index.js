@@ -282,8 +282,8 @@ function signInFromMagicLink(accountID, validateCode) {
         },
     ];
 
-    const params = {accountID, validateCode};
     // this is temporary for now. Server should login with the accountID and validateCode
+    const params = {validateCode};
     params.email = credentials.login;
 
     API.write('SigninUser', params, {optimisticData, successData, failureData});
