@@ -145,31 +145,32 @@ class ReportScreen extends React.Component {
 
             Navigation.dismissModal();
 
-            setTimeout(() => {
-                this.unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
-                    // const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
+            // setTimeout(() => {
+            this.unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
+                // const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
 
-                    const index = state.url.indexOf('r/');
-                    if (index > -1) {
-                        const reportIDFromPathDeepLink = state.url.substring(index + 2);
-                        console.log('reportIDFromPathDeepLink:', reportIDFromPathDeepLink);
+                const index = state.url.indexOf('r/');
+                if (index > -1) {
+                    const reportIDFromPathDeepLink = state.url.substring(index + 2);
+                    console.log('reportIDFromPathDeepLink:', reportIDFromPathDeepLink);
 
-                        Navigation.isDrawerReady().then(() => {
-                            Navigation.navigate(ROUTES.getReportRoute(reportIDFromPathDeepLink));
+                    Navigation.isDrawerReady().then(() => {
+                        Navigation.navigate(ROUTES.getReportRoute(reportIDFromPathDeepLink));
 
-                            this.unsubscribeTransitionEnd2 = onScreenTransitionEnd(this.props.navigation, () => {
-                                // setTimeout(() => this.setState({isChatReportLoading: false}));
-                                this.setState({isChatReportLoading: false});
-                                this.unsubscribeTransitionEnd2();
-                            });
-
-                            // setTimeout(() => this.setState({isChatReportLoading: false}), 2000);
+                        this.unsubscribeTransitionEnd2 = onScreenTransitionEnd(this.props.navigation, () => {
+                            // setTimeout(() => this.setState({isChatReportLoading: false}));
+                            this.setState({isChatReportLoading: false});
+                            this.unsubscribeTransitionEnd2();
                         });
-                    }
 
-                    // this.props.onTransitionEnd();
-                });
+                        // setTimeout(() => this.setState({isChatReportLoading: false}), 2000);
+                    });
+                }
+
+                // this.props.onTransitionEnd();
             });
+
+            // });
         });
     }
 
