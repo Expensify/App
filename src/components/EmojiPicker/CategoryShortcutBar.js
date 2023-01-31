@@ -20,13 +20,6 @@ const CategoryShortcutBar = (props) => {
 
     return (
         <View style={[styles.pt2, styles.ph4, styles.flexRow]}>
-            {_.map(props.headerIndices, (headerIndex, i) => (
-                <CategoryShortcutButton
-                    icon={icons[i]}
-                    onPress={() => props.onPress(headerIndex)}
-                    key={`categoryShortcut${i}`}
-                />
-            ))}
         </View>
     );
 };
