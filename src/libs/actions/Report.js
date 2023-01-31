@@ -60,25 +60,23 @@ function subscribeToReportCommentPushNotifications() {
 
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
-        Navigation.canNavigate('navigate').then((navigationIsReady) => {
-            if (navigationIsReady) {
-                // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
-                if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
-                    Navigation.goBack();
-                }
-                Navigation.isDrawerReady()
-                    .then(() => {
-                        Navigation.navigate(ROUTES.getReportRoute(reportID));
-                    });
-            } else {
-                // Navigation container is not yet ready, use deeplinking to open to correct report instead
-                Navigation.setDidTapNotification();
-                Navigation.isDrawerReady()
-                    .then(() => {
-                        Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
-                    });
+        if (Navigation.canNavigate('navigate')) {
+            // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
+            if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
+                Navigation.goBack();
             }
-        });
+            Navigation.isDrawerReady()
+                .then(() => {
+                    Navigation.navigate(ROUTES.getReportRoute(reportID));
+                });
+        } else {
+            // Navigation container is not yet ready, use deeplinking to open to correct report instead
+            Navigation.setDidTapNotification();
+            Navigation.isDrawerReady()
+                .then(() => {
+                    Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
+                });
+        }
     });
 }
 

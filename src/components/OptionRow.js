@@ -152,14 +152,12 @@ class OptionRow extends Component {
                                 if (e) {
                                     e.preventDefault();
                                 }
-                                const selectedOption = this.props.onSelectRow(this.props.option, touchableRef);
+                                let result = this.props.onSelectRow(this.props.option, touchableRef);
+                                if (!(result instanceof Promise)) {
+                                    result = Promise.resolve();
+                                }
                                 InteractionManager.runAfterInteractions(() => {
-                                    if (!(selectedOption instanceof Promise)) {
-                                        return;
-                                    }
-                                    selectedOption.then(() => {
-                                        this.setState({isDisabled: this.props.isDisabled});
-                                    });
+                                    result.then(() => this.setState({isDisabled: this.props.isDisabled}));
                                 });
                             }}
                             disabled={this.state.isDisabled}
@@ -184,32 +182,32 @@ class OptionRow extends Component {
                                     ]}
                                 >
                                     {
-                                    !_.isEmpty(this.props.option.icons)
-                                    && (
-                                        this.props.option.shouldShowSubscript ? (
-                                            <SubscriptAvatar
-                                                mainAvatar={this.props.option.icons[0]}
-                                                secondaryAvatar={this.props.option.icons[1]}
-                                                mainTooltip={this.props.option.ownerEmail}
-                                                secondaryTooltip={this.props.option.subtitle}
-                                                size={CONST.AVATAR_SIZE.DEFAULT}
-                                            />
-                                        ) : (
-                                            <MultipleAvatars
-                                                icons={this.props.option.icons}
-                                                size={CONST.AVATAR_SIZE.DEFAULT}
-                                                secondAvatarStyle={[
-                                                    this.props.optionIsFocused
-                                                        ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor)
-                                                        : undefined,
-                                                    hovered && !this.props.optionIsFocused
-                                                        ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor)
-                                                        : undefined,
-                                                ]}
-                                                avatarTooltips={this.props.option.isPolicyExpenseChat ? [this.props.option.subtitle] : avatarTooltips}
-                                            />
+                                        !_.isEmpty(this.props.option.icons)
+                                        && (
+                                            this.props.option.shouldShowSubscript ? (
+                                                <SubscriptAvatar
+                                                    mainAvatar={this.props.option.icons[0]}
+                                                    secondaryAvatar={this.props.option.icons[1]}
+                                                    mainTooltip={this.props.option.ownerEmail}
+                                                    secondaryTooltip={this.props.option.subtitle}
+                                                    size={CONST.AVATAR_SIZE.DEFAULT}
+                                                />
+                                            ) : (
+                                                <MultipleAvatars
+                                                    icons={this.props.option.icons}
+                                                    size={CONST.AVATAR_SIZE.DEFAULT}
+                                                    secondAvatarStyle={[
+                                                        this.props.optionIsFocused
+                                                            ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor)
+                                                            : undefined,
+                                                        hovered && !this.props.optionIsFocused
+                                                            ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor)
+                                                            : undefined,
+                                                    ]}
+                                                    avatarTooltips={this.props.option.isPolicyExpenseChat ? [this.props.option.subtitle] : avatarTooltips}
+                                                />
+                                            )
                                         )
-                                    )
                                     }
                                     <View style={contentContainerStyles}>
                                         <DisplayNames
