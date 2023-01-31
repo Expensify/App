@@ -820,7 +820,6 @@ const styles = {
         left: 0,
         top: 0,
         height: '100%',
-        paddingLeft: 11,
         paddingTop: 23,
         paddingBottom: 8,
         color: themeColors.text,
@@ -1321,7 +1320,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         lineHeight: variables.lineHeightXLarge,
-        paddingBottom: 4,
         ...wordBreak.breakWord,
     },
 
@@ -1329,8 +1327,7 @@ const styles = {
         flexShrink: 0,
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeSmall,
-        height: 24,
-        lineHeight: variables.lineHeightXLarge,
+        paddingTop: 2,
     },
 
     chatItemMessage: {
@@ -1338,8 +1335,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.EXP_NEUE,
         lineHeight: variables.lineHeightXLarge,
-        marginTop: -2,
-        marginBottom: -2,
         maxWidth: '100%',
         cursor: 'auto',
         ...whiteSpace.preWrap,
@@ -1460,12 +1455,15 @@ const styles = {
         height: 240,
     },
 
-    emojiHeaderStyle: {
+    emojiHeaderContainer: {
         backgroundColor: themeColors.componentBG,
-        width: '100%',
-        height: 32,
         display: 'flex',
-        alignItems: 'center',
+        height: CONST.EMOJI_PICKER_HEADER_HEIGHT,
+        justifyContent: 'center',
+        width: '100%',
+    },
+
+    emojiHeaderStyle: {
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
