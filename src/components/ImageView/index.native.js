@@ -102,7 +102,7 @@ class ImageView extends PureComponent {
             let imageWidth = nativeEvent.width;
             let imageHeight = nativeEvent.height;
             const containerWidth = Math.round(this.props.windowWidth);
-            const containerHeight = Math.round(this.props.windowHeight);
+            const containerHeight = Math.round(this.state.containerHeight ? this.state.containerHeight : this.props.windowHeight);
 
             const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
 
@@ -114,8 +114,8 @@ class ImageView extends PureComponent {
 
             // Resize the image to max dimensions possible on the Native platforms to prevent crashes on Android. To keep the same behavior, apply to IOS as well.
             const maxDimensionsScale = 11;
-            imageHeight = Math.min(imageHeight, (this.props.windowHeight * maxDimensionsScale));
-            imageWidth = Math.min(imageWidth, (this.props.windowWidth * maxDimensionsScale));
+            imageWidth = Math.min(imageWidth, (containerWidth * maxDimensionsScale));
+            imageHeight = Math.min(imageHeight, (containerHeight * maxDimensionsScale));
             this.setState({imageHeight, imageWidth, isLoading: false});
         });
     }
@@ -136,6 +136,12 @@ class ImageView extends PureComponent {
                     styles.justifyContentCenter,
                     styles.overflowHidden,
                 ]}
+                onLayout={(event) => {
+                    const layout = event.nativeEvent.layout;
+                    this.setState({
+                        containerHeight: layout.height,
+                    });
+                }}
             >
                 <ImageZoom
                     ref={el => this.zoom = el}
