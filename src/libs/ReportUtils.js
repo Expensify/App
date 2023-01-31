@@ -324,8 +324,8 @@ function getRoomWelcomeMessage(report, policiesMap) {
     const workspaceName = getPolicyName(report, policiesMap);
 
     if (isArchivedRoom(report)) {
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.begginningOfArchivedRoomPartOne');
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.begginningOfArchivedRoomPartTwo');
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
     } else if (isDomainRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartOne', {domainRoom: report.reportName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartTwo');

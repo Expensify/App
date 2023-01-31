@@ -40,6 +40,20 @@ const CONST = {
     DEFAULT_AVATAR_COUNT: 24,
     OLD_DEFAULT_AVATAR_COUNT: 8,
 
+    // Sizes needed for report empty state background image handling
+    EMPTY_STATE_BACKGROUND: {
+        SMALL_SCREEN: {
+            IMAGE_HEIGHT: 300,
+            CONTAINER_MINHEIGHT: 200,
+            VIEW_HEIGHT: 185,
+        },
+        WIDE_SCREEN: {
+            IMAGE_HEIGHT: 450,
+            CONTAINER_MINHEIGHT: 500,
+            VIEW_HEIGHT: 275,
+        },
+    },
+
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
@@ -375,6 +389,7 @@ const CONST = {
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
         COLD: 'cold',
+        WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
         TOOLTIP_SENSE: 1000,
