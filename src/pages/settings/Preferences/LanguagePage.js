@@ -20,16 +20,16 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const LanguagesPage = (props) => {
+const LanguagePage = (props) => {
     const localesToLanguages = _.map(
         [
             {
                 value: 'en',
-                text: props.translate('languagesPage.languages.english'),
+                text: props.translate('languagePage.languages.english'),
             },
             {
                 value: 'es',
-                text: props.translate('languagesPage.languages.spanish'),
+                text: props.translate('languagePage.languages.spanish'),
             },
         ], language => (
             {
@@ -48,7 +48,7 @@ const LanguagesPage = (props) => {
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
-                title={props.translate('languagesPage.language')}
+                title={props.translate('languagePage.language')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -81,8 +81,8 @@ const LanguagesPage = (props) => {
     );
 };
 
-LanguagesPage.displayName = 'LanguagesPage';
-LanguagesPage.propTypes = propTypes;
+LanguagePage.displayName = 'LanguagePage';
+LanguagePage.propTypes = propTypes;
 
 export default compose(
     withLocalize,
@@ -91,4 +91,4 @@ export default compose(
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         },
     }),
-)(LanguagesPage);
+)(LanguagePage);

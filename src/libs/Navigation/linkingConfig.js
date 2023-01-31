@@ -48,7 +48,7 @@ export default {
                         path: ROUTES.SETTINGS_PRIORITY_MODES,
                         exact: true,
                     },
-                    Settings_Preferences_Languages: {
+                    Settings_Preferences_Language: {
                         path: ROUTES.SETTINGS_LANGUAGES,
                         exact: true,
                     },

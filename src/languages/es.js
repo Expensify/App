@@ -498,7 +498,7 @@ export default {
         focus: '#concentración',
         focusModeDescription: 'Mostrar sólo los no leídos ordenados alfabéticamente',
     },
-    languagesPage: {
+    languagePage: {
         language: 'Idioma',
         languages: {
             english: 'Inglés',

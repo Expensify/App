@@ -498,7 +498,7 @@ export default {
         focus: '#focus',
         focusModeDescription: 'Only show unread sorted alphabetically',
     },
-    languagesPage: {
+    languagePage: {
         language: 'Language',
         languages: {
             english: 'English',
