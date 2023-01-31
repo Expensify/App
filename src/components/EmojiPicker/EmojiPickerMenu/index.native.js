@@ -126,7 +126,7 @@ class EmojiPickerMenu extends Component {
         if (item.header) {
             return (
                 <View style={styles.emojiHeaderContainer}>
-                    <Text style={styles.emojiHeaderStyle}>
+                    <Text style={styles.textLabelSupporting}>
                         {this.props.translate(`emojiPicker.headers.${item.code}`)}
                     </Text>
                 </View>
