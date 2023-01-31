@@ -38,7 +38,7 @@ class AttachmentPicker extends React.Component {
                             const cleanName = FileUtils.cleanFileName(file.name);
                             file.uri = URL.createObjectURL(file);
                             if (file.name !== cleanName) {
-                                file = new File([file], cleanName);    
+                                file = new File([file], cleanName);
                             }
                             this.onPicked(file);
                         }
