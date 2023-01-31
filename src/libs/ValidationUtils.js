@@ -219,7 +219,7 @@ function getAgeRequirementError(date, minimumAge, maximumAge) {
     const longAgoDate = moment().subtract(maximumAge, 'years');
     const testDate = moment(date);
     if (!testDate.isValid()) {
-        return Localize.translateLocal('privatePersonalDetails.error.dateInvalid');
+        return Localize.translateLocal('common.error.dateInvalid');
     }
     if (testDate.isBetween(longAgoDate, recentDate)) {
         return '';
@@ -383,9 +383,9 @@ function findInvalidSymbols(valuesToBeValidated) {
         if (!value) {
             return '';
         }
-        let inValidSymbol = value.replace(/[,]+/g, '') !== value ? Localize.translateLocal('common.error.comma') : '';
+        let inValidSymbol = value.replace(/[,]+/g, '') !== value ? Localize.translateLocal('common.comma') : '';
         if (_.isEmpty(inValidSymbol)) {
-            inValidSymbol = value.replace(/[;]+/g, '') !== value ? Localize.translateLocal('common.error.semicolon') : '';
+            inValidSymbol = value.replace(/[;]+/g, '') !== value ? Localize.translateLocal('common.semicolon') : '';
         }
         return inValidSymbol;
     });

@@ -79,7 +79,7 @@ class LegalNamePage extends Component {
         if (!_.isEmpty(invalidLegalFirstNameCharacter)) {
             errors.legalFirstName = Localize.translateLocal(
                 'privatePersonalDetails.error.hasInvalidCharacter',
-                {characterName: invalidLegalFirstNameCharacter},
+                {invalidCharacter: invalidLegalFirstNameCharacter},
             );
         } else if (_.isEmpty(values.legalFirstName)) {
             errors.legalFirstName = Localize.translateLocal('common.error.fieldRequired');
@@ -90,7 +90,7 @@ class LegalNamePage extends Component {
         if (!_.isEmpty(invalidLegalLastNameCharacter)) {
             errors.legalLastName = Localize.translateLocal(
                 'privatePersonalDetails.error.hasInvalidCharacter',
-                {characterName: invalidLegalLastNameCharacter},
+                {invalidCharacter: invalidLegalLastNameCharacter},
             );
         } else if (_.isEmpty(values.legalLastName)) {
             errors.legalLastName = Localize.translateLocal('common.error.fieldRequired');
