@@ -225,9 +225,9 @@ function getAgeRequirementError(date, minimumAge, maximumAge) {
         return '';
     }
     if (testDate.isAfter(recentDate)) {
-        return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: recentDate.format('MMM Do, YYYY')});
+        return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: recentDate.format(CONST.DATE.MOMENT_FORMAT_STRING)});
     }
-    return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: longAgoDate.format('MMM Do, YYYY')});
+    return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: longAgoDate.format(CONST.DATE.MOMENT_FORMAT_STRING)});
 }
 
 /**
