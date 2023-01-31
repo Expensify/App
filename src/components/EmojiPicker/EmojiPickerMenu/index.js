@@ -57,13 +57,6 @@ class EmojiPickerMenu extends Component {
         // Ref for emoji FlatList
         this.emojiList = undefined;
 
-        // This is the number of columns in each row of the picker.
-        // Because of how flatList implements these rows, each row is an index rather than each element
-        // For this reason to make headers work, we need to have the header be the only rendered element in its row
-        // If this number is changed, emojis.js will need to be updated to have the proper number of spacer elements
-        // around each header.
-        this.numColumns = CONST.EMOJI_NUM_PER_ROW;
-
         const allEmojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis, this.props.frequentlyUsedEmojis);
 
         // This is the actual header index starting at the first emoji and counting each one
@@ -72,12 +65,12 @@ class EmojiPickerMenu extends Component {
         // This is the indices of each header's Row
         // The positions are static, and are calculated as index/numColumns (8 in our case)
         // This is because each row of 8 emojis counts as one index to the flatlist
-        this.headerRowIndices = _.map(this.headerIndices, (headerIndex) => Math.floor(headerIndex / this.numColumns));
+        this.headerRowIndices = _.map(this.headerIndices, (headerIndex) => Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW));
 
         // If we're on Windows, don't display the flag emojis (the last category),
         // since Windows doesn't support them (and only displays country codes instead)
         this.emojis = getOperatingSystem() === CONST.OS.WINDOWS
-            ? allEmojis.slice(0, this.headerRowIndices.pop() * this.numColumns)
+            ? allEmojis.slice(0, this.headerRowIndices.pop() * CONST.EMOJI_NUM_PER_ROW)
             : allEmojis;
 
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
@@ -305,8 +298,8 @@ class EmojiPickerMenu extends Component {
         switch (arrowKey) {
             case 'ArrowDown':
                 move(
-                    this.numColumns,
-                    () => this.state.highlightedIndex + this.numColumns > this.state.filteredEmojis.length - 1,
+                    CONST.EMOJI_NUM_PER_ROW,
+                    () => this.state.highlightedIndex + CONST.EMOJI_NUM_PER_ROW > this.state.filteredEmojis.length - 1,
                 );
                 break;
             case 'ArrowLeft':
@@ -323,8 +316,8 @@ class EmojiPickerMenu extends Component {
                 break;
             case 'ArrowUp':
                 move(
-                    -this.numColumns,
-                    () => this.state.highlightedIndex - this.numColumns < this.firstNonHeaderIndex,
+                    -CONST.EMOJI_NUM_PER_ROW,
+                    () => this.state.highlightedIndex - CONST.EMOJI_NUM_PER_ROW < this.firstNonHeaderIndex,
                     () => {
                         // Reaching start of the list, arrow up set the focus to searchInput.
                         this.focusInputWithTextSelect();
@@ -344,7 +337,7 @@ class EmojiPickerMenu extends Component {
     }
 
     scrollToHeader(headerIndex) {
-        const calculatedOffset = Math.floor(headerIndex / this.numColumns) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
+        const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
         this.emojiList.flashScrollIndicators();
         this.emojiList.scrollToOffset({offset: calculatedOffset, animated: false});
     }
@@ -356,7 +349,7 @@ class EmojiPickerMenu extends Component {
      */
     scrollToHighlightedIndex() {
         // Calculate the number of rows above the current row, then add 1 to include the current row
-        const numRows = Math.floor(this.state.highlightedIndex / this.numColumns) + 1;
+        const numRows = Math.floor(this.state.highlightedIndex / CONST.EMOJI_NUM_PER_ROW) + 1;
 
         // The scroll offsets at the top and bottom of the highlighted emoji
         const offsetAtEmojiBottom = numRows * CONST.EMOJI_PICKER_HEADER_HEIGHT;
@@ -515,7 +508,7 @@ class EmojiPickerMenu extends Component {
                             data={this.state.filteredEmojis}
                             renderItem={this.renderItem}
                             keyExtractor={item => `emoji_picker_${item.code}`}
-                            numColumns={this.numColumns}
+                            numColumns={CONST.EMOJI_NUM_PER_ROW}
                             style={[
                                 styles.emojiPickerList,
                                 this.isMobileLandscape() && styles.emojiPickerListLandscape,

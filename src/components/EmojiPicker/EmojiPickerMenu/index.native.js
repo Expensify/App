@@ -47,13 +47,6 @@ class EmojiPickerMenu extends Component {
         // Ref for emoji FlatList
         this.emojiList = undefined;
 
-        // This is the number of columns in each row of the picker.
-        // Because of how flatList implements these rows, each row is an index rather than each element
-        // For this reason to make headers work, we need to have the header be the only rendered element in its row
-        // If this number is changed, emojis.js will need to be updated to have the proper number of spacer elements
-        // around each header.
-        this.numColumns = CONST.EMOJI_NUM_PER_ROW;
-
         this.emojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis, this.props.frequentlyUsedEmojis);
 
         // This is the actual header index starting at the first emoji and counting each one
@@ -62,7 +55,7 @@ class EmojiPickerMenu extends Component {
         // This is the indices of each header's Row
         // The positions are static, and are calculated as index/numColumns (8 in our case)
         // This is because each row of 8 emojis counts as one index to the flatlist
-        this.headerRowIndices = _.map(this.headerIndices, (headerIndex) => Math.floor(headerIndex / this.numColumns));
+        this.headerRowIndices = _.map(this.headerIndices, (headerIndex) => Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW));
 
         this.renderItem = this.renderItem.bind(this);
         this.isMobileLandscape = this.isMobileLandscape.bind(this);
@@ -105,7 +98,7 @@ class EmojiPickerMenu extends Component {
     }
 
     scrollToHeader(headerIndex) {
-        const calculatedOffset = Math.floor(headerIndex / this.numColumns) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
+        const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
         this.emojiList.flashScrollIndicators();
         this.emojiList.scrollToOffset({offset: calculatedOffset, animated: false});
     }
@@ -160,7 +153,7 @@ class EmojiPickerMenu extends Component {
                     data={this.emojis}
                     renderItem={this.renderItem}
                     keyExtractor={item => (`emoji_picker_${item.code}`)}
-                    numColumns={this.numColumns}
+                    numColumns={CONST.EMOJI_NUM_PER_ROW}
                     style={[
                         styles.emojiPickerList,
                         this.isMobileLandscape() && styles.emojiPickerListLandscape,

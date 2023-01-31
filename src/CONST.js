@@ -463,6 +463,11 @@ const CONST = {
 
     EMOJI_SPACER: 'SPACER',
 
+    // This is the number of columns in each row of the picker.
+    // Because of how flatList implements these rows, each row is an index rather than each element
+    // For this reason to make headers work, we need to have the header be the only rendered element in its row
+    // If this number is changed, emojis.js will need to be updated to have the proper number of spacer elements
+    // around each header.
     EMOJI_NUM_PER_ROW: 8,
 
     EMOJI_FREQUENT_ROW_COUNT: 3,
