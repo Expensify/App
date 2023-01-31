@@ -41,7 +41,5 @@ export default PropTypes.shape({
     hasOtherBeneficialOwners: PropTypes.bool,
     acceptTermsAndConditions: PropTypes.bool,
     certifyTrueInformation: PropTypes.bool,
-    beneficialOwners: PropTypes.arrayOf(
-        PropTypes.string,
-    ),
+    beneficialOwners: PropTypes.arrayOf(PropTypes.string),
 });
