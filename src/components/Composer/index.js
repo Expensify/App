@@ -213,8 +213,8 @@ class Composer extends React.Component {
         const {files, types} = event.clipboardData;
         const TEXT_HTML = 'text/html';
 
-        // If paste contains files, then trigger file management
-        if (files.length > 0) {
+        // If paste contains files and no HTML, then trigger file management
+        if (files.length > 0 && !types.includes(TEXT_HTML)) {
             // Prevent the default so we do not post the file name into the text box
             this.props.onPasteFile(event.clipboardData.files[0]);
             return;
@@ -225,7 +225,13 @@ class Composer extends React.Component {
             const pastedHTML = event.clipboardData.getData(TEXT_HTML);
 
             const domparser = new DOMParser();
-            const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
+            const parsedHTML = domparser.parseFromString(pastedHTML, TEXT_HTML);
+            if (parsedHTML.body.childNodes.length === 1 && parsedHTML.body.childNodes[0].tagName.toLowerCase() === 'img' && files.length > 0) {
+                this.props.onPasteFile(event.clipboardData.files[0]);
+                return;
+            }
+
+            const embeddedImages = parsedHTML.images;
 
             // If HTML has img tag, then fetch images from it.
             if (embeddedImages.length > 0 && embeddedImages[0].src) {
