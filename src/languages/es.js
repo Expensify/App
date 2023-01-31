@@ -493,7 +493,7 @@ export default {
     priorityModePage: {
         priorityMode: 'Modo prioridad',
         explainerText: 'Elija si desea mostrar por defecto todos los chats ordenados desde el más reciente y con los elementos anclados en la parte superior, o elija el modo #concentración, con los elementos no leídos anclados en la parte superior y ordenados alfabéticamente.',
-        priorityModes : {
+        priorityModes: {
             default: {
                 label: 'Más recientes',
                 description: 'Mostrar todos los chats ordenados desde el más reciente',

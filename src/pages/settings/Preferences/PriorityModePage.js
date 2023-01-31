@@ -6,7 +6,6 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import CONST from '../../../CONST';
 import OptionsList from '../../../components/OptionsList';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
@@ -36,8 +35,7 @@ const PriorityModePage = (props) => {
                 // This property will make the currently selected value have bold text
                 boldStyle: props.priorityMode === key,
             }
-        ),
-    );
+        ));
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -52,7 +50,7 @@ const PriorityModePage = (props) => {
             </Text>
             <OptionsList
                 sections={[{data: priorityModes}]}
-                onSelectRow={(mode) => User.updateChatPriorityMode(mode.value)}
+                onSelectRow={mode => User.updateChatPriorityMode(mode.value)}
                 hideSectionHeaders
                 optionHoveredStyle={
                     {

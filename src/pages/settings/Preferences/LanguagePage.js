@@ -1,4 +1,4 @@
-import _, {compose} from 'underscore';
+import _ from 'underscore';
 import React from 'react';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -32,8 +32,7 @@ const LanguagePage = (props) => {
                 // This property will make the currently selected value have bold text
                 boldStyle: props.preferredLocale === key,
             }
-        ),
-    );
+        ));
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -73,6 +72,4 @@ const LanguagePage = (props) => {
 LanguagePage.displayName = 'LanguagePage';
 LanguagePage.propTypes = propTypes;
 
-export default compose(
-    withLocalize,
-)(LanguagePage);
+export default withLocalize(LanguagePage);
