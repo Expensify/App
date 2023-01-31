@@ -526,8 +526,7 @@ export default {
     },
     validateCodeForm: {
         magicCodeNotReceived: '¿No recibiste un código mágico?',
-        fillTwoFactorAuthOrRecoveryCode: 'Introduce el código de dos factores o código de recuperación',
-        enterTwoFactorOrRecoveryCode: 'Introduce el código de dos factores o código de recuperación',
+        enterAuthenticatorCode: 'Por favor ingresa su código de autenticador',
         twoFactorCode: 'Autenticación de 2 factores',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
         error: {

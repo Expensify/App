@@ -526,8 +526,7 @@ export default {
     },
     validateCodeForm: {
         magicCodeNotReceived: "Didn't receive a magic code?",
-        fillTwoFactorAuthOrRecoveryCode: 'Please enter your two factor code or recovery code',
-        enterTwoFactorOrRecoveryCode: 'Enter your two factor code or recovery code',
+        enterAuthenticatorCode: 'Please enter your authenticator code',
         twoFactorCode: 'Two factor code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         error: {

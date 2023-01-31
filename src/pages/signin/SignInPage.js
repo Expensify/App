@@ -87,7 +87,7 @@ class SignInPage extends Component {
         if (showValidateCodeForm) {
             if (this.props.account.requiresTwoFactorAuth) {
                 // We will only know this after a user signs in successfully, without their 2FA code
-                welcomeText = this.props.translate('validateCodeForm.enterTwoFactorOrRecoveryCode');
+                welcomeText = this.props.translate('validateCodeForm.enterAuthenticatorCode');
             } else {
                 welcomeText = this.props.account.validated
                     ? this.props.translate('welcomeText.welcomeBackEnterMagicCode', {login: this.props.credentials.login})
