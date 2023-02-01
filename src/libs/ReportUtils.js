@@ -1137,7 +1137,21 @@ function isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports = {}) {
     return false;
 }
 
+/**
+ * Assuming the passed in report is a default room, lets us know whether we can see it or not, based on permissions and
+ * the various subsets of users we've allowed to use default rooms.
+ *
+ * @param {Object} report
+ * @param {Array<Object>} policies
+ * @param {Array<String>>} betas
+ * @return {Boolean|boolean}
+ */
 function canSeeDefaultRoom(report, policies, betas) {
+    // Include archived rooms
+    if (isArchivedRoom(report)) {
+        return true;
+    }
+
     // Include default rooms for free plan policies (domain rooms aren't included in here because they do not belong to a policy)
     if (getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE) {
         return true;
