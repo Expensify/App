@@ -59,19 +59,8 @@ function getPlatformEquivalentForKeys(keys) {
 const getLibraryAdjustedModifiers = (modifiers) => {
     const operatingSystem = getOperatingSystem();
 
-    if (_.isEqual(modifiers, ['CTRL', 'SHIFT'])) {
-        if (_.includes([CONST.OS.MAC_OS, CONST.OS.IOS], operatingSystem)) {
-            return KeyCommand.constants.keyModifierShiftCommand;
-        }
-        return KeyCommand.constants.keyModifierControlShift;
-    }
-
-    if (_.isEqual(modifiers, ['CTRL'])) {
-        if (_.includes([CONST.OS.MAC_OS, CONST.OS.IOS], operatingSystem)) {
-            return KeyCommand.constants.keyModifierCommand;
-        }
-        return KeyCommand.constants.keyModifierControl;
-    }
+    const libraryAdjustedModifier = _.find(CONST.KEYCOMMAND_LIBRARY_SPECIFIC_KEYS, key => _.isEqual(modifiers, key[0]));
+    return _.get(libraryAdjustedModifier, [1, operatingSystem]);
 };
 
 const getLibraryAdjustedInput = (input) => {
@@ -111,6 +100,7 @@ const getLibraryAdjustedInput = (input) => {
 function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0, shouldPreventDefault = true) {
     const platformAdjustedModifiers = getPlatformEquivalentForKeys(modifiers);
     const libraryAdjustedModifiers = getLibraryAdjustedModifiers(modifiers);
+
     const libraryAdjustedInput = getLibraryAdjustedInput(key);
     const displayName = getDisplayName(key, platformAdjustedModifiers);
 

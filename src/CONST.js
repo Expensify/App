@@ -1,6 +1,7 @@
 import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
 import * as Url from './libs/Url';
+import * as KeyCommand from 'react-native-key-command';
 
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com'));
@@ -176,6 +177,16 @@ const CONST = {
             DEFAULT: 'shift',
         },
     },
+    KEYCOMMAND_LIBRARY_SPECIFIC_KEYS: [
+        [['CTRL'], {
+            DEFAULT: KeyCommand.constants.keyModifierControl,
+            [PLATFORM_OS_MACOS]: KeyCommand.constants.keyModifierCommand,
+        }],
+        [['CTRL', 'SHIFT'], {
+            DEFAULT: KeyCommand.constants.keyModifierControlShift,
+            [PLATFORM_OS_MACOS]: KeyCommand.constants.keyModifierShiftCommand,
+        }],
+    ],
     KEYBOARD_SHORTCUTS: {
         SEARCH: {
             descriptionKey: 'search',
