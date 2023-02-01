@@ -192,7 +192,7 @@ const OptionRow = (props) => {
                                     ) : null}
                                 </View>
                                 {props.option.descriptiveText ? (
-                                    <View style={[styles.flexWrap]}>
+                                    <View style={[styles.flexWrap, styles.pl2]}>
                                         <Text style={[styles.textLabel]}>
                                             {props.option.descriptiveText}
                                         </Text>
