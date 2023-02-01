@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
+import _ from 'underscore';
 import styles from '../../styles/styles';
 import Recent from '../../../assets/images/history.svg';
 import Smiley from '../../../assets/images/emoji.svg';
@@ -19,7 +20,13 @@ const CategoryShortcutBar = (props) => {
 
     return (
         <View style={[styles.pt2, styles.ph4, styles.flexRow]}>
-            <Text>asdf</Text>
+            {_.map(props.headerIndices, (headerIndex, i) => (
+                <CategoryShortcutButton
+                    icon={icons[i]}
+                    onPress={() => props.onPress(headerIndex)}
+                    key={`categoryShortcut${i}`}
+                />
+            ))}
         </View>
     );
 };
