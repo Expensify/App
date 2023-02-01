@@ -1137,6 +1137,26 @@ function isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports = {}) {
     return false;
 }
 
+function canSeeDefaultRoom(report, policies, betas) {
+    // Include default rooms for free plan policies (domain rooms aren't included in here because they do not belong to a policy)
+    if (getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE) {
+        return true;
+    }
+
+    // Include domain rooms with Partner Managers (Expensify accounts) in them for accounts that are on a domain with an Approved Accountant
+    if (isDomainRoom(report) && doesDomainHaveApprovedAccountant && hasExpensifyEmails(lodashGet(report, ['participants'], []))) {
+        return true;
+    }
+
+    // If the room has an assigned guide, it can be seen.
+    if (hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
+        return true;
+    }
+
+    // For all other cases, just check that the user belongs to the default rooms beta
+    return Permissions.canUseDefaultRooms(betas);
+}
+
 /**
  * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
  * for reports or the reports shown in the LHN).
@@ -1191,18 +1211,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         return true;
     }
 
-    // Include default rooms for free plan policies
-    if (isDefaultRoom(report) && getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE) {
-        return true;
-    }
-
-    // Include domain rooms with Partner Managers (Expensify accounts) in them for accounts that are on a domain with an Approved Accountant
-    if (isDomainRoom(report) && doesDomainHaveApprovedAccountant && hasExpensifyEmails(lodashGet(report, ['participants'], []))) {
-        return true;
-    }
-
-    // Include default rooms unless you're on the default room beta, unless you have an assigned guide
-    if (isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas) && !hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
+    if (isDefaultRoom(report) && !canSeeDefaultRoom(report, policies, betas)) {
         return false;
     }
 
@@ -1324,4 +1333,5 @@ export {
     isIOUReport,
     chatIncludesChronos,
     getNewMarkerReportActionID,
+    canSeeDefaultRoom,
 };

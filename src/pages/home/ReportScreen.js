@@ -192,16 +192,7 @@ class ReportScreen extends React.Component {
             return null;
         }
 
-        // We create policy rooms for all policies, however we don't show them unless
-        // - It's a free plan workspace
-        // - The report includes guides participants (@team.expensify.com) for 1:1 Assigned
-        // - It's an archived room
-        if (!Permissions.canUseDefaultRooms(this.props.betas)
-            && ReportUtils.isDefaultRoom(this.props.report)
-            && ReportUtils.getPolicyType(this.props.report, this.props.policies) !== CONST.POLICY.TYPE.FREE
-            && !ReportUtils.hasExpensifyGuidesEmails(lodashGet(this.props.report, ['participants'], []))
-            && !ReportUtils.isArchivedRoom(this.props.report)
-        ) {
+        if (ReportUtils.isDefaultRoom(this.props.report) && !ReportUtils.canSeeDefaultRoom(this.props.report, this.props.policies, this.props.betas)) {
             return null;
         }
 
