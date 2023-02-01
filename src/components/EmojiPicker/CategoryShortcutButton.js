@@ -38,7 +38,7 @@ class CategoryShortcutButton extends PureComponent {
             >
                 <View style={styles.alignSelfCenter}>
                     <Icon
-                        fill={colors.green}
+                        fill={colors.gray3}
                         src={this.props.icon}
                         height={variables.iconSizeNormal}
                         width={variables.iconSizeNormal}
