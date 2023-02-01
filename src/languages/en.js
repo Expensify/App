@@ -1133,4 +1133,7 @@ export default {
             message: 'We couldn\'t look for an update. Please check again in a bit!',
         },
     },
+    report: {
+        genericCreateFailureMessage: '',
+    }
 };

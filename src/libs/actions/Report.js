@@ -19,6 +19,7 @@ import * as ReportUtils from '../ReportUtils';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
+import * as Localize from '../Localize';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -268,7 +269,11 @@ function addActions(reportID, text = '', file) {
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: _.mapObject(optimisticReportActions, () => null),
+            value: _.mapObject(optimisticReportActions, (action) => {
+                // eslint-disable-next-line no-param-reassign
+                action.errors = {[DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage')};
+                return action;
+            }),
         },
     ];
 
