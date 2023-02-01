@@ -135,6 +135,13 @@ function beginSignIn(login) {
                 isLoading: false,
             },
         },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.CREDENTIALS,
+            value: {
+                validateCode: null,
+            },
+        },
     ];
 
     const failureData = [
@@ -268,6 +275,13 @@ function signInFromMagicLink(accountID, validateCode) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.CREDENTIALS,
+            value: {
+                validateCode: validateCode,
             },
         },
     ];

@@ -64,7 +64,7 @@ class ValidateCodeForm extends React.Component {
 
         this.state = {
             formError: false,
-            validateCode: '',
+            validateCode: props.credentials.validateCode ?? '',
             twoFactorAuthCode: '',
         };
     }
@@ -82,6 +82,9 @@ class ValidateCodeForm extends React.Component {
         }
         if (prevProps.isVisible && !this.props.isVisible && this.state.validateCode) {
             this.clearValidateCode();
+        }
+        if(!prevProps.credentials.validateCode && this.props.credentials.validateCode) {
+            this.setState({validateCode: this.props.credentials.validateCode});
         }
         if (!prevProps.account.requiresTwoFactorAuth && this.props.account.requiresTwoFactorAuth) {
             this.input2FA.focus();
