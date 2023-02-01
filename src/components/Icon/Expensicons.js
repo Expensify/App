@@ -23,6 +23,7 @@ import Close from '../../../assets/images/close.svg';
 import ClosedSign from '../../../assets/images/closed-sign.svg';
 import Collapse from '../../../assets/images/collapse.svg';
 import Concierge from '../../../assets/images/concierge.svg';
+import ConciergeAvatar from '../../../assets/images/avatars/concierge-avatar.svg';
 import Connect from '../../../assets/images/connect.svg';
 import CreditCard from '../../../assets/images/creditcard.svg';
 import Document from '../../../assets/images/document.svg';
@@ -124,6 +125,7 @@ export {
     ClosedSign,
     Collapse,
     Concierge,
+    ConciergeAvatar,
     Connect,
     CreditCard,
     DeletedRoomAvatar,

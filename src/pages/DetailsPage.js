@@ -83,14 +83,16 @@ class DetailsPage extends React.PureComponent {
 
     render() {
         let details = lodashGet(this.props.personalDetails, lodashGet(this.props.route.params, 'login'));
+
         if (!details) {
             const login = lodashGet(this.props.route.params, 'login');
             details = {
                 login,
                 displayName: ReportUtils.getDisplayNameForParticipant(login),
-                avatar: ReportUtils.getDefaultAvatar(),
+                avatar: ReportUtils.getAvatar(lodashGet(details, 'avatar', ''), login),
             };
         }
+
         const isSMSLogin = Str.isSMSLogin(details.login);
 
         // If we have a reportID param this means that we
@@ -123,7 +125,7 @@ class DetailsPage extends React.PureComponent {
                             <View style={styles.avatarSectionWrapper}>
                                 <AttachmentModal
                                     headerTitle={isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
-                                    sourceURL={details.avatar}
+                                    source={ReportUtils.getAvatar(details.avatar, details.login)}
                                     isAuthTokenRequired
                                 >
                                     {({show}) => (
@@ -137,7 +139,7 @@ class DetailsPage extends React.PureComponent {
                                                 <Avatar
                                                     containerStyles={[styles.avatarLarge, styles.mb3]}
                                                     imageStyles={[styles.avatarLarge]}
-                                                    source={details.avatar}
+                                                    source={ReportUtils.getAvatar(details.avatar, details.login)}
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                 />
                                             </OfflineWithFeedback>

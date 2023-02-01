@@ -30,8 +30,8 @@ import SafeAreaConsumer from './SafeAreaConsumer';
  */
 
 const propTypes = {
-    /** Optional source URL for the image shown. If not passed in via props must be specified when modal is opened. */
-    sourceURL: PropTypes.string,
+    /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
+    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
 
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm: PropTypes.func,
@@ -60,7 +60,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    sourceURL: null,
+    source: '',
     onConfirm: null,
     originalFileName: null,
     isAuthTokenRequired: false,
@@ -79,7 +79,7 @@ class AttachmentModal extends PureComponent {
             attachmentInvalidReasonTitle: null,
             attachmentInvalidReason: null,
             file: null,
-            sourceURL: props.sourceURL,
+            source: props.source,
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
             isConfirmButtonDisabled: false,
             confirmButtonFadeAnimation: new Animated.Value(1),
@@ -93,15 +93,15 @@ class AttachmentModal extends PureComponent {
 
     /**
      * If our attachment is a PDF, return the unswipeable Modal type.
-     * @param {String} sourceUrl
+     * @param {String} sourceURL
      * @param {Object} file
      * @returns {String}
      */
-    getModalType(sourceUrl, file) {
+    getModalType(sourceURL, file) {
         return (
-            sourceUrl
+            sourceURL
             && (
-                Str.isPDF(sourceUrl)
+                Str.isPDF(sourceURL)
                 || (
                     file
                     && Str.isPDF(file.name || this.props.translate('attachmentView.unknownFilename'))
@@ -134,7 +134,7 @@ class AttachmentModal extends PureComponent {
         }
 
         if (this.props.onConfirm) {
-            this.props.onConfirm(lodashExtend(this.state.file, {source: this.state.sourceURL}));
+            this.props.onConfirm(lodashExtend(this.state.file, {source: this.state.source}));
         }
 
         this.setState({isModalOpen: false});
@@ -200,12 +200,12 @@ class AttachmentModal extends PureComponent {
             const source = URL.createObjectURL(file);
             const modalType = this.getModalType(source, file);
             this.setState({
-                isModalOpen: true, sourceURL: source, file, modalType,
+                isModalOpen: true, source, file, modalType,
             });
         } else {
             const modalType = this.getModalType(file.uri, file);
             this.setState({
-                isModalOpen: true, sourceURL: file.uri, file, modalType,
+                isModalOpen: true, source: file.uri, file, modalType,
             });
         }
     }
@@ -230,7 +230,8 @@ class AttachmentModal extends PureComponent {
     }
 
     render() {
-        const sourceURL = this.state.sourceURL;
+        // If source is a URL, add auth token to get access
+        const source = this.state.source;
 
         const {fileName, fileExtension} = FileUtils.splitExtensionFromFileName(this.props.originalFileName || lodashGet(this.state, 'file.name', ''));
 
@@ -251,7 +252,7 @@ class AttachmentModal extends PureComponent {
                         title={this.props.headerTitle || this.props.translate('common.attachment')}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={this.props.allowDownload}
-                        onDownloadButtonPress={() => this.downloadAttachment(sourceURL)}
+                        onDownloadButtonPress={() => this.downloadAttachment(source)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                         subtitle={fileName ? (
                             <TextWithEllipsis
@@ -263,10 +264,10 @@ class AttachmentModal extends PureComponent {
                         ) : ''}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
-                        {this.state.sourceURL && (
+                        {this.state.source && (
                             <AttachmentView
+                                source={source}
                                 isAuthTokenRequired={this.props.isAuthTokenRequired}
-                                sourceURL={sourceURL}
                                 file={this.state.file}
                                 onToggleKeyboard={this.updateConfirmButtonVisibility}
                             />
