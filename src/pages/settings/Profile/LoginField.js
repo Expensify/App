@@ -97,7 +97,7 @@ class LoginField extends Component {
                                 interactive={Boolean(!this.props.login.partnerUserID)}
                                 onPress={this.props.login.partnerUserID ? () => { } : () => Navigation.navigate(ROUTES.getSettingsAddLoginRoute(this.props.type))}
                                 shouldShowRightIcon={Boolean(!this.props.login.partnerUserID)}
-                                style={[!this.props.login.partnerUserID && styles.colorMuted]}
+                                style={!this.props.login.partnerUserID ? styles.colorMuted : []}
                             />
                         </View>
                     ) : (

@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../styles/styles';
@@ -62,66 +63,74 @@ const ReportWelcomeText = (props) => {
     );
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, props.policies);
     return (
-        <Text style={[styles.mt3, styles.mw100, styles.textAlignCenter]}>
-            {isPolicyExpenseChat && (
-                <>
-                    {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
-                    <Text style={styles.textAlignCenter}>
-                        {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}
-                    </Text>
-                    <Text style={[styles.textStrong]}>
-                        {/* Use the policyExpenseChat owner's first name or their email if it's undefined or an empty string */}
-                        {lodashGet(props.personalDetails, [props.report.ownerEmail, 'firstName']) || props.report.ownerEmail}
-                    </Text>
-                    <Text>
-                        {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}
-                    </Text>
-                    <Text style={[styles.textStrong]}>
-                        {ReportUtils.getPolicyName(props.report, props.policies)}
-                    </Text>
-                    <Text>
-                        {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}
-                    </Text>
-                </>
-            )}
-            {isChatRoom && (
-                <>
-                    {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
-                    <Text style={styles.textAlignCenter}>
-                        {roomWelcomeMessage.phrase1}
-                    </Text>
-                    <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}>
-                        {ReportUtils.getReportName(props.report, props.policies)}
-                    </Text>
-                    <Text>
-                        {roomWelcomeMessage.phrase2}
-                    </Text>
-                </>
-            )}
-            {isDefault && (
-                <>
-                    {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
-                    <Text style={styles.textAlignCenter}>
-                        {props.translate('reportActionsView.beginningOfChatHistory')}
-                    </Text>
-                    {_.map(displayNamesWithTooltips, ({
-                        displayName, pronouns, tooltip,
-                    }, index) => (
-                        <Text key={`${displayName}${pronouns}${index}`}>
-                            <Tooltip text={tooltip} containerStyles={[styles.dInline]}>
-                                <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(participants[index]))}>
-                                    {displayName}
-                                </Text>
-                            </Tooltip>
-                            {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
-                            {(index === displayNamesWithTooltips.length - 1) && <Text>.</Text>}
-                            {(index === displayNamesWithTooltips.length - 2) && <Text>{` ${props.translate('common.and')} `}</Text>}
-                            {(index < displayNamesWithTooltips.length - 2) && <Text>, </Text>}
+        <>
+            <View>
+                <Text style={[styles.textHero]}>
+                    {props.translate('reportActionsView.sayHello')}
+                </Text>
+            </View>
+            <Text style={[styles.mt3, styles.mw100]}>
+                {isPolicyExpenseChat && (
+                    <>
+                        <Text>
+                            {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}
                         </Text>
-                    ))}
-                </>
-            )}
-        </Text>
+                        <Text style={[styles.textStrong]}>
+                            {/* Use the policyExpenseChat owner's first name or their email if it's undefined or an empty string */}
+                            {lodashGet(props.personalDetails, [props.report.ownerEmail, 'firstName']) || props.report.ownerEmail}
+                        </Text>
+                        <Text>
+                            {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}
+                        </Text>
+                        <Text style={[styles.textStrong]}>
+                            {ReportUtils.getPolicyName(props.report, props.policies)}
+                        </Text>
+                        <Text>
+                            {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}
+                        </Text>
+                    </>
+                )}
+                {isChatRoom && (
+                    <>
+                        <Text>
+                            {roomWelcomeMessage.phrase1}
+                        </Text>
+                        <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}>
+                            {ReportUtils.getReportName(props.report, props.policies)}
+                        </Text>
+                        <Text>
+                            {roomWelcomeMessage.phrase2}
+                        </Text>
+                    </>
+                )}
+                {isDefault && (
+                    <Text>
+                        <Text>
+                            {props.translate('reportActionsView.beginningOfChatHistory')}
+                        </Text>
+                        {_.map(displayNamesWithTooltips, ({
+                            displayName, pronouns, tooltip,
+                        }, index) => (
+                            <Text key={`${displayName}${pronouns}${index}`}>
+                                <Tooltip text={tooltip} containerStyles={[styles.dInline]}>
+                                    <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(participants[index]))}>
+                                        {displayName}
+                                    </Text>
+                                </Tooltip>
+                                {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
+                                {(index === displayNamesWithTooltips.length - 1) && <Text>.</Text>}
+                                {(index === displayNamesWithTooltips.length - 2) && <Text>{` ${props.translate('common.and')} `}</Text>}
+                                {(index < displayNamesWithTooltips.length - 2) && <Text>, </Text>}
+                            </Text>
+                        ))}
+                        <Text>
+                            {/* Need to confirm copy for the below with marketing, and then add to translations. */}
+                            {props.translate('reportActionsView.usePlusButton')}
+                        </Text>
+                    </Text>
+                )}
+            </Text>
+        </>
     );
 };
 

@@ -133,6 +133,8 @@ class ReportActionItem extends Component {
             this.props.draftMessage,
             undefined,
             this.checkIfContextMenuActive,
+            ReportUtils.isArchivedRoom(this.props.report),
+            ReportUtils.chatIncludesChronos(this.props.report),
         );
     }
 
@@ -155,6 +157,10 @@ class ReportActionItem extends Component {
                 />
             );
         } else {
+            const message = _.last(lodashGet(this.props.action, 'message', [{}]));
+            const isAttachment = _.has(this.props.action, 'isAttachment')
+                ? this.props.action.isAttachment
+                : ReportUtils.isReportMessageAttachment(message);
             children = (
                 <ShowContextMenuContext.Provider
                     value={{
@@ -166,7 +172,10 @@ class ReportActionItem extends Component {
                 >
                     {!this.props.draftMessage
                         ? (
-                            <ReportActionItemMessage action={this.props.action} />
+                            <ReportActionItemMessage
+                                action={this.props.action}
+                                style={(!this.props.displayAsGroup && isAttachment) ? [styles.mt2] : undefined}
+                            />
                         ) : (
                             <ReportActionItemMessageEdit
                                 action={this.props.action}
@@ -196,6 +205,7 @@ class ReportActionItem extends Component {
         }
         return (
             <PressableWithSecondaryInteraction
+                pointerEvents={this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? 'none' : 'auto'}
                 ref={el => this.popoverAnchor = el}
                 onPressIn={() => this.props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
@@ -219,14 +229,9 @@ class ReportActionItem extends Component {
                                 <OfflineWithFeedback
                                     onClose={() => {
                                         if (this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                                            const sequenceNumber = this.props.action.actionName
-                                              === CONST.REPORT.ACTIONS.TYPE.IOU
-                                                ? this.props.action
-                                                    .sequenceNumber
-                                                : this.props.action.clientID;
-                                            ReportActions.deleteOptimisticReportAction(this.props.report.reportID, sequenceNumber);
+                                            ReportActions.deleteOptimisticReportAction(this.props.report.reportID, this.props.action.reportActionID);
                                         } else {
-                                            ReportActions.clearReportActionErrors(this.props.report.reportID, this.props.action.sequenceNumber);
+                                            ReportActions.clearReportActionErrors(this.props.report.reportID, this.props.action.reportActionID);
                                         }
                                     }}
                                     pendingAction={this.props.draftMessage ? null : this.props.action.pendingAction}

@@ -62,6 +62,9 @@ const propTypes = {
     /** Current reportID from the route in react navigation state object */
     reportIDFromRoute: PropTypes.string,
 
+    /** Callback when onLayout of sidebar is called */
+    onLayout: PropTypes.func,
+
     /** Whether we are viewing below the responsive breakpoint */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
@@ -79,6 +82,7 @@ const defaultProps = {
         avatar: ReportUtils.getDefaultAvatar(),
     },
     reportIDFromRoute: '',
+    onLayout: () => {},
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 
@@ -217,6 +221,7 @@ class SidebarLinks extends React.Component {
                                 shouldDisableFocusOptions={this.props.isSmallScreenWidth}
                                 optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
                                 onLayout={() => {
+                                    this.props.onLayout();
                                     App.setSidebarLoaded();
                                     this.isSidebarLoaded = true;
                                 }}
@@ -250,8 +255,6 @@ const chatReportSelector = (report) => {
         errorFields: {
             addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
         },
-        maxSequenceNumber: report.maxSequenceNumber,
-        lastReadSequenceNumber: report.lastReadSequenceNumber,
         lastReadTime: report.lastReadTime,
         lastMessageText: report.lastMessageText,
         lastActionCreated: report.lastActionCreated,

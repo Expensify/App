@@ -1,11 +1,12 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {memo} from 'react';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {
     TouchableOpacity,
     View,
     StyleSheet,
+    InteractionManager,
 } from 'react-native';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
@@ -75,176 +76,202 @@ const defaultProps = {
     shouldHaveOptionSeparator: false,
 };
 
-const OptionRow = (props) => {
-    let touchableRef = null;
-    const textStyle = props.optionIsFocused
-        ? styles.sidebarLinkActiveText
-        : styles.sidebarLinkText;
-    const textUnreadStyle = (props.boldStyle || props.option.boldStyle)
-        ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
-    const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, textUnreadStyle, props.style);
-    const alternateTextStyle = StyleUtils.combineStyles(textStyle, styles.optionAlternateText, styles.textLabelSupporting, props.style);
-    const contentContainerStyles = [styles.flex1];
-    const sidebarInnerRowStyle = StyleSheet.flatten([
-        styles.chatLinkRowPressable,
-        styles.flexGrow1,
-        styles.optionItemAvatarNameWrapper,
-        styles.optionRow,
-        styles.justifyContentCenter,
-    ]);
-    const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor
-        ? props.hoverStyle.backgroundColor
-        : props.backgroundColor;
-    const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const isMultipleParticipant = lodashGet(props.option, 'participantsList.length', 0) > 1;
+class OptionRow extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            isDisabled: this.props.isDisabled,
+        };
+    }
 
-    // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((props.option.participantsList || []).slice(0, 10), isMultipleParticipant);
-    const avatarTooltips = props.showTitleTooltip && !props.option.isChatRoom && !props.option.isArchivedRoom ? _.pluck(displayNamesWithTooltips, 'tooltip') : undefined;
+    // It is very important to use shouldComponentUpdate here so SectionList items will not unnecessarily re-render
+    shouldComponentUpdate(prevProps, nextProps) {
+        return prevProps.optionIsFocused === nextProps.optionIsFocused
+            && prevProps.isSelected === nextProps.isSelected
+            && prevProps.option.alternateText === nextProps.option.alternateText
+            && prevProps.option.descriptiveText === nextProps.option.descriptiveText
+            && _.isEqual(prevProps.option.icons, nextProps.option.icons)
+            && prevProps.option.text === nextProps.option.text
+            && prevProps.showSelectedState === nextProps.showSelectedState
+            && prevProps.isDisabled === nextProps.isDisabled
+            && prevProps.showTitleTooltip === nextProps.showTitleTooltip
+            && prevProps.option.brickRoadIndicator === nextProps.option.brickRoadIndicator;
+    }
 
-    return (
-        <OfflineWithFeedback
-            pendingAction={props.option.pendingAction}
-            errors={props.option.allReportErrors}
-            shouldShowErrorMessages={false}
-        >
-            <Hoverable
-                containerStyles={[
-                    props.isDisabled ? styles.userSelectNone : null,
-                ]}
+    componentDidUpdate(prevProps) {
+        if (this.props.isDisabled === prevProps.isDisabled) {
+            return;
+        }
+
+        this.setState({isDisabled: this.props.isDisabled});
+    }
+
+    render() {
+        let touchableRef = null;
+        const textStyle = this.props.optionIsFocused
+            ? styles.sidebarLinkActiveText
+            : styles.sidebarLinkText;
+        const textUnreadStyle = (this.props.boldStyle || this.props.option.boldStyle)
+            ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
+        const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, textUnreadStyle, this.props.style);
+        const alternateTextStyle = StyleUtils.combineStyles(textStyle, styles.optionAlternateText, styles.textLabelSupporting, this.props.style);
+        const contentContainerStyles = [styles.flex1];
+        const sidebarInnerRowStyle = StyleSheet.flatten([
+            styles.chatLinkRowPressable,
+            styles.flexGrow1,
+            styles.optionItemAvatarNameWrapper,
+            styles.optionRow,
+            styles.justifyContentCenter,
+        ]);
+        const hoveredBackgroundColor = this.props.hoverStyle && this.props.hoverStyle.backgroundColor
+            ? this.props.hoverStyle.backgroundColor
+            : this.props.backgroundColor;
+        const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
+        const isMultipleParticipant = lodashGet(this.props.option, 'participantsList.length', 0) > 1;
+
+        // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
+        const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((this.props.option.participantsList || []).slice(0, 10), isMultipleParticipant);
+        const avatarTooltips = this.props.showTitleTooltip && !this.props.option.isChatRoom && !this.props.option.isArchivedRoom ? _.pluck(displayNamesWithTooltips, 'tooltip') : undefined;
+
+        return (
+            <OfflineWithFeedback
+                pendingAction={this.props.option.pendingAction}
+                errors={this.props.option.allReportErrors}
+                shouldShowErrorMessages={false}
             >
-                {hovered => (
-                    <TouchableOpacity
-                        ref={el => touchableRef = el}
-                        onPress={(e) => {
-                            if (e) {
-                                e.preventDefault();
-                            }
-
-                            props.onSelectRow(props.option, touchableRef);
-                        }}
-                        disabled={props.isDisabled}
-                        activeOpacity={0.8}
-                        style={[
-                            styles.flexRow,
-                            styles.alignItemsCenter,
-                            styles.justifyContentBetween,
-                            styles.sidebarLink,
-                            styles.sidebarLinkInner,
-                            props.optionIsFocused ? styles.sidebarLinkActive : null,
-                            hovered && !props.optionIsFocused ? props.hoverStyle : null,
-                            props.isDisabled && styles.cursorDisabled,
-                            props.shouldHaveOptionSeparator && styles.borderTop,
-                        ]}
-                    >
-                        <View style={sidebarInnerRowStyle}>
-                            <View
-                                style={[
-                                    styles.flexRow,
-                                    styles.alignItemsCenter,
-                                ]}
-                            >
-                                {
-                                !_.isEmpty(props.option.icons)
-                                && (
-                                    props.option.shouldShowSubscript ? (
-                                        <SubscriptAvatar
-                                            mainAvatar={props.option.icons[0]}
-                                            secondaryAvatar={props.option.icons[1]}
-                                            mainTooltip={props.option.ownerEmail}
-                                            secondaryTooltip={props.option.subtitle}
-                                            size={CONST.AVATAR_SIZE.DEFAULT}
-                                        />
-                                    ) : (
-                                        <MultipleAvatars
-                                            icons={props.option.icons}
-                                            size={CONST.AVATAR_SIZE.DEFAULT}
-                                            secondAvatarStyle={[
-                                                props.optionIsFocused
-                                                    ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor)
-                                                    : undefined,
-                                                hovered && !props.optionIsFocused
-                                                    ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor)
-                                                    : undefined,
-                                            ]}
-                                            avatarTooltips={props.option.isPolicyExpenseChat ? [props.option.subtitle] : avatarTooltips}
-                                        />
-                                    )
-                                )
+                <Hoverable
+                    containerStyles={[
+                        this.props.isDisabled ? styles.userSelectNone : null,
+                    ]}
+                >
+                    {hovered => (
+                        <TouchableOpacity
+                            ref={el => touchableRef = el}
+                            onPress={(e) => {
+                                this.setState({isDisabled: true});
+                                if (e) {
+                                    e.preventDefault();
                                 }
-                                <View style={contentContainerStyles}>
-                                    <DisplayNames
-                                        accessibilityLabel="Chat user display names"
-                                        fullTitle={props.option.text}
-                                        displayNamesWithTooltips={displayNamesWithTooltips}
-                                        tooltipEnabled={props.showTitleTooltip}
-                                        numberOfLines={1}
-                                        textStyles={displayNameStyle}
-                                        shouldUseFullTitle={props.option.isChatRoom || props.option.isPolicyExpenseChat}
-                                    />
-                                    {props.option.alternateText ? (
-                                        <Text
-                                            style={alternateTextStyle}
+                                let result = this.props.onSelectRow(this.props.option, touchableRef);
+                                if (!(result instanceof Promise)) {
+                                    result = Promise.resolve();
+                                }
+                                InteractionManager.runAfterInteractions(() => {
+                                    result.then(() => this.setState({isDisabled: this.props.isDisabled}));
+                                });
+                            }}
+                            disabled={this.state.isDisabled}
+                            activeOpacity={0.8}
+                            style={[
+                                styles.flexRow,
+                                styles.alignItemsCenter,
+                                styles.justifyContentBetween,
+                                styles.sidebarLink,
+                                styles.sidebarLinkInner,
+                                this.props.optionIsFocused ? styles.sidebarLinkActive : null,
+                                hovered && !this.props.optionIsFocused ? this.props.hoverStyle : null,
+                                this.props.isDisabled && styles.cursorDisabled,
+                                this.props.shouldHaveOptionSeparator && styles.borderTop,
+                            ]}
+                        >
+                            <View style={sidebarInnerRowStyle}>
+                                <View
+                                    style={[
+                                        styles.flexRow,
+                                        styles.alignItemsCenter,
+                                    ]}
+                                >
+                                    {
+                                        !_.isEmpty(this.props.option.icons)
+                                        && (
+                                            this.props.option.shouldShowSubscript ? (
+                                                <SubscriptAvatar
+                                                    mainAvatar={this.props.option.icons[0]}
+                                                    secondaryAvatar={this.props.option.icons[1]}
+                                                    mainTooltip={this.props.option.ownerEmail}
+                                                    secondaryTooltip={this.props.option.subtitle}
+                                                    size={CONST.AVATAR_SIZE.DEFAULT}
+                                                />
+                                            ) : (
+                                                <MultipleAvatars
+                                                    icons={this.props.option.icons}
+                                                    size={CONST.AVATAR_SIZE.DEFAULT}
+                                                    secondAvatarStyle={[
+                                                        this.props.optionIsFocused
+                                                            ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor)
+                                                            : undefined,
+                                                        hovered && !this.props.optionIsFocused
+                                                            ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor)
+                                                            : undefined,
+                                                    ]}
+                                                    avatarTooltips={this.props.option.isPolicyExpenseChat ? [this.props.option.subtitle] : avatarTooltips}
+                                                />
+                                            )
+                                        )
+                                    }
+                                    <View style={contentContainerStyles}>
+                                        <DisplayNames
+                                            accessibilityLabel="Chat user display names"
+                                            fullTitle={this.props.option.text}
+                                            displayNamesWithTooltips={displayNamesWithTooltips}
+                                            tooltipEnabled={this.props.showTitleTooltip}
                                             numberOfLines={1}
-                                        >
-                                            {props.option.alternateText}
-                                        </Text>
-                                    ) : null}
-                                </View>
-                                {props.option.descriptiveText ? (
-                                    <View style={[styles.flexWrap]}>
-                                        <Text style={[styles.textLabel]}>
-                                            {props.option.descriptiveText}
-                                        </Text>
+                                            textStyles={displayNameStyle}
+                                            shouldUseFullTitle={this.props.option.isChatRoom || this.props.option.isPolicyExpenseChat}
+                                        />
+                                        {this.props.option.alternateText ? (
+                                            <Text
+                                                style={alternateTextStyle}
+                                                numberOfLines={1}
+                                            >
+                                                {this.props.option.alternateText}
+                                            </Text>
+                                        ) : null}
                                     </View>
-                                ) : null}
-                                {props.option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
-                                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                    <Icon
-                                        src={Expensicons.DotIndicator}
-                                        fill={themeColors.danger}
-                                        height={variables.iconSizeSmall}
-                                        width={variables.iconSizeSmall}
-                                    />
-                                </View>
-                                )}
-                                {props.showSelectedState && <SelectCircle isChecked={props.isSelected} />}
-                            </View>
-                        </View>
-                        {props.option.customIcon && (
-                            <View
-                                style={[styles.flexRow, styles.alignItemsCenter]}
-                                accessible={false}
-                            >
-                                <View>
-                                    <Icon
-                                        src={lodashGet(props.option, 'customIcon.src', '')}
-                                        height={16}
-                                        width={16}
-                                        fill={lodashGet(props.option, 'customIcon.color')}
-                                    />
+                                    {this.props.option.descriptiveText ? (
+                                        <View style={[styles.flexWrap, styles.pl2]}>
+                                            <Text style={[styles.textLabel]}>
+                                                {this.props.option.descriptiveText}
+                                            </Text>
+                                        </View>
+                                    ) : null}
+                                    {this.props.option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                        <Icon
+                                            src={Expensicons.DotIndicator}
+                                            fill={themeColors.danger}
+                                            height={variables.iconSizeSmall}
+                                            width={variables.iconSizeSmall}
+                                        />
+                                    </View>
+                                    )}
+                                    {this.props.showSelectedState && <SelectCircle isChecked={this.props.isSelected} />}
                                 </View>
                             </View>
-                        )}
-                    </TouchableOpacity>
-                )}
-            </Hoverable>
-        </OfflineWithFeedback>
-    );
-};
+                            {this.props.option.customIcon && (
+                                <View
+                                    style={[styles.flexRow, styles.alignItemsCenter]}
+                                    accessible={false}
+                                >
+                                    <View>
+                                        <Icon
+                                            src={lodashGet(this.props.option, 'customIcon.src', '')}
+                                            height={16}
+                                            width={16}
+                                            fill={lodashGet(this.props.option, 'customIcon.color')}
+                                        />
+                                    </View>
+                                </View>
+                            )}
+                        </TouchableOpacity>
+                    )}
+                </Hoverable>
+            </OfflineWithFeedback>
+        );
+    }
+}
 
 OptionRow.propTypes = propTypes;
 OptionRow.defaultProps = defaultProps;
-OptionRow.displayName = 'OptionRow';
 
-// It it very important to use React.memo here so SectionList items will not unnecessarily re-render
-export default withLocalize(memo(OptionRow, (prevProps, nextProps) => prevProps.optionIsFocused === nextProps.optionIsFocused
-    && prevProps.isSelected === nextProps.isSelected
-    && prevProps.option.alternateText === nextProps.option.alternateText
-    && prevProps.option.descriptiveText === nextProps.option.descriptiveText
-    && _.isEqual(prevProps.option.icons, nextProps.option.icons)
-    && prevProps.option.text === nextProps.option.text
-    && prevProps.showSelectedState === nextProps.showSelectedState
-    && prevProps.isDisabled === nextProps.isDisabled
-    && prevProps.showTitleTooltip === nextProps.showTitleTooltip
-    && prevProps.option.brickRoadIndicator === nextProps.option.brickRoadIndicator));
+export default withLocalize(OptionRow);

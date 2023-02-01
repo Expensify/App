@@ -12,7 +12,7 @@ export default function () {
     return new Promise((resolve) => {
         const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT,
-            waitForCollectionCallbacks: true,
+            waitForCollectionCallback: true,
             callback: (allReports) => {
                 Onyx.disconnect(connectionID);
                 const reportsToUpdate = {};
@@ -34,13 +34,14 @@ export default function () {
 
                 if (_.isEmpty(reportsToUpdate)) {
                     Log.info('[Migrate Onyx] Skipped migration AddLastActionCreated');
-                } else {
-                    Log.info(`[Migrate Onyx] Adding lastActionCreated field to ${_.keys(reportsToUpdate).length} reports`);
-                    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate);
+                    return resolve();
                 }
+
+                Log.info(`[Migrate Onyx] Adding lastActionCreated field to ${_.keys(reportsToUpdate).length} reports`);
+                // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate)
+                    .then(resolve);
             },
         });
-        return resolve();
     });
 }
