@@ -94,6 +94,14 @@ function canUsePolicyExpenseChat(betas) {
     return _.contains(betas, CONST.BETAS.POLICY_EXPENSE_CHAT) || canUseAllBetas(betas);
 }
 
+/**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+function canUsePasswordlessLogins(betas) {
+    return _.contains(betas, CONST.BETAS.PASSWORDLESS) || canUseAllBetas(betas);
+}
+
 export default {
     canUseChronos,
     canUseIOU,
@@ -105,4 +113,5 @@ export default {
     canUseCommentLinking,
     canUsePolicyRooms,
     canUsePolicyExpenseChat,
+    canUsePasswordlessLogins,
 };

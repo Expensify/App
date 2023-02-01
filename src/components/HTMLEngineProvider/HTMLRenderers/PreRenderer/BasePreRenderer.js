@@ -1,6 +1,6 @@
 import React, {forwardRef} from 'react';
 import {ScrollView} from 'react-native-gesture-handler';
-import {Pressable} from 'react-native';
+import {TouchableWithoutFeedback, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import htmlRendererPropTypes from '../htmlRendererPropTypes';
@@ -38,14 +38,16 @@ const BasePreRenderer = forwardRef((props, ref) => {
                     action,
                     checkIfContextMenuActive,
                 }) => (
-                    <Pressable
+                    <TouchableWithoutFeedback
                         onPressIn={props.onPressIn}
                         onPressOut={props.onPressOut}
                         onLongPress={event => showContextMenuForReport(event, anchor, reportID, action, checkIfContextMenuActive)}
                     >
-                        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                        <TDefaultRenderer {...defaultRendererProps} />
-                    </Pressable>
+                        <View>
+                            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                            <TDefaultRenderer {...defaultRendererProps} />
+                        </View>
+                    </TouchableWithoutFeedback>
                 )}
             </ShowContextMenuContext.Consumer>
         </ScrollView>

@@ -79,7 +79,6 @@ const defaultProps = {
     isSidebarLoaded: false,
     reportActions: {},
     report: {
-        maxSequenceNumber: 0,
         hasOutstandingIOU: false,
         isLoadingReportActions: false,
     },
