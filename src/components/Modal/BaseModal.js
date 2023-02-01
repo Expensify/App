@@ -107,6 +107,9 @@ class BaseModal extends PureComponent {
                 hasBackdrop={this.props.fullscreen}
                 coverScreen={this.props.fullscreen}
                 style={modalStyle}
+
+                // When `statusBarTranslucent` is true on Android, the modal fully covers the status bar.
+                // Since `windowHeight` doesn't include status bar height, it should be added in the `deviceHeight` calculation.
                 deviceHeight={this.props.windowHeight + ((this.props.statusBarTranslucent && StatusBar.currentHeight) || 0)}
                 deviceWidth={this.props.windowWidth}
                 animationIn={this.props.animationIn || animationIn}
