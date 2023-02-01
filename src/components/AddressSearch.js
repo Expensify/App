@@ -7,6 +7,7 @@ import lodashGet from 'lodash/get';
 import CONFIG from '../CONFIG';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import TextInput from './TextInput';
 import Log from '../libs/Log';
 import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
@@ -228,6 +229,8 @@ const AddressSearch = (props) => {
                         description: [styles.googleSearchText],
                         separator: [styles.googleSearchSeparator],
                     }}
+                    listHoverColor={themeColors.border}
+                    listUnderlayColor={themeColors.buttonPressedBG}
                     onLayout={(event) => {
                         // We use the height of the element to determine if we should hide the border of the listView dropdown
                         // to prevent a lingering border when there are no address suggestions.
