@@ -204,6 +204,11 @@ class ValidationStep extends React.Component {
                                 wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                             />
                         </Section>
+                        {this.props.reimbursementAccount.shouldShowResetModal && (
+                            <WorkspaceResetBankAccountModal
+                                reimbursementAccount={this.props.reimbursementAccount}
+                            />
+                        )}
                     </View>
                 )}
             </View>

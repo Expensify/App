@@ -22,6 +22,7 @@ import * as Link from '../../libs/actions/Link';
 import * as User from '../../libs/actions/User';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import * as BankAccounts from '../../libs/actions/ReimbursementAccount';
+import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -102,6 +103,11 @@ const EnableStep = (props) => {
                     </Text>
                 )}
             </ScrollView>
+            {props.reimbursementAccount.shouldShowResetModal && Boolean(achData.bankAccountID) && (
+                <WorkspaceResetBankAccountModal
+                    reimbursementAccount={props.reimbursementAccount}
+                />
+            )}
         </ScreenWrapper>
     );
 };
