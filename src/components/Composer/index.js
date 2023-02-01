@@ -226,7 +226,21 @@ class Composer extends React.Component {
 
             const domparser = new DOMParser();
             const parsedHTML = domparser.parseFromString(pastedHTML, TEXT_HTML);
-            if (parsedHTML.body.childNodes.length === 1 && parsedHTML.body.childNodes[0].tagName.toLowerCase() === 'img' && files.length > 0) {
+
+            // If the paste contains an image and html,
+            // then we should prefer the image ONLY if
+            // the HTML is representation of the same image.
+            // If HTML contains text besides image, then we should
+            // favour HTML and show the text instead. This is an issue
+            // when you copy something from MS Word application
+            // as it often contains an image of your selection
+            // along with the HTML of it.
+            // Ref: https://github.com/Expensify/App/issues/14232
+            if (
+                parsedHTML.body.childNodes.length === 1
+                && parsedHTML.body.childNodes[0].tagName.toLowerCase() === 'img'
+                && files.length > 0
+            ) {
                 this.props.onPasteFile(event.clipboardData.files[0]);
                 return;
             }
