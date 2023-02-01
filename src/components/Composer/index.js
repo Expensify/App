@@ -236,7 +236,6 @@ class Composer extends React.Component {
             // as it often contains an image of your selection
             // along with the HTML of it.
             // Ref: https://github.com/Expensify/App/issues/14232
-            debugger;
             if (
                 _.get(parsedHTML, 'body.childNodes.length', 0) === 1
                 && _.get(parsedHTML, 'body.childNodes[0].tagName', '').toLowerCase() === 'img'
