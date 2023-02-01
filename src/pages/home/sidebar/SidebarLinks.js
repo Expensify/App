@@ -51,11 +51,14 @@ const propTypes = {
 
     /** The personal details of the person who is logged in */
     currentUserPersonalDetails: PropTypes.shape({
-        /** Display name of the current user from their personal details */
+        /** Display name of the current user */
         displayName: PropTypes.string,
 
-        /** Avatar URL of the current user from their personal details */
-        avatar: PropTypes.string,
+        /** Avatar URL or SVG of the current user */
+        avatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+
+        /** Login email of the current user */
+        login: PropTypes.string,
     }),
 
     /** Current reportID from the route in react navigation state object */
@@ -78,7 +81,7 @@ const defaultProps = {
     reportActions: {},
     personalDetails: {},
     currentUserPersonalDetails: {
-        avatar: ReportUtils.getDefaultAvatar(),
+        avatar: '',
     },
     reportIDFromRoute: '',
     onLayout: () => {},
@@ -131,6 +134,7 @@ class SidebarLinks extends React.Component {
             return null;
         }
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
+
         return (
             <View
                 accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
@@ -173,7 +177,7 @@ class SidebarLinks extends React.Component {
                             pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
                         >
                             <AvatarWithIndicator
-                                source={this.props.currentUserPersonalDetails.avatar}
+                                source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
                                 tooltipText={this.props.translate('common.settings')}
                             />
                         </OfflineWithFeedback>
@@ -249,7 +253,7 @@ const personalDetailsSelector = personalDetails => _.reduce(personalDetails, (fi
         login: personalData.login,
         displayName: personalData.displayName,
         firstName: personalData.firstName,
-        avatar: personalData.avatar,
+        avatar: ReportUtils.getAvatar(personalData.avatar, personalData.login),
     };
     return finalPersonalDetails;
 }, {});

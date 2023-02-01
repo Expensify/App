@@ -148,6 +148,7 @@ class PDFView extends Component {
                                 width={pageWidth}
                                 key={`page_${index + 1}`}
                                 pageNumber={index + 1}
+                                loading=""
                             />
                         ))}
                     </Document>
