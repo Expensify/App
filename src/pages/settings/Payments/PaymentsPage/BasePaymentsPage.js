@@ -480,6 +480,9 @@ class BasePaymentsPage extends React.Component {
                     )}
                 </Popover>
                 <PasswordPopover
+
+                    // Disable coverScreen to mount the modal within the component
+                    // hierarchy, otherwise it will not resize with screenWrapper.
                     disableCoverScreen
                     isVisible={this.state.shouldShowPasswordPrompt}
                     onClose={this.hidePasswordPrompt}
