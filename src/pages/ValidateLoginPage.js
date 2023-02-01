@@ -46,8 +46,11 @@ class ValidateLoginPage extends Component {
 
     validateCode = () => lodashGet(this.props.route.params, 'validateCode', '');
 
-    isPasswordlessFlow = () => this.props.betas.includes(CONST.BETAS.PASSWORDLESS)
-        || this.props.betas.includes(CONST.BETAS.ALL);
+    isPasswordlessFlow = () => this.props.betas &&
+        (
+            this.props.betas.includes(CONST.BETAS.PASSWORDLESS)
+            || this.props.betas.includes(CONST.BETAS.ALL)
+        );
 
     render() {
         return (this.isPasswordlessFlow() ? <MagicCodeModal code={this.validateCode()}/> : <FullScreenLoadingIndicator />);
