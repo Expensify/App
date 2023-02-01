@@ -1,4 +1,5 @@
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import ConfirmModal from '../../components/ConfirmModal';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
@@ -11,6 +12,9 @@ import BankAccount from '../../libs/models/BankAccount';
 const propTypes = {
     /** Reimbursement account data */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
+
+    /** Callback when the user confirms resetting the workspace bank account */
+    onConfirm: PropTypes.func.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -37,7 +41,10 @@ const WorkspaceResetBankAccountModal = (props) => {
             ) : props.translate('workspace.bankAccount.clearProgress')}
             danger
             onCancel={BankAccounts.cancelResetFreePlanBankAccount}
-            onConfirm={() => BankAccounts.resetFreePlanBankAccount(bankAccountID)}
+            onConfirm={() => {
+                BankAccounts.resetFreePlanBankAccount(bankAccountID);
+                props.onConfirm();
+            }}
             shouldShowCancelButton
             isVisible
         />
