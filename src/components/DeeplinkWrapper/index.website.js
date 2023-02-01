@@ -104,7 +104,6 @@ class DeeplinkWrapper extends PureComponent {
     }
 
     render() {
-        debugger;
         if (this.state.appInstallationCheckStatus === CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING) {
             return <FullScreenLoadingIndicator style={styles.flex1} />;
         }
