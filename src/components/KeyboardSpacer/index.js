@@ -1,5 +1,5 @@
 /**
- * On non native platforms we do not need to implement a keyboard spacer, so we return a null component.
+ * On non iOS platforms we do not need to implement a keyboard spacer, so we return a null component.
  *
  * @returns {null}
  * @constructor
