@@ -111,7 +111,7 @@ function register(accountID) {
     // When the user logged out and then logged in with a different account
     // while the app is still in background, we must resubscribe to the report
     // push notification in order to render the report click behaviour correctly
-    PushNotification.init();
+    init();
     subscribeToReportCommentPushNotifications();
 }
 
