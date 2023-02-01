@@ -1143,8 +1143,8 @@ function isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports = {}) {
  *
  * @param {Object} report
  * @param {Array<Object>} policies
- * @param {Array<String>>} betas
- * @return {Boolean|boolean}
+ * @param {Array<String>} betas
+ * @return {Boolean}
  */
 function canSeeDefaultRoom(report, policies, betas) {
     // Include archived rooms
