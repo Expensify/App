@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, Text} from 'react-native';
-import _ from 'underscore/underscore-node.mjs';
 import styles from '../../styles/styles';
 import Recent from '../../../assets/images/history.svg';
 import Smiley from '../../../assets/images/emoji.svg';
