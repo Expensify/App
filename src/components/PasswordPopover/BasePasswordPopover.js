@@ -51,6 +51,7 @@ class BasePasswordPopover extends Component {
     render() {
         return (
             <Popover
+                disableCoverScreen={this.props.disableCoverScreen}
                 isVisible={this.props.isVisible}
                 onClose={this.props.onClose}
                 anchorPosition={this.props.anchorPosition}

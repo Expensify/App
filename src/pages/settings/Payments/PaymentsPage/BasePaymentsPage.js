@@ -478,6 +478,7 @@ class BasePaymentsPage extends React.Component {
                     )}
                 </Popover>
                 <PasswordPopover
+                    disableCoverScreen
                     isVisible={this.state.shouldShowPasswordPrompt}
                     onClose={this.hidePasswordPrompt}
                     anchorPosition={{
