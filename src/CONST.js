@@ -156,6 +156,7 @@ const CONST = {
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+        PASSWORDLESS: 'passwordless',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -465,6 +466,9 @@ const CONST = {
 
     // at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
     PASSWORD_COMPLEXITY_REGEX_STRING: '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
+
+    // 6 numeric digits
+    VALIDATE_CODE_REGEX_STRING: /^\d{6}$/,
 
     PASSWORD_PAGE: {
         ERROR: {
