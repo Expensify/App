@@ -30,6 +30,7 @@ import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as Expensicons from '../../components/Icon/Expensicons';
+import * as ReportUtils from '../../libs/ReportUtils';
 import FormHelpMessage from '../../components/FormHelpMessage';
 
 const propTypes = {
@@ -261,7 +262,7 @@ class WorkspaceMembersPage extends React.Component {
                                 text: Str.removeSMSDomain(item.displayName),
                                 alternateText: Str.removeSMSDomain(item.login),
                                 participantsList: [item],
-                                icons: [item.avatar],
+                                icons: [ReportUtils.getAvatar(item.avatar, item.login)],
                                 keyForList: item.login,
                             }}
                         />

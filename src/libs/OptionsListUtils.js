@@ -372,7 +372,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
 
     result.text = reportName;
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
-    result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
+    result.icons = ReportUtils.getIcons(report, personalDetails, policies, ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login));
     result.subtitle = subtitle;
 
     return result;
@@ -590,7 +590,9 @@ function getOptions(reports, personalDetails, {
         userToInvite = createOption([login], personalDetails, null, reportActions, {
             showChatPreviewLine,
         });
-        userToInvite.icons = [ReportUtils.getDefaultAvatar(login)];
+
+        // If user doesn't exist, use a default avatar
+        userToInvite.icons = [ReportUtils.getAvatar('', login)];
     }
 
     // If we are prioritizing 1:1 chats in search, do it only once we started searching
@@ -660,7 +662,7 @@ function getIOUConfirmationOptionsFromMyPersonalDetail(myPersonalDetail, amountT
     return {
         text: myPersonalDetail.displayName,
         alternateText: myPersonalDetail.login,
-        icons: [myPersonalDetail.avatar],
+        icons: [ReportUtils.getAvatar(myPersonalDetail.avatar, myPersonalDetail.login)],
         descriptiveText: amountText,
         login: myPersonalDetail.login,
     };

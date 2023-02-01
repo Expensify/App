@@ -90,6 +90,7 @@ class Avatar extends PureComponent {
                                 height={iconSize}
                                 width={iconSize}
                                 fill={this.state.imageError ? themeColors.offline : this.props.fill}
+                                isSVGAvatar
                             />
                         </View>
                     )

@@ -18,7 +18,7 @@ import * as PaymentMethods from '../libs/actions/PaymentMethods';
 
 const propTypes = {
     /** URL for the avatar */
-    source: PropTypes.string.isRequired,
+    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
 
     /** Avatar size */
     size: PropTypes.string,

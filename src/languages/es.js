@@ -19,6 +19,7 @@ export default {
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
         password: 'Contraseña',
+        magicCode: 'Código mágico',
         workspaces: 'Espacios de trabajo',
         profile: 'Perfil',
         payments: 'Pagos',
@@ -166,9 +167,11 @@ export default {
     phoneCountryCode: '34',
     welcomeText: {
         welcome: 'Con el Nuevo Expensify, chat y pagos son lo mismo.',
+        welcomeEnterMagicCode: ({login}) => `¡Siempre es genial ver una cara nueva por aquí! Por favor ingresa el código mágico enviado a ${login}`,
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
         welcomeBack: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, introduce tu contraseña.',
+        welcomeBackEnterMagicCode: ({login}) => `¡Bienvenido de nuevo! Por favor, introduce el código mágico enviado a ${login}`,
     },
     reportActionCompose: {
         addAction: 'Acción',
@@ -522,6 +525,17 @@ export default {
         phrase4: 'privacidad',
         phrase5: 'El envío de dinero es brindado por Expensify Payments LLC (NMLS ID:2017010) de conformidad con sus',
         phrase6: 'licencias',
+    },
+    validateCodeForm: {
+        magicCodeNotReceived: '¿No recibiste un código mágico?',
+        enterAuthenticatorCode: 'Por favor ingresa su código de autenticador',
+        twoFactorCode: 'Autenticación de 2 factores',
+        requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
+        error: {
+            pleaseFillMagicCode: 'Por favor, introduce el código mágico',
+            incorrectMagicCode: 'Código mágico incorrecto.',
+            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
+        },
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Por favor completa todos los campos',
