@@ -20,9 +20,7 @@ const CategoryShortcutBar = (props) => {
 
     return (
         <View style={[styles.pt2, styles.ph4, styles.flexRow]}>
-            {_.map(props.headerIndices, (headerIndex, i) => (
-                <Text>asdf</Text>
-            ))}
+            <Text>asdf</Text>
         </View>
     );
 };
