@@ -94,6 +94,17 @@ function canUsePolicyExpenseChat(betas) {
     return _.contains(betas, CONST.BETAS.POLICY_EXPENSE_CHAT) || canUseAllBetas(betas);
 }
 
+<<<<<<< HEAD
+=======
+/**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+function canUsePasswordlessLogins(betas) {
+    return _.contains(betas, CONST.BETAS.PASSWORDLESS) || _.contains(betas, CONST.BETAS.ALL);
+}
+
+>>>>>>> dbc17642e6 (Merge pull request #14730 from Expensify/beaman-onlyAllowPasswordlessForThatBeta)
 export default {
     canUseChronos,
     canUseIOU,
