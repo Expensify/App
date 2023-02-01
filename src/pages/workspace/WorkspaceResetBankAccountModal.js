@@ -14,10 +14,14 @@ const propTypes = {
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
     /** Callback when the user confirms resetting the workspace bank account */
-    onConfirm: PropTypes.func.isRequired,
+    onConfirm: PropTypes.func,
 
     ...withLocalizePropTypes,
 };
+
+const defaultProps = {
+    onConfirm: null,
+}
 
 const WorkspaceResetBankAccountModal = (props) => {
     const achData = lodashGet(props.reimbursementAccount, 'achData') || {};
@@ -43,7 +47,9 @@ const WorkspaceResetBankAccountModal = (props) => {
             onCancel={BankAccounts.cancelResetFreePlanBankAccount}
             onConfirm={() => {
                 BankAccounts.resetFreePlanBankAccount(bankAccountID);
-                props.onConfirm();
+                if (props.onConfirm) {
+                    props.onConfirm();
+                }
             }}
             shouldShowCancelButton
             isVisible
@@ -53,5 +59,6 @@ const WorkspaceResetBankAccountModal = (props) => {
 
 WorkspaceResetBankAccountModal.displayName = 'WorkspaceResetBankAccountModal';
 WorkspaceResetBankAccountModal.propTypes = propTypes;
+WorkspaceResetBankAccountModal.defaultProps = defaultProps;
 
 export default withLocalize(WorkspaceResetBankAccountModal);
