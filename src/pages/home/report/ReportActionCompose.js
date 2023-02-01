@@ -17,8 +17,8 @@ import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
 import PopoverMenu from '../../../components/PopoverMenu';
+import willBlurTextInputOnTapOutside from '../../../libs/willBlurTextInputOnTapOutside';
 import CONST from '../../../CONST';
-import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -133,7 +133,10 @@ class ReportActionCompose extends React.PureComponent {
         this.focusInputAndSetSelection = this.focusInputAndSetSelection.bind(this);
 
         this.comment = props.comment;
-        this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+
+        // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
+        // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
+        this.willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutside();
 
         // This variable will be kept up to date by the text input's onSelectionChange callback
         this.selection = {
@@ -146,7 +149,7 @@ class ReportActionCompose extends React.PureComponent {
         this.nextSelectionAfterEmojiInsertion = null;
 
         this.state = {
-            isFocused: this.shouldFocusInputOnScreenFocus && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible,
+            isFocused: this.willBlurTextInputOnTapOutside && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible,
             isFullComposerAvailable: props.isComposerFullSize,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
@@ -164,8 +167,10 @@ class ReportActionCompose extends React.PureComponent {
     }
 
     componentDidMount() {
+        // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
+        // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
         ReportActionComposeFocusManager.onComposerFocus(() => {
-            if (!this.shouldFocusInputOnScreenFocus || !this.props.isFocused) {
+            if (!this.willBlurTextInputOnTapOutside || !this.props.isFocused) {
                 return;
             }
 
@@ -184,7 +189,7 @@ class ReportActionCompose extends React.PureComponent {
         // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (this.shouldFocusInputOnScreenFocus && this.props.isFocused
+        if (this.willBlurTextInputOnTapOutside && this.props.isFocused
             && prevProps.modal.isVisible && !this.props.modal.isVisible) {
             this.textInput.focus();
         }
@@ -663,7 +668,7 @@ class ReportActionCompose extends React.PureComponent {
                                         disabled={this.props.disabled}
                                     >
                                         <Composer
-                                            autoFocus={!this.props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat())}
+                                            autoFocus={!this.props.modal.isVisible && (this.willBlurTextInputOnTapOutside || this.isEmptyChat())}
                                             multiline
                                             ref={this.setTextInputRef}
                                             textAlignVertical="top"
