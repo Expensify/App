@@ -281,7 +281,7 @@ function signInFromMagicLink(accountID, validateCode) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.CREDENTIALS,
             value: {
-                validateCode: validateCode,
+                validateCode,
             },
         },
     ];
