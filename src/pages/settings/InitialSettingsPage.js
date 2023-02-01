@@ -31,6 +31,7 @@ import * as Wallet from '../../libs/actions/Wallet';
 import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import ConfirmModal from '../../components/ConfirmModal';
+import * as ReportUtils from '../../libs/ReportUtils';
 import * as Link from '../../libs/actions/Link';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
@@ -254,7 +255,7 @@ class InitialSettingsPage extends React.Component {
                                     >
                                         <Avatar
                                             imageStyles={[styles.avatarLarge]}
-                                            source={this.props.currentUserPersonalDetails.avatar}
+                                            source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.email)}
                                             size={CONST.AVATAR_SIZE.LARGE}
                                         />
                                     </OfflineWithFeedback>

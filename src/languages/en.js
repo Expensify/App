@@ -19,6 +19,7 @@ export default {
         save: 'Save',
         saveChanges: 'Save changes',
         password: 'Password',
+        magicCode: 'Magic code',
         workspaces: 'Workspaces',
         profile: 'Profile',
         payments: 'Payments',
@@ -174,10 +175,12 @@ export default {
     hello: 'Hello',
     phoneCountryCode: '1',
     welcomeText: {
-        welcome: 'Welcome to the New Expensify! Enter your phone number or email to continue.',
+        welcome: 'Welcome to New Expensify! Enter your phone number or email to continue.',
+        welcomeEnterMagicCode: ({login}) => `It's always great to see a new face around here! Please enter the magic code sent to ${login}`,
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
         welcomeBack: 'Welcome back to the New Expensify! Please enter your password.',
+        welcomeBackEnterMagicCode: ({login}) => `Welcome back! Please enter the magic code sent to ${login}`,
     },
     reportActionCompose: {
         addAction: 'Actions',
@@ -215,8 +218,8 @@ export default {
         deleteConfirmation: 'Are you sure you want to delete this comment?',
     },
     reportActionsView: {
-        begginningOfArchivedRoomPartOne: 'You missed the party in ',
-        begginningOfArchivedRoomPartTwo: ', there\'s nothing to see here.',
+        beginningOfArchivedRoomPartOne: 'You missed the party in ',
+        beginningOfArchivedRoomPartTwo: ', there\'s nothing to see here.',
         beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}) => `Collaboration with everyone at ${domainRoom} starts here! 🎉\nUse `,
         beginningOfChatHistoryDomainRoomPartTwo: ' to chat with colleagues, share tips, and ask questions.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
@@ -230,6 +233,8 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
         chatWithAccountManager: 'Chat with your account manager here',
+        sayHello: 'Say hello!',
+        usePlusButton: '\n\nYou can also use the + button below to send or request money!',
     },
     newMessages: 'New messages',
     reportTypingIndicator: {
@@ -529,6 +534,17 @@ export default {
         phrase4: 'privacy',
         phrase5: 'Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its',
         phrase6: 'licenses',
+    },
+    validateCodeForm: {
+        magicCodeNotReceived: "Didn't receive a magic code?",
+        enterAuthenticatorCode: 'Please enter your authenticator code',
+        twoFactorCode: 'Two factor code',
+        requiredWhen2FAEnabled: 'Required when 2FA is enabled',
+        error: {
+            pleaseFillMagicCode: 'Please enter your magic code',
+            incorrectMagicCode: 'Incorrect magic code.',
+            pleaseFillTwoFactorAuth: 'Please enter your two factor code',
+        },
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Please fill out all fields',

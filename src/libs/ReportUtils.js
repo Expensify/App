@@ -15,6 +15,7 @@ import * as NumberUtils from './NumberUtils';
 import * as NumberFormatUtils from './NumberFormatUtils';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
+import * as defaultAvatars from '../components/Icon/DefaultAvatars';
 
 let sessionEmail;
 Onyx.connect({
@@ -323,8 +324,8 @@ function getRoomWelcomeMessage(report, policiesMap) {
     const workspaceName = getPolicyName(report, policiesMap);
 
     if (isArchivedRoom(report)) {
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.begginningOfArchivedRoomPartOne');
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.begginningOfArchivedRoomPartTwo');
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
     } else if (isDomainRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartOne', {domainRoom: report.reportName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartTwo');
@@ -406,16 +407,83 @@ function formatReportLastMessageText(lastMessageText) {
 }
 
 /**
- * Helper method to return a default avatar
- *
+ * Hashes provided string and returns a value between [1, range]
+ * @param {String} login
+ * @param {Number} range
+ * @returns {Number}
+ */
+function hashLogin(login, range) {
+    return (Math.abs(hashCode(login.toLowerCase())) % range) + 1;
+}
+
+/**
+ * Helper method to return the default avatar associated with the given login
  * @param {String} [login]
  * @returns {String}
  */
 function getDefaultAvatar(login = '') {
-    // There are 8 possible default avatars, so we choose which one this user has based
+    if (!login) {
+        return Expensicons.FallbackAvatar;
+    }
+    if (login === CONST.EMAIL.CONCIERGE) {
+        return Expensicons.ConciergeAvatar;
+    }
+
+    // There are 24 possible default avatars, so we choose which one this user has based
     // on a simple hash of their login
-    const loginHashBucket = (Math.abs(hashCode(login.toLowerCase())) % 8) + 1;
+    const loginHashBucket = hashLogin(login, CONST.DEFAULT_AVATAR_COUNT);
+
+    return defaultAvatars[`Avatar${loginHashBucket}`];
+}
+
+/**
+ * Helper method to return old dot default avatar associated with login
+ *
+ * @param {String} [login]
+ * @returns {String}
+ */
+function getOldDotDefaultAvatar(login = '') {
+    if (login === CONST.EMAIL.CONCIERGE) {
+        return CONST.CONCIERGE_ICON_URL;
+    }
+
+    // There are 8 possible old dot default avatars, so we choose which one this user has based
+    // on a simple hash of their login
+    const loginHashBucket = hashLogin(login, CONST.OLD_DEFAULT_AVATAR_COUNT);
+
     return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
+}
+
+/**
+ * Given a user's avatar path, returns true if user doesn't have an avatar or if URL points to a default avatar
+ * @param {String} [avatarURL] - the avatar source from user's personalDetails
+ * @returns {Boolean}
+ */
+function isDefaultAvatar(avatarURL) {
+    if (_.isString(avatarURL) && (avatarURL.includes('images/avatars/avatar_') || avatarURL.includes('images/avatars/user/default'))) {
+        return true;
+    }
+
+    // If null URL, we should also use a default avatar
+    if (!avatarURL) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Provided a source URL, if source is a default avatar, return the associated SVG.
+ * Otherwise, return the URL pointing to a user-uploaded avatar.
+ *
+ * @param {String} [avatarURL] - the avatar source from user's personalDetails
+ * @param {String} [login] - the email of the user
+ * @returns {String | Function}
+ */
+function getAvatar(avatarURL, login) {
+    if (isDefaultAvatar(avatarURL)) {
+        return getDefaultAvatar(login);
+    }
+    return avatarURL;
 }
 
 /**
@@ -430,7 +498,10 @@ function getDefaultAvatar(login = '') {
  */
 function getIcons(report, personalDetails, policies, defaultIcon = null) {
     if (_.isEmpty(report)) {
-        return [defaultIcon || getDefaultAvatar()];
+        return [defaultIcon || Expensicons.FallbackAvatar];
+    }
+    if (isConciergeChatReport(report)) {
+        return [CONST.CONCIERGE_ICON_URL];
     }
     if (isArchivedRoom(report)) {
         return [Expensicons.DeletedRoomAvatar];
@@ -460,19 +531,22 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
         // If the user is an admin, return avatar source of the other participant of the report
         // (their workspace chat) and the avatar source of the workspace
         return [
-            lodashGet(personalDetails, [report.ownerEmail, 'avatar']) || getDefaultAvatar(report.ownerEmail),
+            getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
             policyExpenseChatAvatarSource,
         ];
     }
 
     const participantDetails = [];
     const participants = report.participants || [];
+
     for (let i = 0; i < participants.length; i++) {
         const login = participants[i];
+
+        const avatarSource = getAvatar(lodashGet(personalDetails, [login, 'avatar'], ''), login);
         participantDetails.push([
             login,
             lodashGet(personalDetails, [login, 'firstName'], ''),
-            lodashGet(personalDetails, [login, 'avatar']) || getDefaultAvatar(login),
+            avatarSource,
         ]);
     }
 
@@ -1301,5 +1375,8 @@ export {
     getDisplayNameForParticipant,
     isIOUReport,
     chatIncludesChronos,
+    getAvatar,
+    isDefaultAvatar,
+    getOldDotDefaultAvatar,
     getNewMarkerReportActionID,
 };

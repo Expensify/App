@@ -279,6 +279,11 @@ const styles = {
         fontSize: variables.fontSizeXXXLarge,
     },
 
+    textHero: {
+        fontSize: variables.fontSizeHero,
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+    },
+
     textStrong: {
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
@@ -345,14 +350,6 @@ const styles = {
 
     opacity1: {
         opacity: 1,
-    },
-
-    pr0: {
-        paddingRight: 0,
-    },
-
-    pl0: {
-        paddingLeft: 0,
     },
 
     textDanger: {
@@ -1669,6 +1666,7 @@ const styles = {
         borderWidth: 3,
         borderRadius: 18,
         borderColor: themeColors.cardBorder,
+        backgroundColor: themeColors.appBG,
     },
 
     avatarLarge: {
@@ -1772,7 +1770,7 @@ const styles = {
     },
 
     borderTop: {
-        borderTopWidth: 1,
+        borderTopWidth: variables.borderTopWidth,
         borderColor: themeColors.border,
     },
 
@@ -1992,10 +1990,17 @@ const styles = {
         width: '100%',
     },
 
+    roomHeaderAvatarSize: {
+        height: variables.componentSizeLarge,
+        width: variables.componentSizeLarge,
+    },
+
     roomHeaderAvatar: {
+        backgroundColor: themeColors.appBG,
+        marginLeft: -16,
+        borderRadius: 100,
         borderColor: themeColors.componentBG,
         borderWidth: 4,
-        marginLeft: -16,
     },
 
     roomHeaderAvatarOverlay: {
@@ -2018,6 +2023,18 @@ const styles = {
         position: 'absolute',
         width: 88,
         left: -16,
+    },
+
+    svgAvatarBorder: {
+        borderRadius: 100,
+        overflow: 'hidden',
+    },
+
+    displayName: {
+        fontSize: variables.fontSizeLarge,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
     },
 
     pageWrapper: {
@@ -2207,6 +2224,7 @@ const styles = {
 
     iouPreviewBoxAvatarHover: {
         borderColor: themeColors.border,
+        backgroundColor: themeColors.border,
     },
 
     iouPreviewBoxCheckmark: {
@@ -2768,12 +2786,6 @@ const styles = {
         fontSize: variables.fontSizeLabel,
         fontFamily: fontFamily.EXP_NEUE,
         marginLeft: 6,
-    },
-
-    addWorkspaceRoomErrorRow: {
-        paddingHorizontal: 20,
-        maxWidth: 450,
-        alignSelf: 'center',
     },
 
     fullScreenTransparentOverlay: {

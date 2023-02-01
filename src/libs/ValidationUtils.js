@@ -302,6 +302,14 @@ function isValidPassword(password) {
 }
 
 /**
+ * @param {string} validateCode
+ * @returns {Boolean}
+ */
+function isValidValidateCode(validateCode) {
+    return validateCode.match(CONST.VALIDATE_CODE_REGEX_STRING);
+}
+
+/**
  * @param {String} code
  * @returns {Boolean}
  */
@@ -471,5 +479,6 @@ export {
     isExistingRoomName,
     isValidRoomName,
     isValidTaxID,
+    isValidValidateCode,
     findInvalidSymbols,
 };
