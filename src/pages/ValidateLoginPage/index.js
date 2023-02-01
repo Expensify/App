@@ -4,15 +4,15 @@ import {
     propTypes as validateLinkPropTypes,
     defaultProps as validateLinkDefaultProps,
 } from './validateLinkPropTypes';
-import * as User from '../libs/actions/User';
-import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
+import * as User from '../../libs/actions/User';
+import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import { compose } from 'underscore';
-import { withBetas } from '../components/OnyxProvider';
-import CONST from '../CONST';
-import MagicCodeModal from '../components/MagicCodeModal';
+import { withBetas } from '../../components/OnyxProvider';
+import CONST from '../../CONST';
+import MagicCodeModal from '../../components/MagicCodeModal';
 import { withOnyx } from 'react-native-onyx';
-import ONYXKEYS from '../ONYXKEYS';
-import * as Session from '../libs/actions/Session';
+import ONYXKEYS from '../../ONYXKEYS';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
