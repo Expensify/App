@@ -25,6 +25,7 @@ import Section from '../../components/Section';
 import CONST from '../../CONST';
 import Button from '../../components/Button';
 import MenuItem from '../../components/MenuItem';
+import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
 
 const propTypes = {
     ...withLocalizePropTypes,
