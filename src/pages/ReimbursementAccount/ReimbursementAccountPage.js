@@ -282,12 +282,12 @@ class ReimbursementAccountPage extends React.Component {
                         }}
                     />
                     {this.props.reimbursementAccount.shouldShowResetModal && Boolean(achData.bankAccountID) && (
-                        <WorkspaceResetBankAccountModal 
-                            reimbursementAccount={this.props.reimbursementAccount} 
-                            onConfirm={() => this.setState({ shouldHideContinueSetupButton: true })}
+                        <WorkspaceResetBankAccountModal
+                            reimbursementAccount={this.props.reimbursementAccount}
+                            onConfirm={() => this.setState({shouldHideContinueSetupButton: true})}
                         />
                     )}
-                </View>  
+                </View>
             );
         }
 

@@ -21,7 +21,7 @@ const propTypes = {
 
 const defaultProps = {
     onConfirm: null,
-}
+};
 
 const WorkspaceResetBankAccountModal = (props) => {
     const achData = lodashGet(props.reimbursementAccount, 'achData') || {};
