@@ -5,6 +5,9 @@ import getComponentDisplayName from '../libs/getComponentDisplayName';
 import addViewportResizeListener from '../libs/VisualViewport';
 
 const viewportOffsetTopPropTypes = {
+    // viewportOffsetTop returns the offset of the top edge of the visual viewport from the
+    // top edge of the layout viewport in CSS pixels, when the visual viewport is resized.
+
     viewportOffsetTop: PropTypes.number.isRequired,
 };
 
