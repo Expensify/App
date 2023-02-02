@@ -54,7 +54,7 @@ class KeyboardShortcutsModal extends React.Component {
      */
     renderRow(shortcut, isFirstRow) {
         return (
-            <ScrollView
+            <View
                 style={[
                     styles.keyboardShortcutTableRow,
                     isFirstRow && styles.keyboardShortcutTableFirstRow,
@@ -67,7 +67,7 @@ class KeyboardShortcutsModal extends React.Component {
                 <View style={[styles.flex1, styles.p2, styles.alignSelfStretch]}>
                     <Text>{this.props.translate(`keyboardShortcutModal.shortcuts.${shortcut.descriptionKey}`)}</Text>
                 </View>
-            </ScrollView>
+            </View>
         );
     }
 
@@ -83,7 +83,7 @@ class KeyboardShortcutsModal extends React.Component {
                 onClose={KeyboardShortcutsActions.hideKeyboardShortcutModal}
             >
                 <HeaderWithCloseButton title={this.props.translate('keyboardShortcutModal.title')} onCloseButtonPress={KeyboardShortcutsActions.hideKeyboardShortcutModal} />
-                <View style={[styles.p5, styles.pt0]}>
+                <ScrollView style={[styles.p5, styles.pt0]}>
                     <Text style={styles.mb5}>{this.props.translate('keyboardShortcutModal.subtitle')}</Text>
                     <View style={[styles.keyboardShortcutTableWrapper]}>
                         <View style={[styles.alignItemsCenter, styles.keyboardShortcutTableContainer]}>
@@ -93,7 +93,7 @@ class KeyboardShortcutsModal extends React.Component {
                             })}
                         </View>
                     </View>
-                </View>
+                </ScrollView>
             </Modal>
         );
     }
