@@ -55,6 +55,7 @@ const GetAssistancePage = (props) => {
             onPress: () => Linking.openURL(guideCalendarLink),
             icon: Expensicons.Phone,
             shouldShowRightIcon: true,
+            iconRight: Expensicons.NewWindow,
             wrapperStyle: [styles.cardMenuItem],
         });
     }
