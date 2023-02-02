@@ -18,6 +18,7 @@ import RocketOrange from '../../../assets/images/product-illustrations/rocket--o
 import TadaYellow from '../../../assets/images/product-illustrations/tada--yellow.svg';
 import TadaBlue from '../../../assets/images/product-illustrations/tada--blue.svg';
 import GpsTrackOrange from '../../../assets/images/product-illustrations/gps-track--orange.svg';
+import ShieldYellow from '../../../assets/images/simple-illustrations/simple-illustration__shield.svg';
 import MoneyReceipts from '../../../assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
 import PinkBill from '../../../assets/images/simple-illustrations/simple-illustration__bill.svg';
 import CreditCardsNew from '../../../assets/images/simple-illustrations/simple-illustration__credit-cards.svg';
@@ -56,6 +57,7 @@ export {
     TadaYellow,
     TadaBlue,
     GpsTrackOrange,
+    ShieldYellow,
     MoneyReceipts,
     PinkBill,
     CreditCardsNew,
