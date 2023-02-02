@@ -210,7 +210,6 @@ const CONST = {
             shortcutKey: 'K',
             modifiers: ['CTRL', 'SHIFT'],
             trigger: {
-                // fix library bug, web: keyModifierControlShift, android: keyModifierShiftControl
                 DEFAULT: {input: 'k', modifierFlags: KeyCommand.constants.keyModifierShiftControl},
                 [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: KeyCommand.constants.keyModifierShiftCommand},
             },

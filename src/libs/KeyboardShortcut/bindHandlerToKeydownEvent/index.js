@@ -1,30 +1,5 @@
 import _ from 'underscore';
-
-/**
- * Gets modifiers from a keyboard event.
- *
- * @param {Event} event
- * @returns {Array<String>}
- */
-function getKeyEventModifiers(event) {
-    const modifiers = [];
-
-    if ((event instanceof KeyboardEvent)) {
-        if (event.shiftKey) {
-            modifiers.push('SHIFT');
-        }
-        if (event.ctrlKey) {
-            modifiers.push('CONTROL');
-        }
-        if (event.metaKey) {
-            modifiers.push('META');
-        }
-
-        return modifiers;
-    }
-
-    return [];
-}
+import getKeyEventModifiers from '../getKeyEventModifiers';
 
 /**
  * Checks if an event for that key is configured and if so, runs it.
@@ -39,8 +14,8 @@ function bindHandlerToKeydownEvent(getDisplayName, eventHandlers, keycommandEven
         return;
     }
 
-    const eventModifiers = getKeyEventModifiers(event);
-    const displayName = getDisplayName(event.key, eventModifiers);
+    const eventModifiers = getKeyEventModifiers(keycommandEvent);
+    const displayName = getDisplayName(keycommandEvent.input, eventModifiers);
 
     // Loop over all the callbacks
     _.every(eventHandlers[displayName], (callback) => {
@@ -71,7 +46,4 @@ function bindHandlerToKeydownEvent(getDisplayName, eventHandlers, keycommandEven
     });
 }
 
-export {
-    getKeyEventModifiers,
-    bindHandlerToKeydownEvent,
-};
+export default bindHandlerToKeydownEvent;

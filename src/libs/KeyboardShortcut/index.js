@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import * as KeyCommand from 'react-native-key-command';
-import * as Keyboard from './keyboard.native';
+import bindHandlerToKeydownEvent from './bindHandlerToKeydownEvent';
 import getOperatingSystem from '../getOperatingSystem';
 import CONST from '../../CONST';
 
@@ -29,7 +29,16 @@ function getDocumentedShortcuts() {
  * @returns {String}
  */
 function getDisplayName(key, modifiers) {
-    let displayName = [key.toUpperCase()];
+    let displayName = (() => {
+        if (key === KeyCommand.constants.keyInputEnter) {
+            return ['ENTER'];
+        }
+        if (key === KeyCommand.constants.keyInputEscape) {
+            return ['ESCAPE'];
+        }
+        return [key.toUpperCase()];
+    })();
+
     if (_.isString(modifiers)) {
         displayName.unshift(modifiers);
     } else if (_.isArray(modifiers)) {
@@ -44,7 +53,7 @@ function getDisplayName(key, modifiers) {
 _.each(CONST.KEYBOARD_SHORTCUTS, (shortcut) => {
     KeyCommand.addListener(
         shortcut.trigger[operatingSystem] || shortcut.trigger.DEFAULT,
-        (keycommandEvent, event) => Keyboard.bindHandlerToKeydownEvent(getDisplayName, eventHandlers, keycommandEvent, event),
+        (keycommandEvent, event) => bindHandlerToKeydownEvent(getDisplayName, eventHandlers, keycommandEvent, event),
     );
 });
 
