@@ -27,13 +27,16 @@ export default {
     componentBorderRadiusRounded: 20,
     buttonBorderRadius: 100,
     avatarSizeLarge: 80,
+    avatarSizeHeader: 40,
     avatarSizeLargeBordered: 88,
     avatarSizeMedium: 52,
     avatarSizeNormal: 40,
     avatarSizeSmall: 28,
     avatarSizeSmaller: 24,
+    avatarSizeMidSubscript: 18,
     avatarSizeSubscript: 20,
     avatarSizeSmallSubscript: 14,
+    defaultAvatarPreviewSize: 360,
     fontSizeOnlyEmojis: 30,
     fontSizeOnlyEmojisHeight: 35,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
@@ -89,4 +92,5 @@ export default {
     checkboxLabelActiveOpacity: 0.7,
     avatarChatSpacing: 12,
     chatInputSpacing: 52, // 40 + avatarChatSpacing
+    borderTopWidth: 1,
 };

@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import {View} from 'react-native';
+import {StatusBar, View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
@@ -107,7 +107,10 @@ class BaseModal extends PureComponent {
                 hasBackdrop={this.props.fullscreen}
                 coverScreen={this.props.fullscreen}
                 style={modalStyle}
-                deviceHeight={this.props.windowHeight}
+
+                // When `statusBarTranslucent` is true on Android, the modal fully covers the status bar.
+                // Since `windowHeight` doesn't include status bar height, it should be added in the `deviceHeight` calculation.
+                deviceHeight={this.props.windowHeight + ((this.props.statusBarTranslucent && StatusBar.currentHeight) || 0)}
                 deviceWidth={this.props.windowWidth}
                 animationIn={this.props.animationIn || animationIn}
                 animationOut={this.props.animationOut || animationOut}

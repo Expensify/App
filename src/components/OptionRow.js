@@ -133,6 +133,11 @@ class OptionRow extends Component {
         const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((this.props.option.participantsList || []).slice(0, 10), isMultipleParticipant);
         const avatarTooltips = this.props.showTitleTooltip && !this.props.option.isChatRoom && !this.props.option.isArchivedRoom ? _.pluck(displayNamesWithTooltips, 'tooltip') : undefined;
 
+        let subscriptColor = themeColors.appBG;
+        if (this.props.optionIsFocused) {
+            subscriptColor = focusedBackgroundColor;
+        }
+
         return (
             <OfflineWithFeedback
                 pendingAction={this.props.option.pendingAction}
@@ -191,12 +196,18 @@ class OptionRow extends Component {
                                                     mainTooltip={this.props.option.ownerEmail}
                                                     secondaryTooltip={this.props.option.subtitle}
                                                     size={CONST.AVATAR_SIZE.DEFAULT}
+                                                    backgroundColor={
+                                                    hovered && !this.props.optionIsFocused
+                                                        ? hoveredBackgroundColor
+                                                        : subscriptColor
+                                                    }
                                                 />
                                             ) : (
                                                 <MultipleAvatars
                                                     icons={this.props.option.icons}
                                                     size={CONST.AVATAR_SIZE.DEFAULT}
                                                     secondAvatarStyle={[
+                                                        StyleUtils.getBackgroundAndBorderStyle(themeColors.appBG),
                                                         this.props.optionIsFocused
                                                             ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor)
                                                             : undefined,
