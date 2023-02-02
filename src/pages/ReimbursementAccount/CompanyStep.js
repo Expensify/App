@@ -167,7 +167,6 @@ class CompanyStep extends React.Component {
                         inputID="companyName"
                         containerStyles={[styles.mt4]}
                         disabled={shouldDisableCompanyName}
-                        editable={!shouldDisableCompanyName}
                         defaultValue={this.props.getDefaultStateForField('companyName')}
                         shouldSaveDraft
                     />
@@ -208,7 +207,6 @@ class CompanyStep extends React.Component {
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableCompanyTaxID}
-                        editable={!shouldDisableCompanyTaxID}
                         placeholder={this.props.translate('companyStep.taxIDNumberPlaceholder')}
                         defaultValue={this.props.getDefaultStateForField('companyTaxID')}
                         shouldSaveDraft
