@@ -163,7 +163,21 @@ class AttachmentCarousel extends React.Component {
 
             // Check if index is near the end of the list to fetch more reports
             if (attachments.length - nextIndex < 10) {
-                Report.loadMoreActions(this.props.report.reportID, this.props.reportActions, this.props.report.isLoadingMoreReportActions);
+                // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
+                if (this.props.report.isLoadingMoreReportActions) {
+                    return;
+                }
+
+                const sortedActions = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions), true);
+                const oldestReportAction = _.last(sortedActions);
+
+                // Don't load more chats if we're already at the beginning of the chat history
+                if (oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+                    return;
+                }
+
+                // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
+                Report.readOldestAction(this.props.report.reportID, oldestReportAction.reportActionID);
             }
             const {source, file} = this.getAttachment(attachments[nextIndex]);
             return {

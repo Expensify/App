@@ -454,35 +454,17 @@ function reconnect(reportID) {
 }
 
 /**
- * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
- * displaying.
+ * Gets the older actions that have not been read yet.
+ * Normally happens when you scroll up on a chat, and the actions have not been read yet.
  *
  * @param {String} reportID
- * @param {Object} reportActions
- * @param {Boolean} isLoadingMoreReportActions
+ * @param {String} reportActionID
  */
-function loadMoreActions(reportID, reportActions, isLoadingMoreReportActions) {
-    // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-    if (isLoadingMoreReportActions) {
-        return;
-    }
-
-    const minSequenceNumber = _.chain(reportActions)
-        .pluck('sequenceNumber')
-        .min()
-        .value();
-
-    if (minSequenceNumber === 0) {
-        return;
-    }
-
-    // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
-    // case just get everything starting from 0.
-    const reportActionsOffset = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
+function readOldestAction(reportID, reportActionID) {
     API.read('ReadOldestAction',
         {
             reportID,
-            reportActionsOffset,
+            reportActionID,
         },
         {
             optimisticData: [{
@@ -1215,7 +1197,7 @@ export {
     setIsComposerFullSize,
     markCommentAsUnread,
     readNewestAction,
-    loadMoreActions,
+    readOldestAction,
     openReport,
     navigateToAndOpenReport,
     openPaymentDetailsPage,
