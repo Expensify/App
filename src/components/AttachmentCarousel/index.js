@@ -20,10 +20,10 @@ import reportPropTypes from '../../pages/reportPropTypes';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 
 const propTypes = {
-    /** sourceUrl is used to determine the starting index in the array of attachments */
-    sourceURL: PropTypes.string,
+    /** source is used to determine the starting index in the array of attachments */
+    source: PropTypes.string,
 
-    /** Callback to update the parent modal's state with a sourceUrl and name from the attachments array */
+    /** Callback to update the parent modal's state with a source and name from the attachments array */
     onNavigate: PropTypes.func,
 
     /** The report currently being looked at */
@@ -34,7 +34,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    sourceURL: '',
+    source: '',
     report: {
         isLoadingMoreReportActions: false,
         reportID: '',
@@ -75,12 +75,12 @@ class AttachmentCarousel extends React.Component {
      * @returns {Object}
      */
     getAttachment(attachmentItem) {
-        const sourceURL = _.get(attachmentItem, 'sourceURL', '');
+        const source = _.get(attachmentItem, 'source', '');
         const file = _.get(attachmentItem, 'file', {name: ''});
-        this.props.onNavigate({sourceURL: addEncryptedAuthTokenToURL(sourceURL), file});
+        this.props.onNavigate({source: addEncryptedAuthTokenToURL(source), file});
 
         return {
-            sourceURL,
+            source,
             file,
         };
     }
@@ -102,7 +102,7 @@ class AttachmentCarousel extends React.Component {
 
         // This is used to match the initial image URL from props in a config environment.
         // Eg: while using Ngrok the image path is from an Ngrok URL and not an Expensify URL.
-        const propsSourceURL = this.props.sourceURL.replace(
+        const propsSource = this.props.source.replace(
             Config.EXPENSIFY.EXPENSIFY_URL,
             Config.EXPENSIFY.URL_API_ROOT,
         );
@@ -119,30 +119,30 @@ class AttachmentCarousel extends React.Component {
 
             // matchAll captured both source url and name of the attachment
             if (matches.length === 2) {
-                const [originalSourceURL, name] = _.map(matches, m => m[2]);
+                const [originalSource, name] = _.map(matches, m => m[2]);
 
                 // Update the image URL so the images can be accessed depending on the config environment.
                 // Eg: while using Ngrok the image path is from an Ngrok URL and not an Expensify URL.
-                const sourceURL = originalSourceURL.replace(
+                const source = originalSource.replace(
                     Config.EXPENSIFY.EXPENSIFY_URL,
                     Config.EXPENSIFY.URL_API_ROOT,
                 );
 
                 // Determine attachment index by matching source url with one that's used in state or props
-                if ((this.state.sourceURL && sourceURL.includes(this.state.sourceURL))
-                        || (!this.state.sourceURL && sourceURL.includes(propsSourceURL))) {
+                if ((this.state.source && source.includes(this.state.source))
+                        || (!this.state.source && source.includes(propsSource))) {
                     page = attachments.length;
                 }
 
-                attachments.push({sourceURL, file: {name}});
+                attachments.push({source, file: {name}});
             }
         });
 
-        const {sourceURL, file} = this.getAttachment(attachments[page]);
+        const {source, file} = this.getAttachment(attachments[page]);
         this.setState({
             page,
             attachments,
-            sourceURL,
+            source,
             file,
             isForwardDisabled: page === 0,
             isBackDisabled: page === attachments.length - 1,
@@ -165,10 +165,10 @@ class AttachmentCarousel extends React.Component {
             if (attachments.length - nextIndex < 10) {
                 Report.loadMoreActions(this.props.report.reportID, this.props.reportActions, this.props.report.isLoadingMoreReportActions);
             }
-            const {sourceURL, file} = this.getAttachment(attachments[nextIndex]);
+            const {source, file} = this.getAttachment(attachments[nextIndex]);
             return {
                 page: nextIndex,
-                sourceURL,
+                source,
                 file,
                 isBackDisabled: nextIndex === attachments.length - 1,
                 isForwardDisabled: nextIndex === 0,
@@ -177,10 +177,10 @@ class AttachmentCarousel extends React.Component {
     }
 
     render() {
-        if (!this.state.sourceURL) {
+        if (!this.state.source) {
             return null;
         }
-        const authSourceURL = addEncryptedAuthTokenToURL(this.state.sourceURL);
+        const authSource = addEncryptedAuthTokenToURL(this.state.source);
         return (
             <View
                 style={[styles.attachmentModalArrowsContainer]}
@@ -223,7 +223,7 @@ class AttachmentCarousel extends React.Component {
                 >
                     <AttachmentView
                         onPress={() => this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
-                        sourceURL={authSourceURL}
+                        source={authSource}
                         file={this.state.file}
                     />
                 </CarouselActions>

@@ -6,7 +6,6 @@ import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import CONST from '../../CONST';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import Navigation from '../../libs/Navigation/Navigation';
-import onScreenTransitionEnd from '../../libs/onScreenTransitionEnd';
 import styles from '../../styles/styles';
 import HeaderGap from '../HeaderGap';
 import OfflineIndicator from '../OfflineIndicator';
@@ -37,9 +36,14 @@ class ScreenWrapper extends React.Component {
             Navigation.dismissModal();
         }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
 
-        this.unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
+        this.unsubscribeTransitionStart = this.props.navigation.addListener('transitionStart', () => {
+            Navigation.setIsNavigating(true);
+        });
+
+        this.unsubscribeTransitionEnd = this.props.navigation.addListener('transitionEnd', () => {
             this.setState({didScreenTransitionEnd: true});
             this.props.onTransitionEnd();
+            Navigation.setIsNavigating(false);
         });
     }
 
@@ -61,6 +65,9 @@ class ScreenWrapper extends React.Component {
         }
         if (this.unsubscribeTransitionEnd) {
             this.unsubscribeTransitionEnd();
+        }
+        if (this.unsubscribeTransitionStart) {
+            this.unsubscribeTransitionStart();
         }
     }
 
@@ -89,7 +96,7 @@ class ScreenWrapper extends React.Component {
                                 paddingStyle,
                             ]}
                         >
-                            <KeyboardAvoidingView style={[styles.w100, styles.h100]} behavior={this.props.keyboardAvoidingViewBehavior}>
+                            <KeyboardAvoidingView style={[styles.w100, styles.h100, {maxHeight: this.props.windowHeight}]} behavior={this.props.keyboardAvoidingViewBehavior}>
                                 <HeaderGap />
                                 {// If props.children is a function, call it to provide the insets to the children.
                                     _.isFunction(this.props.children)

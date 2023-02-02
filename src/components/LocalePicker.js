@@ -60,7 +60,7 @@ const LocalePicker = (props) => {
             items={_.values(localesToLanguages)}
             size={props.size}
             value={props.preferredLocale}
-            containerStyles={[props.size === 'small' && [styles.pickerContainerSmall]]}
+            containerStyles={props.size === 'small' ? [styles.pickerContainerSmall] : []}
         />
     );
 };
