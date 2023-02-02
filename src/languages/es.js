@@ -1135,4 +1135,7 @@ export default {
             message: 'No hemos podido comprobar si existe una actualización. Inténtalo de nuevo más tarde!',
         },
     },
+    report: {
+        genericAddCommentFailureMessage: 'Error inesperado al agregar el comentario, por favor inténtalo más tarde',
+    },
 };

@@ -269,11 +269,7 @@ function addActions(reportID, text = '', file) {
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: _.mapObject(optimisticReportActions, (action) => {
-                // eslint-disable-next-line no-param-reassign
-                action.errors = {[DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericAddCommentFailureMessage')};
-                return action;
-            }),
+            value: _.mapObject(optimisticReportActions, action => ({...action, errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericAddCommentFailureMessage')}})),
         },
     ];
 
