@@ -12,7 +12,7 @@ import Section from '../../../components/Section';
 import * as Link from '../../../libs/actions/Link';
 import Button from '../../../components/Button';
 import BankAccount from '../../../libs/models/BankAccount';
-import reimbursementAccountPropTypes from '../../ReimbursementAccount/reimbursementAccountPropTypes';
+import * as ReimbursementAccountProps from '../../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccount';
 import networkPropTypes from '../../../components/networkPropTypes';
 import CONST from '../../../CONST';
@@ -24,7 +24,7 @@ const propTypes = {
     }).isRequired,
 
     /** Bank account attached to free plan */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
@@ -48,7 +48,10 @@ class WorkspaceReimburseSection extends React.Component {
     }
 
     setShouldShowLoadingSpinner() {
-        this.setState({shouldShowLoadingSpinner: this.props.reimbursementAccount.isLoading || false});
+        const shouldShowLoadingSpinner = this.props.reimbursementAccount.isLoading || false;
+        if (shouldShowLoadingSpinner !== this.state.shouldShowLoadingSpinner) {
+            this.setState({shouldShowLoadingSpinner});
+        }
     }
 
     render() {
@@ -94,7 +97,6 @@ class WorkspaceReimburseSection extends React.Component {
                                 icon: Expensicons.Bank,
                                 shouldShowRightIcon: true,
                                 iconRight: Expensicons.NewWindow,
-                                iconFill: themeColors.success,
                                 wrapperStyle: [styles.cardMenuItem],
                             },
                         ]}

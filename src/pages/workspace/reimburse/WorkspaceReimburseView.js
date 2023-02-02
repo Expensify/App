@@ -8,7 +8,6 @@ import TextInput from '../../../components/TextInput';
 import Picker from '../../../components/Picker';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
@@ -19,7 +18,7 @@ import compose from '../../../libs/compose';
 import * as Policy from '../../../libs/actions/Policy';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
-import reimbursementAccountPropTypes from '../../ReimbursementAccount/reimbursementAccountPropTypes';
+import * as ReimbursementAccountProps from '../../ReimbursementAccount/reimbursementAccountPropTypes';
 import getPermittedDecimalSeparator from '../../../libs/getPermittedDecimalSeparator';
 import {withNetwork} from '../../../components/OnyxProvider';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
@@ -54,7 +53,7 @@ const propTypes = {
 
     /** From Onyx */
     /** Bank account attached to free plan */
-    reimbursementAccount: reimbursementAccountPropTypes,
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
@@ -63,7 +62,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    reimbursementAccount: {isLoading: true},
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
 };
 
 class WorkspaceReimburseView extends React.Component {
@@ -180,14 +179,11 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     fetchData() {
-        const subStep = this.props.reimbursementAccount.subStep || '';
-        const localCurrentStep = this.props.reimbursementAccount.currentStep || '';
-
         // Instead of setting the reimbursement account loading within the optimistic data of the API command, use a separate action so that the Onyx value is updated right away.
         // openWorkspaceReimburseView uses API.read which will not make the request until all WRITE requests in the sequential queue have finished responding, so there would be a delay in
         // updating Onyx with the optimistic data.
         BankAccounts.setReimbursementAccountLoading(true);
-        Policy.openWorkspaceReimburseView(this.props.policy.id, subStep, localCurrentStep);
+        Policy.openWorkspaceReimburseView(this.props.policy.id);
     }
 
     debounceUpdateOnCursorMove(event) {
@@ -229,7 +225,6 @@ class WorkspaceReimburseView extends React.Component {
                             icon: Expensicons.Receipt,
                             shouldShowRightIcon: true,
                             iconRight: Expensicons.NewWindow,
-                            iconFill: themeColors.success,
                             wrapperStyle: [styles.cardMenuItem],
                         },
                     ]}

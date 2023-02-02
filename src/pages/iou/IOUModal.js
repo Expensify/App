@@ -28,6 +28,7 @@ import withCurrentUserPersonalDetails from '../../components/withCurrentUserPers
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import reportPropTypes from '../reportPropTypes';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -117,7 +118,7 @@ class IOUModal extends Component {
             firstName: lodashGet(personalDetails, 'firstName', ''),
             lastName: lodashGet(personalDetails, 'lastName', ''),
             alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
-            icons: [personalDetails.avatar],
+            icons: [ReportUtils.getAvatar(personalDetails.avatar, personalDetails.login)],
             keyForList: personalDetails.login,
             payPalMeAddress: lodashGet(personalDetails, 'payPalMeAddress', ''),
             phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
@@ -285,7 +286,7 @@ class IOUModal extends Component {
     sendMoney(paymentMethodType) {
         const amount = Math.round(this.state.amount * 100);
         const currency = this.props.iou.selectedCurrencyCode;
-        const comment = this.state.comment;
+        const comment = this.state.comment.trim();
         const participant = this.state.participants[0];
 
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -329,6 +330,7 @@ class IOUModal extends Component {
      */
     createTransaction(selectedParticipants) {
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
+        const comment = this.state.comment.trim();
 
         // IOUs created from a group report will have a reportID param in the route.
         // Since the user is already viewing the report, we don't need to navigate them to the report
@@ -337,7 +339,7 @@ class IOUModal extends Component {
                 selectedParticipants,
                 this.props.currentUserPersonalDetails.login,
                 this.state.amount,
-                this.state.comment,
+                comment,
                 this.props.iou.selectedCurrencyCode,
                 this.props.preferredLocale,
                 reportID,
@@ -351,18 +353,20 @@ class IOUModal extends Component {
                 selectedParticipants,
                 this.props.currentUserPersonalDetails.login,
                 this.state.amount,
-                this.state.comment,
+                comment,
                 this.props.iou.selectedCurrencyCode,
                 this.props.preferredLocale,
             );
             return;
         }
-        IOU.requestMoney(this.props.report,
+        IOU.requestMoney(
+            this.props.report,
             Math.round(this.state.amount * 100),
             this.props.iou.selectedCurrencyCode,
             this.props.currentUserPersonalDetails.login,
             selectedParticipants[0],
-            this.state.comment);
+            comment,
+        );
     }
 
     renderHeader() {
@@ -379,6 +383,7 @@ class IOUModal extends Component {
                 >
                     {this.state.currentStepIndex > 0
                         && (
+                        <View style={[styles.mr2]}>
                             <Tooltip text={this.props.translate('common.back')}>
                                 <TouchableOpacity
                                     onPress={this.navigateToPreviousStep}
@@ -387,13 +392,14 @@ class IOUModal extends Component {
                                     <Icon src={Expensicons.BackArrow} />
                                 </TouchableOpacity>
                             </Tooltip>
+                        </View>
                         )}
                     <Header title={this.getTitleForStep()} />
                     <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                         <Tooltip text={this.props.translate('common.close')}>
                             <TouchableOpacity
                                 onPress={() => Navigation.dismissModal()}
-                                style={[styles.touchableButtonImage, styles.mr0]}
+                                style={[styles.touchableButtonImage]}
                                 accessibilityRole="button"
                                 accessibilityLabel={this.props.translate('common.close')}
                             >
@@ -410,8 +416,8 @@ class IOUModal extends Component {
         const currentStep = this.steps[this.state.currentStepIndex];
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
         return (
-            <ScreenWrapper>
-                {({didScreenTransitionEnd}) => (
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+                {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
                         <View style={[styles.pRelative, styles.flex1]}>
                             {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
@@ -420,7 +426,7 @@ class IOUModal extends Component {
                                     {currentStep === Steps.IOUAmount && (
                                         <AnimatedStep
                                             direction={this.getDirection()}
-                                            style={[styles.flex1]}
+                                            style={[styles.flex1, safeAreaPaddingBottomStyle]}
                                         >
                                             {this.renderHeader()}
                                             <IOUAmountPage
@@ -452,7 +458,7 @@ class IOUModal extends Component {
                                     )}
                                     {currentStep === Steps.IOUConfirm && (
                                         <AnimatedStep
-                                            style={[styles.flex1]}
+                                            style={[styles.flex1, safeAreaPaddingBottomStyle]}
                                             direction={this.getDirection()}
                                         >
                                             {this.renderHeader()}

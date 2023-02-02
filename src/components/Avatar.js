@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import {Image, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import stylePropTypes from '../styles/stylePropTypes';
@@ -9,6 +9,7 @@ import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as Expensicons from './Icon/Expensicons';
 import getAvatarDefaultSource from '../libs/getAvatarDefaultSource';
+import Image from './Image';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
 import styles from '../styles/styles';
@@ -89,6 +90,7 @@ class Avatar extends PureComponent {
                                 height={iconSize}
                                 width={iconSize}
                                 fill={this.state.imageError ? themeColors.offline : this.props.fill}
+                                isSVGAvatar
                             />
                         </View>
                     )

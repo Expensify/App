@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, ScrollView} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -14,12 +14,13 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import ONYXKEYS from '../../ONYXKEYS';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import BankAccount from '../../libs/models/BankAccount';
-import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
+import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
 import withPolicy from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import ScrollViewWithContext from '../../components/ScrollViewWithContext';
 
 const propTypes = {
     shouldSkipVBBACall: PropTypes.bool,
@@ -41,7 +42,7 @@ const propTypes = {
 
     /** From Onyx */
     /** Bank account attached to free plan */
-    reimbursementAccount: reimbursementAccountPropTypes,
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
 
     /** User Data from Onyx */
     user: userPropTypes,
@@ -69,7 +70,7 @@ const propTypes = {
 const defaultProps = {
     children: () => {},
     user: {},
-    reimbursementAccount: {},
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
     footer: null,
     guidesCallTaskID: '',
     shouldUseScrollView: false,
@@ -105,7 +106,7 @@ class WorkspacePageWithSections extends React.Component {
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <FullPageNotFoundView
                     shouldShow={_.isEmpty(this.props.policy)}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
@@ -121,7 +122,7 @@ class WorkspacePageWithSections extends React.Component {
                     />
                     {this.props.shouldUseScrollView
                         ? (
-                            <ScrollView
+                            <ScrollViewWithContext
                                 keyboardShouldPersistTaps="handled"
                                 style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                             >
@@ -130,7 +131,7 @@ class WorkspacePageWithSections extends React.Component {
                                     {this.props.children(hasVBA, policyID, isUsingECard)}
 
                                 </View>
-                            </ScrollView>
+                            </ScrollViewWithContext>
                         )
                         : this.props.children(hasVBA, policyID, isUsingECard)}
                     {this.props.footer}

@@ -22,6 +22,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ConfirmModal from './ConfirmModal';
 import TextWithEllipsis from './TextWithEllipsis';
 import HeaderGap from './HeaderGap';
+import SafeAreaConsumer from './SafeAreaConsumer';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -29,8 +30,8 @@ import HeaderGap from './HeaderGap';
  */
 
 const propTypes = {
-    /** Optional source URL for the image shown. If not passed in via props must be specified when modal is opened. */
-    sourceURL: PropTypes.string,
+    /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
+    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
 
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm: PropTypes.func,
@@ -44,7 +45,7 @@ const propTypes = {
     /** A function as a child to pass modal launching methods to */
     children: PropTypes.func.isRequired,
 
-    /** Do the urls require an authToken? */
+    /** Whether source url requires authentication */
     isAuthTokenRequired: PropTypes.bool,
 
     /** Determines if download Button should be shown or not */
@@ -59,7 +60,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    sourceURL: null,
+    source: '',
     onConfirm: null,
     originalFileName: null,
     isAuthTokenRequired: false,
@@ -78,7 +79,7 @@ class AttachmentModal extends PureComponent {
             attachmentInvalidReasonTitle: null,
             attachmentInvalidReason: null,
             file: null,
-            sourceURL: props.sourceURL,
+            source: props.source,
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
             isConfirmButtonDisabled: false,
             confirmButtonFadeAnimation: new Animated.Value(1),
@@ -92,15 +93,15 @@ class AttachmentModal extends PureComponent {
 
     /**
      * If our attachment is a PDF, return the unswipeable Modal type.
-     * @param {String} sourceUrl
+     * @param {String} sourceURL
      * @param {Object} file
      * @returns {String}
      */
-    getModalType(sourceUrl, file) {
+    getModalType(sourceURL, file) {
         return (
-            sourceUrl
+            sourceURL
             && (
-                Str.isPDF(sourceUrl)
+                Str.isPDF(sourceURL)
                 || (
                     file
                     && Str.isPDF(file.name || this.props.translate('attachmentView.unknownFilename'))
@@ -115,7 +116,7 @@ class AttachmentModal extends PureComponent {
      * @param {String} sourceURL
      */
     downloadAttachment(sourceURL) {
-        fileDownload(sourceURL, this.props.originalFileName);
+        fileDownload(this.props.isAuthTokenRequired ? addEncryptedAuthTokenToURL(sourceURL) : sourceURL, this.props.originalFileName);
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
@@ -133,7 +134,7 @@ class AttachmentModal extends PureComponent {
         }
 
         if (this.props.onConfirm) {
-            this.props.onConfirm(lodashExtend(this.state.file, {source: this.state.sourceURL}));
+            this.props.onConfirm(lodashExtend(this.state.file, {source: this.state.source}));
         }
 
         this.setState({isModalOpen: false});
@@ -151,6 +152,17 @@ class AttachmentModal extends PureComponent {
      * @returns {Boolean}
      */
     isValidFile(file) {
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
+        if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
+            const invalidReason = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
+            this.setState({
+                isAttachmentInvalid: true,
+                attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.wrongFileType'),
+                attachmentInvalidReason: invalidReason,
+            });
+            return false;
+        }
+
         if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             this.setState({
                 isAttachmentInvalid: true,
@@ -165,17 +177,6 @@ class AttachmentModal extends PureComponent {
                 isAttachmentInvalid: true,
                 attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.attachmentTooSmall'),
                 attachmentInvalidReason: this.props.translate('attachmentPicker.sizeNotMet'),
-            });
-            return false;
-        }
-
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-        if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-            const invalidReason = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
-            this.setState({
-                isAttachmentInvalid: true,
-                attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.wrongFileType'),
-                attachmentInvalidReason: invalidReason,
             });
             return false;
         }
@@ -199,12 +200,12 @@ class AttachmentModal extends PureComponent {
             const source = URL.createObjectURL(file);
             const modalType = this.getModalType(source, file);
             this.setState({
-                isModalOpen: true, sourceURL: source, file, modalType,
+                isModalOpen: true, source, file, modalType,
             });
         } else {
             const modalType = this.getModalType(file.uri, file);
             this.setState({
-                isModalOpen: true, sourceURL: file.uri, file, modalType,
+                isModalOpen: true, source: file.uri, file, modalType,
             });
         }
     }
@@ -229,9 +230,8 @@ class AttachmentModal extends PureComponent {
     }
 
     render() {
-        const sourceURL = this.props.isAuthTokenRequired
-            ? addEncryptedAuthTokenToURL(this.state.sourceURL)
-            : this.state.sourceURL;
+        // If source is a URL, add auth token to get access
+        const source = this.state.source;
 
         const {fileName, fileExtension} = FileUtils.splitExtensionFromFileName(this.props.originalFileName || lodashGet(this.state, 'file.name', ''));
 
@@ -252,7 +252,7 @@ class AttachmentModal extends PureComponent {
                         title={this.props.headerTitle || this.props.translate('common.attachment')}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={this.props.allowDownload}
-                        onDownloadButtonPress={() => this.downloadAttachment(sourceURL)}
+                        onDownloadButtonPress={() => this.downloadAttachment(source)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                         subtitle={fileName ? (
                             <TextWithEllipsis
@@ -264,9 +264,10 @@ class AttachmentModal extends PureComponent {
                         ) : ''}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
-                        {this.state.sourceURL && (
+                        {this.state.source && (
                             <AttachmentView
-                                sourceURL={sourceURL}
+                                source={source}
+                                isAuthTokenRequired={this.props.isAuthTokenRequired}
                                 file={this.state.file}
                                 onToggleKeyboard={this.updateConfirmButtonVisibility}
                             />
@@ -275,17 +276,21 @@ class AttachmentModal extends PureComponent {
 
                     {/* If we have an onConfirm method show a confirmation button */}
                     {this.props.onConfirm && (
-                        <Animated.View style={StyleUtils.fade(this.state.confirmButtonFadeAnimation)}>
-                            <Button
-                                success
-                                style={[styles.buttonConfirm, this.props.isSmallScreenWidth ? {} : styles.attachmentButtonBigScreen]}
-                                textStyles={[styles.buttonConfirmText]}
-                                text={this.props.translate('common.send')}
-                                onPress={this.submitAndClose}
-                                disabled={this.state.isConfirmButtonDisabled}
-                                pressOnEnter
-                            />
-                        </Animated.View>
+                        <SafeAreaConsumer>
+                            {({safeAreaPaddingBottomStyle}) => (
+                                <Animated.View style={[StyleUtils.fade(this.state.confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
+                                    <Button
+                                        success
+                                        style={[styles.buttonConfirm, this.props.isSmallScreenWidth ? {} : styles.attachmentButtonBigScreen]}
+                                        textStyles={[styles.buttonConfirmText]}
+                                        text={this.props.translate('common.send')}
+                                        onPress={this.submitAndClose}
+                                        disabled={this.state.isConfirmButtonDisabled}
+                                        pressOnEnter
+                                    />
+                                </Animated.View>
+                            )}
+                        </SafeAreaConsumer>
                     )}
                 </Modal>
 

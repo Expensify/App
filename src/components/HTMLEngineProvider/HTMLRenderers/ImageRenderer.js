@@ -1,11 +1,12 @@
 import React from 'react';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
-import Config from '../../../CONFIG';
 import AttachmentModal from '../../AttachmentModal';
 import styles from '../../../styles/styles';
 import ThumbnailImage from '../../ThumbnailImage';
 import PressableWithoutFocus from '../../PressableWithoutFocus';
 import CONST from '../../../CONST';
+import {ShowContextMenuContext, showContextMenuForReport} from '../../ShowContextMenuContext';
+import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
 
 const ImageRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
@@ -29,20 +30,12 @@ const ImageRenderer = (props) => {
     //
     const isAttachment = Boolean(htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
     const originalFileName = htmlAttribs['data-name'];
-    let previewSource = htmlAttribs.src;
-    let source = isAttachment
-        ? htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]
-        : htmlAttribs.src;
 
-    // Update the image URL so the images can be accessed depending on the config environment
-    previewSource = previewSource.replace(
-        Config.EXPENSIFY.EXPENSIFY_URL,
-        Config.EXPENSIFY.URL_API_ROOT,
-    );
-    source = source.replace(
-        Config.EXPENSIFY.EXPENSIFY_URL,
-        Config.EXPENSIFY.URL_API_ROOT,
-    );
+    // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
+    const previewSource = tryResolveUrlFromApiRoot(htmlAttribs.src);
+    const source = tryResolveUrlFromApiRoot(isAttachment
+        ? htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]
+        : htmlAttribs.src);
 
     const imageWidth = htmlAttribs['data-expensify-width'] ? parseInt(htmlAttribs['data-expensify-width'], 10) : undefined;
     const imageHeight = htmlAttribs['data-expensify-height'] ? parseInt(htmlAttribs['data-expensify-height'], 10) : undefined;
@@ -57,27 +50,37 @@ const ImageRenderer = (props) => {
             imageHeight={imageHeight}
         />
     ) : (
-        <AttachmentModal
-            allowDownload
-            sourceURL={source}
-            isAuthTokenRequired={isAttachment}
-            originalFileName={originalFileName}
-        >
-            {({show}) => (
-                <PressableWithoutFocus
-                    style={styles.noOutline}
-                    onPress={show}
+        <ShowContextMenuContext.Consumer>
+            {({
+                anchor,
+                reportID,
+                action,
+                checkIfContextMenuActive,
+            }) => (
+                <AttachmentModal
+                    allowDownload
+                    source={source}
+                    isAuthTokenRequired={isAttachment}
+                    originalFileName={originalFileName}
                 >
-                    <ThumbnailImage
-                        previewSourceURL={previewSource}
-                        style={styles.webViewStyles.tagStyles.img}
-                        isAuthTokenRequired={isAttachment}
-                        imageWidth={imageWidth}
-                        imageHeight={imageHeight}
-                    />
-                </PressableWithoutFocus>
+                    {({show}) => (
+                        <PressableWithoutFocus
+                            style={styles.noOutline}
+                            onPress={show}
+                            onLongPress={event => showContextMenuForReport(event, anchor, reportID, action, checkIfContextMenuActive)}
+                        >
+                            <ThumbnailImage
+                                previewSourceURL={previewSource}
+                                style={styles.webViewStyles.tagStyles.img}
+                                isAuthTokenRequired={isAttachment}
+                                imageWidth={imageWidth}
+                                imageHeight={imageHeight}
+                            />
+                        </PressableWithoutFocus>
+                    )}
+                </AttachmentModal>
             )}
-        </AttachmentModal>
+        </ShowContextMenuContext.Consumer>
     );
 };
 

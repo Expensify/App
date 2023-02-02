@@ -1,5 +1,6 @@
 package com.expensify.chat.customairshipextender;
 
+import static androidx.core.app.NotificationCompat.CATEGORY_MESSAGE;
 import static androidx.core.app.NotificationCompat.PRIORITY_MAX;
 
 import android.app.NotificationChannel;
@@ -82,6 +83,9 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         super.onExtendBuilder(context, builder, arguments);
         PushMessage message = arguments.getMessage();
 
+        // Improve notification delivery by categorising as a time-critical message
+        builder.setCategory(CATEGORY_MESSAGE);
+
         // Configure the notification channel or priority to ensure it shows in foreground
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             builder.setChannelId(CHANNEL_MESSAGES_ID);
@@ -124,6 +128,9 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
      * @param bitmap The bitmap image to modify.
      */
     public Bitmap getCroppedBitmap(Bitmap bitmap) {
+       // Convert hardware bitmap to software bitmap so it can be drawn on the canvas
+       bitmap = bitmap.copy(Config.ARGB_8888, true);
+
        Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
             bitmap.getHeight(), Config.ARGB_8888);
        Canvas canvas = new Canvas(output);

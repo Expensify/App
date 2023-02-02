@@ -148,6 +148,7 @@ const OptionRowLHN = (props) => {
                                     ) : (
                                         <MultipleAvatars
                                             icons={optionItem.icons}
+                                            isFocusMode={props.viewMode === CONST.OPTION_MODE.COMPACT}
                                             size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
                                                 StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),

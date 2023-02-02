@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -13,18 +12,17 @@ import AddPlaidBankAccount from '../components/AddPlaidBankAccount';
 import getPlaidOAuthReceivedRedirectURI from '../libs/getPlaidOAuthReceivedRedirectURI';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
-import Text from '../components/Text';
 import styles from '../styles/styles';
-import * as Illustrations from '../components/Icon/Illustrations';
-import Icon from '../components/Icon';
-import defaultTheme from '../styles/themes/default';
-import Button from '../components/Button';
-import FixedFooter from '../components/FixedFooter';
 import Form from '../components/Form';
 import ROUTES from '../ROUTES';
+import * as PlaidDataProps from './ReimbursementAccount/plaidDataPropTypes';
+import ConfirmationPage from '../components/ConfirmationPage';
 
 const propTypes = {
     ...withLocalizePropTypes,
+
+    /** Contains plaid data */
+    plaidData: PlaidDataProps.plaidDataPropTypes,
 
     /** The details about the Personal bank account we are adding saved in Onyx */
     personalBankAccount: PropTypes.shape({
@@ -43,6 +41,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    plaidData: PlaidDataProps.plaidDataDefaultProps,
     personalBankAccount: {
         error: '',
         shouldShowSuccess: false,
@@ -86,7 +85,7 @@ class AddPersonalBankAccountPage extends React.Component {
         const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={shouldShowSuccess}>
                 <HeaderWithCloseButton
                     title={this.props.translate('bankAccount.addBankAccount')}
                     onCloseButtonPress={Navigation.dismissModal}
@@ -94,38 +93,22 @@ class AddPersonalBankAccountPage extends React.Component {
                     onBackButtonPress={Navigation.goBack}
                 />
                 {shouldShowSuccess ? (
-                    <>
-                        <View style={[styles.pageWrapper, styles.flex1, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                            <Icon
-                                src={Illustrations.TadaBlue}
-                                height={100}
-                                width={100}
-                                fill={defaultTheme.iconSuccessFill}
-                            />
-                            <View style={[styles.ph5]}>
-                                <Text style={[styles.mt5, styles.h1, styles.textAlignCenter]}>
-                                    {this.props.translate('addPersonalBankAccountPage.successTitle')}
-                                </Text>
-                                <Text style={[styles.mt3, styles.textAlignCenter]}>
-                                    {this.props.translate('addPersonalBankAccountPage.successMessage')}
-                                </Text>
-                            </View>
-                        </View>
-                        <FixedFooter>
-                            <Button
-                                text={this.props.translate('common.continue')}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
-                                style={[styles.mt4]}
-                                iconStyles={[styles.mr5]}
-                                success
-                            />
-                        </FixedFooter>
-                    </>
+                    <ConfirmationPage
+                        heading={this.props.translate('addPersonalBankAccountPage.successTitle')}
+                        description={this.props.translate('addPersonalBankAccountPage.successMessage')}
+                        shouldShowButton
+                        buttonText={this.props.translate('common.continue')}
+                        onButtonPress={() => {
+                            BankAccounts.clearPersonalBankAccount();
+                            Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
+                        }}
+                    />
                 ) : (
                     <Form
                         formID={ONYXKEYS.PERSONAL_BANK_ACCOUNT}
                         isSubmitButtonVisible={Boolean(this.state.selectedPlaidAccountID)}
                         submitButtonText={this.props.translate('common.saveAndContinue')}
+                        scrollContextEnabled
                         onSubmit={this.submit}
                         validate={this.validate}
                         style={[styles.mh5, styles.flex1]}
@@ -135,6 +118,7 @@ class AddPersonalBankAccountPage extends React.Component {
                                 onSelect={(selectedPlaidAccountID) => {
                                     this.setState({selectedPlaidAccountID});
                                 }}
+                                plaidData={this.props.plaidData}
                                 onExitPlaid={Navigation.goBack}
                                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                                 selectedPlaidAccountID={this.state.selectedPlaidAccountID}
