@@ -28,6 +28,7 @@ import withCurrentUserPersonalDetails from '../../components/withCurrentUserPers
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import reportPropTypes from '../reportPropTypes';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -117,7 +118,7 @@ class IOUModal extends Component {
             firstName: lodashGet(personalDetails, 'firstName', ''),
             lastName: lodashGet(personalDetails, 'lastName', ''),
             alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
-            icons: [personalDetails.avatar],
+            icons: [ReportUtils.getAvatar(personalDetails.avatar, personalDetails.login)],
             keyForList: personalDetails.login,
             payPalMeAddress: lodashGet(personalDetails, 'payPalMeAddress', ''),
             phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),

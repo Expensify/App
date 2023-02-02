@@ -66,7 +66,7 @@ const BaseAnchorForAttachmentsOnly = (props) => {
                     )}
                 >
                     <AttachmentView
-                        sourceURL={sourceURLWithAuth}
+                        source={sourceURLWithAuth}
                         file={{name: fileName}}
                         shouldShowDownloadIcon
                         shouldShowLoadingSpinnerIcon={isDownloading}

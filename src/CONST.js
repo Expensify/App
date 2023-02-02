@@ -37,6 +37,9 @@ const CONST = {
     AVATAR_MAX_WIDTH_PX: 4096,
     AVATAR_MAX_HEIGHT_PX: 4096,
 
+    DEFAULT_AVATAR_COUNT: 24,
+    OLD_DEFAULT_AVATAR_COUNT: 8,
+
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
         SMALL_SCREEN: {
@@ -755,6 +758,7 @@ const CONST = {
         SMALLER: 'smaller',
         SUBSCRIPT: 'subscript',
         SMALL_SUBSCRIPT: 'small-subscript',
+        MID_SUBSCRIPT: 'mid-subscript',
         LARGE_BORDERED: 'large-bordered',
     },
     OPTION_MODE: {
