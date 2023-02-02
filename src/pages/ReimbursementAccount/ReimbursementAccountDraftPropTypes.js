@@ -41,16 +41,5 @@ export default PropTypes.shape({
     hasOtherBeneficialOwners: PropTypes.bool,
     acceptTermsAndConditions: PropTypes.bool,
     certifyTrueInformation: PropTypes.bool,
-    beneficialOwners: PropTypes.arrayOf(
-        PropTypes.shape({
-            firstName: PropTypes.string,
-            lastName: PropTypes.string,
-            street: PropTypes.string,
-            city: PropTypes.string,
-            state: PropTypes.string,
-            zipCode: PropTypes.string,
-            dob: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
-            ssnLast4: PropTypes.string,
-        }),
-    ),
+    beneficialOwners: PropTypes.arrayOf(PropTypes.string),
 });

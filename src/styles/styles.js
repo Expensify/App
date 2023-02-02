@@ -1906,6 +1906,7 @@ const styles = {
         fontSize: variables.fontSizeXLarge,
         marginTop: 20,
         marginBottom: 8,
+        textAlign: 'center',
     },
 
     notFoundTextBody: {
