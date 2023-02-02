@@ -15,6 +15,7 @@ import * as Authentication from '../../Authentication';
 import * as Welcome from '../Welcome';
 import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
+import * as Report from '../../actions/Report';
 import DateUtils from '../../DateUtils';
 import Navigation from '../../Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -42,6 +43,10 @@ Onyx.connect({
 
         if (accountID) {
             PushNotification.register(accountID);
+            
+            // Resubscribing is necessary in cases where the app was backgrounded and a different login was used
+            PushNotification.init();
+            Report.subscribeToReportCommentPushNotifications();
         } else {
             PushNotification.deregister();
             PushNotification.clearNotifications();
