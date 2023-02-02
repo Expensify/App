@@ -474,6 +474,8 @@ PODS:
     - React
   - react-native-image-picker (5.0.1):
     - React-Core
+  - react-native-key-command (0.5.0):
+    - React-Core
   - react-native-netinfo (8.3.1):
     - React-Core
   - react-native-pdf (6.6.2):
@@ -704,6 +706,7 @@ DEPENDENCIES:
   - react-native-flipper (from `../node_modules/react-native-flipper`)
   - "react-native-image-manipulator (from `../node_modules/@oguzhnatly/react-native-image-manipulator`)"
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
+  - react-native-key-command (from `../node_modules/react-native-key-command`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pdf (from `../node_modules/react-native-pdf`)
   - react-native-performance (from `../node_modules/react-native-performance`)
@@ -849,6 +852,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@oguzhnatly/react-native-image-manipulator"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
+  react-native-key-command:
+    :path: "../node_modules/react-native-key-command"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-pdf:
@@ -993,6 +998,7 @@ SPEC CHECKSUMS:
   react-native-flipper: dc5290261fbeeb2faec1bdc57ae6dd8d562e1de4
   react-native-image-manipulator: c48f64221cfcd46e9eec53619c4c0374f3328a56
   react-native-image-picker: 8cb4280e2c1efc3daeb2d9d597f9429a60472e40
+  react-native-key-command: bdc18250128146769441ddc8f77e4bc9e625bde1
   react-native-netinfo: 1a6035d3b9780221d407c277ebfb5722ace00658
   react-native-pdf: 33c622cbdf776a649929e8b9d1ce2d313347c4fa
   react-native-performance: 224bd53e6a835fda4353302cf891d088a0af7406

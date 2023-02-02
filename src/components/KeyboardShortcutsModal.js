@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
@@ -54,7 +54,7 @@ class KeyboardShortcutsModal extends React.Component {
      */
     renderRow(shortcut, isFirstRow) {
         return (
-            <View
+            <ScrollView
                 style={[
                     styles.keyboardShortcutTableRow,
                     isFirstRow && styles.keyboardShortcutTableFirstRow,
@@ -67,7 +67,7 @@ class KeyboardShortcutsModal extends React.Component {
                 <View style={[styles.flex1, styles.p2, styles.alignSelfStretch]}>
                     <Text>{this.props.translate(`keyboardShortcutModal.shortcuts.${shortcut.descriptionKey}`)}</Text>
                 </View>
-            </View>
+            </ScrollView>
         );
     }
 

@@ -2,7 +2,9 @@ package com.expensify.chat;
 
 import android.os.Bundle;
 import android.content.pm.ActivityInfo;
+import android.view.KeyEvent;
 import com.expensify.chat.bootsplash.BootSplash;
+import com.expensify.reactnativekeycommand.KeyCommandModule;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.ReactRootView;
@@ -56,5 +58,15 @@ public class MainActivity extends ReactActivity {
       setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     }
     BootSplash.init(R.drawable.bootsplash, MainActivity.this); // <- display the generated bootsplash.xml drawable over our MainActivity
+  }
+
+  /**
+   * This method is called when a key down event has occurred.
+   * Forwards the event to the KeyCommandModule
+   */
+  @Override
+  public boolean onKeyDown(int keyCode, KeyEvent event) {
+    KeyCommandModule.getInstance().onKeyDownEvent(keyCode, event);
+    return super.onKeyDown(keyCode, event);
   }
 }

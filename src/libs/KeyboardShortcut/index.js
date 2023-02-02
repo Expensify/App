@@ -1,8 +1,12 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import * as KeyCommand from 'react-native-key-command';
+import * as Keyboard from './keyboard.native';
 import getOperatingSystem from '../getOperatingSystem';
 import CONST from '../../CONST';
+
+const operatingSystem = getOperatingSystem();
 
 // Handlers for the various keyboard listeners we set up
 const eventHandlers = {};
@@ -15,29 +19,6 @@ const documentedShortcuts = {};
  */
 function getDocumentedShortcuts() {
     return _.values(documentedShortcuts);
-}
-
-/**
- * Gets modifiers from a keyboard event.
- *
- * @param {Event} event
- * @returns {Array<String>}
- */
-function getKeyEventModifiers(event) {
-    const modifiers = [];
-    if (event.shiftKey) {
-        modifiers.push('SHIFT');
-    }
-    if (event.ctrlKey) {
-        modifiers.push('CONTROL');
-    }
-    if (event.altKey) {
-        modifiers.push('ALT');
-    }
-    if (event.metaKey) {
-        modifiers.push('META');
-    }
-    return modifiers;
 }
 
 /**
@@ -60,51 +41,12 @@ function getDisplayName(key, modifiers) {
     return displayName.join(' + ');
 }
 
-/**
- * Checks if an event for that key is configured and if so, runs it.
- * @param {Event} event
- * @private
- */
-function bindHandlerToKeydownEvent(event) {
-    if (!(event instanceof KeyboardEvent)) {
-        return;
-    }
-
-    const eventModifiers = getKeyEventModifiers(event);
-    const displayName = getDisplayName(event.key, eventModifiers);
-
-    // Loop over all the callbacks
-    _.every(eventHandlers[displayName], (callback) => {
-        // If configured to do so, prevent input text control to trigger this event
-        if (!callback.captureOnInputs && (
-            event.target.nodeName === 'INPUT'
-            || event.target.nodeName === 'TEXTAREA'
-            || event.target.contentEditable === 'true'
-        )) {
-            return true;
-        }
-
-        // Determine if the event should bubble before executing the callback (which may have side-effects)
-        let shouldBubble = callback.shouldBubble || false;
-        if (_.isFunction(callback.shouldBubble)) {
-            shouldBubble = callback.shouldBubble();
-        }
-
-        if (_.isFunction(callback.callback)) {
-            callback.callback(event);
-        }
-        if (callback.shouldPreventDefault) {
-            event.preventDefault();
-        }
-
-        // If the event should not bubble, short-circuit the loop
-        return shouldBubble;
-    });
-}
-
-// Make sure we don't add multiple listeners
-document.removeEventListener('keydown', bindHandlerToKeydownEvent, {capture: true});
-document.addEventListener('keydown', bindHandlerToKeydownEvent, {capture: true});
+_.each(CONST.KEYBOARD_SHORTCUTS, (shortcut) => {
+    KeyCommand.addListener(
+        shortcut.trigger[operatingSystem] || shortcut.trigger.DEFAULT,
+        (keycommandEvent, event) => Keyboard.bindHandlerToKeydownEvent(getDisplayName, eventHandlers, keycommandEvent, event),
+    );
+});
 
 /**
  * Unsubscribes a keyboard event handler.
@@ -124,7 +66,6 @@ function unsubscribe(displayName, callbackID) {
  * @returns {Array}
  */
 function getPlatformEquivalentForKeys(keys) {
-    const operatingSystem = getOperatingSystem();
     return _.map(keys, (key) => {
         if (!_.has(CONST.PLATFORM_SPECIFIC_KEYS, key)) {
             return key;

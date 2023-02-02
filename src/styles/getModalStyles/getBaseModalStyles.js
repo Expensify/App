@@ -107,7 +107,6 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
                 shadowOpacity: 0.1,
                 shadowRadius: 5,
 
-                flex: 1,
                 marginTop: isSmallScreenWidth ? 0 : 20,
                 marginBottom: isSmallScreenWidth ? 0 : 20,
                 borderRadius: isSmallScreenWidth ? 0 : 12,
