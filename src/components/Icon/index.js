@@ -25,6 +25,9 @@ const propTypes = {
 
     /** Is inline icon */
     inline: PropTypes.bool,
+
+    /** Is SVG avatar icon */
+    isSVGAvatar: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -33,6 +36,7 @@ const defaultProps = {
     fill: themeColors.icon,
     small: false,
     inline: false,
+    isSVGAvatar: false,
 };
 
 // We must use a class component to create an animatable component with the Animated API
@@ -41,6 +45,8 @@ class Icon extends PureComponent {
     render() {
         const width = this.props.small ? variables.iconSizeSmall : this.props.width;
         const height = this.props.small ? variables.iconSizeSmall : this.props.height;
+        const iconStyles = [StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute,
+            StyleUtils.getAvatarSVGBorder(this.props.isSVGAvatar)];
 
         if (this.props.inline) {
             return (
@@ -48,7 +54,7 @@ class Icon extends PureComponent {
                     accessibilityHint={`${this.props.src.name} Icon`}
                     style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible]}
                 >
-                    <View style={[StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute]}>
+                    <View style={iconStyles}>
                         <this.props.src
                             width={width}
                             height={height}
@@ -60,7 +66,7 @@ class Icon extends PureComponent {
         }
 
         return (
-            <View accessibilityHint={`${this.props.src.name} Icon`}>
+            <View accessibilityHint={`${this.props.src.name} Icon`} style={StyleUtils.getAvatarSVGBorder(this.props.isSVGAvatar)}>
                 <this.props.src
                     width={width}
                     height={height}

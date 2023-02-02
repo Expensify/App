@@ -57,6 +57,13 @@ class WalletStatementPage extends React.Component {
         this.yearMonth = lodashGet(this.props.route.params, 'yearMonth', null);
     }
 
+    componentDidMount() {
+        const currentYearMonth = moment().format('YYYYMM');
+        if (!this.yearMonth || this.yearMonth.length !== 6 || this.yearMonth > currentYearMonth) {
+            Navigation.dismissModal(true);
+        }
+    }
+
     processDownload(yearMonth) {
         if (this.props.walletStatement.isGenerating) {
             return;
@@ -71,7 +78,7 @@ class WalletStatementPage extends React.Component {
             return;
         }
 
-        Growl.show(this.props.translate('statementPage.generatingPDF'), CONST.GROWL.NOTICE, 5000);
+        Growl.show(this.props.translate('statementPage.generatingPDF'), CONST.GROWL.SUCCESS, 3000);
         User.generateStatementPDF(this.yearMonth);
     }
 
