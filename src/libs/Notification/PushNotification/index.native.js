@@ -3,6 +3,7 @@ import {AppState} from 'react-native';
 import {UrbanAirship, EventType, iOS} from 'urbanairship-react-native';
 import lodashGet from 'lodash/get';
 import Log from '../../Log';
+import NotificationType from './NotificationType';
 
 const notificationEventActionMap = {};
 
@@ -171,5 +172,6 @@ export default {
     deregister,
     onReceived,
     onSelected,
+    TYPE: NotificationType,
     clearNotifications,
 };

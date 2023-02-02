@@ -7,7 +7,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
 import PushNotification from '../Notification/PushNotification';
-import NotificationType from '../Notification/PushNotification/NotificationType';
 import Navigation from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
@@ -54,13 +53,13 @@ function getReportChannelName(reportID) {
  * Setup reportComment push notification callbacks.
  */
 function subscribeToReportCommentPushNotifications() {
-    PushNotification.onReceived(NotificationType.REPORT_COMMENT, ({reportID, onyxData}) => {
+    PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, onyxData}) => {
         Log.info('[Report] Handled event sent by Airship', false, {reportID});
         Onyx.update(onyxData);
     });
 
     // Open correct report when push notification is clicked
-    PushNotification.onSelected(NotificationType.REPORT_COMMENT, ({reportID}) => {
+    PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
         if (Navigation.canNavigate('navigate')) {
             // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
             if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
