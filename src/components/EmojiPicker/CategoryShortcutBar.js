@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import Recent from '../../../assets/images/history.svg';
+import FrequentlyUsed from '../../../assets/images/history.svg';
 import Smiley from '../../../assets/images/emoji.svg';
 import AnimalsAndNature from '../../../assets/images/emojiCategoryIcons/plant.svg';
 import FoodAndDrink from '../../../assets/images/emojiCategoryIcons/hamburger.svg';
@@ -23,7 +23,14 @@ const propTypes = {
 };
 
 const CategoryShortcutBar = (props) => {
-    const icons = [Recent, Smiley, AnimalsAndNature, FoodAndDrink, TravelAndPlaces, Activities, Objects, Symbols, Flags];
+    // If the user has frequently used emojis, there will be 9 headers, otherwise there will be 8
+    const hasFrequentlyUsedEmojis = props.headerIndices.length === 9;
+    const icons = [Smiley, AnimalsAndNature, FoodAndDrink, TravelAndPlaces, Activities, Objects, Symbols, Flags];
+
+    // If the user has a frequently used category, push the icon
+    if (hasFrequentlyUsedEmojis) {
+        icons.unshift(FrequentlyUsed);
+    }
 
     return (
         <View style={[styles.pt2, styles.ph4, styles.flexRow]}>
@@ -32,6 +39,7 @@ const CategoryShortcutBar = (props) => {
                     icon={icons[i]}
                     onPress={() => props.onPress(headerIndex)}
                     key={`categoryShortcut${i}`}
+                    widthStyle={hasFrequentlyUsedEmojis ? styles.categoryShortcutButtonWithFrequentlyUsed : styles.categoryShortcutButtonWithoutFrequentlyUsed}
                 />
             ))}
         </View>

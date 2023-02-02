@@ -1502,12 +1502,19 @@ const styles = {
     },
 
     categoryShortcutButton: {
-        width: '11.11%',
         borderRadius: 8,
         paddingTop: 2,
         paddingBottom: 2,
         height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
         justifyContent: 'center',
+    },
+
+    categoryShortcutButtonWithFrequentlyUsed: {
+        width: '11.11%',
+    },
+
+    categoryShortcutButtonWithoutFrequentlyUsed: {
+        width: '12.5%',
     },
 
     chatItemEmojiButton: {
