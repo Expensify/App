@@ -55,7 +55,6 @@ class PasswordForm extends React.Component {
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
         this.resetPassword = this.resetPassword.bind(this);
         this.clearSignInData = this.clearSignInData.bind(this);
-        this.onTextInput = this.onTextInput.bind(this);
 
         this.state = {
             formError: {},
