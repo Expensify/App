@@ -161,7 +161,7 @@ class PasswordForm extends React.Component {
             formError: {},
         });
 
-        Session.signIn(password, twoFactorCode);
+        Session.signIn(password, '', twoFactorCode);
     }
 
     render() {
