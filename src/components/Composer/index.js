@@ -2,6 +2,7 @@ import React from 'react';
 import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
@@ -237,8 +238,8 @@ class Composer extends React.Component {
             // along with the HTML of it.
             // Ref: https://github.com/Expensify/App/issues/14232
             if (
-                _.get(parsedHTML, 'body.childNodes.length', 0) === 1
-                && _.get(parsedHTML, 'body.childNodes[0].tagName', '').toLowerCase() === 'img'
+                lodashGet(parsedHTML, 'body.childNodes.length', 0) === 1
+                && lodashGet(parsedHTML, 'body.childNodes[0].tagName', '').toLowerCase() === 'img'
                 && files.length > 0
             ) {
                 this.props.onPasteFile(event.clipboardData.files[0]);
