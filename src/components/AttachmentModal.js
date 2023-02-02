@@ -247,7 +247,6 @@ class AttachmentModal extends PureComponent {
 
     render() {
         const source = this.state.source;
-        console.log(source);
         const originalFileName = lodashGet(this.state, 'file.name') || this.props.originalFileName;
         const {fileName, fileExtension} = FileUtils.splitExtensionFromFileName(originalFileName);
 
@@ -288,14 +287,13 @@ class AttachmentModal extends PureComponent {
                                 onToggleKeyboard={this.updateConfirmButtonVisibility}
                             />
                         ) : (this.state.source && (
-                                <AttachmentView
-                                    source={source}
-                                    isAuthTokenRequired={this.props.isAuthTokenRequired}
-                                    file={this.state.file}
-                                    onToggleKeyboard={this.updateConfirmButtonVisibility}
-                                />
-                            )
-                        )}
+                            <AttachmentView
+                                source={source}
+                                isAuthTokenRequired={this.props.isAuthTokenRequired}
+                                file={this.state.file}
+                                onToggleKeyboard={this.updateConfirmButtonVisibility}
+                            />
+                        ))}
                     </View>
                     {/* If we have an onConfirm method show a confirmation button */}
                     {this.props.onConfirm && (
