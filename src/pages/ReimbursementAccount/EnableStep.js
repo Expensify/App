@@ -103,7 +103,7 @@ const EnableStep = (props) => {
                     </Text>
                 )}
             </ScrollView>
-            {props.reimbursementAccount.shouldShowResetModal && Boolean(achData.bankAccountID) && (
+            {props.reimbursementAccount.shouldShowResetModal && (
                 <WorkspaceResetBankAccountModal
                     reimbursementAccount={props.reimbursementAccount}
                 />
