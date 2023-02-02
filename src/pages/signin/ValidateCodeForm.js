@@ -140,6 +140,8 @@ class ValidateCodeForm extends React.Component {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     validateAndSubmitForm() {
+        const requiresTwoFactorAuth = this.props.account.requiresTwoFactorAuth;
+
         if (!this.state.validateCode.trim()) {
             this.setState({formError: {validateCode: 'validateCodeForm.error.pleaseFillMagicCode'}});
             return;
@@ -150,8 +152,13 @@ class ValidateCodeForm extends React.Component {
             return;
         }
 
-        if (this.props.account.requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim()) {
+        if (requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim()) {
             this.setState({formError: {twoFactorAuthCode: 'validateCodeForm.error.pleaseFillTwoFactorAuth'}});
+            return;
+        }
+
+        if (requiresTwoFactorAuth && !ValidationUtils.isValidTwoFactorCode(this.state.twoFactorAuthCode)) {
+            this.setState({formError: {twoFactorAuthCode: 'passwordForm.error.incorrect2fa'}});
             return;
         }
 
