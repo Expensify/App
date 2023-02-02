@@ -127,7 +127,10 @@ class ReportScreen extends React.Component {
         this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportOffsetTop);
 
         // Display chat report on mWeb when the link is opened directly in the browser
-        Linking.getInitialURL().then(url => this.openChatReportFromDeepLink(url));
+        Linking.getInitialURL().then((url) => {
+            console.log('********** Linking.getInitialURL():', url);
+            this.openChatReportFromDeepLink(url);
+        });
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', state => this.openChatReportFromDeepLink(state.url));
@@ -157,6 +160,10 @@ class ReportScreen extends React.Component {
      * @param {String} url
      */
     openChatReportFromDeepLink(url) {
+        if (!url) {
+            return;
+        }
+
         // Get the reportID from URL
         let route = url;
         _.each(linkingConfig.prefixes, (prefix) => {
@@ -164,6 +171,16 @@ class ReportScreen extends React.Component {
                 return;
             }
             route = route.replace(prefix, '');
+
+            // Remove the port if it's a localhost URL
+            if (/^:\d+/.test(route)) {
+                route = route.replace(/:\d+/, '');
+            }
+
+            // Remove the leading slash if exists
+            if (route.startsWith('/')) {
+                route = route.replace('/', '');
+            }
         });
         const {reportID} = ROUTES.parseReportRouteParams(route);
         if (!reportID) {
