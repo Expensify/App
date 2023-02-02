@@ -11,8 +11,6 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
 import Permissions from '../../libs/Permissions';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
@@ -29,7 +27,6 @@ const defaultProps = {
 
 class ValidateLoginPage extends Component {
     componentDidMount() {
-        console.log('isAuthenticated: ' + this.isAuthenticated() + '   passwordless: ' + Permissions.canUsePasswordlessLogins(this.props.betas));
         if (Permissions.canUsePasswordlessLogins(this.props.betas) && !this.isAuthenticated()) {
             Session.signInFromMagicLink(this.accountID(), this.validateCode());
         } else {
