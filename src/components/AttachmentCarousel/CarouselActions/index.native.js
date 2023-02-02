@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 
 const propTypes = {
+    /** Attachment that's rendered */
     children: PropTypes.element.isRequired,
 
     /** Callback to fire when swiping left or right */

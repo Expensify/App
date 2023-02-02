@@ -237,10 +237,10 @@ AttachmentCarousel.defaultProps = defaultProps;
 
 export default withOnyx({
     report: {
-        key: ({reportId}) => `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
     },
     reportActions: {
-        key: ({reportId}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         canEvict: false,
     },
 })(AttachmentCarousel);

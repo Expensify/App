@@ -78,7 +78,7 @@ class AttachmentModal extends PureComponent {
         this.state = {
             isModalOpen: false,
             isConfirmModalOpen: false,
-            reportId: null,
+            reportID: null,
             file: {name: lodashGet(props, 'originalFileName', '')},
             isAttachmentInvalid: false,
             attachmentInvalidReasonTitle: null,
@@ -279,9 +279,9 @@ class AttachmentModal extends PureComponent {
                         ) : ''}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
-                        {this.state.reportId ? (
+                        {this.state.reportID ? (
                             <AttachmentCarousel
-                                reportId={this.state.reportId}
+                                reportID={this.state.reportID}
                                 onNavigate={this.onNavigate}
                                 source={source}
                                 onToggleKeyboard={this.updateConfirmButtonVisibility}
@@ -329,11 +329,11 @@ class AttachmentModal extends PureComponent {
                     displayFileInModal: this.validateAndDisplayFileToUpload,
                     show: () => {
                         const route = Navigation.getActiveRoute();
-                        let reportId = null;
+                        let reportID = null;
                         if (route.includes('/r/')) {
-                            reportId = route.replace('/r/', '');
+                            reportID = route.replace('/r/', '');
                         }
-                        this.setState({isModalOpen: true, reportId});
+                        this.setState({isModalOpen: true, reportID});
                     },
                 })}
             </>
