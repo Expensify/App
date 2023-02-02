@@ -296,7 +296,7 @@ function signInFromMagicLink(accountID, validateCode) {
         },
     ];
 
-    // this is temporary for now. Server should login with the accountID and validateCode
+    // This is temporary for now. Server should login with the accountID and validateCode
     const params = {validateCode};
     params.email = credentials.login;
 
