@@ -290,6 +290,10 @@ export default {
         paddingHorizontal: 32,
     },
 
+    ph10: {
+        paddingHorizontal: 40,
+    },
+
     pr0: {
         paddingRight: 0,
     },
