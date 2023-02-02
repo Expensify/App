@@ -324,7 +324,7 @@ class BasePaymentsPage extends React.Component {
                     </>
                 )}
                 <Text
-                    style={[styles.ph5, styles.mt6, styles.textLabelSupporting]}
+                    style={[styles.ph5, styles.mt6, styles.textLabelSupporting, styles.mb1]}
                 >
                     {this.props.translate('paymentsPage.paymentMethodsTitle')}
                 </Text>
