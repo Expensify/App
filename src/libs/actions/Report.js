@@ -271,7 +271,7 @@ function addActions(reportID, text = '', file) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: _.mapObject(optimisticReportActions, (action) => {
                 // eslint-disable-next-line no-param-reassign
-                action.errors = {[DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage')};
+                action.errors = {[DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericAddCommentFailureMessage')};
                 return action;
             }),
         },

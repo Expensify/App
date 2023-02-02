@@ -1134,6 +1134,6 @@ export default {
         },
     },
     report: {
-        genericCreateFailureMessage: '',
-    }
+        genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
+    },
 };
