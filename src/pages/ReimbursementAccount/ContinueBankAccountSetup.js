@@ -73,9 +73,7 @@ const ContinueBankAccountSetup = props => (
                     <MenuItem
                         title={props.translate('workspace.bankAccount.startOver')}
                         icon={Expensicons.RotateLeft}
-                        onPress={() => {
-                            BankAccounts.requestResetFreePlanBankAccount();
-                        }}
+                        onPress={() => BankAccounts.requestResetFreePlanBankAccount()}
                         shouldShowRightIcon
                         wrapperStyle={[styles.cardMenuItem]}
                     />

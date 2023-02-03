@@ -68,7 +68,7 @@ function resetFreePlanBankAccount(bankAccountID) {
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                     value: {isLoading: false},
                 },
-            ]
+            ],
         });
 }
 
