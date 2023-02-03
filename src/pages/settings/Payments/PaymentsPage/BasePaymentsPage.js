@@ -34,7 +34,6 @@ import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import ConfirmContent from '../../../../components/ConfirmContent';
 import Button from '../../../../components/Button';
 import themeColors from '../../../../styles/themes/default';
-import withViewportOffsetTop from '../../../../components/withViewportOffsetTop';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
@@ -342,9 +341,8 @@ class BasePaymentsPage extends React.Component {
 
         // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
         const isPopoverBottomMount = this.state.anchorPositionTop === 0 || this.props.isSmallScreenWidth;
-        const screenWrapperStyle = [{marginTop: this.props.viewportOffsetTop}];
         return (
-            <ScreenWrapper style={screenWrapperStyle}>
+            <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('common.payments')}
                     shouldShowBackButton
@@ -480,10 +478,6 @@ class BasePaymentsPage extends React.Component {
                     )}
                 </Popover>
                 <PasswordPopover
-
-                    // Disable coverScreen to mount the modal within the component
-                    // hierarchy, otherwise it will not resize with screenWrapper.
-                    disableCoverScreen
                     isVisible={this.state.shouldShowPasswordPrompt}
                     onClose={this.hidePasswordPrompt}
                     anchorPosition={{
@@ -505,7 +499,6 @@ BasePaymentsPage.propTypes = propTypes;
 BasePaymentsPage.defaultProps = defaultProps;
 
 export default compose(
-    withViewportOffsetTop,
     withWindowDimensions,
     withLocalize,
     withNetwork(),
