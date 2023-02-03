@@ -29,7 +29,6 @@ import EnableStep from './EnableStep';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
-import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 
@@ -278,12 +277,8 @@ class ReimbursementAccountPage extends React.Component {
                     <ContinueBankAccountSetup
                         reimbursementAccount={this.props.reimbursementAccount}
                         continue={this.continue}
-                        startOver={() => {
-                            BankAccounts.requestResetFreePlanBankAccount();
-                        }}
-                        resetBankAccount={() => this.setState({ shouldHideContinueSetupButton: true })}
+                        startOver={() => this.setState({shouldHideContinueSetupButton: true})}
                     />
-                    
                 </View>
             );
         }
