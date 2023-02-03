@@ -197,7 +197,7 @@ function signInAndGetAppWithUnreadChat() {
         .then(() => renderedApp);
 }
 
-describe.only('Unread Indicators', () => {
+describe('Unread Indicators', () => {
     afterEach(() => {
         jest.clearAllMocks();
         Onyx.clear();
