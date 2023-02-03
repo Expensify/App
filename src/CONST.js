@@ -37,6 +37,23 @@ const CONST = {
     AVATAR_MAX_WIDTH_PX: 4096,
     AVATAR_MAX_HEIGHT_PX: 4096,
 
+    DEFAULT_AVATAR_COUNT: 24,
+    OLD_DEFAULT_AVATAR_COUNT: 8,
+
+    // Sizes needed for report empty state background image handling
+    EMPTY_STATE_BACKGROUND: {
+        SMALL_SCREEN: {
+            IMAGE_HEIGHT: 300,
+            CONTAINER_MINHEIGHT: 200,
+            VIEW_HEIGHT: 185,
+        },
+        WIDE_SCREEN: {
+            IMAGE_HEIGHT: 450,
+            CONTAINER_MINHEIGHT: 500,
+            VIEW_HEIGHT: 275,
+        },
+    },
+
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
@@ -139,6 +156,7 @@ const CONST = {
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+        PASSWORDLESS: 'passwordless',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -372,6 +390,7 @@ const CONST = {
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
         COLD: 'cold',
+        WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
         TOOLTIP_SENSE: 1000,
@@ -448,6 +467,9 @@ const CONST = {
 
     // at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
     PASSWORD_COMPLEXITY_REGEX_STRING: '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
+
+    // 6 numeric digits
+    VALIDATE_CODE_REGEX_STRING: /^\d{6}$/,
 
     PASSWORD_PAGE: {
         ERROR: {
@@ -736,6 +758,7 @@ const CONST = {
         SMALLER: 'smaller',
         SUBSCRIPT: 'subscript',
         SMALL_SUBSCRIPT: 'small-subscript',
+        MID_SUBSCRIPT: 'mid-subscript',
         LARGE_BORDERED: 'large-bordered',
     },
     OPTION_MODE: {
@@ -775,6 +798,7 @@ const CONST = {
         EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         CODE_2FA: /^\d{6}$/,
+        ATTACHMENT_ID: /chat-attachments\/(\d+)/,
     },
 
     PRONOUNS: {

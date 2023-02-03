@@ -122,22 +122,10 @@ function User_SecondaryLogin_Send(parameters) {
     return Network.post(commandName, parameters);
 }
 
-/**
- * Fetches the filename of the user's statement
- * @param {Object} parameters
- * @param {String} [parameters.period]
- * @return {Promise}
- */
-function GetStatementPDF(parameters) {
-    const commandName = 'GetStatementPDF';
-    return Network.post(commandName, parameters);
-}
-
 export {
     CreateLogin,
     DeleteLogin,
     Get,
-    GetStatementPDF,
     PersonalDetails_Update,
     ResendValidateCode,
     SetNameValuePair,
