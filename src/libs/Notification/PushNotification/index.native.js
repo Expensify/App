@@ -54,7 +54,7 @@ function pushNotificationEventCallback(eventType, notification) {
 }
 
 /**
- * Check if a user is opted-in to push notifications and update the `pushNotificationsEnabled` NVP accordingly.
+ * Check if a user is opted-in to push notifications on this device and update the `pushNotificationsEnabled` NVP accordingly.
  */
 function refreshNotificationOptInStatus() {
     UrbanAirship.getNotificationStatus()
