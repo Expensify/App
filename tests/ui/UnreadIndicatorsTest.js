@@ -35,7 +35,6 @@ beforeAll(() => {
 
     // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
     jest.setTimeout(30000);
-    Linking.setInitialURL('https://new.expensify.com/r/1');
     appSetup();
 
     // Connect to Pusher
@@ -198,7 +197,7 @@ function signInAndGetAppWithUnreadChat() {
         .then(() => renderedApp);
 }
 
-describe('Unread Indicators', () => {
+describe.only('Unread Indicators', () => {
     afterEach(() => {
         jest.clearAllMocks();
         Onyx.clear();
