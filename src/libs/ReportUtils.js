@@ -15,6 +15,7 @@ import * as NumberUtils from './NumberUtils';
 import * as NumberFormatUtils from './NumberFormatUtils';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
+import linkingConfig from './Navigation/linkingConfig';
 
 let sessionEmail;
 Onyx.connect({
@@ -1252,6 +1253,37 @@ function getNewMarkerReportActionID(report, sortedAndFilteredReportActions) {
         : '';
 }
 
+/**
+ * @param {String} url
+ * @returns {String}
+ */
+function getReportIDFromDeepLink(url) {
+    if (!url) {
+        return '';
+    }
+
+    // Get the reportID from URL
+    let route = url;
+    _.each(linkingConfig.prefixes, (prefix) => {
+        if (!route.startsWith(prefix)) {
+            return;
+        }
+        route = route.replace(prefix, '');
+
+        // Remove the port if it's a localhost URL
+        if (/^:\d+/.test(route)) {
+            route = route.replace(/:\d+/, '');
+        }
+
+        // Remove the leading slash if exists
+        if (route.startsWith('/')) {
+            route = route.replace('/', '');
+        }
+    });
+    const {reportID} = ROUTES.parseReportRouteParams(route);
+    return reportID;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1283,6 +1315,7 @@ export {
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
     getReportName,
+    getReportIDFromDeepLink,
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
