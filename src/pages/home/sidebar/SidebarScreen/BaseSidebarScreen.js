@@ -63,6 +63,7 @@ class BaseSidebarScreen extends Component {
                                 isSmallScreenWidth={this.props.isSmallScreenWidth}
                                 isDrawerOpen={this.props.isDrawerOpen}
                                 reportIDFromRoute={this.props.reportIDFromRoute}
+                                onLayout={this.props.onLayout}
                             />
                         </View>
                         <KeyboardShortcutsModal />

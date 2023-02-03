@@ -298,6 +298,14 @@ export default {
         paddingHorizontal: 32,
     },
 
+    ph10: {
+        paddingHorizontal: 40,
+    },
+
+    pr0: {
+        paddingRight: 0,
+    },
+
     pr1: {
         paddingRight: 4,
     },
@@ -320,6 +328,10 @@ export default {
 
     pr15: {
         paddingRight: 60,
+    },
+
+    pl0: {
+        paddingLeft: 0,
     },
 
     pl1: {

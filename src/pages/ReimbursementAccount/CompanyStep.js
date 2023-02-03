@@ -242,15 +242,15 @@ class CompanyStep extends React.Component {
                         inputID="hasNoConnectionToCannabis"
                         defaultValue={this.props.getDefaultStateForField('hasNoConnectionToCannabis', false)}
                         LabelComponent={() => (
-                            <>
-                                <Text>{`${this.props.translate('companyStep.confirmCompanyIsNot')} `}</Text>
+                            <Text>
+                                {`${this.props.translate('companyStep.confirmCompanyIsNot')} `}
                                 <TextLink
                                     // eslint-disable-next-line max-len
                                     href="https://community.expensify.com/discussion/6191/list-of-restricted-businesses"
                                 >
                                     {`${this.props.translate('companyStep.listOfRestrictedBusinesses')}.`}
                                 </TextLink>
-                            </>
+                            </Text>
                         )}
                         style={[styles.mt4]}
                         shouldSaveDraft
