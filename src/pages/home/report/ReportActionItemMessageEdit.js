@@ -15,6 +15,7 @@ import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFo
 import compose from '../../../libs/compose';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
+import * as ReportUtils from '../../../libs/ReportUtils';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import reportPropTypes from '../../reportPropTypes';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
@@ -214,7 +215,8 @@ class ReportActionItemMessageEdit extends React.Component {
     }
 
     render() {
-        const hasExceededMaxCommentLength = this.state.draft.length > CONST.MAX_COMMENT_LENGTH;
+        const draftLength = ReportUtils.commentLength(this.state.draft);
+        const hasExceededMaxCommentLength = draftLength > CONST.MAX_COMMENT_LENGTH;
         return (
             <View style={styles.chatItemMessage}>
                 <View
@@ -279,7 +281,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         onPress={this.publishDraft}
                         text={this.props.translate('common.saveChanges')}
                     />
-                    <ExceededCommentLength commentLength={this.state.draft.length} />
+                    <ExceededCommentLength commentLength={draftLength} />
                 </View>
             </View>
         );
