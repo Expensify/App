@@ -1770,7 +1770,7 @@ const styles = {
     },
 
     borderTop: {
-        borderTopWidth: variables.borderTopWidth,
+        borderTopWidth: 1,
         borderColor: themeColors.border,
     },
 
