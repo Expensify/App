@@ -177,7 +177,6 @@ class AttachmentCarousel extends React.Component {
                     Report.readOldestAction(this.props.report.reportID, oldestReportAction.reportActionID);
                     return;
                 }
-
             }
             const {source, file} = this.getAttachment(attachments[nextIndex]);
             return {
