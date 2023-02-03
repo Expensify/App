@@ -47,6 +47,9 @@ class ValidateLoginPage extends Component {
      */
     validateCode = () => lodashGet(this.props.route.params, 'validateCode', '');
 
+    /**
+     * @returns {Boolean}
+     */
     isAuthenticated = () => Boolean(lodashGet(this.props, 'session.authToken', null));
 
     render() {
