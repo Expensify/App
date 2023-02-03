@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 
 /**
  * Finds an address component by type, and returns the value associated to key. Each address component object

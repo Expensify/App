@@ -8,7 +8,6 @@ import CONFIG from '../CONFIG';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
 import TextInput from './TextInput';
-import Log from '../libs/Log';
 import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
 
 // The error that's being thrown below will be ignored until we fork the
