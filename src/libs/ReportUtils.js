@@ -12,6 +12,7 @@ import hashCode from './hashCode';
 import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
+import * as CollectionUtils from './CollectionUtils';
 import * as NumberFormatUtils from './NumberFormatUtils';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
