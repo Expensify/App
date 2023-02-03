@@ -159,8 +159,9 @@ describe('GooglePlacesUtilsTest', () => {
             const endTime = performance.now();
             const executionTime = endTime - startTime;
 
-            // When timing this method it was roughly 1.211708999999928ms so this would be almost 3x as slow
-            // which I think is a meaningful regression we should avoid
+            // When timing this method it was roughly 1.211708999999928ms locally
+            // but 3.2214480000000094ms on github actions so using 5ms arbitrarily here for now
+            // and we can change if needed later.
             expect(executionTime).toBeLessThan(5.00);
         });
     });
