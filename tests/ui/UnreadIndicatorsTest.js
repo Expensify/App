@@ -35,6 +35,9 @@ beforeAll(() => {
 
     // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
     jest.setTimeout(30000);
+
+    // We just navigate to the app without opening a specific chat report, otherwise we'll be marking the chat report as read because we'll be opening it from the deep link by default
+    Linking.setInitialURL('https://new.expensify.com/r');
     appSetup();
 
     // Connect to Pusher
