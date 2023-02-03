@@ -276,17 +276,14 @@ class ReimbursementAccountPage extends React.Component {
             return (
                 <View>
                     <ContinueBankAccountSetup
+                        reimbursementAccount={this.props.reimbursementAccount}
                         continue={this.continue}
                         startOver={() => {
                             BankAccounts.requestResetFreePlanBankAccount();
                         }}
+                        resetBankAccount={() => this.setState({ shouldHideContinueSetupButton: true })}
                     />
-                    {this.props.reimbursementAccount.shouldShowResetModal && (
-                        <WorkspaceResetBankAccountModal
-                            reimbursementAccount={this.props.reimbursementAccount}
-                            onConfirm={() => this.setState({shouldHideContinueSetupButton: true})}
-                        />
-                    )}
+                    
                 </View>
             );
         }
