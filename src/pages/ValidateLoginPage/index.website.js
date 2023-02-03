@@ -30,7 +30,7 @@ class ValidateLoginPage extends Component {
     componentDidMount() {
         if (Permissions.canUsePasswordlessLogins(this.props.betas)) {
             if (!this.isAuthenticated()) {
-                Session.signInFromMagicLink(this.accountID(), this.validateCode());
+                Session.signInWithValidateCode(this.validateCode());
             }
         } else {
             User.validateLogin(this.accountID(), this.validateCode());

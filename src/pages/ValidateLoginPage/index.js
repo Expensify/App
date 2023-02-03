@@ -32,7 +32,7 @@ class ValidateLoginPage extends Component {
             if (this.isAuthenticated()) {
                 Navigation.goBack(false);
             } else {
-                Session.signInFromMagicLink(this.accountID(), this.validateCode());
+                Session.signInWithValidateCode(this.accountID(), this.validateCode());
             }
         } else {
             User.validateLogin(this.accountID(), this.validateCode());

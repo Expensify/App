@@ -8,6 +8,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Text from './Text';
 import * as Expensicons from './Icon/Expensicons';
 import * as Illustrations from './Icon/Illustrations';
+import variables from '../styles/variables';
 
 const propTypes = {
     /** Code to display. */
@@ -22,8 +23,8 @@ class MagicCodeModal extends PureComponent {
                 <View style={styles.deeplinkWrapperMessage}>
                     <View style={styles.mb2}>
                         <Icon
-                            width={200}
-                            height={164}
+                            width={variables.modalTopIconWidth}
+                            height={variables.modalTopIconHeight}
                             src={Illustrations.MagicCodeYellow}
                         />
                     </View>
@@ -43,8 +44,8 @@ class MagicCodeModal extends PureComponent {
                 </View>
                 <View style={styles.deeplinkWrapperFooter}>
                     <Icon
-                        width={154}
-                        height={34}
+                        width={variables.modalWordmarkWidth}
+                        height={variables.modalWordmarkHeight}
                         fill={colors.green}
                         src={Expensicons.ExpensifyWordmark}
                     />

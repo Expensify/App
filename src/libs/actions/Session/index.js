@@ -257,7 +257,7 @@ function signIn(password, validateCode, twoFactorAuthCode) {
     API.write('SigninUser', params, {optimisticData, successData, failureData});
 }
 
-function signInFromMagicLink(accountID, validateCode) {
+function signInWithValidateCode(validateCode) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -522,7 +522,7 @@ export {
     beginSignIn,
     updatePasswordAndSignin,
     signIn,
-    signInFromMagicLink,
+    signInWithValidateCode,
     signInWithShortLivedAuthToken,
     cleanupSession,
     signOut,
