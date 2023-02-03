@@ -66,6 +66,13 @@ Onyx.connect({
     callback: val => allReports = val,
 });
 
+let doesDomainHaveApprovedAccountant;
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    waitForCollectionCallback: true,
+    callback: val => doesDomainHaveApprovedAccountant = val.doesDomainHaveApprovedAccountant,
+});
+
 function getChatType(report) {
     return report ? report.chatType : '';
 }
@@ -370,8 +377,18 @@ function chatIncludesConcierge(report) {
  * @param {Array} emails
  * @returns {Boolean}
  */
-function hasExpensifyEmails(emails) {
+function hasAutomatedExpensifyEmails(emails) {
     return _.intersection(emails, CONST.EXPENSIFY_EMAILS).length > 0;
+}
+
+/**
+ * Returns true if there are any Expensify accounts (i.e. with domain 'expensify.com') in the set of emails.
+ *
+ * @param {Array<String>} emails
+ * @return {Boolean}
+ */
+function hasExpensifyEmails(emails) {
+    return _.some(emails, email => Str.extractEmailDomain(email) === CONST.EXPENSIFY_PARTNER_NAME);
 }
 
 /**
@@ -842,7 +859,7 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
             iouMessage = isSettlingUp
-                ? `Settled up ${paymentMethodMessage}`
+                ? `Settled up${paymentMethodMessage}`
                 : `Sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             break;
         default:
@@ -1195,6 +1212,40 @@ function isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports = {}) {
 }
 
 /**
+ * Assuming the passed in report is a default room, lets us know whether we can see it or not, based on permissions and
+ * the various subsets of users we've allowed to use default rooms.
+ *
+ * @param {Object} report
+ * @param {Array<Object>} policies
+ * @param {Array<String>} betas
+ * @return {Boolean}
+ */
+function canSeeDefaultRoom(report, policies, betas) {
+    // Include archived rooms
+    if (isArchivedRoom(report)) {
+        return true;
+    }
+
+    // Include default rooms for free plan policies (domain rooms aren't included in here because they do not belong to a policy)
+    if (getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE) {
+        return true;
+    }
+
+    // Include domain rooms with Partner Managers (Expensify accounts) in them for accounts that are on a domain with an Approved Accountant
+    if (isDomainRoom(report) && doesDomainHaveApprovedAccountant && hasExpensifyEmails(lodashGet(report, ['participants'], []))) {
+        return true;
+    }
+
+    // If the room has an assigned guide, it can be seen.
+    if (hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
+        return true;
+    }
+
+    // For all other cases, just check that the user belongs to the default rooms beta
+    return Permissions.canUseDefaultRooms(betas);
+}
+
+/**
  * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
  * for reports or the reports shown in the LHN).
  *
@@ -1248,13 +1299,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         return true;
     }
 
-    // Include default rooms for free plan policies
-    if (isDefaultRoom(report) && getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE) {
-        return true;
-    }
-
-    // Include default rooms unless you're on the default room beta, unless you have an assigned guide
-    if (isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas) && !hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
+    if (isDefaultRoom(report) && !canSeeDefaultRoom(report, policies, betas)) {
         return false;
     }
 
@@ -1343,7 +1388,7 @@ export {
     getPolicyType,
     isArchivedRoom,
     isConciergeChatReport,
-    hasExpensifyEmails,
+    hasAutomatedExpensifyEmails,
     hasExpensifyGuidesEmails,
     hasOutstandingIOU,
     isIOUOwnedByCurrentUser,
@@ -1379,4 +1424,5 @@ export {
     isDefaultAvatar,
     getOldDotDefaultAvatar,
     getNewMarkerReportActionID,
+    canSeeDefaultRoom,
 };
