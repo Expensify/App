@@ -297,10 +297,10 @@ function signInFromMagicLink(accountID, validateCode) {
     ];
 
     // This is temporary for now. Server should login with the accountID and validateCode
-    const params = {validateCode};
-    params.email = credentials.login;
-
-    API.write('SigninUser', params, {optimisticData, successData, failureData});
+    API.write('SigninUser', {
+        validateCode,
+        email: credentials.login,
+    }, {optimisticData, successData, failureData});
     Navigation.navigate(ROUTES.HOME);
 }
 
