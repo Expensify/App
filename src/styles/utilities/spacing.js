@@ -45,6 +45,10 @@ export default {
         marginHorizontal: 20,
     },
 
+    mh8: {
+        marginHorizontal: 32,
+    },
+
     mv1: {
         marginVertical: 4,
     },

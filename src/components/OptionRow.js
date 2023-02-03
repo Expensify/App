@@ -58,7 +58,7 @@ const propTypes = {
     shouldHaveOptionSeparator: PropTypes.bool,
 
     /** Whether to remove the lateral padding and align the content with the margins */
-    disableInnerPadding: PropTypes.bool,
+    disableRowInnerPadding: PropTypes.bool,
 
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
@@ -76,7 +76,7 @@ const defaultProps = {
     optionIsFocused: false,
     style: null,
     shouldHaveOptionSeparator: false,
-    disableInnerPadding: false,
+    disableRowInnerPadding: false,
 };
 
 const OptionRow = (props) => {
@@ -134,7 +134,7 @@ const OptionRow = (props) => {
                             styles.alignItemsCenter,
                             styles.justifyContentBetween,
                             styles.sidebarLink,
-                            props.disableInnerPadding ? null : styles.sidebarLinkInner,
+                            props.disableRowInnerPadding ? null : styles.sidebarLinkInner,
                             props.optionIsFocused ? styles.sidebarLinkActive : null,
                             hovered && !props.optionIsFocused ? props.hoverStyle : null,
                             props.isDisabled && styles.cursorDisabled,

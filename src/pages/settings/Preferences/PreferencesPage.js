@@ -57,7 +57,7 @@ const PreferencesPage = (props) => {
                     <Text style={[styles.textLabelSupporting, styles.mb2, styles.ml8, styles.mr8]} numberOfLines={1}>
                         {props.translate('common.notifications')}
                     </Text>
-                    <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.ml8, styles.mr8]}>
+                    <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.mh8]}>
                         <View style={styles.flex4}>
                             <Text>
                                 {props.translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
@@ -87,7 +87,7 @@ const PreferencesPage = (props) => {
                     {
                         _.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], props.environment)
                         && (
-                            <View style={[styles.ml8, styles.mt6, styles.mr8]}>
+                            <View style={[styles.mh8, styles.mt6]}>
                                 <TestToolMenu />
                             </View>
                         )
