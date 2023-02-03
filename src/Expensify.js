@@ -154,6 +154,7 @@ class Expensify extends PureComponent {
             // eslint-disable-next-line react/no-did-update-set-state
             this.setState({isSplashShown: false});
 
+            // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
             Linking.getInitialURL().then((url) => {
                 const reportID = ReportUtils.getReportIDFromDeepLink(url);
                 if (!reportID) {
