@@ -2,9 +2,10 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
-import {AppState} from 'react-native';
+import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 
+import * as ReportUtils from './libs/ReportUtils';
 import BootSplash from './libs/BootSplash';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
@@ -26,6 +27,8 @@ import Navigation from './libs/Navigation/Navigation';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
+import ROUTES from './ROUTES';
+import onScreenTransitionEnd from './libs/onScreenTransitionEnd';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
@@ -120,6 +123,22 @@ class Expensify extends PureComponent {
             });
 
         this.appStateChangeListener = AppState.addEventListener('change', this.initializeClient);
+
+        // Open chat report from a deep link (only mobile native)
+        Linking.addEventListener('url', (state) => {
+            const reportID = ReportUtils.getReportIDFromDeepLink(state.url);
+            if (!reportID) {
+                return;
+            }
+
+            // Since NavigationContainer already handles the deep link for the ReportScreen, we need to wait for it to finish to then navigate to the desired chat report
+            const unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
+                Navigation.isDrawerReady().then(() => {
+                    Navigation.navigate(ROUTES.getReportRoute(reportID));
+                });
+                unsubscribeTransitionEnd();
+            });
+        });
     }
 
     componentDidUpdate() {
@@ -134,6 +153,17 @@ class Expensify extends PureComponent {
 
             // eslint-disable-next-line react/no-did-update-set-state
             this.setState({isSplashShown: false});
+
+            Linking.getInitialURL().then((url) => {
+                const reportID = ReportUtils.getReportIDFromDeepLink(url);
+                if (!reportID) {
+                    return;
+                }
+
+                Navigation.isDrawerReady().then(() => {
+                    Navigation.navigate(ROUTES.getReportRoute(reportID));
+                });
+            });
         }
     }
 

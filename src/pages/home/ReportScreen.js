@@ -1,7 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {View, Linking} from 'react-native';
+import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {Freeze} from 'react-freeze';
@@ -33,8 +33,6 @@ import withLocalize from '../../components/withLocalize';
 import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
-import onScreenTransitionEnd from '../../libs/onScreenTransitionEnd';
-import linkingConfig from '../../libs/Navigation/linkingConfig';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -101,37 +99,6 @@ function getReportID(route) {
     return route.params.reportID.toString();
 }
 
-/**
- * @param {String} url
- * @returns {String}
- */
-function getReportIDFromDeepLink(url) {
-    if (!url) {
-        return '';
-    }
-
-    // Get the reportID from URL
-    let route = url;
-    _.each(linkingConfig.prefixes, (prefix) => {
-        if (!route.startsWith(prefix)) {
-            return;
-        }
-        route = route.replace(prefix, '');
-
-        // Remove the port if it's a localhost URL
-        if (/^:\d+/.test(route)) {
-            route = route.replace(/:\d+/, '');
-        }
-
-        // Remove the leading slash if exists
-        if (route.startsWith('/')) {
-            route = route.replace('/', '');
-        }
-    });
-    const {reportID} = ROUTES.parseReportRouteParams(route);
-    return reportID;
-}
-
 // Keep a reference to the list view height so we can use it when a new ReportScreen component mounts
 let reportActionsListViewHeight = 0;
 
@@ -156,33 +123,6 @@ class ReportScreen extends React.Component {
         this.fetchReportIfNeeded();
         toggleReportActionComposeView(true);
         this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportOffsetTop);
-
-        // Display chat report on mWeb when the link is opened directly in the browser
-        Linking.getInitialURL().then((url) => {
-            const reportID = getReportIDFromDeepLink(url);
-            if (!reportID) {
-                return;
-            }
-            Navigation.isDrawerReady().then(() => {
-                Navigation.navigate(ROUTES.getReportRoute(reportID));
-            });
-        });
-
-        // Open chat report from a deep link (only mobile native)
-        Linking.addEventListener('url', (state) => {
-            const reportID = getReportIDFromDeepLink(state.url);
-            if (!reportID) {
-                return;
-            }
-
-            // Since NavigationContainer already handles the deep link for the ReportScreen, we need to wait for it to finish to then navigate to the desired chat report
-            const unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
-                Navigation.isDrawerReady().then(() => {
-                    Navigation.navigate(ROUTES.getReportRoute(reportID));
-                });
-                unsubscribeTransitionEnd();
-            });
-        });
     }
 
     componentDidUpdate(prevProps) {
