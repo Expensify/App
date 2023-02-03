@@ -23,12 +23,12 @@ const propTypes = {
 };
 
 const CategoryShortcutBar = (props) => {
-    // If the user has frequently used emojis, there will be 9 headers, otherwise there will be 8
-    const hasFrequentlyUsedEmojis = props.headerIndices.length === 9;
+
+
     const icons = [Smiley, AnimalsAndNature, FoodAndDrink, TravelAndPlaces, Activities, Objects, Symbols, Flags];
 
-    // If the user has a frequently used category, push the icon
-    if (hasFrequentlyUsedEmojis) {
+    // If the user has frequently used emojis, there will be 9 headers, otherwise there will be 8
+    if (props.headerIndices.length === 9) {
         icons.unshift(FrequentlyUsed);
     }
 
@@ -39,7 +39,6 @@ const CategoryShortcutBar = (props) => {
                     icon={icons[i]}
                     onPress={() => props.onPress(headerIndex)}
                     key={`categoryShortcut${i}`}
-                    widthStyle={hasFrequentlyUsedEmojis ? styles.categoryShortcutButtonWithFrequentlyUsed : styles.categoryShortcutButtonWithoutFrequentlyUsed}
                 />
             ))}
         </View>

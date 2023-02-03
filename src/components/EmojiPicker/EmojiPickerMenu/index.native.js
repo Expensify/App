@@ -143,7 +143,7 @@ class EmojiPickerMenu extends Component {
     render() {
         return (
             <View style={styles.emojiPickerContainer}>
-                <View style={[styles.flexRow]}>
+                <View>
                     <CategoryShortcutBar
                         headerIndices={this.headerIndices}
                         onPress={this.scrollToHeader}

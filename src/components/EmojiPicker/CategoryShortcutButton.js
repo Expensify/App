@@ -14,10 +14,6 @@ const propTypes = {
 
     /** The function to call when an emoji is selected */
     onPress: PropTypes.func.isRequired,
-
-    /** The width of the button based on whether there are 8 or 9 buttons */
-    // eslint-disable-next-line react/forbid-prop-types
-    widthStyle: PropTypes.object.isRequired,
 };
 
 class CategoryShortcutButton extends PureComponent {
@@ -38,7 +34,6 @@ class CategoryShortcutButton extends PureComponent {
                     StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
                     styles.categoryShortcutButton,
                     this.state.isHighlighted && styles.emojiItemHighlighted,
-                    this.props.widthStyle,
                 ])}
             >
                 <View style={styles.alignSelfCenter}>
