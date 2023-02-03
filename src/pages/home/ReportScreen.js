@@ -101,6 +101,37 @@ function getReportID(route) {
     return route.params.reportID.toString();
 }
 
+/**
+ * @param {String} url
+ * @returns {String}
+ */
+function getReportIDFromDeepLink(url) {
+    if (!url) {
+        return '';
+    }
+
+    // Get the reportID from URL
+    let route = url;
+    _.each(linkingConfig.prefixes, (prefix) => {
+        if (!route.startsWith(prefix)) {
+            return;
+        }
+        route = route.replace(prefix, '');
+
+        // Remove the port if it's a localhost URL
+        if (/^:\d+/.test(route)) {
+            route = route.replace(/:\d+/, '');
+        }
+
+        // Remove the leading slash if exists
+        if (route.startsWith('/')) {
+            route = route.replace('/', '');
+        }
+    });
+    const {reportID} = ROUTES.parseReportRouteParams(route);
+    return reportID;
+}
+
 // Keep a reference to the list view height so we can use it when a new ReportScreen component mounts
 let reportActionsListViewHeight = 0;
 
@@ -128,12 +159,30 @@ class ReportScreen extends React.Component {
 
         // Display chat report on mWeb when the link is opened directly in the browser
         Linking.getInitialURL().then((url) => {
-            console.log('********** Linking.getInitialURL():', url);
-            this.openChatReportFromDeepLink(url);
+            const reportID = getReportIDFromDeepLink(url);
+            if (!reportID) {
+                return;
+            }
+            Navigation.isDrawerReady().then(() => {
+                Navigation.navigate(ROUTES.getReportRoute(reportID));
+            });
         });
 
         // Open chat report from a deep link (only mobile native)
-        Linking.addEventListener('url', state => this.openChatReportFromDeepLink(state.url));
+        Linking.addEventListener('url', (state) => {
+            const reportID = getReportIDFromDeepLink(state.url);
+            if (!reportID) {
+                return;
+            }
+
+            // Since NavigationContainer already handles the deep link for the ReportScreen, we need to wait for it to finish to then navigate to the desired chat report
+            const unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
+                Navigation.isDrawerReady().then(() => {
+                    Navigation.navigate(ROUTES.getReportRoute(reportID));
+                });
+                unsubscribeTransitionEnd();
+            });
+        });
     }
 
     componentDidUpdate(prevProps) {
@@ -154,45 +203,6 @@ class ReportScreen extends React.Component {
      */
     onSubmitComment(text) {
         Report.addComment(getReportID(this.props.route), text);
-    }
-
-    /**
-     * @param {String} url
-     */
-    openChatReportFromDeepLink(url) {
-        if (!url) {
-            return;
-        }
-
-        // Get the reportID from URL
-        let route = url;
-        _.each(linkingConfig.prefixes, (prefix) => {
-            if (!route.startsWith(prefix)) {
-                return;
-            }
-            route = route.replace(prefix, '');
-
-            // Remove the port if it's a localhost URL
-            if (/^:\d+/.test(route)) {
-                route = route.replace(/:\d+/, '');
-            }
-
-            // Remove the leading slash if exists
-            if (route.startsWith('/')) {
-                route = route.replace('/', '');
-            }
-        });
-        const {reportID} = ROUTES.parseReportRouteParams(route);
-        if (!reportID) {
-            return;
-        }
-
-        // Since NavigationContainer already handles the deep link for the ReportScreen, we need to wait for it to finish to then navigate to the desired chat report
-        this.unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
-            Navigation.isDrawerReady().then(() => {
-                Navigation.navigate(ROUTES.getReportRoute(reportID));
-            });
-        });
     }
 
     /**
