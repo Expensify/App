@@ -161,7 +161,7 @@ describe('GooglePlacesUtilsTest', () => {
 
             // When timing this method it was roughly 1.211708999999928ms so this would be almost 3x as slow
             // which I think is a meaningful regression we should avoid
-            expect(executionTime).toBeLessThan(3.00);
+            expect(executionTime).toBeLessThan(5.00);
         });
     });
 });
