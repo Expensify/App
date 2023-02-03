@@ -16,6 +16,7 @@ import * as NumberFormatUtils from './NumberFormatUtils';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
 import * as defaultAvatars from '../components/Icon/DefaultAvatars';
+import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 
 let sessionEmail;
 Onyx.connect({
@@ -451,6 +452,25 @@ function getDefaultAvatar(login = '') {
     const loginHashBucket = hashLogin(login, CONST.DEFAULT_AVATAR_COUNT);
 
     return defaultAvatars[`Avatar${loginHashBucket}`];
+}
+
+/**
+ * Helper method to return the default avatar associated with the given login
+ * @param {String} [workspaceName]
+ * @returns {String}
+ */
+function getDefaultWorkspaceAvatar(workspaceName) {
+    if (!workspaceName) {
+        return Expensicons.FallbackWorkspaceAvatar;
+    }
+
+    // Remove all chars not A-Z or 0-9 including underscore
+    const alphaNumeric = workspaceName.replace(/[^0-9a-z]/gi, '').toUpperCase();
+    const firstChar = alphaNumeric[0];
+    // eslint-disable-next-line no-console
+    console.log('first character: ', firstChar, defaultWorkspaceAvatars[`Workspace${firstChar}`]);
+
+    return !firstChar ? Expensicons.FallbackWorkspaceAvatar : defaultWorkspaceAvatars[`Workspace${firstChar}`];
 }
 
 /**
@@ -1425,4 +1445,6 @@ export {
     getOldDotDefaultAvatar,
     getNewMarkerReportActionID,
     canSeeDefaultRoom,
+    hashLogin,
+    getDefaultWorkspaceAvatar,
 };

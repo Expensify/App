@@ -2031,6 +2031,11 @@ const styles = {
         overflow: 'hidden',
     },
 
+    squareAvatarBorder: {
+        borderRadius: 20,
+        overflow: 'hidden',
+    },
+
     displayName: {
         fontSize: variables.fontSizeLarge,
         fontFamily: fontFamily.EXP_NEUE_BOLD,

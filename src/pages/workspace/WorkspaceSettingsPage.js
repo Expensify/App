@@ -21,6 +21,8 @@ import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import Form from '../../components/Form';
+import * as StyleUtils from '../../styles/StyleUtils';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     ...policyPropTypes,
@@ -77,6 +79,9 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     render() {
+        // eslint-disable-next-line no-console
+        console.log('POLICY: ', this.props.policy, lodashGet(this.props.policy, 'name', ''));
+        const policyName = lodashGet(this.props.policy, 'name', '');
         return (
             <WorkspacePageWithSections
                 headerText={this.props.translate('workspace.common.settings')}
@@ -104,10 +109,12 @@ class WorkspaceSettingsPage extends React.Component {
                                 size={CONST.AVATAR_SIZE.LARGE}
                                 DefaultAvatar={() => (
                                     <Icon
-                                        src={Expensicons.Workspace}
+                                        src={ReportUtils.getDefaultWorkspaceAvatar(policyName)}
                                         height={80}
                                         width={80}
                                         fill={defaultTheme.iconSuccessFill}
+                                        isWorkspaceAvatar
+                                        workspaceColorStyle={StyleUtils.getDefaultWorspaceAvatarColor(policyName)}
                                     />
                                 )}
                                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}

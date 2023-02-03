@@ -6,6 +6,7 @@ import variables from './variables';
 import colors from './colors';
 import positioning from './utilities/positioning';
 import styles from './styles';
+import * as ReportUtils from '../libs/ReportUtils';
 
 /**
  * Return the style size from an avatar size constant
@@ -49,13 +50,53 @@ function getAvatarStyle(size) {
  * Return the border style if avatar is SVG
  *
  * @param {Boolean} isSVG
+ * @param {Boolean} isWorkspace
  * @returns {Object}
  */
-function getAvatarSVGBorder(isSVG) {
+function getAvatarSVGBorder(isSVG, isWorkspace = false) {
+    if (isWorkspace) {
+        return styles.squareAvatarBorder;
+    }
     if (!isSVG) {
         return {};
     }
     return styles.svgAvatarBorder;
+}
+
+/**
+ * Helper method to return old dot default avatar associated with login
+ *
+ * @param {String} [workspaceName]
+ * @returns {Object}
+ */
+function getDefaultWorspaceAvatarColor(workspaceName) {
+    const colorOptions = [
+        ['#8DC8FF', '#003C73'],
+        ['#0185FF', '#002140'],
+        ['#003C73', '#8DC8FF'],
+        ['#8EECC4', '#085239'],
+        ['#03D47C', '#002E22'],
+        ['#085239', '#8EECC4'],
+        ['#FFED8F', '#722B03'],
+        ['#FED607', '#401102'],
+        ['#722B03', '#FFED8F'],
+        ['#FFC68C', '#780505'],
+        ['#FF7101', '#400000'],
+        ['#780505', '#FF7101'],
+        ['#FBCCFF', '#712A76'],
+        ['#F68DFE', '#49225B'],
+        ['#712A76', '#FBCCFF'],
+        ['#CCF7FF', '#28736D'],
+        ['#50EEF6', '#134038'],
+        ['#28736D', '#CCF7FF'],
+    ];
+
+    const colorHash = ReportUtils.hashLogin(workspaceName, colorOptions.length);
+
+    // eslint-disable-next-line no-console
+    console.log('HASH RESULTS', colorHash, {backgroundColor: colorOptions[colorHash][0], fill: colorOptions[colorHash][1]});
+
+    return {backgroundColor: colorOptions[colorHash][0], fill: colorOptions[colorHash][1]};
 }
 
 /**
@@ -773,4 +814,5 @@ export {
     getReportWelcomeBackgroundImageStyle,
     getReportWelcomeBackgroundImageViewStyle,
     getReportWelcomeContainerStyle,
+    getDefaultWorspaceAvatarColor,
 };

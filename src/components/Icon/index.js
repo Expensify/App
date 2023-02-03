@@ -28,6 +28,12 @@ const propTypes = {
 
     /** Is SVG avatar icon */
     isSVGAvatar: PropTypes.bool,
+
+    /** Is workspace icon */
+    isWorkspaceAvatar: PropTypes.bool,
+
+    // eslint-disable-next-line react/forbid-prop-types
+    workspaceColorStyle: PropTypes.object,
 };
 
 const defaultProps = {
@@ -37,6 +43,8 @@ const defaultProps = {
     small: false,
     inline: false,
     isSVGAvatar: false,
+    isWorkspaceAvatar: false,
+    workspaceColorStyle: {},
 };
 
 // We must use a class component to create an animatable component with the Animated API
@@ -46,7 +54,7 @@ class Icon extends PureComponent {
         const width = this.props.small ? variables.iconSizeSmall : this.props.width;
         const height = this.props.small ? variables.iconSizeSmall : this.props.height;
         const iconStyles = [StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute,
-            StyleUtils.getAvatarSVGBorder(this.props.isSVGAvatar)];
+            StyleUtils.getAvatarSVGBorder(this.props.isSVGAvatar, this.props.isWorkspaceAvatar), this.props.workspaceColorStyle];
 
         if (this.props.inline) {
             return (
@@ -58,7 +66,7 @@ class Icon extends PureComponent {
                         <this.props.src
                             width={width}
                             height={height}
-                            fill={this.props.fill}
+                            fill={!this.props.isWorkspaceAvatar ? this.props.fill : {}}
                         />
                     </View>
                 </View>
@@ -66,11 +74,18 @@ class Icon extends PureComponent {
         }
 
         return (
-            <View accessibilityHint={`${this.props.src.name} Icon`} style={StyleUtils.getAvatarSVGBorder(this.props.isSVGAvatar)}>
+            <View
+                accessibilityHint={`${this.props.src.name} Icon`}
+                style={[
+                    StyleUtils.getAvatarSVGBorder(this.props.isSVGAvatar,
+                        this.props.isWorkspaceAvatar),
+                    this.props.workspaceColorStyle,
+                ]}
+            >
                 <this.props.src
                     width={width}
                     height={height}
-                    fill={this.props.fill}
+                    fill={!this.props.isWorkspaceAvatar ? this.props.fill : {}}
                 />
             </View>
         );

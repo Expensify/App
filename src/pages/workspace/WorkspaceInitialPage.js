@@ -28,6 +28,8 @@ import CONST from '../../CONST';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import ONYXKEYS from '../../ONYXKEYS';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import * as StyleUtils from '../../styles/StyleUtils';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     ...policyPropTypes,
@@ -96,6 +98,9 @@ class WorkspaceInitialPage extends React.Component {
 
     render() {
         const policy = this.props.policy;
+        // eslint-disable-next-line no-console
+        console.log('POLICY: ', this.props.policy, lodashGet(this.props.policy, 'name', ''));
+        const policyName = lodashGet(this.props.policy, 'name', '');
         const hasMembersError = PolicyUtils.hasPolicyMemberError(this.props.policyMemberList);
         const hasGeneralSettingsError = !_.isEmpty(lodashGet(this.props.policy, 'errorFields.generalSettings', {}))
             || !_.isEmpty(lodashGet(this.props.policy, 'errorFields.avatar', {}));
@@ -202,10 +207,12 @@ class WorkspaceInitialPage extends React.Component {
                                                 )
                                                 : (
                                                     <Icon
-                                                        src={Expensicons.Workspace}
+                                                        src={ReportUtils.getDefaultWorkspaceAvatar(policyName)}
                                                         height={80}
                                                         width={80}
                                                         fill={themedefault.iconSuccessFill}
+                                                        isWorkspaceAvatar
+                                                        workspaceColorStyle={StyleUtils.getDefaultWorspaceAvatarColor(policyName)}
                                                     />
                                                 )}
                                         </Pressable>
