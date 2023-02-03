@@ -20,7 +20,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    onConfirm: null,
+    onConfirm: () => {},
 };
 
 const WorkspaceResetBankAccountModal = (props) => {
