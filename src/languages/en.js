@@ -1136,4 +1136,7 @@ export default {
             message: 'We couldn\'t look for an update. Please check again in a bit!',
         },
     },
+    report: {
+        genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
+    },
 };
