@@ -2,11 +2,14 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 
 import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import ONYXKEYS from '../../../ONYXKEYS';
 import SCREENS from '../../../SCREENS';
 import Permissions from '../../Permissions';
+import Timing from '../../actions/Timing';
+import CONST from '../../../CONST';
 
 // Screens
 import ReportScreen from '../../../pages/home/ReportScreen';
@@ -64,7 +67,12 @@ const getInitialReportScreenParams = (reports, ignoreDefaultRooms, policies, ope
 class MainDrawerNavigator extends Component {
     constructor(props) {
         super(props);
+        this.trackAppStartTiming = this.trackAppStartTiming.bind(this);
         this.initialParams = getInitialReportScreenParams(props.reports, !Permissions.canUseDefaultRooms(props.betas), props.policies, props.route.params.openOnAdminRoom);
+
+        // When we have chat reports the moment this component got created
+        // we know that the data was served from storage/cache
+        this.isFromCache = _.size(props.reports) > 0;
     }
 
     shouldComponentUpdate(nextProps) {
@@ -80,6 +88,15 @@ class MainDrawerNavigator extends Component {
 
         this.initialParams = initialNextParams;
         return true;
+    }
+
+    trackAppStartTiming() {
+        // We only want to report timing events when rendering from cached data
+        if (!this.isFromCache) {
+            return;
+        }
+
+        Timing.end(CONST.TIMING.SIDEBAR_LOADED);
     }
 
     render() {
@@ -99,6 +116,7 @@ class MainDrawerNavigator extends Component {
                     return (
                         <SidebarScreen
                             navigation={navigation}
+                            onLayout={this.trackAppStartTiming}
                             reportIDFromRoute={reportIDFromRoute}
                         />
                     );

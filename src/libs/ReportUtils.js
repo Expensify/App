@@ -15,6 +15,7 @@ import * as NumberUtils from './NumberUtils';
 import * as NumberFormatUtils from './NumberFormatUtils';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
+import * as defaultAvatars from '../components/Icon/DefaultAvatars';
 
 let sessionEmail;
 Onyx.connect({
@@ -63,6 +64,13 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: val => allReports = val,
+});
+
+let doesDomainHaveApprovedAccountant;
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    waitForCollectionCallback: true,
+    callback: val => doesDomainHaveApprovedAccountant = val.doesDomainHaveApprovedAccountant,
 });
 
 function getChatType(report) {
@@ -114,36 +122,31 @@ function sortReportsByLastRead(reports) {
 }
 
 /**
- * Can only edit if it's an ADDCOMMENT that is not an attachment,
- * the author is this user and it's not an optimistic response.
- * If it's an optimistic response comment it will not have a reportActionID,
- * and we should wait until it does before we show the actions
+ * Can only edit if:
+ *
+ * - It was written by the current user
+ * - It's an ADDCOMMENT that is not an attachment
+ * - It's not pending deletion
  *
  * @param {Object} reportAction
  * @returns {Boolean}
  */
 function canEditReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
-        && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
         && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {}))
-        && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
         && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 /**
- * Can only delete if it's an ADDCOMMENT, the author is this user and it's not an optimistic response.
- * If it's an optimistic response comment it will not have a reportActionID,
- * and we should wait until it does before we show the actions
+ * Can only delete if it's an ADDCOMMENT, the author is this user.
  *
  * @param {Object} reportAction
  * @returns {Boolean}
  */
 function canDeleteReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
-        && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
-        && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
         && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
@@ -337,8 +340,8 @@ function getRoomWelcomeMessage(report, policiesMap) {
     const workspaceName = getPolicyName(report, policiesMap);
 
     if (isArchivedRoom(report)) {
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.begginningOfArchivedRoomPartOne');
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.begginningOfArchivedRoomPartTwo');
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
     } else if (isDomainRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartOne', {domainRoom: report.reportName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartTwo');
@@ -383,8 +386,18 @@ function chatIncludesConcierge(report) {
  * @param {Array} emails
  * @returns {Boolean}
  */
-function hasExpensifyEmails(emails) {
+function hasAutomatedExpensifyEmails(emails) {
     return _.intersection(emails, CONST.EXPENSIFY_EMAILS).length > 0;
+}
+
+/**
+ * Returns true if there are any Expensify accounts (i.e. with domain 'expensify.com') in the set of emails.
+ *
+ * @param {Array<String>} emails
+ * @return {Boolean}
+ */
+function hasExpensifyEmails(emails) {
+    return _.some(emails, email => Str.extractEmailDomain(email) === CONST.EXPENSIFY_PARTNER_NAME);
 }
 
 /**
@@ -420,16 +433,83 @@ function formatReportLastMessageText(lastMessageText) {
 }
 
 /**
- * Helper method to return a default avatar
- *
+ * Hashes provided string and returns a value between [1, range]
+ * @param {String} login
+ * @param {Number} range
+ * @returns {Number}
+ */
+function hashLogin(login, range) {
+    return (Math.abs(hashCode(login.toLowerCase())) % range) + 1;
+}
+
+/**
+ * Helper method to return the default avatar associated with the given login
  * @param {String} [login]
  * @returns {String}
  */
 function getDefaultAvatar(login = '') {
-    // There are 8 possible default avatars, so we choose which one this user has based
+    if (!login) {
+        return Expensicons.FallbackAvatar;
+    }
+    if (login === CONST.EMAIL.CONCIERGE) {
+        return Expensicons.ConciergeAvatar;
+    }
+
+    // There are 24 possible default avatars, so we choose which one this user has based
     // on a simple hash of their login
-    const loginHashBucket = (Math.abs(hashCode(login.toLowerCase())) % 8) + 1;
+    const loginHashBucket = hashLogin(login, CONST.DEFAULT_AVATAR_COUNT);
+
+    return defaultAvatars[`Avatar${loginHashBucket}`];
+}
+
+/**
+ * Helper method to return old dot default avatar associated with login
+ *
+ * @param {String} [login]
+ * @returns {String}
+ */
+function getOldDotDefaultAvatar(login = '') {
+    if (login === CONST.EMAIL.CONCIERGE) {
+        return CONST.CONCIERGE_ICON_URL;
+    }
+
+    // There are 8 possible old dot default avatars, so we choose which one this user has based
+    // on a simple hash of their login
+    const loginHashBucket = hashLogin(login, CONST.OLD_DEFAULT_AVATAR_COUNT);
+
     return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
+}
+
+/**
+ * Given a user's avatar path, returns true if user doesn't have an avatar or if URL points to a default avatar
+ * @param {String} [avatarURL] - the avatar source from user's personalDetails
+ * @returns {Boolean}
+ */
+function isDefaultAvatar(avatarURL) {
+    if (_.isString(avatarURL) && (avatarURL.includes('images/avatars/avatar_') || avatarURL.includes('images/avatars/user/default'))) {
+        return true;
+    }
+
+    // If null URL, we should also use a default avatar
+    if (!avatarURL) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Provided a source URL, if source is a default avatar, return the associated SVG.
+ * Otherwise, return the URL pointing to a user-uploaded avatar.
+ *
+ * @param {String} [avatarURL] - the avatar source from user's personalDetails
+ * @param {String} [login] - the email of the user
+ * @returns {String | Function}
+ */
+function getAvatar(avatarURL, login) {
+    if (isDefaultAvatar(avatarURL)) {
+        return getDefaultAvatar(login);
+    }
+    return avatarURL;
 }
 
 /**
@@ -444,7 +524,10 @@ function getDefaultAvatar(login = '') {
  */
 function getIcons(report, personalDetails, policies, defaultIcon = null) {
     if (_.isEmpty(report)) {
-        return [defaultIcon || getDefaultAvatar()];
+        return [defaultIcon || Expensicons.FallbackAvatar];
+    }
+    if (isConciergeChatReport(report)) {
+        return [CONST.CONCIERGE_ICON_URL];
     }
     if (isArchivedRoom(report)) {
         return [Expensicons.DeletedRoomAvatar];
@@ -474,19 +557,22 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
         // If the user is an admin, return avatar source of the other participant of the report
         // (their workspace chat) and the avatar source of the workspace
         return [
-            lodashGet(personalDetails, [report.ownerEmail, 'avatar']) || getDefaultAvatar(report.ownerEmail),
+            getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
             policyExpenseChatAvatarSource,
         ];
     }
 
     const participantDetails = [];
     const participants = report.participants || [];
+
     for (let i = 0; i < participants.length; i++) {
         const login = participants[i];
+
+        const avatarSource = getAvatar(lodashGet(personalDetails, [login, 'avatar'], ''), login);
         participantDetails.push([
             login,
             lodashGet(personalDetails, [login, 'firstName'], ''),
-            lodashGet(personalDetails, [login, 'avatar']) || getDefaultAvatar(login),
+            avatarSource,
         ]);
     }
 
@@ -782,7 +868,7 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
             iouMessage = isSettlingUp
-                ? `Settled up ${paymentMethodMessage}`
+                ? `Settled up${paymentMethodMessage}`
                 : `Sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             break;
         default:
@@ -1135,6 +1221,40 @@ function isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports = {}) {
 }
 
 /**
+ * Assuming the passed in report is a default room, lets us know whether we can see it or not, based on permissions and
+ * the various subsets of users we've allowed to use default rooms.
+ *
+ * @param {Object} report
+ * @param {Array<Object>} policies
+ * @param {Array<String>} betas
+ * @return {Boolean}
+ */
+function canSeeDefaultRoom(report, policies, betas) {
+    // Include archived rooms
+    if (isArchivedRoom(report)) {
+        return true;
+    }
+
+    // Include default rooms for free plan policies (domain rooms aren't included in here because they do not belong to a policy)
+    if (getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE) {
+        return true;
+    }
+
+    // Include domain rooms with Partner Managers (Expensify accounts) in them for accounts that are on a domain with an Approved Accountant
+    if (isDomainRoom(report) && doesDomainHaveApprovedAccountant && hasExpensifyEmails(lodashGet(report, ['participants'], []))) {
+        return true;
+    }
+
+    // If the room has an assigned guide, it can be seen.
+    if (hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
+        return true;
+    }
+
+    // For all other cases, just check that the user belongs to the default rooms beta
+    return Permissions.canUseDefaultRooms(betas);
+}
+
+/**
  * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
  * for reports or the reports shown in the LHN).
  *
@@ -1188,13 +1308,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         return true;
     }
 
-    // Include default rooms for free plan policies
-    if (isDefaultRoom(report) && getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE) {
-        return true;
-    }
-
-    // Include default rooms unless you're on the default room beta, unless you have an assigned guide
-    if (isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas) && !hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
+    if (isDefaultRoom(report) && !canSeeDefaultRoom(report, policies, betas)) {
         return false;
     }
 
@@ -1283,7 +1397,7 @@ export {
     getPolicyType,
     isArchivedRoom,
     isConciergeChatReport,
-    hasExpensifyEmails,
+    hasAutomatedExpensifyEmails,
     hasExpensifyGuidesEmails,
     hasOutstandingIOU,
     isIOUOwnedByCurrentUser,
@@ -1315,5 +1429,9 @@ export {
     getDisplayNameForParticipant,
     isIOUReport,
     chatIncludesChronos,
+    getAvatar,
+    isDefaultAvatar,
+    getOldDotDefaultAvatar,
     getNewMarkerReportActionID,
+    canSeeDefaultRoom,
 };

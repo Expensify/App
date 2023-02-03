@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {ScrollView, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -10,8 +10,10 @@ import * as FormActions from '../libs/actions/FormActions';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import styles from '../styles/styles';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
+import FormSubmit from './FormSubmit';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import ScrollViewWithContext from './ScrollViewWithContext';
+import stylePropTypes from '../styles/stylePropTypes';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -29,7 +31,11 @@ const propTypes = {
     /** Callback to submit the form */
     onSubmit: PropTypes.func.isRequired,
 
-    children: PropTypes.node.isRequired,
+    /** Children to render. */
+    children: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.node,
+    ]).isRequired,
 
     /* Onyx Props */
 
@@ -67,6 +73,9 @@ const propTypes = {
      */
     scrollContextEnabled: PropTypes.bool,
 
+    /** Container styles */
+    style: stylePropTypes,
+
     ...withLocalizePropTypes,
 };
 
@@ -81,6 +90,7 @@ const defaultProps = {
     isSubmitActionDangerous: false,
     scrollToOverflowEnabled: false,
     scrollContextEnabled: false,
+    style: [],
 };
 
 class Form extends React.Component {
@@ -89,7 +99,7 @@ class Form extends React.Component {
 
         this.state = {
             errors: {},
-            inputValues: {},
+            inputValues: props.draftValues,
         };
 
         this.formRef = React.createRef(null);
@@ -180,7 +190,7 @@ class Form extends React.Component {
     /**
      * Loops over Form's children and automatically supplies Form props to them
      *
-     * @param {Array} children - An array containing all Form children
+     * @param {Array | Function | Node} children - An array containing all Form children
      * @returns {React.Component}
      */
     childrenWrapperWithProps(children) {
@@ -273,8 +283,8 @@ class Form extends React.Component {
 
     render() {
         const scrollViewContent = safeAreaPaddingBottomStyle => (
-            <View style={[this.props.style, safeAreaPaddingBottomStyle]}>
-                {this.childrenWrapperWithProps(this.props.children)}
+            <FormSubmit style={StyleSheet.flatten([this.props.style, safeAreaPaddingBottomStyle])} onSubmit={this.submit}>
+                {this.childrenWrapperWithProps(_.isFunction(this.props.children) ? this.props.children({inputValues: this.state.inputValues}) : this.props.children)}
                 {this.props.isSubmitButtonVisible && (
                 <FormAlertWithSubmitButton
                     buttonText={this.props.submitButtonText}
@@ -298,9 +308,10 @@ class Form extends React.Component {
                     containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
                     enabledWhenOffline={this.props.enabledWhenOffline}
                     isSubmitActionDangerous={this.props.isSubmitActionDangerous}
+                    disablePressOnEnter
                 />
                 )}
-            </View>
+            </FormSubmit>
         );
 
         return (
