@@ -87,6 +87,27 @@ class BasePaymentsPage extends React.Component {
             this.debounceSetShouldShowLoadingSpinner();
         }
 
+        if (this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt) {
+            // We can create 3 auxillary variables as requested but seems overkill here
+            let shouldResetPaymentMethodData = false;
+            if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT && _.isEmpty(this.props.bankAccountList[this.state.methodID])) {
+                shouldResetPaymentMethodData = true;
+            } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && _.isEmpty(this.props.cardList[this.state.methodID])) {
+                shouldResetPaymentMethodData = true;
+            } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PAYPAL && this.props.payPalMeData !== prevProps.payPalMeData && _.isEmpty(this.props.payPalMeData)) {
+                shouldResetPaymentMethodData = true;
+            }
+            if (shouldResetPaymentMethodData) {
+                if (this.state.shouldShowDefaultDeleteMenu) {
+                    this.hideDefaultDeleteMenu();
+                }
+                if (this.state.shouldShowPasswordPrompt) {
+                    this.hidePasswordPrompt();
+                }
+                this.resetSelectedPaymentMethodData();
+            }
+        }
+
         // previously online OR currently offline, skip fetch
         if (!prevProps.network.isOffline || this.props.network.isOffline) {
             return;
@@ -135,6 +156,21 @@ class BasePaymentsPage extends React.Component {
 
             // We want the position to be 13px to the right of the left border
             anchorPositionRight: (this.props.windowWidth - position.right) + 13,
+        });
+    }
+
+    resetSelectedPaymentMethodData() {
+        InteractionManager.runAfterInteractions(() => {
+            // Reset to same values as in the constructor
+            this.setState({
+                isSelectedPaymentMethodDefault: false,
+                selectedPaymentMethod: {},
+                formattedSelectedPaymentMethod: {
+                    title: '',
+                },
+                methodID: null,
+                selectedPaymentMethodType: null,
+            });
         });
     }
 
@@ -242,11 +278,13 @@ class BasePaymentsPage extends React.Component {
             this.setState({
                 showConfirmDeleteContent: false,
             });
+            this.resetSelectedPaymentMethodData();
         });
     }
 
     hidePasswordPrompt() {
         this.setState({shouldShowPasswordPrompt: false});
+        this.resetSelectedPaymentMethodData();
 
         // Due to iOS modal freeze issue, password modal freezes the app when closed.
         // LayoutAnimation undoes the running animation.
@@ -520,6 +558,9 @@ export default compose(
         },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,
+        },
+        payPalMeData: {
+            key: ONYXKEYS.PAYPAL,
         },
         isLoadingPaymentMethods: {
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
