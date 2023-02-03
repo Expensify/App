@@ -14,7 +14,7 @@ import CONST from '../../../CONST';
 import * as User from '../../../libs/actions/User';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Switch from '../../../components/Switch';
-import withLocalize, {withLocalizePropTypes, localeProviderPropTypes} from '../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import withEnvironment, {environmentPropTypes} from '../../../components/withEnvironment';
 import TestToolMenu from '../../../components/TestToolMenu';
@@ -30,8 +30,10 @@ const propTypes = {
         isSubscribedToNewsletter: PropTypes.bool,
     }),
 
+    /** The preferred language of the App */
+    preferredLocale: PropTypes.string.isRequired,
+
     ...withLocalizePropTypes,
-    ...localeProviderPropTypes,
     ...environmentPropTypes,
 };
 

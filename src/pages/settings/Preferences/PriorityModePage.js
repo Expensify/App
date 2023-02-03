@@ -55,8 +55,7 @@ const PriorityModePage = (props) => {
                 optionHoveredStyle={
                     {
                         ...styles.hoveredComponentBG,
-                        ...styles.mln5,
-                        ...styles.mrn5,
+                        ...styles.mhn5,
                         ...styles.ph5,
                     }
                 }

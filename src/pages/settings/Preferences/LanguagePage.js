@@ -1,8 +1,9 @@
 import _ from 'underscore';
 import React from 'react';
+import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes, localeProviderPropTypes} from '../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import OptionsList from '../../../components/OptionsList';
@@ -15,7 +16,9 @@ const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 const propTypes = {
     ...withLocalizePropTypes,
-    ...localeProviderPropTypes,
+    
+    /** The preferred language of the App */
+    preferredLocale: PropTypes.string.isRequired,
 };
 
 const LanguagePage = (props) => {
@@ -56,8 +59,7 @@ const LanguagePage = (props) => {
                 optionHoveredStyle={
                     {
                         ...styles.hoveredComponentBG,
-                        ...styles.mln5,
-                        ...styles.mrn5,
+                        ...styles.mhn5,
                         ...styles.ph5,
                     }
                 }
