@@ -31,7 +31,11 @@ const propTypes = {
     /** Callback to submit the form */
     onSubmit: PropTypes.func.isRequired,
 
-    children: PropTypes.node.isRequired,
+    /** Children to render. */
+    children: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.node,
+    ]).isRequired,
 
     /* Onyx Props */
 
@@ -95,7 +99,7 @@ class Form extends React.Component {
 
         this.state = {
             errors: {},
-            inputValues: {},
+            inputValues: props.draftValues,
         };
 
         this.formRef = React.createRef(null);
@@ -186,7 +190,7 @@ class Form extends React.Component {
     /**
      * Loops over Form's children and automatically supplies Form props to them
      *
-     * @param {Array} children - An array containing all Form children
+     * @param {Array | Function | Node} children - An array containing all Form children
      * @returns {React.Component}
      */
     childrenWrapperWithProps(children) {
@@ -280,7 +284,7 @@ class Form extends React.Component {
     render() {
         const scrollViewContent = safeAreaPaddingBottomStyle => (
             <FormSubmit style={StyleSheet.flatten([this.props.style, safeAreaPaddingBottomStyle])} onSubmit={this.submit}>
-                {this.childrenWrapperWithProps(this.props.children)}
+                {this.childrenWrapperWithProps(_.isFunction(this.props.children) ? this.props.children({inputValues: this.state.inputValues}) : this.props.children)}
                 {this.props.isSubmitButtonVisible && (
                 <FormAlertWithSubmitButton
                     buttonText={this.props.submitButtonText}

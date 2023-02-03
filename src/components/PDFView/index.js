@@ -148,6 +148,7 @@ class PDFView extends Component {
                                 width={pageWidth}
                                 key={`page_${index + 1}`}
                                 pageNumber={index + 1}
+                                loading=""
                             />
                         ))}
                     </Document>
@@ -157,7 +158,6 @@ class PDFView extends Component {
                         onSubmit={this.attemptPDFLoad}
                         onPasswordUpdated={() => this.setState({isPasswordInvalid: false})}
                         isPasswordInvalid={this.state.isPasswordInvalid}
-                        shouldAutofocusPasswordField={!this.props.isSmallScreenWidth}
                         onPasswordFieldFocused={this.toggleKeyboardOnSmallScreens}
                     />
                 )}

@@ -23,6 +23,7 @@ const drawerIsReadyPromise = new Promise((resolve) => {
 
 let isLoggedIn = false;
 let pendingRoute = null;
+let isNavigating = false;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -48,12 +49,25 @@ function setDidTapNotification() {
  * @returns {Boolean}
  */
 function canNavigate(methodName, params = {}) {
-    if (navigationRef.isReady()) {
+    if (navigationRef.isReady() && !isNavigating) {
         return true;
+    }
+
+    if (isNavigating) {
+        Log.hmmm(`[Navigation] ${methodName} failed because navigation is progress`, params);
+        return false;
     }
 
     Log.hmmm(`[Navigation] ${methodName} failed because navigation ref was not yet ready`, params);
     return false;
+}
+
+/**
+ * Sets Navigation State
+ * @param {Boolean} isNavigatingValue
+ */
+function setIsNavigating(isNavigatingValue) {
+    isNavigating = isNavigatingValue;
 }
 
 /**
@@ -269,6 +283,7 @@ export default {
     isDrawerReady,
     setIsDrawerReady,
     isDrawerRoute,
+    setIsNavigating,
 };
 
 export {

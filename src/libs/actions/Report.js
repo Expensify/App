@@ -19,6 +19,7 @@ import * as ReportUtils from '../ReportUtils';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
+import * as Localize from '../Localize';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -65,11 +66,17 @@ function subscribeToReportCommentPushNotifications() {
             if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
                 Navigation.goBack();
             }
-            Navigation.navigate(ROUTES.getReportRoute(reportID));
+            Navigation.isDrawerReady()
+                .then(() => {
+                    Navigation.navigate(ROUTES.getReportRoute(reportID));
+                });
         } else {
             // Navigation container is not yet ready, use deeplinking to open to correct report instead
             Navigation.setDidTapNotification();
-            Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
+            Navigation.isDrawerReady()
+                .then(() => {
+                    Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
+                });
         }
     });
 }
@@ -262,7 +269,7 @@ function addActions(reportID, text = '', file) {
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: _.mapObject(optimisticReportActions, () => null),
+            value: _.mapObject(optimisticReportActions, action => ({...action, errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericAddCommentFailureMessage')}})),
         },
     ];
 
