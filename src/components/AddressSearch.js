@@ -108,7 +108,7 @@ const AddressSearch = (props) => {
             street: props.value ? props.value.trim() : '',
             city: city || cityFallback,
             zipCode,
-            state
+            state,
         };
 
         const street = `${streetNumber} ${streetName}`.trim();

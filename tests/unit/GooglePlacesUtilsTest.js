@@ -1,4 +1,5 @@
 import * as GooglePlacesUtils from '../../src/libs/GooglePlacesUtils';
+
 const standardObjectToFind = {
     sublocality: 'long_name',
     administrative_area_level_1: 'short_name',
