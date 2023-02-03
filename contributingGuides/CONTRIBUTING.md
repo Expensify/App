@@ -56,7 +56,7 @@ Please be aware that compensation for any support in solving an issue is provide
 **Payment timeline** all based on the day the contributor has an accepted proposal and is assigned to the Github issue
 - Merged PR within 3 business days - 50% **bonus**
 - Merged PR within 6 business days - 0% bonus 
-- Merged PR within 9 business days - 50% **penalty**. 
+- Merged PR within 9 business days - 50% **penalty** 
 - No PR within 12 business days - **Contract terminated**  
 
 If the PR causes a regression within 7 days of being deployed to production, contributors are not eligible for the 50% bonus. 
