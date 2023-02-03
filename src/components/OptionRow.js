@@ -85,17 +85,17 @@ class OptionRow extends Component {
     }
 
     // It is very important to use shouldComponentUpdate here so SectionList items will not unnecessarily re-render
-    shouldComponentUpdate(prevProps, nextProps) {
-        return prevProps.optionIsFocused === nextProps.optionIsFocused
-            && prevProps.isSelected === nextProps.isSelected
-            && prevProps.option.alternateText === nextProps.option.alternateText
-            && prevProps.option.descriptiveText === nextProps.option.descriptiveText
-            && _.isEqual(prevProps.option.icons, nextProps.option.icons)
-            && prevProps.option.text === nextProps.option.text
-            && prevProps.showSelectedState === nextProps.showSelectedState
-            && prevProps.isDisabled === nextProps.isDisabled
-            && prevProps.showTitleTooltip === nextProps.showTitleTooltip
-            && prevProps.option.brickRoadIndicator === nextProps.option.brickRoadIndicator;
+    shouldComponentUpdate(nextProps, nextState) {
+        return this.state.isDisabled !== nextState.isDisabled
+            || this.props.isDisabled !== nextProps.isDisabled
+            || this.props.isSelected !== nextProps.isSelected
+            || this.props.showSelectedState !== nextProps.showSelectedState
+            || this.props.showTitleTooltip !== nextProps.showTitleTooltip
+            || !_.isEqual(this.props.option.icons, nextProps.option.icons)
+            || this.props.option.text !== nextProps.option.text
+            || this.props.option.alternateText !== nextProps.option.alternateText
+            || this.props.option.descriptiveText !== nextProps.option.descriptiveText
+            || this.props.option.brickRoadIndicator !== nextProps.option.brickRoadIndicator;
     }
 
     componentDidUpdate(prevProps) {
