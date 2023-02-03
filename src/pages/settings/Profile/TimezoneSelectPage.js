@@ -88,8 +88,9 @@ class TimezoneSelectPage extends Component {
                     onChangeText={this.filterShownTimezones}
                     onSelectRow={this.saveSelectedTimezone}
                     optionHoveredStyle={styles.hoveredComponentBG}
-                    sections={[{data: this.state.timezoneOptions}]}
+                    sections={[{data: this.state.timezoneOptions, indexOffset: 0}]}
                     shouldHaveOptionSeparator
+                    initiallyFocusedOptionKey={this.currentSelectedTimezone}
                 />
             </ScreenWrapper>
         );
