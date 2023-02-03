@@ -45,9 +45,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class CustomNotificationProvider extends ReactNotificationProvider {
-
-    private final Context context;
-
     // Resize icons to 100 dp x 100 dp
     private static final int MAX_ICON_SIZE_DPS = 100;
 
@@ -74,7 +71,6 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
     public CustomNotificationProvider(@NonNull Context context, @NonNull AirshipConfigOptions configOptions) {
         super(context, configOptions);
-        this.context = context;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createAndRegisterNotificationChannel(context);
         }
