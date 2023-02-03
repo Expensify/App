@@ -23,8 +23,6 @@ const propTypes = {
 };
 
 const CategoryShortcutBar = (props) => {
-
-
     const icons = [Smiley, AnimalsAndNature, FoodAndDrink, TravelAndPlaces, Activities, Objects, Symbols, Flags];
 
     // If the user has frequently used emojis, there will be 9 headers, otherwise there will be 8
