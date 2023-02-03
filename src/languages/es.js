@@ -531,6 +531,7 @@ export default {
         enterAuthenticatorCode: 'Por favor ingresa su código de autenticador',
         twoFactorCode: 'Autenticación de 2 factores',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
+        codeSent: '',
         error: {
             pleaseFillMagicCode: 'Por favor, introduce el código mágico',
             incorrectMagicCode: 'Código mágico incorrecto.',

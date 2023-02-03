@@ -109,6 +109,40 @@ function resendValidationLink(login = credentials.login) {
 }
 
 /**
+ * Request a new validate / magic code for user to sign in via passwordless flow
+ *
+ * @param {String} [login]
+ */
+function resendValidateCode(login = credentials.login) {
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: true,
+            errors: null,
+            message: null,
+        },
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: Localize.translateLocal('validateCodeForm.codeSent'),
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: null,
+        },
+    }];
+    API.write('RequestNewValidateCode', {email: login}, {optimisticData, successData, failureData});
+}
+
+/**
  * Checks the API to see if an account exists for the given login
  *
  * @param {String} login
@@ -471,6 +505,7 @@ export {
     signOut,
     signOutAndRedirectToSignIn,
     resendValidationLink,
+    resendValidateCode,
     resetPassword,
     resendResetPassword,
     clearSignInData,

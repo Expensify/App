@@ -23,7 +23,7 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import OfflineIndicator from '../../components/OfflineIndicator';
-import * as User from '../../libs/actions/User';
+import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 
 const propTypes = {
     /* Onyx Props */
@@ -106,7 +106,7 @@ class ValidateCodeForm extends React.Component {
             this.setState({twoFactorAuthCode: ''}, this.input2FA.clear);
         }
         this.setState({formError: false});
-        User.resendValidateCode(this.props.credentials.login, true);
+        Session.resendValidateCode(this.props.credentials.login);
     }
 
     /**
@@ -144,6 +144,7 @@ class ValidateCodeForm extends React.Component {
     }
 
     render() {
+        const wasValidateCodeSentRecently = !_.isEmpty(this.props.account.message);
         return (
             <>
                 {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
@@ -174,26 +175,32 @@ class ValidateCodeForm extends React.Component {
                             onSubmitEditing={this.validateAndSubmitForm}
                             blurOnSubmit={false}
                         />
-                        <View style={[styles.changeExpensifyLoginLinkContainer]}>
-                            <TouchableOpacity
-                                style={[styles.mt2]}
-                                onPress={this.resendValidateCode}
-                                underlayColor={themeColors.componentBG}
-                            >
-                                <Text style={[styles.link]}>
-                                    {this.props.translate('validateCodeForm.magicCodeNotReceived')}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
+                        {!wasValidateCodeSentRecently && (
+                            <View style={[styles.changeExpensifyLoginLinkContainer]}>
+                                <TouchableOpacity
+                                    style={[styles.mt2]}
+                                    onPress={this.resendValidateCode}
+                                    underlayColor={themeColors.componentBG}
+                                >
+                                    <Text style={[styles.link]}>
+                                        {this.props.translate('validateCodeForm.magicCodeNotReceived')}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
                     </View>
                 )}
 
+                {wasValidateCodeSentRecently && (
+
+                    // DotIndicatorMessage mostly expects onyxData errors so we need to mock an object so that the messages looks similar to prop.account.errors
+                    <DotIndicatorMessage style={[styles.mb5, styles.flex0]} type="success" messages={{0: this.props.account.message}} />
+                )}
                 {!this.state.formError && this.props.account && !_.isEmpty(this.props.account.errors) && (
                     <Text style={[styles.formError]}>
                         {ErrorUtils.getLatestErrorMessage(this.props.account)}
                     </Text>
                 )}
-
                 {this.state.formError && (
                     <Text style={[styles.formError]}>
                         {this.props.translate(this.state.formError)}
