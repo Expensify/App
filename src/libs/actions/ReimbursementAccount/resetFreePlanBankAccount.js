@@ -25,7 +25,7 @@ function resetFreePlanBankAccount(bankAccountID) {
         {
             optimisticData: [
                 {
-                    onyxMethod: 'set',
+                    onyxMethod: CONST.ONYX.METHOD.SET,
                     key: ONYXKEYS.ONFIDO_TOKEN,
                     value: '',
                 },
@@ -45,11 +45,30 @@ function resetFreePlanBankAccount(bankAccountID) {
                     value: ReimbursementAccountProps.reimbursementAccountDefaultProps,
                 },
                 {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    value: {isLoading: true},
+                },
+                {
                     onyxMethod: CONST.ONYX.METHOD.SET,
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
                     value: {},
                 },
             ],
+            successData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    value: {isLoading: false},
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    value: {isLoading: false},
+                },
+            ]
         });
 }
 
