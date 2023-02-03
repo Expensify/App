@@ -16,7 +16,7 @@ const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 const propTypes = {
     ...withLocalizePropTypes,
-    
+
     /** The preferred language of the App */
     preferredLocale: PropTypes.string.isRequired,
 };
