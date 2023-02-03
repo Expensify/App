@@ -47,9 +47,7 @@ const WorkspaceResetBankAccountModal = (props) => {
             onCancel={BankAccounts.cancelResetFreePlanBankAccount}
             onConfirm={() => {
                 BankAccounts.resetFreePlanBankAccount(bankAccountID);
-                if (props.onConfirm) {
-                    props.onConfirm();
-                }
+                props.onConfirm();
             }}
             shouldShowCancelButton
             isVisible
