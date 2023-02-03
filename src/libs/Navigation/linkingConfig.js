@@ -45,11 +45,11 @@ export default {
                         exact: true,
                     },
                     Settings_Preferences_PriorityMode: {
-                        path: ROUTES.SETTINGS_PRIORITY_MODES,
+                        path: ROUTES.SETTINGS_PRIORITY_MODE,
                         exact: true,
                     },
                     Settings_Preferences_Language: {
-                        path: ROUTES.SETTINGS_LANGUAGES,
+                        path: ROUTES.SETTINGS_LANGUAGE,
                         exact: true,
                     },
                     Settings_Close: {

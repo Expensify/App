@@ -74,13 +74,13 @@ const PreferencesPage = (props) => {
                         shouldShowRightIcon
                         title={priorityModes[props.priorityMode].label}
                         description={props.translate('priorityModePage.priorityMode')}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODES)}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
                     />
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
                         title={languages[props.preferredLocale].label}
                         description={props.translate('languagePage.language')}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGES)}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                     />
 
                     {/* If we are in the staging environment then we enable additional test features */}
