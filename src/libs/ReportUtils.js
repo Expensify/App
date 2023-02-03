@@ -1265,10 +1265,14 @@ function getReportIDFromDeepLink(url) {
     // Get the reportID from URL
     let route = url;
     _.each(linkingConfig.prefixes, (prefix) => {
-        if (!route.startsWith(prefix)) {
+        const localWebAndroidRegEx = /^(http:\/\/([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3}))/;
+        if (route.startsWith(prefix)) {
+            route = route.replace(prefix, '');
+        } else if (localWebAndroidRegEx.test(route)) {
+            route = route.replace(localWebAndroidRegEx, '');
+        } else {
             return;
         }
-        route = route.replace(prefix, '');
 
         // Remove the port if it's a localhost URL
         if (/^:\d+/.test(route)) {
