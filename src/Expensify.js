@@ -28,7 +28,6 @@ import DeeplinkWrapper from './components/DeeplinkWrapper';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import ROUTES from './ROUTES';
-import onScreenTransitionEnd from './libs/onScreenTransitionEnd';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
@@ -125,20 +124,7 @@ class Expensify extends PureComponent {
         this.appStateChangeListener = AppState.addEventListener('change', this.initializeClient);
 
         // Open chat report from a deep link (only mobile native)
-        Linking.addEventListener('url', (state) => {
-            const reportID = ReportUtils.getReportIDFromDeepLink(state.url);
-            if (!reportID) {
-                return;
-            }
-
-            // Since NavigationContainer already handles the deep link for the ReportScreen, we need to wait for it to finish to then navigate to the desired chat report
-            const unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
-                Navigation.isDrawerReady().then(() => {
-                    Navigation.navigate(ROUTES.getReportRoute(reportID));
-                });
-                unsubscribeTransitionEnd();
-            });
-        });
+        Linking.addEventListener('url', state => ReportUtils.openReportFromDeepLink(state.url));
     }
 
     componentDidUpdate() {
@@ -155,16 +141,7 @@ class Expensify extends PureComponent {
             this.setState({isSplashShown: false});
 
             // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
-            Linking.getInitialURL().then((url) => {
-                const reportID = ReportUtils.getReportIDFromDeepLink(url);
-                if (!reportID) {
-                    return;
-                }
-
-                Navigation.isDrawerReady().then(() => {
-                    Navigation.navigate(ROUTES.getReportRoute(reportID));
-                });
-            });
+            Linking.getInitialURL().then(url => ReportUtils.openReportFromDeepLink(url));
         }
     }
 

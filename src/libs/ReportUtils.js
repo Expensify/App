@@ -3,6 +3,7 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {InteractionManager} from 'react-native';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
@@ -1373,7 +1374,7 @@ function getNewMarkerReportActionID(report, sortedAndFilteredReportActions) {
 }
 
 /**
- * @param {String} url
+ * @param {String|null} url
  * @returns {String}
  */
 function getReportIDFromDeepLink(url) {
@@ -1405,6 +1406,21 @@ function getReportIDFromDeepLink(url) {
     });
     const {reportID} = ROUTES.parseReportRouteParams(route);
     return reportID;
+}
+
+/**
+ * @param {String|null} url
+ */
+function openReportFromDeepLink(url) {
+    const reportID = getReportIDFromDeepLink(url);
+    if (!reportID) {
+        return;
+    }
+    InteractionManager.runAfterInteractions(() => {
+        Navigation.isDrawerReady().then(() => {
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
+        });
+    });
 }
 
 export {
@@ -1462,4 +1478,5 @@ export {
     getOldDotDefaultAvatar,
     getNewMarkerReportActionID,
     canSeeDefaultRoom,
+    openReportFromDeepLink,
 };
