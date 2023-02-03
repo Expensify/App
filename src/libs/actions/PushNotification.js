@@ -12,7 +12,6 @@ Onyx.connect({
 
 /**
  * Record that user opted-in or opted-out of push notifications on the current device.
- * NOTE: This is purely for record-keeping purposes, and does not affect whether our server will attempt to send notifications to this user.
  *
  * @param {Boolean} isOptingIn
  */
