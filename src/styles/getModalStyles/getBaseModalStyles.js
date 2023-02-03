@@ -2,11 +2,12 @@ import CONST from '../../CONST';
 import variables from '../variables';
 import themeColors from '../themes/default';
 
-export default (type, windowDimensions, popoverAnchorPosition = {}, containerStyle = {}) => {
+export default (type, windowDimensions, popoverAnchorPosition = {}, containerStyle = {}, extraModalStyles = {}) => {
     const {isSmallScreenWidth, windowWidth} = windowDimensions;
 
     let modalStyle = {
         margin: 0,
+        ...extraModalStyles,
     };
 
     let modalContainerStyle;

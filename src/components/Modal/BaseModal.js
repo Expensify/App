@@ -77,6 +77,7 @@ class BaseModal extends PureComponent {
             },
             this.props.popoverAnchorPosition,
             this.props.containerStyle,
+            this.props.extraModalStyles,
         );
         return (
             <ReactNativeModal

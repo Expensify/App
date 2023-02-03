@@ -55,6 +55,7 @@ class BasePasswordPopover extends Component {
                 onClose={this.props.onClose}
                 anchorPosition={this.props.anchorPosition}
                 onModalShow={this.focusInput}
+                extraModalStyles={{maxHeight: this.props.windowHeight, marginTop: this.props.viewportOffsetTop}}
             >
                 <View
                     style={[
