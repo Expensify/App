@@ -73,6 +73,18 @@ Onyx.connect({
     callback: val => doesDomainHaveApprovedAccountant = val.doesDomainHaveApprovedAccountant,
 });
 
+const lastReportActions = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    callback: (actions, key) => {
+        if (!key || !actions) {
+            return;
+        }
+        const reportID = CollectionUtils.extractCollectionItemID(key);
+        lastReportActions[reportID] = _.last(_.toArray(actions));
+    },
+});
+
 function getChatType(report) {
     return report ? report.chatType : '';
 }
@@ -658,7 +670,7 @@ function getReportName(report, policies = {}) {
 
     if (isPolicyExpenseChat(report)) {
         const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerEmail) || report.ownerEmail || report.reportName;
-        formattedName = report.isOwnPolicyExpenseChat ? getPolicyName(report, policies) : reportOwnerDisplayName;
+        formattedName = (report.isOwnPolicyExpenseChat || (isArchivedRoom(report) && getArchiveReason(lastReportActions[report.reportID]) == CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED)) ? getPolicyName(report, policies) : reportOwnerDisplayName;
     }
 
     if (isArchivedRoom(report)) {
@@ -1371,6 +1383,15 @@ function getNewMarkerReportActionID(report, sortedAndFilteredReportActions) {
         : '';
 }
 
+/**
+ * @param {Object} reportAction
+ *
+ * @returns {String}
+ */
+function getArchiveReason(reportAction) {
+    return (reportAction.originalMessage && reportAction.originalMessage.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1425,4 +1446,5 @@ export {
     getOldDotDefaultAvatar,
     getNewMarkerReportActionID,
     canSeeDefaultRoom,
+    getArchiveReason,
 };
