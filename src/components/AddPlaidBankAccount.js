@@ -21,6 +21,7 @@ import Text from './Text';
 import getBankIcon from './Icon/BankIcons';
 import Icon from './Icon';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
+import {withNetwork} from './OnyxProvider';
 
 const propTypes = {
     /** Contains plaid data */
@@ -84,6 +85,13 @@ class AddPlaidBankAccount extends React.Component {
         }
 
         BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID);
+    }
+
+    componentDidUpdate(prevProps) {
+        // If we are coming back from offline, we need to re-run our call to kick off Plaid
+        if (prevProps.network.isOffline && !this.props.network.isOffline) {
+            BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID);
+        }
     }
 
     /**
@@ -182,6 +190,7 @@ AddPlaidBankAccount.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
         plaidLinkToken: {
             key: ONYXKEYS.PLAID_LINK_TOKEN,
