@@ -76,7 +76,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
     Session.beginSignIn(login);
     return waitForPromisesToResolve()
         .then(() => {
-            // Response is the same for calls to Authenticate and CreateLogin
+            // Response is the same for calls to Authenticate and BeginSignIn
             HttpUtils.xhr
                 .mockImplementation(() => Promise.resolve({
                     onyxData: [
