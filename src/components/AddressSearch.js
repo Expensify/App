@@ -10,6 +10,7 @@ import styles from '../styles/styles';
 import TextInput from './TextInput';
 import Log from '../libs/Log';
 import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
+import CONST from '../CONST';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -113,7 +114,7 @@ const AddressSearch = (props) => {
         }
         const zipCode = GooglePlacesUtils.getAddressComponent(addressComponents, 'postal_code', 'long_name');
         const state = GooglePlacesUtils.getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
-        const country = GooglePlacesUtils.getAddressComponent(addressComponents, 'country', 'short_name');
+        const country = GooglePlacesUtils.getAddressComponent(addressComponents, 'country', 'long_name');
 
         const values = {
             street: props.value ? props.value.trim() : '',
@@ -135,7 +136,13 @@ const AddressSearch = (props) => {
             values.state = state;
         }
         if (country) {
-            values.country = country;
+            // If country doesn't match our list of countries (maybe spelling issue),
+            // default the country to empty string so the country picker value doesn't
+            // hold a value but show '-'
+            values.country = '';
+            if (_.includes(CONST.ALL_COUNTRIES, country)) {
+                values.country = country;
+            }
         }
         if (_.size(values) === 0) {
             return;
