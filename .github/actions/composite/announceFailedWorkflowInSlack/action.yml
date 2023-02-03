@@ -9,7 +9,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: 8398a7/action-slack@7dc038dcfbfff230b5f4d0e756653f822038fef5
+    - uses: 8398a7/action-slack@v2780b654eb23ee546e54052f0d2b0ed66ea30eaa
       name: Job failed Slack notification
       with:
         status: custom
@@ -20,7 +20,7 @@ runs:
             attachments: [{
               color: "#DB4545",
               pretext: `<!subteam^S4TJJ3PSL>`,
-              text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW_RUN} workflow 💥`,
+              text: `💥 ${process.env.AS_REPO} failed on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}> workflow 💥`,
             }]
           }
       env:
