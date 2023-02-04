@@ -831,6 +831,9 @@ export default {
         letsChatCTA: 'Yes, let\'s chat',
         letsChatText: 'Thanks for doing that. We need your help verifying a few pieces of information, but we can work this out quickly over chat. Ready?',
         letsChatTitle: 'Let\'s chat!',
+        enable2FATitle: 'Prevent fraud, enable two-factor authentication!',
+        enable2FAText: 'We take your security seriously, so please set up two-factor authentication for your account now. That will allow us to dispute Expensify Card digital transactions, and will reduce your risk for fraud.',
+        secureYourAccount: 'Secure your account',
     },
     beneficialOwnersStep: {
         additionalInformation: 'Additional information',
@@ -1136,5 +1139,8 @@ export default {
             title: 'Update Check Failed',
             message: 'We couldn\'t look for an update. Please check again in a bit!',
         },
+    },
+    report: {
+        genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
     },
 };
