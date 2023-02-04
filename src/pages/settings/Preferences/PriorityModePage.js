@@ -60,7 +60,7 @@ const PriorityModePage = (props) => {
                     }
                 }
                 shouldHaveOptionSeparator
-                disableRowInnerPadding
+                shouldDisableRowInnerPadding
                 contentContainerStyles={[styles.ph5]}
             />
         </ScreenWrapper>

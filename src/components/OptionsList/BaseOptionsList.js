@@ -172,7 +172,7 @@ class BaseOptionsList extends Component {
                 boldStyle={this.props.boldStyle}
                 isDisabled={isDisabled}
                 shouldHaveOptionSeparator={index > 0 && this.props.shouldHaveOptionSeparator}
-                disableRowInnerPadding={this.props.disableRowInnerPadding}
+                shouldDisableRowInnerPadding={this.props.shouldDisableRowInnerPadding}
             />
         );
     }

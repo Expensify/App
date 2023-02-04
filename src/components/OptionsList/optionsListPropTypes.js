@@ -72,7 +72,7 @@ const propTypes = {
     shouldHaveOptionSeparator: PropTypes.bool,
 
     /** Whether to disable the inner padding in rows */
-    disableRowInnerPadding: PropTypes.bool,
+    shouldDisableRowInnerPadding: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -93,7 +93,7 @@ const defaultProps = {
     isDisabled: false,
     onLayout: undefined,
     shouldHaveOptionSeparator: false,
-    disableRowInnerPadding: false,
+    shouldDisableRowInnerPadding: false,
 };
 
 export {propTypes, defaultProps};
