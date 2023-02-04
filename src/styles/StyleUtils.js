@@ -91,7 +91,7 @@ function getDefaultWorspaceAvatarColor(workspaceName) {
         ['#28736D', '#CCF7FF'],
     ];
 
-    const colorHash = ReportUtils.hashLogin(workspaceName, colorOptions.length);
+    const colorHash = ReportUtils.hashLogin(workspaceName, colorOptions.length - 1);
 
     // eslint-disable-next-line no-console
     console.log('HASH RESULTS', colorHash, {backgroundColor: colorOptions[colorHash][0], fill: colorOptions[colorHash][1]});
