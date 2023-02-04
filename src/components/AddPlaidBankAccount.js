@@ -88,10 +88,12 @@ class AddPlaidBankAccount extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // If we are coming back from offline, we need to re-run our call to kick off Plaid
-        if (prevProps.network.isOffline && !this.props.network.isOffline) {
-            BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID);
+        if (!prevProps.network.isOffline || this.props.network.isOffline) {
+            return;
         }
+
+        // If we are coming back from offline, we need to re-run our call to kick off Plaid
+        BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID);
     }
 
     /**
