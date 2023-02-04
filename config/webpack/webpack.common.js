@@ -156,11 +156,9 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             // Rule for react-native-web-webview
             {
                 test: /postMock.html$/,
-                use: {
-                    loader: 'file-loader',
-                    options: {
-                        name: '[name].[ext]',
-                    },
+                type: 'asset',
+                generator: {
+                    filename: '[name].[ext]',
                 },
             },
 
