@@ -14,7 +14,6 @@ import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
 import themeColors from '../styles/themes/default';
-import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import compose from '../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import Button from './Button';
@@ -87,7 +86,6 @@ class AttachmentModal extends PureComponent {
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
             isConfirmButtonDisabled: false,
             confirmButtonFadeAnimation: new Animated.Value(1),
-            sourceURL: props.isAuthTokenRequired ? addEncryptedAuthTokenToURL(props.sourceURL) : props.sourceURL,
         };
 
         this.submitAndClose = this.submitAndClose.bind(this);
@@ -283,7 +281,7 @@ class AttachmentModal extends PureComponent {
                             <AttachmentCarousel
                                 reportID={this.state.reportID}
                                 onNavigate={this.onNavigate}
-                                source={source}
+                                source={this.props.source}
                                 onToggleKeyboard={this.updateConfirmButtonVisibility}
                             />
                         ) : (this.state.source && (
