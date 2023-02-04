@@ -29,6 +29,8 @@ const defaultProps = {
 class ValidateLoginPage extends Component {
     componentDidMount() {
         if (Permissions.canUsePasswordlessLogins(this.props.betas)) {
+            // Authenticate the user if not already signed in, otherwise render the page to show the validate code
+            // for when the user initiated the sign in process on another device
             if (!this.isAuthenticated()) {
                 Session.signInWithValidateCode(this.validateCode());
             }

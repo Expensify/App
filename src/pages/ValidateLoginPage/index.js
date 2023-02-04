@@ -30,6 +30,8 @@ class ValidateLoginPage extends Component {
     componentDidMount() {
         if (Permissions.canUsePasswordlessLogins(this.props.betas)) {
             if (this.isAuthenticated()) {
+            // If already signed in, do not show the validate code if not on web,
+            // because we don't want  to block the user with the interstitial page.
                 Navigation.goBack(false);
             } else {
                 Session.signInWithValidateCode(this.accountID(), this.validateCode());
