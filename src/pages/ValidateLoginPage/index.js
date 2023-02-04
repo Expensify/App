@@ -44,6 +44,9 @@ class ValidateLoginPage extends Component {
      */
     accountID = () => lodashGet(this.props.route.params, 'accountID', '');
 
+    /**
+     * @returns {String}
+     */
     validateCode = () => lodashGet(this.props.route.params, 'validateCode', '');
 
     isAuthenticated = () => Boolean(lodashGet(this.props, 'session.authToken', null));
