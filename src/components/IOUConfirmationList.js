@@ -48,8 +48,6 @@ const propTypes = {
         searchText: PropTypes.string,
         text: PropTypes.string,
         keyForList: PropTypes.string,
-        isPinned: PropTypes.bool,
-        isUnread: PropTypes.bool,
         reportID: PropTypes.string,
         // eslint-disable-next-line react/forbid-prop-types
         participantsList: PropTypes.arrayOf(PropTypes.object),
@@ -57,8 +55,8 @@ const propTypes = {
         phoneNumber: PropTypes.string,
     })).isRequired,
 
-    /** Is this IOU associated with existing report */
-    isIOUAttachedToExistingChatReport: PropTypes.bool.isRequired,
+    /** Can the participants be modified or not */
+    canModifyParticipants: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
 
@@ -91,6 +89,7 @@ const defaultProps = {
     onUpdateComment: null,
     comment: '',
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
+    canModifyParticipants: false,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -102,22 +101,28 @@ class IOUConfirmationList extends Component {
             ...participant, selected: true,
         }));
 
-        this.splitOrRequestOptions = [{
-            text: props.translate(props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
-                amount: props.numberFormat(
-                    props.iouAmount,
-                    {style: 'currency', currency: props.iou.selectedCurrencyCode},
-                ),
-            }),
-            value: props.hasMultipleParticipants ? CONST.IOU.IOU_TYPE.SPLIT : CONST.IOU.IOU_TYPE.REQUEST,
-        }];
-
         this.state = {
             participants: formattedParticipants,
         };
 
         this.toggleOption = this.toggleOption.bind(this);
         this.confirm = this.confirm.bind(this);
+    }
+
+    /**
+     * Get the confirmation button options
+     * @returns {Array}
+     */
+    getSplitOrRequestOptions() {
+        return [{
+            text: this.props.translate(this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
+                amount: this.props.numberFormat(
+                    this.props.iouAmount,
+                    {style: 'currency', currency: this.props.iou.selectedCurrencyCode},
+                ),
+            }),
+            value: this.props.hasMultipleParticipants ? CONST.IOU.IOU_TYPE.SPLIT : CONST.IOU.IOU_TYPE.REQUEST,
+        }];
     }
 
     /**
@@ -204,7 +209,7 @@ class IOUConfirmationList extends Component {
                 }));
 
             sections.push({
-                title: this.props.translate('common.to').toUpperCase(),
+                title: this.props.translate('common.to'),
                 data: formattedParticipants,
                 shouldShow: true,
                 indexOffset: 0,
@@ -241,7 +246,7 @@ class IOUConfirmationList extends Component {
         this.setState((prevState) => {
             const newParticipants = _.map(prevState.participants, (participant) => {
                 if (participant.login === option.login) {
-                    return {...option, selected: !option.selected};
+                    return {...participant, selected: !participant.selected};
                 }
                 return participant;
             });
@@ -275,7 +280,7 @@ class IOUConfirmationList extends Component {
         const shouldShowSettlementButton = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
         const recipient = this.state.participants[0];
-        const canModifyParticipants = !this.props.isIOUAttachedToExistingChatReport && this.props.hasMultipleParticipants;
+        const canModifyParticipants = this.props.canModifyParticipants && this.props.hasMultipleParticipants;
 
         return (
             <OptionsSelector
@@ -290,8 +295,7 @@ class IOUConfirmationList extends Component {
                 canSelectMultipleOptions={canModifyParticipants}
                 disableArrowKeysActions={!canModifyParticipants}
                 isDisabled={!canModifyParticipants}
-                hideAdditionalOptionStates
-                forceTextUnreadStyle
+                boldStyle
                 autoFocus
                 shouldDelayFocus
                 shouldTextInputAppearBelowOptions
@@ -311,7 +315,7 @@ class IOUConfirmationList extends Component {
                         <ButtonWithMenu
                             isDisabled={shouldDisableButton}
                             onPress={(_event, value) => this.confirm(value)}
-                            options={this.splitOrRequestOptions}
+                            options={this.getSplitOrRequestOptions()}
                         />
                     )}
             />

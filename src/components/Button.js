@@ -181,6 +181,7 @@ class Button extends Component {
 
         const textComponent = (
             <Text
+                numberOfLines={1}
                 selectable={false}
                 style={[
                     this.props.isLoading && styles.opacity0,
@@ -191,6 +192,7 @@ class Button extends Component {
                     this.props.large && styles.buttonLargeText,
                     this.props.success && styles.buttonSuccessText,
                     this.props.danger && styles.buttonDangerText,
+                    this.props.icon && styles.textAlignLeft,
                     ...this.props.textStyles,
                 ]}
             >
@@ -201,7 +203,7 @@ class Button extends Component {
         if (this.props.icon) {
             return (
                 <View style={[styles.justifyContentBetween, styles.flexRow]}>
-                    <View style={[styles.alignItemsCenter, styles.flexRow]}>
+                    <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         <View style={[
                             styles.mr1,
                             ...this.props.iconStyles,
@@ -216,7 +218,7 @@ class Button extends Component {
                         {textComponent}
                     </View>
                     {this.props.shouldShowRightIcon && (
-                        <View>
+                        <View style={styles.justifyContentCenter}>
                             <Icon
                                 src={this.props.iconRight}
                                 fill={this.props.iconFill}
@@ -255,6 +257,9 @@ class Button extends Component {
                 disabled={this.props.isLoading || this.props.isDisabled}
                 style={[
                     this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
+                    styles.buttonContainer,
+                    this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
+                    this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
                     ...StyleUtils.parseStyleAsArray(this.props.style),
                 ]}
                 nativeID={this.props.nativeID}

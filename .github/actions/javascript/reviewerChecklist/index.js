@@ -14,7 +14,7 @@ const https = __nccwpck_require__(7211);
 const GitHubUtils = __nccwpck_require__(7999);
 
 const pathToReviewerChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/contributingGuides/REVIEWER_CHECKLIST.md';
-const reviewerChecklistStartsWith = '## Reviewer Checklist';
+const reviewerChecklistContains = '# Reviewer Checklist';
 const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
 const combinedComments = [];
 
@@ -75,7 +75,7 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
                 console.log(`Comment ${i} starts with: ${comment.slice(0, 20)}...`);
 
                 // Found the reviewer checklist, so count how many completed checklist items there are
-                if (comment.startsWith(reviewerChecklistStartsWith)) {
+                if (comment.indexOf(reviewerChecklistContains) !== -1) {
                     console.log('Found the reviewer checklist!');
                     foundReviewerChecklist = true;
                     numberOfFinishedChecklistItems = (comment.match(/- \[x\]/gi) || []).length;
@@ -451,7 +451,7 @@ class GithubUtils {
                 // eslint-disable-next-line max-len
                 issueBody += `\r\n- [${isTimingDashboardChecked ? 'x' : ' '}] I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.`;
                 // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes.`;
+                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
 
                 issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
                 return issueBody;

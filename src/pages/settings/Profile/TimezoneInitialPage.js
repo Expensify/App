@@ -49,28 +49,30 @@ const TimezoneInitialPage = (props) => {
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <View style={[styles.ph5]}>
-                <Text style={[styles.mb5]}>
-                    {props.translate('timezonePage.isShownOnProfile')}
-                </Text>
-                <View style={[styles.flexRow, styles.mb5, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    <Text>
-                        {props.translate('timezonePage.getLocationAutomatically')}
+            <View style={styles.flex1}>
+                <View style={[styles.ph5]}>
+                    <Text style={[styles.mb5]}>
+                        {props.translate('timezonePage.isShownOnProfile')}
                     </Text>
-                    <Switch
-                        isOn={timezone.automatic}
-                        onToggle={updateAutomaticTimezone}
-                    />
+                    <View style={[styles.flexRow, styles.mb5, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        <Text>
+                            {props.translate('timezonePage.getLocationAutomatically')}
+                        </Text>
+                        <Switch
+                            isOn={timezone.automatic}
+                            onToggle={updateAutomaticTimezone}
+                        />
+                    </View>
                 </View>
+                <MenuItemWithTopDescription
+                    title={timezone.selected}
+                    description={props.translate('timezonePage.timezone')}
+                    shouldShowRightIcon
+                    wrapperStyle={[styles.ph2, styles.mb3]}
+                    disabled={timezone.automatic}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE_SELECT)}
+                />
             </View>
-            <MenuItemWithTopDescription
-                title={timezone.selected}
-                description={props.translate('timezonePage.timezone')}
-                shouldShowRightIcon
-                wrapperStyle={[styles.ph2, styles.mb3]}
-                disabled={timezone.automatic}
-                onPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE_SELECT)}
-            />
         </ScreenWrapper>
     );
 };

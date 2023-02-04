@@ -71,7 +71,7 @@ function setAdditionalDetailsErrorMessage(additionalErrorMessage) {
 /**
  * Save the ID of the chat whose IOU triggered showing the KYC wall.
  *
- * @param {Number} chatReportID
+ * @param {String} chatReportID
  */
 function setKYCWallSourceChatReportID(chatReportID) {
     Onyx.merge(ONYXKEYS.WALLET_TERMS, {chatReportID});
@@ -243,7 +243,7 @@ function acceptWalletTerms(parameters) {
  * @property {Number} availableBalance
  * @property {Number} currentBalance
  * @property {String} currentStep - used to track which step of the "activate wallet" flow a user is in
- * @property {('SILVER'|'GOLD')} tierName - will be GOLD when fully activated. SILVER is able to recieve funds only.
+ * @property {('SILVER'|'GOLD')} tierName - will be GOLD when fully activated. SILVER is able to receive funds only.
  */
 function openInitialSettingsPage() {
     API.read('OpenInitialSettingsPage');
@@ -256,17 +256,10 @@ function openInitialSettingsPage() {
  * @property {Number} availableBalance
  * @property {Number} currentBalance
  * @property {String} currentStep - used to track which step of the "activate wallet" flow a user is in
- * @property {('SILVER'|'GOLD')} tierName - will be GOLD when fully activated. SILVER is able to recieve funds only.
+ * @property {('SILVER'|'GOLD')} tierName - will be GOLD when fully activated. SILVER is able to receive funds only.
  */
 function openEnablePaymentsPage() {
     API.read('OpenEnablePaymentsPage');
-}
-
-/**
- * @param {Object} keyValuePair
- */
-function updateAdditionalDetailsDraft(keyValuePair) {
-    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS_DRAFT, keyValuePair);
 }
 
 /**
@@ -317,7 +310,6 @@ export {
     openInitialSettingsPage,
     openEnablePaymentsPage,
     setAdditionalDetailsErrors,
-    updateAdditionalDetailsDraft,
     setAdditionalDetailsErrorMessage,
     setAdditionalDetailsQuestions,
     updateCurrentStep,

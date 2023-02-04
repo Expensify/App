@@ -21,6 +21,9 @@ const propTypes = {
 
     /** Whether this menu item is currently highlighted or not */
     isHighlighted: PropTypes.bool,
+
+    /** Whether the emoji is highlighted by the keyboard/mouse */
+    isUsingKeyboardMovement: PropTypes.bool,
 };
 
 const EmojiPickerMenuItem = props => (
@@ -32,7 +35,8 @@ const EmojiPickerMenuItem = props => (
             pressed,
         }) => ([
             StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
-            props.isHighlighted ? styles.emojiItemHighlighted : {},
+            props.isHighlighted && props.isUsingKeyboardMovement ? styles.emojiItemKeyboardHighlighted : {},
+            props.isHighlighted && !props.isUsingKeyboardMovement ? styles.emojiItemHighlighted : {},
             styles.emojiItem,
         ])}
     >
@@ -46,6 +50,7 @@ EmojiPickerMenuItem.propTypes = propTypes;
 EmojiPickerMenuItem.displayName = 'EmojiPickerMenuItem';
 EmojiPickerMenuItem.defaultProps = {
     isHighlighted: false,
+    isUsingKeyboardMovement: false,
     onHoverIn: () => {},
     onHoverOut: () => {},
 };
@@ -55,5 +60,6 @@ EmojiPickerMenuItem.defaultProps = {
 export default React.memo(
     EmojiPickerMenuItem,
     (prevProps, nextProps) => prevProps.isHighlighted === nextProps.isHighlighted
-                                && prevProps.emoji === nextProps.emoji,
+        && prevProps.emoji === nextProps.emoji
+        && prevProps.isUsingKeyboardMovement === nextProps.isUsingKeyboardMovement,
 );

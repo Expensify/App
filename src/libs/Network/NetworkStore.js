@@ -61,7 +61,7 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: (val) => {
-        credentials = val || null;
+        credentials = val || {};
         checkRequiredData();
     },
 });

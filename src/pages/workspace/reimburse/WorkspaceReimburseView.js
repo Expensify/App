@@ -8,7 +8,6 @@ import TextInput from '../../../components/TextInput';
 import Picker from '../../../components/Picker';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
@@ -18,16 +17,15 @@ import * as Link from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
 import * as Policy from '../../../libs/actions/Policy';
 import CONST from '../../../CONST';
-import Button from '../../../components/Button';
 import ONYXKEYS from '../../../ONYXKEYS';
-import BankAccount from '../../../libs/models/BankAccount';
-import reimbursementAccountPropTypes from '../../ReimbursementAccount/reimbursementAccountPropTypes';
+import * as ReimbursementAccountProps from '../../ReimbursementAccount/reimbursementAccountPropTypes';
 import getPermittedDecimalSeparator from '../../../libs/getPermittedDecimalSeparator';
 import {withNetwork} from '../../../components/OnyxProvider';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccount';
 import networkPropTypes from '../../../components/networkPropTypes';
 import Log from '../../../libs/Log';
+import WorkspaceReimburseSection from './WorkspaceReimburseSection';
+import * as BankAccounts from '../../../libs/actions/BankAccounts';
 
 const propTypes = {
     /** Policy values needed in the component */
@@ -50,13 +48,12 @@ const propTypes = {
             }),
         ),
         outputCurrency: PropTypes.string,
-        hasVBA: PropTypes.bool,
         lastModified: PropTypes.number,
     }).isRequired,
 
     /** From Onyx */
     /** Bank account attached to free plan */
-    reimbursementAccount: reimbursementAccountPropTypes,
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
@@ -65,7 +62,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    reimbursementAccount: {},
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
 };
 
 class WorkspaceReimburseView extends React.Component {
@@ -83,24 +80,13 @@ class WorkspaceReimburseView extends React.Component {
             outputCurrency: lodashGet(props, 'policy.outputCurrency', ''),
         };
 
-        this.unitItems = [
-            {
-                label: this.props.translate('workspace.reimburse.kilometers'),
-                value: 'km',
-            },
-            {
-                label: this.props.translate('workspace.reimburse.miles'),
-                value: 'mi',
-            },
-        ];
-
         this.debounceUpdateOnCursorMove = this.debounceUpdateOnCursorMove.bind(this);
         this.updateRateValueDebounced = _.debounce(this.updateRateValue.bind(this), 1000);
         this.updatedValue = this.state.unitRateValue;
     }
 
     componentDidMount() {
-        Policy.openWorkspaceReimburseView(this.props.policy.id);
+        this.fetchData();
     }
 
     componentDidUpdate(prevProps) {
@@ -125,11 +111,18 @@ class WorkspaceReimburseView extends React.Component {
             return;
         }
 
-        Policy.openWorkspaceReimburseView(this.props.policy.id);
+        this.fetchData();
     }
 
     getUnitRateValue(customUnitRate) {
         return this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET);
+    }
+
+    getUnitItems() {
+        return [
+            {label: this.props.translate('workspace.reimburse.kilometers'), value: 'km'},
+            {label: this.props.translate('workspace.reimburse.miles'), value: 'mi'},
+        ];
     }
 
     getRateDisplayValue(value) {
@@ -185,6 +178,14 @@ class WorkspaceReimburseView extends React.Component {
         }, this.props.policy.lastModified);
     }
 
+    fetchData() {
+        // Instead of setting the reimbursement account loading within the optimistic data of the API command, use a separate action so that the Onyx value is updated right away.
+        // openWorkspaceReimburseView uses API.read which will not make the request until all WRITE requests in the sequential queue have finished responding, so there would be a delay in
+        // updating Onyx with the optimistic data.
+        BankAccounts.setReimbursementAccountLoading(true);
+        Policy.openWorkspaceReimburseView(this.props.policy.id);
+    }
+
     debounceUpdateOnCursorMove(event) {
         if (!_.contains(['ArrowLeft', 'ArrowRight'], event.key)) {
             return;
@@ -212,8 +213,6 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     render() {
-        const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
-        const hasVBA = achState === BankAccount.STATE.OPEN;
         return (
             <>
                 <Section
@@ -226,7 +225,6 @@ class WorkspaceReimburseView extends React.Component {
                             icon: Expensicons.Receipt,
                             shouldShowRightIcon: true,
                             iconRight: Expensicons.NewWindow,
-                            iconFill: themeColors.success,
                             wrapperStyle: [styles.cardMenuItem],
                         },
                     ]}
@@ -276,7 +274,7 @@ class WorkspaceReimburseView extends React.Component {
                             <View style={[styles.unitCol]}>
                                 <Picker
                                     label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
-                                    items={this.unitItems}
+                                    items={this.getUnitItems()}
                                     value={this.state.unitValue}
                                     onInputChange={value => this.setUnit(value)}
                                 />
@@ -284,46 +282,12 @@ class WorkspaceReimburseView extends React.Component {
                         </View>
                     </OfflineWithFeedback>
                 </Section>
-                {hasVBA ? (
-                    <Section
-                        title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
-                        icon={Illustrations.TreasureChest}
-                        menuItems={[
-                            {
-                                title: this.props.translate('workspace.reimburse.reimburseReceipts'),
-                                onPress: () => Link.openOldDotLink(`reports?policyID=${this.props.policy.id}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
-                                icon: Expensicons.Bank,
-                                shouldShowRightIcon: true,
-                                iconRight: Expensicons.NewWindow,
-                                iconFill: themeColors.success,
-                                wrapperStyle: [styles.cardMenuItem],
-                            },
-                        ]}
-                    >
-                        <View style={[styles.mv3]}>
-                            <Text>{this.props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
-                        </View>
-                    </Section>
-                ) : (
-                    <Section
-                        title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
-                        icon={Illustrations.OpenSafe}
-                    >
-                        <View style={[styles.mv3]}>
-                            <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
-                        </View>
-                        <Button
-                            text={this.props.translate('workspace.common.bankAccount')}
-                            onPress={() => ReimbursementAccount.navigateToBankAccountRoute(this.props.policy.id)}
-                            icon={Expensicons.Bank}
-                            style={[styles.mt4]}
-                            iconStyles={[styles.buttonCTAIcon]}
-                            shouldShowRightIcon
-                            large
-                            success
-                        />
-                    </Section>
-                )}
+                <WorkspaceReimburseSection
+                    policy={this.props.policy}
+                    reimbursementAccount={this.props.reimbursementAccount}
+                    network={this.props.network}
+                    translate={this.props.translate}
+                />
             </>
         );
     }

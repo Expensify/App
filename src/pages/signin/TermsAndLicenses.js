@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import styles from '../../styles/styles';
+import defaultTheme from '../../styles/themes/default';
 import CONST from '../../CONST';
 import Text from '../../components/Text';
 import TextLink from '../../components/TextLink';
@@ -31,7 +32,7 @@ const TermsAndLicenses = props => (
             .
         </Text>
         <View style={[styles.mt4, styles.alignItemsCenter, styles.mb2, styles.flexRow, styles.justifyContentBetween]}>
-            <LogoWordmark height={30} width={80} />
+            <LogoWordmark height={30} width={80} fill={defaultTheme.textLight} />
             <LocalePicker size="small" />
         </View>
     </>

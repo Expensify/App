@@ -46,7 +46,7 @@ function downloadImage(fileUrl) {
  * @returns {String} URI
  */
 function downloadVideo(fileUrl, fileName) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         let documentPathUri = null;
         let cameraRollUri = null;
 
@@ -57,7 +57,8 @@ function downloadVideo(fileUrl, fileName) {
         }).then((attachment) => {
             cameraRollUri = attachment;
             return RNFetchBlob.fs.unlink(documentPathUri);
-        }).then(() => resolve(cameraRollUri));
+        }).then(() => resolve(cameraRollUri))
+            .catch(err => reject(err));
     });
 }
 

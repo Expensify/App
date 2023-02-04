@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import _ from 'underscore';
 import CONST from '../../CONST';
 import withLocalize from '../withLocalize';
 import TextInput from '../TextInput';
@@ -25,6 +26,11 @@ class RoomNameInput extends Component {
         const roomName = event.nativeEvent.text;
         const modifiedRoomName = RoomNameInputUtils.modifyRoomName(roomName);
         this.props.onChangeText(modifiedRoomName);
+
+        // if custom component has onInputChange, use it to trigger changes (Form input)
+        if (_.isFunction(this.props.onInputChange)) {
+            this.props.onInputChange(modifiedRoomName);
+        }
 
         // Prevent cursor jump behaviour:
         // Check if newRoomNameWithHash is the same as modifiedRoomName
@@ -65,6 +71,9 @@ class RoomNameInput extends Component {
                 onSelectionChange={event => this.setSelection(event.nativeEvent.selection)}
                 errorText={this.props.errorText}
                 autoCapitalize="none"
+                onBlur={this.props.onBlur}
+                autoFocus={this.props.autoFocus}
+                maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
             />
         );
     }

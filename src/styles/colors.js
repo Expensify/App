@@ -22,17 +22,18 @@ export default {
 
     // Dark Mode Theme Colors
     greenAppBackground: '#061B09',
-    greenHighlightBackground: '#002E22',
-    greenBorders: '#1B5744',
+    greenHighlightBackground: '#07271F',
+    greenBorders: '#1A3D32',
     greenIcons: '#8B9C8F',
-    greenSupportingText: '#C9D3C5',
-    white: '#FFFFFF',
+    greenSupportingText: '#AFBBB0',
+    white: '#E7ECE9',
     blueLink: '#5AB0FF',
     blueLinkHover: '#B0D9FF',
     greenDefaultButton: '#184E3D',
     greenDefaultButtonHover: '#2C6755',
     greenDefaultButtonPressed: '#467164',
     greenDefaultButtonDisabled: '#8BA69E',
+    midnight: '#002140',
 
     // DEPRECATED COLORS. Do not reference these colors. Will be deleted in color switch PR.
     gray1: '#FAFAFA',

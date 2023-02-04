@@ -76,7 +76,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
     Session.beginSignIn(login);
     return waitForPromisesToResolve()
         .then(() => {
-            // Response is the same for calls to Authenticate and CreateLogin
+            // Response is the same for calls to Authenticate and BeginSignIn
             HttpUtils.xhr
                 .mockImplementation(() => Promise.resolve({
                     onyxData: [
@@ -156,20 +156,20 @@ function setPersonalDetails(login, accountID) {
 
 /**
  * @param {String} actorEmail
- * @param {Number} sequenceNumber
  * @param {String} created
  * @param {Number} actorAccountID
+ * @param {String} actionID
  * @returns {Object}
  */
-function buildTestReportComment(actorEmail, sequenceNumber, created, actorAccountID) {
+function buildTestReportComment(actorEmail, created, actorAccountID, actionID = null) {
+    const reportActionID = actionID || NumberUtils.rand64();
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
         actorEmail,
         person: [{type: 'TEXT', style: 'strong', text: 'User B'}],
-        sequenceNumber,
         created,
-        message: [{type: 'COMMENT', html: `Comment ${sequenceNumber}`, text: `Comment ${sequenceNumber}`}],
-        reportActionID: NumberUtils.rand64(),
+        message: [{type: 'COMMENT', html: `Comment ${actionID}`, text: `Comment ${actionID}`}],
+        reportActionID,
         actorAccountID,
     };
 }

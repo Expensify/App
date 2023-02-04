@@ -22,6 +22,9 @@ const propTypes = {
     /** Container styles */
     style: stylePropTypes,
 
+    /** Wheter the checkbox is disabled */
+    disabled: PropTypes.bool,
+
     /** Props inherited from withWindowDimensions */
     ...windowDimensionsPropTypes,
 };

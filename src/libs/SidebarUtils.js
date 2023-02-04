@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from './ReportUtils';
@@ -148,14 +149,15 @@ function getOrderedReportIDs(reportIDFromRoute) {
 
     // Sort each group of reports accordingly
     pinnedReports = _.sortBy(pinnedReports, report => report.displayName.toLowerCase());
-    outstandingIOUReports = _.sortBy(outstandingIOUReports, 'iouReportAmount').reverse();
+    outstandingIOUReports = lodashOrderBy(outstandingIOUReports, ['iouReportAmount', report => report.displayName.toLowerCase()], ['desc', 'asc']);
     draftReports = _.sortBy(draftReports, report => report.displayName.toLowerCase());
-    nonArchivedReports = _.sortBy(nonArchivedReports, report => (isInDefaultMode ? report.lastActionCreated : report.displayName.toLowerCase()));
+    nonArchivedReports = isInDefaultMode
+        ? lodashOrderBy(nonArchivedReports, ['lastActionCreated', report => report.displayName.toLowerCase()], ['desc', 'asc'])
+        : lodashOrderBy(nonArchivedReports, [report => report.displayName.toLowerCase()], ['asc']);
     archivedReports = _.sortBy(archivedReports, report => (isInDefaultMode ? report.lastActionCreated : report.displayName.toLowerCase()));
 
-    // For archived and non-archived reports, ensure that most recent reports are at the top by reversing the order of the arrays because underscore will only sort them in ascending order
+    // For archived reports ensure that most recent reports are at the top by reversing the order of the arrays because underscore will only sort them in ascending order
     if (isInDefaultMode) {
-        nonArchivedReports.reverse();
         archivedReports.reverse();
     }
 
@@ -214,9 +216,8 @@ function getOptionData(reportID) {
         isPolicyExpenseChat: false,
     };
 
-    const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
-    const personalDetailList = _.values(personalDetailMap);
-    const personalDetail = personalDetailList[0] || {};
+    const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails));
+    const personalDetail = participantPersonalDetailList[0] || {};
 
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
@@ -235,11 +236,11 @@ function getOptionData(reportID) {
     result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participants || []);
     result.hasOutstandingIOU = report.hasOutstandingIOU;
 
-    const hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
+    const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((personalDetailList || []).slice(0, 10), hasMultipleParticipants);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants);
 
     let lastMessageTextFromReport = '';
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
@@ -248,7 +249,7 @@ function getOptionData(reportID) {
         lastMessageTextFromReport = Str.htmlDecode(report ? report.lastMessageText : '');
     }
 
-    const lastActorDetails = personalDetailMap[report.lastActorEmail] || null;
+    const lastActorDetails = personalDetails[report.lastActorEmail] || null;
     let lastMessageText = hasMultipleParticipants && lastActorDetails && (lastActorDetails.login !== currentUserLogin.email)
         ? `${lastActorDetails.displayName}: `
         : '';
@@ -294,9 +295,10 @@ function getOptionData(reportID) {
     const reportName = ReportUtils.getReportName(report, policies);
     result.text = reportName;
     result.subtitle = subtitle;
-    result.participantsList = personalDetailList;
-    result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
-    result.searchText = OptionsListUtils.getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
+    result.participantsList = participantPersonalDetailList;
+
+    result.icons = ReportUtils.getIcons(report, personalDetails, policies, ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login));
+    result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
     return result;

@@ -58,7 +58,7 @@ const MenuItem = (props) => {
         (props.shouldShowBasicTitle ? undefined : styles.textStrong),
         (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
     ], props.style);
-    const descriptionTextStyle = StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml3, styles.breakAll, styles.lh16], props.style);
+    const descriptionTextStyle = StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml3, styles.breakAll, styles.lineHeightNormal], props.style);
 
     return (
         <Pressable
@@ -75,7 +75,7 @@ const MenuItem = (props) => {
             }}
             style={({hovered, pressed}) => ([
                 styles.popoverMenuItem,
-                StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive)),
+                StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true),
                 ..._.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle],
             ])}
             disabled={props.disabled}
@@ -143,7 +143,14 @@ const MenuItem = (props) => {
                         </View>
                     </View>
                     <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
-                        {props.badgeText && <Badge text={props.badgeText} badgeStyles={[styles.alignSelfCenter, (props.brickRoadIndicator ? styles.mr2 : undefined)]} />}
+                        {props.badgeText && (
+                        <Badge
+                            text={props.badgeText}
+                            badgeStyles={[styles.alignSelfCenter, (props.brickRoadIndicator ? styles.mr2 : undefined),
+                                (props.focused || hovered || pressed) ? styles.hoveredButton : {},
+                            ]}
+                        />
+                        )}
                         {/* Since subtitle can be of type number, we should allow 0 to be shown */}
                         {(props.subtitle || props.subtitle === 0) && (
                             <View style={[styles.justifyContentCenter, styles.mr1]}>
@@ -157,6 +164,8 @@ const MenuItem = (props) => {
                         {!_.isEmpty(props.floatRightAvatars) && (
                             <View style={[styles.justifyContentCenter, (props.brickRoadIndicator ? styles.mr4 : styles.mr3)]}>
                                 <MultipleAvatars
+                                    isHovered={hovered}
+                                    isPressed={pressed}
                                     icons={props.floatRightAvatars}
                                     size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                     fallbackIcon={Expensicons.Workspace}

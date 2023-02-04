@@ -169,7 +169,6 @@ const IdentityForm = (props) => {
                 defaultValue={props.values.dob || props.defaultValues.dob}
                 onInputChange={value => props.onFieldChange({dob: value})}
                 errorText={dobErrorText}
-                maximumDate={new Date()}
             />
             <TextInput
                 inputID={props.inputKeys.ssnLast4}

@@ -16,8 +16,6 @@ import themeColors from '../../styles/themes/default';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 import Tooltip from '../Tooltip';
 import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
 
@@ -112,19 +110,17 @@ class BaseVideoChatButtonAndMenu extends Component {
                                 this.videoChatButton.blur();
 
                                 // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
-                                if (this.props.isConcierge) {
-                                    Navigation.navigate(ROUTES.getRequestCallRoute(CONST.GUIDES_CALL_TASK_IDS.CONCIERGE_DM));
+                                if (this.props.isConcierge && this.props.guideCalendarLink) {
+                                    Linking.openURL(this.props.guideCalendarLink);
                                     return;
                                 }
                                 this.toggleVideoChatMenu();
                             }}
-                            style={[styles.touchableButtonImage, styles.mr0]}
+                            style={[styles.touchableButtonImage]}
                         >
                             <Icon
                                 src={Expensicons.Phone}
-                                fill={(this.props.isConcierge || this.state.isVideoChatMenuActive)
-                                    ? themeColors.heading
-                                    : themeColors.icon}
+                                fill={this.state.isVideoChatMenuActive ? themeColors.heading : themeColors.icon}
                             />
                         </Pressable>
                     </Tooltip>

@@ -50,16 +50,6 @@ function getDisplayName(login, personalDetail) {
 }
 
 /**
- * Returns max character error text if true.
- *
- * @param {Boolean} isError
- * @returns {String}
- */
-function getMaxCharacterError(isError) {
-    return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT}) : '';
-}
-
-/**
  * Gets the first and last name from the user's personal details.
  * If the login is the same as the displayName, then they don't exist,
  * so we return empty strings instead.
@@ -139,38 +129,6 @@ function setPersonalDetails(details, shouldGrowl) {
                 console.debug('Error while setting personal details', response);
             }
         });
-}
-
-/**
- * @param {String} firstName
- * @param {String} lastName
- * @param {String} pronouns
- * @param {Object} timezone
- */
-function updateProfile(firstName, lastName, pronouns, timezone) {
-    API.write('UpdateProfile', {
-        firstName,
-        lastName,
-        pronouns,
-        timezone: JSON.stringify(timezone),
-    }, {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {
-                [currentUserEmail]: {
-                    firstName,
-                    lastName,
-                    pronouns,
-                    timezone,
-                    displayName: getDisplayName(currentUserEmail, {
-                        firstName,
-                        lastName,
-                    }),
-                },
-            },
-        }],
-    });
 }
 
 /**
@@ -326,7 +284,8 @@ function updateAvatar(file) {
  * Replaces the user's avatar image with a default avatar
  */
 function deleteAvatar() {
-    const defaultAvatar = ReportUtils.getDefaultAvatar(currentUserEmail);
+    // We want to use the old dot avatar here as this affects both platforms.
+    const defaultAvatar = ReportUtils.getOldDotDefaultAvatar(currentUserEmail);
 
     API.write('DeleteUserAvatar', {}, {
         optimisticData: [{
@@ -372,9 +331,7 @@ export {
     updateAvatar,
     deleteAvatar,
     openIOUModalPage,
-    getMaxCharacterError,
     extractFirstAndLastNameFromAvailableDetails,
-    updateProfile,
     updateDisplayName,
     updatePronouns,
     clearAvatarErrors,

@@ -1,6 +1,5 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useState} from 'react';
-import lodashGet from 'lodash/get';
 import {View, Image} from 'react-native';
 import Composer from '../components/Composer';
 import RenderHTML from '../components/RenderHTML';
@@ -25,37 +24,17 @@ const parser = new ExpensiMark();
 const Default = (args) => {
     const [pastedFile, setPastedFile] = useState(null);
     const [comment, setComment] = useState(args.defaultValue);
-    const [droppingFile, setDroppingFile] = useState(false);
-    const [isComposerDroppingTarget, setIsComposerDroppingTarget] = useState(false);
     const renderedHTML = parser.replace(comment);
 
     return (
         <View>
-            <View style={[styles.border, styles.p4, droppingFile && isComposerDroppingTarget && styles.borderColorFocus]}>
+            <View style={[styles.border, styles.p4]}>
                 <Composer
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...args}
                     multiline
                     textAlignVertical="top"
                     onChangeText={setComment}
-                    onDragOver={(e, isOriginComposer) => {
-                        setIsComposerDroppingTarget(isOriginComposer);
-                        setDroppingFile(true);
-                    }}
-                    onDragLeave={() => {
-                        setIsComposerDroppingTarget(false);
-                        setDroppingFile(false);
-                    }}
-                    onDrop={(e) => {
-                        e.preventDefault();
-
-                        const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                        if (!file) {
-                            return;
-                        }
-
-                        setPastedFile(file);
-                    }}
                     onPasteFile={setPastedFile}
                     style={[styles.textInputCompose, styles.w100]}
                 />
@@ -68,11 +47,10 @@ const Default = (args) => {
                         styles.noRightBorderRadius,
                         styles.p5,
                         styles.flex1,
-                        droppingFile && !isComposerDroppingTarget && styles.borderColorFocus,
                     ]}
                     nativeID={CONST.REPORT.DROP_NATIVE_ID}
                 >
-                    <Text style={[styles.mb2, styles.formLabel]}>Entered Comment (Drop Enabled)</Text>
+                    <Text style={[styles.mb2, styles.textLabelSupporting]}>Entered Comment (Drop Enabled)</Text>
                     <Text>{comment}</Text>
                 </View>
                 <View
@@ -84,7 +62,7 @@ const Default = (args) => {
                         styles.flex1,
                     ]}
                 >
-                    <Text style={[styles.mb2, styles.formLabel]}>Rendered Comment</Text>
+                    <Text style={[styles.mb2, styles.textLabelSupporting]}>Rendered Comment</Text>
                     {Boolean(renderedHTML) && <RenderHTML html={renderedHTML} />}
                     {pastedFile && (
                         <View style={styles.mv3}>
@@ -108,8 +86,7 @@ Default.args = {
     defaultValue: `Composer can do the following:
 
      * It can contain MD e.g. *bold* _italic_
-     * Supports Pasted Images via Ctrl+V
-     * Supports Drag N Drop for files.`,
+     * Supports Pasted Images via Ctrl+V`,
     isDisabled: false,
     maxLines: 16,
 };

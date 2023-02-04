@@ -74,7 +74,7 @@ class OnfidoPrivacy extends React.Component {
                                 <TextLink
                                     href="https://onfido.com/privacy/"
                                 >
-                                    {this.props.translate('common.privacyPolicy')}
+                                    {this.props.translate('common.privacy')}
                                 </TextLink>
                                 {` ${this.props.translate('common.and')} `}
                                 <TextLink

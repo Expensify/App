@@ -31,7 +31,7 @@ let credentials;
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: (val) => {
-        credentials = val;
+        credentials = val || {};
     },
 });
 

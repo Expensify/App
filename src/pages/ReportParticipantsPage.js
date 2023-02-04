@@ -58,7 +58,7 @@ const getAllParticipants = (report, personalDetails) => {
         return ({
             alternateText: userLogin,
             displayName: userPersonalDetail.displayName,
-            icons: userPersonalDetail.avatar ? [userPersonalDetail.avatar] : [ReportUtils.getDefaultAvatar()],
+            icons: [ReportUtils.getAvatar(userPersonalDetail.avatar, login)],
             keyForList: userLogin,
             login,
             text: userPersonalDetail.displayName,
@@ -99,8 +99,7 @@ const ReportParticipantsPage = (props) => {
                         hideSectionHeaders
                         showTitleTooltip
                         disableFocusOptions
-                        optionMode="default"
-                        forceTextUnreadStyle
+                        boldStyle
                         optionHoveredStyle={styles.hoveredComponentBG}
                     />
                     )}

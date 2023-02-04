@@ -13,6 +13,7 @@ import MoneyEnvelopeBlue from '../../../assets/images/product-illustrations/mone
 import MoneyMousePink from '../../../assets/images/product-illustrations/money-mouse--pink.svg';
 import ReceiptsSearchYellow from '../../../assets/images/product-illustrations/receipts-search--yellow.svg';
 import ReceiptYellow from '../../../assets/images/product-illustrations/receipt--yellow.svg';
+import RocketBlue from '../../../assets/images/product-illustrations/rocket--blue.svg';
 import RocketOrange from '../../../assets/images/product-illustrations/rocket--orange.svg';
 import TadaYellow from '../../../assets/images/product-illustrations/tada--yellow.svg';
 import TadaBlue from '../../../assets/images/product-illustrations/tada--blue.svg';
@@ -51,6 +52,7 @@ export {
     MoneyMousePink,
     ReceiptsSearchYellow,
     ReceiptYellow,
+    RocketBlue,
     RocketOrange,
     TadaYellow,
     TadaBlue,

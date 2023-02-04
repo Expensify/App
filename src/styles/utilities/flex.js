@@ -36,10 +36,6 @@ export default {
         flexDirection: 'column',
     },
 
-    flexColumnReverse: {
-        flexDirection: 'column-reverse',
-    },
-
     justifyContentCenter: {
         justifyContent: 'center',
     },
@@ -106,6 +102,10 @@ export default {
 
     flexGrow1: {
         flexGrow: 1,
+    },
+
+    flexGrow2: {
+        flexGrow: 2,
     },
 
     flexGrow4: {

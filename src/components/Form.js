@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {ScrollView, View} from 'react-native';
+import {ScrollView, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -10,6 +10,10 @@ import * as FormActions from '../libs/actions/FormActions';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import styles from '../styles/styles';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
+import FormSubmit from './FormSubmit';
+import SafeAreaConsumer from './SafeAreaConsumer';
+import ScrollViewWithContext from './ScrollViewWithContext';
+import stylePropTypes from '../styles/stylePropTypes';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -27,7 +31,11 @@ const propTypes = {
     /** Callback to submit the form */
     onSubmit: PropTypes.func.isRequired,
 
-    children: PropTypes.node.isRequired,
+    /** Children to render. */
+    children: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.node,
+    ]).isRequired,
 
     /* Onyx Props */
 
@@ -51,8 +59,22 @@ const propTypes = {
     /** Should the button be enabled when offline */
     enabledWhenOffline: PropTypes.bool,
 
-    /** Whether the action is dangerous */
-    isDangerousAction: PropTypes.bool,
+    /** Whether the form submit action is dangerous */
+    isSubmitActionDangerous: PropTypes.bool,
+
+    /** Whether the ScrollView overflow content is scrollable.
+     *   Set to true to avoid nested Picker components at the bottom of the Form from rendering the popup selector over Picker
+     *   e.g. https://github.com/Expensify/App/issues/13909#issuecomment-1396859008
+     */
+    scrollToOverflowEnabled: PropTypes.bool,
+
+    /** Whether ScrollWithContext should be used instead of regular ScrollView.
+     *  Set to true when there's a nested Picker component in Form.
+     */
+    scrollContextEnabled: PropTypes.bool,
+
+    /** Container styles */
+    style: stylePropTypes,
 
     ...withLocalizePropTypes,
 };
@@ -65,7 +87,10 @@ const defaultProps = {
     },
     draftValues: {},
     enabledWhenOffline: false,
-    isDangerousAction: false,
+    isSubmitActionDangerous: false,
+    scrollToOverflowEnabled: false,
+    scrollContextEnabled: false,
+    style: [],
 };
 
 class Form extends React.Component {
@@ -74,9 +99,10 @@ class Form extends React.Component {
 
         this.state = {
             errors: {},
-            inputValues: {},
+            inputValues: props.draftValues,
         };
 
+        this.formRef = React.createRef(null);
         this.inputRefs = {};
         this.touchedInputs = {};
 
@@ -85,11 +111,13 @@ class Form extends React.Component {
         this.submit = this.submit.bind(this);
     }
 
-    /**
-     * @param {String} inputID - The inputID of the input being touched
-     */
-    setTouchedInput(inputID) {
-        this.touchedInputs[inputID] = true;
+    componentDidUpdate(prevProps) {
+        if (prevProps.preferredLocale === this.props.preferredLocale) {
+            return;
+        }
+
+        // Update the error messages if the language changes
+        this.validate(this.state.inputValues);
     }
 
     getErrorMessage() {
@@ -106,6 +134,13 @@ class Form extends React.Component {
         }
 
         return _.first(_.keys(hasStateErrors ? this.state.erorrs : this.props.formState.errorFields));
+    }
+
+    /**
+     * @param {String} inputID - The inputID of the input being touched
+     */
+    setTouchedInput(inputID) {
+        this.touchedInputs[inputID] = true;
     }
 
     submit() {
@@ -155,7 +190,7 @@ class Form extends React.Component {
     /**
      * Loops over Form's children and automatically supplies Form props to them
      *
-     * @param {Array} children - An array containing all Form children
+     * @param {Array | Function | Node} children - An array containing all Form children
      * @returns {React.Component}
      */
     childrenWrapperWithProps(children) {
@@ -174,15 +209,19 @@ class Form extends React.Component {
 
             // Look for any inputs nested in a custom component, e.g AddressForm or IdentityForm
             if (_.isFunction(child.type)) {
-                const nestedChildren = new child.type(child.props);
+                const childNode = new child.type(child.props);
 
-                if (!React.isValidElement(nestedChildren) || !lodashGet(nestedChildren, 'props.children')) {
-                    return child;
+                // If the custom component has a render method, use it to get the nested children
+                const nestedChildren = _.isFunction(childNode.render) ? childNode.render() : childNode;
+
+                // Render the custom component if it's a valid React element
+                // If the custom component has nested children, Loop over them and supply From props
+                if (React.isValidElement(nestedChildren) || lodashGet(nestedChildren, 'props.children')) {
+                    return this.childrenWrapperWithProps(nestedChildren);
                 }
 
-                return React.cloneElement(nestedChildren, {
-                    children: this.childrenWrapperWithProps(lodashGet(nestedChildren, 'props.children')),
-                });
+                // Just render the child if it's custom component not a valid React element, or if it hasn't children
+                return child;
             }
 
             // We check if the child has the inputID prop.
@@ -243,38 +282,62 @@ class Form extends React.Component {
     }
 
     render() {
+        const scrollViewContent = safeAreaPaddingBottomStyle => (
+            <FormSubmit style={StyleSheet.flatten([this.props.style, safeAreaPaddingBottomStyle])} onSubmit={this.submit}>
+                {this.childrenWrapperWithProps(_.isFunction(this.props.children) ? this.props.children({inputValues: this.state.inputValues}) : this.props.children)}
+                {this.props.isSubmitButtonVisible && (
+                <FormAlertWithSubmitButton
+                    buttonText={this.props.submitButtonText}
+                    isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage()) || !_.isEmpty(this.props.formState.errorFields)}
+                    isLoading={this.props.formState.isLoading}
+                    message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
+                    onSubmit={this.submit}
+                    onFixTheErrorsLinkPressed={() => {
+                        const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
+                        const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
+                        const focusInput = this.inputRefs[focusKey];
+                        if (focusInput.focus && typeof focusInput.focus === 'function') {
+                            focusInput.focus();
+                        }
+
+                        // We subtract 10 to scroll slightly above the input
+                        if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
+                            focusInput.measureLayout(this.formRef.current, (x, y) => this.formRef.current.scrollTo({y: y - 10, animated: false}));
+                        }
+                    }}
+                    containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
+                    enabledWhenOffline={this.props.enabledWhenOffline}
+                    isSubmitActionDangerous={this.props.isSubmitActionDangerous}
+                    disablePressOnEnter
+                />
+                )}
+            </FormSubmit>
+        );
+
         return (
-            <>
-                <ScrollView
-                    style={[styles.w100, styles.flex1]}
-                    contentContainerStyle={styles.flexGrow1}
-                    keyboardShouldPersistTaps="handled"
-                >
-                    <View style={[this.props.style]}>
-                        {this.childrenWrapperWithProps(this.props.children)}
-                        {this.props.isSubmitButtonVisible && (
-                        <FormAlertWithSubmitButton
-                            buttonText={this.props.submitButtonText}
-                            isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage()) || !_.isEmpty(this.props.formState.errorFields)}
-                            isLoading={this.props.formState.isLoading}
-                            message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
-                            onSubmit={this.submit}
-                            onFixTheErrorsLinkPressed={() => {
-                                const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
-                                const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
-                                const focusInput = this.inputRefs[focusKey];
-                                if (focusInput.focus && typeof focusInput.focus === 'function') {
-                                    focusInput.focus();
-                                }
-                            }}
-                            containerStyles={[styles.mh0, styles.mt5]}
-                            enabledWhenOffline={this.props.enabledWhenOffline}
-                            isDangerousAction={this.props.isDangerousAction}
-                        />
-                        )}
-                    </View>
-                </ScrollView>
-            </>
+            <SafeAreaConsumer>
+                {({safeAreaPaddingBottomStyle}) => (this.props.scrollContextEnabled ? (
+                    <ScrollViewWithContext
+                        style={[styles.w100, styles.flex1]}
+                        contentContainerStyle={styles.flexGrow1}
+                        keyboardShouldPersistTaps="handled"
+                        scrollToOverflowEnabled={this.props.scrollToOverflowEnabled}
+                        ref={this.formRef}
+                    >
+                        {scrollViewContent(safeAreaPaddingBottomStyle)}
+                    </ScrollViewWithContext>
+                ) : (
+                    <ScrollView
+                        style={[styles.w100, styles.flex1]}
+                        contentContainerStyle={styles.flexGrow1}
+                        keyboardShouldPersistTaps="handled"
+                        scrollToOverflowEnabled={this.props.scrollToOverflowEnabled}
+                        ref={this.formRef}
+                    >
+                        {scrollViewContent(safeAreaPaddingBottomStyle)}
+                    </ScrollView>
+                ))}
+            </SafeAreaConsumer>
         );
     }
 }
