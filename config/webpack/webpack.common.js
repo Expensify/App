@@ -170,12 +170,6 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 type: 'asset',
             },
 
-            // Load font assets,
-            {
-                test: /\.(woff|woff2|otf)$/i,
-                type: 'asset',
-            },
-
             // Load svg images
             {
                 test: /\.svg$/,
@@ -200,6 +194,10 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             {
                 test: /\.css$/i,
                 use: ['style-loader', 'css-loader'],
+            },
+            {
+                test: /\.(woff|woff2)$/i,
+                type: 'asset',
             },
             {
                 resourceQuery: /raw/,
