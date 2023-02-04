@@ -74,7 +74,6 @@ const defaultProps = {
         walletLinkedAccountID: 0,
         walletLinkedAccountType: '',
     },
-    isLoadingPaymentMethods: true,
     shouldShowAddPaymentMethodButton: true,
     filterType: '',
     actionPaymentMethodType: '',
@@ -230,17 +229,17 @@ class PaymentMethodList extends Component {
                 {
                     this.props.shouldShowAddPaymentMethodButton
                     && (
-                            <Button
-                                text={this.props.translate('paymentMethodList.addPaymentMethod')}
-                                icon={Expensicons.CreditCard}
-                                onPress={e => this.props.onPress(e)}
-                                style={[styles.mh4, styles.buttonCTA]}
-                                iconStyles={[styles.buttonCTAIcon]}
-                                key="addPaymentMethodButton"
-                                success
-                                shouldShowRightIcon
-                                large
-                            />
+                    <Button
+                        text={this.props.translate('paymentMethodList.addPaymentMethod')}
+                        icon={Expensicons.CreditCard}
+                        onPress={e => this.props.onPress(e)}
+                        style={[styles.mh4, styles.buttonCTA]}
+                        iconStyles={[styles.buttonCTAIcon]}
+                        key="addPaymentMethodButton"
+                        success
+                        shouldShowRightIcon
+                        large
+                    />
                     )
                 }
             </>
