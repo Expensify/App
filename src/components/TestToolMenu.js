@@ -37,7 +37,7 @@ const defaultProps = {
 
 const TestToolMenu = props => (
     <>
-        <Text style={[styles.formLabel]} numberOfLines={1}>
+        <Text style={[styles.textLabelSupporting, styles.mb2, styles.mt6]} numberOfLines={1}>
             Test Preferences
         </Text>
 

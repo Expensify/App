@@ -83,20 +83,22 @@ class DetailsPage extends React.PureComponent {
 
     render() {
         let details = lodashGet(this.props.personalDetails, lodashGet(this.props.route.params, 'login'));
+
         if (!details) {
             const login = lodashGet(this.props.route.params, 'login');
             details = {
                 login,
                 displayName: ReportUtils.getDisplayNameForParticipant(login),
-                avatar: ReportUtils.getDefaultAvatar(),
+                avatar: ReportUtils.getAvatar(lodashGet(details, 'avatar', ''), login),
             };
         }
+
         const isSMSLogin = Str.isSMSLogin(details.login);
 
         // If we have a reportID param this means that we
         // arrived here via the ParticipantsPage and should be allowed to navigate back to it
         const shouldShowBackButton = Boolean(this.props.route.params.reportID);
-        const shouldShowLocalTime = !ReportUtils.hasExpensifyEmails([details.login]) && details.timezone;
+        const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyEmails([details.login]) && details.timezone;
         let pronouns = details.pronouns;
 
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -120,10 +122,10 @@ class DetailsPage extends React.PureComponent {
                 >
                     {details ? (
                         <ScrollView>
-                            <View style={styles.pageWrapper}>
+                            <View style={styles.avatarSectionWrapper}>
                                 <AttachmentModal
                                     headerTitle={isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
-                                    sourceURL={details.avatar}
+                                    source={ReportUtils.getAvatar(details.avatar, details.login)}
                                     isAuthTokenRequired
                                 >
                                     {({show}) => (
@@ -137,7 +139,7 @@ class DetailsPage extends React.PureComponent {
                                                 <Avatar
                                                     containerStyles={[styles.avatarLarge, styles.mb3]}
                                                     imageStyles={[styles.avatarLarge]}
-                                                    source={details.avatar}
+                                                    source={ReportUtils.getAvatar(details.avatar, details.login)}
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                 />
                                             </OfflineWithFeedback>
@@ -151,7 +153,7 @@ class DetailsPage extends React.PureComponent {
                                 )}
                                 {details.login ? (
                                     <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
-                                        <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                        <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
                                             {this.props.translate(isSMSLogin
                                                 ? 'common.phoneNumber'
                                                 : 'common.email')}
@@ -169,7 +171,7 @@ class DetailsPage extends React.PureComponent {
                                 ) : null}
                                 {pronouns ? (
                                     <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                        <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                        <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
                                             {this.props.translate('profilePage.preferredPronouns')}
                                         </Text>
                                         <Text numberOfLines={1}>

@@ -98,9 +98,11 @@ Form inputs will NOT store draft values by default. This is to avoid accidentall
 
 ## Form Validation and Error handling
 
-### Validate on Blur and Submit
+### Validate on Blur, on Change and Submit
 
 Each individual form field that requires validation will have its own validate test defined. When the form field loses focus (blur) we will run that validate test and show feedback. A blur on one field will not cause other fields to validate or show errors unless they have already been blurred.
+
+Once a user has “touched” an input, i.e. blurred the input, we will also start validating that input on change when the user goes back to editing it.
 
 All form fields will additionally be validated when the form is submitted. Although we are validating on blur this additional step is necessary to cover edge cases where forms are auto-filled or when a form is submitted by pressing enter (i.e. there will be only a ‘submit’ event and no ‘blur’ event to hook into).
 
@@ -248,6 +250,15 @@ Form.js will automatically provide the following props to any input with the inp
 - onBlur: An onBlur handler that calls validate.
 - onInputChange: An onChange handler that saves draft values and calls validate for that input (inputA). Passing an inputID as a second param allows inputA to manipulate the input value of the provided inputID (inputB).
 
+## Dynamic Form Inputs
+
+It's possible to conditionally render inputs (or more complex components with multiple inputs) inside a form. For example, an IdentityForm might be nested as input for a Form component.
+In order for Form to track the nested values properly, each field must have a unique identifier. It's not safe to use an index because adding or removing fields from the child Form component will not update these internal keys. Therefore, we will need to define keys and dynamically access the correlating child form data for validation/submission.
+
+To generate these unique keys, use `Str.guid()`.
+
+An example of this can be seen in the [ACHContractStep](https://github.com/Expensify/App/blob/f2973f88cfc0d36c0dbe285201d3ed5e12f29d87/src/pages/ReimbursementAccount/ACHContractStep.js), where each key is stored in an array in state, and IdentityForms are dynamically rendered based on which keys are present in the array.
+
 ### Safe Area Padding
 
 Any `Form.js` that has a button will also add safe area padding by default. If the `<Form/>` is inside a `<ScreenWrapper>` we will want to disable the default safe area padding applied there e.g.
@@ -259,3 +270,15 @@ Any `Form.js` that has a button will also add safe area padding by default. If t
     </Form>
 </ScreenWrapper>
 ```
+
+### Handling nested Pickers in Form
+
+In case there's a nested Picker in Form, we should pass the props below to Form, as needed:
+
+#### Enable ScrollContext
+
+Pass the `scrollContextEnabled` prop to enable scrolling up when Picker is pressed, making sure the Picker is always in view and doesn't get covered by virtual keyboards for example.
+
+#### Enable scrolling to overflow
+
+In addition to the `scrollContextEnabled` prop, we can also pass `scrollToOverflowEnabled` when the nested Picker is at the bottom of the Form to prevent the popup selector from covering Picker.

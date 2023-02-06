@@ -89,7 +89,7 @@ class AutoUpdateTime extends PureComponent {
     render() {
         return (
             <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
                     {this.props.translate('detailsPage.localTime')}
                 </Text>
                 <Text numberOfLines={1}>

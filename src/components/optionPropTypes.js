@@ -6,6 +6,9 @@ export default PropTypes.shape({
     // Text to display
     text: PropTypes.string,
 
+    /** Display the text of the option in bold font style */
+    boldStyle: PropTypes.bool,
+
     // Alternate text to display
     alternateText: PropTypes.string,
 

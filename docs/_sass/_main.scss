@@ -112,6 +112,8 @@ h6 {
 }
 
 h1 {
+    font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-weight: 500;
     font-size: larger;
 }
 
@@ -350,8 +352,12 @@ button {
 
 .link {
     display: inline;
-    color: $color-light-blue;
+    color: $color-link;
     cursor: pointer;
+
+    &:hover {
+        color: $color-link-hovered;
+    }
 }
 
 .lhn-items {
@@ -395,13 +401,13 @@ button {
     padding-bottom: 20px;
 
     @include breakpoint($breakpoint-desktop) {
-        grid-template-columns: auto auto;
+        grid-template-columns: 50% 50%;
     }
 }
 
 .card {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     border-radius: 16px;
     padding: 28px;
     font-weight: 700;
@@ -569,6 +575,7 @@ button {
 }
 
 .get-help {
+    flex-wrap: wrap;
     margin-top: auto;
 }
 

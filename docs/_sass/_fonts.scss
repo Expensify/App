@@ -12,6 +12,20 @@
   src: url('/assets/fonts/ExpensifyNeue-Bold.woff2') format('woff2'), url('/assets/fonts/ExpensifyNeue-Bold.woff') format('woff');
 }
 
+@font-face {
+  font-family: ExpensifyNewKansas;
+  font-weight: 500;
+  font-style: normal;
+  src: url('/assets/fonts/ExpensifyNewKansas-Medium.woff2') format('woff2'), url('/assets/fonts/ExpensifyNewKansas-Medium.woff') format('woff');
+}
+
+@font-face {
+  font-family: ExpensifyNewKansas;
+  font-weight: 500;
+  font-style: italic;
+  src: url('/assets/fonts/ExpensifyNewKansas-MediumItalic.woff2') format('woff2'), url('/assets/fonts/ExpensifyNewKansas-MediumItalic.woff') format('woff');
+}
+
 * {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

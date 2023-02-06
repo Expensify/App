@@ -7,7 +7,6 @@ import Str from 'expensify-common/lib/str';
 import reportActionPropTypes from './reportActionPropTypes';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import styles from '../../../styles/styles';
-import CONST from '../../../CONST';
 import ReportActionItemDate from './ReportActionItemDate';
 import Avatar from '../../../components/Avatar';
 import personalDetailsPropType from '../../personalDetailsPropType';
@@ -18,6 +17,7 @@ import ROUTES from '../../../ROUTES';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
 import Tooltip from '../../../components/Tooltip';
 import ControlSelection from '../../../libs/ControlSelection';
+import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 
 const propTypes = {
@@ -57,11 +57,7 @@ const ReportActionItemSingle = (props) => {
         login,
         pendingFields,
     } = props.personalDetails[props.action.actorEmail] || {};
-    const avatarUrl = props.action.automatic
-        ? CONST.CONCIERGE_ICON_URL
-
-        // Use avatar in personalDetails if we have one then fallback to avatar provided by the action
-        : (avatar || props.action.avatar);
+    const avatarSource = ReportUtils.getAvatar(avatar, props.action.actorEmail);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
@@ -73,7 +69,7 @@ const ReportActionItemSingle = (props) => {
     return (
         <View style={props.wrapperStyles}>
             <Pressable
-                style={[styles.alignSelfStart, styles.mr2]}
+                style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
                 onPressOut={ControlSelection.unblock}
                 onPress={() => showUserDetails(props.action.actorEmail)}
@@ -84,7 +80,7 @@ const ReportActionItemSingle = (props) => {
                     >
                         <Avatar
                             containerStyles={[styles.actionAvatar]}
-                            source={avatarUrl}
+                            source={avatarSource}
                         />
                     </OfflineWithFeedback>
                 </Tooltip>

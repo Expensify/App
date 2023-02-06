@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
@@ -28,7 +27,6 @@ const WorkspaceInvoicesFirstSection = props => (
                 icon: Expensicons.Send,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
-                iconFill: themeColors.success,
                 wrapperStyle: [styles.cardMenuItem],
             },
             {
@@ -39,7 +37,6 @@ const WorkspaceInvoicesFirstSection = props => (
                 icon: Expensicons.Invoice,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
-                iconFill: themeColors.success,
                 wrapperStyle: [styles.cardMenuItem],
             },
         ]}

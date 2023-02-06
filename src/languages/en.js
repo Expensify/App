@@ -19,6 +19,7 @@ export default {
         save: 'Save',
         saveChanges: 'Save changes',
         password: 'Password',
+        magicCode: 'Magic code',
         workspaces: 'Workspaces',
         profile: 'Profile',
         payments: 'Payments',
@@ -36,7 +37,6 @@ export default {
         and: 'and',
         details: 'Details',
         privacy: 'Privacy',
-        privacyPolicy: 'Privacy policy',
         delete: 'Delete',
         archived: 'archived',
         contacts: 'Contacts',
@@ -110,6 +110,7 @@ export default {
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
         areYouSure: 'Are you sure?',
         zipCodeExample: 'e.g. 12345, 12345-1234, 12345 1234',
+        websiteExample: 'e.g. https://www.expensify.com',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -123,7 +124,7 @@ export default {
         attachmentTooLarge: 'Attachment too large',
         sizeExceeded: 'Attachment size is larger than 24 MB limit.',
         attachmentTooSmall: 'Attachment too small',
-        sizeNotMet: 'Attachment size must be greater than 240 bytes',
+        sizeNotMet: 'Attachment size must be greater than 240 bytes.',
         wrongFileType: 'Attachment is the wrong type',
         notAllowedExtension: 'Attachments must be one of the following types: ',
     },
@@ -146,13 +147,13 @@ export default {
         openLinkInBrowser: 'open this link in your browser',
     },
     iOUConfirmationList: {
-        whoPaid: 'WHO PAID?',
-        whoWasThere: 'WHO WAS THERE?',
+        whoPaid: 'Who paid?',
+        whoWasThere: 'Who was there?',
         whatsItFor: 'What\'s it for?',
     },
     iOUCurrencySelection: {
         selectCurrency: 'Select a currency',
-        allCurrencies: 'ALL CURRENCIES',
+        allCurrencies: 'All currencies',
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
@@ -165,10 +166,12 @@ export default {
     hello: 'Hello',
     phoneCountryCode: '1',
     welcomeText: {
-        welcome: 'Welcome to the New Expensify! Enter your phone number or email to continue.',
+        welcome: 'Welcome to New Expensify! Enter your phone number or email to continue.',
+        welcomeEnterMagicCode: ({login}) => `It's always great to see a new face around here! Please enter the magic code sent to ${login}`,
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
         welcomeBack: 'Welcome back to the New Expensify! Please enter your password.',
+        welcomeBackEnterMagicCode: ({login}) => `Welcome back! Please enter the magic code sent to ${login}`,
     },
     reportActionCompose: {
         addAction: 'Actions',
@@ -206,8 +209,8 @@ export default {
         deleteConfirmation: 'Are you sure you want to delete this comment?',
     },
     reportActionsView: {
-        begginningOfArchivedRoomPartOne: 'You missed the party in ',
-        begginningOfArchivedRoomPartTwo: ', there\'s nothing to see here.',
+        beginningOfArchivedRoomPartOne: 'You missed the party in ',
+        beginningOfArchivedRoomPartTwo: ', there\'s nothing to see here.',
         beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}) => `Collaboration with everyone at ${domainRoom} starts here! 🎉\nUse `,
         beginningOfChatHistoryDomainRoomPartTwo: ' to chat with colleagues, share tips, and ask questions.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
@@ -221,6 +224,8 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
         chatWithAccountManager: 'Chat with your account manager here',
+        sayHello: 'Say hello!',
+        usePlusButton: '\n\nYou can also use the + button below to send or request money!',
     },
     newMessages: 'New messages',
     reportTypingIndicator: {
@@ -239,11 +244,11 @@ export default {
         fabAction: 'New chat',
         newChat: 'New chat',
         newGroup: 'New group',
-        newRoom: 'New Room',
+        newRoom: 'New room',
         headerChat: 'Chats',
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
-        fabNewChat: 'New chat(Floating Action)',
+        fabNewChat: 'New chat (Floating action)',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
     },
@@ -293,7 +298,7 @@ export default {
         sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
         resolutionConstraints: ({
             minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx,
-        }) => `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels and smaller than ${maxHeightInPx}x${maxWidthInPx} pixels`,
+        }) => `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels and smaller than ${maxHeightInPx}x${maxWidthInPx} pixels.`,
         notAllowedExtension: ({allowedExtensions}) => `Profile picture must be one of the following types: ${allowedExtensions.join(', ')}.`,
     },
     profilePage: {
@@ -379,12 +384,13 @@ export default {
         signOut: 'Sign out',
         signOutConfirmationText: 'You\'ll lose any offline changes if you sign-out.',
         versionLetter: 'v',
-        readTheTermsAndPrivacyPolicy: {
+        readTheTermsAndPrivacy: {
             phrase1: 'Read the',
             phrase2: 'terms of service',
             phrase3: 'and',
-            phrase4: 'privacy policy',
+            phrase4: 'privacy',
         },
+        help: 'Help',
     },
     closeAccountPage: {
         closeAccount: 'Close account',
@@ -487,16 +493,31 @@ export default {
         defaultPaymentMethod: 'Default',
     },
     preferencesPage: {
-        mostRecent: 'Most recent',
-        mostRecentModeDescription: 'This will display all chats by default, sorted by most recent, with pinned items at the top.',
-        focus: '#focus',
-        focusModeDescription: '#focus – This will only display unread and pinned chats, all sorted alphabetically.',
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',
+    },
+    priorityModePage: {
         priorityMode: 'Priority mode',
+        explainerText: 'Choose whether to show all chats by default sorted with most recent with pinned items at the top, or #focus on unread pinned items, sorted alphabetically.',
+        priorityModes: {
+            default: {
+                label: 'Most recent',
+                description: 'Show all chats sorted by most recent',
+            },
+            gsd: {
+                label: '#focus',
+                description: 'Only show unread sorted alphabetically',
+            },
+        },
+    },
+    languagePage: {
         language: 'Language',
         languages: {
-            english: 'English',
-            spanish: 'Spanish',
+            en: {
+                label: 'English',
+            },
+            es: {
+                label: 'Spanish',
+            },
         },
     },
     signInPage: {
@@ -516,9 +537,20 @@ export default {
         phrase1: 'By logging in, you agree to the',
         phrase2: 'terms of service',
         phrase3: 'and',
-        phrase4: 'privacy policy',
+        phrase4: 'privacy',
         phrase5: 'Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its',
         phrase6: 'licenses',
+    },
+    validateCodeForm: {
+        magicCodeNotReceived: "Didn't receive a magic code?",
+        enterAuthenticatorCode: 'Please enter your authenticator code',
+        twoFactorCode: 'Two factor code',
+        requiredWhen2FAEnabled: 'Required when 2FA is enabled',
+        error: {
+            pleaseFillMagicCode: 'Please enter your magic code',
+            incorrectMagicCode: 'Incorrect magic code.',
+            pleaseFillTwoFactorAuth: 'Please enter your two factor code',
+        },
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Please fill out all fields',
@@ -810,6 +842,9 @@ export default {
         letsChatCTA: 'Yes, let\'s chat',
         letsChatText: 'Thanks for doing that. We need your help verifying a few pieces of information, but we can work this out quickly over chat. Ready?',
         letsChatTitle: 'Let\'s chat!',
+        enable2FATitle: 'Prevent fraud, enable two-factor authentication!',
+        enable2FAText: 'We take your security seriously, so please set up two-factor authentication for your account now. That will allow us to dispute Expensify Card digital transactions, and will reduce your risk for fraud.',
+        secureYourAccount: 'Secure your account',
     },
     beneficialOwnersStep: {
         additionalInformation: 'Additional information',
@@ -943,7 +978,8 @@ export default {
         editor: {
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
-            nameIsRequiredError: 'You need to define a name for your workspace',
+            nameIsRequiredError: 'You need to define a name for your workspace.',
+            nameHasHtml: 'HTML tags are not allowed in workspace names.',
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
             save: 'Save',
@@ -977,8 +1013,9 @@ export default {
         subtitle: 'We\'re here to clear your path to greatness!',
         description: 'Choose from the support options below:',
         chatWithConcierge: 'Chat with Concierge',
-        requestSetupCall: 'Request a setup call',
+        scheduleSetupCall: 'Schedule a setup call',
         questionMarkButtonTooltip: 'Get assistance from our team',
+        exploreHelpDocs: 'Explore help docs',
     },
     requestCallPage: {
         title: 'Request a call',
@@ -1027,15 +1064,15 @@ export default {
         },
     },
     newRoomPage: {
-        newRoom: 'New Room',
-        roomName: 'Room Name',
+        newRoom: 'New room',
+        roomName: 'Room name',
         visibility: 'Visibility',
         restrictedDescription: 'People in your workspace can find this room',
         privateDescription: 'People invited to this room can find it',
-        createRoom: 'Create Room',
+        createRoom: 'Create room',
         roomAlreadyExistsError: 'A room with this name already exists',
         roomNameReservedError: 'A room on this workspace already uses this name',
-        roomNameInvalidError: 'Room names can only contain letters, numbers and hyphens',
+        roomNameInvalidError: 'Room names can only include lowercase letters, numbers and hyphens',
         pleaseEnterRoomName: 'Please enter a room name',
         pleaseSelectWorkspace: 'Please select a workspace',
         renamedRoomAction: ({oldName, newName}) => ` renamed this room from ${oldName} to ${newName}`,
@@ -1051,11 +1088,11 @@ export default {
         generatingPDF: 'We\'re generating your PDF right now. Please come back later!',
     },
     keyboardShortcutModal: {
-        title: 'Keyboard Shortcuts',
+        title: 'Keyboard shortcuts',
         subtitle: 'Save time with these handy keyboard shortcuts:',
         shortcuts: {
             openShortcutDialog: 'Opens the keyboard shortcuts dialog',
-            escape: 'Escape Dialogs',
+            escape: 'Escape dialogs',
             search: 'Open search dialog',
             newGroup: 'New group screen',
             copy: 'Copy comment',
@@ -1113,5 +1150,8 @@ export default {
             title: 'Update Check Failed',
             message: 'We couldn\'t look for an update. Please check again in a bit!',
         },
+    },
+    report: {
+        genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
     },
 };

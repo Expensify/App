@@ -14,6 +14,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as Policy from '../../libs/actions/Policy';
 import TextInput from '../../components/TextInput';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
+import FormSubmit from '../../components/FormSubmit';
 import OptionsSelector from '../../components/OptionsSelector';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
@@ -25,6 +26,7 @@ import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
 import ROUTES from '../../ROUTES';
+import * as Localize from '../../libs/Localize';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -87,6 +89,7 @@ class WorkspaceInvitePage extends React.Component {
             selectedOptions: [],
             userToInvite,
             welcomeNote: this.getWelcomeNote(),
+            shouldDisableButton: false,
         };
     }
 
@@ -98,6 +101,13 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (
+            prevProps.preferredLocale !== this.props.preferredLocale
+            && this.state.welcomeNote === Localize.translate(prevProps.preferredLocale, 'workspace.invite.welcomeNote', {workspaceName: this.props.policy.name})
+        ) {
+            this.setState({welcomeNote: this.getWelcomeNote()});
+        }
+
         const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
         if (!isReconnecting) {
             return;
@@ -108,8 +118,13 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     getExcludedUsers() {
-        const policyMemberList = _.keys(lodashGet(this.props, 'policyMemberList', {}));
-        return [...CONST.EXPENSIFY_EMAILS, ...policyMemberList];
+        const policyMemberList = lodashGet(this.props, 'policyMemberList', {});
+        const usersToExclude = _.filter(_.keys(policyMemberList), policyMember => (
+            this.props.network.isOffline
+            || policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+            || !_.isEmpty(policyMemberList[policyMember].errors)
+        ));
+        return [...CONST.EXPENSIFY_EMAILS, ...usersToExclude];
     }
 
     /**
@@ -250,10 +265,12 @@ class WorkspaceInvitePage extends React.Component {
             return;
         }
 
-        const logins = _.map(this.state.selectedOptions, option => option.login);
-        const filteredLogins = _.uniq(_.compact(_.map(logins, login => login.toLowerCase().trim())));
-        Policy.addMembersToWorkspace(filteredLogins, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
-        Navigation.goBack();
+        this.setState({shouldDisableButton: true}, () => {
+            const logins = _.map(this.state.selectedOptions, option => option.login);
+            const filteredLogins = _.uniq(_.compact(_.map(logins, login => login.toLowerCase().trim())));
+            Policy.addMembersToWorkspace(filteredLogins, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
+            Navigation.goBack();
+        });
     }
 
     /**
@@ -285,7 +302,7 @@ class WorkspaceInvitePage extends React.Component {
                         shouldShow={_.isEmpty(this.props.policy)}
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                     >
-                        <>
+                        <FormSubmit style={[styles.flex1]} onSubmit={this.inviteUser}>
                             <HeaderWithCloseButton
                                 title={this.props.translate('workspace.invite.invitePeople')}
                                 subtitle={policyName}
@@ -331,13 +348,14 @@ class WorkspaceInvitePage extends React.Component {
                                     />
                                 </View>
                                 <FormAlertWithSubmitButton
-                                    isDisabled={!this.state.selectedOptions.length}
+                                    isDisabled={!this.state.selectedOptions.length || this.state.shouldDisableButton}
                                     isAlertVisible={this.getShouldShowAlertPrompt()}
                                     buttonText={this.props.translate('common.invite')}
                                     onSubmit={this.inviteUser}
                                     message={this.props.policy.alertMessage}
                                     containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                                     enabledWhenOffline
+                                    disablePressOnEnter
                                 />
                                 <Pressable
                                     onPress={this.openPrivacyURL}
@@ -347,12 +365,12 @@ class WorkspaceInvitePage extends React.Component {
                                 >
                                     <View style={[styles.flexRow]}>
                                         <Text style={[styles.mr1, styles.label, styles.link]}>
-                                            {this.props.translate('common.privacyPolicy')}
+                                            {this.props.translate('common.privacy')}
                                         </Text>
                                     </View>
                                 </Pressable>
                             </View>
-                        </>
+                        </FormSubmit>
                     </FullPageNotFoundView>
                 )}
             </ScreenWrapper>

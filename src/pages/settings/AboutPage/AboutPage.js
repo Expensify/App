@@ -114,22 +114,22 @@ const AboutPage = (props) => {
                         numberOfLines={1}
                     >
                         {props.translate(
-                            'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase1',
+                            'initialSettingsPage.readTheTermsAndPrivacy.phrase1',
                         )}
                         {' '}
                         <TextLink style={[styles.textMicroSupporting, styles.link]} href={CONST.TERMS_URL}>
                             {props.translate(
-                                'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase2',
+                                'initialSettingsPage.readTheTermsAndPrivacy.phrase2',
                             )}
                         </TextLink>
                         {' '}
                         {props.translate(
-                            'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase3',
+                            'initialSettingsPage.readTheTermsAndPrivacy.phrase3',
                         )}
                         {' '}
                         <TextLink style={[styles.textMicroSupporting, styles.link]} href={CONST.PRIVACY_URL}>
                             {props.translate(
-                                'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase4',
+                                'initialSettingsPage.readTheTermsAndPrivacy.phrase4',
                             )}
                         </TextLink>
                         .
