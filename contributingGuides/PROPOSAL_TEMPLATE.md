@@ -5,6 +5,7 @@
 ### What is the root cause of that problem?
 
 ### What changes do you think we should make in order to solve the problem?
+<!-- DO NOT POST CODE DIFFS -->
 
 ### What alternative solutions did you explore? (Optional)
 
@@ -13,7 +14,7 @@
 <!---
 ATTN: Contributor+
 
-You are the first line of defense in making sure every proposal has a clear and easily understood problem with a "root cause". Do not approve any proposals that lack a satisfying explanation to the first two prompts. It is CRITICALLY important that we at a minimum understand root cause even if the solution doesn't directly address it. When we avoid this step we can end up solving the wrong problems entirely or just duct taping over them.
+You are the first line of defense in making sure every proposal has a clear and easily understood problem with a "root cause". Do not approve any proposals that lack a satisfying explanation to the first two prompts. It is CRITICALLY important that we understand the root cause at a minimum even if the solution doesn't directly address it. When we avoid this step we can end up solving the wrong problems entirely or just writing hacks and workarounds.
 
 Instructions for how to review a proposal:
 
