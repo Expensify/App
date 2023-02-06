@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
-import * as Url from './libs/Url';
 import * as KeyCommand from 'react-native-key-command';
+import * as Url from './libs/Url';
 
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com'));
