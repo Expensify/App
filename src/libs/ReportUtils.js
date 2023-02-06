@@ -14,6 +14,7 @@ import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
 import * as CollectionUtils from './CollectionUtils';
 import * as NumberFormatUtils from './NumberFormatUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
 import * as defaultAvatars from '../components/Icon/DefaultAvatars';
@@ -72,18 +73,6 @@ Onyx.connect({
     key: ONYXKEYS.ACCOUNT,
     waitForCollectionCallback: true,
     callback: val => doesDomainHaveApprovedAccountant = val.doesDomainHaveApprovedAccountant,
-});
-
-const lastReportActions = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
-            return;
-        }
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        lastReportActions[reportID] = _.last(_.toArray(actions));
-    },
 });
 
 function getChatType(report) {
@@ -671,7 +660,10 @@ function getReportName(report, policies = {}) {
 
     if (isPolicyExpenseChat(report)) {
         const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerEmail) || report.ownerEmail || report.reportName;
-        formattedName = (report.isOwnPolicyExpenseChat || (isArchivedRoom(report) && getArchiveReason(lastReportActions[report.reportID]) == CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED)) ? getPolicyName(report, policies) : reportOwnerDisplayName;
+        formattedName = report.isOwnPolicyExpenseChat 
+            || (isArchivedRoom(report) 
+                && getArchiveReason(ReportActionsUtils.getLastVisibleAction(report.reportID)) === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED
+                && policies[report.policyID] && policies[report.policyID].role !== 'admin') ? getPolicyName(report, policies) : reportOwnerDisplayName;
     }
 
     if (isArchivedRoom(report)) {
@@ -1390,7 +1382,7 @@ function getNewMarkerReportActionID(report, sortedAndFilteredReportActions) {
  * @returns {String}
  */
 function getArchiveReason(reportAction) {
-    return (reportAction.originalMessage && reportAction.originalMessage.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT
+    return (reportAction && reportAction.originalMessage && reportAction.originalMessage.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT
 }
 
 export {
