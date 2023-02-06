@@ -36,6 +36,12 @@ function getDisplayName(key, modifiers) {
         if (key === KeyCommand.constants.keyInputEscape) {
             return ['ESCAPE'];
         }
+        if (key === KeyCommand.constants.keyInputUpArrow) {
+            return ['ARROWUP'];
+        }
+        if (key === KeyCommand.constants.keyInputDownArrow) {
+            return ['ARROWDOWN'];
+        }
         return [key.toUpperCase()];
     })();
 
