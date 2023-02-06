@@ -493,16 +493,31 @@ export default {
         defaultPaymentMethod: 'Predeterminado',
     },
     preferencesPage: {
-        mostRecent: 'Más recientes',
-        mostRecentModeDescription: 'Esta opción muestra por defecto todos los chats, ordenados a partir del más reciente, con los chats destacados arriba de todo.',
-        focus: '#concentración',
-        focusModeDescription: '#concentración – Muestra sólo los chats no leídos y destacados ordenados alfabéticamente.',
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recibir noticias sobre Expensify y actualizaciones del producto',
+    },
+    priorityModePage: {
         priorityMode: 'Modo prioridad',
+        explainerText: 'Elija si desea mostrar por defecto todos los chats ordenados desde el más reciente y con los elementos anclados en la parte superior, o elija el modo #concentración, con los elementos no leídos anclados en la parte superior y ordenados alfabéticamente.',
+        priorityModes: {
+            default: {
+                label: 'Más recientes',
+                description: 'Mostrar todos los chats ordenados desde el más reciente',
+            },
+            gsd: {
+                label: '#concentración',
+                description: 'Mostrar sólo los no leídos ordenados alfabéticamente',
+            },
+        },
+    },
+    languagePage: {
         language: 'Idioma',
         languages: {
-            english: 'Inglés',
-            spanish: 'Español',
+            en: {
+                label: 'Inglés',
+            },
+            es: {
+                label: 'Español',
+            },
         },
     },
     signInPage: {
@@ -1137,5 +1152,8 @@ export default {
             title: 'Comprobación fallida',
             message: 'No hemos podido comprobar si existe una actualización. Inténtalo de nuevo más tarde!',
         },
+    },
+    report: {
+        genericAddCommentFailureMessage: 'Error inesperado al agregar el comentario, por favor inténtalo más tarde',
     },
 };

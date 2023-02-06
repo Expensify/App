@@ -254,10 +254,24 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const SettingsPreferencesPage = require('../../../pages/settings/PreferencesPage').default;
+            const SettingsPreferencesPage = require('../../../pages/settings/Preferences/PreferencesPage').default;
             return SettingsPreferencesPage;
         },
         name: 'Settings_Preferences',
+    },
+    {
+        getComponent: () => {
+            const SettingsPreferencesPriorityModePage = require('../../../pages/settings/Preferences/PriorityModePage').default;
+            return SettingsPreferencesPriorityModePage;
+        },
+        name: 'Settings_Preferences_PriorityMode',
+    },
+    {
+        getComponent: () => {
+            const SettingsPreferencesLanguagePage = require('../../../pages/settings/Preferences/LanguagePage').default;
+            return SettingsPreferencesLanguagePage;
+        },
+        name: 'Settings_Preferences_Language',
     },
     {
         getComponent: () => {

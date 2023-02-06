@@ -104,6 +104,7 @@ class BaseOptionsList extends Component {
      * @returns {Array<Object>}
      */
     buildFlatSectionArray() {
+        const optionHeight = variables.optionRowHeight;
         let offset = 0;
 
         // Start with just an empty list header
@@ -120,12 +121,8 @@ class BaseOptionsList extends Component {
 
             // Add section items
             for (let i = 0; i < section.data.length; i++) {
-                let fullOptionHeight = variables.optionRowHeight;
-                if (i > 0 && this.props.shouldHaveOptionSeparator) {
-                    fullOptionHeight += variables.borderTopWidth;
-                }
-                flatArray.push({length: fullOptionHeight, offset});
-                offset += fullOptionHeight;
+                flatArray.push({length: optionHeight, offset});
+                offset += optionHeight;
             }
 
             // Add the section footer
@@ -172,6 +169,7 @@ class BaseOptionsList extends Component {
                 boldStyle={this.props.boldStyle}
                 isDisabled={isDisabled}
                 shouldHaveOptionSeparator={index > 0 && this.props.shouldHaveOptionSeparator}
+                shouldDisableRowInnerPadding={this.props.shouldDisableRowInnerPadding}
             />
         );
     }
