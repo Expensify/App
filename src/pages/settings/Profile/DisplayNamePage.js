@@ -58,57 +58,29 @@ class DisplayNamePage extends Component {
     validate(values) {
         const errors = {};
 
-        // Check for invalid characters in first and last name
-        const [firstNameInvalidCharacter, lastNameInvalidCharacter] = ValidationUtils.findInvalidSymbols(
+        const [doesFirstNameHaveInvalidCharacters, doesLastNameHaveInvalidCharacters] = ValidationUtils.findInvalidSymbols(
             [values.firstName, values.lastName],
         );
-        this.assignError(
-            errors,
-            'firstName',
-            !_.isEmpty(firstNameInvalidCharacter),
-            Localize.translateLocal(
-                'personalDetails.error.hasInvalidCharacter',
-                {invalidCharacter: firstNameInvalidCharacter},
-            ),
+        const [isFirstNameTooLong, isLastNameTooLong] = ValidationUtils.doesFailCharacterLimitAfterTrim(
+            CONST.DISPLAY_NAME.MAX_LENGTH,
+            [values.firstName, values.lastName],
         );
-        this.assignError(
-            errors,
-            'lastName',
-            !_.isEmpty(lastNameInvalidCharacter),
-            Localize.translateLocal(
-                'personalDetails.error.hasInvalidCharacter',
-                {invalidCharacter: lastNameInvalidCharacter},
-            ),
-        );
-        if (!_.isEmpty(errors)) {
-            return errors;
+
+        // First we validate the first name field
+        if (doesFirstNameHaveInvalidCharacters.length > 0) {
+            errors.firstName = this.props.translate('personalDetails.error.hasInvalidCharacter');
+        } else if (isFirstNameTooLong) {
+            errors.firstName = this.props.translate('personalDetails.error.firstNameLength');
         }
 
-        // Check the character limit for first and last name
-        const characterLimitError = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
-        const [hasFirstNameError, hasLastNameError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
-            CONST.FORM_CHARACTER_LIMIT,
-            [values.firstName, values.lastName],
-        );
-        this.assignError(errors, 'firstName', hasFirstNameError, characterLimitError);
-        this.assignError(errors, 'lastName', hasLastNameError, characterLimitError);
+        // Then we validate the last name field
+        if (doesLastNameHaveInvalidCharacters.length > 0) {
+            errors.lastName = this.props.translate('personalDetails.error.hasInvalidCharacter');
+        } else if (isLastNameTooLong) {
+            errors.lastName = this.props.translate('personalDetails.error.lastNameLength');
+        }
 
         return errors;
-    }
-
-    /**
-     * @param {Object} errors
-     * @param {String} errorKey
-     * @param {Boolean} hasError
-     * @param {String} errorCopy
-     * @returns {Object} - An object containing the errors for each inputID
-     */
-    assignError(errors, errorKey, hasError, errorCopy) {
-        const validateErrors = errors;
-        if (hasError) {
-            validateErrors[errorKey] = errorCopy;
-        }
-        return validateErrors;
     }
 
     render() {
