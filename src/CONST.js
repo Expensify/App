@@ -40,6 +40,11 @@ const CONST = {
     DEFAULT_AVATAR_COUNT: 24,
     OLD_DEFAULT_AVATAR_COUNT: 8,
 
+    DISPLAY_NAME: {
+        MAX_LENGTH: 50,
+        RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
+    },
+
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
         SMALL_SCREEN: {
