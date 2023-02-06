@@ -978,7 +978,7 @@ export default {
         editor: {
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
-            nameIsRequiredError: 'You need to define a name for your workspace.',
+            nameIsRequiredError: 'Please enter a valid name for your workspace.',
             nameHasHtml: 'HTML tags are not allowed in workspace names.',
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
