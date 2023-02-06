@@ -581,8 +581,8 @@ export default {
     },
     personalDetails: {
         error: {
-            firstNameLength: 'El nombre no puede tener más de 50 caracteres',
-            lastNameLength: 'El apellido no puede tener más de 50 caracteres',
+            firstNameLength: `El nombre no puede tener más de ${CONST.DISPLAY_NAME.MAX_LENGTH} caracteres`,
+            lastNameLength: `El apellido no puede tener más de ${CONST.DISPLAY_NAME.MAX_LENGTH} caracteres`,
             containsReservedWord: 'El nombre no puede contener las palabras Expensify o Concierge',
             hasInvalidCharacter: 'El nombre no puede contener una coma o un punto y coma',
         },

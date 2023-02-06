@@ -581,8 +581,8 @@ export default {
     },
     personalDetails: {
         error: {
-            firstNameLength: 'First name cannot be longer than 50 characters',
-            lastNameLength: 'Last name cannot be longer than 50 characters',
+            firstNameLength: `First name cannot be longer than ${CONST.DISPLAY_NAME.MAX_LENGTH} characters`,
+            lastNameLength: `Last name cannot be longer than ${CONST.DISPLAY_NAME.MAX_LENGTH} characters`,
             containsReservedWord: 'First name cannot contain the words Expensify or Concierge',
             hasInvalidCharacter: 'Name cannot contain a comma or semicolon',
         },
