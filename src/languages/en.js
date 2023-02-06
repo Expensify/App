@@ -1055,8 +1055,6 @@ export default {
             phoneNumberExtension: 'Please enter a valid phone extension number',
             firstName: 'Please provide your first name',
             lastName: 'Please provide your last name',
-            firstNameLength: 'First name shouldn\'t be longer than 50 characters',
-            lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
         },
     },
     requestCallConfirmationScreen: {

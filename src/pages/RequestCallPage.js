@@ -219,16 +219,6 @@ class RequestCallPage extends Component {
             errors.lastName = this.props.translate('requestCallPage.error.lastName');
         }
 
-        const [firstNameLengthError, lastNameLengthError] = ValidationUtils.doesFailCharacterLimit(CONST.DISPLAY_NAME.MAX_LENGTH, [values.firstName, values.lastName]);
-
-        if (firstNameLengthError) {
-            errors.firstName = this.props.translate('requestCallPage.error.firstNameLength');
-        }
-
-        if (lastNameLengthError) {
-            errors.lastName = this.props.translate('requestCallPage.error.lastNameLength');
-        }
-
         const phoneNumber = LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneNumber);
         if (_.isEmpty(values.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
             errors.phoneNumber = this.props.translate('common.error.phoneNumber');

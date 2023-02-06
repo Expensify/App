@@ -356,30 +356,6 @@ function isValidRoutingNumber(number) {
 }
 
 /**
- * Checks if each string in array is of valid length and then returns true
- * for each string which exceeds the limit.
- *
- * @param {Number} maxLength
- * @param {String[]} valuesToBeValidated
- * @returns {Boolean[]}
- */
-function doesFailCharacterLimit(maxLength, valuesToBeValidated) {
-    return _.map(valuesToBeValidated, value => value && value.length > maxLength);
-}
-
-/**
- * Checks if each string in array is of valid length and then returns true
- * for each string which exceeds the limit. The function trims the passed values.
- *
- * @param {Number} maxLength
- * @param {String[]} valuesToBeValidated
- * @returns {Boolean[]}
- */
-function doesFailCharacterLimitAfterTrim(maxLength, valuesToBeValidated) {
-    return _.map(valuesToBeValidated, value => value && value.trim().length > maxLength);
-}
-
-/**
  * Checks if each provided string includes any commas or semicolons
  *
  * @param {String[]} valuesToBeValidated
@@ -475,8 +451,6 @@ export {
     isValidRoutingNumber,
     isValidSSNLastFour,
     isValidSSNFullNine,
-    doesFailCharacterLimit,
-    doesFailCharacterLimitAfterTrim,
     isReservedRoomName,
     isExistingRoomName,
     isValidRoomName,
