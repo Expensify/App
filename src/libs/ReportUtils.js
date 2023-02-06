@@ -13,7 +13,7 @@ import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
 import * as NumberFormatUtils from './NumberFormatUtils';
-import { getLastVisibleAction } from './ReportActionsUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
 import * as defaultAvatars from '../components/Icon/DefaultAvatars';
@@ -674,7 +674,7 @@ function getPolicyExpenseChatName(report, policies = {}) {
 
     // If this user is not admin and this policy expense chat has been archived because of account merging, this must be an old workspace chat
     // of the account which was merged into the current user's account. Use the name of the policy as the name of the report.
-    if (isArchivedRoom(report) && getArchiveReason(getLastVisibleAction(report.reportID)) === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED
+    if (isArchivedRoom(report) && getArchiveReason(ReportActionsUtils.getLastVisibleAction(report.reportID)) === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED
         && policyExpenseChatRole !== 'admin') {
         return getPolicyName(report, policies);
     }
