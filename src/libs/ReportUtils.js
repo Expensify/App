@@ -1417,7 +1417,7 @@ function openReportFromDeepLink(url) {
         return;
     }
     InteractionManager.runAfterInteractions(() => {
-        Navigation.isDrawerReady().then(() => {
+        Navigation.isReportScreenReady().then(() => {
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         });
     });
