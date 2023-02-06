@@ -9,7 +9,7 @@ module.exports = {
         `<rootDir>/?(*.)+(spec|test).${testFileExtension}`,
     ],
     transform: {
-        '^.+\\.jsx?$/': 'babel-jest',
+        '^.+\\.jsx?$': 'babel-jest',
     },
     transformIgnorePatterns: [
         '<rootDir>/node_modules/(?!react-native)/',
