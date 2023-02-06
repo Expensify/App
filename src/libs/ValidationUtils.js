@@ -391,6 +391,18 @@ function doesContainCommaOrSemicolon(valuesToBeValidated) {
 }
 
 /**
+ * Checks if the provided string includes any of the provided reserved words
+ *
+ * @param {String} value
+ * @param {String[]} reservedWords
+ * @returns {Boolean}
+ */
+function doesContainReservedWord(value, reservedWords) {
+    const valueToCheck = value.trim().toLowerCase();
+    return _.some(reservedWords, reservedWord => valueToCheck.includes(reservedWord.toLowerCase()));
+}
+
+/**
  * Checks if is one of the certain names which are reserved for default rooms
  * and should not be used for policy rooms.
  *
@@ -472,4 +484,5 @@ export {
     isValidTaxID,
     isValidValidateCode,
     doesContainCommaOrSemicolon,
+    doesContainReservedWord,
 };
