@@ -26,7 +26,7 @@
     "ios-build": "fastlane ios build",
     "android-build": "fastlane android build",
     "android-build-e2e": "bundle exec fastlane android build_e2e",
-    "test": "jest",
+    "test": "jest --config='config/jest.config.js'",
     "lint": "eslint . --max-warnings=0",
     "lint-watch": "npx eslint-watch --watch --changed",
     "shellcheck": "./scripts/shellCheck.sh",
@@ -203,37 +203,6 @@
   "engines": {
     "node": "16.15.1",
     "npm": "8.11.0"
-  },
-  "jest": {
-    "preset": "react-native",
-    "transform": {
-      "^.+\\.jsx?$": "babel-jest"
-    },
-    "transformIgnorePatterns": [
-      "node_modules/(?!react-native)/"
-    ],
-    "testPathIgnorePatterns": [
-      "<rootDir>/node_modules/"
-    ],
-    "testMatch": [
-      "**/tests/ui/**/*.[jt]s?(x)",
-      "**/tests/unit/**/*.[jt]s?(x)",
-      "**/tests/actions/**/*.[jt]s?(x)",
-      "**/?(*.)+(spec|test).[jt]s?(x)"
-    ],
-    "globals": {
-      "__DEV__": true,
-      "WebSocket": {}
-    },
-    "timers": "fake",
-    "testEnvironment": "jsdom",
-    "setupFiles": [
-      "<rootDir>/jest/setup.js"
-    ],
-    "setupFilesAfterEnv": [
-      "@testing-library/jest-native/extend-expect"
-    ],
-    "cacheDirectory": "<rootDir>/.jest-cache"
   },
   "prettier": {
     "bracketSpacing": false,
