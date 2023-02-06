@@ -88,7 +88,6 @@ class BasePaymentsPage extends React.Component {
         }
 
         if (this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt) {
-            // We can create 3 auxillary variables as requested but seems overkill here
             let shouldResetPaymentMethodData = false;
             if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT && _.isEmpty(this.props.bankAccountList[this.state.methodID])) {
                 shouldResetPaymentMethodData = true;
