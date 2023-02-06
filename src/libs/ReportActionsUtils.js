@@ -169,10 +169,9 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
 
     const parser = new ExpensiMark();
     const messageText = parser.htmlToText(htmlText);
-    const lastVisibleMessageText = String(messageText)
-                                    .replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '')
-                                    .substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
-    return lastVisibleMessageText;
+    return String(messageText)
+        .replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '')
+        .substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
 }
 
 export {
