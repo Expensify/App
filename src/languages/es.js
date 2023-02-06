@@ -583,6 +583,7 @@ export default {
         error: {
             firstNameLength: 'El nombre no puede tener más de 50 caracteres',
             lastNameLength: 'El apellido no puede tener más de 50 caracteres',
+            containsReservedWord: 'El nombre no puede contener las palabras Expensify o Concierge',
             hasInvalidCharacter: 'El nombre no puede contener una coma o un punto y coma',
         },
     },
