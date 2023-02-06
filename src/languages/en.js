@@ -502,16 +502,31 @@ export default {
         defaultPaymentMethod: 'Default',
     },
     preferencesPage: {
-        mostRecent: 'Most recent',
-        mostRecentModeDescription: 'This will display all chats by default, sorted by most recent, with pinned items at the top.',
-        focus: '#focus',
-        focusModeDescription: '#focus – This will only display unread and pinned chats, all sorted alphabetically.',
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',
+    },
+    priorityModePage: {
         priorityMode: 'Priority mode',
+        explainerText: 'Choose whether to show all chats by default sorted with most recent with pinned items at the top, or #focus on unread pinned items, sorted alphabetically.',
+        priorityModes: {
+            default: {
+                label: 'Most recent',
+                description: 'Show all chats sorted by most recent',
+            },
+            gsd: {
+                label: '#focus',
+                description: 'Only show unread sorted alphabetically',
+            },
+        },
+    },
+    languagePage: {
         language: 'Language',
         languages: {
-            english: 'English',
-            spanish: 'Spanish',
+            en: {
+                label: 'English',
+            },
+            es: {
+                label: 'Spanish',
+            },
         },
     },
     signInPage: {
@@ -1153,5 +1168,8 @@ export default {
             title: 'Update Check Failed',
             message: 'We couldn\'t look for an update. Please check again in a bit!',
         },
+    },
+    report: {
+        genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
     },
 };

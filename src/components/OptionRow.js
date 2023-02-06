@@ -58,6 +58,9 @@ const propTypes = {
     /** Whether to show a line separating options in list */
     shouldHaveOptionSeparator: PropTypes.bool,
 
+    /** Whether to remove the lateral padding and align the content with the margins */
+    shouldDisableRowInnerPadding: PropTypes.bool,
+
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     ...withLocalizePropTypes,
@@ -74,6 +77,7 @@ const defaultProps = {
     optionIsFocused: false,
     style: null,
     shouldHaveOptionSeparator: false,
+    shouldDisableRowInnerPadding: false,
 };
 
 class OptionRow extends Component {
@@ -91,7 +95,7 @@ class OptionRow extends Component {
             || this.props.isSelected !== nextProps.isSelected
             || this.props.showSelectedState !== nextProps.showSelectedState
             || this.props.showTitleTooltip !== nextProps.showTitleTooltip
-            || _.isEqual(this.props.option.icons, nextProps.option.icons)
+            || !_.isEqual(this.props.option.icons, nextProps.option.icons)
             || this.props.option.text !== nextProps.option.text
             || this.props.option.alternateText !== nextProps.option.alternateText
             || this.props.option.descriptiveText !== nextProps.option.descriptiveText
@@ -172,7 +176,7 @@ class OptionRow extends Component {
                                 styles.alignItemsCenter,
                                 styles.justifyContentBetween,
                                 styles.sidebarLink,
-                                styles.sidebarLinkInner,
+                                this.props.shouldDisableRowInnerPadding ? null : styles.sidebarLinkInner,
                                 this.props.optionIsFocused ? styles.sidebarLinkActive : null,
                                 hovered && !this.props.optionIsFocused ? this.props.hoverStyle : null,
                                 this.props.isDisabled && styles.cursorDisabled,
