@@ -1,12 +1,10 @@
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as Localize from '../../../libs/Localize';
 import ROUTES from '../../../ROUTES';
 import Form from '../../../components/Form';
 import ONYXKEYS from '../../../ONYXKEYS';
