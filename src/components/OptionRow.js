@@ -95,7 +95,8 @@ class OptionRow extends Component {
             || this.props.isSelected !== nextProps.isSelected
             || this.props.showSelectedState !== nextProps.showSelectedState
             || this.props.showTitleTooltip !== nextProps.showTitleTooltip
-            || _.isEqual(this.props.option.icons, nextProps.option.icons)
+            || !_.isEqual(this.props.option.icons, nextProps.option.icons)
+            || this.props.optionIsFocused !== nextProps.optionIsFocused
             || this.props.option.text !== nextProps.option.text
             || this.props.option.alternateText !== nextProps.option.alternateText
             || this.props.option.descriptiveText !== nextProps.option.descriptiveText
