@@ -71,7 +71,7 @@ class DisplayNamePage extends Component {
         } else if (isFirstNameTooLong) {
             errors.firstName = this.props.translate('personalDetails.error.firstNameLength');
         } else if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
-            errors.firstName = 'blah blah';
+            errors.firstName = this.props.translate('personalDetails.error.containsReservedWord');
         }
 
         // Then we validate the last name field
