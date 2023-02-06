@@ -45,7 +45,7 @@ const defaultProps = {
 const PreferencesPage = (props) => {
     const priorityModes = props.translate('priorityModePage.priorityModes');
     const languages = props.translate('languagePage.languages');
-    
+
     // If we are in the staging environment then we enable additional test features
     const shouldShowTestToolMenu = _.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], props.environment);
 
