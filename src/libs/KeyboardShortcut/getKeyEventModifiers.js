@@ -14,10 +14,10 @@ function getKeyEventModifiers(event) {
         return ['META'];
     }
     if (event.modifierFlags === KeyCommand.constants.keyModifierShiftControl) {
-        return ['SHIFT', 'CONTROL'];
+        return ['CMD', 'Shift'];
     }
     if (event.modifierFlags === KeyCommand.constants.keyModifierShiftCommand) {
-        return ['META', 'CONTROL'];
+        return ['CMD', 'Shift'];
     }
 
     return [];
