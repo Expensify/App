@@ -57,7 +57,6 @@ class DisplayNamePage extends Component {
      */
     validate(values) {
         const errors = {};
-
         const [doesFirstNameHaveInvalidCharacters, doesLastNameHaveInvalidCharacters] = ValidationUtils.doesContainCommaOrSemicolon(
             [values.firstName, values.lastName],
         );
@@ -71,6 +70,8 @@ class DisplayNamePage extends Component {
             errors.firstName = this.props.translate('personalDetails.error.hasInvalidCharacter');
         } else if (isFirstNameTooLong) {
             errors.firstName = this.props.translate('personalDetails.error.firstNameLength');
+        } else if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
+            errors.firstName = 'blah blah';
         }
 
         // Then we validate the last name field
