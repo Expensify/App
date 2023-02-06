@@ -58,7 +58,7 @@ class DisplayNamePage extends Component {
     validate(values) {
         const errors = {};
 
-        const [doesFirstNameHaveInvalidCharacters, doesLastNameHaveInvalidCharacters] = ValidationUtils.findInvalidSymbols(
+        const [doesFirstNameHaveInvalidCharacters, doesLastNameHaveInvalidCharacters] = ValidationUtils.doesContainCommaOrSemicolon(
             [values.firstName, values.lastName],
         );
         const [isFirstNameTooLong, isLastNameTooLong] = ValidationUtils.doesFailCharacterLimitAfterTrim(
@@ -67,14 +67,14 @@ class DisplayNamePage extends Component {
         );
 
         // First we validate the first name field
-        if (doesFirstNameHaveInvalidCharacters.length > 0) {
+        if (doesFirstNameHaveInvalidCharacters) {
             errors.firstName = this.props.translate('personalDetails.error.hasInvalidCharacter');
         } else if (isFirstNameTooLong) {
             errors.firstName = this.props.translate('personalDetails.error.firstNameLength');
         }
 
         // Then we validate the last name field
-        if (doesLastNameHaveInvalidCharacters.length > 0) {
+        if (doesLastNameHaveInvalidCharacters) {
             errors.lastName = this.props.translate('personalDetails.error.hasInvalidCharacter');
         } else if (isLastNameTooLong) {
             errors.lastName = this.props.translate('personalDetails.error.lastNameLength');
