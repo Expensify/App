@@ -464,6 +464,8 @@ const CONST = {
         INACTIVE: 'inactive',
     },
 
+    RESERVED_DISPLAY_NAMES: ['Expensify', 'Concierge'],
+
     // at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
     PASSWORD_COMPLEXITY_REGEX_STRING: '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
 
@@ -838,6 +840,8 @@ const CONST = {
 
     // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
     MAX_COMMENT_LENGTH: 15000,
+
+    MAX_WORKSPACE_NAME_LENGTH: 80,
 
     FORM_CHARACTER_LIMIT: 50,
     AVATAR_CROP_MODAL: {
