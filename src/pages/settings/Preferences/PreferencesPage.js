@@ -45,6 +45,9 @@ const defaultProps = {
 const PreferencesPage = (props) => {
     const priorityModes = props.translate('priorityModePage.priorityModes');
     const languages = props.translate('languagePage.languages');
+    
+    // If we are in the staging environment then we enable additional test features
+    const shouldShowTestToolMenu = _.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], props.environment);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -84,16 +87,7 @@ const PreferencesPage = (props) => {
                         description={props.translate('languagePage.language')}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                     />
-
-                    {/* If we are in the staging environment then we enable additional test features */}
-                    {
-                        _.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], props.environment)
-                        && (
-                            <View style={[styles.mh8, styles.mt6]}>
-                                <TestToolMenu />
-                            </View>
-                        )
-                    }
+                    {shouldShowTestToolMenu && <View style={[styles.mh8, styles.mt6]}><TestToolMenu /></View>}
                 </View>
             </ScrollView>
         </ScreenWrapper>
