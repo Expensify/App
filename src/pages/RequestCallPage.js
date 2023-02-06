@@ -285,6 +285,7 @@ class RequestCallPage extends Component {
                                 name="fname"
                                 placeholder={this.props.translate('profilePage.john')}
                                 containerStyles={[styles.mt4]}
+                                maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             />
                             <TextInput
                                 inputID="lastName"
@@ -293,6 +294,7 @@ class RequestCallPage extends Component {
                                 name="lname"
                                 placeholder={this.props.translate('profilePage.doe')}
                                 containerStyles={[styles.mt4]}
+                                maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             />
                             <TextInput
                                 inputID="phoneNumber"
