@@ -55,6 +55,8 @@ class ReportSettingsPage extends Component {
 
         this.validate = this.validate.bind(this);
         this.updatePolicyRoomName = this.updatePolicyRoomName.bind(this);
+        this.shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report)
+        || ReportUtils.isArchivedRoom(this.props.report);
     }
 
     getNotificationPreferenceOptions() {
@@ -71,8 +73,8 @@ class ReportSettingsPage extends Component {
     updatePolicyRoomName(values) {
         Keyboard.dismiss();
 
-        // When the room name has not changed, skip the Form submission
-        if (values.newRoomName === this.props.report.reportName) {
+        // When the room name has not changed or should not be changed, skip the Form submission
+        if (this.shouldDisableRename || values.newRoomName === this.props.report.reportName) {
             return;
         }
         Report.updatePolicyRoomName(this.props.report, values.newRoomName);
@@ -110,8 +112,6 @@ class ReportSettingsPage extends Component {
 
     render() {
         const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report);
-        const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report)
-            || ReportUtils.isArchivedRoom(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, policy => policy && policy.id === this.props.report.policyID);
 
         return (
@@ -129,7 +129,7 @@ class ReportSettingsPage extends Component {
                     validate={this.validate}
                     onSubmit={this.updatePolicyRoomName}
                     scrollContextEnabled
-                    isSubmitButtonVisible={shouldShowRoomName && !shouldDisableRename}
+                    isSubmitButtonVisible={shouldShowRoomName && !this.shouldDisableRename}
                     enabledWhenOffline
                 >
                     <View>
@@ -161,7 +161,7 @@ class ReportSettingsPage extends Component {
                             >
                                 <View style={[styles.flexRow]}>
                                     <View style={[styles.flex3]}>
-                                        {shouldDisableRename ? (
+                                        {this.shouldDisableRename ? (
                                             <View>
                                                 <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
                                                     {this.props.translate('newRoomPage.roomName')}
