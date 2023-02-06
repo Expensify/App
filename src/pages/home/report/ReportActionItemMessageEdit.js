@@ -155,7 +155,7 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     publishDraft() {
         // Do nothing if draft exceed the character limit
-        if (this.state.draft.length > CONST.MAX_COMMENT_LENGTH) {
+        if (ReportUtils.commentLength(this.state.draft) > CONST.MAX_COMMENT_LENGTH) {
             return;
         }
 
