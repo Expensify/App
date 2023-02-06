@@ -39,6 +39,7 @@ class BaseOptionsSelector extends Component {
         this.relatedTarget = null;
 
         const allOptions = this.flattenSections();
+
         this.state = {
             allOptions,
             focusedIndex: this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0,
