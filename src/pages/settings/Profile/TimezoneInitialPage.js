@@ -68,7 +68,6 @@ const TimezoneInitialPage = (props) => {
                     title={timezone.selected}
                     description={props.translate('timezonePage.timezone')}
                     shouldShowRightIcon
-                    wrapperStyle={[styles.ph2, styles.mb3]}
                     disabled={timezone.automatic}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE_SELECT)}
                 />
