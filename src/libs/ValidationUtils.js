@@ -83,7 +83,7 @@ function isValidPastDate(date) {
  */
 function isRequiredFulfilled(value) {
     if (_.isString(value)) {
-        return !_.isEmpty(value.trim());
+        return !_.isEmpty(value.trim()) && value.trim() !== '0';
     }
     if (_.isDate(value)) {
         return isValidDate(value);
