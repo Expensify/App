@@ -56,10 +56,10 @@ const PreferencesPage = (props) => {
             />
             <ScrollView style={[styles.flex1, styles.mt3]}>
                 <View style={styles.mb6}>
-                    <Text style={[styles.textLabelSupporting, styles.mb2, styles.ml8, styles.mr8]} numberOfLines={1}>
+                    <Text style={[styles.textLabelSupporting, styles.mb2, styles.ml5, styles.mr8]} numberOfLines={1}>
                         {props.translate('common.notifications')}
                     </Text>
-                    <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.mh8]}>
+                    <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.ml5, styles.mr8]}>
                         <View style={styles.flex4}>
                             <Text>
                                 {props.translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
@@ -89,7 +89,7 @@ const PreferencesPage = (props) => {
                     {
                         _.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], props.environment)
                         && (
-                            <View style={[styles.mh8, styles.mt6]}>
+                            <View style={[styles.ml5, styles.mr8, styles.mt6]}>
                                 <TestToolMenu />
                             </View>
                         )
