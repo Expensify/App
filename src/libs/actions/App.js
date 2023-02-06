@@ -86,6 +86,7 @@ function setLocale(locale) {
     API.write('UpdatePreferredLocale', {
         value: locale,
     }, {optimisticData});
+    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
 }
 
 function setSidebarLoaded() {
