@@ -581,12 +581,9 @@ export default {
     },
     personalDetails: {
         error: {
-            firstNameLength: 'First name shouldn\'t be longer than 50 characters',
-            lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
-            characterLimit: ({limit}) => `Exceeds the max length of ${limit} characters`,
-            hasInvalidCharacter: ({invalidCharacter}) => `Please remove the ${invalidCharacter} from the name field.`,
-            comma: 'comma',
-            semicolon: 'semicolon',
+            firstNameLength: 'First name cannot be longer than 50 characters',
+            lastNameLength: 'Last name cannot be longer than 50 characters',
+            hasInvalidCharacter: 'Name cannot contain a comma or semicolon',
         },
     },
     resendValidationForm: {

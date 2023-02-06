@@ -581,12 +581,9 @@ export default {
     },
     personalDetails: {
         error: {
-            firstNameLength: 'El nombre no debe tener más de 50 caracteres',
-            lastNameLength: 'El apellido no debe tener más de 50 caracteres',
-            characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
-            hasInvalidCharacter: ({invalidCharacter}) => `Por favor elimina ${invalidCharacter} del campo nombre.`,
-            comma: 'la coma',
-            semicolon: 'el punto y coma',
+            firstNameLength: 'El nombre no puede tener más de 50 caracteres',
+            lastNameLength: 'El apellido no puede tener más de 50 caracteres',
+            hasInvalidCharacter: 'El nombre no puede contener una coma o un punto y coma',
         },
     },
     resendValidationForm: {
