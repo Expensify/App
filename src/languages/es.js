@@ -1039,8 +1039,6 @@ export default {
             phoneNumberExtension: 'Por favor, introduce una extensión telefónica válida',
             firstName: 'Por favor, ingresa tu nombre',
             lastName: 'Por favor, ingresa tu apellido',
-            firstNameLength: 'El nombre no debe tener más de 50 caracteres',
-            lastNameLength: 'El apellido no debe tener más de 50 caracteres',
         },
     },
     requestCallConfirmationScreen: {
