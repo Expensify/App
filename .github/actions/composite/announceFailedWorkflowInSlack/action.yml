@@ -20,7 +20,7 @@ runs:
             attachments: [{
               color: "#DB4545",
               pretext: `<!subteam^S4TJJ3PSL>`,
-              text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW_RUN} workflow 💥`,
+              text: `💥 ${process.env.AS_REPO} failed on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}> workflow 💥`,
             }]
           }
       env:
