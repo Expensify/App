@@ -381,22 +381,13 @@ function doesFailCharacterLimitAfterTrim(maxLength, valuesToBeValidated) {
 }
 
 /**
- * Checks if input value includes comma or semicolon which are not accepted
+ * Checks if each provided string includes any commas or semicolons
  *
  * @param {String[]} valuesToBeValidated
- * @returns {String[]}
+ * @returns {Boolean[]}
  */
-function findInvalidSymbols(valuesToBeValidated) {
-    return _.map(valuesToBeValidated, (value) => {
-        if (!value) {
-            return '';
-        }
-        let inValidSymbol = value.replace(/[,]+/g, '') !== value ? Localize.translateLocal('common.comma') : '';
-        if (_.isEmpty(inValidSymbol)) {
-            inValidSymbol = value.replace(/[;]+/g, '') !== value ? Localize.translateLocal('common.semicolon') : '';
-        }
-        return inValidSymbol;
-    });
+function doesContainCommaOrSemicolon(valuesToBeValidated) {
+    return _.map(valuesToBeValidated, value => (value.includes(',') || value.includes(';')));
 }
 
 /**
@@ -480,5 +471,5 @@ export {
     isValidRoomName,
     isValidTaxID,
     isValidValidateCode,
-    findInvalidSymbols,
+    doesContainCommaOrSemicolon,
 };
