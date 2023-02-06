@@ -21,7 +21,10 @@ module.exports = {
         __DEV__: true,
         WebSocket: {},
     },
-    timers: 'fake',
+    fakeTimers: {
+        enableGlobally: true,
+        doNotFake: ['nextTick', 'setImmediate'],
+    },
     testEnvironment: 'jsdom',
     setupFiles: [
         '<rootDir>/jest/setup.js',
