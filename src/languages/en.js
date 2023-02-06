@@ -600,22 +600,9 @@ export default {
     },
     personalDetails: {
         error: {
-            firstNameLength: 'First name shouldn\'t be longer than 50 characters',
-            lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
-            hasInvalidCharacter: ({invalidCharacter}) => `Please remove the ${invalidCharacter} from the name field.`,
-        },
-    },
-    privatePersonalDetails: {
-        personalDetails: 'Personal details',
-        privateDataMessage: 'These details are used for travel and payments. They are never shown on your public profile.',
-        legalName: 'Legal name',
-        legalFirstName: 'Legal first name',
-        legalLastName: 'Legal last name',
-        homeAddress: 'Home address',
-        error: {
-            hasInvalidCharacter: ({invalidCharacter}) => `Please remove the ${invalidCharacter} from the field above.`,
-            dateShouldBeBefore: ({dateString}) => `Date should be before ${dateString}.`,
-            dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,
+            firstNameLength: 'First name cannot be longer than 50 characters',
+            lastNameLength: 'Last name cannot be longer than 50 characters',
+            hasInvalidCharacter: 'Name cannot contain a comma or semicolon',
         },
     },
     resendValidationForm: {

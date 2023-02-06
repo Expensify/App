@@ -600,22 +600,9 @@ export default {
     },
     personalDetails: {
         error: {
-            firstNameLength: 'El nombre no debe tener más de 50 caracteres',
-            lastNameLength: 'Los apellidos no pueden tener más de 50 caracteres',
-            hasInvalidCharacter: ({invalidCharacter}) => `Por favor elimina ${invalidCharacter} del campo nombre.`,
-        },
-    },
-    privatePersonalDetails: {
-        personalDetails: 'Datos personales',
-        privateDataMessage: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en su perfil público.',
-        legalName: 'Nombre completo',
-        legalFirstName: 'Nombre legal',
-        legalLastName: 'Apellidos legales',
-        homeAddress: 'Domicilio',
-        error: {
-            hasInvalidCharacter: ({invalidCharacter}) => `Por favor elimina ${invalidCharacter}`,
-            dateShouldBeBefore: ({dateString}) => `La fecha debe ser anterior a ${dateString}.`,
-            dateShouldBeAfter: ({dateString}) => `La fecha debe ser posterior a ${dateString}.`,
+            firstNameLength: 'El nombre no puede tener más de 50 caracteres',
+            lastNameLength: 'El apellido no puede tener más de 50 caracteres',
+            hasInvalidCharacter: 'El nombre no puede contener una coma o un punto y coma',
         },
     },
     resendValidationForm: {
