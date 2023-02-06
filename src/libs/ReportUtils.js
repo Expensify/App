@@ -12,7 +12,6 @@ import hashCode from './hashCode';
 import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
-import * as CollectionUtils from './CollectionUtils';
 import * as NumberFormatUtils from './NumberFormatUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import Permissions from './Permissions';
@@ -646,6 +645,41 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
 }
 
 /**
+ * @param {Object} reportAction
+ *
+ * @returns {String}
+ */
+function getArchiveReason(reportAction) {
+    return (reportAction && reportAction.originalMessage && reportAction.originalMessage.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+}
+
+/**
+ * Get the title for a policy expense chat which is different based on the role of the policy member seeing this report
+ *
+ * @param {Object} report
+ * @param {Object} [policies]
+ * @returns {String}
+ */
+function getPolicyExpenseChatName(report, policies = {}) {
+    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerEmail) || report.ownerEmail || report.reportName;
+
+    // If the policy expense chat is owned by this user, use the name of the policy as report name.
+    if (report.isOwnPolicyExpenseChat) {
+        return getPolicyName(report, policies);
+    }
+
+    // If this user is not admin and this policy expense chat has been archived because of account merging, this must be an old workspace chat
+    // of the account which was merged into the current user's account. Use the name of the policy as the name of the report.
+    if (isArchivedRoom(report) && getArchiveReason(ReportActionsUtils.getLastVisibleAction(report.reportID)) === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED
+        && policies[report.policyID] && policies[report.policyID].role !== 'admin') {
+        return getPolicyName(report, policies);
+    }
+
+    // If user is seeing this report and they are not its owner, they must be an admin and the report name should be the name of the policy member
+    return reportOwnerDisplayName;
+}
+
+/**
  * Get the title for a report.
  *
  * @param {Object} report
@@ -659,11 +693,7 @@ function getReportName(report, policies = {}) {
     }
 
     if (isPolicyExpenseChat(report)) {
-        const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerEmail) || report.ownerEmail || report.reportName;
-        formattedName = report.isOwnPolicyExpenseChat 
-            || (isArchivedRoom(report) 
-                && getArchiveReason(ReportActionsUtils.getLastVisibleAction(report.reportID)) === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED
-                && policies[report.policyID] && policies[report.policyID].role !== 'admin') ? getPolicyName(report, policies) : reportOwnerDisplayName;
+        formattedName = getPolicyExpenseChatName(report, policies)
     }
 
     if (isArchivedRoom(report)) {
@@ -1374,15 +1404,6 @@ function getNewMarkerReportActionID(report, sortedAndFilteredReportActions) {
     return _.has(sortedAndFilteredReportActions[newMarkerIndex], 'reportActionID')
         ? sortedAndFilteredReportActions[newMarkerIndex].reportActionID
         : '';
-}
-
-/**
- * @param {Object} reportAction
- *
- * @returns {String}
- */
-function getArchiveReason(reportAction) {
-    return (reportAction && reportAction.originalMessage && reportAction.originalMessage.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT
 }
 
 export {
