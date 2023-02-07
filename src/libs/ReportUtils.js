@@ -679,7 +679,7 @@ function getPolicyExpenseChatName(report, policies = {}) {
         return getPolicyName(report, policies);
     }
 
-    // If user is seeing this report and they are not its owner, they must be an admin and the report name should be the name of the policy member
+    // If user can see this report and they are not its owner, they must be an admin and the report name should be the name of the policy member
     return reportOwnerDisplayName;
 }
 
