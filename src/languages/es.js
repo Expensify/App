@@ -28,7 +28,7 @@ export default {
         not: 'No',
         signIn: 'Conectarse',
         continue: 'Continuar',
-        firstName: 'Primer nombre',
+        firstName: 'Nombre',
         lastName: 'Apellido',
         phone: 'teléfono',
         phoneNumber: 'Número de teléfono',
@@ -591,7 +591,7 @@ export default {
     personalDetails: {
         error: {
             firstNameLength: 'El nombre no debe tener más de 50 caracteres',
-            lastNameLength: 'El apellido no debe tener más de 50 caracteres',
+            lastNameLength: 'Los apellidos no debe tener más de 50 caracteres',
             hasInvalidCharacter: ({invalidCharacter}) => `Por favor elimina ${invalidCharacter} del campo nombre.`,
         },
     },
@@ -678,7 +678,7 @@ export default {
             age: 'Debe ser mayor de 18 años',
             ssnLast4: 'Ingresa los últimos 4 dígitos del número de seguro social',
             firstName: 'Ingresa un nombre válido',
-            lastName: 'Ingresa un apellido válido',
+            lastName: 'Ingresa los apellidos válido',
             noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agrega una cuenta bancaria para depósitos o una tarjeta de débito',
             validationAmounts: 'Los montos de validación que ingresaste son incorrectos. Verifica tu cuenta de banco e intenta de nuevo.',
         },
@@ -729,7 +729,7 @@ export default {
         helpLink: 'Obtenga más información sobre por qué necesitamos esto.',
         legalFirstNameLabel: 'Primer nombre legal',
         legalMiddleNameLabel: 'Segundo nombre legal',
-        legalLastNameLabel: 'Apellido legal',
+        legalLastNameLabel: 'Apellidos legal',
         selectAnswer: 'Selecciona una respuesta.',
         ssnFull9Error: 'Por favor escribe los 9 dígitos de un SSN válido',
         needSSNFull9: 'Estamos teniendo problemas para verificar su SSN. Ingresa los 9 dígitos del SSN.',
@@ -1058,9 +1058,9 @@ export default {
         error: {
             phoneNumberExtension: 'Por favor, introduce una extensión telefónica válida',
             firstName: 'Por favor, ingresa tu nombre',
-            lastName: 'Por favor, ingresa tu apellido',
+            lastName: 'Por favor, ingresa tu apellidos',
             firstNameLength: 'El nombre no debe tener más de 50 caracteres',
-            lastNameLength: 'El apellido no debe tener más de 50 caracteres',
+            lastNameLength: 'Los apellidos no debe tener más de 50 caracteres',
         },
     },
     requestCallConfirmationScreen: {
