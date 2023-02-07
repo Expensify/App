@@ -402,6 +402,7 @@ function updateChatPriorityMode(mode) {
     API.write('UpdateChatPriorityMode', {
         value: mode,
     }, {optimisticData});
+    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
 }
 
 /**
