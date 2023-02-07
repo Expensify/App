@@ -16,7 +16,7 @@ import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import * as User from '../../../libs/actions/User';
 import CategoryShortcutBar from '../CategoryShortcutBar';
-import Animated, {runOnUI, scrollTo} from 'react-native-reanimated';
+import Animated, {runOnUI, _scrollTo} from 'react-native-reanimated';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -105,7 +105,7 @@ class EmojiPickerMenu extends Component {
         runOnUI(() => {
             'worklet';
             const y = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
-            scrollTo(node, 0, y, true);
+            _scrollTo(node, 0, y, true);
         })();
 
         //this.emojiList.flashScrollIndicators();
