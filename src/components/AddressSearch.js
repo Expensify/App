@@ -11,6 +11,7 @@ import themeColors from '../styles/themes/default';
 import TextInput from './TextInput';
 import Log from '../libs/Log';
 import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
+import CONST from '../CONST';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -49,6 +50,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Should address search be limited to results in the USA */
+    isLimitedToUSA: PropTypes.bool,
+
     /** A map of inputID key names */
     renamedInputKeys: PropTypes.shape({
         street: PropTypes.string,
@@ -56,6 +60,9 @@ const propTypes = {
         state: PropTypes.string,
         zipCode: PropTypes.string,
     }),
+
+    /** Maximum number of characters allowed in search input */
+    maxInputLength: PropTypes.number,
 
     ...withLocalizePropTypes,
 };
@@ -69,12 +76,16 @@ const defaultProps = {
     value: undefined,
     defaultValue: undefined,
     containerStyles: [],
+    isLimitedToUSA: true,
     renamedInputKeys: {
         street: 'addressStreet',
         city: 'addressCity',
         state: 'addressState',
         zipCode: 'addressZipCode',
     },
+
+    // A maximum of -1 means the user can enter as many characters as they want
+    maxInputLength: -1,
 };
 
 // Do not convert to class component! It's been tried before and presents more challenges than it's worth.
@@ -82,6 +93,10 @@ const defaultProps = {
 // Reference: https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/609#issuecomment-886133839
 const AddressSearch = (props) => {
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
+    const query = {language: props.preferredLocale, types: 'address'};
+    if (props.isLimitedToUSA) {
+        query.components = 'country:us';
+    }
 
     const saveLocationDetails = (details) => {
         const addressComponents = details.address_components;
@@ -100,6 +115,7 @@ const AddressSearch = (props) => {
         }
         const zipCode = GooglePlacesUtils.getAddressComponent(addressComponents, 'postal_code', 'long_name');
         const state = GooglePlacesUtils.getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
+        const country = GooglePlacesUtils.getAddressComponent(addressComponents, 'country', 'long_name');
 
         const values = {
             street: props.value ? props.value.trim() : '',
@@ -119,6 +135,15 @@ const AddressSearch = (props) => {
         }
         if (state) {
             values.state = state;
+        }
+        if (country) {
+            // If country doesn't match our list of countries (maybe spelling issue),
+            // default the country to empty string so the country picker value doesn't
+            // hold a value but show '-'
+            values.country = '';
+            if (_.includes(CONST.ALL_COUNTRIES, country)) {
+                values.country = country;
+            }
         }
         if (_.size(values) === 0) {
             return;
@@ -163,11 +188,7 @@ const AddressSearch = (props) => {
                         // After we select an option, we set displayListViewBorder to false to prevent UI flickering
                         setDisplayListViewBorder(false);
                     }}
-                    query={{
-                        language: props.preferredLocale,
-                        types: 'address',
-                        components: 'country:us',
-                    }}
+                    query={query}
                     requestUrl={{
                         useOnPlatform: 'all',
                         url: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Proxy_GooglePlaces&proxyUrl=`,
@@ -209,6 +230,7 @@ const AddressSearch = (props) => {
                                 setDisplayListViewBorder(false);
                             }
                         },
+                        maxLength: props.maxInputLength,
                     }}
                     styles={{
                         textInputContainer: [styles.flexColumn],
