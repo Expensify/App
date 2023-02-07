@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import SignInPageContent from './SignInPageContent';
 import Footer from './Footer';
@@ -27,11 +27,14 @@ const SignInPageLayout = (props) => {
 
     if (props.isSmallScreenWidth) {
         containerStyles = [styles.flex1];
-        contentContainerStyles = [styles.flex1];
+        contentContainerStyles = [styles.flex1, styles.flexColumn];
     }
 
     return (
-        <View style={containerStyles}>
+        <ScrollView
+            style={containerStyles}
+            contentHeight="100%"
+        >
             <View style={contentContainerStyles}>
                 <SignInPageContent
                     welcomeText={props.welcomeText}
@@ -39,14 +42,20 @@ const SignInPageLayout = (props) => {
                 >
                     {props.children}
                 </SignInPageContent>
-                {!props.isSmallScreenWidth && (
+                {!props.isSmallScreenWidth ? (
                     <>
-                        <SignInPageGraphics />
-                        <Footer />
+                        <ScrollView
+                            contentHeight="100%"
+                        >
+                            <SignInPageGraphics />
+                        </ScrollView>
                     </>
-                )}
+                )
+                    : (
+                        <Footer />
+                    )}
             </View>
-        </View>
+        </ScrollView>
     );
 };
 

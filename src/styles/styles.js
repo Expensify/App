@@ -2878,6 +2878,39 @@ const styles = {
         paddingTop: 80,
         paddingBottom: 45,
     },
+
+    // homepageContainer: {
+    //     height: '100vh',
+    //     maxHeight: 900,
+    //     minHeight: 400,
+    //     position: 'relative',
+    //     width: '100%',
+    // },
+
+    footerContainer: {
+        backgroundColor: 'ivory',
+        fontSize: variables.fontSizeNormal,
+        flex: 1,
+        minHeight: '100vh',
+    },
+
+    footerColumns: {
+
+    },
+
+    footerColumn: {
+        marginBottom: 40,
+    },
+
+    footerTitle: {
+        fontSize: variables.fontSizeMedium,
+        color: themeColors.heroCard,
+    },
+
+    footerRow: {
+
+    },
+
 };
 
 export default styles;

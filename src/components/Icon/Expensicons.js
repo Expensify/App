@@ -98,6 +98,8 @@ import Zoom from '../../../assets/images/zoom.svg';
 import FallbackAvatar from '../../../assets/images/avatars/fallback-avatar.svg';
 import FallbackWorkspaceAvatar from '../../../assets/images/avatars/fallback-workspace-avatar.svg';
 import DragAndDrop from '../../../assets/images/drag-and-drop.svg';
+import ExpensifyFooterLogo from '../../../assets/images/expensify-footer-logo.svg';
+import ExpensifyFooterLogoVertical from '../../../assets/images/expensify-footer-logo-vertical.svg';
 
 export {
     ActiveRoomAvatar,
@@ -140,6 +142,8 @@ export {
     Exit,
     ExpensifyCard,
     ExpensifyWordmark,
+    ExpensifyFooterLogo,
+    ExpensifyFooterLogoVertical,
     Expand,
     Eye,
     EyeDisabled,
