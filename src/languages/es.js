@@ -677,7 +677,7 @@ export default {
             dob: 'Ingresa una fecha de nacimiento válida',
             age: 'Debe ser mayor de 18 años',
             ssnLast4: 'Ingresa los últimos 4 dígitos del número de seguro social',
-            firstName: 'Ingresa un nombre',
+            firstName: 'Ingresa el nombre',
             lastName: 'Ingresa los apellidos',
             noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agrega una cuenta bancaria para depósitos o una tarjeta de débito',
             validationAmounts: 'Los montos de validación que ingresaste son incorrectos. Verifica tu cuenta de banco e intenta de nuevo.',
