@@ -74,7 +74,7 @@ function getNonOptimisticPolicyIDs(policies) {
 * @param {String} locale
 */
 function setLocale(locale) {
-    if(locale == preferredLocale) {
+    if (locale === preferredLocale) {
         return;
     }
 
