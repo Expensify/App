@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.2.67-2",
+  "version": "1.2.67-3",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -41,7 +41,7 @@
     "test:e2e": "node tests/e2e/testRunner.js --development"
   },
   "dependencies": {
-    "@expensify/react-native-web": "0.18.10",
+    "@expensify/react-native-web": "0.18.12",
     "@formatjs/intl-getcanonicallocales": "^1.5.8",
     "@formatjs/intl-locale": "^2.4.21",
     "@formatjs/intl-numberformat": "^6.2.5",
