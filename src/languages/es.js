@@ -29,7 +29,7 @@ export default {
         signIn: 'Conectarse',
         continue: 'Continuar',
         firstName: 'Nombre',
-        lastName: 'Apellido',
+        lastName: 'Apellidos',
         phone: 'teléfono',
         phoneNumber: 'Número de teléfono',
         phoneNumberPlaceholder: '(prefijo) + (número)',
