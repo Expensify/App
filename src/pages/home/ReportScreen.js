@@ -123,6 +123,7 @@ class ReportScreen extends React.Component {
         this.fetchReportIfNeeded();
         toggleReportActionComposeView(true);
         this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportOffsetTop);
+        Navigation.setIsReportScreenIsReady();
     }
 
     componentDidUpdate(prevProps) {
