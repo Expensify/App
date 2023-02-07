@@ -7,6 +7,7 @@ import DateUtils from '../DateUtils';
 import * as PlaidDataProps from '../../pages/ReimbursementAccount/plaidDataPropTypes';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import * as ReimbursementAccount from './ReimbursementAccount';
 
 export {
     goToWithdrawalAccountSetupStep,
@@ -38,7 +39,7 @@ function clearPlaid() {
 }
 
 function openPlaidView() {
-    clearPlaid().then(() => this.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
+    clearPlaid().then(() => ReimbursementAccount.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
 }
 
 function openPersonalBankAccountSetupView() {

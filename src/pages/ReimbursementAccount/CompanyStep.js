@@ -137,9 +137,9 @@ class CompanyStep extends React.Component {
     }
 
     render() {
-        const bankAccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0;
-        const shouldDisableCompanyName = bankAccountID && this.props.getDefaultStateForField('companyName');
-        const shouldDisableCompanyTaxID = bankAccountID && this.props.getDefaultStateForField('companyTaxID');
+        const bankAccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID', 0);
+        const shouldDisableCompanyName = Boolean(bankAccountID && this.props.getDefaultStateForField('companyName'));
+        const shouldDisableCompanyTaxID = Boolean(bankAccountID && this.props.getDefaultStateForField('companyTaxID'));
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -156,6 +156,8 @@ class CompanyStep extends React.Component {
                     formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                     validate={this.validate}
                     onSubmit={this.submit}
+                    scrollContextEnabled
+                    scrollToOverflowEnabled
                     submitButtonText={this.props.translate('common.saveAndContinue')}
                     style={[styles.ph5, styles.flexGrow1]}
                 >
@@ -240,15 +242,15 @@ class CompanyStep extends React.Component {
                         inputID="hasNoConnectionToCannabis"
                         defaultValue={this.props.getDefaultStateForField('hasNoConnectionToCannabis', false)}
                         LabelComponent={() => (
-                            <>
-                                <Text>{`${this.props.translate('companyStep.confirmCompanyIsNot')} `}</Text>
+                            <Text>
+                                {`${this.props.translate('companyStep.confirmCompanyIsNot')} `}
                                 <TextLink
                                     // eslint-disable-next-line max-len
                                     href="https://community.expensify.com/discussion/6191/list-of-restricted-businesses"
                                 >
                                     {`${this.props.translate('companyStep.listOfRestrictedBusinesses')}.`}
                                 </TextLink>
-                            </>
+                            </Text>
                         )}
                         style={[styles.mt4]}
                         shouldSaveDraft

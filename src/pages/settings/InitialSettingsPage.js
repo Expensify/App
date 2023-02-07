@@ -31,6 +31,7 @@ import * as Wallet from '../../libs/actions/Wallet';
 import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import ConfirmModal from '../../components/ConfirmModal';
+import * as ReportUtils from '../../libs/ReportUtils';
 import * as Link from '../../libs/actions/Link';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
@@ -175,6 +176,8 @@ class InitialSettingsPage extends React.Component {
                 translationKey: 'initialSettingsPage.help',
                 icon: Expensicons.QuestionMark,
                 action: () => { Link.openExternalLink(CONST.NEWHELP_URL); },
+                shouldShowRightIcon: true,
+                iconRight: Expensicons.NewWindow,
             },
             {
                 translationKey: 'initialSettingsPage.about',
@@ -203,6 +206,7 @@ class InitialSettingsPage extends React.Component {
                 iconStyles={item.iconStyles}
                 iconFill={item.iconFill}
                 shouldShowRightIcon
+                iconRight={item.iconRight}
                 badgeText={this.getWalletBalance(isPaymentItem)}
                 fallbackIcon={item.fallbackIcon}
                 brickRoadIndicator={item.brickRoadIndicator}
@@ -254,7 +258,7 @@ class InitialSettingsPage extends React.Component {
                                     >
                                         <Avatar
                                             imageStyles={[styles.avatarLarge]}
-                                            source={this.props.currentUserPersonalDetails.avatar}
+                                            source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.email)}
                                             size={CONST.AVATAR_SIZE.LARGE}
                                         />
                                     </OfflineWithFeedback>

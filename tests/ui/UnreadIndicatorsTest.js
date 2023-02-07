@@ -152,20 +152,18 @@ function signInAndGetAppWithUnreadChat() {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                 reportID: REPORT_ID,
                 reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-                maxSequenceNumber: 9,
-                lastReadSequenceNumber: 1,
                 lastReadTime: reportAction3CreatedDate,
                 lastActionCreated: reportAction9CreatedDate,
                 lastMessageText: 'Test',
                 participants: [USER_B_EMAIL],
             });
+            const createdReportActionID = NumberUtils.rand64();
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-                0: {
+                [createdReportActionID]: {
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     automatic: false,
-                    sequenceNumber: 0,
                     created: MOMENT_TEN_MINUTES_AGO.clone().format(MOMENT_FORMAT),
-                    reportActionID: NumberUtils.rand64(),
+                    reportActionID: createdReportActionID,
                     message: [
                         {
                             style: 'strong',
@@ -179,15 +177,15 @@ function signInAndGetAppWithUnreadChat() {
                         },
                     ],
                 },
-                1: TestHelper.buildTestReportComment(USER_B_EMAIL, 1, MOMENT_TEN_MINUTES_AGO.clone().add(10, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '1'),
-                2: TestHelper.buildTestReportComment(USER_B_EMAIL, 2, MOMENT_TEN_MINUTES_AGO.clone().add(20, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '2'),
-                3: TestHelper.buildTestReportComment(USER_B_EMAIL, 3, reportAction3CreatedDate, USER_B_ACCOUNT_ID, '3'),
-                4: TestHelper.buildTestReportComment(USER_B_EMAIL, 4, MOMENT_TEN_MINUTES_AGO.clone().add(40, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '4'),
-                5: TestHelper.buildTestReportComment(USER_B_EMAIL, 5, MOMENT_TEN_MINUTES_AGO.clone().add(50, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '5'),
-                6: TestHelper.buildTestReportComment(USER_B_EMAIL, 6, MOMENT_TEN_MINUTES_AGO.clone().add(60, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '6'),
-                7: TestHelper.buildTestReportComment(USER_B_EMAIL, 7, MOMENT_TEN_MINUTES_AGO.clone().add(70, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '7'),
-                8: TestHelper.buildTestReportComment(USER_B_EMAIL, 8, MOMENT_TEN_MINUTES_AGO.clone().add(80, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '8'),
-                9: TestHelper.buildTestReportComment(USER_B_EMAIL, 9, reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9'),
+                1: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(10, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '1'),
+                2: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(20, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '2'),
+                3: TestHelper.buildTestReportComment(USER_B_EMAIL, reportAction3CreatedDate, USER_B_ACCOUNT_ID, '3'),
+                4: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(40, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '4'),
+                5: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(50, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '5'),
+                6: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(60, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '6'),
+                7: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(70, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '7'),
+                8: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(80, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '8'),
+                9: TestHelper.buildTestReportComment(USER_B_EMAIL, reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9'),
             });
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
                 [USER_B_EMAIL]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
@@ -303,6 +301,8 @@ describe('Unread Indicators', () => {
                 const NEW_REPORT_CREATED_MOMENT = moment().subtract(5, 'seconds');
                 const NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT = NEW_REPORT_CREATED_MOMENT.add(1, 'seconds');
 
+                const createdReportActionID = NumberUtils.rand64();
+                const commentReportActionID = NumberUtils.rand64();
                 const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${USER_A_ACCOUNT_ID}${CONFIG.PUSHER.SUFFIX}`);
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                     {
@@ -311,8 +311,6 @@ describe('Unread Indicators', () => {
                         value: {
                             reportID: NEW_REPORT_ID,
                             reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-                            maxSequenceNumber: 1,
-                            lastReadSequenceNumber: 0,
                             lastReadTime: '',
                             lastActionCreated: DateUtils.getDBTime(NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf()),
                             lastMessageText: 'Comment 1',
@@ -323,22 +321,20 @@ describe('Unread Indicators', () => {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${NEW_REPORT_ID}`,
                         value: {
-                            0: {
+                            [createdReportActionID]: {
                                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                                 automatic: false,
-                                sequenceNumber: 0,
                                 created: NEW_REPORT_CREATED_MOMENT.format(MOMENT_FORMAT),
-                                reportActionID: NumberUtils.rand64(),
+                                reportActionID: createdReportActionID,
                             },
-                            1: {
+                            [commentReportActionID]: {
                                 actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                                 actorEmail: USER_C_EMAIL,
                                 actorAccountID: USER_C_ACCOUNT_ID,
                                 person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
-                                sequenceNumber: 1,
                                 created: NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.format(MOMENT_FORMAT),
                                 message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
-                                reportActionID: NumberUtils.rand64(),
+                                reportActionID: commentReportActionID,
                             },
                         },
                         shouldNotify: true,
@@ -551,17 +547,11 @@ describe('Unread Indicators', () => {
             .then(() => {
                 // Simulate the response from the server so that the comment can be deleted in this test
                 lastReportAction = {...CollectionUtils.lastItem(reportActions)};
-                delete lastReportAction[lastReportAction.clientID];
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                     lastMessageText: lastReportAction.message[0].text,
                     lastActionCreated: DateUtils.getDBTime(lastReportAction.timestamp),
                     lastActorEmail: lastReportAction.actorEmail,
-                    maxSequenceNumber: lastReportAction.sequenceNumber,
                     reportID: REPORT_ID,
-                });
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-                    [lastReportAction.clientID]: null,
-                    10: lastReportAction,
                 });
                 return waitForPromisesToResolve();
             })

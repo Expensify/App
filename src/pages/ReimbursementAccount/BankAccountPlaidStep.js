@@ -82,6 +82,7 @@ class BankAccountPlaidStep extends React.Component {
                     formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                     validate={() => ({})}
                     onSubmit={this.submit}
+                    scrollContextEnabled
                     submitButtonText={this.props.translate('common.saveAndContinue')}
                     style={[styles.mh5, styles.flexGrow1]}
                     isSubmitButtonVisible={Boolean(selectedPlaidAccountID) && !_.isEmpty(lodashGet(this.props.plaidData, 'bankAccounts'))}

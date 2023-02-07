@@ -1,7 +1,8 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {View, Dimensions} from 'react-native';
-import {Document, Page} from 'react-pdf/dist/esm/entry.webpack';
+import {Document, Page, pdfjs} from 'react-pdf/dist/esm/entry.webpack';
+import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
@@ -27,6 +28,9 @@ class PDFView extends Component {
         this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
         this.attemptPDFLoad = this.attemptPDFLoad.bind(this);
         this.toggleKeyboardOnSmallScreens = this.toggleKeyboardOnSmallScreens.bind(this);
+
+        const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
+        pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
     }
 
     componentDidUpdate(prevProps) {
@@ -144,6 +148,7 @@ class PDFView extends Component {
                                 width={pageWidth}
                                 key={`page_${index + 1}`}
                                 pageNumber={index + 1}
+                                loading=""
                             />
                         ))}
                     </Document>
@@ -153,7 +158,6 @@ class PDFView extends Component {
                         onSubmit={this.attemptPDFLoad}
                         onPasswordUpdated={() => this.setState({isPasswordInvalid: false})}
                         isPasswordInvalid={this.state.isPasswordInvalid}
-                        shouldAutofocusPasswordField={!this.props.isSmallScreenWidth}
                         onPasswordFieldFocused={this.toggleKeyboardOnSmallScreens}
                     />
                 )}

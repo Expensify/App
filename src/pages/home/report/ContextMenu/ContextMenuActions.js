@@ -4,6 +4,7 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as Report from '../../../../libs/actions/Report';
+import * as Download from '../../../../libs/actions/Download';
 import Clipboard from '../../../../libs/Clipboard';
 import * as ReportUtils from '../../../../libs/ReportUtils';
 import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
@@ -50,10 +51,11 @@ export default [
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
             const html = lodashGet(message, 'html', '');
             const attachmentDetails = getAttachmentDetails(html);
-            const {originalFileName} = attachmentDetails;
-            let {sourceURL} = attachmentDetails;
-            sourceURL = addEncryptedAuthTokenToURL(sourceURL);
-            fileDownload(sourceURL, originalFileName);
+            const {originalFileName, sourceURL} = attachmentDetails;
+            const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL);
+            const sourceID = (sourceURL.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
+            Download.setDownload(sourceID, true);
+            fileDownload(sourceURLWithAuth, originalFileName).then(() => Download.setDownload(sourceID, false));
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }

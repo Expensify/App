@@ -19,6 +19,7 @@ export default {
         save: 'Save',
         saveChanges: 'Save changes',
         password: 'Password',
+        magicCode: 'Magic code',
         workspaces: 'Workspaces',
         profile: 'Profile',
         payments: 'Payments',
@@ -165,10 +166,12 @@ export default {
     hello: 'Hello',
     phoneCountryCode: '1',
     welcomeText: {
-        welcome: 'Welcome to the New Expensify! Enter your phone number or email to continue.',
+        welcome: 'Welcome to New Expensify! Enter your phone number or email to continue.',
+        welcomeEnterMagicCode: ({login}) => `It's always great to see a new face around here! Please enter the magic code sent to ${login}`,
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
         welcomeBack: 'Welcome back to the New Expensify! Please enter your password.',
+        welcomeBackEnterMagicCode: ({login}) => `Welcome back! Please enter the magic code sent to ${login}`,
     },
     reportActionCompose: {
         addAction: 'Actions',
@@ -206,8 +209,8 @@ export default {
         deleteConfirmation: 'Are you sure you want to delete this comment?',
     },
     reportActionsView: {
-        begginningOfArchivedRoomPartOne: 'You missed the party in ',
-        begginningOfArchivedRoomPartTwo: ', there\'s nothing to see here.',
+        beginningOfArchivedRoomPartOne: 'You missed the party in ',
+        beginningOfArchivedRoomPartTwo: ', there\'s nothing to see here.',
         beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}) => `Collaboration with everyone at ${domainRoom} starts here! 🎉\nUse `,
         beginningOfChatHistoryDomainRoomPartTwo: ' to chat with colleagues, share tips, and ask questions.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
@@ -221,6 +224,8 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
         chatWithAccountManager: 'Chat with your account manager here',
+        sayHello: 'Say hello!',
+        usePlusButton: '\n\nYou can also use the + button below to send or request money!',
     },
     newMessages: 'New messages',
     reportTypingIndicator: {
@@ -488,16 +493,31 @@ export default {
         defaultPaymentMethod: 'Default',
     },
     preferencesPage: {
-        mostRecent: 'Most recent',
-        mostRecentModeDescription: 'This will display all chats by default, sorted by most recent, with pinned items at the top.',
-        focus: '#focus',
-        focusModeDescription: '#focus – This will only display unread and pinned chats, all sorted alphabetically.',
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',
+    },
+    priorityModePage: {
         priorityMode: 'Priority mode',
+        explainerText: 'Choose whether to show all chats by default sorted with most recent with pinned items at the top, or #focus on unread pinned items, sorted alphabetically.',
+        priorityModes: {
+            default: {
+                label: 'Most recent',
+                description: 'Show all chats sorted by most recent',
+            },
+            gsd: {
+                label: '#focus',
+                description: 'Only show unread sorted alphabetically',
+            },
+        },
+    },
+    languagePage: {
         language: 'Language',
         languages: {
-            english: 'English',
-            spanish: 'Spanish',
+            en: {
+                label: 'English',
+            },
+            es: {
+                label: 'Spanish',
+            },
         },
     },
     signInPage: {
@@ -520,6 +540,17 @@ export default {
         phrase4: 'privacy',
         phrase5: 'Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its',
         phrase6: 'licenses',
+    },
+    validateCodeForm: {
+        magicCodeNotReceived: "Didn't receive a magic code?",
+        enterAuthenticatorCode: 'Please enter your authenticator code',
+        twoFactorCode: 'Two factor code',
+        requiredWhen2FAEnabled: 'Required when 2FA is enabled',
+        error: {
+            pleaseFillMagicCode: 'Please enter your magic code',
+            incorrectMagicCode: 'Incorrect magic code.',
+            pleaseFillTwoFactorAuth: 'Please enter your two factor code',
+        },
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Please fill out all fields',
@@ -811,6 +842,9 @@ export default {
         letsChatCTA: 'Yes, let\'s chat',
         letsChatText: 'Thanks for doing that. We need your help verifying a few pieces of information, but we can work this out quickly over chat. Ready?',
         letsChatTitle: 'Let\'s chat!',
+        enable2FATitle: 'Prevent fraud, enable two-factor authentication!',
+        enable2FAText: 'We take your security seriously, so please set up two-factor authentication for your account now. That will allow us to dispute Expensify Card digital transactions, and will reduce your risk for fraud.',
+        secureYourAccount: 'Secure your account',
     },
     beneficialOwnersStep: {
         additionalInformation: 'Additional information',
@@ -944,7 +978,8 @@ export default {
         editor: {
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
-            nameIsRequiredError: 'You need to define a name for your workspace',
+            nameIsRequiredError: 'You need to define a name for your workspace.',
+            nameHasHtml: 'HTML tags are not allowed in workspace names.',
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
             save: 'Save',
@@ -978,7 +1013,7 @@ export default {
         subtitle: 'We\'re here to clear your path to greatness!',
         description: 'Choose from the support options below:',
         chatWithConcierge: 'Chat with Concierge',
-        requestSetupCall: 'Request a setup call',
+        scheduleSetupCall: 'Schedule a setup call',
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
     },
@@ -1115,5 +1150,8 @@ export default {
             title: 'Update Check Failed',
             message: 'We couldn\'t look for an update. Please check again in a bit!',
         },
+    },
+    report: {
+        genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
     },
 };
