@@ -32,7 +32,7 @@ class ValidateLoginPage extends Component {
             // Authenticate the user if not already signed in, otherwise render the page to show the validate code
             // for when the user initiated the sign in process on another device
             if (!this.isAuthenticated()) {
-                Session.signInWithValidateCode(this.validateCode());
+                Session.signInWithValidateCode(this.accountID(), this.validateCode());
             }
         } else {
             User.validateLogin(this.accountID(), this.validateCode());
