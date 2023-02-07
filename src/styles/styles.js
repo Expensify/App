@@ -2892,6 +2892,7 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         flex: 1,
         minHeight: '100vh',
+        display: flex,
     },
 
     footerColumns: {
