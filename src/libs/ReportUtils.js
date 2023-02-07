@@ -1372,12 +1372,12 @@ function getNewMarkerReportActionID(report, sortedAndFilteredReportActions) {
 }
 
 /**
-  * Replace code points > 127 with C escape sequences, and return the resulting string's overall length
-  * Used for compatibility with the backend auth validator for AddComment
-  * @param {String} textComment
-  * @returns {Number}
-  */
-function commentLength(textComment) {
+ * Replace code points > 127 with C escape sequences, and return the resulting string's overall length
+ * Used for compatibility with the backend auth validator for AddComment
+ * @param {String} textComment
+ * @returns {Number}
+ */
+function getCommentLength(textComment) {
     return textComment.replace(/[^ -~]/g, '\\u????').length;
 }
 
@@ -1435,5 +1435,5 @@ export {
     getOldDotDefaultAvatar,
     getNewMarkerReportActionID,
     canSeeDefaultRoom,
-    commentLength,
+    getCommentLength,
 };
