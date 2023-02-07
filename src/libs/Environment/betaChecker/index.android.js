@@ -5,10 +5,10 @@ import pkg from '../../../../package.json';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as AppUpdate from '../../actions/AppUpdate';
 
-let lastBetaValue = false;
+let isLastSavedBeta = false;
 Onyx.connect({
     key: ONYXKEYS.IS_BETA,
-    callback: value => lastBetaValue = value,
+    callback: value => isLastSavedBeta = value,
 });
 
 /**
@@ -33,8 +33,8 @@ function isBetaBuild() {
                 resolve(isBeta);
             })
             .catch(() => {
-                // In case version fetch failed like in offline mode use last saved value
-                resolve(lastBetaValue);
+                // Use isLastSavedBeta in case we fail to fetch the new one, e.g. when we are offline
+                resolve(isLastSavedBeta);
             });
     });
 }
