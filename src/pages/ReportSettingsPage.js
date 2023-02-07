@@ -55,8 +55,7 @@ class ReportSettingsPage extends Component {
 
         this.validate = this.validate.bind(this);
         this.updatePolicyRoomName = this.updatePolicyRoomName.bind(this);
-        this.shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report)
-        || ReportUtils.isArchivedRoom(this.props.report);
+        this.shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report) || ReportUtils.isArchivedRoom(this.props.report);
     }
 
     getNotificationPreferenceOptions() {
