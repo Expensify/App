@@ -122,8 +122,8 @@ export default {
         websiteExample: 'e.g. https://www.expensify.com',
     },
     attachmentPicker: {
-        cameraPermissionRequired: 'Camera permission required',
-        expensifyDoesntHaveAccessToCamera: 'Expensify does not have access to your camera. To enable access, go to Settings and allow access',
+        cameraPermissionRequired: 'Camera access',
+        expensifyDoesntHaveAccessToCamera: 'Expensify can\'t take photos without access to your camera. Tap Settings to update permissions.',
         attachmentError: 'Attachment error',
         errorWhileSelectingAttachment: 'An error occurred while selecting an attachment, please try again',
         errorWhileSelectingCorruptedImage: 'An error occurred while selecting a corrupted attachment, please try another file',
@@ -1139,8 +1139,8 @@ export default {
             message: 'Attachment cannot be downloaded',
         },
         permissionError: {
-            title: 'Storage permission required',
-            message: 'Expensify does not have access to save attachments. To enable access, go to Settings and allow access',
+            title: 'Storage access',
+            message: 'Expensify can\'t save attachments without storage access. Tap Settings to update permissions.',
         },
     },
     desktopApplicationMenu: {
