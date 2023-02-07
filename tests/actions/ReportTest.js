@@ -30,6 +30,8 @@ jest.mock('../../src/libs/actions/Report', () => {
 
 describe('actions/Report', () => {
     beforeAll(() => {
+        jest.useRealTimers();
+
         // When using the Pusher mock the act of calling Pusher.isSubscribed will create a
         // channel already in a subscribed state. These methods are normally used to prevent
         // duplicated subscriptions, but we don't need them for this test so forcing them to
