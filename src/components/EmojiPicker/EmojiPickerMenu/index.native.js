@@ -101,11 +101,12 @@ class EmojiPickerMenu extends Component {
 
     scrollToHeader(headerIndex) {
         const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
+        const node = findNodeHandle(this.emojiList);
         runOnUI(() => {
             'worklet';
             const y = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
-            scrollTo(findNodeHandle(this.emojiList), 0, y, true);
-        });
+            scrollTo(node, 0, y, true);
+        })();
 
         //this.emojiList.flashScrollIndicators();
         //this.emojiList.scrollToOffset({offset: calculatedOffset, animated: false});
