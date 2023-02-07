@@ -656,15 +656,6 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
 }
 
 /**
- * @param {Object} reportAction
- *
- * @returns {String}
- */
-function getArchiveReason(reportAction) {
-    return (reportAction && reportAction.originalMessage && reportAction.originalMessage.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-}
-
-/**
  * Get the title for a policy expense chat which depends on the role of the policy member seeing this report
  *
  * @param {Object} report
@@ -685,9 +676,12 @@ function getPolicyExpenseChatName(report, policies = {}) {
 
     // If this user is not admin and this policy expense chat has been archived because of account merging, this must be an old workspace chat
     // of the account which was merged into the current user's account. Use the name of the policy as the name of the report.
-    if (isArchivedRoom(report) && getArchiveReason(ReportActionsUtils.getLastVisibleAction(report.reportID)) === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED
-        && policyExpenseChatRole !== CONST.POLICY.ROLE.ADMIN) {
-        return getPolicyName(report, policies);
+    if (isArchivedRoom(report)) {
+        const lastAction = ReportActionsUtils.getLastVisibleAction(report.reportID);
+        const archiveReason = (lastAction && lastAction.originalMessage && lastAction.originalMessage.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+        if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED && policyExpenseChatRole !== CONST.POLICY.ROLE.ADMIN) {
+            return getPolicyName(report, policies);
+        }
     }
 
     // If user can see this report and they are not its owner, they must be an admin and the report name should be the name of the policy member
@@ -1527,5 +1521,4 @@ export {
     getNewMarkerReportActionID,
     canSeeDefaultRoom,
     openReportFromDeepLink,
-    getArchiveReason,
 };
