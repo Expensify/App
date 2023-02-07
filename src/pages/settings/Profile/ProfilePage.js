@@ -8,6 +8,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import MenuItem from '../../../components/MenuItem';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -22,6 +23,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
 import LoginField from './LoginField';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 
 const propTypes = {
     /* Onyx Props */
@@ -178,6 +180,12 @@ class ProfilePage extends Component {
                         type="phone"
                         login={this.state.logins.phone}
                         defaultValue={this.state.logins.phone}
+                    />
+                    <MenuItem
+                        title={this.props.translate('privatePersonalDetails.personalDetails')}
+                        icon={Expensicons.User}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
+                        shouldShowRightIcon
                     />
                 </ScrollView>
             </ScreenWrapper>
