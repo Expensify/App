@@ -199,6 +199,7 @@ class ValidateCodeForm extends React.Component {
                             onChangeText={text => this.onTextInput(text, 'validateCode')}
                             onSubmitEditing={this.validateAndSubmitForm}
                             blurOnSubmit={false}
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             errorText={this.state.formError.validateCode ? this.props.translate(this.state.formError.validateCode) : ''}
                         />
                         <View style={[styles.changeExpensifyLoginLinkContainer]}>
