@@ -741,7 +741,7 @@ const styles = {
         position: 'absolute',
         top: 0,
         width: '100%',
-        height: 25,
+        height: 23,
         backgroundColor: themeColors.componentBG,
     },
 
@@ -760,7 +760,7 @@ const styles = {
     baseTextInput: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
-        lineHeight: variables.lineHeightNormal,
+        lineHeight: variables.lineHeightXLarge,
         color: themeColors.text,
         paddingTop: 23,
         paddingBottom: 8,
