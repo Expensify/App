@@ -73,12 +73,12 @@ let lastFakeReportID = 0;
  * @returns {Object}
  */
 function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], millisecondsInThePast = 0, isUnread = false) {
-    const lastActionCreated = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
+    const lastVisibleActionCreated = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
     return {
         reportID: `${++lastFakeReportID}`,
         reportName: 'Report',
-        lastActionCreated,
-        lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastActionCreated, 1) : lastActionCreated,
+        lastVisibleActionCreated,
+        lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1) : lastVisibleActionCreated,
         participants,
     };
 }

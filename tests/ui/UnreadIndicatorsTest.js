@@ -155,7 +155,7 @@ function signInAndGetAppWithUnreadChat() {
                 reportID: REPORT_ID,
                 reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                 lastReadTime: reportAction3CreatedDate,
-                lastActionCreated: reportAction9CreatedDate,
+                lastVisibleActionCreated: reportAction9CreatedDate,
                 lastMessageText: 'Test',
                 participants: [USER_B_EMAIL],
             });
@@ -314,7 +314,7 @@ describe('Unread Indicators', () => {
                             reportID: NEW_REPORT_ID,
                             reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                             lastReadTime: '',
-                            lastActionCreated: DateUtils.getDBTime(NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf()),
+                            lastVisibleActionCreated: DateUtils.getDBTime(NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf()),
                             lastMessageText: 'Comment 1',
                             participants: [USER_C_EMAIL],
                         },
@@ -551,7 +551,7 @@ describe('Unread Indicators', () => {
                 lastReportAction = {...CollectionUtils.lastItem(reportActions)};
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                     lastMessageText: lastReportAction.message[0].text,
-                    lastActionCreated: DateUtils.getDBTime(lastReportAction.timestamp),
+                    lastVisibleActionCreated: DateUtils.getDBTime(lastReportAction.timestamp),
                     lastActorEmail: lastReportAction.actorEmail,
                     reportID: REPORT_ID,
                 });

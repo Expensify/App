@@ -982,7 +982,7 @@ function buildOptimisticChatReport(
         lastMessageHtml: '',
         lastMessageText: null,
         lastReadTime: currentTime,
-        lastActionCreated: currentTime,
+        lastVisibleActionCreated: currentTime,
         notificationPreference,
         oldPolicyName,
         ownerEmail: ownerEmail || CONST.REPORT.OWNER_EMAIL_FAKE,
@@ -1157,10 +1157,10 @@ function isUnread(report) {
         return false;
     }
 
-    // lastActionCreated and lastReadTime are both datetime strings and can be compared directly
-    const lastActionCreated = report.lastActionCreated || '';
+    // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
+    const lastVisibleActionCreated = report.lastVisibleActionCreated || '';
     const lastReadTime = report.lastReadTime || '';
-    return lastReadTime < lastActionCreated;
+    return lastReadTime < lastVisibleActionCreated;
 }
 
 /**

@@ -177,9 +177,9 @@ describe('Sidebar', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                 }))
 
-                // When a new comment is added to report 1 (eg. it's lastActionCreated is updated)
+                // When a new comment is added to report 1 (eg. it's lastVisibleActionCreated is updated)
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`, {
-                    lastActionCreated: DateUtils.getDBTime(),
+                    lastVisibleActionCreated: DateUtils.getDBTime(),
                 }))
 
                 // Then the order of the reports should be 1 > 3 > 2
@@ -676,18 +676,18 @@ describe('Sidebar', () => {
 
         it('orders nonArchived reports by displayName if created timestamps are the same', () => {
             // Given three nonArchived reports created at the same time
-            const lastActionCreated = DateUtils.getDBTime();
+            const lastVisibleActionCreated = DateUtils.getDBTime();
             const report1 = {
                 ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
-                lastActionCreated,
+                lastVisibleActionCreated,
             };
             const report2 = {
                 ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']),
-                lastActionCreated,
+                lastVisibleActionCreated,
             };
             const report3 = {
                 ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']),
-                lastActionCreated,
+                lastVisibleActionCreated,
             };
 
             const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks('0');
@@ -702,7 +702,7 @@ describe('Sidebar', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                 }))
 
-                // Then the reports are ordered alphabetically since their lastActionCreated are the same
+                // Then the reports are ordered alphabetically since their lastVisibleActionCreated are the same
                 .then(() => {
                     const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
                     expect(displayNames).toHaveLength(3);
