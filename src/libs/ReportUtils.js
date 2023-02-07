@@ -686,7 +686,7 @@ function getPolicyExpenseChatName(report, policies = {}) {
     // If this user is not admin and this policy expense chat has been archived because of account merging, this must be an old workspace chat
     // of the account which was merged into the current user's account. Use the name of the policy as the name of the report.
     if (isArchivedRoom(report) && getArchiveReason(ReportActionsUtils.getLastVisibleAction(report.reportID)) === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED
-        && policyExpenseChatRole !== 'admin') {
+        && policyExpenseChatRole !== CONST.POLICY.ROLE.ADMIN) {
         return getPolicyName(report, policies);
     }
 
