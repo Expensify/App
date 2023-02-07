@@ -179,4 +179,7 @@ export default {
 
     // Whether we should show the compose input or not
     SHOULD_SHOW_COMPOSE_INPUT: 'shouldShowComposeInput',
+
+    // Is app in beta version
+    IS_BETA: 'isBeta',
 };
