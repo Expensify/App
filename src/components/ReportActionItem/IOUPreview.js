@@ -22,6 +22,10 @@ import Text from '../Text';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import walletTermsPropTypes from '../../pages/EnablePayments/walletTermsPropTypes';
+import ControlSelection from '../../libs/ControlSelection';
+import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
+import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
+import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as ReportUtils from '../../libs/ReportUtils';
 import Button from '../Button';
 
@@ -41,6 +45,15 @@ const propTypes = {
 
     /** Callback for the preview pressed */
     onPreviewPressed: PropTypes.func,
+
+    /** All the data of the action, used for showing context menu */
+    action: PropTypes.shape(reportActionPropTypes),
+
+    /** Popover context menu anchor, used for showing context menu */
+    contextMenuAnchor: PropTypes.shape({current: PropTypes.elementType}),
+
+    /** Callback for updating context menu active state, used for showing context menu */
+    checkIfContextMenuActive: PropTypes.func,
 
     /** Extra styles to pass to View wrapper */
     // eslint-disable-next-line react/forbid-prop-types
@@ -96,6 +109,9 @@ const defaultProps = {
     shouldHidePayButton: false,
     onPayButtonPressed: null,
     onPreviewPressed: () => {},
+    action: undefined,
+    contextMenuAnchor: undefined,
+    checkIfContextMenuActive: () => {},
     containerStyles: [],
     walletTerms: {},
     pendingAction: null,
@@ -118,19 +134,40 @@ const IOUPreview = (props) => {
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerEmail === sessionEmail;
 
-    const managerName = lodashGet(props.personalDetails, [managerEmail, 'firstName'], '')
-                        || Str.removeSMSDomain(managerEmail);
-    const ownerName = lodashGet(props.personalDetails, [ownerEmail, 'firstName'], '') || Str.removeSMSDomain(ownerEmail);
-    const managerAvatar = lodashGet(props.personalDetails, [managerEmail, 'avatar']) || ReportUtils.getDefaultAvatar(managerEmail);
-    const ownerAvatar = lodashGet(props.personalDetails, [ownerEmail, 'avatar']) || ReportUtils.getDefaultAvatar(ownerEmail);
+    const managerName = ReportUtils.getDisplayNameForParticipant(managerEmail, true);
+    const ownerName = ReportUtils.getDisplayNameForParticipant(ownerEmail, true);
+    const managerAvatar = ReportUtils.getAvatar(lodashGet(props.personalDetails, [managerEmail, 'avatar']), managerEmail);
+    const ownerAvatar = ReportUtils.getAvatar(lodashGet(props.personalDetails, [ownerEmail, 'avatar']), ownerEmail);
     const cachedTotal = props.iouReport.total && props.iouReport.currency
         ? props.numberFormat(
             Math.abs(props.iouReport.total) / 100,
             {style: 'currency', currency: props.iouReport.currency},
         ) : '';
     const avatarTooltip = [Str.removeSMSDomain(managerEmail), Str.removeSMSDomain(ownerEmail)];
+
+    const showContextMenu = (event) => {
+        // Use action and shouldHidePayButton props to check if we are in IOUDetailsModal,
+        // if it's true, do nothing when user long press, otherwise show context menu.
+        if (!props.action && props.shouldHidePayButton) {
+            return;
+        }
+
+        showContextMenuForReport(
+            event,
+            props.contextMenuAnchor,
+            props.chatReportID,
+            props.action,
+            props.checkIfContextMenuActive,
+        );
+    };
+
     return (
-        <TouchableWithoutFeedback onPress={props.onPreviewPressed}>
+        <TouchableWithoutFeedback
+            onPress={props.onPreviewPressed}
+            onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+            onPressOut={() => ControlSelection.unblock()}
+            onLongPress={showContextMenu}
+        >
             <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
                 <OfflineWithFeedback
                     pendingAction={props.pendingAction}
@@ -175,11 +212,18 @@ const IOUPreview = (props) => {
                                 </Text>
                             )
                             : (
-                                <Text>
-                                    {props.iouReport.hasOutstandingIOU
-                                        ? props.translate('iou.owesyou', {manager: managerName})
-                                        : props.translate('iou.paidyou', {manager: managerName})}
-                                </Text>
+                                <>
+                                    <Text>
+                                        {props.iouReport.hasOutstandingIOU
+                                            ? props.translate('iou.owesyou', {manager: managerName})
+                                            : props.translate('iou.paidyou', {manager: managerName})}
+                                    </Text>
+                                    {props.shouldShowPendingConversionMessage && (
+                                        <Text style={[styles.textLabel, styles.colorMuted]}>
+                                            {props.translate('iou.pendingConversionMessage')}
+                                        </Text>
+                                    )}
+                                </>
                             )}
                         {(isCurrentUserManager
                             && !props.shouldHidePayButton
@@ -187,6 +231,9 @@ const IOUPreview = (props) => {
                                 <Button
                                     style={styles.mt4}
                                     onPress={props.onPayButtonPressed}
+                                    onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                                    onPressOut={() => ControlSelection.unblock()}
+                                    onLongPress={showContextMenu}
                                     text={props.translate('iou.pay')}
                                     success
                                     medium

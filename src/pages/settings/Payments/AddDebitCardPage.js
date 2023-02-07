@@ -108,7 +108,7 @@ class DebitCardPage extends Component {
 
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('addDebitCardPage.addADebitCard')}
                     shouldShowBackButton
@@ -120,6 +120,8 @@ class DebitCardPage extends Component {
                     validate={this.validate}
                     onSubmit={PaymentMethods.addPaymentCard}
                     submitButtonText={this.props.translate('common.save')}
+                    scrollContextEnabled
+                    scrollToOverflowEnabled
                     style={[styles.mh5, styles.flexGrow1]}
                 >
                     <TextInput
@@ -186,12 +188,12 @@ class DebitCardPage extends Component {
                     <CheckboxWithLabel
                         inputID="acceptedTerms"
                         LabelComponent={() => (
-                            <>
-                                <Text>{`${this.props.translate('common.iAcceptThe')}`}</Text>
+                            <Text>
+                                {`${this.props.translate('common.iAcceptThe')}`}
                                 <TextLink href="https://use.expensify.com/terms">
                                     {`${this.props.translate('addDebitCardPage.expensifyTermsOfService')}`}
                                 </TextLink>
-                            </>
+                            </Text>
                         )}
                         style={[styles.mt4]}
                     />

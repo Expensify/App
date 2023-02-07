@@ -1,8 +1,9 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import moment from 'moment';
 import {
-    beforeEach, beforeAll, afterEach, jest, describe, it, expect,
+    beforeEach, beforeAll, afterEach, describe, it, expect,
 } from '@jest/globals';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as Pusher from '../../src/libs/Pusher/pusher';
@@ -17,6 +18,15 @@ import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import * as User from '../../src/libs/actions/User';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import DateUtils from '../../src/libs/DateUtils';
+
+jest.mock('../../src/libs/actions/Report', () => {
+    const originalModule = jest.requireActual('../../src/libs/actions/Report');
+
+    return {
+        ...originalModule,
+        showReportActionNotification: jest.fn(),
+    };
+});
 
 describe('actions/Report', () => {
     beforeAll(() => {
@@ -55,7 +65,7 @@ describe('actions/Report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = 1;
-        const ACTION_ID = 1;
+        let reportActionID;
         const REPORT_ACTION = {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
             actorAccountID: TEST_USER_ACCOUNT_ID,
@@ -64,7 +74,6 @@ describe('actions/Report', () => {
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
             message: [{type: 'COMMENT', html: 'Testing a comment', text: 'Testing a comment'}],
             person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
-            sequenceNumber: ACTION_ID,
             shouldShow: true,
         };
 
@@ -73,8 +82,6 @@ describe('actions/Report', () => {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: val => reportActions = val,
         });
-
-        let clientID;
 
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
@@ -91,25 +98,21 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 const resultAction = _.first(_.values(reportActions));
+                reportActionID = resultAction.reportActionID;
 
-                // Store the generated clientID so that we can send it with our mock Pusher update
-                clientID = resultAction.clientID;
                 expect(resultAction.message).toEqual(REPORT_ACTION.message);
                 expect(resultAction.person).toEqual(REPORT_ACTION.person);
-                expect(resultAction.pendingAction).toEqual(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                expect(resultAction.pendingAction).toBeNull();
 
                 // We subscribed to the Pusher channel above and now we need to simulate a reportComment action
                 // Pusher event so we can verify that action was handled correctly and merged into the reportActions.
                 const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`);
-                const actionWithoutLoading = {...resultAction};
-                delete actionWithoutLoading.pendingAction;
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                     {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
                         value: {
                             reportID: REPORT_ID,
-                            maxSequenceNumber: 1,
                             notificationPreference: 'always',
                             lastActionCreated: '2022-11-22 03:48:27.267',
                             lastMessageText: 'Testing a comment',
@@ -120,8 +123,7 @@ describe('actions/Report', () => {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
-                            [clientID]: null,
-                            [ACTION_ID]: actionWithoutLoading,
+                            [reportActionID]: {pendingAction: null},
                         },
                     },
                 ]);
@@ -135,10 +137,10 @@ describe('actions/Report', () => {
                 // Verify there is only one action and our optimistic comment has been removed
                 expect(_.size(reportActions)).toBe(1);
 
-                const resultAction = reportActions[ACTION_ID];
+                const resultAction = reportActions[reportActionID];
 
                 // Verify that our action is no longer in the loading state
-                expect(resultAction.pendingAction).not.toBeDefined();
+                expect(resultAction.pendingAction).toBeNull();
             });
     });
 
@@ -207,6 +209,7 @@ describe('actions/Report', () => {
         const REPORT_ID = 1;
         let report;
         let reportActionCreatedDate;
+        let currentTime;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
             callback: val => report = val,
@@ -240,12 +243,11 @@ describe('actions/Report', () => {
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
                         value: {
                             reportID: REPORT_ID,
-                            maxSequenceNumber: 1,
                             notificationPreference: 'always',
-                            lastActionCreated: '2022-11-22 03:48:27.267',
                             lastMessageText: 'Comment 1',
                             lastActorEmail: USER_2_LOGIN,
-                            lastReadSequenceNumber: 0,
+                            lastActionCreated: reportActionCreatedDate,
+                            lastReadTime: DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1),
                         },
                     },
                     {
@@ -260,9 +262,9 @@ describe('actions/Report', () => {
                                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
                                 message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
                                 person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
-                                sequenceNumber: 1,
                                 shouldShow: true,
                                 created: reportActionCreatedDate,
+                                reportActionID: '1',
                             },
                         },
                     },
@@ -274,49 +276,55 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report)).toBe(true);
 
                 // When the user visits the report
+                currentTime = DateUtils.getDBTime();
                 Report.openReport(REPORT_ID);
                 return waitForPromisesToResolve();
             })
             .then(() => {
                 // The report will be read
                 expect(ReportUtils.isUnread(report)).toBe(false);
+                expect(moment.utc(report.lastReadTime).valueOf()).toBeGreaterThanOrEqual(moment.utc(currentTime).valueOf());
 
                 // When the user manually marks a message as "unread"
-                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate, 1);
+                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate);
                 return waitForPromisesToResolve();
             })
             .then(() => {
                 // Then the report will be unread
                 expect(ReportUtils.isUnread(report)).toBe(true);
+                expect(report.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
 
                 // When a new comment is added by the current user
+                currentTime = DateUtils.getDBTime();
                 Report.addComment(REPORT_ID, 'Current User Comment 1');
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // The report will be read and the lastReadSequenceNumber incremented
+                // The report will be read and the lastReadTime updated
                 expect(ReportUtils.isUnread(report)).toBe(false);
-                expect(report.lastReadSequenceNumber).toBe(2);
+                expect(moment.utc(report.lastReadTime).valueOf()).toBeGreaterThanOrEqual(moment.utc(currentTime).valueOf());
                 expect(report.lastMessageText).toBe('Current User Comment 1');
 
                 // When another comment is added by the current user
+                currentTime = DateUtils.getDBTime();
                 Report.addComment(REPORT_ID, 'Current User Comment 2');
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // The report will be read and the lastReadSequenceNumber incremented
+                // The report will be read and the lastReadTime updated
                 expect(ReportUtils.isUnread(report)).toBe(false);
-                expect(report.lastReadSequenceNumber).toBe(3);
+                expect(moment.utc(report.lastReadTime).valueOf()).toBeGreaterThanOrEqual(moment.utc(currentTime).valueOf());
                 expect(report.lastMessageText).toBe('Current User Comment 2');
 
                 // When another comment is added by the current user
+                currentTime = DateUtils.getDBTime();
                 Report.addComment(REPORT_ID, 'Current User Comment 3');
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // The report will be read and the lastReadSequenceNumber incremented
+                // The report will be read and the lastReadTime updated
                 expect(ReportUtils.isUnread(report)).toBe(false);
-                expect(report.lastReadSequenceNumber).toBe(4);
+                expect(moment.utc(report.lastReadTime).valueOf()).toBeGreaterThanOrEqual(moment.utc(currentTime).valueOf());
                 expect(report.lastMessageText).toBe('Current User Comment 3');
 
                 const USER_1_BASE_ACTION = {
@@ -327,39 +335,35 @@ describe('actions/Report', () => {
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
                     person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                     shouldShow: true,
-                    created: DateUtils.getDBTime(),
-                    reportActionID: 'derp',
+                    created: DateUtils.getDBTime(Date.now() - 3),
                 };
 
                 const optimisticReportActions = {
                     onyxMethod: CONST.ONYX.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                     value: {
-                        [_.toArray(reportActions)[1].clientID]: null,
-                        [_.toArray(reportActions)[2].clientID]: null,
-                        [_.toArray(reportActions)[3].clientID]: null,
-                        2: {
+                        200: {
                             ...USER_1_BASE_ACTION,
                             message: [{type: 'COMMENT', html: 'Current User Comment 1', text: 'Current User Comment 1'}],
-                            created: DateUtils.getDBTime(),
-                            sequenceNumber: 2,
+                            created: DateUtils.getDBTime(Date.now() - 2),
+                            reportActionID: '200',
                         },
-                        3: {
+                        300: {
                             ...USER_1_BASE_ACTION,
                             message: [{type: 'COMMENT', html: 'Current User Comment 2', text: 'Current User Comment 2'}],
-                            created: DateUtils.getDBTime(),
-                            sequenceNumber: 3,
+                            created: DateUtils.getDBTime(Date.now() - 1),
+                            reportActionID: '300',
                         },
-                        4: {
+                        400: {
                             ...USER_1_BASE_ACTION,
                             message: [{type: 'COMMENT', html: 'Current User Comment 3', text: 'Current User Comment 3'}],
                             created: DateUtils.getDBTime(),
-                            sequenceNumber: 4,
+                            reportActionID: '400',
                         },
                     },
                 };
                 reportActionCreatedDate = DateUtils.getDBTime();
-                optimisticReportActions.value[4].created = reportActionCreatedDate;
+                optimisticReportActions.value[400].created = reportActionCreatedDate;
 
                 // When we emit the events for these pending created actions to update them to not pending
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
@@ -368,12 +372,11 @@ describe('actions/Report', () => {
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
                         value: {
                             reportID: REPORT_ID,
-                            maxSequenceNumber: 4,
                             notificationPreference: 'always',
-                            lastActionCreated: '2022-11-22 03:48:27.267',
                             lastMessageText: 'Current User Comment 3',
                             lastActorEmail: 'test@test.com',
-                            lastReadSequenceNumber: 4,
+                            lastActionCreated: reportActionCreatedDate,
+                            lastReadTime: reportActionCreatedDate,
                         },
                     },
                     optimisticReportActions,
@@ -383,25 +386,25 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // If the user deletes a comment that is before the last read
-                Report.deleteReportComment(REPORT_ID, {...reportActions[2], sequenceNumber: 2, clientID: null});
+                Report.deleteReportComment(REPORT_ID, {...reportActions[200]});
                 return waitForPromisesToResolve();
             })
             .then(() => {
                 // Then no change will occur
-                expect(report.lastReadSequenceNumber).toBe(4);
+                expect(report.lastReadTime).toBe(reportActionCreatedDate);
                 expect(ReportUtils.isUnread(report)).toBe(false);
 
                 // When the user manually marks a message as "unread"
-                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate, 3);
+                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate);
                 return waitForPromisesToResolve();
             })
             .then(() => {
                 // Then we should expect the report to be to be unread
                 expect(ReportUtils.isUnread(report)).toBe(true);
-                expect(report.lastReadSequenceNumber).toBe(2);
+                expect(report.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
 
-                // If the user deletes the last comment after the last read the lastMessageText will reflect the new last comment
-                Report.deleteReportComment(REPORT_ID, {...reportActions[4], sequenceNumber: 4, clientID: null});
+                // If the user deletes the last comment after the lastReadTime the lastMessageText will reflect the new last comment
+                Report.deleteReportComment(REPORT_ID, {...reportActions[400]});
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -455,5 +458,36 @@ describe('actions/Report', () => {
         newCommentMarkdown = Report.handleUserDeletedLinks(afterEditCommentText, originalCommentHTML);
         expectedOutput = 'Comment www.google.com  [www.facebook.com](https://www.facebook.com)';
         expect(newCommentMarkdown).toBe(expectedOutput);
+    });
+
+    it('should show a notification for report action updates with shouldNotify', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const REPORT_ID = 1;
+        const REPORT_ACTION = {};
+
+        // Setup user and pusher listeners
+        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID)
+            .then(() => {
+                User.subscribeToUserEvents();
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                // Simulate a Pusher Onyx update with a report action with shouldNotify
+                const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${TEST_USER_ACCOUNT_ID}${CONFIG.PUSHER.SUFFIX}`);
+                channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
+                    {
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                        value: {
+                            1: REPORT_ACTION,
+                        },
+                        shouldNotify: true,
+                    },
+                ]);
+                return waitForPromisesToResolve();
+            }).then(() => {
+                // Ensure we show a notification for this new report action
+                expect(Report.showReportActionNotification).toBeCalledWith(String(REPORT_ID), REPORT_ACTION);
+            });
     });
 });

@@ -227,6 +227,9 @@ const localizeMenuItems = (browserWindow, systemMenu) => {
 };
 
 const mainWindow = (() => {
+    let deeplinkUrl;
+    let browserWindow;
+
     const loadURL = __DEV__
         ? win => win.loadURL(`http://localhost:${port}`)
         : serve({directory: `${__dirname}/www`});
@@ -238,6 +241,19 @@ const mainWindow = (() => {
         app.setName('New Expensify');
     }
 
+    app.on('will-finish-launching', () => {
+        app.on('open-url', (event, url) => {
+            event.preventDefault();
+            const urlObject = new URL(url);
+            deeplinkUrl = `${APP_DOMAIN}${urlObject.pathname}`;
+
+            if (browserWindow) {
+                browserWindow.loadURL(deeplinkUrl);
+                browserWindow.show();
+            }
+        });
+    });
+
     /*
     * Starting from Electron 20, it shall be required to set sandbox option to false explicitly.
     * Running a preload script contextBridge.js require access to nodeJS modules from the javascript code.
@@ -246,7 +262,15 @@ const mainWindow = (() => {
     * */
     return app.whenReady()
         .then(() => {
-            const browserWindow = new BrowserWindow({
+            /**
+             * We only want to register the scheme this way when in dev, since
+             * when the app is bundled electron-builder will take care of it.
+             */
+            if (__DEV__) {
+                app.setAsDefaultProtocolClient('new-expensify');
+            }
+
+            browserWindow = new BrowserWindow({
                 backgroundColor: '#FAFAFA',
                 width: 1200,
                 height: 900,
@@ -455,18 +479,26 @@ const mainWindow = (() => {
         })
 
         // After initializing and configuring the browser window, load the compiled JavaScript
-        .then((browserWindow) => {
-            loadURL(browserWindow);
-            return browserWindow;
+        .then((browserWindowRef) => {
+            loadURL(browserWindow).then(() => {
+                if (!deeplinkUrl) {
+                    return;
+                }
+
+                browserWindow.loadURL(deeplinkUrl);
+                browserWindow.show();
+            });
+
+            return browserWindowRef;
         })
 
         // Start checking for JS updates
-        .then((browserWindow) => {
+        .then((browserWindowRef) => {
             if (__DEV__) {
                 return;
             }
 
-            checkForUpdates(electronUpdater(browserWindow));
+            checkForUpdates(electronUpdater(browserWindowRef));
         });
 });
 

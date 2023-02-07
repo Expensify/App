@@ -107,7 +107,7 @@ const OfflineWithFeedback = (props) => {
                     <Tooltip text={props.translate('common.close')}>
                         <Pressable
                             onPress={props.onClose}
-                            style={[styles.touchableButtonImage, styles.mr0]}
+                            style={[styles.touchableButtonImage]}
                             accessibilityRole="button"
                             accessibilityLabel={props.translate('common.close')}
                         >

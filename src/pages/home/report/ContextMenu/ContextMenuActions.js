@@ -4,6 +4,7 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as Report from '../../../../libs/actions/Report';
+import * as Download from '../../../../libs/actions/Download';
 import Clipboard from '../../../../libs/Clipboard';
 import * as ReportUtils from '../../../../libs/ReportUtils';
 import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
@@ -50,10 +51,11 @@ export default [
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
             const html = lodashGet(message, 'html', '');
             const attachmentDetails = getAttachmentDetails(html);
-            const {originalFileName} = attachmentDetails;
-            let {sourceURL} = attachmentDetails;
-            sourceURL = addEncryptedAuthTokenToURL(sourceURL);
-            fileDownload(sourceURL, originalFileName);
+            const {originalFileName, sourceURL} = attachmentDetails;
+            const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL);
+            const sourceID = (sourceURL.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
+            Download.setDownload(sourceID, true);
+            fileDownload(sourceURLWithAuth, originalFileName).then(() => Download.setDownload(sourceID, false));
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
@@ -110,7 +112,12 @@ export default [
                     if (!Clipboard.canSetHtml()) {
                         Clipboard.setString(parser.htmlToMarkdown(content));
                     } else {
-                        Clipboard.setHtml(content, Str.htmlDecode(parser.htmlToText(content)));
+                        // Thanks to how browsers work, when text is highlighted and CTRL+c is pressed, browsers end up doubling the amount of newlines. Since the code in this file is
+                        // triggered from a context menu and not CTRL+c, the newlines need to be doubled so that the content that goes into the clipboard is consistent with CTRL+c behavior.
+                        // The extra newlines are stripped when the contents are pasted into the compose input, but if the contents are pasted outside of the comment composer, it will
+                        // contain extra newlines and that's OK because it is consistent with CTRL+c behavior.
+                        const plainText = Str.htmlDecode(parser.htmlToText(content)).replace(/\n/g, '\n\n');
+                        Clipboard.setHtml(content, plainText);
                     }
                 }
             } else {
@@ -152,7 +159,7 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
         onPress: (closePopover, {reportAction, reportID}) => {
-            Report.markCommentAsUnread(reportID, reportAction.created, reportAction.sequenceNumber);
+            Report.markCommentAsUnread(reportID, reportAction.created);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }

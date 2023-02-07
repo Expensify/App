@@ -74,7 +74,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
             requestAnimationFrame(() => {
                 Performance.measureFailSafe('TTI', 'nativeLaunchStart', endMark);
 
-                // we don't want the alert to show on a e2e test sessio
+                // we don't want the alert to show on an e2e test session
                 if (!isE2ETestSession()) {
                     Performance.printPerformanceMetrics();
                 }

@@ -18,6 +18,7 @@ platform :android do
   lane :build_e2e do
     ENV["ENVFILE"]="tests/e2e/.env.e2e"
     ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.js"
+    ENV["E2E_TESTING"]="true"
 
     gradle(
       project_dir: './android',
@@ -52,8 +53,8 @@ platform :android do
       bucket: ENV['S3_BUCKET'],
       region: ENV['S3_REGION'],
 
-      apk: lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH],                      
-      app_directory: "android/#{ENV['PULL_REQUEST_NUMBER']}",                      
+      apk: lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH],
+      app_directory: "android/#{ENV['PULL_REQUEST_NUMBER']}",
     )
 
     sh("echo '{\"apk_path\": \"#{lane_context[SharedValues::S3_APK_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../android_paths.json")

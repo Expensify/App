@@ -1,5 +1,4 @@
 import {Linking} from 'react-native';
-import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -20,6 +19,7 @@ import * as ReportUtils from '../ReportUtils';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
+import * as Localize from '../Localize';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -39,22 +39,6 @@ Onyx.connect({
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
-
-/**
- * @param {String} reportID
- * @returns {Number}
- */
-function getLastReadSequenceNumber(reportID) {
-    return lodashGet(allReports, [reportID, 'lastReadSequenceNumber'], 0);
-}
-
-/**
- * @param {String} reportID
- * @returns {Number}
- */
-function getMaxSequenceNumber(reportID) {
-    return lodashGet(allReports, [reportID, 'maxSequenceNumber'], 0);
-}
 
 /**
  * Get the private pusher channel name for a Report.
@@ -82,11 +66,17 @@ function subscribeToReportCommentPushNotifications() {
             if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
                 Navigation.goBack();
             }
-            Navigation.navigate(ROUTES.getReportRoute(reportID));
+            Navigation.isDrawerReady()
+                .then(() => {
+                    Navigation.navigate(ROUTES.getReportRoute(reportID));
+                });
         } else {
             // Navigation container is not yet ready, use deeplinking to open to correct report instead
             Navigation.setDidTapNotification();
-            Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
+            Navigation.isDrawerReady()
+                .then(() => {
+                    Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
+                });
         }
     });
 }
@@ -126,7 +116,7 @@ function subscribeToReportTypingEvents(reportID) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
 
     const pusherChannelName = getReportChannelName(reportID);
-    Pusher.subscribe(pusherChannelName, 'client-userIsTyping', (typingStatus) => {
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.USER_IS_TYPING, (typingStatus) => {
         const normalizedTypingStatus = getNormalizedTypingStatus(typingStatus);
         const login = _.first(_.keys(normalizedTypingStatus));
 
@@ -169,7 +159,28 @@ function unsubscribeFromReportChannel(reportID) {
 
     const pusherChannelName = getReportChannelName(reportID);
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
-    Pusher.unsubscribe(pusherChannelName);
+    Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.USER_IS_TYPING);
+}
+
+const defaultNewActionSubscriber = {
+    reportID: '',
+    callback: () => {},
+};
+
+let newActionSubscriber = defaultNewActionSubscriber;
+
+/**
+ * Enables the Report actions file to let the ReportActionsView know that a new comment has arrived in realtime for the current report
+ *
+ * @param {String} reportID
+ * @param {Function} callback
+ * @returns {Function}
+ */
+function subscribeToNewActionEvent(reportID, callback) {
+    newActionSubscriber = {callback, reportID};
+    return () => {
+        newActionSubscriber = defaultNewActionSubscriber;
+    };
 }
 
 /**
@@ -189,49 +200,39 @@ function addActions(reportID, text = '', file) {
     let attachmentAction;
     let commandName = 'AddComment';
 
-    const highestSequenceNumber = getMaxSequenceNumber(reportID);
-
     if (text) {
-        const nextSequenceNumber = highestSequenceNumber + 1;
-        const reportComment = ReportUtils.buildOptimisticReportAction(nextSequenceNumber, text);
+        const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text);
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
 
     if (file) {
-        const nextSequenceNumber = (text && file) ? highestSequenceNumber + 2 : highestSequenceNumber + 1;
-
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = 'AddAttachment';
-        const attachment = ReportUtils.buildOptimisticReportAction(nextSequenceNumber, '', file);
+        const attachment = ReportUtils.buildOptimisticAddCommentReportAction('', file);
         attachmentAction = attachment.reportAction;
     }
 
     // Always prefer the file as the last action over text
     const lastAction = attachmentAction || reportCommentAction;
 
-    // Our report needs a new maxSequenceNumber that is n larger than the current depending on how many actions we are adding.
-    const actionCount = text && file ? 2 : 1;
-    const newSequenceNumber = highestSequenceNumber + actionCount;
+    const currentTime = DateUtils.getDBTime();
 
-    // Update the report in Onyx to have the new sequence number
     const optimisticReport = {
-        maxSequenceNumber: newSequenceNumber,
-        lastActionCreated: DateUtils.getDBTime(),
+        lastActionCreated: currentTime,
         lastMessageText: ReportUtils.formatReportLastMessageText(lastAction.message[0].text),
         lastActorEmail: currentUserEmail,
-        lastReadSequenceNumber: newSequenceNumber,
+        lastReadTime: currentTime,
     };
 
-    // Optimistically add the new actions to the store before waiting to save them to the server. We use the clientID
-    // so that we can later unset these messages via the server by sending {[clientID]: null}
+    // Optimistically add the new actions to the store before waiting to save them to the server
     const optimisticReportActions = {};
     if (text) {
-        optimisticReportActions[reportCommentAction.clientID] = reportCommentAction;
+        optimisticReportActions[reportCommentAction.reportActionID] = reportCommentAction;
     }
     if (file) {
-        optimisticReportActions[attachmentAction.clientID] = attachmentAction;
+        optimisticReportActions[attachmentAction.reportActionID] = attachmentAction;
     }
 
     const parameters = {
@@ -239,9 +240,8 @@ function addActions(reportID, text = '', file) {
         reportActionID: file ? attachmentAction.reportActionID : reportCommentAction.reportActionID,
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
-        clientID: lastAction.clientID,
-        commentClientID: lodashGet(reportCommentAction, 'clientID', ''),
         file,
+        shouldKeyReportActionsByID: true,
     };
 
     const optimisticData = [
@@ -254,6 +254,22 @@ function addActions(reportID, text = '', file) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: optimisticReportActions,
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: _.mapObject(optimisticReportActions, () => ({pendingAction: null})),
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: _.mapObject(optimisticReportActions, action => ({...action, errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericAddCommentFailureMessage')}})),
         },
     ];
 
@@ -271,7 +287,15 @@ function addActions(reportID, text = '', file) {
 
     API.write(commandName, parameters, {
         optimisticData,
+        successData,
+        failureData,
     });
+
+    // Notify the ReportActionsView that a new comment has arrived
+    if (reportID === newActionSubscriber.reportID) {
+        const isFromCurrentUser = lastAction.actorAccountID === currentUserAccountID;
+        newActionSubscriber.callback(isFromCurrentUser, lastAction.reportActionID);
+    }
 }
 
 /**
@@ -305,38 +329,49 @@ function addComment(reportID, text) {
  * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
  */
 function openReport(reportID, participantList = [], newReportObject = {}) {
+    const optimisticReportData = {
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            isLoadingReportActions: true,
+            isLoadingMoreReportActions: false,
+            lastReadTime: DateUtils.getDBTime(),
+            reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
+        },
+    };
+    const reportSuccessData = {
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            isLoadingReportActions: false,
+            pendingFields: {
+                createChat: null,
+            },
+            errorFields: {
+                createChat: null,
+            },
+            isOptimisticReport: false,
+        },
+    };
+
     const onyxData = {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                isLoadingReportActions: true,
-                isLoadingMoreReportActions: false,
-                lastReadTimestamp: Date.now(),
-                lastReadSequenceNumber: getMaxSequenceNumber(reportID),
-                reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
-            },
-        }],
-        successData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                isLoadingReportActions: false,
-                pendingFields: {
-                    createChat: null,
-                },
-                errorFields: {
-                    createChat: null,
-                },
-                isOptimisticReport: false,
-            },
-        }],
+        optimisticData: [optimisticReportData],
+        successData: [reportSuccessData],
+    };
+
+    const params = {
+        reportID,
+        emailList: participantList ? participantList.join(',') : '',
+        shouldKeyReportActionsByID: true,
     };
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
     if (!_.isEmpty(newReportObject)) {
-        onyxData.optimisticData[0].value = {
-            ...onyxData.optimisticData[0].value,
+        // Change the method to set for new reports because it doesn't exist yet, is faster,
+        // and we need the data to be available when we navigate to the chat page
+        optimisticReportData.onyxMethod = CONST.ONYX.METHOD.SET;
+        optimisticReportData.value = {
+            ...optimisticReportData.value,
             ...newReportObject,
             pendingFields: {
                 createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -344,23 +379,23 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             isOptimisticReport: true,
         };
 
-        // Change the method to set for new reports because it doesn't exist yet, is faster,
-        // and we need the data to be available when we navigate to the chat page
-        onyxData.optimisticData[0].onyxMethod = CONST.ONYX.METHOD.SET;
-
-        // Also create a report action so that the page isn't endlessly loading
-        onyxData.optimisticData[1] = {
+        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail);
+        onyxData.optimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail),
-        };
+            value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
+        });
+        onyxData.successData.push({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
+        });
+
+        // Add the createdReportActionID parameter to the API call
+        params.createdReportActionID = optimisticCreatedAction.reportActionID;
     }
-    API.write('OpenReport',
-        {
-            reportID,
-            emailList: participantList ? participantList.join(',') : '',
-        },
-        onyxData);
+
+    API.write('OpenReport', params, onyxData);
 }
 
 /**
@@ -389,7 +424,10 @@ function navigateToAndOpenReport(userLogins) {
  */
 function reconnect(reportID) {
     API.write('ReconnectToReport',
-        {reportID},
+        {
+            reportID,
+            shouldKeyReportActionsByID: true,
+        },
         {
             optimisticData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -421,13 +459,13 @@ function reconnect(reportID) {
  * Normally happens when you scroll up on a chat, and the actions have not been read yet.
  *
  * @param {String} reportID
- * @param {Number} oldestActionSequenceNumber
+ * @param {String} reportActionID
  */
-function readOldestAction(reportID, oldestActionSequenceNumber) {
+function readOldestAction(reportID, reportActionID) {
     API.read('ReadOldestAction',
         {
             reportID,
-            reportActionsOffset: oldestActionSequenceNumber,
+            reportActionID,
         },
         {
             optimisticData: [{
@@ -464,6 +502,35 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
     API.read('OpenPaymentDetailsPage', {
         reportID: chatReportID,
         iouReportID,
+        shouldKeyReportActionsByID: true,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IOU,
+                value: {
+                    loading: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IOU,
+                value: {
+                    loading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IOU,
+                value: {
+                    loading: false,
+                },
+            },
+        ],
     });
 }
 
@@ -471,52 +538,45 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
  * Marks the new report actions as read
  *
  * @param {String} reportID
- * @param {String} createdDate
  */
-function readNewestAction(reportID, createdDate) {
-    const sequenceNumber = getMaxSequenceNumber(reportID);
+function readNewestAction(reportID) {
     API.write('ReadNewestAction',
         {
             reportID,
-            createdDate,
-            sequenceNumber,
         },
         {
             optimisticData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
-                    lastReadSequenceNumber: sequenceNumber,
-                    lastReadTimestamp: Date.now(),
+                    lastReadTime: DateUtils.getDBTime(),
                 },
             }],
         });
 }
 
 /**
- * Sets the last read comment on a report
+ * Sets the last read time on a report
  *
  * @param {String} reportID
- * @param {String} createdDate
- * @param {Number} sequenceNumber
+ * @param {String} reportActionCreated
  */
-function markCommentAsUnread(reportID, createdDate, sequenceNumber) {
-    const newLastReadSequenceNumber = sequenceNumber - 1;
+function markCommentAsUnread(reportID, reportActionCreated) {
+    // We subtract 1 millisecond so that the lastReadTime is updated to just before a given reportAction's created date
+    // For example, if we want to mark a report action with ID 100 and created date '2014-04-01 16:07:02.999' unread, we set the lastReadTime to '2014-04-01 16:07:02.998'
+    // Since the report action with ID 100 will be the first with a timestamp above '2014-04-01 16:07:02.998', it's the first one that will be shown as unread
+    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(reportActionCreated, 1);
     API.write('MarkAsUnread',
         {
             reportID,
-
-            // We subtract 1 millisecond so that the lastRead is updated to just before this reportAction's created date
-            createdDate: DateUtils.getDBTime(moment.utc(createdDate).valueOf() - 1),
-            sequenceNumber,
+            lastReadTime,
         },
         {
             optimisticData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
-                    lastReadSequenceNumber: newLastReadSequenceNumber,
-                    lastReadTimestamp: Date.now(),
+                    lastReadTime,
                 },
             }],
         });
@@ -576,12 +636,11 @@ function broadcastUserIsTyping(reportID) {
     const privateReportChannelName = getReportChannelName(reportID);
     const typingStatus = {};
     typingStatus[currentUserEmail] = true;
-    Pusher.sendEvent(privateReportChannelName, 'client-userIsTyping', typingStatus);
+    Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_TYPING, typingStatus);
 }
 
 /**
  * When a report changes in Onyx, this fetches the report from the API if the report doesn't have a name
- * and it keeps track of the max sequence number on the report actions.
  *
  * @param {Object} report
  */
@@ -617,7 +676,7 @@ Onyx.connect({
  * @param {Object} reportAction
  */
 function deleteReportComment(reportID, reportAction) {
-    const sequenceNumber = reportAction.sequenceNumber;
+    const reportActionID = reportAction.reportActionID;
     const deletedMessage = [{
         type: 'COMMENT',
         html: '',
@@ -625,7 +684,7 @@ function deleteReportComment(reportID, reportAction) {
         isEdited: true,
     }];
     const optimisticReportActions = {
-        [sequenceNumber]: {
+        [reportActionID]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             previousMessage: reportAction.message,
             message: deletedMessage,
@@ -633,18 +692,12 @@ function deleteReportComment(reportID, reportAction) {
     };
 
     // If we are deleting the last visible message, let's find the previous visible one and update the lastMessageText in the LHN.
-    // Similarly, if we are deleting the last read comment we will want to update the lastReadSequenceNumber and maxSequenceNumber to use the previous visible message.
+    // Similarly, if we are deleting the last read comment we will want to update the lastActionCreated to use the previous visible message.
     const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
-    const lastReadSequenceNumber = ReportActionsUtils.getOptimisticLastReadSequenceNumberForDeletedAction(
-        reportID,
-        optimisticReportActions,
-        reportAction.sequenceNumber,
-        getLastReadSequenceNumber(reportID),
-    );
+    const lastActionCreated = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions).created;
     const optimisticReport = {
         lastMessageText,
-        lastReadSequenceNumber,
-        maxSequenceNumber: lastReadSequenceNumber,
+        lastActionCreated,
     };
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
@@ -654,7 +707,7 @@ function deleteReportComment(reportID, reportAction) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [sequenceNumber]: {
+                [reportActionID]: {
                     message: reportAction.message,
                     pendingAction: null,
                     previousMessage: null,
@@ -668,7 +721,7 @@ function deleteReportComment(reportID, reportAction) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [sequenceNumber]: {
+                [reportActionID]: {
                     pendingAction: null,
                     previousMessage: null,
                 },
@@ -691,8 +744,8 @@ function deleteReportComment(reportID, reportAction) {
 
     const parameters = {
         reportID,
-        sequenceNumber,
         reportActionID: reportAction.reportActionID,
+        shouldKeyReportActionsByID: true,
     };
     API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
 }
@@ -791,9 +844,9 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     }
 
     // Optimistically update the reportAction with the new message
-    const sequenceNumber = originalReportAction.sequenceNumber;
+    const reportActionID = originalReportAction.reportActionID;
     const optimisticReportActions = {
-        [sequenceNumber]: {
+        [reportActionID]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             message: [{
                 isEdited: true,
@@ -817,7 +870,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [sequenceNumber]: {
+                [reportActionID]: {
                     ...originalReportAction,
                     pendingAction: null,
                 },
@@ -830,7 +883,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [sequenceNumber]: {
+                [reportActionID]: {
                     pendingAction: null,
                 },
             },
@@ -839,9 +892,9 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     const parameters = {
         reportID,
-        sequenceNumber,
         reportComment: htmlForNewComment,
-        reportActionID: originalReportAction.reportActionID,
+        reportActionID,
+        shouldKeyReportActionsByID: true,
     };
     API.write('UpdateComment', parameters, {optimisticData, successData, failureData});
 }
@@ -916,6 +969,7 @@ function addPolicyReport(policy, reportName, visibility) {
         // The room might contain all policy members so notifying always should be opt-in only.
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
     );
+    const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(policyReport.ownerEmail);
 
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
     // fetchReportIfNeeded is called on the ReportScreen, so openReport is called which is unnecessary since the optimistic data will be stored in Onyx.
@@ -934,7 +988,7 @@ function addPolicyReport(policy, reportName, visibility) {
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyReport.reportID}`,
-            value: ReportUtils.buildOptimisticCreatedReportAction(policyReport.ownerEmail),
+            value: {[createdReportAction.reportActionID]: createdReportAction},
         },
     ];
     const successData = [
@@ -951,7 +1005,7 @@ function addPolicyReport(policy, reportName, visibility) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyReport.reportID}`,
             value: {
-                0: {
+                [createdReportAction.reportActionID]: {
                     pendingAction: null,
                 },
             },
@@ -965,6 +1019,7 @@ function addPolicyReport(policy, reportName, visibility) {
             reportName,
             visibility,
             reportID: policyReport.reportID,
+            createdReportActionID: createdReportAction.reportActionID,
         },
         {optimisticData, successData},
     );
@@ -1051,70 +1106,37 @@ function setIsComposerFullSize(reportID, isComposerFullSize) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, isComposerFullSize);
 }
 
-const defaultNewActionSubscriber = {
-    reportID: '',
-    callback: () => {},
-};
-
-let newActionSubscriber = defaultNewActionSubscriber;
-
-/**
- * Enables the Report actions file to let the ReportActionsView know that a new comment has arrived in realtime for the current report
- *
- * @param {String} reportID
- * @param {Function} callback
- * @returns {Function}
- */
-function subscribeToNewActionEvent(reportID, callback) {
-    newActionSubscriber = {callback, reportID};
-    return () => {
-        newActionSubscriber = defaultNewActionSubscriber;
-    };
-}
-
 /**
  * @param {String} reportID
  * @param {Object} action
  */
-function viewNewReportAction(reportID, action) {
-    const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
-    const updatedReportObject = {};
-
-    // When handling an action from the current user we can assume that their last read actionID has been updated in the server,
-    // but not necessarily reflected locally so we will update the lastReadSequenceNumber to mark the report as read.
-    updatedReportObject.maxSequenceNumber = action.sequenceNumber;
-    if (isFromCurrentUser) {
-        updatedReportObject.lastReadTimestamp = Date.now();
-        updatedReportObject.lastReadSequenceNumber = action.sequenceNumber;
+function showReportActionNotification(reportID, action) {
+    if (ReportActionsUtils.isDeletedAction(action)) {
+        Log.info('[LOCAL_NOTIFICATION] Skipping notification because the action was deleted', false, {reportID, action});
+        return;
     }
 
-    if (reportID === newActionSubscriber.reportID) {
-        newActionSubscriber.callback(isFromCurrentUser, updatedReportObject.maxSequenceNumber);
-    }
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
-
-    const notificationPreference = lodashGet(allReports, [reportID, 'notificationPreference'], CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
     if (!ActiveClientManager.isClientTheLeader()) {
         Log.info('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
         return;
     }
 
     // We don't want to send a local notification if the user preference is daily or mute
+    const notificationPreference = lodashGet(allReports, [reportID, 'notificationPreference'], CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
     if (notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY) {
         Log.info(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
         return;
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
-    if (isFromCurrentUser) {
+    if (action.actorAccountID === currentUserAccountID) {
         Log.info('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
         return;
     }
 
     // If we are currently viewing this report do not show a notification.
     if (reportID === Navigation.getReportIDFromRoute() && Visibility.isVisible()) {
-        Log.info('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
+        Log.info('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report', false, {currentReport: Navigation.getReportIDFromRoute(), reportID, action});
         return;
     }
 
@@ -1125,7 +1147,7 @@ function viewNewReportAction(reportID, action) {
 
     // Don't show a notification if no comment exists
     if (!_.some(action.message, f => f.type === 'COMMENT')) {
-        Log.info('[LOCAL_NOTIFICATION] No notification because no comments exist for the current report');
+        Log.info('[LOCAL_NOTIFICATION] No notification because no comments exist for the current action');
         return;
     }
 
@@ -1137,6 +1159,12 @@ function viewNewReportAction(reportID, action) {
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         },
     });
+
+    // Notify the ReportActionsView that a new comment has arrived
+    if (reportID === newActionSubscriber.reportID) {
+        const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
+        newActionSubscriber.callback(isFromCurrentUser, action.reportActionID);
+    }
 }
 
 /**
@@ -1147,45 +1175,6 @@ function viewNewReportAction(reportID, action) {
 function clearIOUError(reportID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errorFields: {iou: null}});
 }
-
-// We are using this map to ensure actions are only handled once
-const handledReportActions = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    initWithStoredValues: false,
-    callback: (actions, key) => {
-        // reportID can be derived from the Onyx key
-        const reportID = key.split('_')[1];
-        if (!reportID) {
-            return;
-        }
-
-        _.each(actions, (action) => {
-            if (lodashGet(handledReportActions, [reportID, action.sequenceNumber])) {
-                return;
-            }
-
-            if (ReportActionsUtils.isDeletedAction(action)) {
-                return;
-            }
-
-            if (!action.created) {
-                return;
-            }
-
-            // If we are past the deadline to notify for this comment don't do it
-            if (moment.utc(moment(action.created).unix() * 1000).isBefore(moment.utc().subtract(10, 'seconds'))) {
-                handledReportActions[reportID] = handledReportActions[reportID] || {};
-                handledReportActions[reportID][action.sequenceNumber] = true;
-                return;
-            }
-
-            viewNewReportAction(reportID, action);
-            handledReportActions[reportID] = handledReportActions[reportID] || {};
-            handledReportActions[reportID][action.sequenceNumber] = true;
-        });
-    },
-});
 
 export {
     addComment,
@@ -1216,6 +1205,6 @@ export {
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
     clearIOUError,
-    getMaxSequenceNumber,
     subscribeToNewActionEvent,
+    showReportActionNotification,
 };

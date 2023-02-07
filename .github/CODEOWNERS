@@ -1,5 +1,2 @@
 # Every PR gets a review from an internal Expensify engineer
 * @Expensify/pullerbear
-
-# Tim reviews all changes to package.json to ensure we don't roll out SQLite Onyx until we are ready
-package.json @tgolen

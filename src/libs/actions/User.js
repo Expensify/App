@@ -17,6 +17,8 @@ import * as Localize from '../Localize';
 import * as Link from './Link';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
+import * as Report from './Report';
+import * as ReportActionsUtils from '../ReportActionsUtils';
 
 let currentUserAccountID = '';
 Onyx.connect({
@@ -91,9 +93,10 @@ function closeAccount(message) {
  * Resends a validation link to a given login
  *
  * @param {String} login
+ * @param {Boolean} isPasswordless - temporary param to trigger passwordless flow in backend
  */
-function resendValidateCode(login) {
-    DeprecatedAPI.ResendValidateCode({email: login});
+function resendValidateCode(login, isPasswordless = false) {
+    DeprecatedAPI.ResendValidateCode({email: login, isPasswordless});
 }
 
 /**
@@ -256,6 +259,19 @@ function deletePaypalMeAddress() {
     Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
 
+function triggerNotifications(onyxUpdates) {
+    _.each(onyxUpdates, (update) => {
+        if (!update.shouldNotify) {
+            return;
+        }
+
+        const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+        const reportActions = _.values(update.value);
+        const sortedReportActions = ReportActionsUtils.getSortedReportActions(reportActions);
+        Report.showReportActionNotification(reportID, _.last(sortedReportActions));
+    });
+}
+
 /**
  * Initialize our pusher subscription to listen for user changes
  */
@@ -271,6 +287,7 @@ function subscribeToUserEvents() {
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE, currentUserAccountID, (pushJSON) => {
         SequentialQueue.getCurrentRequest().then(() => {
             Onyx.update(pushJSON);
+            triggerNotifications(pushJSON);
         });
     });
 
@@ -385,6 +402,7 @@ function updateChatPriorityMode(mode) {
     API.write('UpdateChatPriorityMode', {
         value: mode,
     }, {optimisticData});
+    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
 }
 
 /**
@@ -418,21 +436,37 @@ function joinScreenShare(accessToken, roomName) {
 /**
  * Downloads the statement PDF for the provided period
  * @param {String} period YYYYMM format
- * @returns {Promise<Void>}
  */
 function generateStatementPDF(period) {
-    Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {isGenerating: true});
-    return DeprecatedAPI.GetStatementPDF({period})
-        .then((response) => {
-            if (response.jsonCode !== 200 || !response.filename) {
-                Log.info('[User] Failed to generate statement PDF', false, {response});
-                return;
-            }
-
-            Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {[period]: response.filename});
-        }).finally(() => {
-            Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {isGenerating: false});
-        });
+    API.read('GetStatementPDF', {period}, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_STATEMENT,
+                value: {
+                    isGenerating: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_STATEMENT,
+                value: {
+                    isGenerating: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_STATEMENT,
+                value: {
+                    isGenerating: false,
+                },
+            },
+        ],
+    });
 }
 
 export {

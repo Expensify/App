@@ -49,7 +49,7 @@ class BaseSidebarScreen extends Component {
     render() {
         return (
             <ScreenWrapper
-                includePaddingBottom={false}
+                includeSafeAreaPaddingBottom={false}
                 style={[styles.sidebar]}
             >
                 {({insets}) => (
@@ -62,6 +62,7 @@ class BaseSidebarScreen extends Component {
                                 isSmallScreenWidth={this.props.isSmallScreenWidth}
                                 isDrawerOpen={this.props.isDrawerOpen}
                                 reportIDFromRoute={this.props.reportIDFromRoute}
+                                onLayout={this.props.onLayout}
                             />
                         </View>
                         {this.props.children}

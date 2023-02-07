@@ -5,116 +5,96 @@ import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
 
-const TEST_MAX_SEQUENCE_NUMBER = 10;
-
 describe('OptionsListUtils', () => {
     // Given a set of reports with both single participants and multiple participants some pinned and some not
     const REPORTS = {
         1: {
-            lastReadTimestamp: 1610666739295,
+            lastReadTime: '2021-01-14 11:25:39.295',
             lastActionCreated: '2022-11-22 03:26:02.015',
             isPinned: false,
             reportID: 1,
             participants: ['tonystark@expensify.com', 'reedrichards@expensify.com'],
             reportName: 'Iron Man, Mister Fantastic',
-            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
-            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
             hasDraft: true,
         },
         2: {
-            lastReadTimestamp: 1610666739296,
+            lastReadTime: '2021-01-14 11:25:39.296',
             lastActionCreated: '2022-11-22 03:26:02.016',
             isPinned: false,
             reportID: 2,
             participants: ['peterparker@expensify.com'],
             reportName: 'Spider-Man',
-            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
-            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
 
         // This is the only report we are pinning in this test
         3: {
-            lastReadTimestamp: 1610666739297,
+            lastReadTime: '2021-01-14 11:25:39.297',
             lastActionCreated: '2022-11-22 03:26:02.170',
             isPinned: true,
             reportID: 3,
             participants: ['reedrichards@expensify.com'],
             reportName: 'Mister Fantastic',
-            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
-            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
         4: {
-            lastReadTimestamp: 1610666739298,
+            lastReadTime: '2021-01-14 11:25:39.298',
             lastActionCreated: '2022-11-22 03:26:02.180',
             isPinned: false,
             reportID: 4,
             participants: ['tchalla@expensify.com'],
             reportName: 'Black Panther',
-            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
-            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
         5: {
-            lastReadTimestamp: 1610666739299,
+            lastReadTime: '2021-01-14 11:25:39.299',
             lastActionCreated: '2022-11-22 03:26:02.019',
             isPinned: false,
             reportID: 5,
             participants: ['suestorm@expensify.com'],
             reportName: 'Invisible Woman',
-            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
-            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
         6: {
-            lastReadTimestamp: 1610666739300,
+            lastReadTime: '2021-01-14 11:25:39.300',
             lastActionCreated: '2022-11-22 03:26:02.020',
             isPinned: false,
             reportID: 6,
             participants: ['thor@expensify.com'],
             reportName: 'Thor',
-            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
-            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
 
         // Note: This report has the largest lastActionCreated
         7: {
-            lastReadTimestamp: 1610666739301,
+            lastReadTime: '2021-01-14 11:25:39.301',
             lastActionCreated: '2022-11-22 03:26:03.999',
             isPinned: false,
             reportID: 7,
             participants: ['steverogers@expensify.com'],
             reportName: 'Captain America',
-            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
-            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
 
         // Note: This report has no lastActionCreated
         8: {
-            lastReadTimestamp: 1610666739301,
+            lastReadTime: '2021-01-14 11:25:39.301',
             lastActionCreated: '2022-11-22 03:26:02.000',
             isPinned: false,
             reportID: 8,
             participants: ['galactus_herald@expensify.com'],
             reportName: 'Silver Surfer',
-            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
-            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
 
         // Note: This report has an IOU
         9: {
-            lastReadTimestamp: 1610666739302,
+            lastReadTime: '2021-01-14 11:25:39.302',
             lastActionCreated: '2022-11-22 03:26:02.998',
             isPinned: false,
             reportID: 9,
             participants: ['mistersinister@marauders.com'],
             reportName: 'Mister Sinister',
-            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
-            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
             iouReportID: 100,
             hasOutstandingIOU: true,
         },
 
         // This report is an archived room – it does not have a name and instead falls back on oldPolicyName
         10: {
-            lastReadTimestamp: 1610666739200,
+            lastReadTime: '2021-01-14 11:25:39.200',
             lastActionCreated: '2022-11-22 03:26:02.001',
             reportID: 10,
             isPinned: false,
@@ -123,8 +103,6 @@ describe('OptionsListUtils', () => {
             oldPolicyName: "SHIELD's workspace",
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             isOwnPolicyExpenseChat: true,
-            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
-            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
     };
 
@@ -179,42 +157,36 @@ describe('OptionsListUtils', () => {
         ...REPORTS,
 
         11: {
-            lastReadTimestamp: 1610666739302,
+            lastReadTime: '2021-01-14 11:25:39.302',
             lastActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: 11,
             participants: ['concierge@expensify.com'],
             reportName: 'Concierge',
-            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
-            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
     };
 
     const REPORTS_WITH_CHRONOS = {
         ...REPORTS,
         12: {
-            lastReadTimestamp: 1610666739302,
+            lastReadTime: '2021-01-14 11:25:39.302',
             lastActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: 12,
             participants: ['chronos@expensify.com'],
             reportName: 'Chronos',
-            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
-            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
     };
 
     const REPORTS_WITH_RECEIPTS = {
         ...REPORTS,
         13: {
-            lastReadTimestamp: 1610666739302,
+            lastReadTime: '2021-01-14 11:25:39.302',
             lastActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: 13,
             participants: ['receipts@expensify.com'],
             reportName: 'Receipts',
-            lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1,
-            maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
     };
 

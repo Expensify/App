@@ -82,7 +82,7 @@ const AvatarCropModal = (props) => {
     const initializeImageContainer = useCallback((event) => {
         setIsImageContainerInitialized(true);
         const {height, width} = event.nativeEvent.layout;
-        setImageContainerSize(Math.min(height - styles.imageCropRotateButton.height, width));
+        setImageContainerSize(Math.floor(Math.min(height - styles.imageCropRotateButton.height, width)));
     }, [props.isSmallScreenWidth]);
 
     // An onLayout callback, that initializes the slider container size, for proper render of a slider
@@ -293,8 +293,9 @@ const AvatarCropModal = (props) => {
         if (!isPressableEnabled.value) {
             return;
         }
-        const newScale = newScaleValue(locationX, sliderContainerSize);
-        translateSlider.value = locationX;
+        const newSliderValue = clamp(locationX, [0, sliderContainerSize]);
+        const newScale = newScaleValue(newSliderValue, sliderContainerSize);
+        translateSlider.value = newSliderValue;
         const differential = newScale / scale.value;
         scale.value = newScale;
         const newX = translateX.value * differential;

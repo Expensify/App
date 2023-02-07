@@ -3,14 +3,14 @@ import PropTypes from 'prop-types';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
 
 export default {
+    /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
+    reportActionID: PropTypes.string,
+
     /** Name of the action e.g. ADDCOMMENT */
     actionName: PropTypes.string,
 
     /** Person who created the action */
     person: PropTypes.arrayOf(reportActionFragmentPropTypes),
-
-    /** ID of the report action */
-    sequenceNumber: PropTypes.number,
 
     /** ISO-formatted datetime */
     created: PropTypes.string,

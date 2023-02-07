@@ -43,13 +43,7 @@ const ConfirmationPage = props => (
                 source={{uri: props.illustration}}
                 style={styles.confirmationAnimation}
             />
-            <Text
-                style={[
-                    styles.textStrong,
-                    styles.textLarge,
-                    styles.mv2,
-                ]}
-            >
+            <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>
                 {props.heading}
             </Text>
             <Text style={styles.textAlignCenter}>

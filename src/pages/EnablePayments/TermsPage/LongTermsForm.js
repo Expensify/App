@@ -8,7 +8,7 @@ import * as Localize from '../../../libs/Localize';
 import CONST from '../../../CONST';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
-import * as Link from '../../../libs/actions/Link';
+import TextLink from '../../../components/TextLink';
 
 const termsData = [
     {
@@ -132,12 +132,12 @@ const LongTermsForm = () => (
 
         <View style={styles.flexRow}>
             <Icon style={styles.flex1} src={Expensicons.Printer} />
-            <Text
-                style={[styles.link, styles.ml1]}
-                onPress={() => Link.openExternalLink(CONST.FEES_URL)}
+            <TextLink
+                style={styles.ml1}
+                href={CONST.FEES_URL}
             >
                 {Localize.translateLocal('termsStep.longTermsForm.printerFriendlyView')}
-            </Text>
+            </TextLink>
         </View>
     </>
 );

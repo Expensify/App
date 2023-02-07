@@ -39,6 +39,7 @@ class BaseOptionsSelector extends Component {
         this.relatedTarget = null;
 
         const allOptions = this.flattenSections();
+
         this.state = {
             allOptions,
             focusedIndex: this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0,
@@ -107,8 +108,8 @@ class BaseOptionsSelector extends Component {
             allOptions: newOptions,
             focusedIndex: newFocusedIndex,
         }, () => {
-            // If we just toggled an option on a multi-selection page, scroll to top
-            if (this.props.selectedOptions.length !== prevProps.selectedOptions.length) {
+            // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
+            if (this.props.selectedOptions.length !== prevProps.selectedOptions.length || this.props.value === '') {
                 this.scrollToIndex(0);
                 return;
             }
@@ -203,26 +204,30 @@ class BaseOptionsSelector extends Component {
      *
      * @param {Object} option
      * @param {Object} ref
+     * @returns {Promise}
      */
     selectRow(option, ref) {
-        if (this.props.shouldFocusOnSelectRow) {
-            if (this.relatedTarget && ref === this.relatedTarget) {
-                this.textInput.focus();
-                this.relatedTarget = null;
+        return new Promise((resolve) => {
+            if (this.props.shouldFocusOnSelectRow) {
+                if (this.relatedTarget && ref === this.relatedTarget) {
+                    this.textInput.focus();
+                    this.relatedTarget = null;
+                }
+                if (this.textInput.isFocused()) {
+                    setSelection(this.textInput, 0, this.props.value.length);
+                }
             }
-            if (this.textInput.isFocused()) {
-                setSelection(this.textInput, 0, this.props.value.length);
+            const selectedOption = this.props.onSelectRow(option);
+            resolve(selectedOption);
+
+            if (!this.props.canSelectMultipleOptions) {
+                return;
             }
-        }
-        this.props.onSelectRow(option);
 
-        if (!this.props.canSelectMultipleOptions) {
-            return;
-        }
-
-        // Focus the first unselected item from the list (i.e: the best result according to the current search term)
-        this.setState({
-            focusedIndex: this.props.selectedOptions.length,
+            // Focus the first unselected item from the list (i.e: the best result according to the current search term)
+            this.setState({
+                focusedIndex: this.props.selectedOptions.length,
+            });
         });
     }
 
@@ -265,6 +270,7 @@ class BaseOptionsSelector extends Component {
                 showTitleTooltip={this.props.showTitleTooltip}
                 isDisabled={this.props.isDisabled}
                 shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
+                onLayout={this.props.onLayout}
             />
         ) : <FullScreenLoadingIndicator />;
         return (

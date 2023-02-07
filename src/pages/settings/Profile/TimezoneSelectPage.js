@@ -75,7 +75,7 @@ class TimezoneSelectPage extends Component {
 
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('timezonePage.timezone')}
                     shouldShowBackButton

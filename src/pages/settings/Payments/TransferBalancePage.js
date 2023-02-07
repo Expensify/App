@@ -186,7 +186,7 @@ class TransferBalancePage extends React.Component {
                     onBackButtonPress={() => Navigation.goBack()}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <View style={[styles.flex1, styles.flexBasisAuto, styles.justifyContentCenter]}>
+                <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto, styles.justifyContentCenter]}>
                     <CurrentWalletBalance balanceStyles={[styles.transferBalanceBalance]} />
                 </View>
                 <ScrollView style={styles.flexGrow0} contentContainerStyle={styles.pv5}>
@@ -212,7 +212,7 @@ class TransferBalancePage extends React.Component {
                         ))}
                     </View>
                     <Text
-                        style={[styles.p5, styles.textStrong, styles.textLabel, styles.justifyContentStart]}
+                        style={[styles.p5, styles.textLabelSupporting, styles.justifyContentStart]}
                     >
                         {this.props.translate('transferAmountPage.whichAccount')}
                     </Text>
@@ -233,8 +233,7 @@ class TransferBalancePage extends React.Component {
                             style={[
                                 styles.mt5,
                                 styles.mb3,
-                                styles.textStrong,
-                                styles.textLabel,
+                                styles.textLabelSupporting,
                                 styles.justifyContentStart,
                             ]}
                         >

@@ -2,12 +2,12 @@ import React from 'react';
 import BaseHTMLEngineProvider from './BaseHTMLEngineProvider';
 import {defaultProps, propTypes} from './htmlEnginePropTypes';
 import withWindowDimensions from '../withWindowDimensions';
-import canUseTouchScreen from '../../libs/canUseTouchscreen';
+import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
 const HTMLEngineProvider = props => (
     <BaseHTMLEngineProvider
         debug={props.debug}
-        textSelectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
+        textSelectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
     >
         {props.children}
     </BaseHTMLEngineProvider>

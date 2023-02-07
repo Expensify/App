@@ -1,23 +1,36 @@
+import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
+import CONST from '../../CONST';
+import {withNetwork} from '../OnyxProvider';
+import compose from '../../libs/compose';
 import IOUQuote from './IOUQuote';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
+import networkPropTypes from '../networkPropTypes';
+import iouReportPropTypes from '../../pages/iouReportPropTypes';
 import IOUPreview from './IOUPreview';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
+import * as IOUUtils from '../../libs/IOUUtils';
 
 const propTypes = {
     /** All the data of the action */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
-    /** The associated chatReport */
+    /** The ID of the associated chatReport */
     chatReportID: PropTypes.string.isRequired,
 
     /** Is this IOUACTION the most recent? */
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
+
+    /** Popover context menu anchor, used for showing context menu */
+    contextMenuAnchor: PropTypes.shape({current: PropTypes.elementType}),
+
+    /** Callback for updating context menu active state, used for showing context menu */
+    checkIfContextMenuActive: PropTypes.func,
 
     /* Onyx Props */
     /** chatReport associated with iouReport */
@@ -29,15 +42,26 @@ const propTypes = {
         hasOutstandingIOU: PropTypes.bool.isRequired,
     }),
 
+    /** IOU report data object */
+    iouReport: iouReportPropTypes,
+
+    /** Array of report actions for this report */
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
     /** Whether the IOU is hovered so we can modify its style */
     isHovered: PropTypes.bool,
 
+    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {
+    contextMenuAnchor: undefined,
+    checkIfContextMenuActive: () => {},
     chatReport: {
         participants: [],
     },
+    iouReport: {},
+    reportActions: {},
     isHovered: false,
 };
 
@@ -51,17 +75,36 @@ const IOUAction = (props) => {
         && Boolean(props.action.originalMessage.IOUReportID)
         && props.chatReport.hasOutstandingIOU) || props.action.originalMessage.type === 'pay';
 
+    let shouldShowPendingConversionMessage = false;
+    if (
+        !_.isEmpty(props.iouReport)
+        && !_.isEmpty(props.reportActions)
+        && props.chatReport.hasOutstandingIOU
+        && props.isMostRecentIOUReportAction
+        && props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
+        && props.network.isOffline
+    ) {
+        shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(props.reportActions, props.iouReport);
+    }
+
     return (
         <>
             <IOUQuote
                 action={props.action}
+                chatReportID={props.chatReportID}
+                contextMenuAnchor={props.contextMenuAnchor}
                 shouldAllowViewDetails={Boolean(props.action.originalMessage.IOUReportID)}
                 onViewDetailsPressed={launchDetailsModal}
+                checkIfContextMenuActive={props.checkIfContextMenuActive}
             />
             {shouldShowIOUPreview && (
                 <IOUPreview
                     iouReportID={props.action.originalMessage.IOUReportID.toString()}
                     chatReportID={props.chatReportID}
+                    action={props.action}
+                    contextMenuAnchor={props.contextMenuAnchor}
+                    checkIfContextMenuActive={props.checkIfContextMenuActive}
+                    shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
                     onPayButtonPressed={launchDetailsModal}
                     onPreviewPressed={launchDetailsModal}
                     containerStyles={[
@@ -81,8 +124,18 @@ IOUAction.propTypes = propTypes;
 IOUAction.defaultProps = defaultProps;
 IOUAction.displayName = 'IOUAction';
 
-export default withOnyx({
-    chatReport: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-    },
-})(IOUAction);
+export default compose(
+    withOnyx({
+        chatReport: {
+            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+        },
+        iouReport: {
+            key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT}${action.originalMessage.IOUReportID}`,
+        },
+        reportActions: {
+            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            canEvict: false,
+        },
+    }),
+    withNetwork(),
+)(IOUAction);

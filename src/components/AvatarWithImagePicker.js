@@ -1,8 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {
-    Pressable, View, Image,
-} from 'react-native';
+import {Pressable, View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import Avatar from './Avatar';
@@ -21,10 +19,11 @@ import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAni
 import Tooltip from './Tooltip';
 import stylePropTypes from '../styles/stylePropTypes';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
+import getImageResolution from '../libs/fileDownload/getImageResolution';
 
 const propTypes = {
-    /** Avatar URL to display */
-    avatarURL: PropTypes.string,
+    /** Avatar source to display */
+    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
 
     /** Additional style props */
     style: stylePropTypes,
@@ -35,7 +34,7 @@ const propTypes = {
     /** Execute when the user taps "remove" */
     onImageRemoved: PropTypes.func,
 
-    /** A default avatar component to display when there is no avatarURL */
+    /** A default avatar component to display when there is no source */
     DefaultAvatar: PropTypes.func,
 
     /** Whether we are using the default avatar */
@@ -62,7 +61,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    avatarURL: '',
+    source: '',
     onImageSelected: () => {},
     onImageRemoved: () => {},
     style: [],
@@ -148,17 +147,16 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     /**
-     * Check if the attachment resolution is bigger than required.
+     * Check if the attachment resolution matches constraints.
      *
-     * @param {String} imageUri
+     * @param {Object} image
      * @returns {Promise}
      */
-    isValidResolution(imageUri) {
-        return new Promise((resolve) => {
-            Image.getSize(imageUri, (width, height) => {
-                resolve(height >= CONST.AVATAR_MIN_HEIGHT_PX && width >= CONST.AVATAR_MIN_WIDTH_PX);
-            });
-        });
+    isValidResolution(image) {
+        return getImageResolution(image).then(resolution => (
+            (resolution.height >= CONST.AVATAR_MIN_HEIGHT_PX && resolution.width >= CONST.AVATAR_MIN_WIDTH_PX)
+            && (resolution.height <= CONST.AVATAR_MAX_HEIGHT_PX && resolution.width <= CONST.AVATAR_MAX_WIDTH_PX)
+        ));
     }
 
     /**
@@ -182,14 +180,16 @@ class AvatarWithImagePicker extends React.Component {
             return;
         }
 
-        this.isValidResolution(image.uri)
+        this.isValidResolution(image)
             .then((isValidResolution) => {
                 if (!isValidResolution) {
                     this.showErrorModal(
                         this.props.translate('avatarWithImagePicker.imageUploadFailed'),
-                        this.props.translate('avatarWithImagePicker.tooSmallResolution', {
+                        this.props.translate('avatarWithImagePicker.resolutionConstraints', {
                             minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
                             minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
+                            maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
+                            maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
                         }),
                     );
                     return;
@@ -250,12 +250,12 @@ class AvatarWithImagePicker extends React.Component {
                     onPress={() => this.setState({isMenuVisible: true})}
                 >
                     <View style={[styles.pRelative, styles.avatarLarge]}>
-                        {this.props.avatarURL
+                        {this.props.source
                             ? (
                                 <Avatar
                                     containerStyles={styles.avatarLarge}
                                     imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                    source={this.props.avatarURL}
+                                    source={this.props.source}
                                     fallbackIcon={this.props.fallbackIcon}
                                     size={this.props.size}
                                 />

@@ -32,9 +32,11 @@ const propTypes = {
     /** Callback called when the message is pressed */
     onPress: PropTypes.func,
 
+    /** Styles to be assigned to the Banner container */
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Styles to be assigned to the Banner text */
     // eslint-disable-next-line react/forbid-prop-types
     textStyles: PropTypes.arrayOf(PropTypes.object),
 
