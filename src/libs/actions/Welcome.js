@@ -69,7 +69,12 @@ const allPolicies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (val, key) => {
-        if (!val || !key) {
+        if (!key) {
+            return;
+        }
+
+        if (val === null || val === undefined) {
+            delete allPolicies[key];
             return;
         }
 

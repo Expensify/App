@@ -18,6 +18,7 @@ import * as Link from './Link';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
 import * as Report from './Report';
+import * as ReportActionsUtils from '../ReportActionsUtils';
 
 let currentUserAccountID = '';
 Onyx.connect({
@@ -92,9 +93,10 @@ function closeAccount(message) {
  * Resends a validation link to a given login
  *
  * @param {String} login
+ * @param {Boolean} isPasswordless - temporary param to trigger passwordless flow in backend
  */
-function resendValidateCode(login) {
-    DeprecatedAPI.ResendValidateCode({email: login});
+function resendValidateCode(login, isPasswordless = false) {
+    DeprecatedAPI.ResendValidateCode({email: login, isPasswordless});
 }
 
 /**
@@ -264,12 +266,9 @@ function triggerNotifications(onyxUpdates) {
         }
 
         const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-        const reportAction = _.chain(update.value)
-            .values()
-            .compact()
-            .first()
-            .value();
-        Report.showReportActionNotification(reportID, reportAction);
+        const reportActions = _.values(update.value);
+        const sortedReportActions = ReportActionsUtils.getSortedReportActions(reportActions);
+        Report.showReportActionNotification(reportID, _.last(sortedReportActions));
     });
 }
 

@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import {View} from 'react-native';
+import {StatusBar, View, KeyboardAvoidingView} from 'react-native';
 import PropTypes from 'prop-types';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
@@ -107,7 +107,10 @@ class BaseModal extends PureComponent {
                 hasBackdrop={this.props.fullscreen}
                 coverScreen={this.props.fullscreen}
                 style={modalStyle}
-                deviceHeight={this.props.windowHeight}
+
+                // When `statusBarTranslucent` is true on Android, the modal fully covers the status bar.
+                // Since `windowHeight` doesn't include status bar height, it should be added in the `deviceHeight` calculation.
+                deviceHeight={this.props.windowHeight + ((this.props.statusBarTranslucent && StatusBar.currentHeight) || 0)}
                 deviceWidth={this.props.windowWidth}
                 animationIn={this.props.animationIn || animationIn}
                 animationOut={this.props.animationOut || animationOut}
@@ -116,6 +119,7 @@ class BaseModal extends PureComponent {
                 animationInTiming={this.props.animationInTiming}
                 animationOutTiming={this.props.animationOutTiming}
                 statusBarTranslucent={this.props.statusBarTranslucent}
+                avoidKeyboard={this.props.avoidKeyboard}
             >
                 <SafeAreaInsetsContext.Consumer>
                     {(insets) => {
@@ -141,7 +145,7 @@ class BaseModal extends PureComponent {
                             modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
                         });
 
-                        return (
+                        const content = (
                             <View
                                 style={{
                                     ...styles.defaultModalContainer,
@@ -153,6 +157,15 @@ class BaseModal extends PureComponent {
                                 {this.props.children}
                             </View>
                         );
+
+                        return this.props.isUseKeyboardAvoidingView ? (
+                            <KeyboardAvoidingView
+                                behavior="padding"
+                            >
+                                {content}
+                            </KeyboardAvoidingView>
+                        )
+                            : content;
                     }}
                 </SafeAreaInsetsContext.Consumer>
             </ReactNativeModal>

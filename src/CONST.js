@@ -37,6 +37,23 @@ const CONST = {
     AVATAR_MAX_WIDTH_PX: 4096,
     AVATAR_MAX_HEIGHT_PX: 4096,
 
+    DEFAULT_AVATAR_COUNT: 24,
+    OLD_DEFAULT_AVATAR_COUNT: 8,
+
+    // Sizes needed for report empty state background image handling
+    EMPTY_STATE_BACKGROUND: {
+        SMALL_SCREEN: {
+            IMAGE_HEIGHT: 300,
+            CONTAINER_MINHEIGHT: 200,
+            VIEW_HEIGHT: 185,
+        },
+        WIDE_SCREEN: {
+            IMAGE_HEIGHT: 450,
+            CONTAINER_MINHEIGHT: 500,
+            VIEW_HEIGHT: 275,
+        },
+    },
+
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
@@ -139,6 +156,7 @@ const CONST = {
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+        PASSWORDLESS: 'passwordless',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -372,10 +390,10 @@ const CONST = {
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
         COLD: 'cold',
+        WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
         TOOLTIP_SENSE: 1000,
-        SPINNER_TIMEOUT: 15 * 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
     },
     PRIORITY_MODE: {
@@ -449,6 +467,9 @@ const CONST = {
     // at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
     PASSWORD_COMPLEXITY_REGEX_STRING: '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
 
+    // 6 numeric digits
+    VALIDATE_CODE_REGEX_STRING: /^\d{6}$/,
+
     PASSWORD_PAGE: {
         ERROR: {
             ALREADY_VALIDATED: 'Account already validated',
@@ -482,6 +503,7 @@ const CONST = {
         DECIMAL_PAD: 'decimal-pad',
         VISIBLE_PASSWORD: 'visible-password',
         EMAIL_ADDRESS: 'email-address',
+        ASCII_CAPABLE: 'ascii-capable',
     },
 
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
@@ -735,6 +757,8 @@ const CONST = {
         SMALLER: 'smaller',
         SUBSCRIPT: 'subscript',
         SMALL_SUBSCRIPT: 'small-subscript',
+        MID_SUBSCRIPT: 'mid-subscript',
+        LARGE_BORDERED: 'large-bordered',
     },
     OPTION_MODE: {
         COMPACT: 'compact',
@@ -763,9 +787,7 @@ const CONST = {
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
         ROOM_NAME: /^#[a-z0-9-]{1,80}$/,
 
-        // Adapted from: https://gist.github.com/dperini/729294
-        // eslint-disable-next-line max-len
-        HYPERLINK: /^(?:(?:(?:https?|ftp):\/\/)?)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u00a1-\uffff][a-z0-9\u00a1-\uffff_-]{0,62})?[a-z0-9\u00a1-\uffff]\.)+(?:[a-z\u00a1-\uffff]{2,}\.?))(?::\d{2,5})?(?:[/?#]\S*)?$/i,
+        WEBSITE: /^((https?|ftp):\/\/)(([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}(:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(#[-a-z\d_]*)?$/i,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJIS: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
@@ -775,6 +797,7 @@ const CONST = {
         EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         CODE_2FA: /^\d{6}$/,
+        ATTACHMENT_ID: /chat-attachments\/(\d+)/,
     },
 
     PRONOUNS: {

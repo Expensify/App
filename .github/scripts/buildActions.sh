@@ -20,6 +20,7 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/isPullRequestMergeable/isPullRequestMergeable.js"
     "$ACTIONS_DIR/isStagingDeployLocked/isStagingDeployLocked.js"
     "$ACTIONS_DIR/markPullRequestsAsDeployed/markPullRequestsAsDeployed.js"
+    "$ACTIONS_DIR/postTestBuildComment/postTestBuildComment.js"
     "$ACTIONS_DIR/reopenIssueWithComment/reopenIssueWithComment.js"
     "$ACTIONS_DIR/triggerWorkflowAndWait/triggerWorkflowAndWait.js"
     "$ACTIONS_DIR/verifySignedCommits/verifySignedCommits.js"

@@ -134,11 +134,10 @@ const IOUPreview = (props) => {
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerEmail === sessionEmail;
 
-    const managerName = lodashGet(props.personalDetails, [managerEmail, 'firstName'], '')
-                        || Str.removeSMSDomain(managerEmail);
-    const ownerName = lodashGet(props.personalDetails, [ownerEmail, 'firstName'], '') || Str.removeSMSDomain(ownerEmail);
-    const managerAvatar = lodashGet(props.personalDetails, [managerEmail, 'avatar']) || ReportUtils.getDefaultAvatar(managerEmail);
-    const ownerAvatar = lodashGet(props.personalDetails, [ownerEmail, 'avatar']) || ReportUtils.getDefaultAvatar(ownerEmail);
+    const managerName = ReportUtils.getDisplayNameForParticipant(managerEmail, true);
+    const ownerName = ReportUtils.getDisplayNameForParticipant(ownerEmail, true);
+    const managerAvatar = ReportUtils.getAvatar(lodashGet(props.personalDetails, [managerEmail, 'avatar']), managerEmail);
+    const ownerAvatar = ReportUtils.getAvatar(lodashGet(props.personalDetails, [ownerEmail, 'avatar']), ownerEmail);
     const cachedTotal = props.iouReport.total && props.iouReport.currency
         ? props.numberFormat(
             Math.abs(props.iouReport.total) / 100,

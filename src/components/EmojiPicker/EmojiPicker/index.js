@@ -1,9 +1,9 @@
 import React from 'react';
 import {Dimensions, Keyboard} from 'react-native';
 import _ from 'underscore';
-import EmojiPickerMenu from './EmojiPickerMenu';
-import CONST from '../../CONST';
-import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
+import EmojiPickerMenu from '../EmojiPickerMenu';
+import CONST from '../../../CONST';
+import PopoverWithMeasuredContent from '../../PopoverWithMeasuredContent';
 
 class EmojiPicker extends React.Component {
     constructor(props) {

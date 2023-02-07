@@ -14,7 +14,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import ONYXKEYS from '../../ONYXKEYS';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import BankAccount from '../../libs/models/BankAccount';
-import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
+import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
 import withPolicy from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
@@ -42,7 +42,7 @@ const propTypes = {
 
     /** From Onyx */
     /** Bank account attached to free plan */
-    reimbursementAccount: reimbursementAccountPropTypes,
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
 
     /** User Data from Onyx */
     user: userPropTypes,
@@ -70,7 +70,7 @@ const propTypes = {
 const defaultProps = {
     children: () => {},
     user: {},
-    reimbursementAccount: {},
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
     footer: null,
     guidesCallTaskID: '',
     shouldUseScrollView: false,

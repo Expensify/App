@@ -39,6 +39,8 @@ class DatePicker extends React.Component {
      * @param {Event} event
      */
     showPicker(event) {
+        this.initialValue = this.state.selectedDate;
+
         // Opens the popover only after the keyboard is hidden to avoid a "blinking" effect where the keyboard was on iOS
         // See https://github.com/Expensify/App/issues/14084 for more context
         if (!this.props.isKeyboardShown) {
@@ -50,7 +52,6 @@ class DatePicker extends React.Component {
             listener.remove();
         });
         Keyboard.dismiss();
-        this.initialValue = this.state.selectedDate;
         event.preventDefault();
     }
 

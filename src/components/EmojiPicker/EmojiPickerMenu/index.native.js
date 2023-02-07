@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {View, FlatList} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import {debounce} from 'underscore';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
 import CONST from '../../../CONST';
@@ -14,6 +15,7 @@ import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import * as User from '../../../libs/actions/User';
+import TextInput from '../../TextInput';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -60,6 +62,57 @@ class EmojiPickerMenu extends Component {
         this.renderItem = this.renderItem.bind(this);
         this.isMobileLandscape = this.isMobileLandscape.bind(this);
         this.updatePreferredSkinTone = this.updatePreferredSkinTone.bind(this);
+        this.filterEmojis = debounce(this.filterEmojis.bind(this), 300);
+
+        this.state = {
+            filteredEmojis: this.emojis,
+            value: '',
+        };
+    }
+
+    /**
+   * This function will be used with FlatList getItemLayout property for optimization purpose that allows skipping
+   * the measurement of dynamic content if we know the size (height or width) of items ahead of time.
+   * Generate and return an object with properties length(height of each individual row),
+   * offset(distance of the current row from the top of the FlatList), index(current row index)
+   *
+   * @param {*} data FlatList item
+   * @param {Number} index row index
+   * @returns {Object}
+   */
+    getItemLayout(data, index) {
+        return {
+            length: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+            offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index,
+            index,
+        };
+    }
+
+    /**
+   * Filter the entire list of emojis to only emojis that have the search term in their keywords
+   *
+   * @param {String} searchTerm
+   */
+    filterEmojis(searchTerm) {
+        const normalizedSearchTerm = searchTerm.toLowerCase().trim();
+
+        if (normalizedSearchTerm === '') {
+            this.setState({
+                filteredEmojis: this.emojis,
+                value: '',
+            });
+
+            return;
+        }
+        const newFilteredEmojiList = EmojiUtils.suggestEmojis(
+            `:${normalizedSearchTerm}`,
+            this.emojis.length,
+        );
+
+        this.setState({
+            filteredEmojis: newFilteredEmojiList,
+            value: searchTerm,
+        });
     }
 
     /**
@@ -91,6 +144,20 @@ class EmojiPickerMenu extends Component {
         User.updatePreferredSkinTone(skinTone);
     }
 
+    listEmptyComponent() {
+        return (
+            <View
+                style={[styles.justifyContentCenter, styles.dFlex, styles.alignItemsCenter, styles.emojiPickerList]}
+            >
+                <Text
+                    style={[this.isMobileLandscape() && styles.emojiPickerListLandscape]}
+                >
+                    {this.props.translate('common.noResultsFound')}
+                </Text>
+            </View>
+        );
+    }
+
     /**
      * Given an emoji item object, render a component based on its type.
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
@@ -107,9 +174,11 @@ class EmojiPickerMenu extends Component {
 
         if (item.header) {
             return (
-                <Text style={styles.emojiHeaderStyle}>
-                    {this.props.translate(`emojiPicker.headers.${item.code}`)}
-                </Text>
+                <View style={styles.emojiHeaderContainer}>
+                    <Text style={styles.emojiHeaderStyle}>
+                        {this.props.translate(`emojiPicker.headers.${item.code}`)}
+                    </Text>
+                </View>
             );
         }
 
@@ -127,11 +196,19 @@ class EmojiPickerMenu extends Component {
 
     render() {
         return (
-            <View style={styles.emojiPickerContainer}>
+            <View style={[styles.emojiPickerContainer]}>
+                <View style={[styles.ph4, styles.pb1]}>
+                    <TextInput
+                        label={this.props.translate('common.search')}
+                        onChangeText={this.filterEmojis}
+                    />
+                </View>
+
                 <FlatList
+                    keyboardShouldPersistTaps="handled"
                     data={this.emojis}
                     renderItem={this.renderItem}
-                    keyExtractor={item => (`emoji_picker_${item.code}`)}
+                    keyExtractor={item => `emoji_picker_${item.code}`}
                     numColumns={this.numColumns}
                     style={[
                         styles.emojiPickerList,
@@ -139,6 +216,28 @@ class EmojiPickerMenu extends Component {
                     ]}
                     stickyHeaderIndices={this.unfilteredHeaderIndices}
                 />
+                {!!this.state.value && (
+                <View style={styles.emojiPickerSearchListContainer}>
+                    <FlatList
+                        keyboardShouldPersistTaps="handled"
+                        ref={el => (this.emojiList = el)}
+                        data={this.state.filteredEmojis}
+                        renderItem={this.renderItem}
+                        keyExtractor={item => `emoji_picker_${item.code}`}
+                        numColumns={this.numColumns}
+                        style={[
+                            styles.emojiPickerList,
+                            this.isMobileLandscape() && styles.emojiPickerListLandscape,
+                        ]}
+                        extraData={[
+                            this.state.filteredEmojis,
+                            this.props.preferredSkinTone,
+                        ]}
+                        getItemLayout={this.getItemLayout}
+                        ListEmptyComponent={this.listEmptyComponent()}
+                    />
+                </View>
+                )}
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}
                     preferredSkinTone={this.props.preferredSkinTone}
