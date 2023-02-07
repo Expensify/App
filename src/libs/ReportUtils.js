@@ -3,6 +3,7 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {InteractionManager} from 'react-native';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
@@ -15,6 +16,7 @@ import * as NumberUtils from './NumberUtils';
 import * as NumberFormatUtils from './NumberFormatUtils';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
+import linkingConfig from './Navigation/linkingConfig';
 import * as defaultAvatars from '../components/Icon/DefaultAvatars';
 
 let sessionEmail;
@@ -248,9 +250,10 @@ function hasExpensifyGuidesEmails(emails) {
  * @param {Record<String, {lastReadTime, reportID}>|Array<{lastReadTime, reportID}>} reports
  * @param {Boolean} [ignoreDefaultRooms]
  * @param {Object} policies
+ * @param {Boolean} openOnAdminRoom
  * @returns {Object}
  */
-function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
+function findLastAccessedReport(reports, ignoreDefaultRooms, policies, openOnAdminRoom = false) {
     let sortedReports = sortReportsByLastRead(reports);
 
     if (ignoreDefaultRooms) {
@@ -259,7 +262,15 @@ function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
             || hasExpensifyGuidesEmails(lodashGet(report, ['participants'], [])));
     }
 
-    return _.last(sortedReports);
+    let adminReport;
+    if (!ignoreDefaultRooms && openOnAdminRoom) {
+        adminReport = _.find(sortedReports, (report) => {
+            const chatType = getChatType(report);
+            return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
+        });
+    }
+
+    return adminReport || _.last(sortedReports);
 }
 
 /**
@@ -974,7 +985,7 @@ function buildOptimisticChatReport(
         lastActionCreated: currentTime,
         notificationPreference,
         oldPolicyName,
-        ownerEmail,
+        ownerEmail: ownerEmail || CONST.REPORT.OWNER_EMAIL_FAKE,
         participants: participantList,
         policyID,
         reportID: generateReportID(),
@@ -1381,6 +1392,56 @@ function getCommentLength(textComment) {
     return textComment.replace(/[^ -~]/g, '\\u????').length;
 }
 
+/**
+ * @param {String|null} url
+ * @returns {String}
+ */
+function getReportIDFromDeepLink(url) {
+    if (!url) {
+        return '';
+    }
+
+    // Get the reportID from URL
+    let route = url;
+    _.each(linkingConfig.prefixes, (prefix) => {
+        const localWebAndroidRegEx = /^(http:\/\/([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3}))/;
+        if (route.startsWith(prefix)) {
+            route = route.replace(prefix, '');
+        } else if (localWebAndroidRegEx.test(route)) {
+            route = route.replace(localWebAndroidRegEx, '');
+        } else {
+            return;
+        }
+
+        // Remove the port if it's a localhost URL
+        if (/^:\d+/.test(route)) {
+            route = route.replace(/:\d+/, '');
+        }
+
+        // Remove the leading slash if exists
+        if (route.startsWith('/')) {
+            route = route.replace('/', '');
+        }
+    });
+    const {reportID} = ROUTES.parseReportRouteParams(route);
+    return reportID;
+}
+
+/**
+ * @param {String|null} url
+ */
+function openReportFromDeepLink(url) {
+    const reportID = getReportIDFromDeepLink(url);
+    if (!reportID) {
+        return;
+    }
+    InteractionManager.runAfterInteractions(() => {
+        Navigation.isReportScreenReady().then(() => {
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
+        });
+    });
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1412,6 +1473,7 @@ export {
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
     getReportName,
+    getReportIDFromDeepLink,
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
@@ -1436,4 +1498,5 @@ export {
     getNewMarkerReportActionID,
     canSeeDefaultRoom,
     getCommentLength,
+    openReportFromDeepLink,
 };
