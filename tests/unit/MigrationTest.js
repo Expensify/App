@@ -4,7 +4,7 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
 import Log from '../../src/libs/Log';
 import getPlatform from '../../src/libs/getPlatform';
-import AddLastActionCreated from '../../src/libs/migrations/AddLastActionCreated';
+import AddLastVisibleActionCreated from '../../src/libs/migrations/AddLastVisibleActionCreated';
 import MoveToIndexedDB from '../../src/libs/migrations/MoveToIndexedDB';
 import KeyReportActionsByReportActionID from '../../src/libs/migrations/KeyReportActionsByReportActionID';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -100,8 +100,8 @@ describe('Migrations', () => {
         });
     });
 
-    describe('AddLastActionCreated', () => {
-        it('Should add lastActionCreated wherever lastMessageTimestamp currently is', () => (
+    describe('AddLastVisibleActionCreated', () => {
+        it('Should add lastVisibleActionCreated wherever lastMessageTimestamp currently is', () => (
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
                     lastMessageTimestamp: 1668562273702,
@@ -110,9 +110,9 @@ describe('Migrations', () => {
                     lastMessageTimestamp: 1668562314821,
                 },
             })
-                .then(AddLastActionCreated)
+                .then(AddLastVisibleActionCreated)
                 .then(() => {
-                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Adding lastActionCreated field to 2 reports');
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Adding lastVisibleActionCreated field to 2 reports');
                     const connectionID = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT,
                         waitForCollectionCallback: true,
@@ -120,10 +120,10 @@ describe('Migrations', () => {
                             Onyx.disconnect(connectionID);
                             expect(_.keys(allReports).length).toBe(2);
                             _.each(allReports, (report) => {
-                                expect(_.has(report, 'lastActionCreated')).toBe(true);
+                                expect(_.has(report, 'lastVisibleActionCreated')).toBe(true);
                             });
-                            expect(allReports.report_1.lastActionCreated).toBe('2022-11-16 01:31:13.702');
-                            expect(allReports.report_2.lastActionCreated).toBe('2022-11-16 01:31:54.821');
+                            expect(allReports.report_1.lastVisibleActionCreated).toBe('2022-11-16 01:31:13.702');
+                            expect(allReports.report_2.lastVisibleActionCreated).toBe('2022-11-16 01:31:54.821');
                         },
                     });
                 })
@@ -132,22 +132,22 @@ describe('Migrations', () => {
         it('Should skip if the report data already has the correct fields', () => (
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
-                    lastActionCreated: '2022-11-16 01:31:13.702',
+                    lastVisibleActionCreated: '2022-11-16 01:31:13.702',
                 },
                 [`${ONYXKEYS.COLLECTION.REPORT}2`]: {
-                    lastActionCreated: '2022-11-16 01:31:54.821',
+                    lastVisibleActionCreated: '2022-11-16 01:31:54.821',
                 },
             })
-                .then(AddLastActionCreated)
+                .then(AddLastVisibleActionCreated)
                 .then(() => {
-                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration AddLastActionCreated');
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration AddLastVisibleActionCreated');
                 })
         ));
 
         it('Should work even if there is no report data', () => (
-            AddLastActionCreated()
+            AddLastVisibleActionCreated()
                 .then(() => {
-                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration AddLastActionCreated');
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration AddLastVisibleActionCreated');
                     const connectionID = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT,
                         waitForCollectionCallback: true,
