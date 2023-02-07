@@ -130,7 +130,7 @@ class ReportScreen extends React.Component {
         // More info: https://github.com/Expensify/App/issues/13491
         this.removeViewportResizeListener = VisualViewport.addViewportResizeListener(this.updateViewportOffsetTop);
         this.removeViewportScrollListener = VisualViewport.addViewportScrollListener(this.updateViewportOffsetTop);
-        
+
         Navigation.setIsReportScreenIsReady();
     }
 
