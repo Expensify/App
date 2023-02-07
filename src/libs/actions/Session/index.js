@@ -254,7 +254,7 @@ function signIn(password, validateCode, twoFactorAuthCode) {
         // The user is signing in with the accountID and validateCode from the magic link
         params.accountID = credentials.accountID;
     }
-    
+
     // Conditionally pass a password or validateCode to command since we temporarily allow both flows
     if (validateCode) {
         params.validateCode = validateCode;
