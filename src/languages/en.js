@@ -53,16 +53,20 @@ export default {
         members: 'Members',
         invite: 'Invite',
         here: 'here',
+        date: 'Date',
         dob: 'Date of birth',
         ssnLast4: 'Last 4 digits of SSN',
         ssnFull9: 'Full 9 digits of SSN',
+        addressLine: ({lineNumber}) => `Address line ${lineNumber}`,
         personalAddress: 'Personal address',
         companyAddress: 'Company address',
         noPO: 'PO boxes and mail drop addresses are not allowed',
         city: 'City',
         state: 'State',
+        stateOrProvince: 'State / Province',
+        country: 'Country',
         zip: 'Zip code',
-        isRequiredField: 'is a required field',
+        zipPostCode: 'Zip / Postcode',
         whatThis: 'What\'s this?',
         iAcceptThe: 'I accept the ',
         remove: 'Remove',
@@ -83,7 +87,12 @@ export default {
             invalidAmount: 'Invalid amount',
             acceptedTerms: 'You must accept the Terms of Service to continue',
             phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
+            fieldRequired: 'This field is required.',
+            characterLimit: ({limit}) => `Exceeds the maximum length of ${limit} characters`,
+            dateInvalid: 'Please enter a valid date',
         },
+        comma: 'comma',
+        semicolon: 'semicolon',
         please: 'Please',
         contactUs: 'contact us',
         pleaseEnterEmailOrPhoneNumber: 'Please enter an email or phone number',
@@ -493,16 +502,31 @@ export default {
         defaultPaymentMethod: 'Default',
     },
     preferencesPage: {
-        mostRecent: 'Most recent',
-        mostRecentModeDescription: 'This will display all chats by default, sorted by most recent, with pinned items at the top.',
-        focus: '#focus',
-        focusModeDescription: '#focus – This will only display unread and pinned chats, all sorted alphabetically.',
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',
+    },
+    priorityModePage: {
         priorityMode: 'Priority mode',
+        explainerText: 'Choose whether to show all chats by default sorted with most recent with pinned items at the top, or #focus on unread pinned items, sorted alphabetically.',
+        priorityModes: {
+            default: {
+                label: 'Most recent',
+                description: 'Show all chats sorted by most recent',
+            },
+            gsd: {
+                label: '#focus',
+                description: 'Only show unread sorted alphabetically',
+            },
+        },
+    },
+    languagePage: {
         language: 'Language',
         languages: {
-            english: 'English',
-            spanish: 'Spanish',
+            en: {
+                label: 'English',
+            },
+            es: {
+                label: 'Spanish',
+            },
         },
     },
     signInPage: {
@@ -568,10 +592,20 @@ export default {
         error: {
             firstNameLength: 'First name shouldn\'t be longer than 50 characters',
             lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
-            characterLimit: ({limit}) => `Exceeds the max length of ${limit} characters`,
             hasInvalidCharacter: ({invalidCharacter}) => `Please remove the ${invalidCharacter} from the name field.`,
-            comma: 'comma',
-            semicolon: 'semicolon',
+        },
+    },
+    privatePersonalDetails: {
+        personalDetails: 'Personal details',
+        privateDataMessage: 'These details are used for travel and payments. They are never shown on your public profile.',
+        legalName: 'Legal name',
+        legalFirstName: 'Legal first name',
+        legalLastName: 'Legal last name',
+        homeAddress: 'Home address',
+        error: {
+            hasInvalidCharacter: ({invalidCharacter}) => `Please remove the ${invalidCharacter} from the field above.`,
+            dateShouldBeBefore: ({dateString}) => `Date should be before ${dateString}.`,
+            dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,
         },
     },
     resendValidationForm: {
@@ -631,7 +665,6 @@ export default {
             addressCity: 'Please enter a valid city',
             addressStreet: 'Please enter a valid street address that is not a PO Box',
             addressState: 'Please select a valid state',
-            incorporationDate: 'Please enter a valid date',
             incorporationDateFuture: 'Incorporation date cannot be in the future',
             incorporationState: 'Please enter a valid state',
             industryCode: 'Please enter a valid industry classification code. Must be 6 digits.',
@@ -1135,5 +1168,8 @@ export default {
             title: 'Update Check Failed',
             message: 'We couldn\'t look for an update. Please check again in a bit!',
         },
+    },
+    report: {
+        genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
     },
 };
