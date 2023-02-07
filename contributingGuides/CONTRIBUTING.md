@@ -116,7 +116,7 @@ Additionally if you want to discuss an idea with the open source community witho
 5. Refrain from leaving additional comments until someone from the Contributor-Plus team and / or someone from Expensify provides feedback on your proposal (do not create a pull request yet).
     - Do not leave more than one proposal.
     - Do not make extensive changes to your current proposal until after it has been reviewed.
-    - If you want to make an entirely new proposal or update an existing proposal please go back and edit your original proposal and leave a comment like this:
+    - If you want to make an entirely new proposal or update an existing proposal, please go back and edit your original proposal, then post a new comment to the issue in this format to alert everyone that it has been updated:
     ```
     ## Proposal
     [Updated](link to proposal)
