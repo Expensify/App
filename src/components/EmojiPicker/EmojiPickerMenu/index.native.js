@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, FlatList} from 'react-native';
+import {View, findNodeHandle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -16,6 +16,7 @@ import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import * as User from '../../../libs/actions/User';
 import CategoryShortcutBar from '../CategoryShortcutBar';
+import Animated, {runOnUI, scrollTo} from 'react-native-reanimated';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -100,8 +101,14 @@ class EmojiPickerMenu extends Component {
 
     scrollToHeader(headerIndex) {
         const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
-        this.emojiList.flashScrollIndicators();
-        this.emojiList.scrollToOffset({offset: calculatedOffset, animated: false});
+        runOnUI(() => {
+            'worklet';
+            const y = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
+            scrollTo(findNodeHandle(this.emojiList), 0, y, true);
+        });
+
+        //this.emojiList.flashScrollIndicators();
+        //this.emojiList.scrollToOffset({offset: calculatedOffset, animated: false});
     }
 
     /**
@@ -149,7 +156,7 @@ class EmojiPickerMenu extends Component {
                         onPress={this.scrollToHeader}
                     />
                 </View>
-                <FlatList
+                <Animated.FlatList
                     ref={el => this.emojiList = el}
                     data={this.emojis}
                     renderItem={this.renderItem}
