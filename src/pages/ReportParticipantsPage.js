@@ -73,8 +73,8 @@ const ReportParticipantsPage = (props) => {
     const participants = getAllParticipants(props.report, props.personalDetails);
 
     return (
-        <ScreenWrapper>
-            <FullPageNotFoundView includeSafeAreaPaddingBottom={false} shouldShow={_.isEmpty(props.report)}>
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                 {({safeAreaPaddingBottomStyle}) => (
                     <>
                         <HeaderWithCloseButton
