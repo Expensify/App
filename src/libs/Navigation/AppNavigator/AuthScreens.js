@@ -22,6 +22,7 @@ import * as Modal from '../../actions/Modal';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
+import getCurrentUrl from '../currentUrl';
 
 // Modal Stack Navigators
 import * as ModalStackNavigators from './ModalStackNavigators';
@@ -156,6 +157,8 @@ class AuthScreens extends React.Component {
             // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
             isModal: true,
         };
+        const url = getCurrentUrl();
+        const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : '';
 
         return (
             <RootStack.Navigator
@@ -184,6 +187,7 @@ class AuthScreens extends React.Component {
                         const MainDrawerNavigator = require('./MainDrawerNavigator').default;
                         return MainDrawerNavigator;
                     }}
+                    initialParams={{openOnAdminRoom: openOnAdminRoom === 'true'}}
                 />
                 <RootStack.Screen
                     name="ValidateLogin"
