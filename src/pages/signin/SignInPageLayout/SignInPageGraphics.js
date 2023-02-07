@@ -5,7 +5,6 @@ import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import * as Link from '../../../libs/actions/Link';
 import SVGImage from '../../../components/SVGImage';
-import Footer from './Footer';
 
 const backgroundStyle = StyleUtils.getLoginPagePromoStyle();
 
@@ -14,6 +13,7 @@ const SignInPageGraphics = () => (
         <Pressable
             style={[
                 styles.flex1,
+                {minHeight: '100%', minWidth: '100%'},
                 StyleUtils.getBackgroundColorStyle(backgroundStyle.backgroundColor),
             ]}
             onPress={() => {
@@ -28,7 +28,6 @@ const SignInPageGraphics = () => (
                 resizeMode="contain"
             />
         </Pressable>
-        <Footer />
     </>
 );
 

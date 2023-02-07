@@ -140,11 +140,11 @@ const Footer = props => (
                         {props.translate(column.translationPath)}
                         {i}
                     </Text>
-                    <View style={[styles.footerRow]}>
+                    <View style={[styles.footerRow, {margin: '0px 0px 8px'}]}>
                         { /** Rows * */ }
                         {_.map(column.rows, (row, j) => (
                             <TextLink
-                                style={styles.ml1}
+                                style={[styles.ml1, {display: 'block', padding: '4px 0px'}]}
                                 href={row.link}
                                 key={row.translationPath + j}
                             >
@@ -156,10 +156,10 @@ const Footer = props => (
             ))}
         </View>
         { /** Expensify Wordmark * */ }
-        <View>
+        <View style={props.isSmallScreenWidth ? {} : [{margin: '0 auto 16px'}, {display: 'block'}]}>
             <Icon
-                width={500}
-                height={500}
+                width={props.isSmallScreenWidth ? 100 : 500}
+                height={props.isSmallScreenWidth ? 500 : 100}
                 src={props.isSmallScreenWidth ? Expensicons.ExpensifyFooterLogoVertical : Expensicons.ExpensifyFooterLogo}
             />
         </View>

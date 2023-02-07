@@ -31,10 +31,7 @@ const SignInPageLayout = (props) => {
     }
 
     return (
-        <ScrollView
-            style={containerStyles}
-            contentHeight="100%"
-        >
+        <View style={containerStyles}>
             <View style={contentContainerStyles}>
                 <SignInPageContent
                     welcomeText={props.welcomeText}
@@ -42,20 +39,21 @@ const SignInPageLayout = (props) => {
                 >
                     {props.children}
                 </SignInPageContent>
-                {!props.isSmallScreenWidth ? (
-                    <>
-                        <ScrollView
-                            contentHeight="100%"
-                        >
+                <ScrollView
+                    contentContainerStyle={{height: '100%'}}
+                >
+                    {!props.isSmallScreenWidth ? (
+                        <>
                             <SignInPageGraphics />
-                        </ScrollView>
-                    </>
-                )
-                    : (
-                        <Footer />
-                    )}
+                            <Footer />
+                        </>
+                    )
+                        : (
+                            <Footer />
+                        )}
+                </ScrollView>
             </View>
-        </ScrollView>
+        </View>
     );
 };
 
