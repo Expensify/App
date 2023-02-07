@@ -35,8 +35,8 @@ class WorkspaceSettingsPage extends React.Component {
     constructor(props) {
         super(props);
 
-        this.submit = this.submit.bind(this);
         this.getCurrencyItems = this.getCurrencyItems.bind(this);
+        this.submit = this.submit.bind(this);
         this.validate = this.validate.bind(this);
     }
 
@@ -55,17 +55,24 @@ class WorkspaceSettingsPage extends React.Component {
         if (this.props.policy.isPolicyUpdating) {
             return;
         }
-        const name = values.name.trim();
         const outputCurrency = values.currency;
-        Policy.updateGeneralSettings(this.props.policy.id, name, outputCurrency);
+        Policy.updateGeneralSettings(this.props.policy.id, values.name, outputCurrency);
         Keyboard.dismiss();
     }
 
     validate(values) {
         const errors = {};
-        if (!values.name || !values.name.trim().length) {
+        const name = values.name.trim();
+
+        // Searches for anything that looks like an html tag "< >""
+        if (name.search(/<(.|\n)*?>/g) !== -1) {
+            errors.name = this.props.translate('workspace.editor.nameHasHtml');
+        }
+
+        if (!name || !name.length) {
             errors.name = this.props.translate('workspace.editor.nameIsRequiredError');
         }
+
         return errors;
     }
 
@@ -93,7 +100,7 @@ class WorkspaceSettingsPage extends React.Component {
                         >
                             <AvatarWithImagePicker
                                 isUploading={this.props.policy.isAvatarUploading}
-                                avatarURL={lodashGet(this.props.policy, 'avatar')}
+                                source={lodashGet(this.props.policy, 'avatar')}
                                 size={CONST.AVATAR_SIZE.LARGE}
                                 DefaultAvatar={() => (
                                     <Icon

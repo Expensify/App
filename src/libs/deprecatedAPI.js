@@ -25,46 +25,6 @@ Request.use(Middleware.SaveResponseInOnyx);
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.authToken
- * @param {String} parameters.partnerName
- * @param {String} parameters.partnerPassword
- * @param {String} parameters.partnerUserID
- * @param {String} parameters.partnerUserSecret
- * @param {Boolean} [parameters.shouldRetry]
- * @param {String} [parameters.email]
- * @returns {Promise}
- */
-function CreateLogin(parameters) {
-    const commandName = 'CreateLogin';
-    requireParameters([
-        'authToken',
-        'partnerName',
-        'partnerPassword',
-        'partnerUserID',
-        'partnerUserSecret',
-    ], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.partnerUserID
- * @param {String} parameters.partnerName
- * @param {String} parameters.partnerPassword
- * @param {Boolean} parameters.shouldRetry
- * @returns {Promise}
- */
-function DeleteLogin(parameters) {
-    const commandName = 'DeleteLogin';
-    requireParameters(['partnerUserID', 'partnerName', 'partnerPassword', 'shouldRetry'],
-        parameters, commandName);
-
-    // Non-cancellable request: during logout, when requests are cancelled, we don't want to cancel the actual logout request
-    return Network.post(commandName, {...parameters, canCancel: false});
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.returnValueList
  * @param {Boolean} shouldUseSecure
  * @returns {Promise}
@@ -122,22 +82,8 @@ function User_SecondaryLogin_Send(parameters) {
     return Network.post(commandName, parameters);
 }
 
-/**
- * Fetches the filename of the user's statement
- * @param {Object} parameters
- * @param {String} [parameters.period]
- * @return {Promise}
- */
-function GetStatementPDF(parameters) {
-    const commandName = 'GetStatementPDF';
-    return Network.post(commandName, parameters);
-}
-
 export {
-    CreateLogin,
-    DeleteLogin,
     Get,
-    GetStatementPDF,
     PersonalDetails_Update,
     ResendValidateCode,
     SetNameValuePair,
