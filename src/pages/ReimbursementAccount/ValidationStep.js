@@ -102,7 +102,7 @@ class ValidationStep extends React.Component {
      * @returns {String}
      */
     filterInput(amount) {
-        let value = amount ? amount.trim() : '';
+        let value = amount ? amount.toString().trim() : '';
         if (value === '' || !Math.abs(Str.fromUSDToNumber(value)) || _.isNaN(Number(value))) {
             return '';
         }
