@@ -1478,8 +1478,6 @@ const styles = {
 
     emojiHeaderContainerStyle: {
         backgroundColor: themeColors.componentBG,
-        width: '100%',
-        height: 32,
         display: 'flex',
         alignItems: 'center',
         textAlignVertical: 'center',
