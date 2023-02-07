@@ -13,6 +13,7 @@ const IOU_DETAILS = 'iou/details';
 const IOU_REQUEST_CURRENCY = `${IOU_REQUEST}/currency`;
 const IOU_BILL_CURRENCY = `${IOU_BILL}/currency`;
 const IOU_SEND_CURRENCY = `${IOU_SEND}/currency`;
+const SETTINGS_PERSONAL_DETAILS = 'settings/profile/personal-details';
 
 export default {
     BANK_ACCOUNT: 'bank-account',
@@ -44,6 +45,10 @@ export default {
     getSettingsAddLoginRoute: type => `settings/addlogin/${type}`,
     SETTINGS_PAYMENTS_TRANSFER_BALANCE: 'settings/payments/transfer-balance',
     SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT: 'settings/payments/choose-transfer-account',
+    SETTINGS_PERSONAL_DETAILS,
+    SETTINGS_PERSONAL_DETAILS_LEGAL_NAME: `${SETTINGS_PERSONAL_DETAILS}/legal-name`,
+    SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH: `${SETTINGS_PERSONAL_DETAILS}/date-of-birth`,
+    SETTINGS_PERSONAL_DETAILS_ADDRESS: `${SETTINGS_PERSONAL_DETAILS}/address`,
     NEW_GROUP: 'new/group',
     NEW_CHAT: 'new/chat',
     REPORT,
