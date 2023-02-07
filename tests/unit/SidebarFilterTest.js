@@ -23,10 +23,13 @@ const ONYXKEYS = {
 };
 
 describe('Sidebar', () => {
-    beforeAll(() => Onyx.init({
-        keys: ONYXKEYS,
-        registerStorageEventListener: () => {},
-    }));
+    beforeAll(() => {
+        jest.useRealTimers();
+        return Onyx.init({
+            keys: ONYXKEYS,
+            registerStorageEventListener: () => {},
+        });
+    });
 
     // Initialize the network key for OfflineWithFeedback
     beforeEach(() => Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false}));
