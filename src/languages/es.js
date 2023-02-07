@@ -1060,7 +1060,7 @@ export default {
             firstName: 'Por favor, ingresa tu nombre',
             lastName: 'Por favor, ingresa tus apellidos',
             firstNameLength: 'El nombre no debe tener más de 50 caracteres',
-            lastNameLength: 'Los apellidos no debe tener más de 50 caracteres',
+            lastNameLength: 'Los apellidos no deben tener más de 50 caracteres',
         },
     },
     requestCallConfirmationScreen: {
