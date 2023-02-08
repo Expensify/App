@@ -49,6 +49,7 @@ class BasePaymentsPage extends React.Component {
             formattedSelectedPaymentMethod: {
                 title: '',
             },
+            selectedPaymentMethodType: null,
             anchorPositionTop: 0,
             anchorPositionBottom: 0,
             anchorPositionRight: 0,
@@ -88,15 +89,21 @@ class BasePaymentsPage extends React.Component {
         }
 
         if (this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt) {
+            // We should reset selected payment method state values and close corresponding modals if the selected payment method is deleted
             let shouldResetPaymentMethodData = false;
+
             if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT && _.isEmpty(this.props.bankAccountList[this.state.methodID])) {
+                // If the selected payment method is bank account and it has been deleted, reset the selected payment method data and close corresponding modals
                 shouldResetPaymentMethodData = true;
             } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && _.isEmpty(this.props.cardList[this.state.methodID])) {
+                // If the selected payment method is card and it has been deleted, reset the selected payment method data and close corresponding modals
                 shouldResetPaymentMethodData = true;
             } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PAYPAL && this.props.payPalMeData !== prevProps.payPalMeData && _.isEmpty(this.props.payPalMeData)) {
+                // If the selected payment method is paypal and it has been deleted, reset the selected payment method data and close corresponding modals
                 shouldResetPaymentMethodData = true;
             }
             if (shouldResetPaymentMethodData) {
+                // Close corresponding selected payment method modals which are open
                 if (this.state.shouldShowDefaultDeleteMenu) {
                     this.hideDefaultDeleteMenu();
                 }
@@ -159,6 +166,8 @@ class BasePaymentsPage extends React.Component {
     }
 
     resetSelectedPaymentMethodData() {
+        // The below state values are used by payment method modals and we reset them while closing the modals.
+        // We should only reset the values when the modal animation is completed and so using InteractionManager.runAfterInteractions which fires after all animaitons are complete
         InteractionManager.runAfterInteractions(() => {
             // Reset to same values as in the constructor
             this.setState({
