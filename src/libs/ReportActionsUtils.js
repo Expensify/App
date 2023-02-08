@@ -50,20 +50,27 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
     if (!_.isArray(reportActions)) {
         throw new Error(`ReportActionsUtils.getSortedReportActions requires an array, received ${typeof reportActions}`);
     }
+
     const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
-    reportActions.sort((first, second) => {
-        // If only one action is a report created action, return the created action first.
-        if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
-            return ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) ? -1 : 1) * invertedMultiplier;
-        }
+    return _.chain(reportActions)
+        .compact()
+        .sort((first, second) => {
+            // First sort by timestamp
+            if (first.created !== second.created) {
+                return (first.created < second.created ? -1 : 1) * invertedMultiplier;
+            }
 
-        if (first.created !== second.created) {
-            return (first.created < second.created ? -1 : 1) * invertedMultiplier;
-        }
+            // Then by action type, ensuring that `CREATED` actions always come first if they have the same timestamp as another action type
+            if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
+                return ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) ? -1 : 1) * invertedMultiplier;
+            }
 
-        return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
-    });
-    return reportActions;
+            // Then fallback on reportActionID as the final sorting criteria. It is a random number,
+            // but using this will ensure that the order of reportActions with the same created time and action type
+            // will be consistent across all users and devices
+            return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
+        })
+        .value();
 }
 
 /**
@@ -76,6 +83,11 @@ function filterReportActionsForDisplay(reportActions) {
     return _.filter(reportActions, (reportAction) => {
         // Filter out any unsupported reportAction types
         if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName)) {
+            return false;
+        }
+
+        // Ignore closed action here since we're already displaying a footer that explains why the report was closed
+        if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
             return false;
         }
 

@@ -26,12 +26,12 @@ const picker = {
     fontFamily: fontFamily.EXP_NEUE,
     fontSize: variables.fontSizeNormal,
     lineHeight: variables.fontSizeNormalHeight,
-    paddingHorizontal: 11,
     paddingBottom: 8,
     paddingTop: 23,
+    paddingLeft: 0,
+    paddingRight: 25,
     height: variables.inputHeight,
     borderWidth: 0,
-    borderRadius: variables.componentBorderRadiusNormal,
     textAlign: 'left',
 };
 
@@ -141,6 +141,7 @@ const webViewStyles = {
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.EXP_NEUE,
         flex: 1,
+        lineHeight: variables.fontSizeNormalHeight,
     },
 };
 
@@ -211,6 +212,10 @@ const styles = {
         textAlign: 'right',
     },
 
+    textAlignLeft: {
+        textAlign: 'left',
+    },
+
     textUnderline: {
         textDecorationLine: 'underline',
     },
@@ -272,6 +277,11 @@ const styles = {
 
     textXXXLarge: {
         fontSize: variables.fontSizeXXXLarge,
+    },
+
+    textHero: {
+        fontSize: variables.fontSizeHero,
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
     },
 
     textStrong: {
@@ -342,14 +352,6 @@ const styles = {
         opacity: 1,
     },
 
-    pr0: {
-        paddingRight: 0,
-    },
-
-    pl0: {
-        paddingLeft: 0,
-    },
-
     textDanger: {
         color: themeColors.danger,
     },
@@ -361,7 +363,7 @@ const styles = {
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.buttonBorderRadius,
-        height: variables.componentSizeLarge,
+        minHeight: variables.componentSizeLarge,
         justifyContent: 'center',
         ...spacing.ph3,
     },
@@ -377,6 +379,7 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         textAlign: 'center',
+        flexShrink: 1,
 
         // It is needed to unset the Lineheight. We don't need it for buttons as button always contains single line of text.
         // It allows to vertically center the text.
@@ -388,7 +391,7 @@ const styles = {
 
     buttonSmall: {
         borderRadius: variables.buttonBorderRadius,
-        height: variables.componentSizeSmall,
+        minHeight: variables.componentSizeSmall,
         paddingTop: 4,
         paddingHorizontal: 14,
         paddingBottom: 4,
@@ -397,7 +400,7 @@ const styles = {
 
     buttonMedium: {
         borderRadius: variables.buttonBorderRadius,
-        height: variables.componentSizeNormal,
+        minHeight: variables.componentSizeNormal,
         paddingTop: 12,
         paddingRight: 16,
         paddingBottom: 12,
@@ -407,7 +410,7 @@ const styles = {
 
     buttonLarge: {
         borderRadius: variables.buttonBorderRadius,
-        height: variables.componentSizeLarge,
+        minHeight: variables.componentSizeLarge,
         paddingTop: 8,
         paddingRight: 10,
         paddingBottom: 8,
@@ -537,7 +540,6 @@ const styles = {
         alignItems: 'center',
         height: variables.componentSizeNormal,
         justifyContent: 'center',
-        marginRight: 8,
         width: variables.componentSizeNormal,
     },
 
@@ -561,8 +563,8 @@ const styles = {
         inputIOS: {
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
-            paddingLeft: 9,
-            paddingRight: 25,
+            paddingLeft: 0,
+            paddingRight: 17,
             paddingTop: 6,
             paddingBottom: 6,
             borderRadius: variables.componentBorderRadius,
@@ -575,8 +577,8 @@ const styles = {
         inputWeb: {
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
-            paddingLeft: 9,
-            paddingRight: 25,
+            paddingLeft: 0,
+            paddingRight: 17,
             paddingTop: 6,
             paddingBottom: 6,
             borderWidth: 0,
@@ -591,8 +593,8 @@ const styles = {
         inputAndroid: {
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
-            paddingLeft: 9,
-            paddingRight: 25,
+            paddingLeft: 0,
+            paddingRight: 17,
             paddingTop: 6,
             paddingBottom: 6,
             borderWidth: 0,
@@ -603,7 +605,6 @@ const styles = {
         },
         iconContainer: {
             top: 7,
-            right: 8,
             ...pointerEventsNone,
         },
         icon: {
@@ -691,11 +692,11 @@ const styles = {
     },
 
     chatItemComposeSecondaryRowOffset: {
-        marginLeft: 48,
+        marginLeft: variables.chatInputSpacing,
     },
 
     offlineIndicator: {
-        marginLeft: 48,
+        marginLeft: variables.chatInputSpacing,
     },
 
     offlineIndicatorMobile: {
@@ -718,24 +719,22 @@ const styles = {
 
     textInputContainer: {
         flex: 1,
-        borderRadius: variables.componentBorderRadiusNormal,
         justifyContent: 'center',
         height: '100%',
-        backgroundColor: themeColors.componentBG,
-        borderWidth: 1,
+        backgroundColor: 'transparent',
+        borderBottomWidth: 2,
         borderColor: themeColors.border,
         overflow: 'hidden',
     },
 
     textInputLabel: {
         position: 'absolute',
-        left: 11,
+        left: 0,
         top: 0,
         fontSize: variables.fontSizeNormal,
         color: themeColors.textSupporting,
         fontFamily: fontFamily.EXP_NEUE,
         width: '100%',
-        textAlign: 'left',
     },
 
     textInputLabelBackground: {
@@ -744,8 +743,6 @@ const styles = {
         width: '100%',
         height: 25,
         backgroundColor: themeColors.componentBG,
-        borderTopRightRadius: variables.componentBorderRadiusNormal,
-        borderTopLeftRadius: variables.componentBorderRadiusNormal,
     },
 
     textInputLabelDesktop: {
@@ -767,7 +764,7 @@ const styles = {
         color: themeColors.text,
         paddingTop: 23,
         paddingBottom: 8,
-        paddingHorizontal: 11,
+        paddingLeft: 0,
         borderWidth: 0,
     },
 
@@ -789,8 +786,6 @@ const styles = {
     textInputDesktop: addOutlineWidth({}, 0),
 
     secureInputShowPasswordButton: {
-        borderTopRightRadius: 6,
-        borderBottomRightRadius: 6,
         paddingHorizontal: 11,
         justifyContent: 'center',
         margin: 1,
@@ -802,7 +797,7 @@ const styles = {
     },
 
     textInput: {
-        backgroundColor: themeColors.componentBG,
+        backgroundColor: 'transparent',
         borderRadius: variables.componentBorderRadiusNormal,
         height: variables.inputComponentSizeNormal,
         borderColor: themeColors.border,
@@ -822,7 +817,6 @@ const styles = {
         left: 0,
         top: 0,
         height: '100%',
-        paddingLeft: 11,
         paddingTop: 23,
         paddingBottom: 8,
         color: themeColors.text,
@@ -832,30 +826,43 @@ const styles = {
     },
 
     pickerContainer: {
-        borderWidth: 1,
+        borderBottomWidth: 2,
+        paddingLeft: 0,
         borderStyle: 'solid',
         borderColor: themeColors.border,
-        borderRadius: variables.componentBorderRadiusNormal,
         justifyContent: 'center',
-        backgroundColor: themeColors.componentBG,
+        backgroundColor: 'transparent',
+        height: variables.inputHeight,
     },
+
+    pickerContainerSmall: {
+        height: variables.inputHeightSmall,
+    },
+
     pickerLabel: {
         position: 'absolute',
-        left: 11,
+        left: 0,
         top: 6,
     },
+
     picker: (disabled = false) => ({
         iconContainer: {
             top: Math.round(variables.inputHeight * 0.5) - 11,
-            right: 10,
+            right: 0,
             zIndex: -1,
         },
+
         inputWeb: {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...picker,
         },
-        inputNative: {
+
+        inputIOS: {
+            ...picker,
+        },
+
+        inputAndroid: {
             ...picker,
         },
     }),
@@ -867,16 +874,6 @@ const styles = {
     inputDisabled: {
         backgroundColor: themeColors.highlightBG,
         color: themeColors.icon,
-    },
-
-    textInputReversed: addOutlineWidth({
-        backgroundColor: themeColors.heading,
-        borderColor: themeColors.text,
-        color: themeColors.textReversed,
-    }, 0),
-
-    textInputReversedFocus: {
-        borderColor: themeColors.icon,
     },
 
     noOutline: addOutlineWidth({}, 0),
@@ -893,15 +890,6 @@ const styles = {
 
     lh16: {
         lineHeight: 16,
-    },
-
-    formLabel: {
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
-        color: themeColors.heading,
-        fontSize: variables.fontSizeLabel,
-        lineHeight: variables.lineHeightLarge,
-        marginBottom: 8,
     },
 
     formHelp: {
@@ -1306,7 +1294,7 @@ const styles = {
         flexShrink: 1,
         flexBasis: 0,
         position: 'relative',
-        marginLeft: 48,
+        marginLeft: variables.chatInputSpacing,
     },
 
     chatItemRight: {
@@ -1329,7 +1317,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         lineHeight: variables.lineHeightXLarge,
-        paddingBottom: 4,
         ...wordBreak.breakWord,
     },
 
@@ -1337,8 +1324,7 @@ const styles = {
         flexShrink: 0,
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeSmall,
-        height: 24,
-        lineHeight: variables.lineHeightXLarge,
+        paddingTop: 2,
     },
 
     chatItemMessage: {
@@ -1346,8 +1332,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.EXP_NEUE,
         lineHeight: variables.lineHeightXLarge,
-        marginTop: -2,
-        marginBottom: -2,
         maxWidth: '100%',
         cursor: 'auto',
         ...whiteSpace.preWrap,
@@ -1412,7 +1396,6 @@ const styles = {
         fontFamily: fontFamily.EMOJI_TEXT_FONT,
         fontSize: variables.fontSizeNormal,
         borderWidth: 0,
-        borderRadius: variables.componentBorderRadiusRounded,
         height: 'auto',
         lineHeight: variables.lineHeightXLarge,
         ...overflowXHidden,
@@ -1420,7 +1403,7 @@ const styles = {
         // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
-        paddingHorizontal: 8,
+        paddingHorizontal: variables.avatarChatSpacing,
         paddingTop: 0,
         paddingBottom: 0,
         alignSelf: 'center',
@@ -1435,6 +1418,7 @@ const styles = {
     },
 
     editInputComposeSpacing: {
+        backgroundColor: themeColors.transparent,
         marginVertical: 6,
     },
 
@@ -1451,7 +1435,7 @@ const styles = {
         backgroundColor: themeColors.transparent,
         height: 32,
         padding: 6,
-        margin: 4,
+        margin: 3,
         justifyContent: 'center',
     },
 
@@ -1468,12 +1452,15 @@ const styles = {
         height: 240,
     },
 
-    emojiHeaderStyle: {
+    emojiHeaderContainer: {
         backgroundColor: themeColors.componentBG,
-        width: '100%',
-        height: 32,
         display: 'flex',
-        alignItems: 'center',
+        height: CONST.EMOJI_PICKER_HEADER_HEIGHT,
+        justifyContent: 'center',
+        width: '100%',
+    },
+
+    emojiHeaderStyle: {
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
@@ -1525,8 +1512,7 @@ const styles = {
         alignSelf: 'flex-end',
         borderRadius: variables.buttonBorderRadius,
         height: 32,
-        marginVertical: 4,
-        marginLeft: 3,
+        marginVertical: 3,
         paddingHorizontal: 6,
         justifyContent: 'center',
     },
@@ -1539,27 +1525,19 @@ const styles = {
         backgroundColor: themeColors.buttonHoveredBG,
     },
 
-    chatItemAttachButton: {
-        alignItems: 'center',
-        alignSelf: 'flex-end',
+    chatItemAttachBorder: {
         borderRightColor: themeColors.border,
         borderRightWidth: 1,
-        height: 32,
-        width: 32,
-        marginBottom: 4,
-        marginTop: 4,
-        marginLeft: 4,
-        justifyContent: 'center',
     },
 
     composerSizeButton: {
-        alignItems: 'center',
-        alignSelf: 'flex-end',
-        height: 26,
-        marginBottom: 6,
-        marginTop: 6,
-        justifyContent: 'center',
+        alignSelf: 'center',
+        height: 32,
         width: 32,
+        padding: 6,
+        margin: 3,
+        borderRadius: variables.componentBorderRadiusRounded,
+        backgroundColor: themeColors.transparent,
     },
 
     chatItemAttachmentPlaceholder: {
@@ -1688,6 +1666,7 @@ const styles = {
         borderWidth: 3,
         borderRadius: 18,
         borderColor: themeColors.cardBorder,
+        backgroundColor: themeColors.appBG,
     },
 
     avatarLarge: {
@@ -1739,13 +1718,13 @@ const styles = {
     },
 
     emptyAvatar: {
-        marginRight: variables.componentSizeNormal - 24,
+        marginRight: variables.avatarChatSpacing,
         height: variables.avatarSizeNormal,
         width: variables.avatarSizeNormal,
     },
 
     emptyAvatarSmall: {
-        marginRight: variables.componentSizeNormal - 28,
+        marginRight: variables.avatarChatSpacing - 4,
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
     },
@@ -1816,6 +1795,7 @@ const styles = {
 
     borderNone: {
         borderWidth: 0,
+        borderBottomWidth: 0,
     },
 
     borderRight: {
@@ -1926,6 +1906,7 @@ const styles = {
         fontSize: variables.fontSizeXLarge,
         marginTop: 20,
         marginBottom: 8,
+        textAlign: 'center',
     },
 
     notFoundTextBody: {
@@ -2010,13 +1991,17 @@ const styles = {
         width: '100%',
     },
 
-    roomHeaderAvatar: {
+    roomHeaderAvatarSize: {
         height: variables.componentSizeLarge,
         width: variables.componentSizeLarge,
+    },
+
+    roomHeaderAvatar: {
+        backgroundColor: themeColors.appBG,
+        marginLeft: -16,
         borderRadius: 100,
         borderColor: themeColors.componentBG,
         borderWidth: 4,
-        marginLeft: -16,
     },
 
     roomHeaderAvatarOverlay: {
@@ -2027,21 +2012,43 @@ const styles = {
         left: 0,
         backgroundColor: themeColors.overlay,
         opacity: variables.overlayOpacity,
+        borderRadius: 88,
     },
 
     avatarInnerTextChat: {
         color: themeColors.textLight,
-        fontSize: variables.fontSizeNormal,
-        left: 1,
+        fontSize: variables.fontSizeXLarge,
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
         textAlign: 'center',
         fontWeight: 'normal',
         position: 'absolute',
+        width: 88,
+        left: -16,
+    },
+
+    svgAvatarBorder: {
+        borderRadius: 100,
+        overflow: 'hidden',
+    },
+
+    displayName: {
+        fontSize: variables.fontSizeLarge,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
     },
 
     pageWrapper: {
         width: '100%',
         alignItems: 'center',
         padding: 20,
+    },
+
+    avatarSectionWrapper: {
+        width: '100%',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingBottom: 20,
     },
 
     selectCircle: {
@@ -2218,6 +2225,7 @@ const styles = {
 
     iouPreviewBoxAvatarHover: {
         borderColor: themeColors.border,
+        backgroundColor: themeColors.border,
     },
 
     iouPreviewBoxCheckmark: {
@@ -2229,10 +2237,6 @@ const styles = {
         flexGrow: 1,
         paddingStart: 20,
         paddingEnd: 20,
-    },
-
-    noScrollbars: {
-        scrollbarWidth: 'none',
     },
 
     codeWordWrapper: {
@@ -2712,10 +2716,6 @@ const styles = {
         flex: 1,
     },
 
-    errorPageContainer: {
-        backgroundColor: themeColors.componentBG,
-    },
-
     transferBalancePayment: {
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
@@ -2789,12 +2789,6 @@ const styles = {
         marginLeft: 6,
     },
 
-    addWorkspaceRoomErrorRow: {
-        paddingHorizontal: 20,
-        maxWidth: 450,
-        alignSelf: 'center',
-    },
-
     fullScreenTransparentOverlay: {
         position: 'absolute',
         width: '100%',
@@ -2864,12 +2858,6 @@ const styles = {
     saveButtonPadding: {
         paddingLeft: 18,
         paddingRight: 18,
-    },
-
-    pushToPageEmptyItemLabel: {
-        color: themeColors.textSupporting,
-        fontSize: variables.fontSizeNormal,
-        maxWidth: 240,
     },
 
     deeplinkWrapperContainer: {

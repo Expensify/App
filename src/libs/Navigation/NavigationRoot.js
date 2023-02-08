@@ -61,7 +61,6 @@ const NavigationRoot = (props) => {
         <NavigationContainer
             fallback={(
                 <FullScreenLoadingIndicator
-                    logDetail={{name: 'Navigation Fallback Loader', authenticated: props.authenticated}}
                     style={styles.navigatorFullScreenLoading}
                 />
             )}

@@ -154,19 +154,22 @@ class BaseOptionsList extends Component {
      * @return {Component}
      */
     renderItem({item, index, section}) {
+        const isDisabled = this.props.isDisabled || section.isDisabled;
         return (
             <OptionRow
                 option={item}
                 showTitleTooltip={this.props.showTitleTooltip}
                 hoverStyle={this.props.optionHoveredStyle}
                 optionIsFocused={!this.props.disableFocusOptions
+                    && !isDisabled
                     && this.props.focusedIndex === (index + section.indexOffset)}
                 onSelectRow={this.props.onSelectRow}
                 isSelected={Boolean(_.find(this.props.selectedOptions, option => option.login === item.login))}
                 showSelectedState={this.props.canSelectMultipleOptions}
                 boldStyle={this.props.boldStyle}
-                isDisabled={this.props.isDisabled || section.isDisabled}
+                isDisabled={isDisabled}
                 shouldHaveOptionSeparator={index > 0 && this.props.shouldHaveOptionSeparator}
+                shouldDisableRowInnerPadding={this.props.shouldDisableRowInnerPadding}
             />
         );
     }
@@ -190,7 +193,7 @@ class BaseOptionsList extends Component {
                 // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
                 // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
                 <View style={styles.optionsListSectionHeader}>
-                    <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading, styles.textUppercase]}>
+                    <Text style={[styles.p5, styles.textLabelSupporting]}>
                         {title}
                     </Text>
                 </View>

@@ -213,7 +213,7 @@ class IOUParticipantsSplit extends Component {
             <SafeAreaConsumer>
                 {({safeAreaPaddingBottomStyle}) => (
                     <View style={[styles.flex1, styles.w100, (this.props.participants.length > 0 ? safeAreaPaddingBottomStyle : {})]}>
-                        <Text style={[styles.formLabel, styles.pt3, styles.ph5]}>
+                        <Text style={[styles.textLabelSupporting, styles.pt3, styles.ph5]}>
                             {this.props.translate('common.to')}
                         </Text>
                         <OptionsSelector

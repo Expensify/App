@@ -78,7 +78,7 @@ class EnablePaymentsPage extends React.Component {
                     return (
                         <>
                             {(currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS || currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS_KBA)
-                                && <AdditionalDetailsStep walletAdditionalDetailsDraft={this.props.walletAdditionalDetailsDraft} />}
+                                && <AdditionalDetailsStep />}
                             {currentStep === CONST.WALLET.STEP.ONFIDO && this.props.walletAdditionalDetailsDraft
                             && <OnfidoStep walletAdditionalDetailsDraft={this.props.walletAdditionalDetailsDraft} />}
                             {currentStep === CONST.WALLET.STEP.TERMS && <TermsStep />}
@@ -103,9 +103,6 @@ export default compose(
             // We want to refresh the wallet each time the user attempts to activate the wallet so we won't use the
             // stored values here.
             initWithStoredValues: false,
-        },
-        walletAdditionalDetailsDraft: {
-            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS_DRAFT,
         },
     }),
     withNetwork(),

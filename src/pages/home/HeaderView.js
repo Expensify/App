@@ -3,6 +3,7 @@ import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import Icon from '../../components/Icon';
@@ -25,6 +26,7 @@ import Tooltip from '../../components/Tooltip';
 import variables from '../../styles/variables';
 import colors from '../../styles/colors';
 import reportPropTypes from '../reportPropTypes';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -65,11 +67,12 @@ const HeaderView = (props) => {
 
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report, props.policies);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
-    const isAutomatedExpensifyAccount = (participants.length === 1 && ReportUtils.hasExpensifyEmails(participants));
+    const isAutomatedExpensifyAccount = (participants.length === 1 && ReportUtils.hasAutomatedExpensifyEmails(participants));
+    const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
-    const shouldShowCallButton = isConcierge || !isAutomatedExpensifyAccount;
+    const shouldShowCallButton = (isConcierge && guideCalendarLink) || !isAutomatedExpensifyAccount;
     const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
     const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
@@ -152,11 +155,11 @@ const HeaderView = (props) => {
                                 <IOUBadge iouReportID={props.report.iouReportID} />
                             )}
 
-                            {shouldShowCallButton && <VideoChatButtonAndMenu isConcierge={isConcierge} />}
+                            {shouldShowCallButton && <VideoChatButtonAndMenu isConcierge={isConcierge} guideCalendarLink={guideCalendarLink} />}
                             <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
                                 <Pressable
                                     onPress={() => Report.togglePinnedState(props.report)}
-                                    style={[styles.touchableButtonImage, styles.mr0]}
+                                    style={[styles.touchableButtonImage]}
                                 >
                                     <Icon src={Expensicons.Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
                                 </Pressable>
@@ -175,4 +178,10 @@ HeaderView.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
+    withOnyx({
+        account: {
+            key: ONYXKEYS.ACCOUNT,
+            selector: account => account && ({guideCalendarLink: account.guideCalendarLink}),
+        },
+    }),
 )(HeaderView);

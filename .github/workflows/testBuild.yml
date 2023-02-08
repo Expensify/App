@@ -28,7 +28,11 @@ jobs:
 
       - id: hasReadyToBuildLabel
         name: Set HAS_READY_TO_BUILD_LABEL flag
-        run: echo "HAS_READY_TO_BUILD_LABEL=$(gh pr view "${{ env.PULL_REQUEST_NUMBER }}" --repo Expensify/App --json labels --jq '.labels[].name' | grep -q 'Ready To Build' && echo 'true')" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "HAS_READY_TO_BUILD_LABEL=$(gh pr view "${{ env.PULL_REQUEST_NUMBER }}" --repo Expensify/App --json labels --jq '.labels[].name' | grep -q 'Ready To Build' && echo 'true')" >> "$GITHUB_OUTPUT"
+          if [[ "$HAS_READY_TO_BUILD_LABEL" != 'true' ]]; then
+            echo "The 'Ready to Build' label is not attached to the PR #${{ env.PULL_REQUEST_NUMBER }}" 
+          fi
         env:
           PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
           GITHUB_TOKEN: ${{ github.token }}
@@ -231,25 +235,34 @@ jobs:
   postGithubComment:
     runs-on: ubuntu-latest
     name: Post a GitHub comment with app download links for testing
-    needs: [getBranchRef, android, ios, desktop, web]
+    needs: [validateActor, getBranchRef, android, ios, desktop, web]
+    if: ${{ always() }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     steps:
       - name: Checkout
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
         with:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
       - uses: actions/download-artifact@v3
+        if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
 
-      - name: Read JSONs with paths
-        id: set_var
+      - name: Read JSONs with android paths
+        id: get_android_path
+        if: ${{ needs.android.result == 'success' }}
         run: |
           content_android="$(cat ./android/android_paths.json)"
           content_android="${content_android//'%'/'%25'}"
           content_android="${content_android//$'\n'/'%0A'}"
           content_android="${content_android//$'\r'/'%0D'}"
           echo "android_paths=$content_android" >> "$GITHUB_OUTPUT"
+
+      - name: Read JSONs with iOS paths
+        id: get_ios_path
+        if: ${{ needs.ios.result == 'success' }}
+        run: |
           content_ios="$(cat ./ios/ios_paths.json)"
           content_ios="${content_ios//'%'/'%25'}"
           content_ios="${content_ios//$'\n'/'%0A'}"
@@ -259,6 +272,7 @@ jobs:
       # This step removes previous comments with links connected to the PR
       - name: maintain-comment
         uses: actions-cool/maintain-one-comment@de04bd2a3750d86b324829a3ff34d47e48e16f4b
+        if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           body-include: 'Use the links below to test this build in android and iOS. Happy testing!'
@@ -266,17 +280,16 @@ jobs:
           delete: true
 
       - name: Publish links to apps for download
-        run: |
-          set -e
-          gh pr checkout "$PULL_REQUEST_NUMBER"
-          gh pr comment --body \
-          ":test_tube::test_tube: Use the links below to test this build in android and iOS. Happy testing! :test_tube::test_tube:
-          | android :robot:  | iOS :apple: |
-          | ------------- | ------------- |
-          | ${{fromJson(steps.set_var.outputs.android_paths).html_path}}  | ${{fromJson(steps.set_var.outputs.ios_paths).html_path}}  | 
-          | ![Android](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.android_paths).html_path}}) | ![iOS](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.ios_paths).html_path}}) |
-          | desktop :computer: | web :spider_web: |
-          | https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/$PULL_REQUEST_NUMBER/NewExpensify.dmg | https://$PULL_REQUEST_NUMBER.pr-testing.expensify.com |
-          | ![desktop](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/$PULL_REQUEST_NUMBER/NewExpensify.dmg) | ![web](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://$PULL_REQUEST_NUMBER.pr-testing.expensify.com) |"
-        env:
+        if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
+        uses: Expensify/App/.github/actions/javascript/postTestBuildComment@main
+        with:
+          PR_NUMBER: ${{ env.PULL_REQUEST_NUMBER }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          ANDROID: ${{ needs.android.result }}
+          DESKTOP: ${{ needs.desktop.result }}
+          IOS: ${{ needs.iOS.result }}
+          WEB: ${{ needs.web.result }}
+          ANDROID_LINK: ${{fromJson(steps.get_android_path.outputs.android_paths).html_path}}
+          DESKTOP_LINK: "https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/$PULL_REQUEST_NUMBER/NewExpensify.dmg"
+          IOS_LINK: ${{ fromJson(steps.get_ios_path.outputs.ios_paths).html_path }}
+          WEB_LINK: "https://$PULL_REQUEST_NUMBER.pr-testing.expensify.com"

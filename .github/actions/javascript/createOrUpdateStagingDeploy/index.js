@@ -194,6 +194,7 @@ module.exports = run;
 
 const _ = __nccwpck_require__(3571);
 const {spawn} = __nccwpck_require__(3129);
+const sanitizeStringForJSONParse = __nccwpck_require__(9338);
 
 /**
  * Get merge logs between two refs (inclusive) as a JavaScript object.
@@ -229,14 +230,11 @@ function getMergeLogsAsJSON(fromRef, toRef) {
         spawnedProcess.on('error', err => reject(err));
     })
         .then((stdout) => {
-            // Remove any double-quotes from commit subjects
-            let sanitizedOutput = stdout.replace(/(?<="subject": ").*(?="})/g, subject => subject.replace(/"/g, "'"));
+            // Sanitize just the text within commit subjects as that's the only potentially un-parseable text.
+            const sanitizedOutput = stdout.replace(/(?<="subject": ").*?(?="})/g, subject => sanitizeStringForJSONParse(subject));
 
-            // Also remove any newlines and escape backslashes
-            sanitizedOutput = sanitizedOutput.replace(/(\r\n|\n|\r)/gm, '').replace(/\\/g, '\\\\');
-
-            // Then format as JSON and convert to a proper JS object
-            const json = `[${sanitizedOutput}]`.replace('},]', '}]');
+            // Then remove newlines, format as JSON and convert to a proper JS object
+            const json = `[${sanitizedOutput}]`.replace(/(\r\n|\n|\r)/gm, '').replace('},]', '}]');
 
             return JSON.parse(json);
         });
@@ -859,6 +857,39 @@ module.exports.DEPLOY_BLOCKER_CASH_LABEL = DEPLOY_BLOCKER_CASH_LABEL;
 module.exports.APPLAUSE_BOT = APPLAUSE_BOT;
 module.exports.ISSUE_OR_PULL_REQUEST_REGEX = ISSUE_OR_PULL_REQUEST_REGEX;
 module.exports.POLL_RATE = POLL_RATE;
+
+
+/***/ }),
+
+/***/ 9338:
+/***/ ((module) => {
+
+const replacer = str => ({
+    '\\': '\\\\',
+    '\t': '\\t',
+    '\n': '\\n',
+    '\r': '\\r',
+    '\f': '\\f',
+    '"': '\\"',
+}[str]);
+
+/**
+ * Replace any characters in the string that will break JSON.parse for our Git Log output
+ *
+ * Solution partly taken from SO user Gabriel Rodríguez Flores 🙇
+ * https://stackoverflow.com/questions/52789718/how-to-remove-special-characters-before-json-parse-while-file-reading
+ *
+ * @param {String} inputString
+ * @returns {String}
+ */
+module.exports = function (inputString) {
+    if (typeof inputString !== 'string') {
+        throw new TypeError('Input must me of type String');
+    }
+
+    // Replace any newlines and escape backslashes
+    return inputString.replace(/\\|\t|\n|\r|\f|"/g, replacer);
+};
 
 
 /***/ }),
