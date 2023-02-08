@@ -39,7 +39,7 @@ class ValidateLoginPage extends Component {
         // - The user is on the passwordless beta
         // - AND the user is not authenticated
         // - AND the user has initiated the sign in process in another tab
-        if (this.isOnPasswordlessBeta() && !this.isAuthenticated() && this.props.credentials.login) {
+        if (this.isOnPasswordlessBeta() && !this.isAuthenticated() && this.isSignInInitiated()) {
             Session.signInWithValidateCode(this.accountID(), this.validateCode());
         }
     }
@@ -64,8 +64,21 @@ class ValidateLoginPage extends Component {
      */
     isAuthenticated = () => Boolean(lodashGet(this.props, 'session.authToken', null));
 
+    /**
+     * Where SignIn was initiated on the current browser.
+     * @returns {Boolean}
+     */
+    isSignInInitiated = () => !this.isAuthenticated() && this.props.credentials && this.props.credentials.login;
+
     render() {
-        return (Permissions.canUsePasswordlessLogins(this.props.betas) ? <MagicCodeModal code={this.validateCode()} /> : <FullScreenLoadingIndicator />);
+        return (
+            this.isOnPasswordlessBeta() ?
+                <MagicCodeModal code={this.validateCode()}
+                    shouldShowSignInHere={!this.isSignInInitiated()}
+                    onSignInHereClick={() => Session.signInWithValidateCodeAndNavigate(this.accountID(), this.validateCode())}
+                />
+                : <FullScreenLoadingIndicator />
+        );
     }
 }
 

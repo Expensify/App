@@ -9,13 +9,26 @@ import Text from './Text';
 import * as Expensicons from './Icon/Expensicons';
 import * as Illustrations from './Icon/Illustrations';
 import variables from '../styles/variables';
+import TextLink from './TextLink';
 
 const propTypes = {
     /** Code to display. */
     code: PropTypes.string.isRequired,
 
+    /** Whether the user can get signed straight in the App from the current page */
+    shouldShowSignInHere: PropTypes.bool,
+
+    /** Callback to be called when user clicks the Sign in here link */
+    onSignInHereClick: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
+
+const defaultProps = {
+    shouldShowSignInHere: false,
+    onSignInHereClick: () => {},
+};
+
 class MagicCodeModal extends PureComponent {
     render() {
         return (
@@ -34,6 +47,15 @@ class MagicCodeModal extends PureComponent {
                     <View style={[styles.mt2, styles.mb2]}>
                         <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
                             {this.props.translate('magicCodeModal.description')}
+                            {this.props.shouldShowSignInHere &&
+                                <>
+                                    {' '}
+                                    <TextLink onPress={this.props.onSignInHereClick}>
+                                        {this.props.translate('magicCodeModal.signInHere')}
+                                    </TextLink>
+                                </>
+                            }
+                            .
                         </Text>
                     </View>
                     <View style={styles.mt6}>
@@ -56,4 +78,5 @@ class MagicCodeModal extends PureComponent {
 }
 
 MagicCodeModal.propTypes = propTypes;
+MagicCodeModal.defaultProps = defaultProps;
 export default withLocalize(MagicCodeModal);
