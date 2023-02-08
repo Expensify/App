@@ -1,4 +1,4 @@
-import _, { compose } from 'underscore';
+import _, {compose} from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
@@ -30,13 +30,13 @@ class DeeplinkWrapper extends PureComponent {
         super(props);
 
         this.state = {
-            appInstallationCheckStatus: (this.isMacOSWeb())
+            appInstallationCheckStatus: (this.isMacOSWeb() && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV)
                 ? CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING : CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
         };
     }
 
     componentDidMount() {
-        if (!this.isMacOSWeb() ) {
+        if (!this.isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
             return;
         }
 
