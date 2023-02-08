@@ -28,16 +28,26 @@ const defaultProps = {
 
 class ValidateLoginPage extends Component {
     componentDidMount() {
-        if (Permissions.canUsePasswordlessLogins(this.props.betas)) {
-            // Authenticate the user if not already signed in, otherwise render the page to show the validate code
-            // for when the user initiated the sign in process on another device
-            if (!this.isAuthenticated()) {
-                Session.signInWithValidateCode(this.accountID(), this.validateCode());
-            }
-        } else {
+        // Validate login if
+        // - The user is not on passwordless beta
+        if (!this.isOnPasswordlessBeta()) {
             User.validateLogin(this.accountID(), this.validateCode());
+            return;
+        }
+
+        // Sign in if
+        // - The user is on the passwordless beta
+        // - AND the user is not authenticated
+        // - AND the user has initiated the sign in process in another tab
+        if (this.isOnPasswordlessBeta() && !this.isAuthenticated() && this.props.credentials.login) {
+            Session.signInWithValidateCode(this.accountID(), this.validateCode());
         }
     }
+
+    /**
+     * @returns {Boolean}
+     */
+    isOnPasswordlessBeta = () => Permissions.canUsePasswordlessLogins(this.props.betas);
 
     /**
      * @returns {String}
@@ -65,4 +75,5 @@ ValidateLoginPage.defaultProps = defaultProps;
 export default withOnyx({
     betas: {key: ONYXKEYS.BETAS},
     session: {key: ONYXKEYS.SESSION},
+    credentials: {key: ONYXKEYS.CREDENTIALS},
 })(ValidateLoginPage);
