@@ -4,7 +4,7 @@ import {propTypes as modalPropTypes, defaultProps as defaultModalProps} from '..
 import CONST from '../../CONST';
 
 const propTypes = {
-    ...(_.omit(modalPropTypes, ['type', 'popoverAnchorPosition'])),
+    ...(_.omit(modalPropTypes, ['type', 'popoverAnchorPosition', 'isVisible'])),
 
     /** The anchor position of the popover */
     anchorPosition: PropTypes.shape({

@@ -32,7 +32,6 @@ import withLocalize from '../../components/withLocalize';
 import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
-import KeyboardShortcutsModal from "../../components/KeyboardShortcutsModal";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -299,7 +298,6 @@ class ReportScreen extends React.Component {
                             <PortalHost name={CONST.REPORT.DROP_HOST_NAME} />
                         </View>
                     </FullPageNotFoundView>
-                    <KeyboardShortcutsModal />
                 </Freeze>
             </ScreenWrapper>
         );
