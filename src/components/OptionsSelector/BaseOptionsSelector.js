@@ -39,10 +39,11 @@ class BaseOptionsSelector extends Component {
         this.relatedTarget = null;
 
         const allOptions = this.flattenSections();
+        const focusedIndex = this.getInitiallyFocusedIndex(allOptions);
 
         this.state = {
             allOptions,
-            focusedIndex: this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0,
+            focusedIndex,
         };
     }
 
@@ -84,6 +85,8 @@ class BaseOptionsSelector extends Component {
             CTRLEnterConfig.modifiers,
             true,
         );
+
+        this.scrollToIndex(this.state.focusedIndex, false);
 
         if (!this.props.autoFocus) {
             return;
@@ -137,6 +140,25 @@ class BaseOptionsSelector extends Component {
     }
 
     /**
+     * @param {Array<Object>} allOptions
+     * @returns {Number}
+     */
+    getInitiallyFocusedIndex(allOptions) {
+        const defaultIndex = this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0;
+        if (_.isUndefined(this.props.initiallyFocusedOptionKey)) {
+            return defaultIndex;
+        }
+
+        const indexOfInitiallyFocusedOption = _.findIndex(allOptions, option => option.keyForList === this.props.initiallyFocusedOptionKey);
+
+        if (indexOfInitiallyFocusedOption >= 0) {
+            return indexOfInitiallyFocusedOption;
+        }
+
+        return defaultIndex;
+    }
+
+    /**
      * Flattens the sections into a single array of options.
      * Each object in this array is enhanced to have:
      *
@@ -176,8 +198,9 @@ class BaseOptionsSelector extends Component {
      * Scrolls to the focused index within the SectionList
      *
      * @param {Number} index
+     * @param {Boolean} animated
      */
-    scrollToIndex(index) {
+    scrollToIndex(index, animated = true) {
         const option = this.state.allOptions[index];
         if (!this.list || !option) {
             return;
@@ -196,7 +219,7 @@ class BaseOptionsSelector extends Component {
             }
         }
 
-        this.list.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex});
+        this.list.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
     }
 
     /**
@@ -270,7 +293,13 @@ class BaseOptionsSelector extends Component {
                 showTitleTooltip={this.props.showTitleTooltip}
                 isDisabled={this.props.isDisabled}
                 shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
-                onLayout={this.props.onLayout}
+                onLayout={() => {
+                    this.scrollToIndex(this.state.focusedIndex, false);
+
+                    if (this.props.onLayout) {
+                        this.props.onLayout();
+                    }
+                }}
             />
         ) : <FullScreenLoadingIndicator />;
         return (
