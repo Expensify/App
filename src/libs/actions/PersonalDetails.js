@@ -370,7 +370,6 @@ function clearAvatarErrors() {
 
 export {
     getDisplayName,
-    setPersonalDetails,
     updateAvatar,
     deleteAvatar,
     openIOUModalPage,
