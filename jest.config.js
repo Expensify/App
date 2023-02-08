@@ -1,6 +1,5 @@
 const testFileExtension = '[jt]s?(x)';
 module.exports = {
-    rootDir: '..',
     preset: 'react-native',
     testMatch: [
         `<rootDir>/tests/ui/**/*.${testFileExtension}`,

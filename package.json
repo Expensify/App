@@ -26,7 +26,7 @@
     "ios-build": "fastlane ios build",
     "android-build": "fastlane android build",
     "android-build-e2e": "bundle exec fastlane android build_e2e",
-    "test": "jest --config='config/jest.config.js'",
+    "test": "jest",
     "lint": "eslint . --max-warnings=0",
     "lint-watch": "npx eslint-watch --watch --changed",
     "shellcheck": "./scripts/shellCheck.sh",
