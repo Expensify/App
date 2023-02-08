@@ -5,7 +5,6 @@ import * as Session from '../../src/libs/actions/Session';
 import HttpUtils from '../../src/libs/HttpUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForPromisesToResolve from './waitForPromisesToResolve';
-import * as ReportUtils from '../../src/libs/ReportUtils';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 
 /**
@@ -15,12 +14,11 @@ import * as NumberUtils from '../../src/libs/NumberUtils';
  * @returns {Object}
  */
 function buildPersonalDetails(login, accountID, firstName = 'Test') {
-    const avatar = ReportUtils.getDefaultAvatar(login);
     return {
         accountID,
         login,
-        avatar,
-        avatarThumbnail: avatar,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_7.png',
+        avatarThumbnail: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_7.png',
         displayName: `${firstName} User`,
         firstName,
         lastName: 'User',
