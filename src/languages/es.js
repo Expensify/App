@@ -606,6 +606,18 @@ export default {
             hasInvalidCharacter: 'El nombre no puede contener una coma o un punto y coma',
         },
     },
+    privatePersonalDetails: {
+        personalDetails: 'Datos personales',
+        privateDataMessage: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en su perfil público.',
+        legalName: 'Nombre completo',
+        legalFirstName: 'Nombre',
+        legalLastName: 'Apellidos',
+        homeAddress: 'Domicilio',
+        error: {
+            dateShouldBeBefore: ({dateString}) => `La fecha debe ser anterior a ${dateString}.`,
+            dateShouldBeAfter: ({dateString}) => `La fecha debe ser posterior a ${dateString}.`,
+        },
+    },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
         weSentYouMagicSignInLink: ({login, loginType}) => `Te he enviado un hiperenlace mágico para iniciar sesión a ${login}. Por favor revisa tu ${loginType}`,

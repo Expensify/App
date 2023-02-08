@@ -606,6 +606,18 @@ export default {
             hasInvalidCharacter: 'Name cannot contain a comma or semicolon',
         },
     },
+    privatePersonalDetails: {
+        personalDetails: 'Personal details',
+        privateDataMessage: 'These details are used for travel and payments. They are never shown on your public profile.',
+        legalName: 'Legal name',
+        legalFirstName: 'Legal first name',
+        legalLastName: 'Legal last name',
+        homeAddress: 'Home address',
+        error: {
+            dateShouldBeBefore: ({dateString}) => `Date should be before ${dateString}.`,
+            dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,
+        },
+    },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
         weSentYouMagicSignInLink: ({login, loginType}) => `I've sent a magic sign-in link to ${login}. Please check your ${loginType} to sign in.`,
