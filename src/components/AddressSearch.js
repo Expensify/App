@@ -83,9 +83,7 @@ const defaultProps = {
         state: 'addressState',
         zipCode: 'addressZipCode',
     },
-
-    // A maximum of -1 means the user can enter as many characters as they want
-    maxInputLength: -1,
+    maxInputLength: undefined,
 };
 
 // Do not convert to class component! It's been tried before and presents more challenges than it's worth.
