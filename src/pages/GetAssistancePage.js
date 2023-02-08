@@ -43,6 +43,7 @@ const GetAssistancePage = (props) => {
         onPress: () => Link.openExternalLink(CONST.NEWHELP_URL),
         icon: Expensicons.QuestionMark,
         shouldShowRightIcon: true,
+        iconRight: Expensicons.NewWindow,
         wrapperStyle: [styles.cardMenuItem],
     }];
 
@@ -54,6 +55,7 @@ const GetAssistancePage = (props) => {
             onPress: () => Linking.openURL(guideCalendarLink),
             icon: Expensicons.Phone,
             shouldShowRightIcon: true,
+            iconRight: Expensicons.NewWindow,
             wrapperStyle: [styles.cardMenuItem],
         });
     }

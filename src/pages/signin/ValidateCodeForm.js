@@ -24,6 +24,7 @@ import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import OfflineIndicator from '../../components/OfflineIndicator';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
+import FormHelpMessage from '../../components/FormHelpMessage';
 
 const propTypes = {
     /* Onyx Props */
@@ -63,7 +64,7 @@ class ValidateCodeForm extends React.Component {
         this.clearSignInData = this.clearSignInData.bind(this);
 
         this.state = {
-            formError: false,
+            formError: {},
             validateCode: '',
             twoFactorAuthCode: '',
         };
@@ -92,6 +93,23 @@ class ValidateCodeForm extends React.Component {
     }
 
     /**
+     * Handle text input and clear formError upon text change
+     *
+     * @param {String} text
+     * @param {String} key
+     */
+    onTextInput(text, key) {
+        this.setState({
+            [key]: text,
+            formError: {[key]: ''},
+        });
+
+        if (this.props.account.errors) {
+            Session.clearAccountMessages();
+        }
+    }
+
+    /**
      * Clear Validate Code from the state
      */
     clearValidateCode() {
@@ -105,7 +123,7 @@ class ValidateCodeForm extends React.Component {
         if (this.input2FA) {
             this.setState({twoFactorAuthCode: ''}, this.input2FA.clear);
         }
-        this.setState({formError: false});
+        this.setState({formError: {}});
         Session.resendValidateCode(this.props.credentials.login);
     }
 
@@ -113,7 +131,7 @@ class ValidateCodeForm extends React.Component {
     * Clears local and Onyx sign in states
     */
     clearSignInData() {
-        this.setState({twoFactorAuthCode: '', formError: false});
+        this.setState({twoFactorAuthCode: '', formError: {}});
         Session.clearSignInData();
     }
 
@@ -121,23 +139,30 @@ class ValidateCodeForm extends React.Component {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     validateAndSubmitForm() {
+        const requiresTwoFactorAuth = this.props.account.requiresTwoFactorAuth;
+
         if (!this.state.validateCode.trim()) {
-            this.setState({formError: 'validateCodeForm.error.pleaseFillMagicCode'});
+            this.setState({formError: {validateCode: 'validateCodeForm.error.pleaseFillMagicCode'}});
             return;
         }
 
         if (!ValidationUtils.isValidValidateCode(this.state.validateCode)) {
-            this.setState({formError: 'validateCodeForm.error.incorrectMagicCode'});
+            this.setState({formError: {validateCode: 'validateCodeForm.error.incorrectMagicCode'}});
             return;
         }
 
-        if (this.props.account.requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim()) {
-            this.setState({formError: 'validateCodeForm.error.pleaseFillTwoFactorAuth'});
+        if (requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim()) {
+            this.setState({formError: {twoFactorAuthCode: 'validateCodeForm.error.pleaseFillTwoFactorAuth'}});
+            return;
+        }
+
+        if (requiresTwoFactorAuth && !ValidationUtils.isValidTwoFactorCode(this.state.twoFactorAuthCode)) {
+            this.setState({formError: {twoFactorAuthCode: 'passwordForm.error.incorrect2fa'}});
             return;
         }
 
         this.setState({
-            formError: null,
+            formError: {},
         });
 
         Session.signIn('', this.state.validateCode, this.state.twoFactorAuthCode);
@@ -156,11 +181,12 @@ class ValidateCodeForm extends React.Component {
                             value={this.state.twoFactorAuthCode}
                             placeholder={this.props.translate('validateCodeForm.requiredWhen2FAEnabled')}
                             placeholderTextColor={themeColors.placeholderText}
-                            onChangeText={text => this.setState({twoFactorAuthCode: text})}
+                            onChangeText={text => this.onTextInput(text, 'twoFactorAuthCode')}
                             onSubmitEditing={this.validateAndSubmitForm}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             blurOnSubmit={false}
                             maxLength={CONST.TFA_CODE_LENGTH}
+                            errorText={this.state.formError.twoFactorAuthCode ? this.props.translate(this.state.formError.twoFactorAuthCode) : ''}
                         />
                     </View>
                 ) : (
@@ -171,9 +197,11 @@ class ValidateCodeForm extends React.Component {
                             nativeID="validateCode"
                             name="validateCode"
                             value={this.state.validateCode}
-                            onChangeText={text => this.setState({validateCode: text})}
+                            onChangeText={text => this.onTextInput(text, 'validateCode')}
                             onSubmitEditing={this.validateAndSubmitForm}
                             blurOnSubmit={false}
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                            errorText={this.state.formError.validateCode ? this.props.translate(this.state.formError.validateCode) : ''}
                         />
                         {!wasValidateCodeSentRecently && (
                             <View style={[styles.changeExpensifyLoginLinkContainer]}>
@@ -205,6 +233,9 @@ class ValidateCodeForm extends React.Component {
                     <Text style={[styles.formError]}>
                         {this.props.translate(this.state.formError)}
                     </Text>
+                )}
+                {this.props.account && !_.isEmpty(this.props.account.errors) && (
+                    <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(this.props.account)} />
                 )}
                 <View>
                     <Button
