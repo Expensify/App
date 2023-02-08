@@ -40,7 +40,7 @@ jobs:
   shellTests:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
-    name: Run tests written as shell scripts
+    name: Shell tests
     steps:
       - uses: actions/checkout@885641592076c27bfb56c028cd5612cdad63e16d
 
