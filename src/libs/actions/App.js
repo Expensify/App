@@ -286,11 +286,11 @@ function openProfile() {
     Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
-function openTestToolModal() {
+function openTestToolsModal() {
     Onyx.set(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN, true);
 }
 
-function closeTestToolModal() {
+function closeTestToolsModal() {
     Onyx.set(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN, false);
 }
 
@@ -302,6 +302,6 @@ export {
     openProfile,
     openApp,
     reconnectApp,
-    openTestToolModal,
-    closeTestToolModal,
+    openTestToolsModal,
+    closeTestToolsModal,
 };
