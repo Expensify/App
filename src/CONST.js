@@ -804,6 +804,7 @@ const CONST = {
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
+        MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
     },
 
     PRONOUNS: {
