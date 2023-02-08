@@ -6,7 +6,6 @@ import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import * as Localize from '../../../../libs/Localize';
 import ROUTES from '../../../../ROUTES';
 import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -75,13 +74,13 @@ class LegalNamePage extends Component {
         if (doesLegalFirstNameHaveInvalidCharacters) {
             errors.legalFirstName = this.props.translate('personalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalFirstName)) {
-            errors.legalFirstName = Localize.translateLocal('common.error.fieldRequired');
+            errors.legalFirstName = this.props.translate('common.error.fieldRequired');
         }
 
         if (doesLegalLastNameHaveInvalidCharacters) {
             errors.legalLastName = this.props.translate('personalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalLastName)) {
-            errors.legalLastName = Localize.translateLocal('common.error.fieldRequired');
+            errors.legalLastName = this.props.translate('common.error.fieldRequired');
         }
 
         return errors;
