@@ -43,7 +43,7 @@ class Carousel extends Component {
                 }
 
                 const width = Dimensions.get('window').width;
-                const slideLength = deltaSlide * ((3 / 4) * width);
+                const slideLength = deltaSlide *  (width*1.1);
                 Animated.timing(this.pan, {useNativeDriver: false, duration: 100, toValue: slideLength}).start(({finished}) => {
                     if (!finished) {
                         return;

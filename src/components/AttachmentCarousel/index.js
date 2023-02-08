@@ -111,8 +111,9 @@ class AttachmentCarousel extends React.Component {
          * Looping to filter out attachments and retrieve the src URL and name of attachments.
          */
         const attachments = [];
-        _.forEach(actions, ({originalMessage}) => {
-            if (!originalMessage || !originalMessage.html) {
+        _.forEach(actions, ({originalMessage, message}) => {
+            // Check for attachment which hasn't been deleted
+            if (!originalMessage || !originalMessage.html || message.some(m => m.isEdited)) {
                 return;
             }
             const matches = [...originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA)];
