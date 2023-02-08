@@ -1,5 +1,5 @@
 import ROUTES from '../../ROUTES';
-import Permissions from '../../libs/Permissions'
+import Permissions from '../../libs/Permissions';
 
 /** @type {Array<object>} Routes regex used for desktop deeplinking */
 export default [
@@ -22,7 +22,7 @@ export default [
     {
         // /v/*
         pattern: '/v($|(//*))',
-        isDisabled: (betas) => Permissions.canUsePasswordlessLogins(betas),
+        isDisabled: betas => Permissions.canUsePasswordlessLogins(betas),
     },
     {
         // /bank-account/*

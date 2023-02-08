@@ -54,10 +54,11 @@ class ValidateLoginPage extends Component {
         }
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        if(prevProps.credentials && !prevProps.credentials.validateCode && this.props.credentials.validateCode) {
-            this.setState({justSignedIn: true});
+    componentDidUpdate(prevProps) {
+        if (!(prevProps.credentials && !prevProps.credentials.validateCode && this.props.credentials.validateCode)) {
+            return;
         }
+        this.setState({justSignedIn: true});
     }
 
     /**
@@ -90,8 +91,8 @@ class ValidateLoginPage extends Component {
         const title = this.state.justSignedIn ? 'Abracadabra' : this.props.translate('magicCodeModal.title');
         const description = this.state.justSignedIn ? 'You are signed in' : this.props.translate('magicCodeModal.description');
         return (
-            this.isOnPasswordlessBeta() ?
-                <MagicCodeModal
+            this.isOnPasswordlessBeta()
+                ? <MagicCodeModal
                     title={title}
                     description={description}
                     code={this.validateCode()}

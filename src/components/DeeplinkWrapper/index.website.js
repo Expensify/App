@@ -2,6 +2,7 @@ import _, {compose} from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import deeplinkRoutes from './deeplinkRoutes';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import TextLink from '../TextLink';
@@ -15,7 +16,6 @@ import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import colors from '../../styles/colors';
 import * as Browser from '../../libs/Browser';
-import { withOnyx } from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
@@ -56,7 +56,7 @@ class DeeplinkWrapper extends PureComponent {
 
         // check if pathname matches with deeplink routes
         const matchedRoute = _.find(deeplinkRoutes, (route) => {
-            if(route.isDisabled && route.isDisabled(this.props.betas)) {
+            if (route.isDisabled && route.isDisabled(this.props.betas)) {
                 return false;
             }
             const routeRegex = new RegExp(route.pattern);

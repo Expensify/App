@@ -54,13 +54,15 @@ class MagicCodeModal extends PureComponent {
                     <View style={[styles.mt2, styles.mb2]}>
                         <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
                             {this.props.description}
-                            {this.props.shouldShowSignInHere &&
-                                <>
-                                    {' '}
-                                    <TextLink onPress={this.props.onSignInHereClick}>
-                                        {this.props.translate('magicCodeModal.signInHere')}
-                                    </TextLink>
-                                </>
+                            {this.props.shouldShowSignInHere
+                                && (
+                                    <>
+                                        {' '}
+                                        <TextLink onPress={this.props.onSignInHereClick}>
+                                            {this.props.translate('magicCodeModal.signInHere')}
+                                        </TextLink>
+                                    </>
+                                )
                             }
                             .
                         </Text>
