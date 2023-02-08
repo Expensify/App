@@ -1,7 +1,7 @@
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {Linking, AppState} from 'react-native';
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import lodashGet from 'lodash/get';
 import moment from 'moment';
 import App from '../../src/App';
@@ -66,10 +66,6 @@ function scrollUpToRevealNewMessagesBadge() {
             },
         },
     });
-
-    // We advance the timer since we must wait for the animation to end
-    // and the new style to be reflected
-    jest.advanceTimersByTime(500);
 }
 
 /**
@@ -235,7 +231,7 @@ describe('Unread Indicators', () => {
 
                 // Scroll up and verify that the "New messages" badge appears
                 scrollUpToRevealNewMessagesBadge();
-                expect(isNewMessagesBadgeVisible()).toBe(true);
+                return waitFor(() => expect(isNewMessagesBadgeVisible()).toBe(true));
             });
     });
 
@@ -270,7 +266,7 @@ describe('Unread Indicators', () => {
 
                 // Scroll and verify that the new messages badge is also hidden
                 scrollUpToRevealNewMessagesBadge();
-                expect(isNewMessagesBadgeVisible()).toBe(false);
+                return waitFor(() => expect(isNewMessagesBadgeVisible()).toBe(false));
             });
     });
 
@@ -389,11 +385,10 @@ describe('Unread Indicators', () => {
 
                 // Scroll up and verify the new messages badge appears
                 scrollUpToRevealNewMessagesBadge();
-                expect(isNewMessagesBadgeVisible()).toBe(true);
-
-                // Navigate to the sidebar
-                return navigateToSidebar();
+                return waitFor(() => expect(isNewMessagesBadgeVisible()).toBe(true));
             })
+            // Navigate to the sidebar
+            .then(navigateToSidebar)
             .then(() => {
                 // Verify the report is marked as unread in the sidebar
                 const displayNameTexts = screen.queryAllByLabelText('Chat user display names');
@@ -421,7 +416,7 @@ describe('Unread Indicators', () => {
 
                 // Scroll up and verify the "New messages" badge is hidden
                 scrollUpToRevealNewMessagesBadge();
-                expect(isNewMessagesBadgeVisible()).toBe(false);
+                return waitFor(() => expect(isNewMessagesBadgeVisible()).toBe(false));
             });
     });
 
