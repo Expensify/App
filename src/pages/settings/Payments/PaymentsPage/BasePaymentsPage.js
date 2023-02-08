@@ -279,20 +279,25 @@ class BasePaymentsPage extends React.Component {
 
     /**
      * Hide the default / delete modal
+     * @param {boolean} shouldClearSelectedData - Clear selected payment method data if true
      */
-    hideDefaultDeleteMenu() {
+    hideDefaultDeleteMenu(shouldClearSelectedData = true) {
         this.setState({shouldShowDefaultDeleteMenu: false});
         InteractionManager.runAfterInteractions(() => {
             this.setState({
                 showConfirmDeleteContent: false,
             });
-            this.resetSelectedPaymentMethodData();
+            if (shouldClearSelectedData) {
+                this.resetSelectedPaymentMethodData();
+            }
         });
     }
 
-    hidePasswordPrompt() {
+    hidePasswordPrompt(shouldClearSelectedData = true) {
         this.setState({shouldShowPasswordPrompt: false});
-        this.resetSelectedPaymentMethodData();
+        if (shouldClearSelectedData) {
+            this.resetSelectedPaymentMethodData();
+        }
 
         // Due to iOS modal freeze issue, password modal freezes the app when closed.
         // LayoutAnimation undoes the running animation.
@@ -313,6 +318,7 @@ class BasePaymentsPage extends React.Component {
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             PaymentMethods.makeDefaultPaymentMethod(password, null, this.state.selectedPaymentMethod.fundID, previousPaymentMethod, currentPaymentMethod);
         }
+        this.resetSelectedPaymentMethodData();
     }
 
     deletePaymentMethod() {
@@ -531,7 +537,7 @@ class BasePaymentsPage extends React.Component {
                         right: this.state.anchorPositionRight,
                     }}
                     onSubmit={(password) => {
-                        this.hidePasswordPrompt();
+                        this.hidePasswordPrompt(false);
                         this.makeDefaultPaymentMethod(password);
                     }}
                     submitButtonText={this.state.passwordButtonText}
