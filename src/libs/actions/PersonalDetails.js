@@ -1,5 +1,4 @@
 import lodashGet from 'lodash/get';
-import lodashMerge from 'lodash/merge';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -80,23 +79,6 @@ function extractFirstAndLastNameFromAvailableDetails({
         firstName: displayName.substring(0, firstSpaceIndex).trim(),
         lastName: displayName.substring(lastSpaceIndex).trim(),
     };
-}
-
-/**
- * Merges partial details object into the local store.
- *
- * @param {Object} details
- * @private
- */
-function mergeLocalPersonalDetails(details) {
-    // We are merging the partial details provided to this method with the existing details we have for the user so
-    // that we don't overwrite any values that may exist in storage.
-    const mergedDetails = lodashMerge(personalDetails[currentUserEmail], details);
-
-    // displayName is a generated field so we'll use the firstName and lastName + login to update it.
-    mergedDetails.displayName = getDisplayName(currentUserEmail, mergedDetails);
-
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[currentUserEmail]: mergedDetails});
 }
 
 /**
