@@ -85,7 +85,7 @@ class ScreenWrapper extends React.Component {
                 if (this.props.environment !== CONST.ENVIRONMENT.DEV) {
                     return;
                 }
-                App.openTestToolModal();
+                App.openTestToolsModal();
             });
         return (
             <SafeAreaConsumer>
