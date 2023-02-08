@@ -68,7 +68,7 @@ class MainDrawerNavigator extends Component {
     constructor(props) {
         super(props);
         this.trackAppStartTiming = this.trackAppStartTiming.bind(this);
-        this.initialParams = getInitialReportScreenParams(props.reports, !Permissions.canUseDefaultRooms(props.betas), props.policies, props.route.params.openOnAdminRoom);
+        this.initialParams = getInitialReportScreenParams(props.reports, !Permissions.canUseDefaultRooms(props.betas), props.policies, lodashGet(props, 'route.params.openOnAdminRoom'));
 
         // When we have chat reports the moment this component got created
         // we know that the data was served from storage/cache
@@ -80,7 +80,7 @@ class MainDrawerNavigator extends Component {
             nextProps.reports,
             !Permissions.canUseDefaultRooms(nextProps.betas),
             nextProps.policies,
-            nextProps.route.params.openOnAdminRoom,
+            lodashGet(nextProps, 'route.params.openOnAdminRoom'),
         );
         if (this.initialParams.reportID === initialNextParams.reportID) {
             return false;
