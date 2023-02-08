@@ -72,7 +72,12 @@ let doesDomainHaveApprovedAccountant;
 Onyx.connect({
     key: ONYXKEYS.ACCOUNT,
     waitForCollectionCallback: true,
-    callback: val => doesDomainHaveApprovedAccountant = val.doesDomainHaveApprovedAccountant,
+    callback: val => {
+        if (!val) {
+            return;
+        }
+        doesDomainHaveApprovedAccountant = val.doesDomainHaveApprovedAccountant;
+    },
 });
 
 function getChatType(report) {
