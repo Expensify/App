@@ -1,9 +1,12 @@
 import React from 'react';
 import {createPortal} from 'react-dom';
+import {withOnyx} from 'react-native-onyx';
 import {propTypes, defaultProps} from './popoverPropTypes';
 import CONST from '../../CONST';
 import Modal from '../Modal';
 import withWindowDimensions from '../withWindowDimensions';
+import compose from '../../libs/compose';
+import ONYXKEYS from '../../ONYXKEYS';
 
 /*
  * This is a convenience wrapper around the Modal component for a responsive Popover.
@@ -13,6 +16,7 @@ const Popover = (props) => {
     if (!props.fullscreen && !props.isSmallScreenWidth) {
         return createPortal(
             <Modal
+                isVisible={this.props.isVisible && !this.props.isShortcutsModalOpen}
                 type={CONST.MODAL.MODAL_TYPE.POPOVER}
                 popoverAnchorPosition={props.anchorPosition}
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -39,6 +43,10 @@ const Popover = (props) => {
 
 Popover.propTypes = propTypes;
 Popover.defaultProps = defaultProps;
-Popover.displayName = 'Popover';
 
-export default withWindowDimensions(Popover);
+export default compose(
+    withWindowDimensions,
+    withOnyx({
+        isShortcutsModalOpen: {key: ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN},
+    }),
+)(Popover);
