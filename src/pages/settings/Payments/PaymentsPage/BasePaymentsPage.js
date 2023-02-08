@@ -329,6 +329,7 @@ class BasePaymentsPage extends React.Component {
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             PaymentMethods.deletePaymentCard(this.state.selectedPaymentMethod.fundID);
         }
+        this.resetSelectedPaymentMethodData();
     }
 
     navigateToTransferBalancePage() {
@@ -491,30 +492,10 @@ class BasePaymentsPage extends React.Component {
                     ) : (
                         <ConfirmContent
                             onConfirm={() => {
-                                this.setState({
-                                    shouldShowDefaultDeleteMenu: false,
-                                });
-                                InteractionManager.runAfterInteractions(() => {
-                                    this.setState({
-                                        showConfirmDeleteContent: false,
-                                    });
-                                });
+                                this.hideDefaultDeleteMenu(false);
                                 this.deletePaymentMethod();
                             }}
-                            onCancel={() => {
-                                this.setState({
-                                    shouldShowDefaultDeleteMenu: false,
-                                });
-                                InteractionManager.runAfterInteractions(
-                                    () => {
-                                        this.setState(
-                                            {
-                                                showConfirmDeleteContent: false,
-                                            },
-                                        );
-                                    },
-                                );
-                            }}
+                            onCancel={this.hideDefaultDeleteMenu}
                             contentStyles={!this.props.isSmallScreenWidth ? [styles.sidebarPopover] : undefined}
                             title={this.props.translate('paymentsPage.deleteAccount')}
                             prompt={this.props.translate('paymentsPage.deleteConfirmation')}
