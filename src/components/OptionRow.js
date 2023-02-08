@@ -58,6 +58,9 @@ const propTypes = {
     /** Whether to show a line separating options in list */
     shouldHaveOptionSeparator: PropTypes.bool,
 
+    /** Whether to remove the lateral padding and align the content with the margins */
+    shouldDisableRowInnerPadding: PropTypes.bool,
+
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     ...withLocalizePropTypes,
@@ -74,6 +77,7 @@ const defaultProps = {
     optionIsFocused: false,
     style: null,
     shouldHaveOptionSeparator: false,
+    shouldDisableRowInnerPadding: false,
 };
 
 class OptionRow extends Component {
@@ -85,17 +89,18 @@ class OptionRow extends Component {
     }
 
     // It is very important to use shouldComponentUpdate here so SectionList items will not unnecessarily re-render
-    shouldComponentUpdate(prevProps, nextProps) {
-        return prevProps.optionIsFocused === nextProps.optionIsFocused
-            && prevProps.isSelected === nextProps.isSelected
-            && prevProps.option.alternateText === nextProps.option.alternateText
-            && prevProps.option.descriptiveText === nextProps.option.descriptiveText
-            && _.isEqual(prevProps.option.icons, nextProps.option.icons)
-            && prevProps.option.text === nextProps.option.text
-            && prevProps.showSelectedState === nextProps.showSelectedState
-            && prevProps.isDisabled === nextProps.isDisabled
-            && prevProps.showTitleTooltip === nextProps.showTitleTooltip
-            && prevProps.option.brickRoadIndicator === nextProps.option.brickRoadIndicator;
+    shouldComponentUpdate(nextProps, nextState) {
+        return this.state.isDisabled !== nextState.isDisabled
+            || this.props.isDisabled !== nextProps.isDisabled
+            || this.props.isSelected !== nextProps.isSelected
+            || this.props.showSelectedState !== nextProps.showSelectedState
+            || this.props.showTitleTooltip !== nextProps.showTitleTooltip
+            || !_.isEqual(this.props.option.icons, nextProps.option.icons)
+            || this.props.optionIsFocused !== nextProps.optionIsFocused
+            || this.props.option.text !== nextProps.option.text
+            || this.props.option.alternateText !== nextProps.option.alternateText
+            || this.props.option.descriptiveText !== nextProps.option.descriptiveText
+            || this.props.option.brickRoadIndicator !== nextProps.option.brickRoadIndicator;
     }
 
     componentDidUpdate(prevProps) {
@@ -172,7 +177,7 @@ class OptionRow extends Component {
                                 styles.alignItemsCenter,
                                 styles.justifyContentBetween,
                                 styles.sidebarLink,
-                                styles.sidebarLinkInner,
+                                this.props.shouldDisableRowInnerPadding ? null : styles.sidebarLinkInner,
                                 this.props.optionIsFocused ? styles.sidebarLinkActive : null,
                                 hovered && !this.props.optionIsFocused ? this.props.hoverStyle : null,
                                 this.props.isDisabled && styles.cursorDisabled,

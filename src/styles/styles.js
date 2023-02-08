@@ -1770,7 +1770,7 @@ const styles = {
     },
 
     borderTop: {
-        borderTopWidth: variables.borderTopWidth,
+        borderTopWidth: 1,
         borderColor: themeColors.border,
     },
 
@@ -1906,6 +1906,7 @@ const styles = {
         fontSize: variables.fontSizeXLarge,
         marginTop: 20,
         marginBottom: 8,
+        textAlign: 'center',
     },
 
     notFoundTextBody: {

@@ -104,6 +104,7 @@ class BaseOptionsList extends Component {
      * @returns {Array<Object>}
      */
     buildFlatSectionArray() {
+        const optionHeight = variables.optionRowHeight;
         let offset = 0;
 
         // Start with just an empty list header
@@ -120,12 +121,8 @@ class BaseOptionsList extends Component {
 
             // Add section items
             for (let i = 0; i < section.data.length; i++) {
-                let fullOptionHeight = variables.optionRowHeight;
-                if (i > 0 && this.props.shouldHaveOptionSeparator) {
-                    fullOptionHeight += variables.borderTopWidth;
-                }
-                flatArray.push({length: fullOptionHeight, offset});
-                offset += fullOptionHeight;
+                flatArray.push({length: optionHeight, offset});
+                offset += optionHeight;
             }
 
             // Add the section footer
@@ -157,19 +154,22 @@ class BaseOptionsList extends Component {
      * @return {Component}
      */
     renderItem({item, index, section}) {
+        const isDisabled = this.props.isDisabled || section.isDisabled;
         return (
             <OptionRow
                 option={item}
                 showTitleTooltip={this.props.showTitleTooltip}
                 hoverStyle={this.props.optionHoveredStyle}
                 optionIsFocused={!this.props.disableFocusOptions
+                    && !isDisabled
                     && this.props.focusedIndex === (index + section.indexOffset)}
                 onSelectRow={this.props.onSelectRow}
                 isSelected={Boolean(_.find(this.props.selectedOptions, option => option.login === item.login))}
                 showSelectedState={this.props.canSelectMultipleOptions}
                 boldStyle={this.props.boldStyle}
-                isDisabled={this.props.isDisabled || section.isDisabled}
+                isDisabled={isDisabled}
                 shouldHaveOptionSeparator={index > 0 && this.props.shouldHaveOptionSeparator}
+                shouldDisableRowInnerPadding={this.props.shouldDisableRowInnerPadding}
             />
         );
     }

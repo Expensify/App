@@ -53,16 +53,20 @@ export default {
         members: 'Miembros',
         invite: 'Invitar',
         here: 'aquí',
+        date: 'Fecha',
         dob: 'Fecha de Nacimiento',
         ssnLast4: 'Últimos 4 dígitos de su SSN',
         ssnFull9: 'Los 9 dígitos del SSN',
+        addressLine: ({lineNumber}) => `Dirección línea ${lineNumber}`,
         personalAddress: 'Dirección física personal',
         companyAddress: 'Dirección física de la empresa',
         noPO: 'No se aceptan apartados ni direcciones postales',
         city: 'Ciudad',
         state: 'Estado',
+        stateOrProvince: 'Estado / Provincia',
+        country: 'País',
         zip: 'Código postal',
-        isRequiredField: 'es un campo obligatorio',
+        zipPostCode: 'Código Postal',
         whatThis: '¿Qué es esto?',
         iAcceptThe: 'Acepto los ',
         remove: 'Eliminar',
@@ -83,7 +87,12 @@ export default {
             invalidAmount: 'Monto no válido',
             acceptedTerms: 'Debes aceptar los Términos de servicio para continuar',
             phoneNumber: `Ingresa un teléfono válido, incluyendo el código de país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
+            fieldRequired: 'Este campo es obligatorio.',
+            characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
+            dateInvalid: 'Ingresa una fecha válida',
         },
+        comma: 'la coma',
+        semicolon: 'el punto y coma',
         please: 'Por favor',
         contactUs: 'contáctenos',
         pleaseEnterEmailOrPhoneNumber: 'Por favor escribe un email o número de teléfono',
@@ -113,8 +122,8 @@ export default {
         websiteExample: 'p. ej. https://www.expensify.com',
     },
     attachmentPicker: {
-        cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
-        expensifyDoesntHaveAccessToCamera: 'Esta aplicación no tiene acceso a tu cámara, por favor activa el permiso y vuelve a intentarlo.',
+        cameraPermissionRequired: 'Permiso para acceder a la cámara',
+        expensifyDoesntHaveAccessToCamera: 'Expensify no puede tomar fotos sin acceso a tu cámara. Haz click en Configuración para actualizar los permisos.',
         attachmentError: 'Error al adjuntar archivo',
         errorWhileSelectingAttachment: 'Ha ocurrido un error al seleccionar un adjunto, por favor inténtalo de nuevo',
         errorWhileSelectingCorruptedImage: 'Ha ocurrido un error al seleccionar un adjunto corrupto, por favor inténtalo con otro archivo',
@@ -493,16 +502,31 @@ export default {
         defaultPaymentMethod: 'Predeterminado',
     },
     preferencesPage: {
-        mostRecent: 'Más recientes',
-        mostRecentModeDescription: 'Esta opción muestra por defecto todos los chats, ordenados a partir del más reciente, con los chats destacados arriba de todo.',
-        focus: '#concentración',
-        focusModeDescription: '#concentración – Muestra sólo los chats no leídos y destacados ordenados alfabéticamente.',
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recibir noticias sobre Expensify y actualizaciones del producto',
+    },
+    priorityModePage: {
         priorityMode: 'Modo prioridad',
+        explainerText: 'Elija si desea mostrar por defecto todos los chats ordenados desde el más reciente y con los elementos anclados en la parte superior, o elija el modo #concentración, con los elementos no leídos anclados en la parte superior y ordenados alfabéticamente.',
+        priorityModes: {
+            default: {
+                label: 'Más recientes',
+                description: 'Mostrar todos los chats ordenados desde el más reciente',
+            },
+            gsd: {
+                label: '#concentración',
+                description: 'Mostrar sólo los no leídos ordenados alfabéticamente',
+            },
+        },
+    },
+    languagePage: {
         language: 'Idioma',
         languages: {
-            english: 'Inglés',
-            spanish: 'Español',
+            en: {
+                label: 'Inglés',
+            },
+            es: {
+                label: 'Español',
+            },
         },
     },
     signInPage: {
@@ -568,10 +592,20 @@ export default {
         error: {
             firstNameLength: 'El nombre no debe tener más de 50 caracteres',
             lastNameLength: 'El apellido no debe tener más de 50 caracteres',
-            characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
             hasInvalidCharacter: ({invalidCharacter}) => `Por favor elimina ${invalidCharacter} del campo nombre.`,
-            comma: 'la coma',
-            semicolon: 'el punto y coma',
+        },
+    },
+    privatePersonalDetails: {
+        personalDetails: 'Datos personales',
+        privateDataMessage: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en su perfil público.',
+        legalName: 'Nombre completo',
+        legalFirstName: 'Nombre',
+        legalLastName: 'Apellidos',
+        homeAddress: 'Domicilio',
+        error: {
+            hasInvalidCharacter: ({invalidCharacter}) => `Por favor elimina ${invalidCharacter}`,
+            dateShouldBeBefore: ({dateString}) => `La fecha debe ser anterior a ${dateString}.`,
+            dateShouldBeAfter: ({dateString}) => `La fecha debe ser posterior a ${dateString}.`,
         },
     },
     resendValidationForm: {
@@ -631,7 +665,6 @@ export default {
             addressCity: 'Ingresa una ciudad válida',
             addressStreet: 'Ingresa una calle de dirección válida que no sea un apartado postal',
             addressState: 'Por favor, selecciona un estado',
-            incorporationDate: 'Ingresa una fecha válida',
             incorporationDateFuture: 'La fecha de incorporación no puede ser futura',
             incorporationState: 'Ingresa un estado válido',
             industryCode: 'Ingresa un código de clasificación de industria válido',
@@ -829,6 +862,9 @@ export default {
         letsChatCTA: 'Sí, vamos a chatear',
         letsChatText: 'Gracias. Necesitamos tu ayuda para verificar la información, pero podemos hacerlo rápidamente a través del chat. ¿Estás listo?',
         letsChatTitle: '¡Vamos a chatear!',
+        enable2FATitle: 'Evita fraudes, activa la autenticación de dos factores!',
+        enable2FAText: 'Tu seguridad es importante para nosotros, por favor configura ahora la autenticación de dos factores. Eso nos permitirá disputar las transacciones de la Tarjeta Expensify y reducirá tu riesgo de fraude.',
+        secureYourAccount: 'Asegura tu cuenta',
     },
     beneficialOwnersStep: {
         additionalInformation: 'Información adicional',
@@ -1105,8 +1141,8 @@ export default {
             message: 'No se puede descargar el archivo adjunto',
         },
         permissionError: {
-            title: 'Se necesita acceso',
-            message: 'Expensify no tiene acceso para guardar archivos. Para habilitar la descarga de archivos, entra en Preferencias y habilita el acceso',
+            title: 'Permiso para acceder al almacenamiento',
+            message: 'Expensify no puede guardar los archivos adjuntos sin permiso para acceder al almacenamiento. Haz click en Configuración para actualizar los permisos.',
         },
     },
     desktopApplicationMenu: {
@@ -1134,5 +1170,8 @@ export default {
             title: 'Comprobación fallida',
             message: 'No hemos podido comprobar si existe una actualización. Inténtalo de nuevo más tarde!',
         },
+    },
+    report: {
+        genericAddCommentFailureMessage: 'Error inesperado al agregar el comentario, por favor inténtalo más tarde',
     },
 };
