@@ -1,7 +1,8 @@
 import {Pressable} from 'react-native';
 import React from 'react';
 import _ from 'underscore';
-import styles from '../../../styles/styles';
+
+// import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import * as Link from '../../../libs/actions/Link';
 import SVGImage from '../../../components/SVGImage';
@@ -12,8 +13,7 @@ const SignInPageGraphics = () => (
     <>
         <Pressable
             style={[
-                styles.flex1,
-                {minHeight: '100%', minWidth: '100%'},
+                StyleUtils.getHeight('100%'),
                 StyleUtils.getBackgroundColorStyle(backgroundStyle.backgroundColor),
             ]}
             onPress={() => {

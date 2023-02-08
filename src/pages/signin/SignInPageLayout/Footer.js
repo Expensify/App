@@ -3,7 +3,6 @@ import React from 'react';
 import _ from 'underscore';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import TextLink from '../../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -140,11 +139,11 @@ const Footer = props => (
                         {props.translate(column.translationPath)}
                         {i}
                     </Text>
-                    <View style={[styles.footerRow, {margin: '0px 0px 8px'}]}>
+                    <View style={[styles.footerRow]}>
                         { /** Rows * */ }
                         {_.map(column.rows, (row, j) => (
                             <TextLink
-                                style={[styles.ml1, {display: 'block', padding: '4px 0px'}]}
+                                style={[styles.ml1]}
                                 href={row.link}
                                 key={row.translationPath + j}
                             >
@@ -156,12 +155,18 @@ const Footer = props => (
             ))}
         </View>
         { /** Expensify Wordmark * */ }
-        <View style={props.isSmallScreenWidth ? {} : [{margin: '0 auto 16px'}, {display: 'block'}]}>
-            <Icon
+        <View style={props.isSmallScreenWidth ? {} : []}>
+            {!props.isSmallScreenWidth ? (
+                <Expensicons.ExpensifyFooterLogo height={100} width={500} />
+            )
+                : (
+                    <Expensicons.ExpensifyFooterLogoVertical height={500} width={100} />
+                )}
+            {/* <Icon
                 width={props.isSmallScreenWidth ? 100 : 500}
                 height={props.isSmallScreenWidth ? 500 : 100}
                 src={props.isSmallScreenWidth ? Expensicons.ExpensifyFooterLogoVertical : Expensicons.ExpensifyFooterLogo}
-            />
+            /> */}
         </View>
     </View>
 );

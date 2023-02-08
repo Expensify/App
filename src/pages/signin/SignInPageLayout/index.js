@@ -6,6 +6,7 @@ import Footer from './Footer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import styles from '../../../styles/styles';
 import SignInPageGraphics from './SignInPageGraphics';
+import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -32,27 +33,35 @@ const SignInPageLayout = (props) => {
 
     return (
         <View style={containerStyles}>
-            <View style={contentContainerStyles}>
-                <SignInPageContent
-                    welcomeText={props.welcomeText}
-                    shouldShowWelcomeText={props.shouldShowWelcomeText}
-                >
-                    {props.children}
-                </SignInPageContent>
-                <ScrollView
-                    contentContainerStyle={{height: '100%'}}
-                >
-                    {!props.isSmallScreenWidth ? (
-                        <>
-                            <SignInPageGraphics />
-                            <Footer />
-                        </>
-                    )
-                        : (
-                            <Footer />
-                        )}
-                </ScrollView>
-            </View>
+            {!props.isSmallScreenWidth ? (
+                <View style={contentContainerStyles}>
+                    <SignInPageContent
+                        welcomeText={props.welcomeText}
+                        shouldShowWelcomeText={props.shouldShowWelcomeText}
+                    >
+                        {props.children}
+                    </SignInPageContent>
+                    <ScrollView
+                        contentContainerStyle={containerStyles}
+                    >
+                        <SignInPageGraphics />
+                        <Footer />
+                    </ScrollView>
+                </View>
+            )
+                : (
+                    <ScrollView
+                        contentContainerStyle={[StyleUtils.getHeight(props.windowHeight)]}
+                    >
+                        <SignInPageContent
+                            welcomeText={props.welcomeText}
+                            shouldShowWelcomeText={props.shouldShowWelcomeText}
+                        >
+                            {props.children}
+                        </SignInPageContent>
+                        <Footer />
+                    </ScrollView>
+                )}
         </View>
     );
 };

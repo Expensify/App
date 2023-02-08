@@ -13,6 +13,7 @@ import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import TouchableDismissKeyboard from '../../../components/TouchableDismissKeyboard';
+import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -33,7 +34,7 @@ const SignInPageContent = props => (
     <TouchableDismissKeyboard>
         <View
             style={[
-                styles.flex1,
+                StyleUtils.getHeight(props.windowHeight),
                 styles.signInPageLeftContainer,
                 !props.isSmallScreenWidth && styles.signInPageLeftContainerWide,
             ]}

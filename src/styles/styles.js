@@ -2888,21 +2888,12 @@ const styles = {
     // },
 
     footerContainer: {
-        backgroundColor: 'ivory',
+        backgroundColor: themeColors.ivory,
         fontSize: variables.fontSizeNormal,
-        flex: 1,
-        minHeight: 400,
-        maxHeight: 900,
-        display: flex,
-        height: '100vh',
-        position: 'relative',
-        width: '100%',
     },
 
     footerColumns: {
-        margin: '0 auto',
-        maxWidth: '1000px',
-        padding: '64px $mediumSpacing 0',
+        display: 'flex',
     },
 
     footerColumn: {
@@ -2910,7 +2901,7 @@ const styles = {
     },
 
     footerTitle: {
-        fontSize: variables.fontSizeMedium,
+        fontSize: variables.fontSizeLarge,
         color: themeColors.heroCard,
     },
 
