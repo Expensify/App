@@ -76,14 +76,13 @@ class ScreenWrapper extends React.Component {
 
     render() {
         // Open the test tools menu on 5 taps in dev only
-        const isDevEnvironment = this.props.environment === CONST.ENVIRONMENT.DEV;
         const quintupleTap = Gesture.Tap()
             .numberOfTaps(5)
 
             // Run the callbacks on the JS thread otherwise there's an error on iOS
             .runOnJS(true)
             .onEnd(() => {
-                if (!isDevEnvironment) {
+                if (this.props.environment !== CONST.ENVIRONMENT.DEV) {
                     return;
                 }
                 App.openTestToolModal();
@@ -116,16 +115,16 @@ class ScreenWrapper extends React.Component {
                                 <KeyboardAvoidingView style={[styles.w100, styles.h100, {maxHeight: this.props.windowHeight}]} behavior={this.props.keyboardAvoidingViewBehavior}>
                                     <HeaderGap />
                                     {// If props.children is a function, call it to provide the insets to the children.
-                                    _.isFunction(this.props.children)
-                                        ? this.props.children({
-                                            insets,
-                                            safeAreaPaddingBottomStyle,
-                                            didScreenTransitionEnd: this.state.didScreenTransitionEnd,
-                                        })
-                                        : this.props.children
-                                }
+                                        _.isFunction(this.props.children)
+                                            ? this.props.children({
+                                                insets,
+                                                safeAreaPaddingBottomStyle,
+                                                didScreenTransitionEnd: this.state.didScreenTransitionEnd,
+                                            })
+                                            : this.props.children
+                                    }
                                     {this.props.isSmallScreenWidth && (
-                                    <OfflineIndicator />
+                                        <OfflineIndicator />
                                     )}
                                 </KeyboardAvoidingView>
                             </View>
