@@ -604,7 +604,6 @@ export default {
         legalLastName: 'Apellidos',
         homeAddress: 'Domicilio',
         error: {
-            hasInvalidCharacter: ({invalidCharacter}) => `Por favor elimina ${invalidCharacter}`,
             dateShouldBeBefore: ({dateString}) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `La fecha debe ser posterior a ${dateString}.`,
         },
