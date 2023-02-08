@@ -25,7 +25,7 @@ const defaultProps = {
  */
 
 class Popover extends React.Component {
-    componentDidUpdate(prevProps) {
+    componentDidUpdate() {
         if (!this.props.isShortcutsModalOpen || !this.props.isVisible) {
             return;
         }
