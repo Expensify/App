@@ -59,7 +59,7 @@ class ImageView extends PureComponent {
         if (this.props.url === prevProps.url || !this.interactionPromise) {
             return;
         }
-        this.imageLoadStart()
+        this.imageLoadStart();
         this.state.interactionPromise.cancel();
     }
 

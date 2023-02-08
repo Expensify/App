@@ -113,7 +113,7 @@ class AttachmentCarousel extends React.Component {
         const attachments = [];
         _.forEach(actions, ({originalMessage, message}) => {
             // Check for attachment which hasn't been deleted
-            if (!originalMessage || !originalMessage.html || message.some(m => m.isEdited)) {
+            if (!originalMessage || !originalMessage.html || _.some(message, m => m.isEdited)) {
                 return;
             }
             const matches = [...originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA)];
