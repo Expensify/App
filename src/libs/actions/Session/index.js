@@ -16,8 +16,6 @@ import * as Welcome from '../Welcome';
 import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
 import DateUtils from '../../DateUtils';
-import Navigation from '../../Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 
 let credentials = {};
 Onyx.connect({
@@ -310,7 +308,6 @@ function signInWithValidateCode(accountID, validateCode) {
         validateCode,
         accountID,
     }, {optimisticData, successData, failureData});
-    Navigation.navigate(ROUTES.HOME);
 }
 
 /**
