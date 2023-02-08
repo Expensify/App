@@ -599,8 +599,8 @@ export default {
         personalDetails: 'Datos personales',
         privateDataMessage: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en su perfil público.',
         legalName: 'Nombre completo',
-        legalFirstName: 'Nombre',
-        legalLastName: 'Apellidos',
+        legalFirstName: 'Nombre legal',
+        legalLastName: 'Apellidos legales',
         homeAddress: 'Domicilio',
         error: {
             hasInvalidCharacter: ({invalidCharacter}) => `Por favor elimina ${invalidCharacter}`,
