@@ -104,34 +104,6 @@ function mergeLocalPersonalDetails(details) {
 }
 
 /**
- * Sets the personal details object for the current user
- *
- * @param {Object} details
- * @param {boolean} shouldGrowl
- */
-function setPersonalDetails(details, shouldGrowl) {
-    DeprecatedAPI.PersonalDetails_Update({details: JSON.stringify(details)})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                if (details.timezone) {
-                    NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
-                }
-                mergeLocalPersonalDetails(details);
-
-                if (shouldGrowl) {
-                    Growl.show(Localize.translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
-                }
-            } else if (response.jsonCode === 400) {
-                Growl.error(Localize.translateLocal('personalDetails.error.firstNameLength'), 3000);
-            } else if (response.jsonCode === 401) {
-                Growl.error(Localize.translateLocal('personalDetails.error.lastNameLength'), 3000);
-            } else {
-                console.debug('Error while setting personal details', response);
-            }
-        });
-}
-
-/**
  * @param {String} pronouns
  */
 function updatePronouns(pronouns) {
