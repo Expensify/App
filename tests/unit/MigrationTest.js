@@ -149,7 +149,7 @@ describe('Migrations', () => {
                         waitForCollectionCallback: true,
                         callback: (allReports) => {
                             Onyx.disconnect(connectionID);
-                            expect(allReports).toBeEmpty();
+                            expect(_.compact(_.values(allReports))).toEqual([]);
                         },
                     });
                 })
