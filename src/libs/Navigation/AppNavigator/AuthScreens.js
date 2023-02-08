@@ -59,7 +59,7 @@ Onyx.connect({
         // then update their timezone.
         if (_.isObject(timezone) && timezone.automatic && timezone.selected !== currentTimezone) {
             timezone.selected = currentTimezone;
-            PersonalDetails.setPersonalDetails({timezone});
+            PersonalDetails.updateAutomaticTimezone({timezone});
         }
     },
 });
