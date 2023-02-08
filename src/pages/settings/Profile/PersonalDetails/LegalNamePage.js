@@ -6,7 +6,6 @@ import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import * as Localize from '../../../../libs/Localize';
 import ROUTES from '../../../../ROUTES';
 import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -82,9 +81,7 @@ class LegalNamePage extends Component {
                 {invalidCharacter: invalidLegalFirstNameCharacter},
             );
         } else if (_.isEmpty(values.legalFirstName)) {
-            errors.legalFirstName = Localize.translateLocal('common.error.fieldRequired');
-        } else if (hasLegalFirstNameLengthError) {
-            errors.legalFirstName = Localize.translateLocal('common.error.characterLimit', {limit: CONST.LEGAL_NAMES_CHARACTER_LIMIT});
+            errors.legalFirstName = this.props.translate('common.error.fieldRequired');
         }
 
         if (!_.isEmpty(invalidLegalLastNameCharacter)) {
@@ -93,9 +90,7 @@ class LegalNamePage extends Component {
                 {invalidCharacter: invalidLegalLastNameCharacter},
             );
         } else if (_.isEmpty(values.legalLastName)) {
-            errors.legalLastName = Localize.translateLocal('common.error.fieldRequired');
-        } else if (hasLegalLastNameLengthError) {
-            errors.legalLastName = Localize.translateLocal('common.error.characterLimit', {limit: CONST.LEGAL_NAMES_CHARACTER_LIMIT});
+            errors.legalLastName = this.props.translate('common.error.fieldRequired');
         }
 
         return errors;
