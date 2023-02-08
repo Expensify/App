@@ -139,7 +139,6 @@ class HeaderWithCloseButton extends Component {
                 ]}
                 >
                     {this.props.shouldShowBackButton && (
-                    <View style={[styles.mr2]}>
                         <Tooltip text={this.props.translate('common.back')}>
                             <Pressable
                                 onPress={() => {
@@ -148,12 +147,11 @@ class HeaderWithCloseButton extends Component {
                                     }
                                     this.props.onBackButtonPress();
                                 }}
-                                style={[styles.touchableButtonImage]}
+                                style={[styles.headerBackButtonImage]}
                             >
                                 <Icon src={Expensicons.BackArrow} />
                             </Pressable>
                         </Tooltip>
-                    </View>
                     )}
                     <Header
                         title={this.props.title}
