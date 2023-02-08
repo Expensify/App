@@ -122,8 +122,10 @@ function goBack(shouldOpenDrawer = true) {
  * @returns {Boolean}
  */
 function isDrawerRoute(route) {
-    const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
-    return reportID && !isParticipantsRoute;
+    const {
+        reportID, isParticipantsRoute, isDetailsRoute, isSettingsRoute,
+    } = ROUTES.parseReportRouteParams(route);
+    return reportID && !isParticipantsRoute && !isDetailsRoute && !isSettingsRoute;
 }
 
 /**

@@ -45,7 +45,7 @@ export default {
     NEW_GROUP: 'new/group',
     NEW_CHAT: 'new/chat',
     REPORT,
-    REPORT_WITH_ID: 'r/:reportID',
+    REPORT_WITH_ID: 'r/:reportID/:reportActionID?',
     getReportRoute: reportID => `r/${reportID}`,
 
     /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
@@ -133,9 +133,16 @@ export default {
         }
 
         const pathSegments = route.split('/');
+
+        // return {
+        //     reportID: lodashGet(pathSegments, 1),
+        //     isParticipantsRoute: Boolean(lodashGet(pathSegments, 2)),
+        // };
         return {
             reportID: lodashGet(pathSegments, 1),
-            isParticipantsRoute: Boolean(lodashGet(pathSegments, 2)),
+            isParticipantsRoute: lodashGet(pathSegments, 2) === 'participants',
+            isDetailsRoute: lodashGet(pathSegments, 2) === 'details',
+            isSettingsRoute: lodashGet(pathSegments, 2) === 'settings',
         };
     },
 };
