@@ -24,7 +24,6 @@ const ONYXKEYS = {
 
 describe('Sidebar', () => {
     beforeAll(() => {
-        jest.useRealTimers();
         return Onyx.init({
             keys: ONYXKEYS,
             registerStorageEventListener: () => {},
@@ -341,7 +340,10 @@ describe('Sidebar', () => {
                 })
 
                 // When report3 becomes unread
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`, {lastActionCreated: DateUtils.getDBTime()}))
+                .then(() => {
+                    jest.advanceTimersByTime(10);
+                    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`, {lastActionCreated: DateUtils.getDBTime()})
+                })
 
                 // Then all three chats are showing
                 .then(() => {
@@ -439,9 +441,12 @@ describe('Sidebar', () => {
                 })
 
                 // When they have unread messages
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`, {
-                    lastActionCreated: DateUtils.getDBTime(),
-                }))
+                .then(() => {
+                    jest.advanceTimersByTime(10);
+                    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`, {
+                        lastActionCreated: DateUtils.getDBTime(),
+                    });
+                })
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${archivedPolicyRoomReport.reportID}`, {
                     lastActionCreated: DateUtils.getDBTime(),
                 }))
@@ -485,9 +490,12 @@ describe('Sidebar', () => {
                 })
 
                 // When they both have unread messages
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyRoomReport.reportID}`, {
-                    lastActionCreated: DateUtils.getDBTime(),
-                }))
+                .then(() => {
+                    jest.advanceTimersByTime(10);
+                    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyRoomReport.reportID}`, {
+                        lastActionCreated: DateUtils.getDBTime(),
+                    });
+                })
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${userCreatedPolicyRoomReport.reportID}`, {
                     lastActionCreated: DateUtils.getDBTime(),
                 }))
@@ -672,7 +680,10 @@ describe('Sidebar', () => {
                     })
 
                     // When the report has a new comment and is now unread
-                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {lastActionCreated: DateUtils.getDBTime()}))
+                    .then(() => {
+                        jest.advanceTimersByTime(10);
+                        return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {lastActionCreated: DateUtils.getDBTime()});
+                    })
 
                     // Then the report is rendered in the LHN
                     .then(() => {
