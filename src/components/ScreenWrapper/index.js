@@ -19,6 +19,7 @@ import {withNetwork} from '../OnyxProvider';
 import {propTypes, defaultProps} from './propTypes';
 import * as App from '../../libs/actions/App';
 import SafeAreaConsumer from '../SafeAreaConsumer';
+import TestToolsModal from '../TestToolsModal';
 
 class ScreenWrapper extends React.Component {
     constructor(props) {
@@ -76,13 +77,14 @@ class ScreenWrapper extends React.Component {
 
     render() {
         // Open the test tools menu on 5 taps in dev only
+        const isDevEnvironment = this.props.environment === CONST.ENVIRONMENT.DEV;
         const quintupleTap = Gesture.Tap()
             .numberOfTaps(5)
 
             // Run the callbacks on the JS thread otherwise there's an error on iOS
             .runOnJS(true)
             .onEnd(() => {
-                if (this.props.environment !== CONST.ENVIRONMENT.DEV) {
+                if (!isDevEnvironment) {
                     return;
                 }
                 App.openTestToolsModal();
@@ -114,6 +116,7 @@ class ScreenWrapper extends React.Component {
                             >
                                 <KeyboardAvoidingView style={[styles.w100, styles.h100, {maxHeight: this.props.windowHeight}]} behavior={this.props.keyboardAvoidingViewBehavior}>
                                     <HeaderGap />
+                                    {(this.props.environment === CONST.ENVIRONMENT.DEV) && <TestToolsModal />}
                                     {// If props.children is a function, call it to provide the insets to the children.
                                         _.isFunction(this.props.children)
                                             ? this.props.children({
