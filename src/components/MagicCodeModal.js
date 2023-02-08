@@ -62,8 +62,7 @@ class MagicCodeModal extends PureComponent {
                                             {this.props.translate('magicCodeModal.signInHere')}
                                         </TextLink>
                                     </>
-                                )
-                            }
+                                )}
                             .
                         </Text>
                     </View>
