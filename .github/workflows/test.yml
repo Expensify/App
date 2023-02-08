@@ -35,7 +35,7 @@ jobs:
           key: ${{ runner.os }}-jest
 
       - name: Jest tests
-        run: npm run test -- --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --max-workers ${{ steps.cpu-cores.outputs.count }}
+        run: npx jest --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --max-workers ${{ steps.cpu-cores.outputs.count }}
 
   shellTests:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
