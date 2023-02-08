@@ -106,11 +106,11 @@ class BasePaymentsPage extends React.Component {
                 // Close corresponding selected payment method modals which are open
                 if (this.state.shouldShowDefaultDeleteMenu) {
                     this.hideDefaultDeleteMenu();
-                }
-                if (this.state.shouldShowPasswordPrompt) {
+                } else if (this.state.shouldShowPasswordPrompt) {
                     this.hidePasswordPrompt();
+                } else {
+                    this.resetSelectedPaymentMethodData();
                 }
-                this.resetSelectedPaymentMethodData();
             }
         }
 
