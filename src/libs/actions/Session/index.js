@@ -16,6 +16,8 @@ import * as Welcome from '../Welcome';
 import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
 import DateUtils from '../../DateUtils';
+import Navigation from '../../Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 let credentials = {};
 Onyx.connect({
@@ -310,6 +312,11 @@ function signInWithValidateCode(accountID, validateCode) {
     }, {optimisticData, successData, failureData});
 }
 
+function signInWithValidateCodeAndNavigate(accountID, validateCode) {
+    signInWithValidateCode(accountID, validateCode);
+    Navigation.navigate(ROUTES.HOME);
+}
+
 /**
  * User forgot the password so let's send them the link to reset their password
  */
@@ -529,6 +536,7 @@ export {
     updatePasswordAndSignin,
     signIn,
     signInWithValidateCode,
+    signInWithValidateCodeAndNavigate,
     signInWithShortLivedAuthToken,
     cleanupSession,
     signOut,

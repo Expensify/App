@@ -34,7 +34,7 @@ class ValidateLoginPage extends Component {
             // because we don't want to block the user with the interstitial page.
                 Navigation.goBack(false);
             } else {
-                Session.signInWithValidateCode(this.accountID(), this.validateCode());
+                Session.signInWithValidateCodeAndNavigate(this.accountID(), this.validateCode());
             }
         } else {
             User.validateLogin(this.accountID(), this.validateCode());
