@@ -35,6 +35,12 @@ const propTypes = {
         type: PropTypes.string,
     })),
 
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            openOnAdminRoom: PropTypes.bool,
+        }),
+    }).isRequired,
+
     ...withNavigationPropTypes,
 };
 
@@ -50,10 +56,11 @@ const defaultProps = {
  * @param {Object} reports
  * @param {Boolean} [ignoreDefaultRooms]
  * @param {Object} policies
+ * @param {Boolean} openOnAdminRoom
  * @returns {Object}
  */
-const getInitialReportScreenParams = (reports, ignoreDefaultRooms, policies) => {
-    const last = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies);
+const getInitialReportScreenParams = (reports, ignoreDefaultRooms, policies, openOnAdminRoom) => {
+    const last = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, openOnAdminRoom);
 
     // Fallback to empty if for some reason reportID cannot be derived - prevents the app from crashing
     const reportID = lodashGet(last, 'reportID', '');
@@ -64,7 +71,7 @@ class MainDrawerNavigator extends Component {
     constructor(props) {
         super(props);
         this.trackAppStartTiming = this.trackAppStartTiming.bind(this);
-        this.initialParams = getInitialReportScreenParams(props.reports, !Permissions.canUseDefaultRooms(props.betas), props.policies);
+        this.initialParams = getInitialReportScreenParams(props.reports, !Permissions.canUseDefaultRooms(props.betas), props.policies, props.route.params.openOnAdminRoom);
 
         // When we have chat reports the moment this component got created
         // we know that the data was served from storage/cache
@@ -72,7 +79,12 @@ class MainDrawerNavigator extends Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        const initialNextParams = getInitialReportScreenParams(nextProps.reports, !Permissions.canUseDefaultRooms(nextProps.betas), nextProps.policies);
+        const initialNextParams = getInitialReportScreenParams(
+            nextProps.reports,
+            !Permissions.canUseDefaultRooms(nextProps.betas),
+            nextProps.policies,
+            nextProps.route.params.openOnAdminRoom,
+        );
         if (this.initialParams.reportID === initialNextParams.reportID) {
             return false;
         }
