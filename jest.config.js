@@ -23,7 +23,7 @@ module.exports = {
     },
     fakeTimers: {
         enableGlobally: true,
-        doNotFake: ['nextTick', 'setImmediate'],
+        doNotFake: ['nextTick'],
     },
     testEnvironment: 'jsdom',
     setupFiles: [
