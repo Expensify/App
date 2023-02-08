@@ -1,4 +1,4 @@
-import _ from 'underscore';
+import _, { compose } from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
@@ -15,6 +15,8 @@ import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import colors from '../../styles/colors';
 import * as Browser from '../../libs/Browser';
+import { withOnyx } from 'react-native-onyx';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     /** Children to render. */
@@ -28,13 +30,13 @@ class DeeplinkWrapper extends PureComponent {
         super(props);
 
         this.state = {
-            appInstallationCheckStatus: (this.isMacOSWeb() && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV)
+            appInstallationCheckStatus: (this.isMacOSWeb())
                 ? CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING : CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
         };
     }
 
     componentDidMount() {
-        if (!this.isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
+        if (!this.isMacOSWeb() ) {
             return;
         }
 
@@ -54,6 +56,9 @@ class DeeplinkWrapper extends PureComponent {
 
         // check if pathname matches with deeplink routes
         const matchedRoute = _.find(deeplinkRoutes, (route) => {
+            if(route.isDisabled && route.isDisabled(this.props.betas)) {
+                return false;
+            }
             const routeRegex = new RegExp(route.pattern);
             return routeRegex.test(window.location.pathname);
         });
@@ -156,4 +161,9 @@ class DeeplinkWrapper extends PureComponent {
 }
 
 DeeplinkWrapper.propTypes = propTypes;
-export default withLocalize(DeeplinkWrapper);
+export default compose(
+    withLocalize,
+    withOnyx({
+        betas: {key: ONYXKEYS.BETAS},
+    }),
+)(DeeplinkWrapper);
