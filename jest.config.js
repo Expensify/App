@@ -1,6 +1,7 @@
 const testFileExtension = '[jt]s?(x)';
 module.exports = {
-    preset: 'react-native',
+    // TODO: change this back to preset: 'react-native' once we upgrade to React Native >= 0.71.2
+    preset: '@testing-library/react-native',
     testMatch: [
         `<rootDir>/tests/ui/**/*.${testFileExtension}`,
         `<rootDir>/tests/unit/**/*.${testFileExtension}`,
