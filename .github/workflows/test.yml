@@ -18,7 +18,6 @@ jobs:
         chunk: [ 1, 2, 3 ]
     name: test (job ${{ fromJSON(matrix.chunk) }})
     steps:
-      # This action checks-out the repository, so the workflow can access it.
       - uses: actions/checkout@885641592076c27bfb56c028cd5612cdad63e16d
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
