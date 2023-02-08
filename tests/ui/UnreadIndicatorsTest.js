@@ -36,6 +36,7 @@ beforeAll(() => {
     // simulate data arriving we will just set it into Onyx directly with Onyx.merge() or Onyx.set() etc.
     global.fetch = TestHelper.getGlobalFetchMock();
 
+    // We just navigate to the app without opening a specific chat report, otherwise we'll be marking the chat report as read because we'll be opening it from the deep link by default
     Linking.setInitialURL('https://new.expensify.com/r/1');
     appSetup();
 

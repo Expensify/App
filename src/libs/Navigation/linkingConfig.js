@@ -123,6 +123,22 @@ export default {
                     Settings_Add_Secondary_Login: {
                         path: ROUTES.SETTINGS_ADD_LOGIN,
                     },
+                    Settings_PersonalDetails_Initial: {
+                        path: ROUTES.SETTINGS_PERSONAL_DETAILS,
+                        exact: true,
+                    },
+                    Settings_PersonalDetails_LegalName: {
+                        path: ROUTES.SETTINGS_PERSONAL_DETAILS_LEGAL_NAME,
+                        exact: true,
+                    },
+                    Settings_PersonalDetails_DateOfBirth: {
+                        path: ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH,
+                        exact: true,
+                    },
+                    Settings_PersonalDetails_Address: {
+                        path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
+                        exact: true,
+                    },
                     Workspace_Initial: {
                         path: ROUTES.WORKSPACE_INITIAL,
                     },
