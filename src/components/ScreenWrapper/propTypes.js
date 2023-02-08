@@ -20,6 +20,9 @@ const propTypes = {
     // Called when navigated Screen's transition is finished.
     onTransitionEnd: PropTypes.func,
 
+    // Is the test tools modal open?
+    isTestToolsModalOpen: PropTypes.bool,
+
     /** The behavior to pass to the KeyboardAvoidingView, requires some trial and error depending on the layout/devices used.
      *  Search 'switch(behavior)' in ./node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js for more context */
     keyboardAvoidingViewBehavior: PropTypes.oneOf(['padding', 'height', 'position']),
