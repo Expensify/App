@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {View, ScrollView} from 'react-native';
+import {View} from 'react-native';
 import ONYXKEYS from '../ONYXKEYS';
 import Modal from './Modal';
 import CONST from '../CONST';
