@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import {compose} from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {
@@ -12,6 +13,7 @@ import MagicCodeModal from '../../components/MagicCodeModal';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
 import Permissions from '../../libs/Permissions';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
@@ -19,6 +21,8 @@ const propTypes = {
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -27,6 +31,12 @@ const defaultProps = {
 };
 
 class ValidateLoginPage extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {justSignedIn: false};
+    }
+
     componentDidMount() {
         // Validate login if
         // - The user is not on passwordless beta
@@ -41,6 +51,12 @@ class ValidateLoginPage extends Component {
         // - AND the user has initiated the sign in process in another tab
         if (this.isOnPasswordlessBeta() && !this.isAuthenticated() && this.isSignInInitiated()) {
             Session.signInWithValidateCode(this.accountID(), this.validateCode());
+        }
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if(prevProps.credentials && !prevProps.credentials.validateCode && this.props.credentials.validateCode) {
+            this.setState({justSignedIn: true});
         }
     }
 
@@ -71,10 +87,15 @@ class ValidateLoginPage extends Component {
     isSignInInitiated = () => !this.isAuthenticated() && this.props.credentials && this.props.credentials.login;
 
     render() {
+        const title = this.state.justSignedIn ? 'Abracadabra' : this.props.translate('magicCodeModal.title');
+        const description = this.state.justSignedIn ? 'You are signed in' : this.props.translate('magicCodeModal.description');
         return (
             this.isOnPasswordlessBeta() ?
-                <MagicCodeModal code={this.validateCode()}
-                    shouldShowSignInHere={!this.isSignInInitiated()}
+                <MagicCodeModal
+                    title={title}
+                    description={description}
+                    code={this.validateCode()}
+                    shouldShowSignInHere={!this.isAuthenticated() && !this.isSignInInitiated()}
                     onSignInHereClick={() => Session.signInWithValidateCodeAndNavigate(this.accountID(), this.validateCode())}
                 />
                 : <FullScreenLoadingIndicator />
@@ -85,8 +106,11 @@ class ValidateLoginPage extends Component {
 ValidateLoginPage.propTypes = propTypes;
 ValidateLoginPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    betas: {key: ONYXKEYS.BETAS},
-    session: {key: ONYXKEYS.SESSION},
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-})(ValidateLoginPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        betas: {key: ONYXKEYS.BETAS},
+        session: {key: ONYXKEYS.SESSION},
+        credentials: {key: ONYXKEYS.CREDENTIALS},
+    }),
+)(ValidateLoginPage);

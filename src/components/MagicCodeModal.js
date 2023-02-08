@@ -12,6 +12,13 @@ import variables from '../styles/variables';
 import TextLink from './TextLink';
 
 const propTypes = {
+
+    /** Title to display. */
+    title: PropTypes.string.isRequired,
+
+    /** Description to display. */
+    description: PropTypes.string.isRequired,
+
     /** Code to display. */
     code: PropTypes.string.isRequired,
 
@@ -42,11 +49,11 @@ class MagicCodeModal extends PureComponent {
                         />
                     </View>
                     <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
-                        {this.props.translate('magicCodeModal.title')}
+                        {this.props.title}
                     </Text>
                     <View style={[styles.mt2, styles.mb2]}>
                         <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
-                            {this.props.translate('magicCodeModal.description')}
+                            {this.props.description}
                             {this.props.shouldShowSignInHere &&
                                 <>
                                     {' '}

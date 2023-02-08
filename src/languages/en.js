@@ -147,9 +147,9 @@ export default {
         openLinkInBrowser: 'open this link in your browser',
     },
     magicCodeModal: {
-        title: 'Trying to authenticate\nyour browser...',
-        description: 'Head back to your original tab to continue signing in.\n\nIf this is a separate device than the one you\nattempted to sign in from, please return to the sign-in\npage and use the magic code below to continue',
-        signInHere: 'or just sign here',
+        title: 'Here is the magic code',
+        description: 'Enter it to sign in',
+        signInHere: 'or just sign in here',
     },
     iOUConfirmationList: {
         whoPaid: 'Who paid?',
