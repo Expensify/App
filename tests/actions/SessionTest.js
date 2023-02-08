@@ -86,20 +86,14 @@ describe('Session', () => {
             });
     });
 
-    test('Push notifications are subscribed after signing in', () => {
-        TestHelper.signInWithTestUser();
-
-        return waitForPromisesToResolve().then(() => {
-            expect(PushNotification.register).toBeCalled();
-        });
-    });
-
-    test('Push notifications are unsubscribed after signing out', () => {
+    test('Push notifications are subscribed after signing in', () => (
         TestHelper.signInWithTestUser()
-            .then(() => Session.signOut());
+            .then(() => expect(PushNotification.register).toBeCalled())
+    ));
 
-        return waitForPromisesToResolve().then(() => {
-            expect(PushNotification.deregister).toBeCalled();
-        });
-    });
+    test('Push notifications are unsubscribed after signing out', () => (
+        TestHelper.signInWithTestUser()
+            .then(TestHelper.signOutTestUser)
+            .then(() => expect(PushNotification.deregister).toBeCalled())
+    ));
 });

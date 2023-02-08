@@ -43,7 +43,7 @@ function buildPersonalDetails(login, accountID, firstName = 'Test') {
 function signInWithTestUser(accountID = 1, login = 'test@user.com', password = 'Password1', authToken = 'asdfqwerty', firstName = 'Test') {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn();
-    HttpUtils.xhr.mockImplementation(() => Promise.resolve({
+    HttpUtils.xhr.mockResolvedValue({
         onyxData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -68,7 +68,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
             },
         ],
         jsonCode: 200,
-    }));
+    });
 
     // Simulate user entering their login and populating the credentials.login
     Session.beginSignIn(login);
@@ -76,7 +76,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
         .then(() => {
             // Response is the same for calls to Authenticate and BeginSignIn
             HttpUtils.xhr
-                .mockImplementation(() => Promise.resolve({
+                .mockResolvedValue({
                     onyxData: [
                         {
                             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -110,12 +110,23 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                         },
                     ],
                     jsonCode: 200,
-                }));
-            Session.signIn(password);
-            return waitForPromisesToResolve()
-                .then(() => {
-                    HttpUtils.xhr = originalXhr;
                 });
+            Session.signIn(password);
+            return waitForPromisesToResolve();
+        })
+        .then(() => {
+            HttpUtils.xhr = originalXhr;
+        });
+}
+
+function signOutTestUser() {
+    const originalXhr = HttpUtils.xhr;
+    HttpUtils.xhr = jest.fn();
+    HttpUtils.xhr.mockResolvedValue({jsonCode: 200,});
+    Session.signOutAndRedirectToSignIn();
+    return waitForPromisesToResolve()
+        .then(() => {
+            HttpUtils.xhr = originalXhr
         });
 }
 
@@ -175,6 +186,7 @@ function buildTestReportComment(actorEmail, created, actorAccountID, actionID = 
 export {
     getGlobalFetchMock,
     signInWithTestUser,
+    signOutTestUser,
     setPersonalDetails,
     buildPersonalDetails,
     buildTestReportComment,
