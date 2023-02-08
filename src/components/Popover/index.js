@@ -11,12 +11,12 @@ import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     isShortcutsModalOpen: PropTypes.bool,
-    ...popoverPropTypes
+    ...popoverPropTypes,
 };
 
 const defaultProps = {
     isShortcutsModalOpen: false,
-    ...popoverDefaultProps
+    ...popoverDefaultProps,
 };
 
 /*
@@ -25,19 +25,17 @@ const defaultProps = {
  */
 
 class Popover extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     componentDidUpdate(prevProps) {
+        if (!this.props.isShortcutsModalOpen || !this.props.isVisible) {
+            return;
+        }
+
         // There are modals that can show up on top of these pop-overs, for example, the keyboard shortcut menu,
         // if that happens, close the pop-over as if we were clicking outside.
-        if (this.props.isShortcutsModalOpen && this.props.isVisible) {
-            this.props.onClose();
-        }
+        this.props.onClose();
     }
 
-    render () {
+    render() {
         if (!this.props.fullscreen && !this.props.isSmallScreenWidth) {
             return createPortal(
                 <Modal
@@ -65,7 +63,7 @@ class Popover extends React.Component {
                 animationOutTiming={this.props.disableAnimation && !this.props.isSmallScreenWidth ? 1 : this.props.animationOutTiming}
             />
         );
-    };
+    }
 }
 
 Popover.propTypes = propTypes;
