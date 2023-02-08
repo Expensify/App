@@ -14,6 +14,7 @@ import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
 import * as NumberFormatUtils from './NumberFormatUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
 import linkingConfig from './Navigation/linkingConfig';
@@ -76,7 +77,7 @@ Onyx.connect({
         if (!val) {
             return;
         }
-        doesDomainHaveApprovedAccountant = val.doesDomainHaveApprovedAccountant;
+        doesDomainHaveApprovedAccountant = val.doesDomainHaveApprovedAccountant || false;
     },
 });
 
@@ -660,6 +661,39 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
 }
 
 /**
+ * Get the title for a policy expense chat which depends on the role of the policy member seeing this report
+ *
+ * @param {Object} report
+ * @param {Object} [policies]
+ * @returns {String}
+ */
+function getPolicyExpenseChatName(report, policies = {}) {
+    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerEmail) || report.ownerEmail || report.reportName;
+
+    // If the policy expense chat is owned by this user, use the name of the policy as the report name.
+    if (report.isOwnPolicyExpenseChat) {
+        return getPolicyName(report, policies);
+    }
+
+    const policyExpenseChatRole = lodashGet(policies, [
+        `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role',
+    ]) || 'user';
+
+    // If this user is not admin and this policy expense chat has been archived because of account merging, this must be an old workspace chat
+    // of the account which was merged into the current user's account. Use the name of the policy as the name of the report.
+    if (isArchivedRoom(report)) {
+        const lastAction = ReportActionsUtils.getLastVisibleAction(report.reportID);
+        const archiveReason = (lastAction && lastAction.originalMessage && lastAction.originalMessage.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+        if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED && policyExpenseChatRole !== CONST.POLICY.ROLE.ADMIN) {
+            return getPolicyName(report, policies);
+        }
+    }
+
+    // If user can see this report and they are not its owner, they must be an admin and the report name should be the name of the policy member
+    return reportOwnerDisplayName;
+}
+
+/**
  * Get the title for a report.
  *
  * @param {Object} report
@@ -673,8 +707,7 @@ function getReportName(report, policies = {}) {
     }
 
     if (isPolicyExpenseChat(report)) {
-        const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerEmail) || report.ownerEmail || report.reportName;
-        formattedName = report.isOwnPolicyExpenseChat ? getPolicyName(report, policies) : reportOwnerDisplayName;
+        formattedName = getPolicyExpenseChatName(report, policies);
     }
 
     if (isArchivedRoom(report)) {
