@@ -30,8 +30,6 @@ jest.mock('../../src/libs/actions/Report', () => {
 
 describe('actions/Report', () => {
     beforeAll(() => {
-        jest.useRealTimers();
-
         // When using the Pusher mock the act of calling Pusher.isSubscribed will create a
         // channel already in a subscribed state. These methods are normally used to prevent
         // duplicated subscriptions, but we don't need them for this test so forcing them to
@@ -149,7 +147,7 @@ describe('actions/Report', () => {
     it('should update pins in Onyx when togglePinned is called', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
-        const REPORT_ID = 1;
+        const REPORT_ID = '1';
         const REPORT = {
             reportID: REPORT_ID,
             isPinned: false,
@@ -176,7 +174,7 @@ describe('actions/Report', () => {
     it('Should not leave duplicate comments when logger sends packet because of calling process queue while processing the queue', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
-        const REPORT_ID = 1;
+        const REPORT_ID = '1';
         const LOGGER_MAX_LOG_LINES = 50;
 
         // GIVEN a test user with initial data
@@ -208,7 +206,7 @@ describe('actions/Report', () => {
     });
 
     it('should be updated correctly when new comments are added, deleted or marked as unread', () => {
-        const REPORT_ID = 1;
+        const REPORT_ID = '1';
         let report;
         let reportActionCreatedDate;
         let currentTime;
@@ -278,6 +276,7 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report)).toBe(true);
 
                 // When the user visits the report
+                jest.advanceTimersByTime(10);
                 currentTime = DateUtils.getDBTime();
                 Report.openReport(REPORT_ID);
                 return waitForPromisesToResolve();
@@ -288,6 +287,7 @@ describe('actions/Report', () => {
                 expect(moment.utc(report.lastReadTime).valueOf()).toBeGreaterThanOrEqual(moment.utc(currentTime).valueOf());
 
                 // When the user manually marks a message as "unread"
+                jest.advanceTimersByTime(10);
                 Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate);
                 return waitForPromisesToResolve();
             })
@@ -297,6 +297,7 @@ describe('actions/Report', () => {
                 expect(report.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
 
                 // When a new comment is added by the current user
+                jest.advanceTimersByTime(10);
                 currentTime = DateUtils.getDBTime();
                 Report.addComment(REPORT_ID, 'Current User Comment 1');
                 return waitForPromisesToResolve();
@@ -308,6 +309,7 @@ describe('actions/Report', () => {
                 expect(report.lastMessageText).toBe('Current User Comment 1');
 
                 // When another comment is added by the current user
+                jest.advanceTimersByTime(10);
                 currentTime = DateUtils.getDBTime();
                 Report.addComment(REPORT_ID, 'Current User Comment 2');
                 return waitForPromisesToResolve();
@@ -319,6 +321,7 @@ describe('actions/Report', () => {
                 expect(report.lastMessageText).toBe('Current User Comment 2');
 
                 // When another comment is added by the current user
+                jest.advanceTimersByTime(10);
                 currentTime = DateUtils.getDBTime();
                 Report.addComment(REPORT_ID, 'Current User Comment 3');
                 return waitForPromisesToResolve();
@@ -364,6 +367,7 @@ describe('actions/Report', () => {
                         },
                     },
                 };
+                jest.advanceTimersByTime(10);
                 reportActionCreatedDate = DateUtils.getDBTime();
                 optimisticReportActions.value[400].created = reportActionCreatedDate;
 
@@ -464,7 +468,7 @@ describe('actions/Report', () => {
 
     it('should show a notification for report action updates with shouldNotify', () => {
         const TEST_USER_ACCOUNT_ID = 1;
-        const REPORT_ID = 1;
+        const REPORT_ID = '1';
         const REPORT_ACTION = {};
 
         // Setup user and pusher listeners
@@ -489,7 +493,7 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             }).then(() => {
                 // Ensure we show a notification for this new report action
-                expect(Report.showReportActionNotification).toBeCalledWith(String(REPORT_ID), REPORT_ACTION);
+                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION);
             });
     });
 });
