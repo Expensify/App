@@ -92,13 +92,15 @@ class ValidateLoginPage extends Component {
         const description = this.state.justSignedIn ? 'You are signed in' : this.props.translate('magicCodeModal.description');
         return (
             this.isOnPasswordlessBeta()
-                ? (<MagicCodeModal
-                    title={title}
-                    description={description}
-                    code={this.validateCode()}
-                    shouldShowSignInHere={!this.isAuthenticated() && !this.isSignInInitiated()}
-                    onSignInHereClick={() => Session.signInWithValidateCodeAndNavigate(this.accountID(), this.validateCode())}
-                />)
+                ? (
+                    <MagicCodeModal
+                        title={title}
+                        description={description}
+                        code={this.validateCode()}
+                        shouldShowSignInHere={!this.isAuthenticated() && !this.isSignInInitiated()}
+                        onSignInHereClick={() => Session.signInWithValidateCodeAndNavigate(this.accountID(), this.validateCode())}
+                    />
+                )
                 : <FullScreenLoadingIndicator />
         );
     }
