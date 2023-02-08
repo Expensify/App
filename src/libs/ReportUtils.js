@@ -72,7 +72,7 @@ let doesDomainHaveApprovedAccountant;
 Onyx.connect({
     key: ONYXKEYS.ACCOUNT,
     waitForCollectionCallback: true,
-    callback: val => {
+    callback: (val) => {
         if (!val) {
             return;
         }
