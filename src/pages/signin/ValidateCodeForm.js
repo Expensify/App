@@ -224,16 +224,6 @@ class ValidateCodeForm extends React.Component {
                     // DotIndicatorMessage mostly expects onyxData errors so we need to mock an object so that the messages looks similar to prop.account.errors
                     <DotIndicatorMessage style={[styles.mb5, styles.flex0]} type="success" messages={{0: this.props.account.message}} />
                 )}
-                {!this.state.formError && this.props.account && !_.isEmpty(this.props.account.errors) && (
-                    <Text style={[styles.formError]}>
-                        {ErrorUtils.getLatestErrorMessage(this.props.account)}
-                    </Text>
-                )}
-                {this.state.formError && (
-                    <Text style={[styles.formError]}>
-                        {this.props.translate(this.state.formError)}
-                    </Text>
-                )}
                 {this.props.account && !_.isEmpty(this.props.account.errors) && (
                     <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(this.props.account)} />
                 )}
