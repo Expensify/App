@@ -122,12 +122,10 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
 function signOutTestUser() {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn();
-    HttpUtils.xhr.mockResolvedValue({jsonCode: 200,});
+    HttpUtils.xhr.mockResolvedValue({jsonCode: 200});
     Session.signOutAndRedirectToSignIn();
     return waitForPromisesToResolve()
-        .then(() => {
-            HttpUtils.xhr = originalXhr
-        });
+        .then(() => HttpUtils.xhr = originalXhr);
 }
 
 /**
