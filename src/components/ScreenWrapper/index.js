@@ -18,7 +18,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import {withNetwork} from '../OnyxProvider';
 import {propTypes, defaultProps} from './propTypes';
 import * as App from '../../libs/actions/App';
-import TestToolsModal from '../TestToolsModal';
 import SafeAreaConsumer from '../SafeAreaConsumer';
 
 class ScreenWrapper extends React.Component {
