@@ -11,10 +11,6 @@ import ONYXKEYS from '../../src/ONYXKEYS';
 
 jest.mock('../../src/libs/getPlatform');
 
-// Using fake timers is causing problems with promises getting timed out
-// This seems related: https://github.com/facebook/jest/issues/11876
-jest.useRealTimers();
-
 let LogSpy;
 
 describe('Migrations', () => {
