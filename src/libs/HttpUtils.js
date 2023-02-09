@@ -58,8 +58,8 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
             }
 
             if (!response.ok) {
-                // Expensify site is down or something temporary like a Bad Gateway or unknown error occurred
-                if (response.status === 504 || response.status === 502 || response.status === 520) {
+                // Expensify site is down or there was an internal server error, or something temporary like a Bad Gateway, or unknown error occurred
+                if (response.status === 500 || response.status === 502 || response.status === 504 || response.status === 520) {
                     throw new HttpsError({
                         message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
                         status: response.status,
