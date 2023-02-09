@@ -52,7 +52,7 @@ const showUserDetails = (email) => {
 };
 
 const ReportActionItemSingle = (props) => {
-    const actorEmail = props.action.actorEmail.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    const actorEmail = props.action.actorEmail;
     const {
         avatar,
         displayName,
@@ -67,6 +67,11 @@ const ReportActionItemSingle = (props) => {
     const personArray = displayName
         ? [{type: 'TEXT', text: Str.isSMSLogin(login) ? props.toLocalPhone(displayName) : displayName}]
         : props.action.person;
+
+    // If the chat is from merged user, remove the MERGED prefix from the display name.
+    if (personArray[0] && personArray[0].text.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '')) {
+        personArray[0].text = personArray[0].text.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    }
 
     return (
         <View style={props.wrapperStyles}>
