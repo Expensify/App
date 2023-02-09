@@ -30,7 +30,7 @@ function getDocumentedShortcuts() {
  */
 function getDisplayName(key, modifiers) {
     let displayName = (() => {
-        // typeof key -> string, typeof KeyCommand.constants.* -> number | string
+        // Type of key is string and the type of KeyCommand.constants.* is number | string. Use _.isEqual to match different types.
         if (_.isEqual(key, KeyCommand.constants.keyInputEnter.toString())) {
             return ['ENTER'];
         }
