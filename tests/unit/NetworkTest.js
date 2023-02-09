@@ -500,7 +500,7 @@ describe('NetworkTests', () => {
         return backOffExpectations(xhr);
     });
 
-    test.each([500, 502, 504, 520])(
+    test.each([429, 500, 502, 504, 520])(
         'request with http status %d uses exponential back off',
         (httpStatus) => {
             global.fetch = jest.fn()
