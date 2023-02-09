@@ -93,13 +93,10 @@ class BasePaymentsPage extends React.Component {
             let shouldResetPaymentMethodData = false;
 
             if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT && _.isEmpty(this.props.bankAccountList[this.state.methodID])) {
-                // If the selected payment method is bank account and it has been deleted, reset the selected payment method data and close corresponding modals
                 shouldResetPaymentMethodData = true;
             } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && _.isEmpty(this.props.cardList[this.state.methodID])) {
-                // If the selected payment method is card and it has been deleted, reset the selected payment method data and close corresponding modals
                 shouldResetPaymentMethodData = true;
             } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PAYPAL && this.props.payPalMeData !== prevProps.payPalMeData && _.isEmpty(this.props.payPalMeData)) {
-                // If the selected payment method is paypal and it has been deleted, reset the selected payment method data and close corresponding modals
                 shouldResetPaymentMethodData = true;
             }
             if (shouldResetPaymentMethodData) {
@@ -108,8 +105,6 @@ class BasePaymentsPage extends React.Component {
                     this.hideDefaultDeleteMenu();
                 } else if (this.state.shouldShowPasswordPrompt) {
                     this.hidePasswordPrompt();
-                } else {
-                    this.resetSelectedPaymentMethodData();
                 }
             }
         }
