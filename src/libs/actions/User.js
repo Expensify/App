@@ -17,6 +17,8 @@ import * as Localize from '../Localize';
 import * as Link from './Link';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
+import * as Report from './Report';
+import * as ReportActionsUtils from '../ReportActionsUtils';
 
 let currentUserAccountID = '';
 Onyx.connect({
@@ -91,9 +93,10 @@ function closeAccount(message) {
  * Resends a validation link to a given login
  *
  * @param {String} login
+ * @param {Boolean} isPasswordless - temporary param to trigger passwordless flow in backend
  */
-function resendValidateCode(login) {
-    DeprecatedAPI.ResendValidateCode({email: login});
+function resendValidateCode(login, isPasswordless = false) {
+    DeprecatedAPI.ResendValidateCode({email: login, isPasswordless});
 }
 
 /**
@@ -256,6 +259,19 @@ function deletePaypalMeAddress() {
     Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
 
+function triggerNotifications(onyxUpdates) {
+    _.each(onyxUpdates, (update) => {
+        if (!update.shouldNotify) {
+            return;
+        }
+
+        const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+        const reportActions = _.values(update.value);
+        const sortedReportActions = ReportActionsUtils.getSortedReportActions(reportActions);
+        Report.showReportActionNotification(reportID, _.last(sortedReportActions));
+    });
+}
+
 /**
  * Initialize our pusher subscription to listen for user changes
  */
@@ -271,6 +287,7 @@ function subscribeToUserEvents() {
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE, currentUserAccountID, (pushJSON) => {
         SequentialQueue.getCurrentRequest().then(() => {
             Onyx.update(pushJSON);
+            triggerNotifications(pushJSON);
         });
     });
 
@@ -385,6 +402,7 @@ function updateChatPriorityMode(mode) {
     API.write('UpdateChatPriorityMode', {
         value: mode,
     }, {optimisticData});
+    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
 }
 
 /**

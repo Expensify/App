@@ -1,8 +1,7 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {
-    View, Image, Pressable,
-} from 'react-native';
+import {View, Pressable} from 'react-native';
+import Image from '../Image';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
@@ -10,9 +9,16 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDime
 import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
 
 const propTypes = {
+    /** Whether source url requires authentication */
+    isAuthTokenRequired: PropTypes.bool,
+
     /** URL to full-sized image */
     url: PropTypes.string.isRequired,
     ...windowDimensionsPropTypes,
+};
+
+const defaultProps = {
+    isAuthTokenRequired: false,
 };
 
 class ImageView extends PureComponent {
@@ -23,6 +29,7 @@ class ImageView extends PureComponent {
         this.onContainerLayoutChanged = this.onContainerLayoutChanged.bind(this);
         this.onContainerPressIn = this.onContainerPressIn.bind(this);
         this.onContainerPress = this.onContainerPress.bind(this);
+        this.imageLoad = this.imageLoad.bind(this);
         this.imageLoadingStart = this.imageLoadingStart.bind(this);
         this.imageLoadingEnd = this.imageLoadingEnd.bind(this);
         this.trackMovement = this.trackMovement.bind(this);
@@ -46,9 +53,6 @@ class ImageView extends PureComponent {
     }
 
     componentDidMount() {
-        Image.getSize(this.props.url, (width, height) => {
-            this.setImageRegion(width, height);
-        });
         if (this.canUseTouchScreen) {
             return;
         }
@@ -207,6 +211,10 @@ class ImageView extends PureComponent {
         this.setState(prevState => ({isDragging: prevState.isMouseDown}));
     }
 
+    imageLoad({nativeEvent}) {
+        this.setImageRegion(nativeEvent.width, nativeEvent.height);
+    }
+
     imageLoadingStart() {
         this.setState({isLoading: true});
     }
@@ -224,6 +232,7 @@ class ImageView extends PureComponent {
                 >
                     <Image
                         source={{uri: this.props.url}}
+                        isAuthTokenRequired={this.props.isAuthTokenRequired}
                         style={this.state.zoomScale === 0 ? undefined : [
                             styles.w100,
                             styles.h100,
@@ -231,9 +240,10 @@ class ImageView extends PureComponent {
 
                         // When Image dimensions are lower than the container boundary(zoomscale <= 1), use `contain` to render the image with natural dimensions.
                         // Both `center` and `contain` keeps the image centered on both x and y axis.
-                        resizeMode={this.state.zoomScale > 1 ? 'center' : 'contain'}
+                        resizeMode={this.state.zoomScale > 1 ? Image.resizeMode.center : Image.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}
                         onLoadEnd={this.imageLoadingEnd}
+                        onLoad={this.imageLoad}
                     />
                     {this.state.isLoading && (
                         <FullscreenLoadingIndicator
@@ -266,13 +276,15 @@ class ImageView extends PureComponent {
                 >
                     <Image
                         source={{uri: this.props.url}}
+                        isAuthTokenRequired={this.props.isAuthTokenRequired}
                         style={this.state.zoomScale === 0 ? undefined : [
                             styles.h100,
                             styles.w100,
                         ]} // Hide image until zoomScale calculated to prevent showing preview with wrong dimensions.
-                        resizeMode="contain"
+                        resizeMode={Image.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}
                         onLoadEnd={this.imageLoadingEnd}
+                        onLoad={this.imageLoad}
                     />
                 </Pressable>
 
@@ -287,4 +299,5 @@ class ImageView extends PureComponent {
 }
 
 ImageView.propTypes = propTypes;
+ImageView.defaultProps = defaultProps;
 export default withWindowDimensions(ImageView);

@@ -1,9 +1,7 @@
 import CONST from '../CONST';
 
 /**
- * Modifies the room name in the following ways:
- * - Replaces spaces with dashes
- * - Makes all letters lowercase
+ * Replaces spaces with dashes
  *
  * @param {String} roomName
  * @returns {String}
@@ -11,7 +9,9 @@ import CONST from '../CONST';
 function modifyRoomName(roomName) {
     const modifiedRoomNameWithoutHash = roomName
         .replace(/ /g, '-')
-        .toLowerCase();
+
+        // Replaces the smart dash on iOS devices with two hyphens
+        .replace(/—/g, '--');
 
     return `${CONST.POLICY.ROOM_PREFIX}${modifiedRoomNameWithoutHash}`;
 }

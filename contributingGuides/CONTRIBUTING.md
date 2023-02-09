@@ -111,11 +111,18 @@ Additionally if you want to discuss an idea with the open source community witho
 3. If you cannot reproduce the problem, pause on this step and add a comment to the issue explaining where you are stuck or that you don't think the issue can be reproduced.
 
 #### Propose a solution for the job
-4. After you reproduce the issue, make a proposal for your solution and post it as a comment in the corresponding GitHub issue (linked in the Upwork job). Your solution proposal should include a brief written technical explanation of the changes you will make. Include "Proposal" as the first word in your comment. 
+4. After you reproduce the issue, complete the [proposal template here](./PROPOSAL_TEMPLATE.md) and post it as a comment in the corresponding GitHub issue (linked in the Upwork job).
     - Note: Before submitting a proposal on an issue, be sure to read any other existing proposals. Any new proposal should be substantively different from existing proposals.
-5. Pause at this step until someone from the Contributor-Plus team and / or someone from Expensify provides feedback on your proposal (do not create a pull request yet).
-6. If your solution proposal is accepted by the Expensify engineer assigned to the issue, Expensify will hire you on Upwork and assign the GitHub issue to you.
-7. Once hired, post a comment in the Github issue stating when you expect to have your PR ready for review 
+5. Refrain from leaving additional comments until someone from the Contributor-Plus team and / or someone from Expensify provides feedback on your proposal (do not create a pull request yet).
+    - Do not leave more than one proposal.
+    - Do not make extensive changes to your current proposal until after it has been reviewed.
+    - If you want to make an entirely new proposal or update an existing proposal, please go back and edit your original proposal, then post a new comment to the issue in this format to alert everyone that it has been updated:
+    ```
+    ## Proposal
+    [Updated](link to proposal)
+    ```
+6. If your proposal is accepted by the Expensify engineer assigned to the issue, Expensify will hire you on Upwork and assign the GitHub issue to you.
+7. Once hired, post a comment in the Github issue stating when you expect to have your PR ready for review.
 
 #### Begin coding your solution in a pull request
 7. When you are ready to start, fork the repository and create a new branch.
@@ -143,6 +150,15 @@ Additionally if you want to discuss an idea with the open source community witho
 14. Please pay attention to the pull request template, especially to how we link PRs with issues they fix. Make sure you don't use GitHub keywords such as `fixes` in your PR description, as this can break our current automated steps for issue management. Follow the PR template format carefully.
 15. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, Android, and Mobile Web) to confirm the fix works as expected and there are no regressions.
 16. Please add a screenshot of the app running on each platform (Web, Desktop, iOS, Android, Mobile Web).
+
+#### Completing the final checklist
+17. Once your PR has been deployed to production, a checklist will automatically be commented in the GH issue. You're required to complete the steps that have your name mentioned before payment will be issued.
+18. The items requiring your completion consist of: 
+    1. Proposing steps to take for a regression test to ensure the bug doesn't occur again (For information on how to successfully complete this, head [here](https://github.com/Expensify/App/blob/main/contributingGuides/REGRESSION_TEST_BEST_PRACTICES.md)).
+    2. Identifying and noting the offending PR that caused the bug (if any).
+    3. Commenting on the offending PR to note the bug it caused and why (if applicable).
+    4. Starting a conversation on if any additional steps should be taken to prevent further bugs similar to the one fixed from occurring again. 
+20. Once the above items have been successfully completed, then payments will begin to be issued. 
 
 #### Timeline expectations and asking for help along the way
 - If you have made a change to your pull request and are ready for another review, leave a comment that says "Updated" on the pull request  itself.

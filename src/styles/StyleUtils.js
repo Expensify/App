@@ -17,12 +17,15 @@ function getAvatarSize(size) {
     const AVATAR_SIZES = {
         [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeNormal,
         [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.avatarSizeSmallSubscript,
+        [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.avatarSizeMidSubscript,
         [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.avatarSizeSubscript,
         [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
         [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
         [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
         [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
+        [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
     };
+
     return AVATAR_SIZES[size];
 }
 
@@ -40,6 +43,19 @@ function getAvatarStyle(size) {
         borderRadius: avatarSize,
         backgroundColor: themeColors.offline,
     };
+}
+
+/**
+ * Return the border style if avatar is SVG
+ *
+ * @param {Boolean} isSVG
+ * @returns {Object}
+ */
+function getAvatarSVGBorder(isSVG) {
+    if (!isSVG) {
+        return {};
+    }
+    return styles.svgAvatarBorder;
 }
 
 /**
@@ -258,18 +274,15 @@ function getBadgeColorStyle(success, error, isPressed = false) {
  * Generate a style for the background color of the button, based on its current state.
  *
  * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
- * @param {Boolean} isMenuItem - whether this icon is apart of a list
+ * @param {Boolean} isMenuItem - whether this button is apart of a list
  * @returns {Object}
  */
 function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false) {
     switch (buttonState) {
-        case CONST.BUTTON_STATES.ACTIVE:
-            if (isMenuItem) {
-                return {backgroundColor: themeColors.border};
-            }
-            return {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.PRESSED:
             return {backgroundColor: themeColors.buttonPressedBG};
+        case CONST.BUTTON_STATES.ACTIVE:
+            return isMenuItem ? {backgroundColor: themeColors.border} : {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.DISABLED:
         case CONST.BUTTON_STATES.DEFAULT:
         default:
@@ -636,7 +649,7 @@ function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
     let backgroundColor = themeColors.appBG;
 
     if (isHovered) {
-        backgroundColor = themeColors.buttonHoveredBG;
+        backgroundColor = themeColors.border;
     }
 
     if (isPressed) {
@@ -649,9 +662,82 @@ function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
     };
 }
 
+/**
+ * @param {Number} safeAreaPaddingBottom
+ * @returns {Object}
+ */
+function getErrorPageContainerStyle(safeAreaPaddingBottom = 0) {
+    return {
+        backgroundColor: themeColors.componentBG,
+        paddingBottom: 40 + safeAreaPaddingBottom,
+    };
+}
+
+/**
+ * Gets the correct size for the empty state background image based on screen dimensions
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
+function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth) {
+    if (isSmallScreenWidth) {
+        return {
+            height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
+            width: '100%',
+        };
+    }
+
+    return {
+        height: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT,
+        width: '100%',
+    };
+}
+
+/**
+ * Gets the correct size for the empty state background image view based on screen dimensions
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
+function getReportWelcomeBackgroundImageViewStyle(isSmallScreenWidth) {
+    if (isSmallScreenWidth) {
+        return {
+            height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.VIEW_HEIGHT,
+        };
+    }
+
+    return {
+        height: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.VIEW_HEIGHT,
+    };
+}
+
+/**
+ * Gets the correct size for the empty state container based on screen dimensions
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
+function getReportWelcomeContainerStyle(isSmallScreenWidth) {
+    if (isSmallScreenWidth) {
+        return {
+            minHeight: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.CONTAINER_MINHEIGHT,
+            display: 'flex',
+            justifyContent: 'space-between',
+        };
+    }
+
+    return {
+        minHeight: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.CONTAINER_MINHEIGHT,
+        display: 'flex',
+        justifyContent: 'space-between',
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
+    getAvatarSVGBorder,
+    getErrorPageContainerStyle,
     getSafeAreaPadding,
     getSafeAreaMargins,
     getNavigationDrawerStyle,
@@ -684,4 +770,7 @@ export {
     getHeight,
     fade,
     getHorizontalStackedAvatarBorderStyle,
+    getReportWelcomeBackgroundImageStyle,
+    getReportWelcomeBackgroundImageViewStyle,
+    getReportWelcomeContainerStyle,
 };

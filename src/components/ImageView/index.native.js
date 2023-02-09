@@ -3,23 +3,29 @@ import PropTypes from 'prop-types';
 import {
     View, InteractionManager, PanResponder,
 } from 'react-native';
-import Image from '@pieter-pot/react-native-fast-image';
 import ImageZoom from 'react-native-image-pan-zoom';
-import ImageSize from 'react-native-image-size';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
+import Image from '../Image';
 
 /**
  * On the native layer, we use a image library to handle zoom functionality
  */
 const propTypes = {
+    /** Whether source url requires authentication */
+    isAuthTokenRequired: PropTypes.bool,
+
     /** URL to full-sized image */
     url: PropTypes.string.isRequired,
 
     ...windowDimensionsPropTypes,
+};
+
+const defaultProps = {
+    isAuthTokenRequired: false,
 };
 
 class ImageView extends PureComponent {
@@ -28,8 +34,8 @@ class ImageView extends PureComponent {
 
         this.state = {
             isLoading: false,
-            imageWidth: undefined,
-            imageHeight: undefined,
+            imageWidth: 0,
+            imageHeight: 0,
             interactionPromise: undefined,
             containerHeight: undefined,
         };
@@ -46,13 +52,8 @@ class ImageView extends PureComponent {
             onStartShouldSetPanResponder: this.updatePanResponderTouches.bind(this),
         });
 
-        this.imageLoadingStart = this.imageLoadingStart.bind(this);
-        this.imageLoadingEnd = this.imageLoadingEnd.bind(this);
-    }
-
-    componentDidMount() {
-        // Wait till animations are over to prevent stutter in navigation animation
-        this.state.interactionPromise = InteractionManager.runAfterInteractions(() => this.calculateImageSize());
+        this.imageLoadStart = this.imageLoadStart.bind(this);
+        this.configureImageZoom = this.configureImageZoom.bind(this);
     }
 
     componentWillUnmount() {
@@ -60,35 +61,6 @@ class ImageView extends PureComponent {
             return;
         }
         this.state.interactionPromise.cancel();
-    }
-
-    calculateImageSize() {
-        if (!this.props.url) {
-            return;
-        }
-        ImageSize.getSize(this.props.url).then(({width, height, rotation}) => {
-            let imageWidth = width;
-            let imageHeight = height;
-            const containerWidth = Math.round(this.props.windowWidth);
-            const containerHeight = Math.round(this.state.containerHeight);
-
-            // On specific Android devices, the dimensions are sometimes returned to us flipped here, with `rotation` set to 90 degrees.
-            // Swap them back to make sure the image fits nicely in the container. On iOS, the rotation is always undefined, so this does not apply.
-            if (rotation === 90 || rotation === 270) {
-                [imageWidth, imageHeight] = [imageHeight, imageWidth];
-            }
-
-            const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
-
-            imageHeight *= aspectRatio;
-            imageWidth *= aspectRatio;
-
-            // Resize the image to max dimensions possible on the Native platforms to prevent crashes on Android. To keep the same behavior, apply to IOS as well.
-            const maxDimensionsScale = 11;
-            imageHeight = Math.min(imageHeight, (this.props.windowHeight * maxDimensionsScale));
-            imageWidth = Math.min(imageWidth, (this.props.windowWidth * maxDimensionsScale));
-            this.setState({imageHeight, imageWidth});
-        });
     }
 
     /**
@@ -107,43 +79,46 @@ class ImageView extends PureComponent {
         return false;
     }
 
-    imageLoadingStart() {
+    imageLoadStart() {
         this.setState({isLoading: true});
     }
 
-    imageLoadingEnd() {
-        this.setState({isLoading: false});
+    /**
+     * The `ImageZoom` component requires image dimensions which
+     * are calculated here from the natural image dimensions produced by
+     * the `onLoad` event
+     *
+     * @param {Object} nativeEvent
+     */
+    configureImageZoom({nativeEvent}) {
+        // Wait till animations are over to prevent stutter in navigation animation
+        this.state.interactionPromise = InteractionManager.runAfterInteractions(() => {
+            let imageWidth = nativeEvent.width;
+            let imageHeight = nativeEvent.height;
+            const containerWidth = Math.round(this.props.windowWidth);
+            const containerHeight = Math.round(this.state.containerHeight);
+
+            const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
+
+            if (imageHeight > imageWidth) {
+                imageHeight *= aspectRatio;
+            } else {
+                imageWidth *= aspectRatio;
+            }
+
+            // Resize the image to max dimensions possible on the Native platforms to prevent crashes on Android. To keep the same behavior, apply to IOS as well.
+            const maxDimensionsScale = 11;
+            imageHeight = Math.min(imageHeight, (this.props.windowHeight * maxDimensionsScale));
+            imageWidth = Math.min(imageWidth, (this.props.windowWidth * maxDimensionsScale));
+            this.setState({imageHeight, imageWidth, isLoading: false});
+        });
     }
 
     render() {
         // Default windowHeight accounts for the modal header height
         const windowHeight = this.props.windowHeight - variables.contentHeaderHeight;
-
-        // Display thumbnail until Image size calculation is complete
-        if (!this.state.imageWidth || !this.state.imageHeight) {
-            return (
-                <View
-                    style={[
-                        styles.w100,
-                        styles.h100,
-                        styles.alignItemsCenter,
-                        styles.justifyContentCenter,
-                        styles.overflowHidden,
-                        styles.errorOutline,
-                    ]}
-                    onLayout={(event) => {
-                        const layout = event.nativeEvent.layout;
-                        this.setState({
-                            containerHeight: layout.height,
-                        });
-                    }}
-                >
-                    <FullscreenLoadingIndicator
-                        style={[styles.opacity1, styles.bgTransparent]}
-                    />
-                </View>
-            );
-        }
+        const hasImageDimensions = this.state.imageWidth !== 0 && this.state.imageHeight !== 0;
+        const shouldShowLoadingIndicator = this.state.isLoading || !hasImageDimensions;
 
         // Zoom view should be loaded only after measuring actual image dimensions, otherwise it causes blurred images on Android
         return (
@@ -155,6 +130,12 @@ class ImageView extends PureComponent {
                     styles.justifyContentCenter,
                     styles.overflowHidden,
                 ]}
+                onLayout={(event) => {
+                    const layout = event.nativeEvent.layout;
+                    this.setState({
+                        containerHeight: layout.height,
+                    });
+                }}
             >
                 <ImageZoom
                     ref={el => this.zoom = el}
@@ -194,11 +175,17 @@ class ImageView extends PureComponent {
                             styles.w100,
                             styles.h100,
                             this.props.style,
+
+                            // Hide image while loading so ImageZoom can get the image
+                            // size before presenting - preventing visual glitches or shift
+                            // due to ImageZoom
+                            shouldShowLoadingIndicator ? styles.opacity0 : styles.opacity1,
                         ]}
                         source={{uri: this.props.url}}
-                        resizeMode="contain"
-                        onLoadStart={this.imageLoadingStart}
-                        onLoadEnd={this.imageLoadingEnd}
+                        isAuthTokenRequired={this.props.isAuthTokenRequired}
+                        resizeMode={Image.resizeMode.contain}
+                        onLoadStart={this.imageLoadStart}
+                        onLoad={this.configureImageZoom}
                     />
                     {/**
                      Create an invisible view on top of the image so we can capture and set the amount of touches before
@@ -215,7 +202,7 @@ class ImageView extends PureComponent {
                         ]}
                     />
                 </ImageZoom>
-                {this.state.isLoading && (
+                {shouldShowLoadingIndicator && (
                     <FullscreenLoadingIndicator
                         style={[styles.opacity1, styles.bgTransparent]}
                     />
@@ -226,5 +213,6 @@ class ImageView extends PureComponent {
 }
 
 ImageView.propTypes = propTypes;
+ImageView.defaultProps = defaultProps;
 
 export default withWindowDimensions(ImageView);

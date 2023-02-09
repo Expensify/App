@@ -301,6 +301,12 @@ class BaseTextInput extends Component {
                                         keyboardType={getSecureEntryKeyboardType(this.props.keyboardType, this.props.secureTextEntry, this.state.passwordHidden)}
                                         value={this.state.value}
                                         selection={this.state.selection}
+                                        editable={_.isUndefined(this.props.editable) ? !this.props.disabled : this.props.editable}
+
+                                        // FormSubmit Enter key handler does not have access to direct props.
+                                        // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
+                                        dataSet={{submitOnEnter: this.props.multiline && this.props.submitOnEnter}}
+
                                     />
                                     {this.props.secureTextEntry && (
                                         <Checkbox

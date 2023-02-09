@@ -31,6 +31,8 @@ import * as Wallet from '../../libs/actions/Wallet';
 import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import ConfirmModal from '../../components/ConfirmModal';
+import * as ReportUtils from '../../libs/ReportUtils';
+import * as Link from '../../libs/actions/Link';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
@@ -171,6 +173,13 @@ class InitialSettingsPage extends React.Component {
                     || !_.isEmpty(this.props.walletTerms.errors) ? 'error' : null,
             },
             {
+                translationKey: 'initialSettingsPage.help',
+                icon: Expensicons.QuestionMark,
+                action: () => { Link.openExternalLink(CONST.NEWHELP_URL); },
+                shouldShowRightIcon: true,
+                iconRight: Expensicons.NewWindow,
+            },
+            {
                 translationKey: 'initialSettingsPage.about',
                 icon: Expensicons.Info,
                 action: () => { Navigation.navigate(ROUTES.SETTINGS_ABOUT); },
@@ -197,6 +206,7 @@ class InitialSettingsPage extends React.Component {
                 iconStyles={item.iconStyles}
                 iconFill={item.iconFill}
                 shouldShowRightIcon
+                iconRight={item.iconRight}
                 badgeText={this.getWalletBalance(isPaymentItem)}
                 fallbackIcon={item.fallbackIcon}
                 brickRoadIndicator={item.brickRoadIndicator}
@@ -240,7 +250,7 @@ class InitialSettingsPage extends React.Component {
                 />
                 <ScrollView style={[styles.settingsPageBackground]}>
                     <View style={styles.w100}>
-                        <View style={styles.pageWrapper}>
+                        <View style={styles.avatarSectionWrapper}>
                             <Pressable style={[styles.mb3]} onPress={this.openProfileSettings}>
                                 <Tooltip text={this.props.currentUserPersonalDetails.displayName}>
                                     <OfflineWithFeedback
@@ -248,7 +258,7 @@ class InitialSettingsPage extends React.Component {
                                     >
                                         <Avatar
                                             imageStyles={[styles.avatarLarge]}
-                                            source={this.props.currentUserPersonalDetails.avatar}
+                                            source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.email)}
                                             size={CONST.AVATAR_SIZE.LARGE}
                                         />
                                     </OfflineWithFeedback>
