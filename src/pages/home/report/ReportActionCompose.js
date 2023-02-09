@@ -301,7 +301,7 @@ class ReportActionCompose extends React.Component {
                 text: this.props.translate('iou.requestMoney'),
                 onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
             },
-            ...(Permissions.canUseIOUSend(this.props.betas)
+            ...((Permissions.canUseIOUSend(this.props.betas) && !ReportUtils.isPolicyExpenseChat(this.props.report))
                 ? [
                     {
                         icon: Expensicons.Send,
