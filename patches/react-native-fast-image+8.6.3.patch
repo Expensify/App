@@ -44,7 +44,6 @@ index 0000000..6ea9042
 +        return new SimpleResource(bitmapOptions);
 +    }
 +}
-\ No newline at end of file
 diff --git a/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/BitmapSizeTranscoder.java b/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/BitmapSizeTranscoder.java
 new file mode 100644
 index 0000000..5287e17
