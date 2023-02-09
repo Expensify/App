@@ -62,6 +62,7 @@ const Popover = (props) => {
 
 Popover.propTypes = propTypes;
 Popover.defaultProps = defaultProps;
+Popover.displayName = 'Popover';
 
 export default compose(
     withWindowDimensions,
