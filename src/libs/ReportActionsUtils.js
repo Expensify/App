@@ -7,7 +7,6 @@ import moment from 'moment';
 import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
-import * as ReportUtils from './ReportUtils';
 
 const allReportActions = {};
 Onyx.connect({
@@ -170,7 +169,9 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
 
     const parser = new ExpensiMark();
     const messageText = parser.htmlToText(htmlText);
-    return ReportUtils.formatReportLastMessageText(messageText);
+    return String(messageText)
+        .replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '')
+        .substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
 }
 
 export {
