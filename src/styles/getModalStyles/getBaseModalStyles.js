@@ -2,12 +2,12 @@ import CONST from '../../CONST';
 import variables from '../variables';
 import themeColors from '../themes/default';
 
-export default (type, windowDimensions, popoverAnchorPosition = {}, containerStyle = {}, extraModalStyles = {}) => {
+export default (type, windowDimensions, popoverAnchorPosition = {}, innerContainerStyle = {}, outerStyle = {}) => {
     const {isSmallScreenWidth, windowWidth} = windowDimensions;
 
     let modalStyle = {
         margin: 0,
-        ...extraModalStyles,
+        ...outerStyle,
     };
 
     let modalContainerStyle;
@@ -214,7 +214,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             animationOut = 'slideOutDown';
     }
 
-    modalContainerStyle = {...modalContainerStyle, ...containerStyle};
+    modalContainerStyle = {...modalContainerStyle, ...innerContainerStyle};
 
     return {
         modalStyle,

@@ -76,8 +76,8 @@ class BaseModal extends PureComponent {
                 isSmallScreenWidth: this.props.isSmallScreenWidth,
             },
             this.props.popoverAnchorPosition,
-            this.props.containerStyle,
-            this.props.extraModalStyles,
+            this.props.innerContainerStyle,
+            this.props.outerStyle,
         );
         return (
             <ReactNativeModal
