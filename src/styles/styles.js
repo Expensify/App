@@ -812,13 +812,19 @@ const styles = {
         textAlignVertical: 'center',
     },
 
-    textInputPrefix: {
+    textInputPrefixWrapper: {
         position: 'absolute',
         left: 0,
         top: 0,
-        height: '100%',
+        height: variables.inputHeight,
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
         paddingTop: 23,
         paddingBottom: 8,
+    },
+
+    textInputPrefix: {
         color: themeColors.text,
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
