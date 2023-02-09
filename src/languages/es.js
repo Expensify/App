@@ -147,8 +147,12 @@ export default {
         openLinkInBrowser: 'abrir este enlace en tu navegador',
     },
     magicCodeModal: {
-        title: 'Intentando autenticar\nsu navegador...',
-        description: 'Vuelve a la pestaña original para continuar con el inicio de sesión.\n\nSi se trata de un dispositivo distinto desde el que\nintentó iniciar sesión, vuelva a la página de inicio de sesión y utilice el\ncódigo mágico que aparece a continuación para continuar:',
+        succesfulSignInTitle: 'Abracadabra,\n¡ya has iniciado sesión!',
+        succesfulSignInDescription: 'Vuelve a la pestaña original para continuar.',
+        title: 'Aquí está su código mágico',
+        or: ', ¡o',
+        description: 'Introdúcelo para iniciar sesión,',
+        signInHere: 'simplemente inicia sesión aquí',
     },
     iOUConfirmationList: {
         whoPaid: '¿Quién pago?',

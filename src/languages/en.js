@@ -147,9 +147,12 @@ export default {
         openLinkInBrowser: 'open this link in your browser',
     },
     magicCodeModal: {
-        title: 'Here is the magic code',
+        succesfulSignInTitle: 'Abracadabra,\nyou are signed in!',
+        succesfulSignInDescription: 'Head back to your original tab to continue.',
+        title: 'Here is your magic code',
         description: 'Enter it to sign in',
-        signInHere: 'or just sign in here',
+        or: ', or',
+        signInHere: 'just sign in here',
     },
     iOUConfirmationList: {
         whoPaid: 'Who paid?',

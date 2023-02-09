@@ -13,11 +13,8 @@ import TextLink from './TextLink';
 
 const propTypes = {
 
-    /** Title to display. */
-    title: PropTypes.string.isRequired,
-
-    /** Description to display. */
-    description: PropTypes.string.isRequired,
+    /** Whether the user has been signed in with the link. */
+    isSuccessfullySignedIn: PropTypes.bool,
 
     /** Code to display. */
     code: PropTypes.string.isRequired,
@@ -32,12 +29,15 @@ const propTypes = {
 };
 
 const defaultProps = {
+    isSuccessfullySignedIn: false,
     shouldShowSignInHere: false,
     onSignInHereClick: () => {},
 };
 
 class MagicCodeModal extends PureComponent {
     render() {
+        const titleKey = this.props.isSuccessfullySignedIn ? 'magicCodeModal.succesfulSignInTitle' : 'magicCodeModal.title';
+        const descriptionKey = this.props.isSuccessfullySignedIn ? 'magicCodeModal.succesfulSignInDescription' : 'magicCodeModal.description';
         return (
             <View style={styles.deeplinkWrapperContainer}>
                 <View style={styles.deeplinkWrapperMessage}>
@@ -49,28 +49,31 @@ class MagicCodeModal extends PureComponent {
                         />
                     </View>
                     <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
-                        {this.props.title}
+                        {this.props.translate(titleKey)}
                     </Text>
                     <View style={[styles.mt2, styles.mb2]}>
                         <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
-                            {this.props.description}
+                            {this.props.translate(descriptionKey)}
                             {this.props.shouldShowSignInHere
                                 && (
                                     <>
+                                        {this.props.translate('magicCodeModal.or')}
                                         {' '}
                                         <TextLink onPress={this.props.onSignInHereClick}>
                                             {this.props.translate('magicCodeModal.signInHere')}
                                         </TextLink>
                                     </>
                                 )}
-                            .
+                            {this.props.shouldShowSignInHere ? '!' : '.'}
                         </Text>
                     </View>
-                    <View style={styles.mt6}>
-                        <Text style={styles.magicCodeDigits}>
-                            {this.props.code}
-                        </Text>
-                    </View>
+                    {!this.props.isSuccessfullySignedIn && (
+                        <View style={styles.mt6}>
+                            <Text style={styles.magicCodeDigits}>
+                                {this.props.code}
+                            </Text>
+                        </View>
+                    )}
                 </View>
                 <View style={styles.deeplinkWrapperFooter}>
                     <Icon
