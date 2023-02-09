@@ -2888,25 +2888,35 @@ const styles = {
     // },
 
     footerContainer: {
-        backgroundColor: themeColors.ivory,
+        backgroundColor: themeColors.midtone,
         fontSize: variables.fontSizeNormal,
+        display: 'flex',
+        padding: '64px 32px 0',
     },
 
     footerColumns: {
         display: 'flex',
+        margin: '0 0 20px',
+        padding: 0,
     },
 
     footerColumn: {
         marginBottom: 40,
+        padding: 15,
+        margin: '0, 0, 8px',
     },
 
     footerTitle: {
         fontSize: variables.fontSizeLarge,
-        color: themeColors.heroCard,
+        color: themeColors.success,
+        marginBottom: 16,
+        marginTop: 0,
     },
 
     footerRow: {
-
+        padding: '4px 0',
+        marginBottom: 10,
+        color: themeColors.textLight,
     },
 
 };

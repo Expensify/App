@@ -130,12 +130,12 @@ const columns = [
 ];
 
 const Footer = props => (
-    <View style={styles.footerContainer}>
-        <View style={[styles.footerColumns, props.isSmallScreenWidth ? styles.flexColumn : styles.flexRow]}>
+    <View style={[props.isSmallScreenWidth ? [styles.footerContainer, styles.flexRow] : [styles.footerContainer, styles.flexColumn]]}>
+        <View style={[styles.flex1, styles.footerColumns, props.isSmallScreenWidth ? styles.flexColumn : styles.flexRow]}>
             { /** Columns * */ }
             {_.map(columns, (column, i) => (
-                <View key={column.translationPath + i} style={styles.footerColumn}>
-                    <Text style={styles.footerTitle}>
+                <View key={column.translationPath + i} style={[styles.footerColumn, {marginRight: 20}]}>
+                    <Text style={[styles.textHeadline, {color: 'green'}, styles.footerTitle]}>
                         {props.translate(column.translationPath)}
                         {i}
                     </Text>
@@ -143,7 +143,7 @@ const Footer = props => (
                         { /** Rows * */ }
                         {_.map(column.rows, (row, j) => (
                             <TextLink
-                                style={[styles.ml1]}
+                                style={[styles.footerRow]}
                                 href={row.link}
                                 key={row.translationPath + j}
                             >
@@ -155,7 +155,7 @@ const Footer = props => (
             ))}
         </View>
         { /** Expensify Wordmark * */ }
-        <View style={props.isSmallScreenWidth ? {} : []}>
+        <View style={props.isSmallScreenWidth ? [] : []}>
             {!props.isSmallScreenWidth ? (
                 <Expensicons.ExpensifyFooterLogo height={100} width={500} />
             )
