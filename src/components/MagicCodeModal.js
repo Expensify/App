@@ -38,14 +38,15 @@ class MagicCodeModal extends PureComponent {
     render() {
         const titleKey = this.props.isSuccessfullySignedIn ? 'magicCodeModal.succesfulSignInTitle' : 'magicCodeModal.title';
         const descriptionKey = this.props.isSuccessfullySignedIn ? 'magicCodeModal.succesfulSignInDescription' : 'magicCodeModal.description';
+        const illustration = this.props.isSuccessfullySignedIn ? Illustrations.Abracadabra : Illustrations.MagicCode;
         return (
             <View style={styles.deeplinkWrapperContainer}>
                 <View style={styles.deeplinkWrapperMessage}>
                     <View style={styles.mb2}>
                         <Icon
                             width={variables.modalTopIconWidth}
-                            height={variables.modalTopIconHeight}
-                            src={Illustrations.MagicCodeYellow}
+                            height={this.props.isSuccessfullySignedIn ? variables.modalTopBigIconHeight : variables.modalTopIconHeight}
+                            src={illustration}
                         />
                     </View>
                     <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>

@@ -94,6 +94,7 @@ export default {
     chatInputSpacing: 52, // 40 + avatarChatSpacing
     modalTopIconWidth: 200,
     modalTopIconHeight: 164,
+    modalTopBigIconHeight: 244,
     modalWordmarkWidth: 154,
     modalWordmarkHeight: 34,
 };
