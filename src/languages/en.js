@@ -543,6 +543,7 @@ export default {
         },
     },
     termsOfUse: {
+        phrase0: '© 2023 Expensify',
         phrase1: 'By logging in, you agree to the',
         phrase2: 'terms of service',
         phrase3: 'and',

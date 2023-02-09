@@ -8,6 +8,7 @@ import TextLink from '../../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
+import TermsAndLicenses from '../TermsAndLicenses';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -130,43 +131,48 @@ const columns = [
 ];
 
 const Footer = props => (
-    <View style={[props.isSmallScreenWidth ? [styles.footerContainer, styles.flexRow] : [styles.footerContainer, styles.flexColumn]]}>
-        <View style={[styles.flex1, styles.footerColumns, props.isSmallScreenWidth ? styles.flexColumn : styles.flexRow]}>
-            { /** Columns * */ }
-            {_.map(columns, (column, i) => (
-                <View key={column.translationPath + i} style={[styles.footerColumn, {marginRight: 20}]}>
-                    <Text style={[styles.textHeadline, {color: 'green'}, styles.footerTitle]}>
-                        {props.translate(column.translationPath)}
-                        {i}
-                    </Text>
-                    <View style={[styles.footerRow]}>
-                        { /** Rows * */ }
-                        {_.map(column.rows, (row, j) => (
-                            <TextLink
-                                style={[styles.footerRow]}
-                                href={row.link}
-                                key={row.translationPath + j}
-                            >
-                                {props.translate(row.translationPath)}
-                            </TextLink>
-                        ))}
+    <View style={{flex: 1}}>
+        <View style={[props.isSmallScreenWidth ? [styles.footerContainer, styles.flexRow] : [styles.footerContainer, styles.flexColumn]]}>
+            <View style={[styles.flex1, styles.footerColumns, props.isSmallScreenWidth ? styles.flexColumn : styles.flexRow]}>
+                { /** Columns * */ }
+                {_.map(columns, (column, i) => (
+                    <View key={column.translationPath + i} style={[styles.footerColumn, {marginRight: 20}]}>
+                        <Text style={[styles.textHeadline, {color: 'green'}, styles.footerTitle]}>
+                            {props.translate(column.translationPath)}
+                            {i}
+                        </Text>
+                        <View style={[styles.footerRow]}>
+                            { /** Rows * */ }
+                            {_.map(column.rows, (row, j) => (
+                                <TextLink
+                                    style={[styles.footerRow]}
+                                    href={row.link}
+                                    key={row.translationPath + j}
+                                >
+                                    {props.translate(row.translationPath)}
+                                </TextLink>
+                            ))}
+                        </View>
                     </View>
+                ))}
+                <View style={[styles.footerColumn, {marginRight: 20}, styles.mv5, {maxWidth: 200}]}>
+                    <TermsAndLicenses />
                 </View>
-            ))}
-        </View>
-        { /** Expensify Wordmark * */ }
-        <View style={props.isSmallScreenWidth ? [] : []}>
-            {!props.isSmallScreenWidth ? (
-                <Expensicons.ExpensifyFooterLogo height={100} width={500} />
-            )
-                : (
-                    <Expensicons.ExpensifyFooterLogoVertical height={500} width={100} />
-                )}
-            {/* <Icon
-                width={props.isSmallScreenWidth ? 100 : 500}
-                height={props.isSmallScreenWidth ? 500 : 100}
-                src={props.isSmallScreenWidth ? Expensicons.ExpensifyFooterLogoVertical : Expensicons.ExpensifyFooterLogo}
-            /> */}
+            </View>
+            { /** Expensify Wordmark * */ }
+            <View style={props.isSmallScreenWidth ? [] : []}>
+                {!props.isSmallScreenWidth ? (
+                    <Expensicons.ExpensifyFooterLogo height={100} width={500} />
+                )
+                    : (
+                        <Expensicons.ExpensifyFooterLogoVertical height={500} width={100} />
+                    )}
+                {/* <Icon
+                    width={props.isSmallScreenWidth ? 100 : 500}
+                    height={props.isSmallScreenWidth ? 500 : 100}
+                    src={props.isSmallScreenWidth ? Expensicons.ExpensifyFooterLogoVertical : Expensicons.ExpensifyFooterLogo}
+                /> */}
+            </View>
         </View>
     </View>
 );
