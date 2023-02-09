@@ -2,7 +2,7 @@
 
 buildscript {
     ext {
-        minSdkVersion = 21
+        minSdkVersion = 30
         compileSdkVersion = 32
         targetSdkVersion = 32
 
@@ -24,7 +24,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:7.2.1")
+        classpath("com.android.tools.build:gradle:7.2.2")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("de.undercouch:gradle-download-task:5.0.1")
         classpath("com.google.gms:google-services:4.3.4")
