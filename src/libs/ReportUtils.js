@@ -1470,7 +1470,10 @@ function getReportIDFromDeepLink(url) {
             route = route.replace('/', '');
         }
     });
-    const {reportID} = ROUTES.parseReportRouteParams(route);
+    const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
+    if (isParticipantsRoute) {
+        return '';
+    }
     return reportID;
 }
 
