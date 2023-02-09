@@ -30,16 +30,17 @@ function getDocumentedShortcuts() {
  */
 function getDisplayName(key, modifiers) {
     let displayName = (() => {
-        if (key === KeyCommand.constants.keyInputEnter) {
+        // typeof key -> string, typeof KeyCommand.constants.* -> number | string
+        if (_.isEqual(key, KeyCommand.constants.keyInputEnter.toString())) {
             return ['ENTER'];
         }
-        if (key === KeyCommand.constants.keyInputEscape) {
+        if (_.isEqual(key, KeyCommand.constants.keyInputEscape.toString())) {
             return ['ESCAPE'];
         }
-        if (key === KeyCommand.constants.keyInputUpArrow) {
+        if (_.isEqual(key, KeyCommand.constants.keyInputUpArrow.toString())) {
             return ['ARROWUP'];
         }
-        if (key === KeyCommand.constants.keyInputDownArrow) {
+        if (_.isEqual(key, KeyCommand.constants.keyInputDownArrow.toString())) {
             return ['ARROWDOWN'];
         }
         return [key.toUpperCase()];
