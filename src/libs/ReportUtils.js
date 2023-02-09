@@ -1458,6 +1458,7 @@ function getReportIDFromDeepLink(url) {
     });
     const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(route);
     if (isSubReportPageRoute) {
+        // We allow the Sub-Report deep link routes (settings, details, etc.) to be handled by their respective component pages
         return '';
     }
     return reportID;
