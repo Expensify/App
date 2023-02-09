@@ -273,13 +273,11 @@ class ReimbursementAccountPage extends React.Component {
                 || achData.state === BankAccount.STATE.PENDING
             )) {
             return (
-                <View>
-                    <ContinueBankAccountSetup
-                        reimbursementAccount={this.props.reimbursementAccount}
-                        continue={this.continue}
-                        startOver={() => this.setState({shouldHideContinueSetupButton: true})}
-                    />
-                </View>
+                <ContinueBankAccountSetup
+                    reimbursementAccount={this.props.reimbursementAccount}
+                    continue={this.continue}
+                    startOver={() => this.setState({ shouldHideContinueSetupButton: true })}
+                />
             );
         }
 
