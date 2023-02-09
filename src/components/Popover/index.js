@@ -23,19 +23,15 @@ const defaultProps = {
  * This is a convenience wrapper around the Modal component for a responsive Popover.
  * On small screen widths, it uses BottomDocked modal type, and a Popover type on wide screen widths.
  */
-
-class Popover extends React.Component {
-    componentDidUpdate() {
-        if (!this.props.isShortcutsModalOpen || !this.props.isVisible) {
-            return;
+const Popover = (props) => {
+    render() {
+        if (this.props.isShortcutsModalOpen && this.props.isVisiblee) {
+            // There are modals that can show up on top of these pop-overs, for example, the keyboard shortcut menu,
+            // if that happens, close the pop-over as if we were clicking outside.
+            this.props.onClose();
+            return null;
         }
 
-        // There are modals that can show up on top of these pop-overs, for example, the keyboard shortcut menu,
-        // if that happens, close the pop-over as if we were clicking outside.
-        this.props.onClose();
-    }
-
-    render() {
         if (!this.props.fullscreen && !this.props.isSmallScreenWidth) {
             return createPortal(
                 <Modal
@@ -64,7 +60,7 @@ class Popover extends React.Component {
             />
         );
     }
-}
+};
 
 Popover.propTypes = propTypes;
 Popover.defaultProps = defaultProps;
