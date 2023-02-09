@@ -21,6 +21,9 @@ const propTypes = {
     /** URL to full-sized image */
     url: PropTypes.string.isRequired,
 
+    /** Function for handle on press */
+    onPress: PropTypes.func,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -146,6 +149,7 @@ class ImageView extends PureComponent {
             >
                 <ImageZoom
                     ref={el => this.zoom = el}
+                    onClick={() => this.props.onPress()}
                     cropWidth={this.props.windowWidth}
                     cropHeight={windowHeight}
                     imageWidth={this.state.imageWidth}

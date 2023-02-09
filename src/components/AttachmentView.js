@@ -83,7 +83,7 @@ const AttachmentView = (props) => {
     // both PDFs and images will appear as images when pasted into the the text field
     if (Str.isImage(props.source) || (props.file && Str.isImage(props.file.name))) {
         return (
-            <ImageView url={props.source} isAuthTokenRequired={props.isAuthTokenRequired} />
+            <ImageView onPress={props.onPress} url={props.source} isAuthTokenRequired={props.isAuthTokenRequired} />
         );
     }
 
