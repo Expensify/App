@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import moment from 'moment';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
@@ -93,7 +92,7 @@ class RequestorStep extends React.Component {
         const payload = {
             bankAccountID: lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0,
             ...values,
-            dob: moment(values.dob).format(CONST.DATE.MOMENT_FORMAT_STRING),
+            dob: values.dob,
         };
 
         BankAccounts.updatePersonalInformationForBankAccount(payload);
