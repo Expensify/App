@@ -52,6 +52,12 @@ Onyx.connect({
     callback: policies => allPolicies = policies,
 });
 
+let preferredLocale;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: val => preferredLocale = val,
+});
+
 /**
  * @param {Array} policies
  * @return {Array<String>} array of policy ids
@@ -68,6 +74,10 @@ function getNonOptimisticPolicyIDs(policies) {
 * @param {String} locale
 */
 function setLocale(locale) {
+    if (locale === preferredLocale) {
+        return;
+    }
+
     // If user is not signed in, change just locally.
     if (!currentUserAccountID) {
         Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
@@ -86,6 +96,14 @@ function setLocale(locale) {
     API.write('UpdatePreferredLocale', {
         value: locale,
     }, {optimisticData});
+}
+
+/**
+* @param {String} locale
+*/
+function setLocaleAndNavigate(locale) {
+    setLocale(locale);
+    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
 }
 
 function setSidebarLoaded() {
@@ -270,6 +288,7 @@ function openProfile() {
 
 export {
     setLocale,
+    setLocaleAndNavigate,
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
     openProfile,
