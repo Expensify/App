@@ -6,7 +6,6 @@ import Footer from './Footer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import styles from '../../../styles/styles';
 import SignInPageGraphics from './SignInPageGraphics';
-import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -31,6 +30,9 @@ const SignInPageLayout = (props) => {
         contentContainerStyles = [styles.flex1, styles.flexColumn];
     }
 
+    // eslint-disable-next-line no-console
+    console.log(props);
+
     return (
         <View style={containerStyles}>
             {!props.isSmallScreenWidth ? (
@@ -42,7 +44,7 @@ const SignInPageLayout = (props) => {
                         {props.children}
                     </SignInPageContent>
                     <ScrollView
-                        contentContainerStyle={containerStyles}
+                        contentContainerStyle={[{flex: 1}]}
                     >
                         <SignInPageGraphics />
                         <Footer />
@@ -51,7 +53,8 @@ const SignInPageLayout = (props) => {
             )
                 : (
                     <ScrollView
-                        contentContainerStyle={[StyleUtils.getHeight(props.windowHeight)]}
+                        style={{maxHeight: 900}}
+                        contentContainerStyle={[]}
                     >
                         <SignInPageContent
                             welcomeText={props.welcomeText}

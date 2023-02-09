@@ -2891,19 +2891,25 @@ const styles = {
         backgroundColor: themeColors.midtone,
         fontSize: variables.fontSizeNormal,
         display: 'flex',
-        padding: '64px 32px 0',
+        paddingTop: 64,
+        paddingHorizontal: 32,
+        paddingBottom: 0,
+        minHeight: 400,
     },
 
     footerColumns: {
         display: 'flex',
-        margin: '0 0 20px',
+        marginTop: 0,
+        marginHorizontal: 0,
+        marginBottom: 20,
         padding: 0,
     },
 
     footerColumn: {
         marginBottom: 40,
         padding: 15,
-        margin: '0, 0, 8px',
+        marginTop: 0,
+        marginHorizontal: 0,
     },
 
     footerTitle: {
@@ -2914,7 +2920,8 @@ const styles = {
     },
 
     footerRow: {
-        padding: '4px 0',
+        paddingVertical: 4,
+        paddingHorizontal: 0,
         marginBottom: 10,
         color: themeColors.textLight,
     },
