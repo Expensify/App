@@ -390,6 +390,7 @@ const CONST = {
     },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
+        THROTTLED: 'throttled',
         UNKNOWN_ERROR: 'Unknown error',
         REQUEST_CANCELLED: 'AbortError',
         FAILED_TO_FETCH: 'Failed to fetch',

@@ -65,6 +65,12 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
                         status: response.status,
                         title: 'Issue connecting to Expensify site',
                     });
+                } else if (response.status === 429) {
+                    throw new HttpsError({
+                        message: CONST.ERROR.THROTTLED,
+                        status: response.status,
+                        title: 'API request throttled',
+                    });
                 }
 
                 throw new HttpsError({
