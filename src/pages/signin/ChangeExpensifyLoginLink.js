@@ -30,14 +30,16 @@ const defaultProps = {
 
 const ChangeExpensifyLoginLink = props => (
     <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
-        <Text>
-            {props.translate('common.not')}
-            &nbsp;
-            {Str.isSMSLogin(props.credentials.login || '')
-                ? props.toLocalPhone(Str.removeSMSDomain(props.credentials.login || ''))
-                : Str.removeSMSDomain(props.credentials.login || '')}
-            {'? '}
-        </Text>
+        {props.credentials.login && (
+            <Text>
+                {props.translate('common.not')}
+                &nbsp;
+                {Str.isSMSLogin(props.credentials.login || '')
+                    ? props.toLocalPhone(Str.removeSMSDomain(props.credentials.login || ''))
+                    : Str.removeSMSDomain(props.credentials.login || '')}
+                {'? '}
+            </Text>
+        )}
         <TouchableOpacity
             style={[styles.link]}
             onPress={props.onPress}
