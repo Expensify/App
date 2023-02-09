@@ -24,42 +24,40 @@ const defaultProps = {
  * On small screen widths, it uses BottomDocked modal type, and a Popover type on wide screen widths.
  */
 const Popover = (props) => {
-    render() {
-        if (this.props.isShortcutsModalOpen && this.props.isVisiblee) {
-            // There are modals that can show up on top of these pop-overs, for example, the keyboard shortcut menu,
-            // if that happens, close the pop-over as if we were clicking outside.
-            this.props.onClose();
-            return null;
-        }
+    if (props.isShortcutsModalOpen && props.isVisible) {
+        // There are modals that can show up on top of these pop-overs, for example, the keyboard shortcut menu,
+        // if that happens, close the pop-over as if we were clicking outside.
+        props.onClose();
+        return null;
+    }
 
-        if (!this.props.fullscreen && !this.props.isSmallScreenWidth) {
-            return createPortal(
-                <Modal
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...this.props}
-                    isVisible={this.props.isVisible && !this.props.isShortcutsModalOpen}
-                    type={CONST.MODAL.MODAL_TYPE.POPOVER}
-                    popoverAnchorPosition={this.props.anchorPosition}
-                    animationInTiming={this.props.disableAnimation ? 1 : this.props.animationInTiming}
-                    animationOutTiming={this.props.disableAnimation ? 1 : this.props.animationOutTiming}
-                    shouldCloseOnOutsideClick
-                />,
-                document.body,
-            );
-        }
-        return (
+    if (!props.fullscreen && !props.isSmallScreenWidth) {
+        return createPortal(
             <Modal
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...this.props}
-                isVisible={this.props.isVisible && !this.props.isShortcutsModalOpen}
-                type={this.props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
-                popoverAnchorPosition={this.props.isSmallScreenWidth ? undefined : this.props.anchorPosition}
-                fullscreen={this.props.isSmallScreenWidth ? true : this.props.fullscreen}
-                animationInTiming={this.props.disableAnimation && !this.props.isSmallScreenWidth ? 1 : this.props.animationInTiming}
-                animationOutTiming={this.props.disableAnimation && !this.props.isSmallScreenWidth ? 1 : this.props.animationOutTiming}
-            />
+                {...props}
+                isVisible={props.isVisible && !props.isShortcutsModalOpen}
+                type={CONST.MODAL.MODAL_TYPE.POPOVER}
+                popoverAnchorPosition={props.anchorPosition}
+                animationInTiming={props.disableAnimation ? 1 : props.animationInTiming}
+                animationOutTiming={props.disableAnimation ? 1 : props.animationOutTiming}
+                shouldCloseOnOutsideClick
+            />,
+            document.body,
         );
     }
+    return (
+        <Modal
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            isVisible={props.isVisible && !props.isShortcutsModalOpen}
+            type={props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
+            popoverAnchorPosition={props.isSmallScreenWidth ? undefined : props.anchorPosition}
+            fullscreen={props.isSmallScreenWidth ? true : props.fullscreen}
+            animationInTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationInTiming}
+            animationOutTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationOutTiming}
+        />
+    );
 };
 
 Popover.propTypes = propTypes;
