@@ -12,16 +12,12 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import Growl from '../../libs/Growl';
 import OnfidoPrivacy from './OnfidoPrivacy';
-import walletAdditionalDetailsDraftPropTypes from './walletAdditionalDetailsDraftPropTypes';
 import walletOnfidoDataPropTypes from './walletOnfidoDataPropTypes';
 import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
 
 const propTypes = {
     /** Stores various information used to build the UI and call any APIs */
     walletOnfidoData: walletOnfidoDataPropTypes,
-
-    /** Stores the personal details typed by the user */
-    walletAdditionalDetailsDraft: walletAdditionalDetailsDraftPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -34,16 +30,6 @@ const defaultProps = {
 };
 
 class OnfidoStep extends React.Component {
-    componentDidMount() {
-        // Once in Onfido step, if we somehow don't have the personal info, go back to previous step, as we need them for Onfido{
-        const firstName = lodashGet(this.props, 'walletAdditionalDetailsDraft.legalFirstName');
-        const lastName = lodashGet(this.props, 'walletAdditionalDetailsDraft.legalLastName');
-        const dob = lodashGet(this.props, 'walletAdditionalDetailsDraft.dob');
-
-        if (!firstName || !lastName || !dob) {
-            Wallet.updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS);
-        }
-    }
 
     /**
      * @returns {boolean|*}
@@ -85,7 +71,7 @@ class OnfidoStep extends React.Component {
                                 }}
                             />
                         ) : (
-                            <OnfidoPrivacy walletOnfidoData={this.props.walletOnfidoData} walletAdditionalDetailsDraft={this.props.walletAdditionalDetailsDraft} />
+                            <OnfidoPrivacy walletOnfidoData={this.props.walletOnfidoData} />
                         )
                     }
                 </FullPageOfflineBlockingView>
