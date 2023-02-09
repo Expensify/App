@@ -13,16 +13,12 @@ import compose from '../../libs/compose';
 import Text from '../../components/Text';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import FormScrollView from '../../components/FormScrollView';
-import walletAdditionalDetailsDraftPropTypes from './walletAdditionalDetailsDraftPropTypes';
 import walletOnfidoDataPropTypes from './walletOnfidoDataPropTypes';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /** Stores various information used to build the UI and call any APIs */
     walletOnfidoData: walletOnfidoDataPropTypes,
-
-    /** Stores the personal details typed by the user */
-    walletAdditionalDetailsDraft: walletAdditionalDetailsDraftPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -46,11 +42,7 @@ class OnfidoPrivacy extends React.Component {
     }
 
     openOnfidoFlow() {
-        BankAccounts.openOnfidoFlow(
-            this.props.walletAdditionalDetailsDraft.legalFirstName,
-            this.props.walletAdditionalDetailsDraft.legalLastName,
-            this.props.walletAdditionalDetailsDraft.dob,
-        );
+        BankAccounts.openOnfidoFlow();
     }
 
     render() {
