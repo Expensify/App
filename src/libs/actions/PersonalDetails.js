@@ -174,6 +174,74 @@ function updateDisplayName(firstName, lastName) {
 }
 
 /**
+ * @param {String} legalFirstName
+ * @param {String} legalLastName
+ */
+function updateLegalName(legalFirstName, legalLastName) {
+    API.write('UpdateLegalName', {legalFirstName, legalLastName}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            value: {
+                legalFirstName,
+                legalLastName,
+            },
+        }],
+    });
+    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+}
+
+/**
+ * @param {String} dob - date of birth
+ */
+function updateDateOfBirth(dob) {
+    API.write('UpdateDateOfBirth', {dob}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            value: {
+                dob,
+            },
+        }],
+    });
+    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+}
+
+/**
+ * @param {String} street
+ * @param {String} street2
+ * @param {String} city
+ * @param {String} state
+ * @param {String} zip
+ * @param {String} country
+ */
+function updateAddress(street, street2, city, state, zip, country) {
+    API.write('UpdateHomeAddress', {
+        addressStreet: street,
+        addressStreet2: street2,
+        addressCity: city,
+        addressState: state,
+        addressZipCode: zip,
+        addressCountry: country,
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            value: {
+                address: {
+                    street: `${street}\n${street2}`,
+                    city,
+                    state,
+                    zip,
+                    country,
+                },
+            },
+        }],
+    });
+    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+}
+
+/**
  * Updates timezone's 'automatic' setting, and updates
  * selected timezone if set to automatically update.
  *
@@ -228,6 +296,13 @@ function updateSelectedTimezone(selectedTimezone) {
  */
 function openIOUModalPage() {
     API.read('OpenIOUModalPage');
+}
+
+/**
+ * Fetches additional personal data like legal name, date of birth, address
+ */
+function openPersonalDetailsPage() {
+    API.read('OpenPersonalDetailsPage');
 }
 
 /**
@@ -331,8 +406,12 @@ export {
     updateAvatar,
     deleteAvatar,
     openIOUModalPage,
+    openPersonalDetailsPage,
     extractFirstAndLastNameFromAvailableDetails,
     updateDisplayName,
+    updateLegalName,
+    updateDateOfBirth,
+    updateAddress,
     updatePronouns,
     clearAvatarErrors,
     updateAutomaticTimezone,
