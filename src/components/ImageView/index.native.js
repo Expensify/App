@@ -29,6 +29,7 @@ const propTypes = {
 
 const defaultProps = {
     isAuthTokenRequired: false,
+    onPress: () => {},
 };
 
 class ImageView extends PureComponent {
