@@ -36,7 +36,7 @@ const defaultProps = {
 
 class MagicCodeModal extends PureComponent {
     render() {
-        const titleKey = this.props.isSuccessfullySignedIn ? 'magicCodeModal.succesfulSignInTitle' : 'magicCodeModal.title';
+        const titleKey = this.props.isSuccessfullySignedIn ? 'magicCodeModal.successfulSignInTitle' : 'magicCodeModal.title';
         const descriptionKey = this.props.isSuccessfullySignedIn ? 'magicCodeModal.succesfulSignInDescription' : 'magicCodeModal.description';
         const illustration = this.props.isSuccessfullySignedIn ? Illustrations.Abracadabra : Illustrations.MagicCode;
         return (
