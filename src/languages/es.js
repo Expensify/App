@@ -147,8 +147,8 @@ export default {
         openLinkInBrowser: 'abrir este enlace en tu navegador',
     },
     magicCodeModal: {
-        succesfulSignInTitle: 'Abracadabra,\n¡ya has iniciado sesión!',
-        succesfulSignInDescription: 'Vuelve a la pestaña original para continuar.',
+        successfulSignInTitle: 'Abracadabra,\n¡ya has iniciado sesión!',
+        successfulSignInDescription: 'Vuelve a la pestaña original para continuar.',
         title: 'Aquí está su código mágico',
         or: ', ¡o',
         description: 'Introdúcelo para iniciar sesión,',
