@@ -1,8 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
 import {View, ScrollView} from 'react-native';
-import Lottie from 'lottie-react-native';
-import LoadingAnimation from '../../../../assets/lottie/Loading.json';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -80,13 +78,7 @@ const AboutPage = (props) => {
                 <View style={[styles.flex1]}>
                     <View style={styles.pageWrapper}>
                         <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter]}>
-                            <Lottie
-                                source={LoadingAnimation}
-                                autoPlay
-                                loop
-                                style={{width: 80, height: 80}}
-                            />
-                            {/*<Logo height={80} width={80} />*/}
+                            <Logo height={80} width={80} />
                             <Text
                                 selectable
                                 style={[
