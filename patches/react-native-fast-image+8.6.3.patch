@@ -34,7 +34,7 @@ index 0000000..6ea9042
 +        bitmapOptions.inJustDecodeBounds = true;
 +        BitmapFactory.decodeStream(source, null, bitmapOptions);
 +        source.reset();
-+        int orientation = Integer.parseInt(new ExifInterface(source).getAttribute(ExifInterface.TAG_ORIENTATION));
++        int orientation = new ExifInterface(source).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
 +        if (orientation == ExifInterface.ORIENTATION_ROTATE_90 || orientation == ExifInterface.ORIENTATION_ROTATE_270 ) {
 +            int tmpHeight = bitmapOptions.outHeight;
 +            int tmpWidth = bitmapOptions.outWidth;
