@@ -34,11 +34,8 @@ const defaultProps = {
     onSignInHereClick: () => {},
 };
 
-class MagicCodeModal extends PureComponent {
+class ValidateCodeModal extends PureComponent {
     render() {
-        const titleKey = this.props.isSuccessfullySignedIn ? 'magicCodeModal.successfulSignInTitle' : 'magicCodeModal.title';
-        const descriptionKey = this.props.isSuccessfullySignedIn ? 'magicCodeModal.successfulSignInDescription' : 'magicCodeModal.description';
-        const illustration = this.props.isSuccessfullySignedIn ? Illustrations.Abracadabra : Illustrations.MagicCode;
         return (
             <View style={styles.deeplinkWrapperContainer}>
                 <View style={styles.deeplinkWrapperMessage}>
@@ -46,15 +43,15 @@ class MagicCodeModal extends PureComponent {
                         <Icon
                             width={variables.modalTopIconWidth}
                             height={this.props.isSuccessfullySignedIn ? variables.modalTopBigIconHeight : variables.modalTopIconHeight}
-                            src={illustration}
+                            src={this.props.isSuccessfullySignedIn ? Illustrations.Abracadabra : Illustrations.MagicCode}
                         />
                     </View>
                     <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
-                        {this.props.translate(titleKey)}
+                        {this.props.translate(this.props.isSuccessfullySignedIn ? 'magicCodeModal.successfulSignInTitle' : 'magicCodeModal.title')}
                     </Text>
                     <View style={[styles.mt2, styles.mb2]}>
                         <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
-                            {this.props.translate(descriptionKey)}
+                            {this.props.translate(this.props.isSuccessfullySignedIn ? 'magicCodeModal.successfulSignInDescription' : 'magicCodeModal.description')}
                             {this.props.shouldShowSignInHere
                                 && (
                                     <>
@@ -89,6 +86,6 @@ class MagicCodeModal extends PureComponent {
     }
 }
 
-MagicCodeModal.propTypes = propTypes;
-MagicCodeModal.defaultProps = defaultProps;
-export default withLocalize(MagicCodeModal);
+ValidateCodeModal.propTypes = propTypes;
+ValidateCodeModal.defaultProps = defaultProps;
+export default withLocalize(ValidateCodeModal);

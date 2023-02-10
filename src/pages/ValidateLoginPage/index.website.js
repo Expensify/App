@@ -9,7 +9,7 @@ import {
 } from './validateLinkPropTypes';
 import * as User from '../../libs/actions/User';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import MagicCodeModal from '../../components/MagicCodeModal';
+import ValidateCodeModal from '../../components/ValidateCodeModal';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
 import Permissions from '../../libs/Permissions';
@@ -91,7 +91,7 @@ class ValidateLoginPage extends Component {
         return (
             this.isOnPasswordlessBeta()
                 ? (
-                    <MagicCodeModal
+                    <ValidateCodeModal
                         isSuccessfullySignedIn={this.state.justSignedIn}
                         code={this.validateCode()}
                         shouldShowSignInHere={!this.isAuthenticated() && !this.isSignInInitiated()}
