@@ -278,7 +278,7 @@ class BaseOptionsSelector extends Component {
                 isDisabled={this.props.isDisabled}
                 shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
                 onLayout={this.props.onLayout}
-                contentContainerStyles={shouldShowFooter ? [] : [this.props.safeAreaPaddingBottomStyle]}
+                contentContainerStyles={shouldShowFooter ? undefined : [this.props.safeAreaPaddingBottomStyle]}
             />
         ) : <FullScreenLoadingIndicator />;
         return (
