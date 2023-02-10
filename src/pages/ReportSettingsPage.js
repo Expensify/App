@@ -55,7 +55,6 @@ class ReportSettingsPage extends Component {
         super(props);
 
         this.validate = this.validate.bind(this);
-        this.updatePolicyRoomName = this.updatePolicyRoomName.bind(this);
     }
 
     getNotificationPreferenceOptions() {
