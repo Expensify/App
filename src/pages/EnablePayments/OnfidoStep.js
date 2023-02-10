@@ -1,6 +1,5 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import Onfido from '../../components/Onfido';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
@@ -30,7 +29,6 @@ const defaultProps = {
 };
 
 class OnfidoStep extends React.Component {
-
     /**
      * @returns {boolean|*}
      */
