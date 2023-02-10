@@ -268,7 +268,7 @@ class Composer extends React.Component {
             return;
         }
 
-        const plainText = event.clipboardData.getData('text/plain').replace(/\n\n/g, '\n');
+        const plainText = event.clipboardData.getData('text/plain');
 
         this.paste(Str.htmlDecode(plainText));
     }
@@ -297,9 +297,7 @@ class Composer extends React.Component {
         // the only stuff put into the clipboard is what the user selected.
         const selectedText = event.target.value.substring(this.state.selection.start, this.state.selection.end);
 
-        // The plaintext portion that is put into the clipboard needs to have the newlines duplicated. This is because
-        // the paste functionality is stripping all duplicate newlines to try and provide consistent behavior.
-        Clipboard.setHtml(selectedText, selectedText.replace(/\n/g, '\n\n'));
+        Clipboard.setHtml(selectedText, selectedText);
     }
 
     /**
