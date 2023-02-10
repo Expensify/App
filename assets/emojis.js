@@ -1,5 +1,3 @@
-import CONST from '../src/CONST';
-
 /*
  * This list is generated from the code here https://github.com/github/gemoji/blob/master/db/emoji.json
  * Each code is then converted to hex by replacing the "U+" with "0x"
@@ -48,7 +46,7 @@ import CONST from '../src/CONST';
 // BEFORE YOU EDIT THIS, PLEASE SEE WARNINGS IN EmojiPickerMenu.js
 const skinTones = [{
     code: '🖐',
-    skinTone: 5,
+    skinTone: -1,
 }, {
     code: '🖐🏻',
     skinTone: 4,

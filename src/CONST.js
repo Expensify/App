@@ -718,7 +718,6 @@ const CONST = {
     },
 
     DEFAULT_LOCALE: 'en',
-    DEFAULT_SKIN_TONE: 'default',
 
     POLICY: {
         TYPE: {
