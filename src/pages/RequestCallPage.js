@@ -103,6 +103,7 @@ class RequestCallPage extends Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.getPhoneNumber = this.getPhoneNumber.bind(this);
         this.validate = this.validate.bind(this);
+        this.onTextInput = this.onTextInput.bind(this);
 
         Inbox.clearDidRequestCallSucceed();
     }
@@ -121,6 +122,17 @@ class RequestCallPage extends Component {
 
     componentWillUnmount() {
         Inbox.clearDidRequestCallSucceed();
+    }
+
+    /**
+     * Handle text input and clear formError upon text change
+     */
+    onTextInput() {
+        if (_.isEmpty(this.props.requestCallForm.error)) {
+            return;
+        }
+
+        Inbox.clearRequestCallError();
     }
 
     /**
@@ -301,8 +313,9 @@ class RequestCallPage extends Component {
                                 name="phone"
                                 keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                                 autoCorrect={false}
-                                placeholder="2109400803"
+                                placeholder="+12109400803"
                                 containerStyles={[styles.mt4]}
+                                onChangeText={this.onTextInput}
                             />
                             <TextInput
                                 inputID="phoneNumberExtension"

@@ -75,8 +75,13 @@ function clearDidRequestCallSucceed() {
     Onyx.merge(ONYXKEYS.FORMS.REQUEST_CALL_FORM, {didRequestCallSucceed: false});
 }
 
+function clearRequestCallError() {
+    Onyx.merge(ONYXKEYS.FORMS.REQUEST_CALL_FORM, {error: ''});
+}
+
 export {
     openRequestCallPage,
     requestCall,
     clearDidRequestCallSucceed,
+    clearRequestCallError,
 };
