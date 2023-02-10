@@ -340,6 +340,7 @@ export default {
     },
     contacts: {
         contactMethod: '',
+        contactMethods: '',
     },
     pronouns: {
         coCos: 'Co / Cos',
