@@ -37,7 +37,7 @@ const ProfilePage = (props) => {
             pronounsKey = pronounsKey.slice(CONST.PRONOUNS.PREFIX.length);
         }
         return lodashGet(props.translate('pronouns'), pronounsKey, props.translate('profilePage.selectYourPronouns'));
-    }
+    };
     const currentUserDetails = props.currentUserPersonalDetails || {};
     const profileSettingsOptions = [
         {

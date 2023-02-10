@@ -278,7 +278,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsContactMethodsPage = require('../../../pages/settings/Profile/Contacts/ContactMethodsPage').default;
             return SettingsContactMethodsPage;
         },
-        name: 'Settings_ContactMethods'
+        name: 'Settings_ContactMethods',
     },
     {
         getComponent: () => {
