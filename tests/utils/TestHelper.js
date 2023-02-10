@@ -108,6 +108,11 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                             key: ONYXKEYS.BETAS,
                             value: ['all'],
                         },
+                        {
+                            onyxMethod: CONST.ONYX.METHOD.MERGE,
+                            key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
+                            value: 'randomID',
+                        },
                     ],
                     jsonCode: 200,
                 });
