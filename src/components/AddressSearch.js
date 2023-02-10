@@ -109,7 +109,7 @@ const AddressSearch = (props) => {
             sublocality: cityFallback, // Some locations only return sublocality instead of locality
             postal_code: zipCode,
             administrative_area_level_1: state,
-            country: country,
+            country,
         } = GooglePlacesUtils.getAddressComponents(addressComponents, {
             street_number: 'long_name',
             route: 'long_name',
