@@ -17,8 +17,8 @@ import compose from '../../libs/compose';
 import FixedFooter from '../../components/FixedFooter';
 import TextInput from '../../components/TextInput';
 import * as Session from '../../libs/actions/Session';
-import PasswordConfirmationScreen from './PasswordConfirmationScreen';
 import * as ErrorUtils from '../../libs/ErrorUtils';
+import ConfirmationPage from '../../components/ConfirmationPage';
 
 const propTypes = {
     /* Onyx Props */
@@ -154,7 +154,13 @@ class PasswordPage extends Component {
                 />
                 {!_.isEmpty(this.props.account.success)
                     ? (
-                        <PasswordConfirmationScreen />
+                        <ConfirmationPage
+                            heading={this.props.translate('passwordConfirmationScreen.passwordUpdated')}
+                            shouldShowButton
+                            onButtonPress={Navigation.goBack}
+                            buttonText={this.props.translate('passwordConfirmationScreen.gotIt')}
+                            description={this.props.translate('passwordConfirmationScreen.allSet')}
+                        />
                     ) : (
                         <>
                             <ScrollView

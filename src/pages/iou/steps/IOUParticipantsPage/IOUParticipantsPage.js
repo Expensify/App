@@ -1,12 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import IOUParticipantsSplit from './IOUParticipantsSplit';
 import IOUParticipantsRequest from './IOUParticipantsRequest';
-import themeColors from '../../../../styles/themes/default';
 import styles from '../../../../styles/styles';
+import FullScreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -28,7 +28,6 @@ const propTypes = {
         text: PropTypes.string,
         keyForList: PropTypes.string,
         isPinned: PropTypes.bool,
-        isUnread: PropTypes.bool,
         reportID: PropTypes.string,
         phoneNumber: PropTypes.string,
         payPalMeAddress: PropTypes.string,
@@ -52,8 +51,8 @@ const defaultProps = {
 const IOUParticipantsPage = (props) => {
     if (props.iou.loading) {
         return (
-            <View style={styles.pageWrapper}>
-                <ActivityIndicator color={themeColors.text} />
+            <View style={styles.flex1}>
+                <FullScreenLoadingIndicator />
             </View>
         );
     }

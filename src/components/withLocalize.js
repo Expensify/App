@@ -1,6 +1,8 @@
 import React, {createContext, forwardRef} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
+
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Localize from '../libs/Localize';
@@ -9,6 +11,8 @@ import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
 import * as NumberFormatUtils from '../libs/NumberFormatUtils';
 import * as LocaleDigitUtils from '../libs/LocaleDigitUtils';
 import CONST from '../CONST';
+import compose from '../libs/compose';
+import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
 
 const LocaleContext = createContext(null);
 
@@ -42,12 +46,24 @@ const localeProviderPropTypes = {
     /** The user's preferred locale e.g. 'en', 'es-ES' */
     preferredLocale: PropTypes.string,
 
-    /* Actual content wrapped by this component */
+    /** Actual content wrapped by this component */
     children: PropTypes.node.isRequired,
+
+    /** The current user's personalDetails */
+    currentUserPersonalDetails: PropTypes.shape({
+
+        /** Timezone of the current user */
+        timezone: PropTypes.shape({
+
+            /** Value of the selected timezone */
+            selected: PropTypes.string,
+        }),
+    }),
 };
 
 const localeProviderDefaultProps = {
     preferredLocale: CONST.DEFAULT_LOCALE,
+    currentUserPersonalDetails: {},
 };
 
 class LocaleContextProvider extends React.Component {
@@ -105,6 +121,7 @@ class LocaleContextProvider extends React.Component {
             this.props.preferredLocale,
             datetime,
             includeTimezone,
+            lodashGet(this.props, 'currentUserPersonalDetails.timezone.selected'),
         );
     }
 
@@ -152,11 +169,14 @@ class LocaleContextProvider extends React.Component {
 LocaleContextProvider.propTypes = localeProviderPropTypes;
 LocaleContextProvider.defaultProps = localeProviderDefaultProps;
 
-const Provider = withOnyx({
-    preferredLocale: {
-        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    },
-})(LocaleContextProvider);
+const Provider = compose(
+    withCurrentUserPersonalDetails,
+    withOnyx({
+        preferredLocale: {
+            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+        },
+    }),
+)(LocaleContextProvider);
 
 Provider.displayName = 'withOnyx(LocaleContextProvider)';
 

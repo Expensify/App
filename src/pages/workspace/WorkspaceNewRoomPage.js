@@ -1,5 +1,5 @@
 import React from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -15,11 +15,10 @@ import Picker from '../../components/Picker';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import Text from '../../components/Text';
-import Button from '../../components/Button';
-import FixedFooter from '../../components/FixedFooter';
 import Permissions from '../../libs/Permissions';
 import Log from '../../libs/Log';
 import * as ValidationUtils from '../../libs/ValidationUtils';
+import Form from '../../components/Form';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -48,92 +47,60 @@ class WorkspaceNewRoomPage extends React.Component {
         super(props);
 
         this.state = {
-            roomName: '',
-            policyID: '',
-            visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
-            errors: {},
-            workspaceOptions: [],
+            visibilityDescription: this.props.translate('newRoomPage.restrictedDescription'),
         };
 
-        this.validateAndAddPolicyReport = this.validateAndAddPolicyReport.bind(this);
-        this.focusRoomNameInput = this.focusRoomNameInput.bind(this);
-    }
-
-    componentDidMount() {
-        // Workspaces are policies with type === 'free'
-        const workspaces = _.filter(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
-        this.setState({workspaceOptions: _.map(workspaces, policy => ({label: policy.name, key: policy.id, value: policy.id}))});
-    }
-
-    componentDidUpdate(prevProps) {
-        if (this.props.policies.length === prevProps.policies.length) {
-            return;
-        }
-
-        // Workspaces are policies with type === 'free'
-        const workspaces = _.filter(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
-
-        // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({workspaceOptions: _.map(workspaces, policy => ({label: policy.name, key: policy.id, value: policy.id}))});
-    }
-
-    validateAndAddPolicyReport() {
-        if (!this.validate()) {
-            return;
-        }
-        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.state.policyID}`];
-        Report.addPolicyReport(policy, this.state.roomName, this.state.visibility);
+        this.validate = this.validate.bind(this);
+        this.submit = this.submit.bind(this);
+        this.updateVisibilityDescription = this.updateVisibilityDescription.bind(this);
     }
 
     /**
+     * @param {Object} values - form input values passed by the Form component
+     */
+    submit(values) {
+        const policyID = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${values.policyID}`];
+        Report.addPolicyReport(policyID, values.roomName, values.visibility);
+    }
+
+    /**
+     * @param {String} visibility - form input value passed by the Form component
+     */
+    updateVisibilityDescription(visibility) {
+        const visibilityDescription = this.props.translate(`newRoomPage.${visibility}Description`);
+        if (visibilityDescription === this.state.visibilityDescription) {
+            return;
+        }
+        this.setState({visibilityDescription});
+    }
+
+    /**
+     * @param {Object} values - form input values passed by the Form component
      * @returns {Boolean}
      */
-    validate() {
+    validate(values) {
         const errors = {};
 
-        // We error if the user doesn't enter a room name or left blank
-        if (!this.state.roomName || this.state.roomName === CONST.POLICY.ROOM_PREFIX) {
+        // The following validations are ordered by precedence.
+        // First priority: We error if the user doesn't enter a room name or left blank
+        if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
             errors.roomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
-        }
-
-        // We error if the room name already exists.
-        if (ValidationUtils.isExistingRoomName(this.state.roomName, this.props.reports, this.state.policyID)) {
-            errors.roomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
-        }
-
-        // Certain names are reserved for default rooms and should not be used for policy rooms.
-        if (ValidationUtils.isReservedRoomName(this.state.roomName)) {
+        } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
+            // Second priority: Certain names are reserved for default rooms and should not be used for policy rooms.
             errors.roomName = this.props.translate('newRoomPage.roomNameReservedError');
+        } else if (ValidationUtils.isExistingRoomName(values.roomName, this.props.reports, values.policyID)) {
+            // Third priority: We error if the room name already exists.
+            errors.roomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
+        } else if (!ValidationUtils.isValidRoomName(values.roomName)) {
+            // Fourth priority: We error if the room name has invalid characters
+            errors.roomName = this.props.translate('newRoomPage.roomNameInvalidError');
         }
 
-        if (!this.state.policyID) {
+        if (!values.policyID) {
             errors.policyID = this.props.translate('newRoomPage.pleaseSelectWorkspace');
         }
 
-        this.setState({errors});
-        return _.isEmpty(errors);
-    }
-
-    /**
-     * @param {String} inputKey
-     * @param {String} value
-     */
-    clearErrorAndSetValue(inputKey, value) {
-        this.setState(prevState => ({
-            [inputKey]: value,
-            errors: {
-                ...prevState.errors,
-                [inputKey]: '',
-            },
-        }));
-    }
-
-    focusRoomNameInput() {
-        if (!this.roomNameInputRef) {
-            return;
-        }
-
-        this.roomNameInputRef.focus();
+        return errors;
     }
 
     render() {
@@ -143,6 +110,12 @@ class WorkspaceNewRoomPage extends React.Component {
             return null;
         }
 
+        // Workspaces are policies with type === 'free'
+        const workspaceOptions = _.map(
+            _.filter(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE),
+            policy => ({label: policy.name, key: policy.id, value: policy.id}),
+        );
+
         const visibilityOptions = _.map(_.values(CONST.REPORT.VISIBILITY), visibilityOption => ({
             label: this.props.translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
             value: visibilityOption,
@@ -150,52 +123,47 @@ class WorkspaceNewRoomPage extends React.Component {
         }));
 
         return (
-            <ScreenWrapper onTransitionEnd={this.focusRoomNameInput}>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('newRoomPage.newRoom')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
-                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                <Form
+                    formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
+                    submitButtonText={this.props.translate('newRoomPage.createRoom')}
+                    scrollContextEnabled
+                    style={[styles.mh5, styles.mt5, styles.flexGrow1]}
+                    validate={this.validate}
+                    onSubmit={this.submit}
+                    enabledWhenOffline
+                >
                     <View style={styles.mb5}>
                         <RoomNameInput
-                            ref={el => this.roomNameInputRef = el}
-                            policyID={this.state.policyID}
-                            errorText={this.state.errors.roomName}
-                            onChangeText={roomName => this.clearErrorAndSetValue('roomName', roomName)}
-                            value={this.state.roomName}
+                            inputID="roomName"
+                            autoFocus
                         />
                     </View>
                     <View style={styles.mb5}>
                         <Picker
-                            value={this.state.policyID}
+                            inputID="policyID"
                             label={this.props.translate('workspace.common.workspace')}
                             placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
-                            items={this.state.workspaceOptions}
-                            errorText={this.state.errors.policyID}
-                            onInputChange={policyID => this.clearErrorAndSetValue('policyID', policyID)}
+                            items={workspaceOptions}
                         />
                     </View>
                     <View style={styles.mb2}>
                         <Picker
-                            value={this.state.visibility}
+                            inputID="visibility"
                             label={this.props.translate('newRoomPage.visibility')}
                             items={visibilityOptions}
-                            onInputChange={visibility => this.setState({visibility})}
+                            onValueChange={this.updateVisibilityDescription}
+                            defaultValue={CONST.REPORT.VISIBILITY.RESTRICTED}
                         />
                     </View>
                     <Text style={[styles.textLabel, styles.colorMuted]}>
-                        {_.find(visibilityOptions, option => option.value === this.state.visibility).description}
+                        {this.state.visibilityDescription}
                     </Text>
-                </ScrollView>
-                <FixedFooter>
-                    <Button
-                        success
-                        pressOnEnter
-                        onPress={this.validateAndAddPolicyReport}
-                        style={[styles.w100]}
-                        text={this.props.translate('newRoomPage.createRoom')}
-                    />
-                </FixedFooter>
+                </Form>
             </ScreenWrapper>
         );
     }

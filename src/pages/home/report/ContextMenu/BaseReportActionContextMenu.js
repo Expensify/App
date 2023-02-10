@@ -19,7 +19,7 @@ const propTypes = {
     type: PropTypes.string,
 
     /** Target node which is the target of ContentMenu */
-    anchor: PropTypes.node,
+    anchor: PropTypes.oneOfType([PropTypes.node, PropTypes.object]),
 
     /** Flag to check if the chat participant is Chronos */
     isChronosReport: PropTypes.bool,

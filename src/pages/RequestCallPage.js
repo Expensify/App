@@ -28,8 +28,8 @@ import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import * as User from '../libs/actions/User';
 import {withNetwork} from '../components/OnyxProvider';
 import networkPropTypes from '../components/networkPropTypes';
-import RequestCallConfirmationScreen from './RequestCallConfirmationScreen';
 import Form from '../components/Form';
+import ConfirmationPage from '../components/ConfirmationPage';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -245,7 +245,7 @@ class RequestCallPage extends Component {
         const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={this.props.requestCallForm.didRequestCallSucceed}>
                 <HeaderWithCloseButton
                     title={this.props.translate('requestCallPage.title')}
                     shouldShowBackButton
@@ -254,7 +254,13 @@ class RequestCallPage extends Component {
                 />
                 {this.props.requestCallForm.didRequestCallSucceed
                     ? (
-                        <RequestCallConfirmationScreen />
+                        <ConfirmationPage
+                            heading={this.props.translate('requestCallConfirmationScreen.callRequested')}
+                            description={this.props.translate('requestCallConfirmationScreen.allSet')}
+                            buttonText={this.props.translate('requestCallConfirmationScreen.gotIt')}
+                            shouldShowButton
+                            onButtonPress={Navigation.goBack}
+                        />
                     ) : (
                         <Form
                             formID={ONYXKEYS.FORMS.REQUEST_CALL_FORM}

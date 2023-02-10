@@ -19,9 +19,9 @@ describe('Trie', () => {
         wordTrie.add('Robertson', {code: '👨🏽', suggestions: []});
         wordTrie.add('Rock', {code: '👨🏼', suggestions: []});
         const expected = [
-            {name: 'rock', metaData: {code: '👨🏼', suggestions: []}},
-            {name: 'robertson', metaData: {code: '👨🏽', suggestions: []}},
             {name: 'robert', metaData: {code: '👨🏾', suggestions: []}},
+            {name: 'robertson', metaData: {code: '👨🏽', suggestions: []}},
+            {name: 'rock', metaData: {code: '👨🏼', suggestions: []}},
         ];
         expect(wordTrie.getAllMatchingWords('Ro')).toEqual(expected);
         expect(wordTrie.getAllMatchingWords('ro')).toEqual(expected);

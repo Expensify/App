@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import {Image, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import stylePropTypes from '../styles/stylePropTypes';
@@ -9,6 +9,9 @@ import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as Expensicons from './Icon/Expensicons';
 import getAvatarDefaultSource from '../libs/getAvatarDefaultSource';
+import Image from './Image';
+import {withNetwork} from './OnyxProvider';
+import networkPropTypes from './networkPropTypes';
 import styles from '../styles/styles';
 
 const propTypes = {
@@ -30,6 +33,9 @@ const propTypes = {
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.func,
+
+    /** Props to detect online status */
+    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {
@@ -47,6 +53,14 @@ class Avatar extends PureComponent {
         this.state = {
             imageError: false,
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
+        if (!this.state.imageError || !isReconnecting) {
+            return;
+        }
+        this.setState({imageError: false});
     }
 
     render() {
@@ -76,6 +90,7 @@ class Avatar extends PureComponent {
                                 height={iconSize}
                                 width={iconSize}
                                 fill={this.state.imageError ? themeColors.offline : this.props.fill}
+                                isSVGAvatar
                             />
                         </View>
                     )
@@ -94,4 +109,4 @@ class Avatar extends PureComponent {
 
 Avatar.defaultProps = defaultProps;
 Avatar.propTypes = propTypes;
-export default Avatar;
+export default withNetwork()(Avatar);

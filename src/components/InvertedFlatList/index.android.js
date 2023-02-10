@@ -17,6 +17,7 @@ export default forwardRef((props, ref) => (
         // Manually invert the FlatList to circumvent a react-native bug that causes ANR (application not responding) on android 13
         inverted={false}
         style={styles.invert}
+        ListFooterComponentStyle={styles.invert}
         verticalScrollbarPosition="left" // We are mirroring the X and Y axis, so we need to swap the scrollbar position
 
         CellRendererComponent={InvertedCell}

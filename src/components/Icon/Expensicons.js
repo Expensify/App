@@ -23,6 +23,7 @@ import Close from '../../../assets/images/close.svg';
 import ClosedSign from '../../../assets/images/closed-sign.svg';
 import Collapse from '../../../assets/images/collapse.svg';
 import Concierge from '../../../assets/images/concierge.svg';
+import ConciergeAvatar from '../../../assets/images/avatars/concierge-avatar.svg';
 import Connect from '../../../assets/images/connect.svg';
 import CreditCard from '../../../assets/images/creditcard.svg';
 import Document from '../../../assets/images/document.svg';
@@ -35,6 +36,7 @@ import Emoji from '../../../assets/images/emoji.svg';
 import Exclamation from '../../../assets/images/exclamation.svg';
 import Exit from '../../../assets/images/exit.svg';
 import ExpensifyCard from '../../../assets/images/expensifycard.svg';
+import ExpensifyWordmark from '../../../assets/images/expensify-wordmark.svg';
 import Expand from '../../../assets/images/expand.svg';
 import Eye from '../../../assets/images/eye.svg';
 import EyeDisabled from '../../../assets/images/eye-disabled.svg';
@@ -95,6 +97,7 @@ import Workspace from '../../../assets/images/workspace-default-avatar.svg';
 import Zoom from '../../../assets/images/zoom.svg';
 import FallbackAvatar from '../../../assets/images/avatars/fallback-avatar.svg';
 import FallbackWorkspaceAvatar from '../../../assets/images/avatars/fallback-workspace-avatar.svg';
+import DragAndDrop from '../../../assets/images/drag-and-drop.svg';
 
 export {
     ActiveRoomAvatar,
@@ -122,6 +125,7 @@ export {
     ClosedSign,
     Collapse,
     Concierge,
+    ConciergeAvatar,
     Connect,
     CreditCard,
     DeletedRoomAvatar,
@@ -130,10 +134,12 @@ export {
     DotIndicator,
     DownArrow,
     Download,
+    DragAndDrop,
     Emoji,
     Exclamation,
     Exit,
     ExpensifyCard,
+    ExpensifyWordmark,
     Expand,
     Eye,
     EyeDisabled,

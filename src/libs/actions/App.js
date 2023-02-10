@@ -9,12 +9,12 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
-import Timing from './Timing';
 import * as Policy from './Policy';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
 import getCurrentUrl from '../Navigation/currentUrl';
+import * as Session from './Session';
 
 let currentUserAccountID;
 let currentUserEmail = '';
@@ -52,6 +52,12 @@ Onyx.connect({
     callback: policies => allPolicies = policies,
 });
 
+let preferredLocale;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: val => preferredLocale = val,
+});
+
 /**
  * @param {Array} policies
  * @return {Array<String>} array of policy ids
@@ -68,6 +74,10 @@ function getNonOptimisticPolicyIDs(policies) {
 * @param {String} locale
 */
 function setLocale(locale) {
+    if (locale === preferredLocale) {
+        return;
+    }
+
     // If user is not signed in, change just locally.
     if (!currentUserAccountID) {
         Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
@@ -88,13 +98,20 @@ function setLocale(locale) {
     }, {optimisticData});
 }
 
+/**
+* @param {String} locale
+*/
+function setLocaleAndNavigate(locale) {
+    setLocale(locale);
+    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+}
+
 function setSidebarLoaded() {
     if (isSidebarLoaded) {
         return;
     }
 
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
-    Timing.end(CONST.TIMING.SIDEBAR_LOADED);
     Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
     Performance.markStart(CONST.TIMING.REPORT_INITIAL_RENDER);
 }
@@ -203,31 +220,31 @@ function setUpPoliciesAndNavigate(session) {
     const makeMeAdmin = url.searchParams.get('makeMeAdmin');
     const policyName = url.searchParams.get('policyName');
 
+    // Sign out the current user if we're transitioning from oldDot with a different user
+    const isTransitioningFromOldDot = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT));
+    if (isLoggingInAsNewUser && isTransitioningFromOldDot) {
+        Session.signOut();
+    }
+
     const shouldCreateFreePolicy = !isLoggingInAsNewUser
-                        && Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
+                        && isTransitioningFromOldDot
                         && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
         Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName, true);
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
-        if (Navigation.isDrawerRoute(exitTo)) {
-            // The drawer navigation is only created after we have fetched reports from the server.
-            // Thus, if we use the standard navigation and try to navigate to a drawer route before
-            // the reports have been fetched, we will fail to navigate.
-            Navigation.isDrawerReady()
-                .then(() => {
-                    // We must call dismissModal() to remove the /transition route from history
-                    Navigation.dismissModal();
-                    Navigation.navigate(exitTo);
-                });
-            return;
-        }
         Navigation.isNavigationReady()
             .then(() => {
-                // We must call dismissModal() to remove the /transition route from history
-                Navigation.dismissModal();
-                Navigation.navigate(exitTo);
+                // The drawer navigation is only created after we have fetched reports from the server.
+                // Thus, if we use the standard navigation and try to navigate to a drawer route before
+                // the reports have been fetched, we will fail to navigate.
+                Navigation.isDrawerReady()
+                    .then(() => {
+                        // We must call dismissModal() to remove the /transition route from history
+                        Navigation.dismissModal();
+                        Navigation.navigate(exitTo);
+                    });
             });
     }
 }
@@ -271,6 +288,7 @@ function openProfile() {
 
 export {
     setLocale,
+    setLocaleAndNavigate,
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
     openProfile,

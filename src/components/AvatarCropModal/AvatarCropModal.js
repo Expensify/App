@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {
+    runOnUI,
     interpolate,
     useAnimatedGestureHandler,
     useSharedValue,
@@ -37,6 +38,9 @@ const propTypes = {
     /** Name of the image */
     imageName: PropTypes.string,
 
+    /** Type of the image file */
+    imageType: PropTypes.string,
+
     /** Callback to be called when user closes the modal */
     onClose: PropTypes.func,
 
@@ -53,6 +57,7 @@ const propTypes = {
 const defaultProps = {
     imageUri: '',
     imageName: '',
+    imageType: '',
     onClose: () => {},
     onSave: () => {},
 };
@@ -77,7 +82,7 @@ const AvatarCropModal = (props) => {
     const initializeImageContainer = useCallback((event) => {
         setIsImageContainerInitialized(true);
         const {height, width} = event.nativeEvent.layout;
-        setImageContainerSize(Math.min(height - styles.imageCropRotateButton.height, width));
+        setImageContainerSize(Math.floor(Math.min(height - styles.imageCropRotateButton.height, width)));
     }, [props.isSmallScreenWidth]);
 
     // An onLayout callback, that initializes the slider container size, for proper render of a slider
@@ -265,23 +270,37 @@ const AvatarCropModal = (props) => {
             height: size, width: size, originX, originY,
         };
 
-        cropOrRotateImage(props.imageUri, [{rotate: rotation.value % 360}, {crop}], {compress: 1, name: props.imageName})
+        cropOrRotateImage(
+            props.imageUri,
+            [{rotate: rotation.value % 360}, {crop}],
+            {compress: 1, name: props.imageName, type: props.imageType},
+        )
             .then((newImage) => {
                 props.onClose();
                 props.onSave(newImage);
             });
-    }, [props.imageUri, props.imageName, imageContainerSize]);
+    }, [props.imageUri, props.imageName, props.imageType, imageContainerSize]);
 
     /**
-     * @param {Event} event
+     * @param {Number} locationX
      */
-    const sliderOnPress = (event) => {
+    const sliderOnPress = (locationX) => {
+        // We are using the worklet directive here and running on the UI thread to ensure the Reanimated
+        // shared values are updated synchronously, as they update asynchronously on the JS thread.
+
+        'worklet';
+
         if (!isPressableEnabled.value) {
             return;
         }
-        const newScale = newScaleValue(event.nativeEvent.locationX, sliderContainerSize);
-        translateSlider.value = event.nativeEvent.locationX;
+        const newSliderValue = clamp(locationX, [0, sliderContainerSize]);
+        const newScale = newScaleValue(newSliderValue, sliderContainerSize);
+        translateSlider.value = newSliderValue;
+        const differential = newScale / scale.value;
         scale.value = newScale;
+        const newX = translateX.value * differential;
+        const newY = translateY.value * differential;
+        updateImageOffset(newX, newY);
     };
 
     return (
@@ -315,12 +334,12 @@ const AvatarCropModal = (props) => {
                                 translateX={translateX}
                                 rotation={rotation}
                             />
-                            <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthAndHeightStyle(imageContainerSize)]}>
+                            <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
                                 <Icon src={Expensicons.Zoom} fill={themeColors.icons} />
                                 <Pressable
                                     style={[styles.mh5, styles.flex1]}
                                     onLayout={initializeSliderContainer}
-                                    onPressIn={sliderOnPress}
+                                    onPressIn={e => runOnUI(sliderOnPress)(e.nativeEvent.locationX)}
                                 >
                                     <Slider sliderValue={translateSlider} onGesture={panSliderGestureEventHandler} />
                                 </Pressable>

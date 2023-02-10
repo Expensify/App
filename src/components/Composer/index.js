@@ -8,9 +8,10 @@ import RNTextInput from '../RNTextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
-import CONST from '../../CONST';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
 import getNumberOfLines from '../../libs/ComposerUtils/index';
+import * as Browser from '../../libs/Browser';
+import Clipboard from '../../libs/Clipboard';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -37,18 +38,6 @@ const propTypes = {
 
     /** When the input has cleared whoever owns this input should know about it */
     onClear: PropTypes.func,
-
-    /** Callback to fire when a file has being dragged over the text input & report body */
-    onDragOver: PropTypes.func,
-
-    /** Callback to fire when a file has been dragged into the text input & report body */
-    onDragEnter: PropTypes.func,
-
-    /** Callback to fire when the user is no longer dragging over the text input & report body */
-    onDragLeave: PropTypes.func,
-
-    /** Callback to fire when a file is dropped on the text input & report body */
-    onDrop: PropTypes.func,
 
     /** Whether or not this TextInput is disabled. */
     isDisabled: PropTypes.bool,
@@ -86,10 +75,6 @@ const defaultProps = {
     shouldClear: false,
     onClear: () => {},
     style: null,
-    onDragEnter: () => {},
-    onDragOver: () => {},
-    onDragLeave: () => {},
-    onDrop: () => {},
     isDisabled: false,
     autoFocus: false,
     forwardedRef: null,
@@ -113,8 +98,6 @@ const IMAGE_EXTENSIONS = {
     'image/webp': 'webp',
 };
 
-const COPY_DROP_EFFECT = 'copy';
-
 /**
  * Enable Markdown parsing.
  * On web we like to have the Text Input field always focused so the user can easily type a new chat
@@ -134,11 +117,12 @@ class Composer extends React.Component {
                 end: initialValue.length,
             },
         };
-        this.dragNDropListener = this.dragNDropListener.bind(this);
+
         this.paste = this.paste.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
+        this.putSelectionInClipboard = this.putSelectionInClipboard.bind(this);
         this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
     }
 
@@ -156,14 +140,9 @@ class Composer extends React.Component {
         // There is no onPaste or onDrag for TextInput in react-native so we will add event
         // listeners here and unbind when the component unmounts
         if (this.textInput) {
-            // Firefox will not allow dropping unless we call preventDefault on the dragover event
-            // We listen on document to extend the Drop area beyond Composer
-            document.addEventListener('dragover', this.dragNDropListener);
-            document.addEventListener('dragenter', this.dragNDropListener);
-            document.addEventListener('dragleave', this.dragNDropListener);
-            document.addEventListener('drop', this.dragNDropListener);
             this.textInput.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
+            this.textInput.addEventListener('keydown', this.putSelectionInClipboard);
         }
     }
 
@@ -192,53 +171,8 @@ class Composer extends React.Component {
             return;
         }
 
-        document.removeEventListener('dragover', this.dragNDropListener);
-        document.removeEventListener('dragenter', this.dragNDropListener);
-        document.removeEventListener('dragleave', this.dragNDropListener);
-        document.removeEventListener('drop', this.dragNDropListener);
         this.textInput.removeEventListener('paste', this.handlePaste);
         this.textInput.removeEventListener('wheel', this.handleWheel);
-    }
-
-    /**
-     * Handles all types of drag-N-drop events on the composer
-     *
-     * @param {Object} e native Event
-     */
-    dragNDropListener(e) {
-        let isOriginComposer = false;
-        const handler = () => {
-            // Setting dropEffect for dragover is required for '+' icon on certain platforms/browsers (eg. Safari)
-            switch (e.type) {
-                case 'dragover':
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = COPY_DROP_EFFECT;
-                    this.props.onDragOver(e, isOriginComposer);
-                    break;
-                case 'dragenter':
-                    e.dataTransfer.dropEffect = COPY_DROP_EFFECT;
-                    this.props.onDragEnter(e, isOriginComposer);
-                    break;
-                case 'dragleave':
-                    this.props.onDragLeave(e, isOriginComposer);
-                    break;
-                case 'drop':
-                    this.props.onDrop(e, isOriginComposer);
-                    break;
-                default: break;
-            }
-        };
-
-        // We first check if drop target is composer so that it can be highlighted
-        if (this.textInput.contains(e.target)) {
-            isOriginComposer = true;
-            handler();
-            return;
-        }
-
-        if (document.getElementById(CONST.REPORT.DROP_NATIVE_ID).contains(e.target)) {
-            handler();
-        }
     }
 
     /**
@@ -309,7 +243,7 @@ class Composer extends React.Component {
                     .then((x) => {
                         const extension = IMAGE_EXTENSIONS[x.type];
                         if (!extension) {
-                            throw new Error(this.props.translate('composer.noExtentionFoundForMimeType'));
+                            throw new Error(this.props.translate('composer.noExtensionFoundForMimeType'));
                         }
 
                         return new File([x], `pasted_image.${extension}`, {});
@@ -334,7 +268,8 @@ class Composer extends React.Component {
             return;
         }
 
-        const plainText = event.clipboardData.getData('text/plain');
+        const plainText = event.clipboardData.getData('text/plain').replace(/\n\n/g, '\n');
+
         this.paste(Str.htmlDecode(plainText));
     }
 
@@ -350,6 +285,21 @@ class Composer extends React.Component {
         this.textInput.scrollTop += event.deltaY;
         event.preventDefault();
         event.stopPropagation();
+    }
+
+    putSelectionInClipboard(event) {
+        // If anything happens that isn't cmd+c or cmd+x, ignore the event because it's not a copy command
+        if (!event.metaKey || (event.key !== 'c' && event.key !== 'x')) {
+            return;
+        }
+
+        // The user might have only highlighted a portion of the message to copy, so using the selection will ensure that
+        // the only stuff put into the clipboard is what the user selected.
+        const selectedText = event.target.value.substring(this.state.selection.start, this.state.selection.end);
+
+        // The plaintext portion that is put into the clipboard needs to have the newlines duplicated. This is because
+        // the paste functionality is stripping all duplicate newlines to try and provide consistent behavior.
+        Clipboard.setHtml(selectedText, selectedText.replace(/\n/g, '\n\n'));
     }
 
     /**
@@ -392,9 +342,12 @@ class Composer extends React.Component {
         const propStyles = StyleSheet.flatten(this.props.style);
         propStyles.outline = 'none';
         const propsWithoutStyles = _.omit(this.props, 'style');
+
+        // We're disabling autoCorrect for iOS Safari until Safari fixes this issue. See https://github.com/Expensify/App/issues/8592
         return (
             <RNTextInput
                 autoComplete="off"
+                autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
                 selection={this.state.selection}

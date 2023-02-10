@@ -10,7 +10,6 @@ import compose from '../../compose';
 import * as PersonalDetails from '../../actions/PersonalDetails';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
-import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Timing from '../../actions/Timing';
@@ -22,12 +21,15 @@ import * as User from '../../actions/User';
 import * as Modal from '../../actions/Modal';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
+import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
+import getCurrentUrl from '../currentUrl';
 
 // Modal Stack Navigators
 import * as ModalStackNavigators from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
+import * as Download from '../../actions/Download';
 import * as Session from '../../actions/Session';
 
 let currentUserEmail;
@@ -100,10 +102,9 @@ class AuthScreens extends React.Component {
             User.subscribeToUserEvents();
         });
 
-        // Listen for report changes and fetch some data we need on initialization
-        UnreadIndicatorUpdater.listenForReportChanges();
         App.openApp();
         App.setUpPoliciesAndNavigate(this.props.session);
+        Download.clearDownloads();
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
@@ -156,6 +157,8 @@ class AuthScreens extends React.Component {
             // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
             isModal: true,
         };
+        const url = getCurrentUrl();
+        const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : '';
 
         return (
             <RootStack.Navigator
@@ -184,6 +187,7 @@ class AuthScreens extends React.Component {
                         const MainDrawerNavigator = require('./MainDrawerNavigator').default;
                         return MainDrawerNavigator;
                     }}
+                    initialParams={{openOnAdminRoom: openOnAdminRoom === 'true'}}
                 />
                 <RootStack.Screen
                     name="ValidateLogin"
@@ -312,6 +316,12 @@ class AuthScreens extends React.Component {
                     name="Wallet_Statement"
                     options={modalScreenOptions}
                     component={ModalStackNavigators.WalletStatementStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.NOT_FOUND}
+                    options={{headerShown: false}}
+                    component={NotFoundPage}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>

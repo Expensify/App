@@ -1,10 +1,12 @@
 import React from 'react';
+import {Keyboard} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
 import _ from 'underscore';
 import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
+import styles from '../../styles/styles';
 
 class DatePicker extends React.Component {
     constructor(props) {
@@ -34,6 +36,7 @@ class DatePicker extends React.Component {
      * @param {Event} event
      */
     showPicker(event) {
+        Keyboard.dismiss();
         this.setState({isPickerVisible: true});
         event.preventDefault();
     }
@@ -49,6 +52,7 @@ class DatePicker extends React.Component {
                     placeholder={this.props.placeholder}
                     errorText={this.props.errorText}
                     containerStyles={this.props.containerStyles}
+                    textInputContainerStyles={this.state.isPickerVisible ? [styles.borderColorFocus] : []}
                     onPress={this.showPicker}
                     editable={false}
                     disabled={this.props.disabled}
@@ -65,7 +69,6 @@ class DatePicker extends React.Component {
                         value={this.props.value || this.props.defaultValue ? moment(this.props.value || this.props.defaultValue).toDate() : new Date()}
                         mode="date"
                         onChange={this.setDate}
-                        maximumDate={this.props.maximumDate}
                     />
                 )}
             </>

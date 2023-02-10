@@ -18,6 +18,15 @@ const propTypes = {
 
     /** A ref forwarded to the TextInput */
     forwardedRef: PropTypes.func,
+
+    /** The ID used to uniquely identify the input in a Form */
+    inputID: PropTypes.string,
+
+    /** Callback that is called when the text input is blurred */
+    onBlur: PropTypes.func,
+
+    /** AutoFocus */
+    autoFocus: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -26,6 +35,10 @@ const defaultProps = {
     disabled: false,
     errorText: '',
     forwardedRef: () => {},
+
+    inputID: undefined,
+    onBlur: () => {},
+    autoFocus: false,
 };
 
 export {propTypes, defaultProps};

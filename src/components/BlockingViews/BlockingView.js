@@ -27,7 +27,7 @@ const defaultProps = {
 
 const BlockingView = props => (
     <View
-        style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}
+        style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}
     >
         <Icon
             src={props.icon}
@@ -35,8 +35,8 @@ const BlockingView = props => (
             width={variables.iconSizeSuperLarge}
             height={variables.iconSizeSuperLarge}
         />
-        <Text style={[styles.headerText, styles.textLarge, styles.mt5, styles.mb2]}>{props.title}</Text>
-        <Text style={[styles.w70, styles.textAlignCenter]}>{props.subtitle}</Text>
+        <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>
+        <Text style={[styles.textAlignCenter]}>{props.subtitle}</Text>
     </View>
 );
 

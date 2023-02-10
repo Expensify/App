@@ -77,7 +77,7 @@ class WorkspaceInitialPage extends React.Component {
      */
     confirmDeleteAndHideModal() {
         const policyReports = _.filter(this.props.reports, report => report && report.policyID === this.props.policy.id);
-        Policy.deleteWorkspace(this.props.policy.id, policyReports);
+        Policy.deleteWorkspace(this.props.policy.id, policyReports, this.props.policy.name);
         this.toggleDeleteModal(false);
         Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
     }
@@ -147,8 +147,11 @@ class WorkspaceInitialPage extends React.Component {
         ];
 
         return (
-            <ScreenWrapper>
-                <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+                <FullPageNotFoundView
+                    shouldShow={_.isEmpty(this.props.policy)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                >
                     <HeaderWithCloseButton
                         title={this.props.translate('workspace.common.workspace')}
                         shouldShowBackButton
@@ -180,7 +183,7 @@ class WorkspaceInitialPage extends React.Component {
                             errorRowStyles={[styles.ph6, styles.pv2]}
                         >
                             <View style={[styles.flex1]}>
-                                <View style={styles.pageWrapper}>
+                                <View style={styles.avatarSectionWrapper}>
                                     <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
                                         <Pressable
                                             disabled={this.hasPolicyCreationError()}
@@ -212,7 +215,6 @@ class WorkspaceInitialPage extends React.Component {
                                                 style={[
                                                     styles.alignSelfCenter,
                                                     styles.mt4,
-                                                    styles.mb6,
                                                     styles.w100,
                                                 ]}
                                                 onPress={this.openEditor}
@@ -221,7 +223,7 @@ class WorkspaceInitialPage extends React.Component {
                                                     <Text
                                                         numberOfLines={1}
                                                         style={[
-                                                            styles.displayName,
+                                                            styles.textHeadline,
                                                             styles.alignSelfCenter,
                                                         ]}
                                                     >

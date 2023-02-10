@@ -6,6 +6,9 @@ export default PropTypes.shape({
     // Text to display
     text: PropTypes.string,
 
+    /** Display the text of the option in bold font style */
+    boldStyle: PropTypes.bool,
+
     // Alternate text to display
     alternateText: PropTypes.string,
 
@@ -17,9 +20,6 @@ export default PropTypes.shape({
 
     // reportID (only present when there is a matching report)
     reportID: PropTypes.string,
-
-    // Whether the report has read or not
-    isUnread: PropTypes.bool,
 
     // Whether the report has a draft comment or not
     hasDraftComment: PropTypes.bool,
