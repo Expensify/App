@@ -270,10 +270,14 @@ const AvatarCropModal = (props) => {
             height: size, width: size, originX, originY,
         };
 
+        const isSvg = props.imageType.includes('image/svg');
+        const imageName = isSvg ? 'fileName.png' : props.imageName;
+        const imageType = isSvg ? 'image/png' : props.imageType;
+
         cropOrRotateImage(
             props.imageUri,
             [{rotate: rotation.value % 360}, {crop}],
-            {compress: 1, name: props.imageName, type: props.imageType},
+            {compress: 1, name: imageName, type: imageType},
         )
             .then((newImage) => {
                 props.onClose();
