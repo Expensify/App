@@ -2879,37 +2879,26 @@ const styles = {
         paddingBottom: 45,
     },
 
-    // homepageContainer: {
-    //     height: '100vh',
-    //     maxHeight: 900,
-    //     minHeight: 400,
-    //     position: 'relative',
-    //     width: '100%',
-    // },
-
-    footerContainer: {
+    footerWrapper: {
         backgroundColor: themeColors.midtone,
         fontSize: variables.fontSizeNormal,
-        display: 'flex',
-        paddingTop: 64,
-        paddingHorizontal: 32,
-        paddingBottom: 0,
         minHeight: 400,
+        minWidth: 200,
+        maxWidth: 1000,
+        paddingTop: 64,
+        alignSelf: 'stretch',
     },
 
-    footerColumns: {
-        display: 'flex',
-        marginTop: 0,
-        marginHorizontal: 0,
-        marginBottom: 20,
+    footerColumnsContainer: {
+        paddingHorizontal: 32,
+        paddingBottom: 0,
         padding: 0,
+        flex: 1,
+        flexWrap: 'wrap',
     },
 
     footerColumn: {
         marginBottom: 40,
-        padding: 15,
-        marginTop: 0,
-        marginHorizontal: 0,
     },
 
     footerTitle: {
@@ -2921,9 +2910,12 @@ const styles = {
 
     footerRow: {
         paddingVertical: 4,
-        paddingHorizontal: 0,
-        marginBottom: 10,
+        marginBottom: 8,
         color: themeColors.textLight,
+    },
+
+    footerImage: {
+        marginTop: 40,
     },
 
 };

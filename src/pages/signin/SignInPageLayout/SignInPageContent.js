@@ -34,6 +34,8 @@ const SignInPageContent = props => (
     <TouchableDismissKeyboard>
         <View
             style={[
+
+                // props.isSmallScreenWidth && styles.flex1,
                 StyleUtils.getHeight(props.windowHeight),
                 styles.signInPageLeftContainer,
                 !props.isSmallScreenWidth && styles.signInPageLeftContainerWide,

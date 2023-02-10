@@ -36,6 +36,8 @@ const defaultProps = {
 
 const TextLink = (props) => {
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
+    // eslint-disable-next-line no-console
+    console.log(props);
 
     /**
    * @param {Event} event

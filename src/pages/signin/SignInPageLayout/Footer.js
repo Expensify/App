@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import {View} from 'react-native';
 import React from 'react';
 import _ from 'underscore';
@@ -130,52 +131,67 @@ const columns = [
     },
 ];
 
-const Footer = props => (
-    <View style={{flex: 1}}>
-        <View style={[props.isSmallScreenWidth ? [styles.footerContainer, styles.flexRow] : [styles.footerContainer, styles.flexColumn]]}>
-            <View style={[styles.flex1, styles.footerColumns, props.isSmallScreenWidth ? styles.flexColumn : styles.flexRow]}>
-                { /** Columns * */ }
-                {_.map(columns, (column, i) => (
-                    <View key={column.translationPath + i} style={[styles.footerColumn, {marginRight: 20}]}>
-                        <Text style={[styles.textHeadline, {color: 'green'}, styles.footerTitle]}>
-                            {props.translate(column.translationPath)}
-                            {i}
-                        </Text>
-                        <View style={[styles.footerRow]}>
-                            { /** Rows * */ }
-                            {_.map(column.rows, (row, j) => (
-                                <TextLink
-                                    style={[styles.footerRow]}
-                                    href={row.link}
-                                    key={row.translationPath + j}
-                                >
-                                    {props.translate(row.translationPath)}
-                                </TextLink>
-                            ))}
+const Footer = (props) => {
+    const imageDirection = props.isSmallScreenWidth ? styles.flexRow : styles.flexColumn;
+    const columnDirection = props.isSmallScreenWidth ? styles.flexColumn : styles.flexRow;
+
+    const centered = !props.isSmallScreenWidth ? styles.alignItemsCenter : {};
+
+    const pageFooter = [styles.flex1, centered];
+    const pageFooterWrapper = [styles.footerWrapper, centered, styles.flexGrow1, imageDirection];
+    const footerColumns = [styles.footerColumnsContainer, columnDirection];
+    let footerColumn = [styles.footerColumn];
+
+    if (!props.isSmallScreenWidth) {
+        footerColumn = [...footerColumn, styles.p4, styles.flex1];
+    }
+
+    return (
+        <View style={pageFooter}>
+            <View style={pageFooterWrapper}>
+                <View style={footerColumns}>
+                    { /** Columns * */ }
+                    {_.map(columns, (column, i) => (
+                        <View
+                            key={column.translationPath + i}
+                            style={footerColumn}
+                        >
+                            <Text style={[styles.textHeadline, styles.footerTitle]}>
+                                {props.translate(column.translationPath)}
+                            </Text>
+                            <View style={[styles.footerRow]}>
+                                { /** Rows * */ }
+                                {_.map(column.rows, (row, j) => (
+                                    <TextLink
+                                        style={[styles.footerRow]}
+                                        href={row.link}
+                                        key={row.translationPath + j}
+                                    >
+                                        {props.translate(row.translationPath)}
+                                    </TextLink>
+                                ))}
+                                {(i === 3) && (
+                                    <View style={{maxWidth: 200}}>
+                                        <TermsAndLicenses />
+                                    </View>
+                                )}
+                            </View>
                         </View>
-                    </View>
-                ))}
-                <View style={[styles.footerColumn, {marginRight: 20}, styles.mv5, {maxWidth: 200}]}>
-                    <TermsAndLicenses />
+                    ))}
+                </View>
+                { /** Expensify Wordmark * */ }
+                <View style={[styles.footerImage]}>
+                    {!props.isSmallScreenWidth ? (
+                        <Expensicons.ExpensifyFooterLogo height={111} width={618} />
+                    )
+                        : (
+                            <Expensicons.ExpensifyFooterLogoVertical height={618} width={111} />
+                        )}
                 </View>
             </View>
-            { /** Expensify Wordmark * */ }
-            <View style={props.isSmallScreenWidth ? [] : []}>
-                {!props.isSmallScreenWidth ? (
-                    <Expensicons.ExpensifyFooterLogo height={100} width={500} />
-                )
-                    : (
-                        <Expensicons.ExpensifyFooterLogoVertical height={500} width={100} />
-                    )}
-                {/* <Icon
-                    width={props.isSmallScreenWidth ? 100 : 500}
-                    height={props.isSmallScreenWidth ? 500 : 100}
-                    src={props.isSmallScreenWidth ? Expensicons.ExpensifyFooterLogoVertical : Expensicons.ExpensifyFooterLogo}
-                /> */}
-            </View>
         </View>
-    </View>
-);
+    );
+};
 
 Footer.propTypes = propTypes;
 Footer.displayName = 'Footer';

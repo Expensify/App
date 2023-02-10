@@ -44,7 +44,7 @@ const SignInPageLayout = (props) => {
                         {props.children}
                     </SignInPageContent>
                     <ScrollView
-                        contentContainerStyle={[{flex: 1}]}
+                        contentContainerStyle={[styles.flex1]}
                     >
                         <SignInPageGraphics />
                         <Footer />
@@ -52,18 +52,20 @@ const SignInPageLayout = (props) => {
                 </View>
             )
                 : (
-                    <ScrollView
-                        style={{maxHeight: 900}}
-                        contentContainerStyle={[]}
-                    >
-                        <SignInPageContent
-                            welcomeText={props.welcomeText}
-                            shouldShowWelcomeText={props.shouldShowWelcomeText}
+                    <View>
+                        <ScrollView
+                            style={{maxHeight: 980}}
+                            contentContainerStyle={[styles.flexGrow1]}
                         >
-                            {props.children}
-                        </SignInPageContent>
-                        <Footer />
-                    </ScrollView>
+                            <SignInPageContent
+                                welcomeText={props.welcomeText}
+                                shouldShowWelcomeText={props.shouldShowWelcomeText}
+                            >
+                                {props.children}
+                            </SignInPageContent>
+                            <Footer />
+                        </ScrollView>
+                    </View>
                 )}
         </View>
     );
