@@ -17,7 +17,7 @@ export default class RequestThrottle {
         if (this.waitTime) {
             this.waitTime = Math.min(this.waitTime * 2, CONST.NETWORK.MAX_RETRY_WAIT_TIME);
         } else {
-            this.waitTime = CONST.NETWORK.MIN_RETRY_WAIT_TIME + _.random(CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME - CONST.NETWORK.MIN_RETRY_WAIT_TIME);
+            this.waitTime = _.random(CONST.NETWORK.MIN_RETRY_WAIT_TIME, CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME);
         }
         return this.waitTime;
     }
