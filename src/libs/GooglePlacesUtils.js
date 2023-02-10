@@ -3,11 +3,11 @@ import _ from 'underscore';
 /**
  * Finds an address component by type, and returns the value associated to key. Each address component object
  * inside the addressComponents array has the following structure:
- * {
+ * [{
  *   long_name: "New York",
  *   short_name: "New York",
  *   types: [ "locality", "political" ]
- * }
+ * }]
  *
  * @param {Array} addressComponents
  * @param {Object} fieldsToExtract – has shape: {addressType: 'keyToUse'}
