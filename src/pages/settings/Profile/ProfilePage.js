@@ -1,5 +1,6 @@
+import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
-import React, {Component} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import _ from 'underscore';
@@ -37,7 +38,6 @@ const ProfilePage = (props) => {
         }
         return lodashGet(props.translate('pronouns'), pronounsKey, props.translate('profilePage.selectYourPronouns'));
     }
-
     const currentUserDetails = props.currentUserPersonalDetails || {};
     const profileSettingsOptions = [
         {
@@ -47,7 +47,7 @@ const ProfilePage = (props) => {
         },
         {
             description: props.translate('contacts.contactMethod'),
-            title: lodashGet(currentUserDetails, 'login', ''),
+            title: Str.removeSMSDomain(lodashGet(currentUserDetails, 'login', '')),
             pageRoute: ROUTES.SETTINGS_CONTACT_METHODS,
         },
         {
@@ -61,6 +61,7 @@ const ProfilePage = (props) => {
             pageRoute: ROUTES.SETTINGS_TIMEZONE,
         },
     ];
+
     return (
         <ScreenWrapper includeSafeAreaPadding={false}>
             <HeaderWithCloseButton
