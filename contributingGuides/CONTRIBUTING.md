@@ -112,7 +112,7 @@ Additionally if you want to discuss an idea with the open source community witho
 
 #### Propose a solution for the job
 4. After you reproduce the issue, complete the [proposal template here](./PROPOSAL_TEMPLATE.md) and post it as a comment in the corresponding GitHub issue (linked in the Upwork job).
-    - Note: Before submitting a proposal on an issue, be sure to read any other existing proposals. Any new proposal should be substantively different from existing proposals.
+    - Note: Before submitting a proposal on an issue, be sure to read any other existing proposals. ALL NEW PROPOSALS MUST BE DIFFERENT FROM EXISTING PROPOSALS. The *difference* should be important, meaningful or considerable.
 5. Refrain from leaving additional comments until someone from the Contributor-Plus team and / or someone from Expensify provides feedback on your proposal (do not create a pull request yet).
     - Do not leave more than one proposal.
     - Do not make extensive changes to your current proposal until after it has been reviewed.
