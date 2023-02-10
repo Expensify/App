@@ -491,23 +491,28 @@ describe('NetworkTests', () => {
     );
 
     test('persisted requests should be retried using exponential back off', () => {
-        // We're setting up xhr handler that rejects with a fetch error 3 times and then succeeds
+        // Given a mock that a request fails to fetch several times
         const xhr = jest.spyOn(HttpUtils, 'xhr')
             .mockRejectedValueOnce(new Error(CONST.ERROR.FAILED_TO_FETCH))
             .mockRejectedValueOnce(new Error(CONST.ERROR.FAILED_TO_FETCH))
             .mockRejectedValueOnce(new Error(CONST.ERROR.FAILED_TO_FETCH))
             .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS});
+
+        // When we make a persisted request and it fails to fetch then it is retried with exponential back off
         return backOffExpectations(xhr);
     });
 
     test.each([429, 500, 502, 504, 520])(
         'request with http status %d uses exponential back off',
         (httpStatus) => {
+            // Given a mock that a request resolves as not ok and with a particular http status
             global.fetch = jest.fn()
                 .mockResolvedValueOnce({ok: false, status: httpStatus})
                 .mockResolvedValueOnce({ok: false, status: httpStatus})
                 .mockResolvedValueOnce({ok: false, status: httpStatus})
                 .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS});
+
+            // When we make a persisted request and the http status represents a server error then it is retried with exponential back off
             return backOffExpectations(global.fetch);
         },
     );
