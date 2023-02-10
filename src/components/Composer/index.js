@@ -12,6 +12,8 @@ import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFull
 import getNumberOfLines from '../../libs/ComposerUtils/index';
 import * as Browser from '../../libs/Browser';
 import Clipboard from '../../libs/Clipboard';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import compose from '../../libs/compose';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -65,6 +67,8 @@ const propTypes = {
     isComposerFullSize: PropTypes.bool,
 
     ...withLocalizePropTypes,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -156,7 +160,8 @@ class Composer extends React.Component {
 
         if (prevProps.value !== this.props.value
             || prevProps.defaultValue !== this.props.defaultValue
-            || prevProps.isComposerFullSize !== this.props.isComposerFullSize) {
+            || prevProps.isComposerFullSize !== this.props.isComposerFullSize
+            || prevProps.windowWidth !== this.props.windowWidth) {
             this.updateNumberOfLines();
         }
 
@@ -366,7 +371,10 @@ class Composer extends React.Component {
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
-export default withLocalize(React.forwardRef((props, ref) => (
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <Composer {...props} forwardedRef={ref} />
 )));
