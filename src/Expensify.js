@@ -54,9 +54,6 @@ const propTypes = {
         accountID: PropTypes.number,
     }),
 
-    /** ID to use for push notifications */
-    pushNotificationID: PropTypes.string,
-
     /** Whether a new update is available and ready to install. */
     updateAvailable: PropTypes.bool,
 
@@ -81,7 +78,6 @@ const defaultProps = {
         authToken: null,
         accountID: null,
     },
-    pushNotificationID: null,
     updateAvailable: false,
     isSidebarLoaded: false,
     screenShareRequest: null,
@@ -131,13 +127,6 @@ class Expensify extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        const previousPushNotificationID = prevProps.pushNotificationID;
-        const currentPushNotificationID = this.props.pushNotificationID;
-
-        if (currentPushNotificationID && (currentPushNotificationID !== previousPushNotificationID)) {
-            PushNotification.register(currentPushNotificationID);
-        }
-
         if (!this.state.isNavigationReady || !this.state.isSplashShown) {
             return;
         }
@@ -244,9 +233,6 @@ export default compose(
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        pushNotificationID: {
-            key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
         },
         updateAvailable: {
             key: ONYXKEYS.UPDATE_AVAILABLE,

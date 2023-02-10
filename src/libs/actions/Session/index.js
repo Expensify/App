@@ -29,23 +29,22 @@ Onyx.connect({
  * On Android, AuthScreens unmounts when the app is closed with the back button so we manage the
  * push subscription when the session changes here.
  */
-let previousAccountID;
+let previousNotificationID;
 Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (session) => {
-        const accountID = lodashGet(session, 'accountID');
-        if (previousAccountID === accountID) {
+    key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
+    callback: (notificationID) => {
+        if (previousNotificationID === notificationID) {
             return;
         }
 
-        if (accountID) {
-            PushNotification.register(accountID);
+        if (notificationID) {
+            PushNotification.register(notificationID);
         } else {
             PushNotification.deregister();
             PushNotification.clearNotifications();
         }
 
-        previousAccountID = accountID;
+        previousNotificationID = notificationID;
     },
 });
 
