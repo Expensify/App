@@ -100,9 +100,9 @@ class ContactMethodsPage extends Component{
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title={this.props.translate('contacts.contactMethod')}
+                    title={this.props.translate('contacts.contactMethods')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <ScrollView>
