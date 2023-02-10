@@ -492,14 +492,14 @@ describe('NetworkTests', () => {
 
     test('persisted requests should be retried using exponential back off', () => {
         // Given a mock that a request fails to fetch several times
-        const xhr = jest.spyOn(HttpUtils, 'xhr')
-            .mockRejectedValueOnce(new Error(CONST.ERROR.FAILED_TO_FETCH))
-            .mockRejectedValueOnce(new Error(CONST.ERROR.FAILED_TO_FETCH))
-            .mockRejectedValueOnce(new Error(CONST.ERROR.FAILED_TO_FETCH))
+        global.fetch = jest.fn()
+            .mockResolvedValueOnce({ok: false, status: 500, message: CONST.ERROR.FAILED_TO_FETCH})
+            .mockResolvedValueOnce({ok: false, status: 500, message: CONST.ERROR.FAILED_TO_FETCH})
+            .mockResolvedValueOnce({ok: false, status: 500, message: CONST.ERROR.FAILED_TO_FETCH})
             .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS});
 
         // When we make a persisted request and it fails to fetch then it is retried with exponential back off
-        return backOffExpectations(xhr);
+        return backOffExpectations(global.fetch);
     });
 
     test.each([429, 500, 502, 504, 520])(
