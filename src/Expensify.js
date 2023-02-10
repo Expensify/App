@@ -126,7 +126,7 @@ class Expensify extends PureComponent {
         Linking.addEventListener('url', state => ReportUtils.openReportFromDeepLink(state.url));
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate() {
         if (!this.state.isNavigationReady || !this.state.isSplashShown) {
             return;
         }
