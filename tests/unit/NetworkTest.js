@@ -512,6 +512,33 @@ describe('NetworkTests', () => {
         },
     );
 
+    test('write requests are retried using exponential back off when Auth is down', () => {
+        // Given the response data returned when auth is down
+        const responseData = {
+            ok: true,
+            status: 200,
+            jsonCode: CONST.JSON_CODE.EXP_ERROR,
+            title: CONST.ERROR_TITLE.SOCKET,
+            type: CONST.ERROR_TYPE.SOCKET,
+        };
+
+        // We have to mock response.json() too
+        const authIsDownResponse = {
+            ...responseData,
+            json: () => Promise.resolve(responseData),
+        };
+
+        // And given a mock that auth is down for a while
+        global.fetch = jest.fn()
+            .mockResolvedValueOnce(authIsDownResponse)
+            .mockResolvedValueOnce(authIsDownResponse)
+            .mockResolvedValueOnce(authIsDownResponse)
+            .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS});
+
+        // When we make a request and auth is down then we use exponential back off until it's back
+        return backOffExpectations(global.fetch);
+    });
+
     test('test Bad Gateway status will log hmmm', () => {
         global.fetch = jest.fn()
             .mockResolvedValueOnce({ok: false, status: 502, statusText: 'Bad Gateway'});
