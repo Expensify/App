@@ -47,18 +47,18 @@ class ValidateCodeModal extends PureComponent {
                         />
                     </View>
                     <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
-                        {this.props.translate(this.props.isSuccessfullySignedIn ? 'magicCodeModal.successfulSignInTitle' : 'magicCodeModal.title')}
+                        {this.props.translate(this.props.isSuccessfullySignedIn ? 'validateCodeModal.successfulSignInTitle' : 'validateCodeModal.title')}
                     </Text>
                     <View style={[styles.mt2, styles.mb2]}>
                         <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
-                            {this.props.translate(this.props.isSuccessfullySignedIn ? 'magicCodeModal.successfulSignInDescription' : 'magicCodeModal.description')}
+                            {this.props.translate(this.props.isSuccessfullySignedIn ? 'validateCodeModal.successfulSignInDescription' : 'validateCodeModal.description')}
                             {this.props.shouldShowSignInHere
                                 && (
                                     <>
-                                        {this.props.translate('magicCodeModal.or')}
+                                        {this.props.translate('validateCodeModal.or')}
                                         {' '}
                                         <TextLink onPress={this.props.onSignInHereClick}>
-                                            {this.props.translate('magicCodeModal.signInHere')}
+                                            {this.props.translate('validateCodeModal.signInHere')}
                                         </TextLink>
                                     </>
                                 )}

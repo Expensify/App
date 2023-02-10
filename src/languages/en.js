@@ -146,11 +146,11 @@ export default {
         youCanAlso: 'You can also',
         openLinkInBrowser: 'open this link in your browser',
     },
-    magicCodeModal: {
+    validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\nyou are signed in!',
         successfulSignInDescription: 'Head back to your original tab to continue.',
         title: 'Here is your magic code',
-        description: 'Enter it to sign in',
+        description: 'Please enter the code using the device\nwhere it was originally requested',
         or: ', or',
         signInHere: 'just sign in here',
     },

@@ -146,12 +146,12 @@ export default {
         youCanAlso: 'También puedes',
         openLinkInBrowser: 'abrir este enlace en tu navegador',
     },
-    magicCodeModal: {
-        successfulSignInTitle: 'Abracadabra,\n¡ya has iniciado sesión!',
+    validateCodeModal: {
+        successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
         successfulSignInDescription: 'Vuelve a la pestaña original para continuar.',
-        title: 'Aquí está su código mágico',
+        title: 'Aquí está tu código mágico',
         or: ', ¡o',
-        description: 'Introdúcelo para iniciar sesión,',
+        description: 'Por favor, introduzca el código utilizando el dispositivo\nen el que se solicitó originalmente',
         signInHere: 'simplemente inicia sesión aquí',
     },
     iOUConfirmationList: {
