@@ -4,22 +4,22 @@ import PropTypes from 'prop-types';
 import {View, ScrollView} from 'react-native';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import Text from '../../components/Text';
-import styles from '../../styles/styles';
-import * as User from '../../libs/actions/User';
-import ONYXKEYS from '../../ONYXKEYS';
-import Button from '../../components/Button';
-import ROUTES from '../../ROUTES';
-import CONST from '../../CONST';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import FixedFooter from '../../components/FixedFooter';
-import TextInput from '../../components/TextInput';
-import userPropTypes from './userPropTypes';
-import * as LoginUtils from '../../libs/LoginUtils';
+import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
+import Navigation from '../../../../libs/Navigation/Navigation';
+import ScreenWrapper from '../../../../components/ScreenWrapper';
+import Text from '../../../../components/Text';
+import styles from '../../../../styles/styles';
+import * as User from '../../../../libs/actions/User';
+import ONYXKEYS from '../../../../ONYXKEYS';
+import Button from '../../../../components/Button';
+import ROUTES from '../../../../ROUTES';
+import CONST from '../../../../CONST';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import compose from '../../../../libs/compose';
+import FixedFooter from '../../../../components/FixedFooter';
+import TextInput from '../../../../components/TextInput';
+import userPropTypes from '../../userPropTypes';
+import * as LoginUtils from '../../../../libs/LoginUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -104,7 +104,7 @@ class AddSecondaryLoginPage extends Component {
                         ? 'addSecondaryLoginPage.addPhoneNumber'
                         : 'addSecondaryLoginPage.addEmailAddress')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 {/* We use keyboardShouldPersistTaps="handled" to prevent the keyboard from being hidden when switching focus on input fields  */}
