@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native-picker-select/src/index.js b/node_modules/react-native-picker-select/src/index.js
+index 5861855..09ea5a3 100644
+--- a/node_modules/react-native-picker-select/src/index.js
++++ b/node_modules/react-native-picker-select/src/index.js
+@@ -431,6 +431,7 @@ export default class RNPickerSelect extends PureComponent {
+             <View pointerEvents="box-only" style={containerStyle}>
+                 <TextInput
+                     testID="text_input"
++                    pointerEvents="none"
+                     style={[
+                         Platform.OS === 'ios' ? style.inputIOS : style.inputAndroid,
+                         this.getPlaceholderStyle(),

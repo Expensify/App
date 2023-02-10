@@ -1,7 +1,7 @@
-import Clipboard from '@react-native-community/clipboard';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 /**
- * Sets a string on the Clipboard object via @react-native-community/clipboard
+ * Sets a string on the Clipboard object via @react-native-clipboard/clipboard
  *
  * @param {String} text
  */

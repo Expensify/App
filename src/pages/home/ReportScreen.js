@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import {Freeze} from 'react-freeze';
+// import {Freeze} from 'react-freeze';
 import {PortalHost} from '@gorhom/portal';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -31,7 +31,7 @@ import Banner from '../../components/Banner';
 import withLocalize from '../../components/withLocalize';
 import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
+// import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
 
 const propTypes = {
@@ -197,17 +197,17 @@ class ReportScreen extends React.Component {
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
 
         // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
-        const freeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
+        // const freeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
 
         // the moment the ReportScreen becomes unfrozen we want to start the animation of the placeholder skeleton content
         // (which is shown, until all the actual views of the ReportScreen have been rendered)
-        const animatePlaceholder = !freeze;
+        // const animatePlaceholder = !freeze;
 
         return (
             <ScreenWrapper
                 style={screenWrapperStyle}
             >
-                <Freeze
+                {/* <Freeze
                     freeze={freeze}
                     placeholder={(
                         <>
@@ -218,7 +218,7 @@ class ReportScreen extends React.Component {
                             </View>
                         </>
                     )}
-                >
+                > */}
                     <FullPageNotFoundView
                         shouldShow={!this.props.report.reportID}
                         subtitleKey="notFound.noAccess"
@@ -299,7 +299,7 @@ class ReportScreen extends React.Component {
                             <PortalHost name={CONST.REPORT.DROP_HOST_NAME} />
                         </View>
                     </FullPageNotFoundView>
-                </Freeze>
+                {/* </Freeze> */}
             </ScreenWrapper>
         );
     }

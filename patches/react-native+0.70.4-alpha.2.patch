@@ -1,0 +1,359 @@
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/RCTFabricComponentsPlugins.h b/node_modules/@expensify/react-native/React/Fabric/Mounting/ComponentViews/RCTFabricComponentsPlugins.h
+index a2cc0aa..0cc6b21 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/RCTFabricComponentsPlugins.h
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/RCTFabricComponentsPlugins.h
+@@ -42,6 +42,7 @@ Class<RCTComponentViewProtocol> RCTTextInputCls(void) __attribute__((used));
+ Class<RCTComponentViewProtocol> RCTInputAccessoryCls(void) __attribute__((used));
+ Class<RCTComponentViewProtocol> RCTViewCls(void) __attribute__((used));
+ Class<RCTComponentViewProtocol> RCTImageCls(void) __attribute__((used));
++Class<RCTComponentViewProtocol> RCTModalHostViewCls(void) __attribute__((used));
+ 
+ #ifdef __cplusplus
+ }
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/RCTFabricComponentsPlugins.mm b/node_modules/@expensify/react-native/React/Fabric/Mounting/ComponentViews/RCTFabricComponentsPlugins.mm
+index 84cbe8d..6318933 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/RCTFabricComponentsPlugins.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/RCTFabricComponentsPlugins.mm
+@@ -30,6 +30,7 @@
+     {"InputAccessoryView", RCTInputAccessoryCls},
+     {"View", RCTViewCls},
+     {"Image", RCTImageCls},
++    {"ModalHostView", RCTModalHostViewCls},
+   };
+ 
+   auto p = sFabricComponentsClassMap.find(name);
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/@expensify/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+index 3631fb4..ddfe790 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+@@ -116,6 +116,10 @@ - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &
+     [self _setMultiline:newTextInputProps.traits.multiline];
+   }
+ 
++  if (newTextInputProps.traits.showSoftInputOnFocus != oldTextInputProps.traits.showSoftInputOnFocus) {
++    [self _setShowSoftInputOnFocus:newTextInputProps.traits.showSoftInputOnFocus];
++  }
++
+   if (newTextInputProps.traits.autocapitalizationType != oldTextInputProps.traits.autocapitalizationType) {
+     _backedTextInputView.autocapitalizationType =
+         RCTUITextAutocapitalizationTypeFromAutocapitalizationType(newTextInputProps.traits.autocapitalizationType);
+@@ -246,6 +250,11 @@ - (void)updateLayoutMetrics:(LayoutMetrics const &)layoutMetrics
+       UIEdgeInsetsInsetRect(self.bounds, RCTUIEdgeInsetsFromEdgeInsets(layoutMetrics.borderWidth));
+   _backedTextInputView.textContainerInset =
+       RCTUIEdgeInsetsFromEdgeInsets(layoutMetrics.contentInsets - layoutMetrics.borderWidth);
++
++  if (_eventEmitter) {
++    auto const &textInputEventEmitter = *std::static_pointer_cast<TextInputEventEmitter const>(_eventEmitter);
++    textInputEventEmitter.onContentSizeChange([self _textInputMetrics]);
++  }
+ }
+ 
+ - (void)prepareForRecycle
+@@ -608,6 +617,26 @@ - (void)_setMultiline:(BOOL)multiline
+   RCTCopyBackedTextInput(_backedTextInputView, backedTextInputView);
+   _backedTextInputView = backedTextInputView;
+   [self addSubview:_backedTextInputView];
++
++  auto const &currentTextInputProps = *std::static_pointer_cast<TextInputProps const>(_props);
++  [self _setShowSoftInputOnFocus:currentTextInputProps.traits.showSoftInputOnFocus];
++}
++
++- (void)_setShowSoftInputOnFocus:(BOOL)showSoftInputOnFocus
++{
++  if (showSoftInputOnFocus) {
++    // Resets to default keyboard.
++    _backedTextInputView.inputView = nil;
++
++    // Without the call to reloadInputViews, the keyboard will not change until the textInput field (the first
++    // responder) loses and regains focus.
++    if (_backedTextInputView.isFirstResponder) {
++      [_backedTextInputView reloadInputViews];
++    }
++  } else {
++    // Hides keyboard, but keeps blinking cursor.
++    _backedTextInputView.inputView = [UIView new];
++  }
+ }
+ 
+ - (BOOL)_textOf:(NSAttributedString *)newText equals:(NSAttributedString *)oldText
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManager.java b/node_modules/@expensify/react-native/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManager.java
+index 67120d2..bd8febe 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManager.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManager.java
+@@ -923,10 +923,11 @@ public class ReactInstanceManager {
+       if (mViewManagers == null) {
+         synchronized (mPackages) {
+           if (mViewManagers == null) {
+-            mViewManagers = new ArrayList<>();
++            ArrayList<ViewManager> viewManagers = new ArrayList<>();
+             for (ReactPackage reactPackage : mPackages) {
+-              mViewManagers.addAll(reactPackage.createViewManagers(catalystApplicationContext));
++              viewManagers.addAll(reactPackage.createViewManagers(catalystApplicationContext));
+             }
++            mViewManagers = viewManagers;
+             return mViewManagers;
+           }
+         }
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ModalHostHelper.java b/node_modules/@expensify/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ModalHostHelper.java
+deleted file mode 100644
+index 3a226c0..0000000
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ModalHostHelper.java
++++ /dev/null
+@@ -1,63 +0,0 @@
+-/*
+- * Copyright (c) Meta Platforms, Inc. and affiliates.
+- *
+- * This source code is licensed under the MIT license found in the
+- * LICENSE file in the root directory of this source tree.
+- */
+-
+-package com.facebook.react.views.modal;
+-
+-import android.content.Context;
+-import android.content.res.Resources;
+-import android.content.res.TypedArray;
+-import android.graphics.Point;
+-import android.view.Display;
+-import android.view.WindowManager;
+-import com.facebook.infer.annotation.Assertions;
+-
+-/** Helper class for Modals. */
+-/*package*/ class ModalHostHelper {
+-
+-  private static final Point MIN_POINT = new Point();
+-  private static final Point MAX_POINT = new Point();
+-  private static final Point SIZE_POINT = new Point();
+-
+-  /**
+-   * To get the size of the screen, we use information from the WindowManager and default Display.
+-   * We don't use DisplayMetricsHolder, or Display#getSize() because they return values that include
+-   * the status bar. We only want the values of what will actually be shown on screen. We use
+-   * Display#getSize() to determine if the screen is in portrait or landscape. We don't use
+-   * getRotation because the 'natural' rotation will be portrait on phones and landscape on tablets.
+-   * This should only be called on the native modules/shadow nodes thread.
+-   */
+-  public static Point getModalHostSize(Context context) {
+-    WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+-    Display display = Assertions.assertNotNull(wm).getDefaultDisplay();
+-    // getCurrentSizeRange will return the min and max width and height that the window can be
+-    display.getCurrentSizeRange(MIN_POINT, MAX_POINT);
+-    // getSize will return the dimensions of the screen in its current orientation
+-    display.getSize(SIZE_POINT);
+-
+-    int[] attrs = {android.R.attr.windowFullscreen};
+-    Resources.Theme theme = context.getTheme();
+-    TypedArray ta = theme.obtainStyledAttributes(attrs);
+-    boolean windowFullscreen = ta.getBoolean(0, false);
+-
+-    // We need to add the status bar height to the height if we have a fullscreen window,
+-    // because Display.getCurrentSizeRange doesn't include it.
+-    Resources resources = context.getResources();
+-    int statusBarId = resources.getIdentifier("status_bar_height", "dimen", "android");
+-    int statusBarHeight = 0;
+-    if (windowFullscreen && statusBarId > 0) {
+-      statusBarHeight = (int) resources.getDimension(statusBarId);
+-    }
+-
+-    if (SIZE_POINT.x < SIZE_POINT.y) {
+-      // If we are vertical the width value comes from min width and height comes from max height
+-      return new Point(MIN_POINT.x, MAX_POINT.y + statusBarHeight);
+-    } else {
+-      // If we are horizontal the width value comes from max width and height comes from min height
+-      return new Point(MAX_POINT.x, MIN_POINT.y + statusBarHeight);
+-    }
+-  }
+-}
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ModalHostShadowNode.java b/node_modules/@expensify/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ModalHostShadowNode.java
+deleted file mode 100644
+index 7288fe0..0000000
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ModalHostShadowNode.java
++++ /dev/null
+@@ -1,37 +0,0 @@
+-/*
+- * Copyright (c) Meta Platforms, Inc. and affiliates.
+- *
+- * This source code is licensed under the MIT license found in the
+- * LICENSE file in the root directory of this source tree.
+- */
+-
+-package com.facebook.react.views.modal;
+-
+-import android.graphics.Point;
+-import com.facebook.react.uimanager.LayoutShadowNode;
+-import com.facebook.react.uimanager.ReactShadowNodeImpl;
+-
+-/**
+- * We implement the Modal by using an Android Dialog. That will fill the entire window of the
+- * application. To get layout to work properly, we need to layout all the elements within the
+- * Modal's inner content view as if they can fill the entire window. To do that, we need to
+- * explicitly set the styleWidth and styleHeight on the LayoutShadowNode of the child of this node
+- * to be the window size. This will then cause the children of the Modal to layout as if they can
+- * fill the window.
+- */
+-class ModalHostShadowNode extends LayoutShadowNode {
+-
+-  public ModalHostShadowNode() {}
+-
+-  /**
+-   * We need to set the styleWidth and styleHeight of the one child (represented by the <View/>
+-   * within the <RCTModalHostView/> in Modal.js. This needs to fill the entire window.
+-   */
+-  @Override
+-  public void addChildAt(ReactShadowNodeImpl child, int i) {
+-    super.addChildAt(child, i);
+-    Point modalSize = ModalHostHelper.getModalHostSize(getThemedContext());
+-    child.setStyleWidth(modalSize.x);
+-    child.setStyleHeight(modalSize.y);
+-  }
+-}
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ReactModalHostManager.java b/node_modules/@expensify/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ReactModalHostManager.java
+index 15ce94c..17c6782 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ReactModalHostManager.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ReactModalHostManager.java
+@@ -50,16 +50,6 @@ public class ReactModalHostManager extends ViewGroupManager<ReactModalHostView>
+     return new ReactModalHostView(reactContext);
+   }
+ 
+-  @Override
+-  public LayoutShadowNode createShadowNodeInstance() {
+-    return new ModalHostShadowNode();
+-  }
+-
+-  @Override
+-  public Class<? extends LayoutShadowNode> getShadowNodeClass() {
+-    return ModalHostShadowNode.class;
+-  }
+-
+   @Override
+   public void onDropViewInstance(ReactModalHostView view) {
+     super.onDropViewInstance(view);
+@@ -168,8 +158,6 @@ public class ReactModalHostManager extends ViewGroupManager<ReactModalHostView>
+   public Object updateState(
+       ReactModalHostView view, ReactStylesDiffMap props, StateWrapper stateWrapper) {
+     view.getFabricViewStateManager().setStateWrapper(stateWrapper);
+-    Point modalSize = ModalHostHelper.getModalHostSize(view.getContext());
+-    view.updateState(modalSize.x, modalSize.y);
+     return null;
+   }
+ 
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/androidtextinput/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp b/node_modules/@expensify/react-native/ReactCommon/react/renderer/components/textinput/androidtextinput/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
+index fa497f2..0327ac0 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/androidtextinput/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/androidtextinput/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
+@@ -170,15 +170,6 @@ void AndroidTextInputShadowNode::updateStateIfNeeded() {
+ Size AndroidTextInputShadowNode::measureContent(
+     LayoutContext const &layoutContext,
+     LayoutConstraints const &layoutConstraints) const {
+-  if (getStateData().cachedAttributedStringId != 0) {
+-    return textLayoutManager_
+-        ->measureCachedSpannableById(
+-            getStateData().cachedAttributedStringId,
+-            getConcreteProps().paragraphAttributes,
+-            layoutConstraints)
+-        .size;
+-  }
+-
+   // Layout is called right after measure.
+   // Measure is marked as `const`, and `layout` is not; so State can be updated
+   // during layout, but not during `measure`. If State is out-of-date in layout,
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/TextInputEventEmitter.cpp b/node_modules/@expensify/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/TextInputEventEmitter.cpp
+index 66e3c6e..91720e2 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/TextInputEventEmitter.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/TextInputEventEmitter.cpp
+@@ -37,6 +37,23 @@ static jsi::Value textInputMetricsPayload(
+   return payload;
+ };
+ 
++static jsi::Value textInputMetricsContentSizePayload(
++    jsi::Runtime &runtime,
++    TextInputMetrics const &textInputMetrics) {
++  auto payload = jsi::Object(runtime);
++
++  {
++    auto contentSize = jsi::Object(runtime);
++    contentSize.setProperty(
++        runtime, "width", textInputMetrics.contentSize.width);
++    contentSize.setProperty(
++        runtime, "height", textInputMetrics.contentSize.height);
++    payload.setProperty(runtime, "contentSize", contentSize);
++  }
++
++  return payload;
++};
++
+ static jsi::Value keyPressMetricsPayload(
+     jsi::Runtime &runtime,
+     KeyPressMetrics const &keyPressMetrics) {
+@@ -83,7 +100,7 @@ void TextInputEventEmitter::onChangeSync(
+ 
+ void TextInputEventEmitter::onContentSizeChange(
+     TextInputMetrics const &textInputMetrics) const {
+-  dispatchTextInputEvent("contentSizeChange", textInputMetrics);
++  dispatchTextInputContentSizeChangeEvent("contentSizeChange", textInputMetrics);
+ }
+ 
+ void TextInputEventEmitter::onSelectionChange(
+@@ -138,5 +155,17 @@ void TextInputEventEmitter::dispatchTextInputEvent(
+       priority);
+ }
+ 
++void TextInputEventEmitter::dispatchTextInputContentSizeChangeEvent(
++    std::string const &name,
++    TextInputMetrics const &textInputMetrics,
++    EventPriority priority) const {
++  dispatchEvent(
++      name,
++      [textInputMetrics](jsi::Runtime &runtime) {
++        return textInputMetricsContentSizePayload(runtime, textInputMetrics);
++      },
++      priority);
++}
++
+ } // namespace react
+ } // namespace facebook
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/TextInputEventEmitter.h b/node_modules/@expensify/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/TextInputEventEmitter.h
+index a872f5f..36bed3c 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/TextInputEventEmitter.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/TextInputEventEmitter.h
+@@ -54,6 +54,11 @@ class TextInputEventEmitter : public ViewEventEmitter {
+       std::string const &name,
+       TextInputMetrics const &textInputMetrics,
+       EventPriority priority = EventPriority::AsynchronousBatched) const;
++    
++  void dispatchTextInputContentSizeChangeEvent(
++      std::string const &name,
++      TextInputMetrics const &textInputMetrics,
++      EventPriority priority = EventPriority::AsynchronousBatched) const;
+ };
+ 
+ } // namespace react
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/TextInputProps.cpp b/node_modules/@expensify/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/TextInputProps.cpp
+index 96d4d0c..75ce7b0 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/TextInputProps.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/TextInputProps.cpp
+@@ -51,6 +51,12 @@ TextInputProps::TextInputProps(
+           "maxLength",
+           sourceProps.maxLength,
+           {})),
++      showSoftInputOnFocus(convertRawProp(
++          context,
++          rawProps,
++          "showSoftInputOnFocus",
++          sourceProps.showSoftInputOnFocus,
++          {})),
+       cursorColor(convertRawProp(
+           context,
+           rawProps,
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/TextInputProps.h b/node_modules/@expensify/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/TextInputProps.h
+index bede745..5f158ae 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/TextInputProps.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/TextInputProps.h
+@@ -49,6 +49,8 @@ class TextInputProps final : public ViewProps, public BaseTextProps {
+ 
+   int maxLength{};
+ 
++  bool showSoftInputOnFocus{true};
++
+   /*
+    * Tint colors
+    */

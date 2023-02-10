@@ -1,0 +1,48 @@
+diff --git a/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/ReanimatedPackage.java b/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/ReanimatedPackage.java
+index e426da6..1d02de5 100644
+--- a/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/ReanimatedPackage.java
++++ b/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/ReanimatedPackage.java
+@@ -27,9 +27,6 @@ public class ReanimatedPackage extends TurboReactPackage implements ReactPackage
+     if (name.equals(ReanimatedModule.NAME)) {
+       return new ReanimatedModule(reactContext);
+     }
+-    if (name.equals(ReanimatedUIManager.NAME)) {
+-      return createUIManager(reactContext);
+-    }
+     return null;
+   }
+ 
+@@ -37,7 +34,7 @@ public class ReanimatedPackage extends TurboReactPackage implements ReactPackage
+   public ReactModuleInfoProvider getReactModuleInfoProvider() {
+     Class<? extends NativeModule>[] moduleList =
+         new Class[] {
+-          ReanimatedModule.class, ReanimatedUIManager.class,
++          ReanimatedModule.class,
+         };
+ 
+     final Map<String, ReactModuleInfo> reactModuleInfoMap = new HashMap<>();
+diff --git a/node_modules/react-native-reanimated/lib/module/reanimated2/NativeReanimated/NativeReanimated.js b/node_modules/react-native-reanimated/lib/module/reanimated2/NativeReanimated/NativeReanimated.js
+index 01bd931..9421ba9 100644
+--- a/node_modules/react-native-reanimated/lib/module/reanimated2/NativeReanimated/NativeReanimated.js
++++ b/node_modules/react-native-reanimated/lib/module/reanimated2/NativeReanimated/NativeReanimated.js
+@@ -1,7 +1,7 @@
+ function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+ 
+ import { NativeModules } from 'react-native';
+-import { version as jsVersion } from '../../../package.json';
++import { version as jsVersion } from '../../../../package.json';
+ export class NativeReanimated {
+   constructor() {
+     let native = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+diff --git a/node_modules/react-native-reanimated/scripts/reanimated_utils.rb b/node_modules/react-native-reanimated/scripts/reanimated_utils.rb
+index 1b20c7e..7fd028c 100644
+--- a/node_modules/react-native-reanimated/scripts/reanimated_utils.rb
++++ b/node_modules/react-native-reanimated/scripts/reanimated_utils.rb
+@@ -1,6 +1,6 @@
+ def try_to_parse_react_native_package_json(node_modules_dir)
+   react_native_package_json_path = File.join(node_modules_dir, 'react-native/package.json')
+-  if !File.exists?(react_native_package_json_path)
++  if !File.exist?(react_native_package_json_path)
+     return nil
+   end
+   return JSON.parse(File.read(react_native_package_json_path))
