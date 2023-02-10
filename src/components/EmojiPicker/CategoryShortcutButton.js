@@ -4,9 +4,9 @@ import {Pressable, View} from 'react-native';
 import Icon from '../Icon';
 import variables from '../../styles/variables';
 import styles from '../../styles/styles';
-import colors from '../../styles/colors';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
+import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     /** The icon representation of the category that this button links to */
@@ -38,7 +38,7 @@ class CategoryShortcutButton extends PureComponent {
             >
                 <View style={styles.alignSelfCenter}>
                     <Icon
-                        fill={colors.gray3}
+                        fill={themeColors.icon}
                         src={this.props.icon}
                         height={variables.iconSizeNormal}
                         width={variables.iconSizeNormal}
