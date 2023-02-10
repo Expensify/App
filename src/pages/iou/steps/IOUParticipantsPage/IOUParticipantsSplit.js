@@ -42,11 +42,18 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes).isRequired,
 
+    /** padding bottom style of safe area */
+    safeAreaPaddingBottomStyle: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     participants: [],
+    safeAreaPaddingBottomStyle: {},
 };
 
 class IOUParticipantsSplit extends Component {
