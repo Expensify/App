@@ -733,7 +733,6 @@ class ReportActionCompose extends React.PureComponent {
                     {!this.props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                     <ReportTypingIndicator reportID={this.props.reportID} />
                     <ExceededCommentLength commentLength={this.state.exceededCommentLength || 0} />
-                    <ExceededCommentLength commentLength={encodedCommentLength} />
                 </View>
                 {this.state.isDraggingOver && <ReportDropUI />}
             </View>
