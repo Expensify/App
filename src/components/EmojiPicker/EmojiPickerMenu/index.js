@@ -339,7 +339,7 @@ class EmojiPickerMenu extends Component {
     scrollToHeader(headerIndex) {
         const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
         this.emojiList.flashScrollIndicators();
-        this.emojiList.scrollToOffset({offset: calculatedOffset, animated: false});
+        this.emojiList.scrollToOffset({offset: calculatedOffset, animated: true});
     }
 
     /**
