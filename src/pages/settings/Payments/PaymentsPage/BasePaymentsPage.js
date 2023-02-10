@@ -49,6 +49,7 @@ class BasePaymentsPage extends React.Component {
             formattedSelectedPaymentMethod: {
                 title: '',
             },
+            selectedPaymentMethodType: null,
             anchorPositionTop: 0,
             anchorPositionBottom: 0,
             anchorPositionRight: 0,
@@ -85,6 +86,27 @@ class BasePaymentsPage extends React.Component {
             this.setShouldShowLoadingSpinner();
         } else {
             this.debounceSetShouldShowLoadingSpinner();
+        }
+
+        if (this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt) {
+            // We should reset selected payment method state values and close corresponding modals if the selected payment method is deleted
+            let shouldResetPaymentMethodData = false;
+
+            if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT && _.isEmpty(this.props.bankAccountList[this.state.methodID])) {
+                shouldResetPaymentMethodData = true;
+            } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && _.isEmpty(this.props.cardList[this.state.methodID])) {
+                shouldResetPaymentMethodData = true;
+            } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PAYPAL && this.props.payPalMeData !== prevProps.payPalMeData && _.isEmpty(this.props.payPalMeData)) {
+                shouldResetPaymentMethodData = true;
+            }
+            if (shouldResetPaymentMethodData) {
+                // Close corresponding selected payment method modals which are open
+                if (this.state.shouldShowDefaultDeleteMenu) {
+                    this.hideDefaultDeleteMenu();
+                } else if (this.state.shouldShowPasswordPrompt) {
+                    this.hidePasswordPrompt();
+                }
+            }
         }
 
         // previously online OR currently offline, skip fetch
@@ -135,6 +157,23 @@ class BasePaymentsPage extends React.Component {
 
             // We want the position to be 13px to the right of the left border
             anchorPositionRight: (this.props.windowWidth - position.right) + 13,
+        });
+    }
+
+    resetSelectedPaymentMethodData() {
+        // The below state values are used by payment method modals and we reset them while closing the modals.
+        // We should only reset the values when the modal animation is completed and so using InteractionManager.runAfterInteractions which fires after all animaitons are complete
+        InteractionManager.runAfterInteractions(() => {
+            // Reset to same values as in the constructor
+            this.setState({
+                isSelectedPaymentMethodDefault: false,
+                selectedPaymentMethod: {},
+                formattedSelectedPaymentMethod: {
+                    title: '',
+                },
+                methodID: null,
+                selectedPaymentMethodType: null,
+            });
         });
     }
 
@@ -235,18 +274,25 @@ class BasePaymentsPage extends React.Component {
 
     /**
      * Hide the default / delete modal
+     * @param {boolean} shouldClearSelectedData - Clear selected payment method data if true
      */
-    hideDefaultDeleteMenu() {
+    hideDefaultDeleteMenu(shouldClearSelectedData = true) {
         this.setState({shouldShowDefaultDeleteMenu: false});
         InteractionManager.runAfterInteractions(() => {
             this.setState({
                 showConfirmDeleteContent: false,
             });
+            if (shouldClearSelectedData) {
+                this.resetSelectedPaymentMethodData();
+            }
         });
     }
 
-    hidePasswordPrompt() {
+    hidePasswordPrompt(shouldClearSelectedData = true) {
         this.setState({shouldShowPasswordPrompt: false});
+        if (shouldClearSelectedData) {
+            this.resetSelectedPaymentMethodData();
+        }
 
         // Due to iOS modal freeze issue, password modal freezes the app when closed.
         // LayoutAnimation undoes the running animation.
@@ -267,6 +313,7 @@ class BasePaymentsPage extends React.Component {
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             PaymentMethods.makeDefaultPaymentMethod(password, null, this.state.selectedPaymentMethod.fundID, previousPaymentMethod, currentPaymentMethod);
         }
+        this.resetSelectedPaymentMethodData();
     }
 
     deletePaymentMethod() {
@@ -277,6 +324,7 @@ class BasePaymentsPage extends React.Component {
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             PaymentMethods.deletePaymentCard(this.state.selectedPaymentMethod.fundID);
         }
+        this.resetSelectedPaymentMethodData();
     }
 
     navigateToTransferBalancePage() {
@@ -439,30 +487,10 @@ class BasePaymentsPage extends React.Component {
                     ) : (
                         <ConfirmContent
                             onConfirm={() => {
-                                this.setState({
-                                    shouldShowDefaultDeleteMenu: false,
-                                });
-                                InteractionManager.runAfterInteractions(() => {
-                                    this.setState({
-                                        showConfirmDeleteContent: false,
-                                    });
-                                });
+                                this.hideDefaultDeleteMenu(false);
                                 this.deletePaymentMethod();
                             }}
-                            onCancel={() => {
-                                this.setState({
-                                    shouldShowDefaultDeleteMenu: false,
-                                });
-                                InteractionManager.runAfterInteractions(
-                                    () => {
-                                        this.setState(
-                                            {
-                                                showConfirmDeleteContent: false,
-                                            },
-                                        );
-                                    },
-                                );
-                            }}
+                            onCancel={this.hideDefaultDeleteMenu}
                             contentStyles={!this.props.isSmallScreenWidth ? [styles.sidebarPopover] : undefined}
                             title={this.props.translate('paymentsPage.deleteAccount')}
                             prompt={this.props.translate('paymentsPage.deleteConfirmation')}
@@ -485,7 +513,7 @@ class BasePaymentsPage extends React.Component {
                         right: this.state.anchorPositionRight,
                     }}
                     onSubmit={(password) => {
-                        this.hidePasswordPrompt();
+                        this.hidePasswordPrompt(false);
                         this.makeDefaultPaymentMethod(password);
                     }}
                     submitButtonText={this.state.passwordButtonText}
@@ -520,6 +548,9 @@ export default compose(
         },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,
+        },
+        payPalMeData: {
+            key: ONYXKEYS.PAYPAL,
         },
         isLoadingPaymentMethods: {
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
