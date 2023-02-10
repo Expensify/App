@@ -29,8 +29,8 @@ hubs:
       - href: Request-and-Send-Money
         title: Request and Send Money
 
-  - href: expensify-playbooks
-    title: Expensify Playbooks
+  - href: playbooks
+    title: Playbooks
 
   - href: other
     title: Other
