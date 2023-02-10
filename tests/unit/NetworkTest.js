@@ -437,11 +437,17 @@ describe('NetworkTests', () => {
             });
     });
 
-    // Given a response mock function run a common set of expectations for exponential back off
-    const backOffExpectations = responseMock => (
+    // Given a retry response create a mock and run a common set of expectations for exponential back off
+    const backOffExpectations = (retryResponse) => {
+        // Given a mock where a retry response is returned several times before a successful response
+        global.fetch = jest.fn()
+            .mockResolvedValueOnce(retryResponse)
+            .mockResolvedValueOnce(retryResponse)
+            .mockResolvedValueOnce(retryResponse)
+            .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS});
 
         // Given we have a request made while we're offline
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
+        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
             .then(() => {
                 // When network calls with `persist` are made
                 Network.post('mock command', {param1: 'value1', persist: true});
@@ -453,7 +459,7 @@ describe('NetworkTests', () => {
             .then(waitForPromisesToResolve)
             .then(() => {
                 // Then there has only been one request so far
-                expect(responseMock).toHaveBeenCalledTimes(1);
+                expect(global.fetch).toHaveBeenCalledTimes(1);
 
                 // And we still have 1 persisted request
                 expect(_.size(PersistedRequests.getAll())).toEqual(1);
@@ -467,7 +473,7 @@ describe('NetworkTests', () => {
             })
             .then(() => {
                 // Then we have retried the failing request
-                expect(responseMock).toHaveBeenCalledTimes(2);
+                expect(global.fetch).toHaveBeenCalledTimes(2);
 
                 // Now we will double the wait time before the next retry
                 jest.advanceTimersByTime(RequestThrottleMock.initialRequestWaitTime * 2);
@@ -475,7 +481,7 @@ describe('NetworkTests', () => {
             })
             .then(() => {
                 // Then we have retried again
-                expect(responseMock).toHaveBeenCalledTimes(3);
+                expect(global.fetch).toHaveBeenCalledTimes(3);
 
                 // Now we double the wait time again
                 jest.advanceTimersByTime(RequestThrottleMock.initialRequestWaitTime * 2 * 2);
@@ -483,38 +489,23 @@ describe('NetworkTests', () => {
             })
             .then(() => {
                 // Then the request is retried again
-                expect(responseMock).toHaveBeenCalledTimes(4);
+                expect(global.fetch).toHaveBeenCalledTimes(4);
 
                 // The request succeeds so the queue is empty
                 expect(_.size(PersistedRequests.getAll())).toEqual(0);
-            })
-    );
+            });
+    };
 
-    test('persisted requests should be retried using exponential back off', () => {
-        // Given a mock that a request fails to fetch several times
-        global.fetch = jest.fn()
-            .mockResolvedValueOnce({ok: false, status: 500, message: CONST.ERROR.FAILED_TO_FETCH})
-            .mockResolvedValueOnce({ok: false, status: 500, message: CONST.ERROR.FAILED_TO_FETCH})
-            .mockResolvedValueOnce({ok: false, status: 500, message: CONST.ERROR.FAILED_TO_FETCH})
-            .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS});
-
-        // When we make a persisted request and it fails to fetch then it is retried with exponential back off
-        return backOffExpectations(global.fetch);
-    });
+    // Given that a request fails to fetch several times
+    // When we make a persisted request and it fails to fetch then it is retried with exponential back off
+    test('persisted requests should be retried using exponential back off', () => backOffExpectations({ok: false, status: 500, message: CONST.ERROR.FAILED_TO_FETCH}));
 
     test.each([429, 500, 502, 504, 520])(
         'request with http status %d uses exponential back off',
-        (httpStatus) => {
-            // Given a mock that a request resolves as not ok and with a particular http status
-            global.fetch = jest.fn()
-                .mockResolvedValueOnce({ok: false, status: httpStatus})
-                .mockResolvedValueOnce({ok: false, status: httpStatus})
-                .mockResolvedValueOnce({ok: false, status: httpStatus})
-                .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS});
 
-            // When we make a persisted request and the http status represents a server error then it is retried with exponential back off
-            return backOffExpectations(global.fetch);
-        },
+        // Given that a request resolves as not ok and with a particular http status
+        // When we make a persisted request and the http status represents a server error then it is retried with exponential back off
+        httpStatus => backOffExpectations({ok: false, status: httpStatus}),
     );
 
     test('write requests are retried using exponential back off when Auth is down', () => {
@@ -533,15 +524,8 @@ describe('NetworkTests', () => {
             json: () => Promise.resolve(responseData),
         };
 
-        // And given a mock that auth is down for a while
-        global.fetch = jest.fn()
-            .mockResolvedValueOnce(authIsDownResponse)
-            .mockResolvedValueOnce(authIsDownResponse)
-            .mockResolvedValueOnce(authIsDownResponse)
-            .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS});
-
         // When we make a request and auth is down then we use exponential back off until it's back
-        return backOffExpectations(global.fetch);
+        return backOffExpectations(authIsDownResponse);
     });
 
     test('test Bad Gateway status will log hmmm', () => {
