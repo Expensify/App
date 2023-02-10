@@ -195,7 +195,7 @@ class Expensify extends PureComponent {
         }
 
         return (
-            <>
+            <DeeplinkWrapper>
                 {!this.state.isSplashShown && (
                     <>
                         <KeyboardShortcutsModal />
@@ -223,7 +223,7 @@ class Expensify extends PureComponent {
                     onReady={this.setNavigationReady}
                     authenticated={this.isAuthenticated()}
                 />
-            </>
+            </DeeplinkWrapper>
         );
     }
 }
