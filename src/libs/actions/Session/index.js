@@ -17,6 +17,7 @@ import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
 import DateUtils from '../../DateUtils';
 
+window.Onyx = Onyx;
 let credentials = {};
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
