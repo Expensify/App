@@ -76,7 +76,7 @@ class SearchPage extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (_.isEqual(prevProps.reports, this.props.reports) && _.isEqual(prevProps.personalDetails, this.props.personalDetails) && _.isEqual(prevProps.betas, this.props.betas)) {
+        if (_.isEqual(prevProps, this.props)) {
             return;
         }
         this.updateOptions();
