@@ -32,6 +32,7 @@ import networkPropTypes from '../../components/networkPropTypes';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as ReportUtils from '../../libs/ReportUtils';
 import FormHelpMessage from '../../components/FormHelpMessage';
+import TextInput from '../../components/TextInput';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -62,9 +63,11 @@ class WorkspaceMembersPage extends React.Component {
             selectedEmployees: [],
             isRemoveMembersConfirmModalVisible: false,
             errors: {},
+            searchValue: '',
         };
 
         this.renderItem = this.renderItem.bind(this);
+        this.onSearch = this.onSearch.bind(this);
         this.inviteUser = this.inviteUser.bind(this);
         this.addUser = this.addUser.bind(this);
         this.removeUser = this.removeUser.bind(this);
@@ -89,6 +92,10 @@ class WorkspaceMembersPage extends React.Component {
         this.getWorkspaceMembers();
     }
 
+    onSearch(searchValue = '') {
+        this.setState({searchValue});
+    }
+
     /**
      * Get members for the current workspace
      */
@@ -107,6 +114,7 @@ class WorkspaceMembersPage extends React.Component {
      * Open the modal to invite a user
      */
     inviteUser() {
+        this.setState({searchValue: '', selectedEmployees: []});
         Navigation.navigate(ROUTES.getWorkspaceInviteRoute(this.props.route.params.policyID));
     }
 
@@ -299,6 +307,23 @@ class WorkspaceMembersPage extends React.Component {
             });
         });
         data = _.sortBy(data, value => value.displayName.toLowerCase());
+        data = _.filter(data, (member) => {
+            const searchValue = this.state.searchValue.toLowerCase();
+
+            if (member.displayName.toLowerCase().includes(searchValue)) {
+                return true;
+            }
+
+            if (member.login.toLowerCase().includes(searchValue)) {
+                return true;
+            }
+
+            if (member.phoneNumber.toLowerCase().includes(searchValue)) {
+                return true;
+            }
+
+            return false;
+        });
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
 
@@ -315,7 +340,10 @@ class WorkspaceMembersPage extends React.Component {
                         title={this.props.translate('workspace.common.members')}
                         subtitle={policyName}
                         onCloseButtonPress={() => Navigation.dismissModal()}
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
+                        onBackButtonPress={() => {
+                            this.setState({searchValue: '', selectedEmployees: []});
+                            Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+                        }}
                         shouldShowGetAssistanceButton
                         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                         shouldShowBackButton
@@ -347,6 +375,15 @@ class WorkspaceMembersPage extends React.Component {
                                 onPress={this.askForConfirmationToRemove}
                             />
                         </View>
+
+                        <View style={[styles.w100, styles.p5]}>
+                            <TextInput
+                                value={this.state.searchValue}
+                                onChangeText={this.onSearch}
+                                placeholder={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            />
+                        </View>
+
                         <View style={[styles.w100, styles.mt4, styles.flex1]}>
                             <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
                                 <View style={[styles.peopleRowCell]}>
