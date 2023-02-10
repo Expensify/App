@@ -1,6 +1,6 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import {Image, View} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import Avatar from './Avatar';
@@ -36,6 +36,9 @@ const propTypes = {
 
     /** Whether the avatars are in an element being pressed */
     isPressed: PropTypes.bool,
+
+    /** Whether #focus mode is on */
+    isFocusMode: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -47,6 +50,7 @@ const defaultProps = {
     shouldStackHorizontally: false,
     isHovered: false,
     isPressed: false,
+    isFocusMode: false,
 };
 
 const MultipleAvatars = (props) => {
@@ -117,20 +121,31 @@ const MultipleAvatars = (props) => {
                     style={singleAvatarStyles}
                 >
                     <Tooltip text={props.avatarTooltips[0]} absolute>
-                        <Image
-                            source={{uri: props.icons[0]}}
-                            style={singleAvatarStyles}
-                        />
+                        {/* View is necessary for tooltip to show for multiple avatars in LHN */}
+                        <View>
+                            <Avatar
+                                source={props.icons[0] || props.fallbackIcon}
+                                fill={themeColors.iconSuccessFill}
+                                size={props.isFocusMode ? CONST.AVATAR_SIZE.MID_SUBSCRIPT : CONST.AVATAR_SIZE.SMALLER}
+
+                                imageStyles={[singleAvatarStyles]}
+                            />
+                        </View>
                     </Tooltip>
                     <View
                         style={secondAvatarStyles}
                     >
                         {props.icons.length === 2 ? (
                             <Tooltip text={props.avatarTooltips[1]} absolute>
-                                <Image
-                                    source={{uri: props.icons[1]}}
-                                    style={singleAvatarStyles}
-                                />
+                                <View>
+                                    <Avatar
+                                        source={props.icons[1] || props.fallbackIcon}
+                                        fill={themeColors.iconSuccessFill}
+                                        size={props.isFocusMode ? CONST.AVATAR_SIZE.MID_SUBSCRIPT : CONST.AVATAR_SIZE.SMALLER}
+
+                                        imageStyles={[singleAvatarStyles]}
+                                    />
+                                </View>
                             </Tooltip>
                         ) : (
                             <Tooltip text={props.avatarTooltips.slice(1).join(', ')} absolute>

@@ -2,9 +2,10 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
-import {AppState} from 'react-native';
+import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 
+import * as ReportUtils from './libs/ReportUtils';
 import BootSplash from './libs/BootSplash';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
@@ -124,6 +125,9 @@ class Expensify extends PureComponent {
             });
 
         this.appStateChangeListener = AppState.addEventListener('change', this.initializeClient);
+
+        // Open chat report from a deep link (only mobile native)
+        Linking.addEventListener('url', state => ReportUtils.openReportFromDeepLink(state.url));
     }
 
     componentDidUpdate(prevProps) {
@@ -145,6 +149,9 @@ class Expensify extends PureComponent {
 
             // eslint-disable-next-line react/no-did-update-set-state
             this.setState({isSplashShown: false});
+
+            // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
+            Linking.getInitialURL().then(url => ReportUtils.openReportFromDeepLink(url));
         }
     }
 
