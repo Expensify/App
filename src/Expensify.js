@@ -194,7 +194,7 @@ class Expensify extends PureComponent {
         }
 
         return (
-            <>
+            <DeeplinkWrapper>
                 {!this.state.isSplashShown && (
                     <>
                         <GrowlNotification ref={Growl.growlRef} />
@@ -221,7 +221,7 @@ class Expensify extends PureComponent {
                     onReady={this.setNavigationReady}
                     authenticated={this.isAuthenticated()}
                 />
-            </>
+            </DeeplinkWrapper>
         );
     }
 }
