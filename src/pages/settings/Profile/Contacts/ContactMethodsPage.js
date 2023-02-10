@@ -40,7 +40,7 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-class ContactMethodsPage extends Component{
+class ContactMethodsPage extends Component {
     constructor(props) {
         super(props);
 
@@ -66,7 +66,7 @@ class ContactMethodsPage extends Component{
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(stateToUpdate);
     }
-    
+
     /**
      * Get the most validated login of each type
      *
@@ -120,9 +120,9 @@ class ContactMethodsPage extends Component{
                     />
                 </ScrollView>
             </ScreenWrapper>
-        )
+        );
     }
-};
+}
 
 ContactMethodsPage.propTypes = propTypes;
 ContactMethodsPage.defaultProps = defaultProps;
