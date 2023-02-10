@@ -74,43 +74,41 @@ const ReportParticipantsPage = (props) => {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
-                {({safeAreaPaddingBottomStyle}) => (
-                    <>
-                        <HeaderWithCloseButton
-                            title={props.translate((ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report)) ? 'common.members' : 'common.details')}
-                            onCloseButtonPress={Navigation.dismissModal}
-                            onBackButtonPress={Navigation.goBack}
-                            shouldShowBackButton={ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report)}
-                        />
-                        <View
-                            pointerEvents="box-none"
-                            style={[
-                                styles.containerWithSpaceBetween,
-                            ]}
-                        >
-                            {Boolean(participants.length) && (
-                                <OptionsList
-                                    sections={[{
-                                        title: '', data: participants, shouldShow: true, indexOffset: 0,
-                                    }]}
-                                    onSelectRow={(option) => {
-                                        Navigation.navigate(ROUTES.getReportParticipantRoute(
-                                            props.route.params.reportID, option.login,
-                                        ));
-                                    }}
-                                    hideSectionHeaders
-                                    showTitleTooltip
-                                    disableFocusOptions
-                                    boldStyle
-                                    optionHoveredStyle={styles.hoveredComponentBG}
-                                    contentContainerStyles={[safeAreaPaddingBottomStyle]}
-                                />
-                            )}
-                        </View>
-                    </>
-                )}
-            </FullPageNotFoundView>
+            {({safeAreaPaddingBottomStyle}) => (
+                <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
+                    <HeaderWithCloseButton
+                        title={props.translate((ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report)) ? 'common.members' : 'common.details')}
+                        onCloseButtonPress={Navigation.dismissModal}
+                        onBackButtonPress={Navigation.goBack}
+                        shouldShowBackButton={ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report)}
+                    />
+                    <View
+                        pointerEvents="box-none"
+                        style={[
+                            styles.containerWithSpaceBetween,
+                        ]}
+                    >
+                        {Boolean(participants.length) && (
+                            <OptionsList
+                                sections={[{
+                                    title: '', data: participants, shouldShow: true, indexOffset: 0,
+                                }]}
+                                onSelectRow={(option) => {
+                                    Navigation.navigate(ROUTES.getReportParticipantRoute(
+                                        props.route.params.reportID, option.login,
+                                    ));
+                                }}
+                                hideSectionHeaders
+                                showTitleTooltip
+                                disableFocusOptions
+                                boldStyle
+                                optionHoveredStyle={styles.hoveredComponentBG}
+                                contentContainerStyles={[safeAreaPaddingBottomStyle]}
+                            />
+                        )}
+                    </View>
+                </FullPageNotFoundView>
+            )}
         </ScreenWrapper>
     );
 };
