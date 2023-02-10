@@ -1,9 +1,9 @@
 diff --git a/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/BitmapSizeDecoder.java b/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/BitmapSizeDecoder.java
 new file mode 100644
-index 0000000..f97ed67
+index 0000000..2bd58b8
 --- /dev/null
 +++ b/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/BitmapSizeDecoder.java
-@@ -0,0 +1,43 @@
+@@ -0,0 +1,44 @@
 +package com.dylanvann.fastimage;
 +
 +import android.graphics.BitmapFactory;
@@ -33,23 +33,25 @@ index 0000000..f97ed67
 +        BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
 +        bitmapOptions.inJustDecodeBounds = true;
 +        BitmapFactory.decodeStream(source, null, bitmapOptions);
-+        // BitmapFactory#decodeStream leaves stream's position where ever it was after reading the encoded data 
++
++        // BitmapFactory#decodeStream leaves stream's position where ever it was after reading the encoded data
 +        // https://developer.android.com/reference/android/graphics/BitmapFactory#decodeStream(java.io.InputStream)
 +        // so we need to rewind the stream to be able to read image header with exif values
 +        source.reset();
++
 +        int orientation = new ExifInterface(source).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
-+        if (orientation == ExifInterface.ORIENTATION_ROTATE_90 || orientation == ExifInterface.ORIENTATION_ROTATE_270 ) {
-+            int tmpHeight = bitmapOptions.outHeight;
++        if (orientation == ExifInterface.ORIENTATION_ROTATE_90 || orientation == ExifInterface.ORIENTATION_ROTATE_270) {
 +            int tmpWidth = bitmapOptions.outWidth;
++            bitmapOptions.outWidth = bitmapOptions.outHeight;
 +            bitmapOptions.outHeight = tmpWidth;
-+            bitmapOptions.outWidth = tmpHeight;
 +        }
 +        return new SimpleResource(bitmapOptions);
 +    }
 +}
+\ No newline at end of file
 diff --git a/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/BitmapSizeTranscoder.java b/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/BitmapSizeTranscoder.java
 new file mode 100644
-index 0000000..5287e17
+index 0000000..7d208d1
 --- /dev/null
 +++ b/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/BitmapSizeTranscoder.java
 @@ -0,0 +1,23 @@
@@ -228,7 +230,7 @@ index 34fcf89..1339f5c 100644
  
 diff --git a/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/Size.java b/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/Size.java
 new file mode 100644
-index 0000000..8b8ec3d
+index 0000000..2fe8a47
 --- /dev/null
 +++ b/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/Size.java
 @@ -0,0 +1,6 @@
@@ -268,7 +270,7 @@ diff --git a/node_modules/react-native-fast-image/ios/FastImage/FFFastImageView.
 index f710081..391ef92 100644
 --- a/node_modules/react-native-fast-image/ios/FastImage/FFFastImageView.m
 +++ b/node_modules/react-native-fast-image/ios/FastImage/FFFastImageView.m
-@@ -54,7 +54,6 @@
+@@ -54,7 +54,6 @@ - (void) setOnFastImageError: (RCTDirectEventBlock)onFastImageError {
  - (void) setOnFastImageLoadStart: (RCTDirectEventBlock)onFastImageLoadStart {
      if (_source && !self.hasSentOnLoadStart) {
          _onFastImageLoadStart = onFastImageLoadStart;
@@ -276,7 +278,7 @@ index f710081..391ef92 100644
          self.hasSentOnLoadStart = YES;
      } else {
          _onFastImageLoadStart = onFastImageLoadStart;
-@@ -188,7 +187,18 @@
+@@ -188,7 +187,18 @@ - (void) reloadImage {
          }
  
          if (self.onFastImageLoadStart) {
