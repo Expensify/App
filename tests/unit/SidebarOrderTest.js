@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {cleanup} from '@testing-library/react-native';
+import {cleanup, screen} from '@testing-library/react-native';
 import lodashGet from 'lodash/get';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -41,16 +41,16 @@ describe('Sidebar', () => {
         it('is not rendered when there are no props passed to it', () => {
             // Given all the default props are passed to SidebarLinks
             // When it is rendered
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Then it should render nothing and be null
             // This is expected because there is an early return when there are no personal details
-            expect(sidebarLinks.toJSON()).toBe(null);
+            expect(screen.toJSON()).toBe(null);
         });
 
         it('is rendered with an empty list when personal details exist', () => {
             // Given the sidebar is rendered with default props
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
 
@@ -61,15 +61,15 @@ describe('Sidebar', () => {
 
                 // Then the component should be rendered with an empty list since it will get past the early return
                 .then(() => {
-                    expect(sidebarLinks.toJSON()).not.toBe(null);
-                    expect(sidebarLinks.queryAllByA11yHint('Navigates to a chat')).toHaveLength(0);
+                    expect(screen.toJSON()).not.toBe(null);
+                    expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(0);
                 });
         });
 
         it('contains one report when a report is in Onyx', () => {
             // Given a single report
             const report = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']);
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
+            LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
 
             return waitForPromisesToResolve()
 
@@ -82,12 +82,12 @@ describe('Sidebar', () => {
 
                 // Then the component should be rendered with an item for the report
                 .then(() => {
-                    expect(sidebarLinks.queryAllByText('One, Two')).toHaveLength(1);
+                    expect(screen.queryAllByText('One, Two')).toHaveLength(1);
                 });
         });
 
         it('orders items with most recently updated on top', () => {
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given three unread reports in the recently updated order of 3, 2, 1
             const report1 = {
@@ -113,7 +113,7 @@ describe('Sidebar', () => {
 
                 // Then the component should be rendered with the mostly recently updated report first
                 .then(() => {
-                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    const displayNames = screen.queryAllByLabelText('Chat user display names');
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
@@ -132,7 +132,7 @@ describe('Sidebar', () => {
             const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2);
             const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1);
             const reportIDFromRoute = report1.reportID;
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute);
+            LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute);
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
@@ -147,10 +147,10 @@ describe('Sidebar', () => {
                 // Then there should be a pencil icon and report one should be the first one because putting a draft on the active report should change its location
                 // in the ordered list
                 .then(() => {
-                    const pencilIcon = sidebarLinks.getAllByAccessibilityHint('Pencil Icon');
+                    const pencilIcon = screen.getAllByAccessibilityHint('Pencil Icon');
                     expect(pencilIcon).toHaveLength(1);
 
-                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    const displayNames = screen.queryAllByLabelText('Chat user display names');
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two'); // this has `hasDraft` flag enabled so it will be on top
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
@@ -159,7 +159,7 @@ describe('Sidebar', () => {
         });
 
         it('reorders the reports to always have the most recently updated one on top', () => {
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given three reports in the recently updated order of 3, 2, 1
             const report1 = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3);
@@ -185,7 +185,7 @@ describe('Sidebar', () => {
                 // Then the order of the reports should be 1 > 3 > 2
                 //                                         ^--- (1 goes to the front and pushes other two down)
                 .then(() => {
-                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    const displayNames = screen.queryAllByLabelText('Chat user display names');
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
@@ -204,7 +204,7 @@ describe('Sidebar', () => {
             };
             const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1);
             const reportIDFromRoute = report2.reportID;
-            let sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute);
+            LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute);
 
             return waitForPromisesToResolve()
 
@@ -221,14 +221,14 @@ describe('Sidebar', () => {
                 .then(() => {
                     // The changing of a route itself will re-render the component in the App, but since we are not performing this test
                     // inside the navigator and it has no access to the routes we need to trigger an update to the SidebarLinks manually.
-                    sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks('1');
+                    LHNTestUtils.getDefaultRenderedSidebarLinks('1');
                     return waitForPromisesToResolve();
                 })
 
                 // Then the order of the reports should be 2 > 3 > 1
                 //                                         ^--- (2 goes to the front and pushes 3 down)
                 .then(() => {
-                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    const displayNames = screen.queryAllByLabelText('Chat user display names');
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
@@ -237,7 +237,7 @@ describe('Sidebar', () => {
         });
 
         it('removes the pencil icon when draft is removed', () => {
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given a single report
             // And the report has a draft
@@ -257,7 +257,7 @@ describe('Sidebar', () => {
 
                 // Then there should be a pencil icon showing
                 .then(() => {
-                    expect(sidebarLinks.getAllByAccessibilityHint('Pencil Icon')).toHaveLength(1);
+                    expect(screen.getAllByAccessibilityHint('Pencil Icon')).toHaveLength(1);
                 })
 
                 // When the draft is removed
@@ -265,12 +265,12 @@ describe('Sidebar', () => {
 
                 // Then the pencil icon goes away
                 .then(() => {
-                    expect(sidebarLinks.queryAllByAccessibilityHint('Pencil Icon')).toHaveLength(0);
+                    expect(screen.queryAllByAccessibilityHint('Pencil Icon')).toHaveLength(0);
                 });
         });
 
         it('removes the pin icon when chat is unpinned', () => {
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given a single report
             // And the report is pinned
@@ -290,7 +290,7 @@ describe('Sidebar', () => {
 
                 // Then there should be a pencil icon showing
                 .then(() => {
-                    expect(sidebarLinks.getAllByAccessibilityHint('Pin Icon')).toHaveLength(1);
+                    expect(screen.getAllByAccessibilityHint('Pin Icon')).toHaveLength(1);
                 })
 
                 // When the draft is removed
@@ -298,7 +298,7 @@ describe('Sidebar', () => {
 
                 // Then the pencil icon goes away
                 .then(() => {
-                    expect(sidebarLinks.queryAllByAccessibilityHint('Pin Icon')).toHaveLength(0);
+                    expect(screen.queryAllByAccessibilityHint('Pin Icon')).toHaveLength(0);
                 });
         });
 
@@ -333,7 +333,7 @@ describe('Sidebar', () => {
             report3.iouReportID = iouReport.reportID;
             const reportIDFromRoute = report2.reportID;
             const currentlyLoggedInUserEmail = 'email9@test.com';
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute);
+            LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute);
 
             return waitForPromisesToResolve()
 
@@ -352,10 +352,10 @@ describe('Sidebar', () => {
                 // there is a pencil icon
                 // there is a pinned icon
                 .then(() => {
-                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    const displayNames = screen.queryAllByLabelText('Chat user display names');
                     expect(displayNames).toHaveLength(3);
-                    expect(sidebarLinks.getAllByAccessibilityHint('Pin Icon')).toHaveLength(1);
-                    expect(sidebarLinks.getAllByAccessibilityHint('Pencil Icon')).toHaveLength(1);
+                    expect(screen.getAllByAccessibilityHint('Pin Icon')).toHaveLength(1);
+                    expect(screen.getAllByAccessibilityHint('Pencil Icon')).toHaveLength(1);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
                     expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
@@ -381,7 +381,7 @@ describe('Sidebar', () => {
                 ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com'], 0),
                 isPinned: true,
             };
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks('0');
+            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
@@ -395,7 +395,7 @@ describe('Sidebar', () => {
 
                 // Then the reports are in alphabetical order
                 .then(() => {
-                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    const displayNames = screen.queryAllByLabelText('Chat user display names');
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
@@ -407,7 +407,7 @@ describe('Sidebar', () => {
 
                 // Then they are still in alphabetical order
                 .then(() => {
-                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    const displayNames = screen.queryAllByLabelText('Chat user display names');
                     expect(displayNames).toHaveLength(4);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
@@ -435,7 +435,7 @@ describe('Sidebar', () => {
                 ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com'], 0),
                 hasDraft: true,
             };
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks('0');
+            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
@@ -449,7 +449,7 @@ describe('Sidebar', () => {
 
                 // Then the reports are in alphabetical order
                 .then(() => {
-                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    const displayNames = screen.queryAllByLabelText('Chat user display names');
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
@@ -461,7 +461,7 @@ describe('Sidebar', () => {
 
                 // Then they are still in alphabetical order
                 .then(() => {
-                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    const displayNames = screen.queryAllByLabelText('Chat user display names');
                     expect(displayNames).toHaveLength(4);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
@@ -487,7 +487,7 @@ describe('Sidebar', () => {
                 CONST.BETAS.POLICY_ROOMS,
                 CONST.BETAS.POLICY_EXPENSE_CHAT,
             ];
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks('0');
+            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
@@ -502,7 +502,7 @@ describe('Sidebar', () => {
 
                 // Then the first report is in last position
                 .then(() => {
-                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    const displayNames = screen.queryAllByLabelText('Chat user display names');
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
@@ -513,7 +513,7 @@ describe('Sidebar', () => {
 
     describe('in #focus mode', () => {
         it('alphabetizes chats', () => {
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             const report1 = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3, true);
             const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2, true);
@@ -534,7 +534,7 @@ describe('Sidebar', () => {
 
                 // Then the reports are in alphabetical order
                 .then(() => {
-                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    const displayNames = screen.queryAllByLabelText('Chat user display names');
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
@@ -546,7 +546,7 @@ describe('Sidebar', () => {
 
                 // Then they are still in alphabetical order
                 .then(() => {
-                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    const displayNames = screen.queryAllByLabelText('Chat user display names');
                     expect(displayNames).toHaveLength(4);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
@@ -572,7 +572,7 @@ describe('Sidebar', () => {
                 CONST.BETAS.POLICY_ROOMS,
                 CONST.BETAS.POLICY_EXPENSE_CHAT,
             ];
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks('0');
+            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
@@ -587,7 +587,7 @@ describe('Sidebar', () => {
 
                 // Then the first report is in last position
                 .then(() => {
-                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    const displayNames = screen.queryAllByLabelText('Chat user display names');
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
@@ -648,7 +648,7 @@ describe('Sidebar', () => {
             report3.iouReportID = iouReport3.reportID;
 
             const currentlyLoggedInUserEmail = 'email13@test.com';
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks('0');
+            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
@@ -666,7 +666,7 @@ describe('Sidebar', () => {
 
                 // Then the reports are ordered alphabetically since their amounts are the same
                 .then(() => {
-                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    const displayNames = screen.queryAllByLabelText('Chat user display names');
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
@@ -690,7 +690,7 @@ describe('Sidebar', () => {
                 lastVisibleActionCreated,
             };
 
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks('0');
+            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return waitForPromisesToResolve()
 
                 // When Onyx is updated with the data and the sidebar re-renders
@@ -704,7 +704,7 @@ describe('Sidebar', () => {
 
                 // Then the reports are ordered alphabetically since their lastVisibleActionCreated are the same
                 .then(() => {
-                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    const displayNames = screen.queryAllByLabelText('Chat user display names');
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');

@@ -11,6 +11,7 @@ import TextInput from '../TextInput';
 import KeyboardSpacer from '../KeyboardSpacer';
 import {propTypes as passwordPopoverPropTypes, defaultProps as passwordPopoverDefaultProps} from './passwordPopoverPropTypes';
 import Button from '../Button';
+import withViewportOffsetTop from '../withViewportOffsetTop';
 
 const propTypes = {
     /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
@@ -55,6 +56,7 @@ class BasePasswordPopover extends Component {
                 onClose={this.props.onClose}
                 anchorPosition={this.props.anchorPosition}
                 onModalShow={this.focusInput}
+                outerStyle={{maxHeight: this.props.windowHeight, marginTop: this.props.viewportOffsetTop}}
             >
                 <View
                     style={[
@@ -98,6 +100,7 @@ class BasePasswordPopover extends Component {
 BasePasswordPopover.propTypes = propTypes;
 BasePasswordPopover.defaultProps = defaultProps;
 export default compose(
+    withViewportOffsetTop,
     withWindowDimensions,
     withLocalize,
 )(BasePasswordPopover);
