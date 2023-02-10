@@ -38,7 +38,7 @@ index 0000000..f97ed67
 +        // so we need to rewind the stream to be able to read image header with exif values
 +        source.reset();
 +        int orientation = new ExifInterface(source).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
-+        if (orientation == ExifInterface.ORIENTATION_ROTATE_90 || orientation == ExifInterface.ORIENTATION_ROTATE_270 ) {
++        if (orientation == ExifInterface.ORIENTATION_ROTATE_90 || orientation == ExifInterface.ORIENTATION_ROTATE_270) {
 +            int tmpHeight = bitmapOptions.outHeight;
 +            int tmpWidth = bitmapOptions.outWidth;
 +            bitmapOptions.outHeight = tmpWidth;
