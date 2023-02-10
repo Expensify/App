@@ -1,10 +1,9 @@
 import React from 'react';
-import {Image, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Lottie from 'lottie-react-native';
 import ReviewingBankInfoAnimation from '../../assets/animations/ReviewingBankInfo.json';
 import styles from '../styles/styles';
-import CONST from '../CONST';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Text from './Text';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
