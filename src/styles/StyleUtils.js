@@ -17,6 +17,7 @@ function getAvatarSize(size) {
     const AVATAR_SIZES = {
         [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeNormal,
         [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.avatarSizeSmallSubscript,
+        [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.avatarSizeMidSubscript,
         [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.avatarSizeSubscript,
         [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
         [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
@@ -42,6 +43,19 @@ function getAvatarStyle(size) {
         borderRadius: avatarSize,
         backgroundColor: themeColors.offline,
     };
+}
+
+/**
+ * Return the border style if avatar is SVG
+ *
+ * @param {Boolean} isSVG
+ * @returns {Object}
+ */
+function getAvatarSVGBorder(isSVG) {
+    if (!isSVG) {
+        return {};
+    }
+    return styles.svgAvatarBorder;
 }
 
 /**
@@ -722,6 +736,7 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth) {
 export {
     getAvatarSize,
     getAvatarStyle,
+    getAvatarSVGBorder,
     getErrorPageContainerStyle,
     getSafeAreaPadding,
     getSafeAreaMargins,

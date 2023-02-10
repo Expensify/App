@@ -426,7 +426,8 @@ class ReportActionCompose extends React.PureComponent {
         }
 
         const isCommentEmpty = Boolean(newComment.match(CONST.REGEX.IS_COMMENT_EMPTY));
-        const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
+        const encodedCommentLength = ReportUtils.getCommentLength(this.comment);
+        const hasExceededMaxCommentLength = encodedCommentLength > CONST.MAX_COMMENT_LENGTH;
         const exceededCommentLength = hasExceededMaxCommentLength ? this.comment.length : undefined;
         this.setState({exceededCommentLength, isCommentEmpty});
     }
@@ -472,7 +473,7 @@ class ReportActionCompose extends React.PureComponent {
         const trimmedComment = this.comment.trim();
 
         // Don't submit empty comments or comments that exceed the character limit
-        if (this.state.isCommentEmpty || trimmedComment.length > CONST.MAX_COMMENT_LENGTH) {
+        if (this.state.isCommentEmpty || ReportUtils.getCommentLength(trimmedComment) > CONST.MAX_COMMENT_LENGTH) {
             return '';
         }
 
@@ -732,6 +733,7 @@ class ReportActionCompose extends React.PureComponent {
                     {!this.props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                     <ReportTypingIndicator reportID={this.props.reportID} />
                     <ExceededCommentLength commentLength={this.state.exceededCommentLength || 0} />
+                    <ExceededCommentLength commentLength={encodedCommentLength} />
                 </View>
                 {this.state.isDraggingOver && <ReportDropUI />}
             </View>

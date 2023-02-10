@@ -15,6 +15,7 @@ import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFo
 import compose from '../../../libs/compose';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
+import * as ReportUtils from '../../../libs/ReportUtils';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import reportPropTypes from '../../reportPropTypes';
 import addEmojiToComposer from '../../../libs/addEmojiToComposer';
@@ -129,8 +130,9 @@ class ReportActionItemMessageEdit extends React.Component {
             this.debouncedSaveDraft(this.props.action.message[0].html);
         }
 
-        const hasExceededMaxCommentLength = this.draft.length > CONST.MAX_COMMENT_LENGTH;
-        const exceededCommentLength = hasExceededMaxCommentLength ? this.draft.length : undefined;
+        const draftLength = ReportUtils.getCommentLength(this.draft);
+        const hasExceededMaxCommentLength = draftLength > CONST.MAX_COMMENT_LENGTH;
+        const exceededCommentLength = hasExceededMaxCommentLength ? draftLength : undefined;
         if (this.state.exceededCommentLength !== exceededCommentLength) {
             this.setState({
                 exceededCommentLength,
@@ -171,7 +173,7 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     publishDraft() {
         // Do nothing if draft exceed the character limit
-        if (this.draft.length > CONST.MAX_COMMENT_LENGTH) {
+        if (ReportUtils.getCommentLength(this.state.draft) > CONST.MAX_COMMENT_LENGTH) {
             return;
         }
 
