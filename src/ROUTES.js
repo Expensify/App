@@ -14,6 +14,7 @@ const IOU_REQUEST_CURRENCY = `${IOU_REQUEST}/currency`;
 const IOU_BILL_CURRENCY = `${IOU_BILL}/currency`;
 const IOU_SEND_CURRENCY = `${IOU_SEND}/currency`;
 const SETTINGS_PERSONAL_DETAILS = 'settings/profile/personal-details';
+const SETTINGS_CONTACT_METHODS = 'settings/profile/contact-methods';
 
 export default {
     BANK_ACCOUNT: 'bank-account',
@@ -49,6 +50,7 @@ export default {
     SETTINGS_PERSONAL_DETAILS_LEGAL_NAME: `${SETTINGS_PERSONAL_DETAILS}/legal-name`,
     SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH: `${SETTINGS_PERSONAL_DETAILS}/date-of-birth`,
     SETTINGS_PERSONAL_DETAILS_ADDRESS: `${SETTINGS_PERSONAL_DETAILS}/address`,
+    SETTINGS_CONTACT_METHODS,
     NEW_GROUP: 'new/group',
     NEW_CHAT: 'new/chat',
     REPORT,

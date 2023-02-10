@@ -139,6 +139,10 @@ export default {
                         path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
                         exact: true,
                     },
+                    Settings_ContactMethods: {
+                        path: ROUTES.SETTINGS_CONTACT_METHODS,
+                        exact: true,
+                    },
                     Workspace_Initial: {
                         path: ROUTES.WORKSPACE_INITIAL,
                     },
