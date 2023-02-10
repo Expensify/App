@@ -56,7 +56,6 @@ class ReportSettingsPage extends Component {
 
         this.validate = this.validate.bind(this);
         this.updatePolicyRoomName = this.updatePolicyRoomName.bind(this);
-        this.shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report) || ReportUtils.isArchivedRoom(this.props.report);
     }
 
     getNotificationPreferenceOptions() {
@@ -67,6 +66,10 @@ class ReportSettingsPage extends Component {
         ];
     }
 
+    checkShouldDisableRename() {
+        return ReportUtils.isDefaultRoom(this.props.report) || ReportUtils.isArchivedRoom(this.props.report);
+    }
+
     /**
      * @param {Object} values - form input values passed by the Form component
      */
@@ -74,7 +77,7 @@ class ReportSettingsPage extends Component {
         Keyboard.dismiss();
 
         // When the room name has not changed or should not be changed, skip the Form submission
-        if (this.shouldDisableRename || values.newRoomName === this.props.report.reportName) {
+        if (this.checkShouldDisableRename() || values.newRoomName === this.props.report.reportName) {
             return;
         }
         Report.updatePolicyRoomName(this.props.report, values.newRoomName);
@@ -130,7 +133,7 @@ class ReportSettingsPage extends Component {
                         validate={this.validate}
                         onSubmit={this.updatePolicyRoomName}
                         scrollContextEnabled
-                        isSubmitButtonVisible={shouldShowRoomName && !this.shouldDisableRename}
+                        isSubmitButtonVisible={shouldShowRoomName && !this.checkShouldDisableRename()}
                         enabledWhenOffline
                     >
                         <View>
@@ -162,7 +165,7 @@ class ReportSettingsPage extends Component {
                                 >
                                     <View style={[styles.flexRow]}>
                                         <View style={[styles.flex3]}>
-                                            {this.shouldDisableRename ? (
+                                            {this.checkShouldDisableRename() ? (
                                                 <View>
                                                     <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
                                                         {this.props.translate('newRoomPage.roomName')}
