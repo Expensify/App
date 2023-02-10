@@ -435,6 +435,7 @@ function reconnect(reportID) {
                 value: {
                     isLoadingReportActions: true,
                     isLoadingMoreReportActions: false,
+                    reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
                 },
             }],
             successData: [{
