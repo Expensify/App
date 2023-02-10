@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import compose from '../../../libs/compose';
+import Animated, {runOnUI, _scrollTo} from 'react-native-reanimated';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -16,7 +17,6 @@ import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import * as User from '../../../libs/actions/User';
 import CategoryShortcutBar from '../CategoryShortcutBar';
-import Animated, {runOnUI, _scrollTo} from 'react-native-reanimated';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -105,6 +105,7 @@ class EmojiPickerMenu extends Component {
         const node = findNodeHandle(this.emojiList);
         runOnUI(() => {
             'worklet';
+
             _scrollTo(node, 0, calculatedOffset, true);
         })();
     }
