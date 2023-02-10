@@ -187,7 +187,7 @@ class ReportActionsView extends React.Component {
             if (isReportFullyVisible) {
                 this.openReportIfNecessary();
             } else {
-                Report.reconnect(this.props.report.reportID);
+                Report.reconnectToReport(this.props.report.reportID);
             }
         }
 

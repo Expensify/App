@@ -422,7 +422,7 @@ function navigateToAndOpenReport(userLogins) {
  *
  * @param {String} reportID
  */
-function reconnect(reportID) {
+function reconnectToReport(reportID) {
     API.write('ReconnectToReport',
         {
             reportID,
@@ -661,7 +661,7 @@ function handleReportChanged(report) {
     // A report can be missing a name if a comment is received via pusher event
     // and the report does not yet exist in Onyx (eg. a new DM created with the logged in person)
     if (report.reportID && report.reportName === undefined) {
-        reconnect(report.reportID);
+        reconnectToReport(report.reportID);
     }
 }
 
@@ -1180,7 +1180,7 @@ function clearIOUError(reportID) {
 export {
     addComment,
     addAttachment,
-    reconnect,
+    reconnectToReport,
     updateNotificationPreference,
     subscribeToReportTypingEvents,
     subscribeToReportCommentPushNotifications,
