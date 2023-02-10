@@ -22,8 +22,9 @@ export default [
     {
         // /v/*
         pattern: '/v($|(//*))',
-        // It was decided in the team to disable deep linking in desktop App when passwordless is enabled.
-        // We want to open the magic link into its own tab
+
+        // Disable deep linking in desktop App when passwordless is enabled because
+        // we want to open the magic link in its own tab
         isDisabled: betas => Permissions.canUsePasswordlessLogins(betas),
     },
     {
