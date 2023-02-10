@@ -7,6 +7,14 @@ const standardObjectToFind = {
     'doesnt-exist': 'long_name',
 };
 
+const objectWithCountryToFind = {
+    sublocality: 'long_name',
+    administrative_area_level_1: 'short_name',
+    postal_code: 'long_name',
+    'doesnt-exist': 'long_name',
+    country: 'long_name',
+};
+
 const bigObjectToFind = {
     sublocality: 'long_name',
     administrative_area_level_1: 'short_name',
@@ -133,6 +141,22 @@ describe('GooglePlacesUtilsTest', () => {
                 administrative_area_level_1: 'NY',
                 postal_code: '11206',
                 'doesnt-exist': '',
+            });
+        });
+    });
+    describe('getAddressComponentsWithCountry', () => {
+        it('should find address components by type', () => {
+            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {sublocality: 'long_name'})).toStrictEqual({sublocality: 'Brooklyn'});
+            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {administrative_area_level_1: 'short_name'})).toStrictEqual({administrative_area_level_1: 'NY'});
+            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {postal_code: 'long_name'})).toStrictEqual({postal_code: '11206'});
+            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {'doesnt-exist': 'long_name'})).toStrictEqual({'doesnt-exist': ''});
+            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {country: 'long_name'})).toStrictEqual({country: 'United States'});
+            expect(GooglePlacesUtils.getAddressComponents(addressComponents, objectWithCountryToFind)).toStrictEqual({
+                sublocality: 'Brooklyn',
+                administrative_area_level_1: 'NY',
+                postal_code: '11206',
+                'doesnt-exist': '',
+                country: 'United States',
             });
         });
     });
