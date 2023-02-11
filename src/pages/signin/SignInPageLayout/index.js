@@ -6,6 +6,7 @@ import Footer from './Footer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import styles from '../../../styles/styles';
 import SignInPageGraphics from './SignInPageGraphics';
+import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -22,16 +23,15 @@ const propTypes = {
 };
 
 const SignInPageLayout = (props) => {
-    let containerStyles = [styles.flex1, styles.signInPageInner];
+    let containerStyles = [styles.flex1];
+
+    // , styles.signInPageInner];
     let contentContainerStyles = [styles.flex1, styles.flexRow];
 
     if (props.isSmallScreenWidth) {
-        containerStyles = [styles.flex1];
+        containerStyles = [];
         contentContainerStyles = [styles.flex1, styles.flexColumn];
     }
-
-    // eslint-disable-next-line no-console
-    console.log(props);
 
     return (
         <View style={containerStyles}>
@@ -44,7 +44,8 @@ const SignInPageLayout = (props) => {
                         {props.children}
                     </SignInPageContent>
                     <ScrollView
-                        contentContainerStyle={[styles.flex1]}
+                        style={styles.flex1}
+                        contentContainerStyle={[styles.flexGrow1, styles.flexColumn]}
                     >
                         <SignInPageGraphics />
                         <Footer />
@@ -52,20 +53,20 @@ const SignInPageLayout = (props) => {
                 </View>
             )
                 : (
-                    <View>
-                        <ScrollView
-                            style={{maxHeight: 980}}
-                            contentContainerStyle={[styles.flexGrow1]}
+                    <ScrollView
+
+                        // To scroll on both mobile and web, we need to set the container height manually
+                        style={StyleUtils.getHeight(1 + props.windowHeight)}
+                        contentContainerStyle={[styles.flexGrow1]}
+                    >
+                        <SignInPageContent
+                            welcomeText={props.welcomeText}
+                            shouldShowWelcomeText={props.shouldShowWelcomeText}
                         >
-                            <SignInPageContent
-                                welcomeText={props.welcomeText}
-                                shouldShowWelcomeText={props.shouldShowWelcomeText}
-                            >
-                                {props.children}
-                            </SignInPageContent>
-                            <Footer />
-                        </ScrollView>
-                    </View>
+                            {props.children}
+                        </SignInPageContent>
+                        <Footer />
+                    </ScrollView>
                 )}
         </View>
     );

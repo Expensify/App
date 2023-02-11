@@ -6,7 +6,6 @@ import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
-import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import SignInPageForm from '../../../components/SignInPageForm';
 import compose from '../../../libs/compose';
@@ -34,9 +33,8 @@ const SignInPageContent = props => (
     <TouchableDismissKeyboard>
         <View
             style={[
-
-                // props.isSmallScreenWidth && styles.flex1,
                 StyleUtils.getHeight(props.windowHeight),
+                !props.isSmallScreenWidth && styles.flex1,
                 styles.signInPageLeftContainer,
                 !props.isSmallScreenWidth && styles.signInPageLeftContainerWide,
             ]}
@@ -73,9 +71,9 @@ const SignInPageContent = props => (
                         {props.children}
                     </SignInPageForm>
                 </View>
-                <View style={[styles.mv5]}>
+                {/* <View style={[styles.mv5]}>
                     <TermsAndLicenses />
-                </View>
+                </View> */}
             </KeyboardAvoidingView>
         </View>
     </TouchableDismissKeyboard>

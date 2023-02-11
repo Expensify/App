@@ -1203,7 +1203,7 @@ export default {
         expensifyOrg: '',
         investorRelations: '',
         getStarted: '',
-        createAaccount: '',
+        createAccount: '',
         logIn: '',
     },
 };

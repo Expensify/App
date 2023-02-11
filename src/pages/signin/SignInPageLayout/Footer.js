@@ -10,6 +10,8 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
 import TermsAndLicenses from '../TermsAndLicenses';
+import Socials from '../Socials';
+import Hoverable from '../../../components/Hoverable';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -121,7 +123,7 @@ const columns = [
         rows: [
             {
                 link: 'https://www.expensify.com/',
-                translationPath: 'footer.createAaccount',
+                translationPath: 'footer.createAccount',
             },
             {
                 link: 'https://www.expensify.com/',
@@ -135,15 +137,14 @@ const Footer = (props) => {
     const imageDirection = props.isSmallScreenWidth ? styles.flexRow : styles.flexColumn;
     const columnDirection = props.isSmallScreenWidth ? styles.flexColumn : styles.flexRow;
 
-    const centered = !props.isSmallScreenWidth ? styles.alignItemsCenter : {};
-
-    const pageFooter = [styles.flex1, centered];
-    const pageFooterWrapper = [styles.footerWrapper, centered, styles.flexGrow1, imageDirection];
-    const footerColumns = [styles.footerColumnsContainer, columnDirection];
+    const pageFooter = [styles.flex1, styles.flexGrow1];
+    const pageFooterWrapper = [styles.footerWrapper, imageDirection];
+    let footerColumns = [styles.footerColumnsContainer, columnDirection];
     let footerColumn = [styles.footerColumn];
 
     if (!props.isSmallScreenWidth) {
         footerColumn = [...footerColumn, styles.p4, styles.flex1];
+        footerColumns = [...footerColumns, styles.footerLargeScreenAlign];
     }
 
     return (
@@ -162,16 +163,26 @@ const Footer = (props) => {
                             <View style={[styles.footerRow]}>
                                 { /** Rows * */ }
                                 {_.map(column.rows, (row, j) => (
-                                    <TextLink
-                                        style={[styles.footerRow]}
-                                        href={row.link}
+                                    <Hoverable
                                         key={row.translationPath + j}
                                     >
-                                        {props.translate(row.translationPath)}
-                                    </TextLink>
+                                        {hovered => (
+                                            <TextLink
+                                                style={[styles.footerRow, hovered ? styles.textBlue : {}]}
+                                                href={row.link}
+                                            >
+                                                {props.translate(row.translationPath)}
+                                            </TextLink>
+                                        )}
+                                    </Hoverable>
                                 ))}
+                                {(i === 2) && (
+                                    <View style={styles.mt5}>
+                                        <Socials />
+                                    </View>
+                                )}
                                 {(i === 3) && (
-                                    <View style={{maxWidth: 200}}>
+                                    <View style={styles.footerTermsContainer}>
                                         <TermsAndLicenses />
                                     </View>
                                 )}
@@ -180,12 +191,12 @@ const Footer = (props) => {
                     ))}
                 </View>
                 { /** Expensify Wordmark * */ }
-                <View style={[styles.footerImage]}>
+                <View style={[!props.isSmallScreenWidth && styles.footerLargeScreenAlign]}>
                     {!props.isSmallScreenWidth ? (
-                        <Expensicons.ExpensifyFooterLogo height={111} width={618} />
+                        <Expensicons.ExpensifyFooterLogo />
                     )
                         : (
-                            <Expensicons.ExpensifyFooterLogoVertical height={618} width={111} />
+                            <Expensicons.ExpensifyFooterLogoVertical height={634} width={111} />
                         )}
                 </View>
             </View>

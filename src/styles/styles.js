@@ -2882,40 +2882,42 @@ const styles = {
     footerWrapper: {
         backgroundColor: themeColors.midtone,
         fontSize: variables.fontSizeNormal,
-        minHeight: 400,
-        minWidth: 200,
-        maxWidth: 1000,
         paddingTop: 64,
-        alignSelf: 'stretch',
+        paddingLeft: 17,
     },
 
     footerColumnsContainer: {
-        paddingHorizontal: 32,
-        paddingBottom: 0,
-        padding: 0,
+        maxWidth: 1100,
         flex: 1,
         flexWrap: 'wrap',
+        marginBottom: 40,
     },
 
     footerColumn: {
-        marginBottom: 40,
+        padding: 15,
     },
 
     footerTitle: {
         fontSize: variables.fontSizeLarge,
         color: themeColors.success,
         marginBottom: 16,
-        marginTop: 0,
     },
 
     footerRow: {
         paddingVertical: 4,
         marginBottom: 8,
         color: themeColors.textLight,
+        fontSize: variables.fontSizeMedium,
     },
 
-    footerImage: {
-        marginTop: 40,
+    footerLargeScreenAlign: {
+        minWidth: '80%',
+        alignSelf: 'center',
+    },
+
+    footerTermsContainer: {
+        marginVertical: 16,
+        maxWidth: 200,
     },
 
 };

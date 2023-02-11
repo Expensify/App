@@ -1201,7 +1201,7 @@ export default {
         expensifyOrg: 'Expensify.org',
         investorRelations: 'Investor Relations',
         getStarted: 'Get Started',
-        createAaccount: 'Create a new account',
+        createAccount: 'Create a new account',
         logIn: 'Log in',
     },
 };
