@@ -3,14 +3,13 @@ import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import RNPickerSelect from 'react-native-picker-select';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import FormHelpMessage from '../FormHelpMessage';
-import Text from '../Text';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import pickerStyles from './pickerStyles';
-import {ScrollContext} from '../ScrollViewWithContext';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import FormHelpMessage from './FormHelpMessage';
+import Text from './Text';
+import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
+import {ScrollContext} from './ScrollViewWithContext';
 
 const propTypes = {
     /** Picker label */
@@ -47,6 +46,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Customize the Picker background color */
+    backgroundColor: PropTypes.string,
+
     /** The ID used to uniquely identify the input in a Form */
     inputID: PropTypes.string,
 
@@ -80,6 +82,7 @@ const defaultProps = {
     isDisabled: false,
     errorText: '',
     containerStyles: [],
+    backgroundColor: undefined,
     inputID: undefined,
     shouldSaveDraft: false,
     value: undefined,
@@ -89,7 +92,7 @@ const defaultProps = {
         <Icon
             src={Expensicons.DownArrow}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...(size === 'small' ? {width: styles.pickerSmall.icon.width, height: styles.pickerSmall.icon.height} : {})}
+            {...(size === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
         />
     ),
     onBlur: () => {},
@@ -163,14 +166,18 @@ class Picker extends PureComponent {
                     ]}
                 >
                     {this.props.label && (
-                        <Text style={[styles.pickerLabel, styles.textLabelSupporting]}>{this.props.label}</Text>
+                        <Text pointerEvents="none" style={[styles.pickerLabel, styles.textLabelSupporting]}>
+                            {this.props.label}
+                        </Text>
                     )}
                     <RNPickerSelect
                         onValueChange={this.onInputChange}
 
                         // We add a text color to prevent white text on white background dropdown items on Windows
                         items={_.map(this.props.items, item => ({...item, color: themeColors.pickerOptionsTextColor}))}
-                        style={this.props.size === 'normal' ? pickerStyles(this.props.isDisabled) : styles.pickerSmall}
+                        style={this.props.size === 'normal'
+                            ? styles.picker(this.props.isDisabled, this.props.backgroundColor)
+                            : styles.pickerSmall(this.props.backgroundColor)}
                         useNativeAndroidPickerStyle={false}
                         placeholder={this.placeholder}
                         value={this.props.value}

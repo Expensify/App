@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, ActivityIndicator, ScrollView} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -7,7 +7,6 @@ import _ from 'underscore';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withNetwork} from '../../components/OnyxProvider';
-import themeColors from '../../styles/themes/default';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -24,6 +23,7 @@ import FixedFooter from '../../components/FixedFooter';
 import networkPropTypes from '../../components/networkPropTypes';
 import reportActionPropTypes from '../home/report/reportActionPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /** URL Route params */
@@ -165,7 +165,7 @@ class IOUDetailsModal extends Component {
                         title={this.props.translate('common.details')}
                         onCloseButtonPress={Navigation.dismissModal}
                     />
-                    {this.props.iou.loading ? <ActivityIndicator color={themeColors.text} /> : (
+                    {this.props.iou.loading ? <View style={styles.flex1}><FullScreenLoadingIndicator /></View> : (
                         <View style={[styles.flex1, styles.justifyContentBetween]}>
                             <ScrollView contentContainerStyle={styles.iouDetailsContainer}>
                                 <IOUPreview

@@ -207,11 +207,38 @@ function meetsAgeRequirements(date) {
 }
 
 /**
+ * Validate that given date is in a specified range of years before now.
+ *
+ * @param {String} date
+ * @param {Number} minimumAge
+ * @param {Number} maximumAge
+ * @returns {String}
+ */
+function getAgeRequirementError(date, minimumAge, maximumAge) {
+    const recentDate = moment().subtract(minimumAge, 'years');
+    const longAgoDate = moment().subtract(maximumAge, 'years');
+    const testDate = moment(date);
+    if (!testDate.isValid()) {
+        return Localize.translateLocal('common.error.dateInvalid');
+    }
+    if (testDate.isBetween(longAgoDate, recentDate)) {
+        return '';
+    }
+    if (testDate.isAfter(recentDate)) {
+        return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: recentDate.format(CONST.DATE.MOMENT_FORMAT_STRING)});
+    }
+    return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: longAgoDate.format(CONST.DATE.MOMENT_FORMAT_STRING)});
+}
+
+/**
+ * Similar to backend, checks whether a website has a valid URL or not.
+ * http/https/ftp URL scheme required.
+ *
  * @param {String} url
  * @returns {Boolean}
  */
-function isValidURL(url) {
-    return CONST.REGEX.HYPERLINK.test(url);
+function isValidWebsite(url) {
+    return CONST.REGEX.WEBSITE.test(url);
 }
 
 /**
@@ -272,6 +299,14 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional) {
  */
 function isValidPassword(password) {
     return password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
+}
+
+/**
+ * @param {string} validateCode
+ * @returns {Boolean}
+ */
+function isValidValidateCode(validateCode) {
+    return validateCode.match(CONST.VALIDATE_CODE_REGEX_STRING);
 }
 
 /**
@@ -356,9 +391,9 @@ function findInvalidSymbols(valuesToBeValidated) {
         if (!value) {
             return '';
         }
-        let inValidSymbol = value.replace(/[,]+/g, '') !== value ? Localize.translateLocal('personalDetails.error.comma') : '';
+        let inValidSymbol = value.replace(/[,]+/g, '') !== value ? Localize.translateLocal('common.comma') : '';
         if (_.isEmpty(inValidSymbol)) {
-            inValidSymbol = value.replace(/[;]+/g, '') !== value ? Localize.translateLocal('personalDetails.error.semicolon') : '';
+            inValidSymbol = value.replace(/[;]+/g, '') !== value ? Localize.translateLocal('common.semicolon') : '';
         }
         return inValidSymbol;
     });
@@ -416,6 +451,7 @@ function isValidTaxID(taxID) {
 
 export {
     meetsAgeRequirements,
+    getAgeRequirementError,
     isValidAddress,
     isValidDate,
     isValidCardName,
@@ -427,7 +463,7 @@ export {
     isValidZipCode,
     isRequiredFulfilled,
     isValidUSPhone,
-    isValidURL,
+    isValidWebsite,
     validateIdentity,
     isValidPassword,
     isValidTwoFactorCode,
@@ -443,5 +479,6 @@ export {
     isExistingRoomName,
     isValidRoomName,
     isValidTaxID,
+    isValidValidateCode,
     findInvalidSymbols,
 };

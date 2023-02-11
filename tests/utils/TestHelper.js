@@ -5,7 +5,6 @@ import * as Session from '../../src/libs/actions/Session';
 import HttpUtils from '../../src/libs/HttpUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForPromisesToResolve from './waitForPromisesToResolve';
-import * as ReportUtils from '../../src/libs/ReportUtils';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 
 /**
@@ -15,12 +14,11 @@ import * as NumberUtils from '../../src/libs/NumberUtils';
  * @returns {Object}
  */
 function buildPersonalDetails(login, accountID, firstName = 'Test') {
-    const avatar = ReportUtils.getDefaultAvatar(login);
     return {
         accountID,
         login,
-        avatar,
-        avatarThumbnail: avatar,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_7.png',
+        avatarThumbnail: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_7.png',
         displayName: `${firstName} User`,
         firstName,
         lastName: 'User',
@@ -45,7 +43,7 @@ function buildPersonalDetails(login, accountID, firstName = 'Test') {
 function signInWithTestUser(accountID = 1, login = 'test@user.com', password = 'Password1', authToken = 'asdfqwerty', firstName = 'Test') {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn();
-    HttpUtils.xhr.mockImplementation(() => Promise.resolve({
+    HttpUtils.xhr.mockResolvedValue({
         onyxData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -70,15 +68,15 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
             },
         ],
         jsonCode: 200,
-    }));
+    });
 
     // Simulate user entering their login and populating the credentials.login
     Session.beginSignIn(login);
     return waitForPromisesToResolve()
         .then(() => {
-            // Response is the same for calls to Authenticate and CreateLogin
+            // Response is the same for calls to Authenticate and BeginSignIn
             HttpUtils.xhr
-                .mockImplementation(() => Promise.resolve({
+                .mockResolvedValue({
                     onyxData: [
                         {
                             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -112,13 +110,22 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                         },
                     ],
                     jsonCode: 200,
-                }));
-            Session.signIn(password);
-            return waitForPromisesToResolve()
-                .then(() => {
-                    HttpUtils.xhr = originalXhr;
                 });
+            Session.signIn(password);
+            return waitForPromisesToResolve();
+        })
+        .then(() => {
+            HttpUtils.xhr = originalXhr;
         });
+}
+
+function signOutTestUser() {
+    const originalXhr = HttpUtils.xhr;
+    HttpUtils.xhr = jest.fn();
+    HttpUtils.xhr.mockResolvedValue({jsonCode: 200});
+    Session.signOutAndRedirectToSignIn();
+    return waitForPromisesToResolve()
+        .then(() => HttpUtils.xhr = originalXhr);
 }
 
 /**
@@ -156,21 +163,19 @@ function setPersonalDetails(login, accountID) {
 
 /**
  * @param {String} actorEmail
- * @param {Number} sequenceNumber
  * @param {String} created
  * @param {Number} actorAccountID
  * @param {String} actionID
  * @returns {Object}
  */
-function buildTestReportComment(actorEmail, sequenceNumber, created, actorAccountID, actionID = null) {
+function buildTestReportComment(actorEmail, created, actorAccountID, actionID = null) {
     const reportActionID = actionID || NumberUtils.rand64();
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
         actorEmail,
         person: [{type: 'TEXT', style: 'strong', text: 'User B'}],
-        sequenceNumber,
         created,
-        message: [{type: 'COMMENT', html: `Comment ${sequenceNumber}`, text: `Comment ${sequenceNumber}`}],
+        message: [{type: 'COMMENT', html: `Comment ${actionID}`, text: `Comment ${actionID}`}],
         reportActionID,
         actorAccountID,
     };
@@ -179,6 +184,7 @@ function buildTestReportComment(actorEmail, sequenceNumber, created, actorAccoun
 export {
     getGlobalFetchMock,
     signInWithTestUser,
+    signOutTestUser,
     setPersonalDetails,
     buildPersonalDetails,
     buildTestReportComment,

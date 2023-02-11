@@ -9,7 +9,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
-import Timing from './Timing';
 import * as Policy from './Policy';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -53,6 +52,12 @@ Onyx.connect({
     callback: policies => allPolicies = policies,
 });
 
+let preferredLocale;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: val => preferredLocale = val,
+});
+
 /**
  * @param {Array} policies
  * @return {Array<String>} array of policy ids
@@ -69,6 +74,10 @@ function getNonOptimisticPolicyIDs(policies) {
 * @param {String} locale
 */
 function setLocale(locale) {
+    if (locale === preferredLocale) {
+        return;
+    }
+
     // If user is not signed in, change just locally.
     if (!currentUserAccountID) {
         Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
@@ -89,13 +98,20 @@ function setLocale(locale) {
     }, {optimisticData});
 }
 
+/**
+* @param {String} locale
+*/
+function setLocaleAndNavigate(locale) {
+    setLocale(locale);
+    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+}
+
 function setSidebarLoaded() {
     if (isSidebarLoaded) {
         return;
     }
 
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
-    Timing.end(CONST.TIMING.SIDEBAR_LOADED);
     Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
     Performance.markStart(CONST.TIMING.REPORT_INITIAL_RENDER);
 }
@@ -272,6 +288,7 @@ function openProfile() {
 
 export {
     setLocale,
+    setLocaleAndNavigate,
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
     openProfile,

@@ -4,6 +4,10 @@ import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
+import * as PlaidDataProps from '../../pages/ReimbursementAccount/plaidDataPropTypes';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
+import * as ReimbursementAccount from './ReimbursementAccount';
 
 export {
     goToWithdrawalAccountSetupStep,
@@ -28,17 +32,23 @@ export {
     acceptWalletTerms,
 } from './Wallet';
 
-function clearPersonalBankAccount() {
-    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
-}
-
 function clearPlaid() {
-    Onyx.set(ONYXKEYS.PLAID_DATA, {});
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
+
+    return Onyx.set(ONYXKEYS.PLAID_DATA, PlaidDataProps.plaidDataDefaultProps);
 }
 
-function updatePlaidData(plaidData) {
-    Onyx.merge(ONYXKEYS.PLAID_DATA, plaidData);
+function openPlaidView() {
+    clearPlaid().then(() => ReimbursementAccount.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
+}
+
+function openPersonalBankAccountSetupView() {
+    clearPlaid().then(() => Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
+}
+
+function clearPersonalBankAccount() {
+    clearPlaid();
+    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
 }
 
 function clearOnfidoToken() {
@@ -341,7 +351,7 @@ function updateBeneficialOwnersForBankAccount(params) {
 /**
  * Create the bank account with manually entered data.
  *
- * @param {String} [bankAccountID]
+ * @param {number} [bankAccountID]
  * @param {String} [accountNumber]
  * @param {String} [routingNumber]
  * @param {String} [plaidMask]
@@ -387,14 +397,15 @@ export {
     clearOnfidoToken,
     clearPersonalBankAccount,
     clearPlaid,
+    openPlaidView,
     connectBankAccountManually,
     connectBankAccountWithPlaid,
     deletePaymentBankAccount,
+    openPersonalBankAccountSetupView,
     openReimbursementAccountPage,
     updateBeneficialOwnersForBankAccount,
     updateCompanyInformationForBankAccount,
     updatePersonalInformationForBankAccount,
-    updatePlaidData,
     openWorkspaceView,
     validateBankAccount,
     verifyIdentityForBankAccount,

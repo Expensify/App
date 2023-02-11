@@ -1,11 +1,13 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
+import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Report from '../../libs/actions/Report';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -15,10 +17,9 @@ import Text from '../../components/Text';
 import BankAccount from '../../libs/models/BankAccount';
 import TextLink from '../../components/TextLink';
 import ONYXKEYS from '../../ONYXKEYS';
-import compose from '../../libs/compose';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import EnableStep from './EnableStep';
-import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import Form from '../../components/Form';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
@@ -26,19 +27,27 @@ import Section from '../../components/Section';
 import CONST from '../../CONST';
 import Button from '../../components/Button';
 import MenuItem from '../../components/MenuItem';
+import Enable2FAPrompt from './Enable2FAPrompt';
 
 const propTypes = {
     ...withLocalizePropTypes,
 
     /** Bank account currently in setup */
-    reimbursementAccount: reimbursementAccountPropTypes,
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
+
+    onBackButtonPress: PropTypes.func.isRequired,
+
+    /** User's account who is setting up bank account */
+    account: PropTypes.shape({
+
+        /** If user has Two factor authentication enabled */
+        requiresTwoFactorAuth: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
-    reimbursementAccount: {
-        errorFields: {},
-        errors: {},
-        maxAttemptsReached: false,
+    account: {
+        requiresTwoFactorAuth: false,
     },
 };
 
@@ -93,7 +102,7 @@ class ValidationStep extends React.Component {
      * @returns {String}
      */
     filterInput(amount) {
-        let value = amount ? amount.trim() : '';
+        let value = amount ? amount.toString().trim() : '';
         if (value === '' || !Math.abs(Str.fromUSDToNumber(value)) || _.isNaN(Number(value))) {
             return '';
         }
@@ -107,15 +116,16 @@ class ValidationStep extends React.Component {
     }
 
     render() {
-        const state = lodashGet(this.props, 'reimbursementAccount.achData.state');
+        const state = lodashGet(this.props.reimbursementAccount, 'achData.state');
 
         // If a user tries to navigate directly to the validate page we'll show them the EnableStep
         if (state === BankAccount.STATE.OPEN) {
             return <EnableStep />;
         }
 
-        const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
+        const maxAttemptsReached = lodashGet(this.props.reimbursementAccount, 'maxAttemptsReached');
         const isVerifying = !maxAttemptsReached && state === BankAccount.STATE.VERIFYING;
+        const requiresTwoFactorAuth = lodashGet(this.props, 'account.requiresTwoFactorAuth');
 
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
@@ -123,7 +133,7 @@ class ValidationStep extends React.Component {
                     title={isVerifying ? this.props.translate('validationStep.headerTitle') : this.props.translate('workspace.common.testTransactions')}
                     stepCounter={{step: 5, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={this.props.onBackButtonPress}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
@@ -159,7 +169,7 @@ class ValidationStep extends React.Component {
                                 {this.props.translate('validationStep.descriptionCTA')}
                             </Text>
                         </View>
-                        <View style={[styles.mv5, styles.flex1]}>
+                        <View style={[styles.mv5]}>
                             <TextInput
                                 inputID="amount1"
                                 shouldSaveDraft
@@ -182,10 +192,15 @@ class ValidationStep extends React.Component {
                                 keyboardType="decimal-pad"
                             />
                         </View>
+                        {!requiresTwoFactorAuth && (
+                            <View style={[styles.mln5, styles.mrn5]}>
+                                <Enable2FAPrompt />
+                            </View>
+                        )}
                     </Form>
                 )}
                 {isVerifying && (
-                    <View style={[styles.flex1]}>
+                    <ScrollView style={[styles.flex1]}>
                         <Section
                             title={this.props.translate('workspace.bankAccount.letsFinishInChat')}
                             icon={Illustrations.ConciergeBubble}
@@ -211,7 +226,10 @@ class ValidationStep extends React.Component {
                                 wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                             />
                         </Section>
-                    </View>
+                        {!requiresTwoFactorAuth && (
+                            <Enable2FAPrompt />
+                        )}
+                    </ScrollView>
                 )}
             </View>
         );
@@ -224,8 +242,8 @@ ValidationStep.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        account: {
+            key: ONYXKEYS.ACCOUNT,
         },
     }),
 )(ValidationStep);

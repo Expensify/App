@@ -22,8 +22,6 @@ import * as RequestThrottleMock from '../../src/libs/__mocks__/RequestThrottle';
 
 jest.mock('../../src/libs/RequestThrottle');
 
-jest.useFakeTimers();
-
 Onyx.init({
     keys: ONYXKEYS,
 });

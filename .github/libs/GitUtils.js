@@ -1,5 +1,6 @@
 const _ = require('underscore');
 const {spawn} = require('child_process');
+const sanitizeStringForJSONParse = require('./sanitizeStringForJSONParse');
 
 /**
  * Get merge logs between two refs (inclusive) as a JavaScript object.
@@ -35,14 +36,11 @@ function getMergeLogsAsJSON(fromRef, toRef) {
         spawnedProcess.on('error', err => reject(err));
     })
         .then((stdout) => {
-            // Remove any double-quotes from commit subjects
-            let sanitizedOutput = stdout.replace(/(?<="subject": ").*(?="})/g, subject => subject.replace(/"/g, "'"));
+            // Sanitize just the text within commit subjects as that's the only potentially un-parseable text.
+            const sanitizedOutput = stdout.replace(/(?<="subject": ").*?(?="})/g, subject => sanitizeStringForJSONParse(subject));
 
-            // Also remove any newlines and escape backslashes
-            sanitizedOutput = sanitizedOutput.replace(/(\r\n|\n|\r)/gm, '').replace(/\\/g, '\\\\');
-
-            // Then format as JSON and convert to a proper JS object
-            const json = `[${sanitizedOutput}]`.replace('},]', '}]');
+            // Then remove newlines, format as JSON and convert to a proper JS object
+            const json = `[${sanitizedOutput}]`.replace(/(\r\n|\n|\r)/gm, '').replace('},]', '}]');
 
             return JSON.parse(json);
         });

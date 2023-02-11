@@ -46,13 +46,16 @@ class Onfido extends React.Component {
                 colorBackgroundButtonSecondaryHover: themeColors.icon,
                 colorBackgroundButtonSecondaryActive: themeColors.icon,
                 colorBorderButtonSecondary: themeColors.border,
-                colorBackgroundIcon: themeColors.appBG,
+                colorBackgroundIcon: themeColors.transparent,
                 colorContentLinkTextHover: themeColors.appBG,
                 colorBorderLinkUnderline: themeColors.link,
                 colorBackgroundLinkHover: themeColors.link,
                 colorBackgroundLinkActive: themeColors.link,
                 authAccentColor: themeColors.link,
                 colorBackgroundInfoPill: themeColors.link,
+                colorBackgroundSelector: themeColors.appBG,
+                colorBackgroundDocTypeButton: themeColors.success,
+                colorBackgroundDocTypeButtonHover: themeColors.successHover,
             },
             steps: [
                 {
