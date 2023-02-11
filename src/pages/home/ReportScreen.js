@@ -155,6 +155,8 @@ class ReportScreen extends React.Component {
     fetchReportIfNeeded() {
         const reportIDFromPath = getReportID(this.props.route);
 
+        // Report ID will be empty when the reports collection is empty.
+        // This could happen when we are loading the collection for the first time after logging in.
         if (!reportIDFromPath) {
             return;
         }
