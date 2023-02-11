@@ -559,7 +559,7 @@ const styles = {
         height: 140,
     },
 
-    pickerSmall: {
+    pickerSmall: (backgroundColor = themeColors.highlightBG) => ({
         inputIOS: {
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
@@ -573,6 +573,16 @@ const styles = {
             height: 26,
             opacity: 1,
             backgroundColor: 'transparent',
+        },
+        done: {
+            color: themeColors.text,
+        },
+        modalViewMiddle: {
+            backgroundColor: themeColors.border,
+            borderTopWidth: 0,
+        },
+        modalViewBottom: {
+            backgroundColor: themeColors.highlightBG,
         },
         inputWeb: {
             fontFamily: fontFamily.EXP_NEUE,
@@ -588,7 +598,7 @@ const styles = {
             height: 26,
             opacity: 1,
             cursor: 'pointer',
-            backgroundColor: 'transparent',
+            backgroundColor,
         },
         inputAndroid: {
             fontFamily: fontFamily.EXP_NEUE,
@@ -602,6 +612,7 @@ const styles = {
             color: themeColors.text,
             height: 26,
             opacity: 1,
+            backgroundColor: 'transparent',
         },
         iconContainer: {
             top: 7,
@@ -611,7 +622,7 @@ const styles = {
             width: variables.iconSizeExtraSmall,
             height: variables.iconSizeExtraSmall,
         },
-    },
+    }),
 
     badge: {
         backgroundColor: themeColors.border,
@@ -839,6 +850,7 @@ const styles = {
         justifyContent: 'center',
         backgroundColor: 'transparent',
         height: variables.inputHeight,
+        overflow: 'hidden',
     },
 
     pickerContainerSmall: {
@@ -849,23 +861,35 @@ const styles = {
         position: 'absolute',
         left: 0,
         top: 6,
+        zIndex: 1,
     },
 
-    picker: (disabled = false) => ({
+    picker: (disabled = false, backgroundColor = themeColors.appBG) => ({
         iconContainer: {
             top: Math.round(variables.inputHeight * 0.5) - 11,
             right: 0,
-            zIndex: -1,
+            ...pointerEventsNone,
         },
 
         inputWeb: {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...picker,
+            backgroundColor,
         },
 
         inputIOS: {
             ...picker,
+        },
+        done: {
+            color: themeColors.text,
+        },
+        modalViewMiddle: {
+            backgroundColor: themeColors.border,
+            borderTopWidth: 0,
+        },
+        modalViewBottom: {
+            backgroundColor: themeColors.highlightBG,
         },
 
         inputAndroid: {
