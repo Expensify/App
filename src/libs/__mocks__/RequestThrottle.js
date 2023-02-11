@@ -1,4 +1,6 @@
-const initialRequestWaitTime = 50;
+import CONST from '../../CONST';
+
+const initialRequestWaitTime = CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME;
 const OriginalRequestThrottle = jest.requireActual('../RequestThrottle');
 class RequestThrottle extends OriginalRequestThrottle.default {
     constructor() {

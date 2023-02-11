@@ -446,6 +446,15 @@ describe('NetworkTests', () => {
             .mockResolvedValueOnce(retryResponse)
             .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS});
 
+        // Let's do a little math so that this test doesn't have to be ultra repetitive!
+        // How many times do we need to double the mocked initialRequestWaitTime (100) before we hit the max retry wait time (10,000)?
+        // We will be doubling the wait time until it's greater than or equal to the max, so we divide the max wait time by the initial wait time to figure out how much it needs to scale.
+        // 10,000 / 100 = 100 (scale factor)
+        // Next we want to know how many times we need to double to scale the initial wait time above the max, so we take log base 2 of the scale factor.
+        // Then we take the ceiling of that to know when it will be greater than or equal to the scale factor.
+        // So we need to double the initial request wait time 7 times.
+        const numRetriesToMaxWaitTime = Math.ceil(Math.log2(CONST.NETWORK.MAX_RETRY_WAIT_TIME / RequestThrottleMock.initialRequestWaitTime));
+
         // Given we have a request made while we're offline
         return Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
             .then(() => {
@@ -472,24 +481,33 @@ describe('NetworkTests', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // Then we have retried the failing request
-                expect(global.fetch).toHaveBeenCalledTimes(2);
+                // Chain these promises together
+                let backOffChain = Promise.resolve();
 
-                // Now we will double the wait time before the next retry
-                jest.advanceTimersByTime(RequestThrottleMock.initialRequestWaitTime * 2);
-                return waitForPromisesToResolve();
+                // We will double the wait time 1 less than needed so that we don't exceed the max wait time just yet
+                for (let retryCount = 1; retryCount <= numRetriesToMaxWaitTime; retryCount++) {
+                    backOffChain = backOffChain.then(() => {
+                        // Then we have retried the failing request. The request has been made once more than the retry count
+                        expect(global.fetch).toHaveBeenCalledTimes(retryCount + 1);
+
+                        // Now we will double the wait time before the next retry
+                        jest.advanceTimersByTime(RequestThrottleMock.initialRequestWaitTime * (2 ** retryCount));
+                        return waitForPromisesToResolve();
+                    });
+                }
+                return backOffChain;
             })
             .then(() => {
-                // Then we have retried again
-                expect(global.fetch).toHaveBeenCalledTimes(3);
+                // Then we have retried again. The first retry is the 2nd request, so the 7th retry is the 9th request.
+                expect(global.fetch).toHaveBeenCalledTimes(numRetriesToMaxWaitTime + 2);
 
-                // Now we double the wait time again
-                jest.advanceTimersByTime(RequestThrottleMock.initialRequestWaitTime * 2 * 2);
+                // Now we have hit the max wait time
+                jest.advanceTimersByTime(CONST.NETWORK.MAX_RETRY_WAIT_TIME);
                 return waitForPromisesToResolve();
             })
             .then(() => {
                 // Then the request is retried again
-                expect(global.fetch).toHaveBeenCalledTimes(4);
+                expect(global.fetch).toHaveBeenCalledTimes(numRetriesToMaxWaitTime + 3);
 
                 // The request succeeds so the queue is empty
                 expect(_.size(PersistedRequests.getAll())).toEqual(0);
