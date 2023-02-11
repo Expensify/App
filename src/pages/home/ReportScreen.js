@@ -127,7 +127,7 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.route.params.reportID === prevProps.route.params.reportID) {
+        if (this.props.report.reportID === prevProps.report.reportID) {
             return;
         }
 
@@ -161,6 +161,10 @@ class ReportScreen extends React.Component {
 
     fetchReportIfNeeded() {
         const reportIDFromPath = getReportID(this.props.route);
+
+        if (!reportIDFromPath) {
+            return;
+        }
 
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
         // is not stored locally yet. If props.report.reportID exists, then the report has been stored locally and nothing more needs to be done.
