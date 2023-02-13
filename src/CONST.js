@@ -485,6 +485,11 @@ const CONST = {
 
     EMOJI_SPACER: 'SPACER',
 
+    // This is the number of columns in each row of the picker.
+    // Because of how flatList implements these rows, each row is an index rather than each element
+    // For this reason to make headers work, we need to have the header be the only rendered element in its row
+    // If this number is changed, emojis.js will need to be updated to have the proper number of spacer elements
+    // around each header.
     EMOJI_NUM_PER_ROW: 8,
 
     EMOJI_FREQUENT_ROW_COUNT: 3,
@@ -531,9 +536,9 @@ const CONST = {
     ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_SIZE: {
         WIDTH: 320,
-        HEIGHT: 390,
+        HEIGHT: 392,
     },
-    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 288,
+    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 256,
     EMOJI_PICKER_ITEM_HEIGHT: 32,
     EMOJI_PICKER_HEADER_HEIGHT: 32,
     COMPOSER_MAX_HEIGHT: 125,

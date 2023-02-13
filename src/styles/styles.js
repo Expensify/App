@@ -1490,13 +1490,6 @@ const styles = {
         width: '100%',
     },
 
-    emojiHeaderStyle: {
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
-        color: themeColors.heading,
-        fontSize: variables.fontSizeSmall,
-    },
-
     emojiSkinToneTitle: {
         backgroundColor: themeColors.componentBG,
         width: '100%',
@@ -1536,6 +1529,15 @@ const styles = {
         borderWidth: 1,
         borderColor: themeColors.link,
         borderRadius: variables.buttonBorderRadius,
+    },
+
+    categoryShortcutButton: {
+        flex: 1,
+        borderRadius: 8,
+        paddingTop: 2,
+        paddingBottom: 2,
+        height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+        justifyContent: 'center',
     },
 
     chatItemEmojiButton: {
