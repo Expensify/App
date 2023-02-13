@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+    Platform,
     TouchableOpacity, View,
 } from 'react-native';
 import PropTypes from 'prop-types';
@@ -191,6 +192,8 @@ class ValidateCodeForm extends React.Component {
                 ) : (
                     <View style={[styles.mv3]}>
                         <TextInput
+                            autoComplete={Platform.select({android: 'sms-otp', web: 'one-time-code', ios: 'one-time-code'})}
+                            textContentType="oneTimeCode"
                             ref={el => this.inputValidateCode = el}
                             label={this.props.translate('common.magicCode')}
                             nativeID="validateCode"
