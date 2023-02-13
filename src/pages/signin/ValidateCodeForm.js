@@ -204,6 +204,7 @@ class ValidateCodeForm extends React.Component {
                             blurOnSubmit={false}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             errorText={this.state.formError.validateCode ? this.props.translate(this.state.formError.validateCode) : ''}
+                            autoFocus
                         />
                         <View style={[styles.changeExpensifyLoginLinkContainer]}>
                             <TouchableOpacity
