@@ -42,7 +42,7 @@ export default {
     fontSizeEmoji: 19,
     fontSizeEmojiHeight: 24,
     fontSizeEmojiProfile: 21,
-    fontSizeEmojiProfileHeight: 25,
+    fontSizeEmojiProfileHeight: 26,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
     fontSizeExtraSmall: 9,
     fontSizeLabel: getValueUsingPixelRatio(13, 19),
