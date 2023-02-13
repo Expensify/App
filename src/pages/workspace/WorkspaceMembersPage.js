@@ -384,28 +384,36 @@ class WorkspaceMembersPage extends React.Component {
                             />
                         </View>
 
-                        <View style={[styles.w100, styles.mt4, styles.flex1]}>
-                            <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
-                                <View style={[styles.peopleRowCell]}>
-                                    <Checkbox
-                                        isChecked={removableMembers.length !== 0 && _.every(removableMembers, member => _.contains(this.state.selectedEmployees, member))}
-                                        onPress={() => this.toggleAllUsers()}
-                                    />
+                        {data.length > 0 ? (
+                            <View style={[styles.w100, styles.mt4, styles.flex1]}>
+                                <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
+                                    <View style={[styles.peopleRowCell]}>
+                                        <Checkbox
+                                            isChecked={removableMembers.length !== 0 && _.every(removableMembers, member => _.contains(this.state.selectedEmployees, member))}
+                                            onPress={() => this.toggleAllUsers()}
+                                        />
+                                    </View>
+                                    <View style={[styles.peopleRowCell, styles.flex1]}>
+                                        <Text style={[styles.textStrong, styles.ph5]}>
+                                            {this.props.translate('workspace.people.selectAll')}
+                                        </Text>
+                                    </View>
                                 </View>
-                                <View style={[styles.peopleRowCell, styles.flex1]}>
-                                    <Text style={[styles.textStrong, styles.ph5]}>
-                                        {this.props.translate('workspace.people.selectAll')}
-                                    </Text>
-                                </View>
+                                <FlatList
+                                    renderItem={this.renderItem}
+                                    data={data}
+                                    keyExtractor={item => item.login}
+                                    showsVerticalScrollIndicator
+                                    style={[styles.ph5, styles.pb5]}
+                                />
                             </View>
-                            <FlatList
-                                renderItem={this.renderItem}
-                                data={data}
-                                keyExtractor={item => item.login}
-                                showsVerticalScrollIndicator
-                                style={[styles.ph5, styles.pb5]}
-                            />
-                        </View>
+                        ) : (
+                            <View style={[styles.ph5, styles.pb5]}>
+                                <Text style={[styles.textLabel, styles.colorMuted]}>
+                                    {this.props.translate('common.noResultsFound')}
+                                </Text>
+                            </View>
+                        )}
                     </View>
                 </FullPageNotFoundView>
             </ScreenWrapper>
