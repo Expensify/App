@@ -173,7 +173,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
         String conversationTitle = "Chat with " + name;
         if (!roomName.isEmpty()) {
-            conversationTitle = "#" + roomName;
+            conversationTitle = roomName;
         }
 
         // Retrieve or create the Person object who sent the latest report comment
