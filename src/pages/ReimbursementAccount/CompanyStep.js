@@ -127,7 +127,6 @@ class CompanyStep extends React.Component {
 
             // Fields from Company step
             ...values,
-            incorporationDate: values.incorporationDate,
             companyTaxID: values.companyTaxID.replace(CONST.REGEX.NON_NUMERIC, ''),
             companyPhone: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(values.companyPhone),
         };
