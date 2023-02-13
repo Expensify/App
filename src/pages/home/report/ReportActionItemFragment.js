@@ -15,6 +15,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import compose from '../../../libs/compose';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import renderTextWithEmoji from '../../../libs/renderTextWithEmoji';
 
 const propTypes = {
     /** The message fragment needing to be displayed */
@@ -140,9 +141,9 @@ const ReportActionItemFragment = (props) => {
                 <Tooltip text={props.tooltipText}>
                     <Text
                         numberOfLines={props.isSingleLine ? 1 : undefined}
-                        style={[styles.chatItemMessageHeaderSender]}
+                        style={styles.chatItemMessageHeaderSender}
                     >
-                        {Str.htmlDecode(props.fragment.text)}
+                        {renderTextWithEmoji(props.fragment.text, styles.emojiMessageText)}
                     </Text>
                 </Tooltip>
             );
