@@ -243,6 +243,8 @@ class InitialSettingsPage extends React.Component {
             return null;
         }
 
+        const displayName = this.props.currentUserPersonalDetails.displayName;
+
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({safeAreaPaddingBottomStyle}) => (
