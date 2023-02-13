@@ -55,7 +55,6 @@ class ReportSettingsPage extends Component {
         super(props);
 
         this.validate = this.validate.bind(this);
-        this.updatePolicyRoomName = this.updatePolicyRoomName.bind(this);
     }
 
     getNotificationPreferenceOptions() {
@@ -111,8 +110,7 @@ class ReportSettingsPage extends Component {
 
     render() {
         const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report);
-        const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report)
-            || ReportUtils.isArchivedRoom(this.props.report);
+        const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report) || ReportUtils.isArchivedRoom(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, policy => policy && policy.id === this.props.report.policyID);
 
         return (
@@ -129,7 +127,7 @@ class ReportSettingsPage extends Component {
                         submitButtonText={this.props.translate('common.save')}
                         style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                         validate={this.validate}
-                        onSubmit={this.updatePolicyRoomName}
+                        onSubmit={values => !shouldDisableRename && this.updatePolicyRoomName(values)}
                         scrollContextEnabled
                         isSubmitButtonVisible={shouldShowRoomName && !shouldDisableRename}
                         enabledWhenOffline
