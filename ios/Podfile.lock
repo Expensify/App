@@ -157,10 +157,16 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
-  - Onfido (27.0.0)
-  - onfido-react-native-sdk (7.0.1):
-    - Onfido (= 27.0.0)
+  - Onfido (27.3.0)
+  - onfido-react-native-sdk (7.3.0):
+    - Onfido (= 27.3.0)
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
     - React
+    - React-Codegen
+    - React-RCTFabric
+    - ReactCommon/turbomodule/core
   - Permission-Camera (3.6.1):
     - RNPermissions
   - Permission-LocationAccuracy (3.6.1):
@@ -720,8 +726,14 @@ PODS:
   - React-jsinspector (0.70.4-alpha.2)
   - React-logger (0.70.4-alpha.2):
     - glog
-  - react-native-blob-util (0.16.4):
+  - react-native-blob-util (0.17.1):
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
     - React-Core
+    - React-RCTFabric
+    - ReactCommon/turbomodule/core
   - react-native-cameraroll (5.2.3):
     - RCT-Folly
     - RCTRequired
@@ -1300,8 +1312,8 @@ SPEC CHECKSUMS:
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   libwebp: f62cb61d0a484ba548448a4bd52aabf150ff6eef
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
-  Onfido: bdbc3ed45598aa106ab2ea021d94e2e28c6b5be3
-  onfido-react-native-sdk: 5856e76fbfc0eb7b70b0f76fa1059830932a5c88
+  Onfido: e3117cd61ac93df6d2c315f4a93c9ad724fd8786
+  onfido-react-native-sdk: db95b9b75bae989aa44dfe794974c48e6d176ce1
   Permission-Camera: bf6791b17c7f614b6826019fcfdcc286d3a107f6
   Permission-LocationAccuracy: 76df17de5c6b8bc2eee34e61ee92cdd7a864c73d
   Permission-LocationAlways: 8d99b025c9f73c696e0cdb367e42525f2e9a26f2
@@ -1325,7 +1337,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 523e742f144a346f7df32dea4fe1944d39b02473
   React-jsinspector: 7b02a02b9b9bf830102394039c80b3bf2e0200b0
   React-logger: b2c47bb0829c3c45ba3a04add9a2b4aea3f3dd4e
-  react-native-blob-util: 60453b777610c87a22b3524032c0214e8db555db
+  react-native-blob-util: 14ee09f33abf13a1afdfbc777bbdca09c816022c
   react-native-cameraroll: 3ed0e9b71089d9e9936a35dd6d7b10afc258ac62
   react-native-config: 7cd105e71d903104e8919261480858940a6b9c0e
   react-native-document-picker: f68191637788994baed5f57d12994aa32cf8bf88
