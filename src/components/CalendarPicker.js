@@ -1,11 +1,13 @@
 import _ from 'underscore';
 import React from 'react';
 import {
-    StyleSheet, View, Text, TouchableOpacity,
+    StyleSheet, View, TouchableOpacity,
 } from 'react-native';
 import moment from 'moment';
+import PropTypes from 'prop-types';
 import * as Expensicons from './Icon/Expensicons';
 import Icon from './Icon';
+import Text from './Text';
 
 const styles = StyleSheet.create({
     row: {
@@ -17,7 +19,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     dayContainer: {
-        width: 45,
+        flex: 1,
         height: 45,
         justifyContent: 'center',
         alignItems: 'center',
@@ -46,6 +48,15 @@ const styles = StyleSheet.create({
     },
 });
 
+const propTypes = {
+    /** A function that is called when the day is clicked */
+    onChange: PropTypes.func,
+};
+
+const defaultProps = {
+
+};
+
 function generateMonthMatrix(year, month) {
     const daysInMonth = moment([year, month]).daysInMonth();
     const firstDay = moment([year, month, 1]).startOf('month');
@@ -66,6 +77,9 @@ function generateMonthMatrix(year, month) {
         }
     }
     if (currentWeek.length > 0) {
+        for (let i = currentWeek.length; i < 7; i++) {
+            currentWeek.push(null);
+        }
         matrix.push(currentWeek);
     }
     return matrix;
@@ -74,14 +88,11 @@ function generateMonthMatrix(year, month) {
 const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-const ArrowIcon = (props) => {
-    const {direction = 'right', onPress} = props;
-    return (
-        <TouchableOpacity onPress={onPress} style={[styles.icon, direction === 'left' ? {transform: [{rotate: '180deg'}]} : undefined]}>
-            <Icon src={Expensicons.ArrowRight} />
-        </TouchableOpacity>
-    );
-};
+const ArrowIcon = props => (
+    <View style={[styles.icon, props?.direction === 'left' ? {transform: [{rotate: '180deg'}]} : undefined]}>
+        <Icon src={Expensicons.ArrowRight} />
+    </View>
+);
 
 const addMonths = (date, months) => {
     const d = new Date(date.getTime());
@@ -90,7 +101,7 @@ const addMonths = (date, months) => {
     return d;
 };
 
-const CalendarPicker = () => {
+const CalendarPicker = (props) => {
     const [currentDateView, setCurrentDateView] = React.useState(new Date());
 
     const currentMonthView = currentDateView.getMonth();
@@ -99,22 +110,28 @@ const CalendarPicker = () => {
 
     const onNextMonthPress = () => setCurrentDateView(prev => addMonths(prev, 1));
     const onPrevMonthPress = () => setCurrentDateView(prev => addMonths(prev, -1));
+    const onMonthPickerPress = () => {};
+    const onYearPickerPress = () => {};
 
     return (
         <View style={styles.root}>
             <View>
                 <View style={styles.calendarHeader}>
-                    <View style={styles.rowCenter}>
+                    <TouchableOpacity onPress={onMonthPickerPress} style={styles.rowCenter}>
                         <Text style={styles.textBold}>{monthNames[currentMonthView]}</Text>
                         <ArrowIcon />
-                    </View>
-                    <View style={styles.rowCenter}>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={onYearPickerPress} style={styles.rowCenter}>
                         <Text style={styles.textBold}>{currentYearView}</Text>
                         <ArrowIcon />
-                    </View>
+                    </TouchableOpacity>
                     <View style={styles.rowCenter}>
-                        <ArrowIcon onPress={onPrevMonthPress} direction="left" />
-                        <ArrowIcon onPress={onNextMonthPress} />
+                        <TouchableOpacity onPress={onPrevMonthPress}>
+                            <ArrowIcon direction="left" />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={onNextMonthPress}>
+                            <ArrowIcon />
+                        </TouchableOpacity>
                     </View>
                 </View>
                 <View style={styles.row}>
@@ -139,5 +156,7 @@ const CalendarPicker = () => {
 };
 
 CalendarPicker.displayName = 'CalendarPicker';
+CalendarPicker.propTypes = propTypes;
+CalendarPicker.defaultProps = defaultProps;
 
 export default CalendarPicker;
