@@ -23,13 +23,11 @@ const propTypes = {
 };
 
 const SignInPageLayout = (props) => {
-    let containerStyles = [styles.flex1];
-
-    // , styles.signInPageInner];
+    let containerStyles = [styles.flex1, styles.signInPageInner];
     let contentContainerStyles = [styles.flex1, styles.flexRow];
 
     if (props.isSmallScreenWidth) {
-        containerStyles = [];
+        containerStyles = [styles.flex1];
         contentContainerStyles = [styles.flex1, styles.flexColumn];
     }
 
@@ -45,7 +43,7 @@ const SignInPageLayout = (props) => {
                     </SignInPageContent>
                     <ScrollView
                         style={styles.flex1}
-                        contentContainerStyle={[styles.flexGrow1, styles.flexColumn]}
+                        contentContainerStyle={[styles.flexGrow1]}
                     >
                         <SignInPageGraphics />
                         <Footer />

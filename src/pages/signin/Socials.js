@@ -11,46 +11,43 @@ import styles from '../../styles/styles';
 
 const socialsList = [
     {
-        iconURL: Expensicons.Pencil,
+        iconURL: Expensicons.Podcast,
         link: 'https://we.are.expensify.com/podcast',
     },
     {
-        iconURL: Expensicons.Apple,
+        iconURL: Expensicons.Twitter,
         link: 'https://www.twitter.com/expensify',
     },
     {
-        iconURL: Expensicons.Android,
+        iconURL: Expensicons.Instagram,
         link: 'http://www.instagram.com/expensify',
     },
     {
-        iconURL: Expensicons.Chair,
+        iconURL: Expensicons.Facebook,
         link: 'https://www.facebook.com/expensify',
     },
     {
-        iconURL: Expensicons.CreditCard,
+        iconURL: Expensicons.Linkedin,
         link: 'http://www.linkedin.com/company/expensify',
     },
 ];
 
 const Socials = () => (
-    <>
-        <Text>
-            {_.map(socialsList, social => (
-                <Pressable
-                    onPress={() => {
-                        Linking.openURL(social.link);
-                    }}
-                    style={styles.pr2}
-                    key={social.link}
-                >
-                    {({hovered}) => (
-                        <Icon src={social.iconURL} height={18} width={18} fill={hovered ? themeColors.link : themeColors.textLight} />
-                    )}
-                </Pressable>
-            ))}
-        </Text>
-
-    </>
+    <Text>
+        {_.map(socialsList, social => (
+            <Pressable
+                onPress={() => {
+                    Linking.openURL(social.link);
+                }}
+                style={styles.pr1}
+                key={social.link}
+            >
+                {({hovered}) => (
+                    <Icon src={social.iconURL} height={24} width={24} fill={hovered ? themeColors.link : themeColors.textLight} />
+                )}
+            </Pressable>
+        ))}
+    </Text>
 );
 
 Socials.displayName = 'Socials';

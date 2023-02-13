@@ -34,7 +34,7 @@ const SignInPageContent = props => (
         <View
             style={[
                 StyleUtils.getHeight(props.windowHeight),
-                !props.isSmallScreenWidth && styles.flex1,
+                styles.flex1,
                 styles.signInPageLeftContainer,
                 !props.isSmallScreenWidth && styles.signInPageLeftContainerWide,
             ]}

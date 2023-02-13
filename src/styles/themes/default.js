@@ -28,7 +28,7 @@ const darkTheme = {
     successHover: colors.greenHover,
     successPressed: colors.greenPressed,
     transparent: colors.transparent,
-    midtone: colors.greenMidtone,
+    midtone: colors.green700,
 
     // Additional keys
     overlay: colors.greenHighlightBackground,
@@ -61,7 +61,6 @@ const darkTheme = {
     checkBox: colors.green,
     pickerOptionsTextColor: colors.midnight,
     imageCropBackgroundColor: colors.greenIcons,
-    ivory: colors.floralwhite,
 };
 
 const oldTheme = {
@@ -121,7 +120,6 @@ const oldTheme = {
     inverse: colors.dark,
     textLight: colors.white,
     textDark: colors.dark,
-    ivory: colors.floralwhite,
 };
 
 export default darkTheme;

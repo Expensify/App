@@ -122,11 +122,11 @@ const columns = [
         translationPath: 'footer.getStarted',
         rows: [
             {
-                link: 'https://www.expensify.com/',
+                link: 'https://www.new.expensify.com/',
                 translationPath: 'footer.createAccount',
             },
             {
-                link: 'https://www.expensify.com/',
+                link: 'https://www.new.expensify.com/',
                 translationPath: 'footer.logIn',
             },
         ],

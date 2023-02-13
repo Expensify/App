@@ -10,10 +10,12 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 
 import LocalePicker from '../../components/LocalePicker';
 
+const currentYear = new Date().getFullYear();
+
 const TermsAndLicenses = props => (
     <>
         <Text style={[styles.textExtraSmallSupporting, styles.mb2]}>
-            {props.translate('termsOfUse.phrase0')}
+            {`© ${currentYear} Expensify`}
         </Text>
         <Text style={[styles.textExtraSmallSupporting]}>
             {props.translate('termsOfUse.phrase1')}
