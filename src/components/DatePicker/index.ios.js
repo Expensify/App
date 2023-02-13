@@ -1,6 +1,6 @@
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Button, View, Keyboard} from 'react-native';
+import {View, Keyboard} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
 import _ from 'underscore';
@@ -10,7 +10,6 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Popover from '../Popover';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import {propTypes, defaultProps} from './datepickerPropTypes';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 
@@ -27,6 +26,8 @@ class DatePicker extends React.Component {
         this.state = {
             isPickerVisible: false,
             selectedDate: props.value || props.defaultValue ? moment(props.value || props.defaultValue).toDate() : new Date(),
+            pickerLayout: {},
+            spaceFromTop: null,
         };
 
         this.showPicker = this.showPicker.bind(this);
@@ -82,7 +83,17 @@ class DatePicker extends React.Component {
     render() {
         const dateAsText = this.props.value || this.props.defaultValue ? moment(this.props.value || this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
         return (
-            <>
+            <View
+                ref={(ref) => {
+                    if (!ref || this.state.spaceFromTop !== null) { return; }
+
+                    ref.measureInWindow((x, y) => {
+                        this.setState({spaceFromTop: y});
+                    });
+                }}
+
+                onLayout={({nativeEvent}) => this.setState({pickerLayout: nativeEvent.layout})}
+            >
                 <TextInput
                     label={this.props.label}
                     value={dateAsText}
@@ -104,36 +115,25 @@ class DatePicker extends React.Component {
                 <Popover
                     isVisible={this.state.isPickerVisible}
                     onClose={this.selectDate}
+                    fromSidebarMediumScreen
+                    anchorPosition={{
+                        top: this.state.pickerLayout.height + this.state.spaceFromTop + 10,
+                        left: 20,
+                    }}
                 >
-                    <View style={[
-                        styles.flexRow,
-                        styles.justifyContentBetween,
-                        styles.borderBottom,
-                        styles.pb1,
-                        styles.ph4,
-                    ]}
-                    >
-                        <Button
-                            title={this.props.translate('common.reset')}
-                            color={themeColors.textError}
-                            onPress={this.reset}
-                        />
-                        <Button
-                            title={this.props.translate('common.done')}
-                            color={themeColors.link}
-                            onPress={this.selectDate}
+                    <View style={{width: this.state.pickerLayout.width}}>
+
+                        <RNDatePicker
+                            value={this.state.selectedDate}
+                            mode="date"
+                            display="spinner"
+                            themeVariant="dark"
+                            onChange={this.updateLocalDate}
+                            locale={this.props.preferredLocale}
                         />
                     </View>
-                    <RNDatePicker
-                        value={this.state.selectedDate}
-                        mode="date"
-                        display="spinner"
-                        themeVariant="dark"
-                        onChange={this.updateLocalDate}
-                        locale={this.props.preferredLocale}
-                    />
                 </Popover>
-            </>
+            </View>
         );
     }
 }
