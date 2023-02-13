@@ -21,15 +21,13 @@ export default function () {
                         return;
                     }
 
-                    if (!_.has(report, 'lastMessageTimestamp')) {
+                    if (!_.has(report, 'lastActionCreated')) {
                         return;
                     }
 
                     reportsToUpdate[key] = report;
-                    reportsToUpdate[key].lastVisibleActionCreated = new Date(report.lastMessageTimestamp)
-                        .toISOString()
-                        .replace('T', ' ')
-                        .replace('Z', '');
+                    reportsToUpdate[key].lastVisibleActionCreated = report.lastActionCreated;
+                    reportsToUpdate[key].lastActionCreated = null;
                 });
 
                 if (_.isEmpty(reportsToUpdate)) {
