@@ -1068,7 +1068,7 @@ export default {
         error: {
             phoneNumberExtension: 'Por favor, introduce una extensión telefónica válida',
             firstName: 'Por favor, ingresa tu nombre',
-            lastName: 'Por favor, ingresa tu apellido',
+            lastName: 'Por favor, ingresa tus apellidos',
         },
     },
     requestCallConfirmationScreen: {
