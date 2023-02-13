@@ -255,17 +255,19 @@ class BaseTextInput extends Component {
                                     pointerEvents="box-none"
                                 >
                                     {Boolean(this.props.prefixCharacter) && (
-                                        <Text
-                                            pointerEvents="none"
-                                            selectable={false}
-                                            style={[
-                                                styles.textInputPrefix,
-                                                !hasLabel && styles.pv0,
-                                            ]}
-                                            onLayout={this.storePrefixLayoutDimensions}
-                                        >
-                                            {this.props.prefixCharacter}
-                                        </Text>
+                                        <View style={styles.textInputPrefixWrapper}>
+                                            <Text
+                                                pointerEvents="none"
+                                                selectable={false}
+                                                style={[
+                                                    styles.textInputPrefix,
+                                                    !hasLabel && styles.pv0,
+                                                ]}
+                                                onLayout={this.storePrefixLayoutDimensions}
+                                            >
+                                                {this.props.prefixCharacter}
+                                            </Text>
+                                        </View>
                                     )}
                                     <RNTextInput
                                         ref={(ref) => {

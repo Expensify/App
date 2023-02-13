@@ -1729,10 +1729,6 @@ const emojis = [
         ],
     },
     {
-        code: 'peopleAndBody',
-        header: true,
-    },
-    {
         name: 'wave',
         code: '👋',
         keywords: [
