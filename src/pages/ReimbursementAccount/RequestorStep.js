@@ -92,7 +92,6 @@ class RequestorStep extends React.Component {
         const payload = {
             bankAccountID: lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0,
             ...values,
-            dob: values.dob,
         };
 
         BankAccounts.updatePersonalInformationForBankAccount(payload);
