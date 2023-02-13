@@ -1100,6 +1100,19 @@ const styles = {
         lineHeight: variables.fontSizeOnlyEmojisHeight,
     },
 
+    emojiMessageText: {
+        top: 2,
+        position: 'relative',
+        fontSize: variables.fontSizeEmoji,
+        lineHeight: variables.fontSizeEmojiHeight,
+    },
+
+    profileEmojiText: {
+        top: 4,
+        fontSize: variables.fontSizeEmojiProfile,
+        lineHeight: variables.fontSizeEmojiProfileHeight,
+    },
+
     createMenuPositionSidebar: {
         left: 18,
         bottom: 100,
