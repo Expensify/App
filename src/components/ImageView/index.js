@@ -221,7 +221,7 @@ class ImageView extends PureComponent {
     }
 
     imageLoadingEnd() {
-        this.setState({isLoading: false});
+        this.setState({isLoading: false, isZoomed: false});
     }
 
     render() {
