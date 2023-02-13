@@ -8,10 +8,19 @@ import PropTypes from 'prop-types';
 import * as Expensicons from './Icon/Expensicons';
 import Icon from './Icon';
 import Text from './Text';
+import colors from '../styles/colors';
 
 const styles = StyleSheet.create({
     row: {
         flexDirection: 'row',
+    },
+    calendarHeader: {
+        height: 50,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingRight: 5,
     },
     rowCenter: {
         flexDirection: 'row',
@@ -24,20 +33,20 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    daySelected: {
+        backgroundColor: colors.greenDefaultButton,
+        width: 30,
+        height: 30,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 15,
+    },
     dayText: {
         color: 'white',
     },
     textBold: {
         color: 'white',
         fontWeight: '700',
-    },
-    calendarHeader: {
-        height: 50,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 15,
-        paddingRight: 5,
     },
     monthControls: {
         flexDirection: 'row',
@@ -50,11 +59,14 @@ const styles = StyleSheet.create({
 
 const propTypes = {
     /** A function that is called when the day is clicked */
-    onChange: PropTypes.func,
+    onChange: PropTypes.func.isRequired,
+
+    /** A value initial of date */
+    value: PropTypes.object,
 };
 
 const defaultProps = {
-
+    value: new Date(),
 };
 
 function generateMonthMatrix(year, month) {
@@ -67,10 +79,7 @@ function generateMonthMatrix(year, month) {
     }
     for (let i = 1; i <= daysInMonth; i++) {
         const day = moment([year, month, i]);
-        currentWeek.push({
-            day: day.date(),
-            weekday: day.format('dddd'),
-        });
+        currentWeek.push(day.date());
         if (day.weekday() === 6) {
             matrix.push(currentWeek);
             currentWeek = [];
@@ -86,7 +95,7 @@ function generateMonthMatrix(year, month) {
 }
 
 const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 const ArrowIcon = props => (
     <View style={[styles.icon, props?.direction === 'left' ? {transform: [{rotate: '180deg'}]} : undefined]}>
@@ -112,6 +121,14 @@ const CalendarPicker = (props) => {
     const onPrevMonthPress = () => setCurrentDateView(prev => addMonths(prev, -1));
     const onMonthPickerPress = () => {};
     const onYearPickerPress = () => {};
+
+    const onDayPress = (day) => {
+        if (!props.onChange) {
+            return;
+        }
+        const selectedDate = new Date(currentYearView, currentMonthView, day);
+        props.onChange(selectedDate);
+    };
 
     return (
         <View style={styles.root}>
@@ -144,9 +161,15 @@ const CalendarPicker = (props) => {
                 {_.map(monthMatrix, week => (
                     <View style={styles.row}>
                         {_.map(week, day => (
-                            <View style={styles.dayContainer}>
-                                <Text style={styles.dayText}>{day ? day.day : ''}</Text>
-                            </View>
+                            <TouchableOpacity
+                                disabled={!day}
+                                onPress={() => onDayPress(day)}
+                                style={styles.dayContainer}
+                            >
+                                <View style={[moment(props.value).isSame(moment([currentYearView, currentMonthView, day]), 'day') && styles.daySelected]}>
+                                    <Text style={styles.dayText}>{day || ''}</Text>
+                                </View>
+                            </TouchableOpacity>
                         ))}
                     </View>
                 ))}
