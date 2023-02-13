@@ -73,10 +73,9 @@ class DatePicker extends React.Component {
     }
 
     /**
-     * @param {Event} event
      * @param {Date} selectedDate
      */
-    updateLocalDate(event, selectedDate) {
+    updateLocalDate(selectedDate) {
         this.setState({selectedDate});
     }
 
@@ -122,7 +121,7 @@ class DatePicker extends React.Component {
                     }}
                 >
                     <View style={{width: this.state.pickerLayout.width}}>
-                        <CalendarPicker />
+                        <CalendarPicker value={this.state.selectedDate} onChange={this.updateLocalDate} />
                     </View>
                 </Popover>
             </View>
