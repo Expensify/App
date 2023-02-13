@@ -9,7 +9,7 @@ import stylePropTypes from '../styles/stylePropTypes';
 
 const propTypes = {
     /** The message text to render */
-    text: PropTypes.string.isRequired,
+    children: PropTypes.string.isRequired,
 
     /** Text additional style */
     style: stylePropTypes,
@@ -20,18 +20,18 @@ const defaultProps = {
 };
 
 const TextEmoji = (props) => {
-    const propsStyle = StyleUtils.parseStyleAsArray(props.style);
-
-    if (!EmojiUtils.isEmoji(props.text)) {
+    if (!EmojiUtils.isEmoji(props.children)) {
         return (
             <Text>
-                {props.text}
+                {props.children}
             </Text>
         );
     }
 
-    return _.map([...Str.htmlDecode(props.text)], ((char, index) => (
-        <Text key={char + index} style={EmojiUtils.isEmoji(char) ? propsStyle : undefined}>
+    const propsStyle = StyleUtils.parseStyleAsArray(props.style);
+
+    return _.map([...Str.htmlDecode(props.children)], ((char, index) => (
+        <Text key={`${char}_${index}`} style={EmojiUtils.isEmoji(char) ? propsStyle : undefined}>
             {char}
         </Text>
     )));

@@ -143,7 +143,7 @@ const ReportActionItemFragment = (props) => {
                         numberOfLines={props.isSingleLine ? 1 : undefined}
                         style={styles.chatItemMessageHeaderSender}
                     >
-                        <TextEmoji text={props.fragment.text} style={styles.emojiMessageText} />
+                        <TextEmoji style={styles.emojiMessageText}>{props.fragment.text}</TextEmoji>
                     </Text>
                 </Tooltip>
             );
