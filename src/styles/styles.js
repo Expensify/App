@@ -1101,7 +1101,7 @@ const styles = {
     },
 
     emojiMessageText: {
-        top: 2,
+        top: 3,
         position: 'relative',
         fontSize: variables.fontSizeEmoji,
         lineHeight: variables.fontSizeEmojiHeight,

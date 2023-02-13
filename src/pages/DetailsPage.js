@@ -25,7 +25,7 @@ import PressableWithoutFocus from '../components/PressableWithoutFocus';
 import * as Report from '../libs/actions/Report';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import AutoUpdateTime from '../components/AutoUpdateTime';
-import renderTextWithEmoji from '../libs/renderTextWithEmoji';
+import TextEmoji from '../components/TextEmoji';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -151,7 +151,7 @@ class DetailsPage extends React.PureComponent {
                                     <Text style={[styles.textHeadline, styles.mb6]} numberOfLines={1}>
                                         {isSMSLogin
                                             ? this.props.toLocalPhone(details.displayName)
-                                            : renderTextWithEmoji(details.displayName, {...styles.emojiMessageText, ...styles.profileEmojiText})}
+                                            : <TextEmoji text={details.displayName} style={[styles.emojiMessageText, styles.profileEmojiText]} />}
                                     </Text>
                                 )}
                                 {details.login ? (
