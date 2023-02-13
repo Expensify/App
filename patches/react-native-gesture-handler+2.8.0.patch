@@ -11,6 +11,56 @@ index fed3e8a..fc3226d 100644
  if isUserApp
    libInstances = %x[find ../../ -name "package.json" | grep "/react-native-gesture-handler/package.json" | grep -v "/.yarn/"]
    libInstancesArray = libInstances.split("\n")
+diff --git a/node_modules/react-native-gesture-handler/ios/RNGestureHandlerManager.mm b/node_modules/react-native-gesture-handler/ios/RNGestureHandlerManager.mm
+index 8c2d99d..4a2c5c4 100644
+--- a/node_modules/react-native-gesture-handler/ios/RNGestureHandlerManager.mm
++++ b/node_modules/react-native-gesture-handler/ios/RNGestureHandlerManager.mm
+@@ -45,6 +45,7 @@ @implementation RNGestureHandlerManager {
+   RNGestureHandlerRegistry *_registry;
+   RCTUIManager *_uiManager;
+   NSHashTable<RNRootViewGestureRecognizer *> *_rootViewGestureRecognizers;
++    NSMutableDictionary<NSNumber*, NSNumber*> *_attachRetryCounter;
+   RCTEventDispatcher *_eventDispatcher;
+   id _reanimatedModule;
+ }
+@@ -56,6 +57,7 @@ - (instancetype)initWithUIManager:(RCTUIManager *)uiManager eventDispatcher:(RCT
+     _eventDispatcher = eventDispatcher;
+     _registry = [RNGestureHandlerRegistry new];
+     _rootViewGestureRecognizers = [NSHashTable hashTableWithOptions:NSPointerFunctionsWeakMemory];
++      _attachRetryCounter = [[NSMutableDictionary alloc] init];
+     _reanimatedModule = nil;
+   }
+   return self;
+@@ -103,9 +105,29 @@ - (void)attachGestureHandler:(nonnull NSNumber *)handlerTag
+   if (view == nil) {
+     // Happens when the view with given tag has been flattened.
+     // We cannot attach gesture handler to a non-existent view.
++      
++    NSNumber *counter = [_attachRetryCounter objectForKey:viewTag];
++      if (counter == nil) {
++          counter = @1;
++      } else {
++          counter = [NSNumber numberWithInt:counter.intValue + 1];
++      }
++      
++      if (counter.intValue > 30) {
++          [_attachRetryCounter removeObjectForKey:viewTag];
++      } else {
++          [_attachRetryCounter setObject:counter forKey:viewTag];
++          
++          dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
++              [self attachGestureHandler:handlerTag toViewWithTag:viewTag withActionType:actionType];
++          });
++      }
++      
+     return;
+   }
+     
++    [_attachRetryCounter removeObjectForKey:viewTag];
++
+   // I think it should be moved to RNNativeViewHandler, but that would require
+   // additional logic for setting contentView.reactTag, this works for now
+   if ([view isKindOfClass:[RCTViewComponentView class]]) {
 diff --git a/node_modules/react-native-gesture-handler/lib/commonjs/GestureHandlerRootView.android.js b/node_modules/react-native-gesture-handler/lib/commonjs/GestureHandlerRootView.android.js
 index 15caf4a..112ec0c 100644
 --- a/node_modules/react-native-gesture-handler/lib/commonjs/GestureHandlerRootView.android.js
