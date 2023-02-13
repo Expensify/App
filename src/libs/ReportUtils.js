@@ -3,6 +3,7 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {InteractionManager} from 'react-native';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
@@ -13,8 +14,10 @@ import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
 import * as NumberFormatUtils from './NumberFormatUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
+import linkingConfig from './Navigation/linkingConfig';
 import * as defaultAvatars from '../components/Icon/DefaultAvatars';
 
 let sessionEmail;
@@ -64,6 +67,13 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: val => allReports = val,
+});
+
+let doesDomainHaveApprovedAccountant;
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    waitForCollectionCallback: true,
+    callback: val => doesDomainHaveApprovedAccountant = lodashGet(val, 'doesDomainHaveApprovedAccountant', false),
 });
 
 function getChatType(report) {
@@ -241,9 +251,10 @@ function hasExpensifyGuidesEmails(emails) {
  * @param {Record<String, {lastReadTime, reportID}>|Array<{lastReadTime, reportID}>} reports
  * @param {Boolean} [ignoreDefaultRooms]
  * @param {Object} policies
+ * @param {Boolean} openOnAdminRoom
  * @returns {Object}
  */
-function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
+function findLastAccessedReport(reports, ignoreDefaultRooms, policies, openOnAdminRoom = false) {
     let sortedReports = sortReportsByLastRead(reports);
 
     if (ignoreDefaultRooms) {
@@ -252,7 +263,15 @@ function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
             || hasExpensifyGuidesEmails(lodashGet(report, ['participants'], [])));
     }
 
-    return _.last(sortedReports);
+    let adminReport;
+    if (!ignoreDefaultRooms && openOnAdminRoom) {
+        adminReport = _.find(sortedReports, (report) => {
+            const chatType = getChatType(report);
+            return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
+        });
+    }
+
+    return adminReport || _.last(sortedReports);
 }
 
 /**
@@ -370,8 +389,18 @@ function chatIncludesConcierge(report) {
  * @param {Array} emails
  * @returns {Boolean}
  */
-function hasExpensifyEmails(emails) {
+function hasAutomatedExpensifyEmails(emails) {
     return _.intersection(emails, CONST.EXPENSIFY_EMAILS).length > 0;
+}
+
+/**
+ * Returns true if there are any Expensify accounts (i.e. with domain 'expensify.com') in the set of emails.
+ *
+ * @param {Array<String>} emails
+ * @return {Boolean}
+ */
+function hasExpensifyEmails(emails) {
+    return _.some(emails, email => Str.extractEmailDomain(email) === CONST.EXPENSIFY_PARTNER_NAME);
 }
 
 /**
@@ -627,6 +656,39 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
 }
 
 /**
+ * Get the title for a policy expense chat which depends on the role of the policy member seeing this report
+ *
+ * @param {Object} report
+ * @param {Object} [policies]
+ * @returns {String}
+ */
+function getPolicyExpenseChatName(report, policies = {}) {
+    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerEmail) || report.ownerEmail || report.reportName;
+
+    // If the policy expense chat is owned by this user, use the name of the policy as the report name.
+    if (report.isOwnPolicyExpenseChat) {
+        return getPolicyName(report, policies);
+    }
+
+    const policyExpenseChatRole = lodashGet(policies, [
+        `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role',
+    ]) || 'user';
+
+    // If this user is not admin and this policy expense chat has been archived because of account merging, this must be an old workspace chat
+    // of the account which was merged into the current user's account. Use the name of the policy as the name of the report.
+    if (isArchivedRoom(report)) {
+        const lastAction = ReportActionsUtils.getLastVisibleAction(report.reportID);
+        const archiveReason = (lastAction && lastAction.originalMessage && lastAction.originalMessage.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+        if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED && policyExpenseChatRole !== CONST.POLICY.ROLE.ADMIN) {
+            return getPolicyName(report, policies);
+        }
+    }
+
+    // If user can see this report and they are not its owner, they must be an admin and the report name should be the name of the policy member
+    return reportOwnerDisplayName;
+}
+
+/**
  * Get the title for a report.
  *
  * @param {Object} report
@@ -640,8 +702,7 @@ function getReportName(report, policies = {}) {
     }
 
     if (isPolicyExpenseChat(report)) {
-        const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerEmail) || report.ownerEmail || report.reportName;
-        formattedName = report.isOwnPolicyExpenseChat ? getPolicyName(report, policies) : reportOwnerDisplayName;
+        formattedName = getPolicyExpenseChatName(report, policies);
     }
 
     if (isArchivedRoom(report)) {
@@ -842,7 +903,7 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
             iouMessage = isSettlingUp
-                ? `Settled up ${paymentMethodMessage}`
+                ? `Settled up${paymentMethodMessage}`
                 : `Sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             break;
         default:
@@ -957,7 +1018,7 @@ function buildOptimisticChatReport(
         lastActionCreated: currentTime,
         notificationPreference,
         oldPolicyName,
-        ownerEmail,
+        ownerEmail: ownerEmail || CONST.REPORT.OWNER_EMAIL_FAKE,
         participants: participantList,
         policyID,
         reportID: generateReportID(),
@@ -1195,6 +1256,40 @@ function isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports = {}) {
 }
 
 /**
+ * Assuming the passed in report is a default room, lets us know whether we can see it or not, based on permissions and
+ * the various subsets of users we've allowed to use default rooms.
+ *
+ * @param {Object} report
+ * @param {Array<Object>} policies
+ * @param {Array<String>} betas
+ * @return {Boolean}
+ */
+function canSeeDefaultRoom(report, policies, betas) {
+    // Include archived rooms
+    if (isArchivedRoom(report)) {
+        return true;
+    }
+
+    // Include default rooms for free plan policies (domain rooms aren't included in here because they do not belong to a policy)
+    if (getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE) {
+        return true;
+    }
+
+    // Include domain rooms with Partner Managers (Expensify accounts) in them for accounts that are on a domain with an Approved Accountant
+    if (isDomainRoom(report) && doesDomainHaveApprovedAccountant && hasExpensifyEmails(lodashGet(report, ['participants'], []))) {
+        return true;
+    }
+
+    // If the room has an assigned guide, it can be seen.
+    if (hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
+        return true;
+    }
+
+    // For all other cases, just check that the user belongs to the default rooms beta
+    return Permissions.canUseDefaultRooms(betas);
+}
+
+/**
  * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
  * for reports or the reports shown in the LHN).
  *
@@ -1248,13 +1343,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         return true;
     }
 
-    // Include default rooms for free plan policies
-    if (isDefaultRoom(report) && getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE) {
-        return true;
-    }
-
-    // Include default rooms unless you're on the default room beta, unless you have an assigned guide
-    if (isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas) && !hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
+    if (isDefaultRoom(report) && !canSeeDefaultRoom(report, policies, betas)) {
         return false;
     }
 
@@ -1326,6 +1415,66 @@ function getNewMarkerReportActionID(report, sortedAndFilteredReportActions) {
         : '';
 }
 
+/**
+ * Replace code points > 127 with C escape sequences, and return the resulting string's overall length
+ * Used for compatibility with the backend auth validator for AddComment
+ * @param {String} textComment
+ * @returns {Number}
+ */
+function getCommentLength(textComment) {
+    return textComment.replace(/[^ -~]/g, '\\u????').length;
+}
+
+/**
+ * @param {String|null} url
+ * @returns {String}
+ */
+function getReportIDFromDeepLink(url) {
+    if (!url) {
+        return '';
+    }
+
+    // Get the reportID from URL
+    let route = url;
+    _.each(linkingConfig.prefixes, (prefix) => {
+        const localWebAndroidRegEx = /^(http:\/\/([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3}))/;
+        if (route.startsWith(prefix)) {
+            route = route.replace(prefix, '');
+        } else if (localWebAndroidRegEx.test(route)) {
+            route = route.replace(localWebAndroidRegEx, '');
+        } else {
+            return;
+        }
+
+        // Remove the port if it's a localhost URL
+        if (/^:\d+/.test(route)) {
+            route = route.replace(/:\d+/, '');
+        }
+
+        // Remove the leading slash if exists
+        if (route.startsWith('/')) {
+            route = route.replace('/', '');
+        }
+    });
+    const {reportID} = ROUTES.parseReportRouteParams(route);
+    return reportID;
+}
+
+/**
+ * @param {String|null} url
+ */
+function openReportFromDeepLink(url) {
+    const reportID = getReportIDFromDeepLink(url);
+    if (!reportID) {
+        return;
+    }
+    InteractionManager.runAfterInteractions(() => {
+        Navigation.isReportScreenReady().then(() => {
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
+        });
+    });
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1343,7 +1492,7 @@ export {
     getPolicyType,
     isArchivedRoom,
     isConciergeChatReport,
-    hasExpensifyEmails,
+    hasAutomatedExpensifyEmails,
     hasExpensifyGuidesEmails,
     hasOutstandingIOU,
     isIOUOwnedByCurrentUser,
@@ -1357,6 +1506,7 @@ export {
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
     getReportName,
+    getReportIDFromDeepLink,
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
@@ -1379,4 +1529,7 @@ export {
     isDefaultAvatar,
     getOldDotDefaultAvatar,
     getNewMarkerReportActionID,
+    canSeeDefaultRoom,
+    getCommentLength,
+    openReportFromDeepLink,
 };

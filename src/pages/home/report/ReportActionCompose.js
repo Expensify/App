@@ -294,14 +294,15 @@ class ReportActionCompose extends React.Component {
             ];
         }
 
-        // DM chats and workspace chats that only have 2 people will see the Send / Request money options.
+        // DM chats that only have 2 people will see the Send / Request money options.
+        // Workspace chats should only see the Request money option, as "easy overages" is not available.
         return [
             {
                 icon: Expensicons.MoneyCircle,
                 text: this.props.translate('iou.requestMoney'),
                 onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
             },
-            ...(Permissions.canUseIOUSend(this.props.betas)
+            ...((Permissions.canUseIOUSend(this.props.betas) && !ReportUtils.isPolicyExpenseChat(this.props.report))
                 ? [
                     {
                         icon: Expensicons.Send,
@@ -471,7 +472,7 @@ class ReportActionCompose extends React.Component {
         const trimmedComment = this.comment.trim();
 
         // Don't submit empty comments or comments that exceed the character limit
-        if (this.state.isCommentEmpty || trimmedComment.length > CONST.MAX_COMMENT_LENGTH) {
+        if (this.state.isCommentEmpty || ReportUtils.getCommentLength(trimmedComment) > CONST.MAX_COMMENT_LENGTH) {
             return '';
         }
 
@@ -534,7 +535,8 @@ class ReportActionCompose extends React.Component {
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
-        const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
+        const encodedCommentLength = ReportUtils.getCommentLength(this.comment);
+        const hasExceededMaxCommentLength = encodedCommentLength > CONST.MAX_COMMENT_LENGTH;
 
         return (
             <View style={[
@@ -729,7 +731,7 @@ class ReportActionCompose extends React.Component {
                 >
                     {!this.props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                     <ReportTypingIndicator reportID={this.props.reportID} />
-                    <ExceededCommentLength commentLength={this.comment.length} />
+                    <ExceededCommentLength commentLength={encodedCommentLength} />
                 </View>
                 {this.state.isDraggingOver && <ReportDropUI />}
             </View>
