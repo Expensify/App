@@ -74,6 +74,7 @@ class AttachmentModal extends PureComponent {
 
         this.state = {
             isModalOpen: false,
+            isModalVisible: false,
             isAttachmentInvalid: false,
             attachmentInvalidReasonTitle: null,
             attachmentInvalidReason: null,
@@ -86,6 +87,7 @@ class AttachmentModal extends PureComponent {
 
         this.submitAndClose = this.submitAndClose.bind(this);
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
+        this.setModalVisibility = this.setModalVisibility.bind(this);
         this.validateAndDisplayFileToUpload = this.validateAndDisplayFileToUpload.bind(this);
         this.updateConfirmButtonVisibility = this.updateConfirmButtonVisibility.bind(this);
     }
@@ -144,6 +146,14 @@ class AttachmentModal extends PureComponent {
      */
     closeConfirmModal() {
         this.setState({isAttachmentInvalid: false});
+    }
+
+    /**
+     * @param {boolean} value
+     * set modal visibility when it is either completely visible or closed.
+     */
+    setModalVisibility(value) {
+        this.setState({isModalVisible: value});
     }
 
     /**
@@ -241,7 +251,11 @@ class AttachmentModal extends PureComponent {
                     onClose={() => this.setState({isModalOpen: false})}
                     isVisible={this.state.isModalOpen}
                     backgroundColor={themeColors.componentBG}
-                    onModalHide={this.props.onModalHide}
+                    onModalShow={() => this.setModalVisibility(true)}
+                    onModalHide={(e) => {
+                        this.props.onModalHide(e);
+                        this.setModalVisibility(false);
+                    }}
                     propagateSwipe
                 >
                     {this.props.isSmallScreenWidth && <HeaderGap />}
@@ -252,8 +266,9 @@ class AttachmentModal extends PureComponent {
                         onDownloadButtonPress={() => this.downloadAttachment(source)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                     />
+
                     <View style={styles.imageModalImageCenterContainer}>
-                        {this.state.source && (
+                        {this.state.source && this.state.isModalVisible && (
                             <AttachmentView
                                 source={source}
                                 isAuthTokenRequired={this.props.isAuthTokenRequired}
