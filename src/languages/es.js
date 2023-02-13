@@ -332,8 +332,8 @@ export default {
         isShownOnProfile: 'Tus pronombres se muestran en tu perfil.',
     },
     contacts: {
-        contactMethod: '',
-        contactMethods: '',
+        contactMethod: 'Método de contacto',
+        contactMethods: 'Métodos de contacto',
     },
     pronouns: {
         coCos: 'Co / Cos',
