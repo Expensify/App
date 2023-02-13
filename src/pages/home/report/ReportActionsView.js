@@ -90,8 +90,8 @@ class ReportActionsView extends React.Component {
             // e.g. they could have read these messages on another device and only just become active here
             this.openReportIfNecessary();
 
-            const didManuallyMarkReportAsUnread = ReportUtils.isUnread(this.props.report);
-            if (!didManuallyMarkReportAsUnread) {
+            const hasUnreadActions = ReportUtils.isUnread(this.props.report);
+            if (!hasUnreadActions) {
                 this.setState({newMarkerReportActionID: ''});
             }
         });
