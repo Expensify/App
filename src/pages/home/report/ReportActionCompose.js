@@ -294,14 +294,15 @@ class ReportActionCompose extends React.Component {
             ];
         }
 
-        // DM chats and workspace chats that only have 2 people will see the Send / Request money options.
+        // DM chats that only have 2 people will see the Send / Request money options.
+        // Workspace chats should only see the Request money option, as "easy overages" is not available.
         return [
             {
                 icon: Expensicons.MoneyCircle,
                 text: this.props.translate('iou.requestMoney'),
                 onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
             },
-            ...(Permissions.canUseIOUSend(this.props.betas)
+            ...((Permissions.canUseIOUSend(this.props.betas) && !ReportUtils.isPolicyExpenseChat(this.props.report))
                 ? [
                     {
                         icon: Expensicons.Send,
