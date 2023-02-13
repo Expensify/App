@@ -52,7 +52,7 @@ class OnfidoPrivacy extends React.Component {
         onfidoError += !_.isEmpty(onfidoFixableErrors) ? `\n${onfidoFixableErrors.join('\n')}` : '';
 
         return (
-            <View style={[styles.mb5, styles.flex1, styles.justifyContentBetween]}>
+            <View style={[styles.flex1, styles.justifyContentBetween]}>
                 {!this.props.walletOnfidoData.hasAcceptedPrivacyPolicy ? (
                     <>
                         <FormScrollView ref={el => this.form = el}>
@@ -90,6 +90,7 @@ class OnfidoPrivacy extends React.Component {
                                 message={onfidoError}
                                 isLoading={this.props.walletOnfidoData.isLoading}
                                 buttonText={onfidoError ? this.props.translate('onfidoStep.tryAgain') : this.props.translate('common.continue')}
+                                containerStyles={[styles.mh0, styles.mv0, styles.mb0]}
                             />
                         </FixedFooter>
                     </>
