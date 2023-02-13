@@ -245,6 +245,15 @@ function suggestEmojis(text, limit = 5) {
     return [];
 }
 
+/**
+ * Validates that this message contains emojis
+ * @param {String} text
+ * @returns {Array}
+ */
+function isEmoji(text) {
+    return Boolean(text.match(CONST.REGEX.EMOJIS));
+}
+
 export {
     getHeaderIndices,
     mergeEmojisWithFrequentlyUsedEmojis,
@@ -253,4 +262,5 @@ export {
     replaceEmojis,
     suggestEmojis,
     trimEmojiUnicode,
+    isEmoji,
 };
