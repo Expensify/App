@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {compose} from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {
@@ -8,6 +7,7 @@ import {
     defaultProps as validateLinkDefaultProps,
 } from './validateLinkPropTypes';
 import * as User from '../../libs/actions/User';
+import compose from '../../libs/compose';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ValidateCodeModal from '../../components/ValidateCodeModal';
 import ONYXKEYS from '../../ONYXKEYS';

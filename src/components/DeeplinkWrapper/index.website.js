@@ -1,4 +1,4 @@
-import _, {compose} from 'underscore';
+import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
@@ -10,6 +10,7 @@ import * as Illustrations from '../Icon/Illustrations';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Text from '../Text';
 import styles from '../../styles/styles';
+import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
 import Icon from '../Icon';
