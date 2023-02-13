@@ -1,7 +1,6 @@
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {View, Keyboard} from 'react-native';
-import RNDatePicker from '@react-native-community/datetimepicker';
+import {View, Keyboard, StatusBar} from 'react-native';
 import moment from 'moment';
 import _ from 'underscore';
 import compose from '../../libs/compose';
@@ -12,6 +11,7 @@ import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import {propTypes, defaultProps} from './datepickerPropTypes';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
+import CalendarPicker from '../CalendarPicker';
 
 const datepickerPropTypes = {
     ...propTypes,
@@ -85,7 +85,7 @@ class DatePicker extends React.Component {
         return (
             <View
                 ref={(ref) => {
-                    if (!ref || this.state.spaceFromTop !== null) { return; }
+                    if (!ref || this.state.spaceFromTop) { return; }
 
                     ref.measureInWindow((x, y) => {
                         this.setState({spaceFromTop: y});
@@ -117,20 +117,12 @@ class DatePicker extends React.Component {
                     onClose={this.selectDate}
                     fromSidebarMediumScreen
                     anchorPosition={{
-                        top: this.state.pickerLayout.height + this.state.spaceFromTop + 10,
+                        top: this.state.pickerLayout.height + this.state.spaceFromTop + StatusBar.currentHeight + 10,
                         left: 20,
                     }}
                 >
                     <View style={{width: this.state.pickerLayout.width}}>
-
-                        <RNDatePicker
-                            value={this.state.selectedDate}
-                            mode="date"
-                            display="spinner"
-                            themeVariant="dark"
-                            onChange={this.updateLocalDate}
-                            locale={this.props.preferredLocale}
-                        />
+                        <CalendarPicker />
                     </View>
                 </Popover>
             </View>

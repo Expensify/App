@@ -15,7 +15,6 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import DatePicker from '../../../../components/DatePicker';
-import CalendarPicker from './CalendarPicker';
 
 const propTypes = {
     /* Onyx Props */
@@ -101,7 +100,6 @@ class DateOfBirthPage extends Component {
                         />
                     </View>
                 </Form>
-                <CalendarPicker />
             </ScreenWrapper>
         );
     }

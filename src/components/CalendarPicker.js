@@ -4,20 +4,10 @@ import {
     StyleSheet, View, Text, TouchableOpacity,
 } from 'react-native';
 import moment from 'moment';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import Icon from '../../../../components/Icon';
+import * as Expensicons from './Icon/Expensicons';
+import Icon from './Icon';
 
 const styles = StyleSheet.create({
-    root: {
-        // TODO: remove that
-        flex: 1,
-    },
-    container: {
-        borderColor: 'rgba(0,200,0,0.4)',
-        borderWidth: 0.5,
-        borderRadius: 10,
-        alignSelf: 'flex-start',
-    },
     row: {
         flexDirection: 'row',
     },
@@ -112,7 +102,7 @@ const CalendarPicker = () => {
 
     return (
         <View style={styles.root}>
-            <View style={styles.container}>
+            <View>
                 <View style={styles.calendarHeader}>
                     <View style={styles.rowCenter}>
                         <Text style={styles.textBold}>{monthNames[currentMonthView]}</Text>
