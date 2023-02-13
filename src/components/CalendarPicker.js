@@ -9,6 +9,7 @@ import * as Expensicons from './Icon/Expensicons';
 import Icon from './Icon';
 import Text from './Text';
 import colors from '../styles/colors';
+import flex from '../styles/utilities/flex';
 
 const styles = StyleSheet.create({
     row: {
@@ -134,15 +135,15 @@ const CalendarPicker = (props) => {
         <View style={styles.root}>
             <View>
                 <View style={styles.calendarHeader}>
-                    <TouchableOpacity onPress={onMonthPickerPress} style={styles.rowCenter}>
+                    <TouchableOpacity onPress={onMonthPickerPress} style={[styles.rowCenter, flex.flex1, flex.justifyContentStart]}>
                         <Text style={styles.textBold}>{monthNames[currentMonthView]}</Text>
                         <ArrowIcon />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={onYearPickerPress} style={styles.rowCenter}>
+                    <TouchableOpacity onPress={onYearPickerPress} style={[styles.rowCenter, flex.flex1, flex.justifyContentCenter]}>
                         <Text style={styles.textBold}>{currentYearView}</Text>
                         <ArrowIcon />
                     </TouchableOpacity>
-                    <View style={styles.rowCenter}>
+                    <View style={[styles.rowCenter, flex.flex1, flex.justifyContentEnd]}>
                         <TouchableOpacity onPress={onPrevMonthPress}>
                             <ArrowIcon direction="left" />
                         </TouchableOpacity>
