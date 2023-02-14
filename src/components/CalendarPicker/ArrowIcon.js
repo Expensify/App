@@ -11,6 +11,14 @@ const styles = StyleSheet.create({
     },
 });
 
+const propTypes = {
+    direction: PropTypes.oneOf(['left', 'right']),
+};
+
+const defaultProps = {
+    direction: 'right',
+};
+
 const ArrowIcon = props => (
     <View style={[styles.icon, props.direction === 'left' ? {transform: [{rotate: '180deg'}]} : undefined]}>
         <Icon src={Expensicons.ArrowRight} />
@@ -18,11 +26,7 @@ const ArrowIcon = props => (
 );
 
 ArrowIcon.displayName = 'ArrowIcon';
-ArrowIcon.propTypes = {
-    direction: PropTypes.oneOf(['left', 'right']),
-};
-ArrowIcon.defaultProps = {
-    direction: 'right',
-};
+ArrowIcon.propTypes = propTypes;
+ArrowIcon.defaultProps = defaultProps;
 
 export default ArrowIcon;

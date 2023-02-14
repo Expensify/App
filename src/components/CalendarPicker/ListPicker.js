@@ -32,6 +32,18 @@ const styles = StyleSheet.create({
 
 const Separator = () => <View style={styles.separator} />;
 
+const propTypes = {
+    selected: PropTypes.number,
+    format: PropTypes.func,
+    onSelect: PropTypes.func.isRequired,
+    data: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.number, PropTypes.string])).isRequired,
+};
+
+const defaultProps = {
+    format: null,
+    selected: null,
+};
+
 const ListPicker = (props) => {
     const ref = React.useRef(null);
 
@@ -60,17 +72,9 @@ const ListPicker = (props) => {
         />
     );
 };
-ListPicker.displayName = 'ListPicker';
-ListPicker.propTypes = {
-    selected: PropTypes.number,
-    format: PropTypes.func,
-    onSelect: PropTypes.func.isRequired,
-    data: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.number, PropTypes.string])).isRequired,
-};
 
-ListPicker.defaultProps = {
-    format: null,
-    selected: null,
-};
+ListPicker.displayName = 'ListPicker';
+ListPicker.propTypes = propTypes;
+ListPicker.defaultProps = defaultProps;
 
 export default ListPicker;
