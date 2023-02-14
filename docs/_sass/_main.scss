@@ -669,7 +669,7 @@ button {
             display: block;
         }
 
-        @include mq (sm) {
+        @include maxBreakpoint($breakpoint-tablet) {
             display: none;
         }
     }
@@ -679,14 +679,14 @@ button {
         max-width: 1000px;
         padding: 64px $mediumSpacing 0;
 
-        @include mq(sm) {
+        @include maxBreakpoint($breakpoint-tablet) {
             max-width: $sidepaneWidthMobile;
             padding: 64px 40px 20px;
         }
     }
 
     .columns {
-        @include mq(md) {
+        @include maxBreakpoint($breakpoint-desktop) {
             display: flex;
             margin-left: (-1 * 16px);
             margin-right: (-1 * 16px);
@@ -696,7 +696,7 @@ button {
     .column {
         margin-bottom: 40px;
 
-        @include mq(md) {
+        @include maxBreakpoint($breakpoint-desktop) {
             padding: 16px;
             width: 25%;
         }
