@@ -686,7 +686,7 @@ button {
     }
 
     .columns {
-        @include maxBreakpoint($breakpoint-desktop) {
+        @include breakpoint($breakpoint-desktop) {
             display: flex;
             margin-left: (-1 * 16px);
             margin-right: (-1 * 16px);
@@ -696,7 +696,7 @@ button {
     .column {
         margin-bottom: 40px;
 
-        @include maxBreakpoint($breakpoint-desktop) {
+        @include breakpoint($breakpoint-desktop) {
             padding: 16px;
             width: 25%;
         }
