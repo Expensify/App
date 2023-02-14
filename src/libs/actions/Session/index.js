@@ -20,7 +20,6 @@ import DateUtils from '../../DateUtils';
 import Navigation from '../../Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 
-window.Onyx = Onyx;
 let credentials = {};
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
