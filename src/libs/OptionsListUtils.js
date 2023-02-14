@@ -575,6 +575,9 @@ function getOptions(reports, personalDetails, {
     let userToInvite = null;
     const noOptions = (recentReportOptions.length + personalDetailsOptions.length) === 0;
     const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), option => option.login === searchValue.toLowerCase());
+
+    // If the phone number doesn't have an international code then let's prefix it with the
+    // current user's international code based on their IP address.
     const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
         ? `+${countryCodeByIP}${searchValue}`
         : searchValue;
@@ -585,9 +588,6 @@ function getOptions(reports, personalDetails, {
         && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()))
         && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
-        // If the phone number doesn't have an international code then let's prefix it with the
-        // current user's international code based on their IP address.
-
         userToInvite = createOption([login], personalDetails, null, reportActions, {
             showChatPreviewLine,
         });
