@@ -110,7 +110,7 @@ const addMonths = (date, months) => {
 };
 
 const CalendarPicker = (props) => {
-    const [currentDateView, setCurrentDateView] = React.useState(new Date());
+    const [currentDateView, setCurrentDateView] = React.useState(props.value ? props.value : new Date());
     const [yearPickerVisible, setYearPickerVisible] = React.useState(false);
     const [monthPickerVisible, setMonthPickerVisible] = React.useState(false);
 
