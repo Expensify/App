@@ -10,6 +10,9 @@ import colors from '../../styles/colors';
 import themeColors from '../../styles/themes/default';
 
 const styles = StyleSheet.create({
+    root: {
+        height: 500,
+    },
     item: {
         height: 50,
         marginHorizontal: 5,
@@ -18,7 +21,8 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     separator: {
-        backgroundColor: colors.greenDefaultButton, height: 1,
+        backgroundColor: colors.greenDefaultButton,
+        height: 1,
     },
 });
 
@@ -42,7 +46,7 @@ const ListPicker = (props) => {
     return (
         <FlatList
             ref={ref}
-            style={{height: 500}}
+            style={styles.root}
             initialNumToRender={20}
             data={props.data}
             initialScrollIndex={props.data.indexOf(props.selected)}
