@@ -5,14 +5,14 @@ import {
     View, FlatList, TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
+import { withOnyx } from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize, { withLocalizePropTypes } from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
 import Button from '../../components/Button';
@@ -21,12 +21,12 @@ import Text from '../../components/Text';
 import ROUTES from '../../ROUTES';
 import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import withWindowDimensions, { windowDimensionsPropTypes } from '../../components/withWindowDimensions';
 import OptionRow from '../../components/OptionRow';
-import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import withPolicy, { policyPropTypes, policyDefaultProps } from './withPolicy';
 import CONST from '../../CONST';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import {withNetwork} from '../../components/OnyxProvider';
+import { withNetwork } from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as Expensicons from '../../components/Icon/Expensicons';
@@ -93,7 +93,7 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     onSearch(searchValue = '') {
-        this.setState({searchValue});
+        this.setState({ searchValue });
     }
 
     /**
@@ -114,7 +114,7 @@ class WorkspaceMembersPage extends React.Component {
      * Open the modal to invite a user
      */
     inviteUser() {
-        this.setState({searchValue: '', selectedEmployees: []});
+        this.setState({ searchValue: '', selectedEmployees: [] });
         Navigation.navigate(ROUTES.getWorkspaceInviteRoute(this.props.route.params.policyID));
     }
 
@@ -143,14 +143,14 @@ class WorkspaceMembersPage extends React.Component {
             return;
         }
 
-        this.setState({isRemoveMembersConfirmModalVisible: true});
+        this.setState({ isRemoveMembersConfirmModalVisible: true });
     }
 
     /**
      * Hide the confirmation modal
      */
     hideConfirmModal() {
-        this.setState({isRemoveMembersConfirmModalVisible: false});
+        this.setState({ isRemoveMembersConfirmModalVisible: false });
     }
 
     /**
@@ -232,7 +232,7 @@ class WorkspaceMembersPage extends React.Component {
             errors[member] = this.props.translate('workspace.people.error.cannotRemove');
         });
 
-        this.setState({errors});
+        this.setState({ errors });
     }
 
     /**
@@ -300,7 +300,7 @@ class WorkspaceMembersPage extends React.Component {
             if (email !== this.props.session.email && email !== this.props.policy.owner && policyMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 removableMembers.push(email);
             }
-            const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email, avatar: Expensicons.FallbackAvatar});
+            const details = lodashGet(this.props.personalDetails, email, { displayName: email, login: email, avatar: Expensicons.FallbackAvatar });
             data.push({
                 ...policyMember,
                 ...details,
@@ -332,88 +332,88 @@ class WorkspaceMembersPage extends React.Component {
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
             >
-                {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView
-                    shouldShow={_.isEmpty(this.props.policy)}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
-                >
-                    <HeaderWithCloseButton
-                        title={this.props.translate('workspace.common.members')}
-                        subtitle={policyName}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
-                        onBackButtonPress={() => {
-                            this.setState({searchValue: '', selectedEmployees: []});
-                            Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
-                        }}
-                        shouldShowGetAssistanceButton
-                        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                        shouldShowBackButton
-                    />
-                    <ConfirmModal
-                        danger
-                        title={this.props.translate('workspace.people.removeMembersTitle')}
-                        isVisible={this.state.isRemoveMembersConfirmModalVisible}
-                        onConfirm={() => this.removeUsers()}
-                        onCancel={this.hideConfirmModal}
-                        prompt={this.props.translate('workspace.people.removeMembersPrompt')}
-                        confirmText={this.props.translate('common.remove')}
-                        cancelText={this.props.translate('common.cancel')}
-                    />
-                    <View style={[styles.w100, styles.alignItemsCenter, styles.flex1]}>
-                        <View style={[styles.w100, styles.flexRow, styles.pt5, styles.ph5]}>
-                            <Button
-                                medium
-                                success
-                                text={this.props.translate('common.invite')}
-                                onPress={this.inviteUser}
-                            />
-                            <Button
-                                medium
-                                danger
-                                style={[styles.ml2]}
-                                isDisabled={this.state.selectedEmployees.length === 0}
-                                text={this.props.translate('common.remove')}
-                                onPress={this.askForConfirmationToRemove}
-                            />
-                        </View>
+                {({ safeAreaPaddingBottomStyle }) => (
+                    <FullPageNotFoundView
+                        shouldShow={_.isEmpty(this.props.policy)}
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                    >
+                        <HeaderWithCloseButton
+                            title={this.props.translate('workspace.common.members')}
+                            subtitle={policyName}
+                            onCloseButtonPress={() => Navigation.dismissModal()}
+                            onBackButtonPress={() => {
+                                this.setState({ searchValue: '', selectedEmployees: [] });
+                                Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+                            }}
+                            shouldShowGetAssistanceButton
+                            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+                            shouldShowBackButton
+                        />
+                        <ConfirmModal
+                            danger
+                            title={this.props.translate('workspace.people.removeMembersTitle')}
+                            isVisible={this.state.isRemoveMembersConfirmModalVisible}
+                            onConfirm={() => this.removeUsers()}
+                            onCancel={this.hideConfirmModal}
+                            prompt={this.props.translate('workspace.people.removeMembersPrompt')}
+                            confirmText={this.props.translate('common.remove')}
+                            cancelText={this.props.translate('common.cancel')}
+                        />
+                        <View style={[styles.w100, styles.alignItemsCenter, styles.flex1]}>
+                            <View style={[styles.w100, styles.flexRow, styles.pt5, styles.ph5]}>
+                                <Button
+                                    medium
+                                    success
+                                    text={this.props.translate('common.invite')}
+                                    onPress={this.inviteUser}
+                                />
+                                <Button
+                                    medium
+                                    danger
+                                    style={[styles.ml2]}
+                                    isDisabled={this.state.selectedEmployees.length === 0}
+                                    text={this.props.translate('common.remove')}
+                                    onPress={this.askForConfirmationToRemove}
+                                />
+                            </View>
 
-                        <View style={[styles.w100, styles.p5]}>
-                            <TextInput
-                                value={this.state.searchValue}
-                                onChangeText={this.onSearch}
-                                placeholder={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            />
-                        </View>
-                    {data.length > 0 ? (
-                        <View style={[styles.w100, styles.mt4, styles.flex1]}>
-                            <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
-                                <View style={[styles.peopleRowCell]}>
-                                    <Checkbox
-                                        isChecked={removableMembers.length !== 0 && _.every(removableMembers, member => _.contains(this.state.selectedEmployees, member))}
-                                        onPress={() => this.toggleAllUsers()}
+                            <View style={[styles.w100, styles.p5]}>
+                                <TextInput
+                                    value={this.state.searchValue}
+                                    onChangeText={this.onSearch}
+                                    placeholder={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                />
+                            </View>
+                            {data.length > 0 ? (
+                                <View style={[styles.w100, styles.mt4, styles.flex1]}>
+                                    <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
+                                        <View style={[styles.peopleRowCell]}>
+                                            <Checkbox
+                                                isChecked={removableMembers.length !== 0 && _.every(removableMembers, member => _.contains(this.state.selectedEmployees, member))}
+                                                onPress={() => this.toggleAllUsers()}
+                                            />
+                                        </View>
+                                        <View style={[styles.peopleRowCell, styles.flex1]}>
+                                            <Text style={[styles.textStrong, styles.ph5]}>
+                                                {this.props.translate('workspace.people.selectAll')}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                    <FlatList
+                                        renderItem={this.renderItem}
+                                        data={data}
+                                        keyExtractor={item => item.login}
+                                        showsVerticalScrollIndicator
+                                        style={[styles.ph5, styles.pb5]}
+                                        contentContainerStyle={safeAreaPaddingBottomStyle}
                                     />
-                                </View>
-                                <View style={[styles.peopleRowCell, styles.flex1]}>
-                                    <Text style={[styles.textStrong, styles.ph5]}>
-                                        {this.props.translate('workspace.people.selectAll')}
+                                </View>) : (
+                                <View style={[styles.ph5, styles.pb5]}>
+                                    <Text style={[styles.textLabel, styles.colorMuted]}>
+                                        {this.props.translate('common.noResultsFound')}
                                     </Text>
                                 </View>
-                                </View>
-                                <FlatList
-                                    renderItem={this.renderItem}
-                                    data={data}
-                                    keyExtractor={item => item.login}
-                                    showsVerticalScrollIndicator
-                                    style={[styles.ph5, styles.pb5]}
-                                    contentContainerStyle={safeAreaPaddingBottomStyle}
-                                />
-                            </View>):(
-                            <View style={[styles.ph5, styles.pb5]}>
-                                <Text style={[styles.textLabel, styles.colorMuted]}>
-                                    {this.props.translate('common.noResultsFound')}
-                                </Text>
-                            </View>
-                        )}
+                            )}
                         </View>
                     </FullPageNotFoundView>
                 )}
