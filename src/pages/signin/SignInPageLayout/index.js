@@ -7,6 +7,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import styles from '../../../styles/styles';
 import SignInPageGraphics from './SignInPageGraphics';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import ScreenWrapper from '../../../components/ScreenWrapper';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -32,41 +33,43 @@ const SignInPageLayout = (props) => {
     }
 
     return (
-        <View style={containerStyles}>
-            {!props.isSmallScreenWidth ? (
-                <View style={contentContainerStyles}>
-                    <SignInPageContent
-                        welcomeText={props.welcomeText}
-                        shouldShowWelcomeText={props.shouldShowWelcomeText}
-                    >
-                        {props.children}
-                    </SignInPageContent>
-                    <ScrollView
-                        style={styles.flex1}
-                        contentContainerStyle={[styles.flexGrow1]}
-                    >
-                        <SignInPageGraphics />
-                        <Footer />
-                    </ScrollView>
-                </View>
-            )
-                : (
-                    <ScrollView
-
-                        // To scroll on both mobile and web, we need to set the container height manually
-                        style={StyleUtils.getHeight(1 + props.windowHeight)}
-                        contentContainerStyle={[styles.flexGrow1]}
-                    >
+        <ScreenWrapper>
+            <View style={containerStyles}>
+                {!props.isSmallScreenWidth ? (
+                    <View style={contentContainerStyles}>
                         <SignInPageContent
                             welcomeText={props.welcomeText}
                             shouldShowWelcomeText={props.shouldShowWelcomeText}
                         >
                             {props.children}
                         </SignInPageContent>
-                        <Footer />
-                    </ScrollView>
-                )}
-        </View>
+                        <ScrollView
+                            style={styles.flex1}
+                            contentContainerStyle={[styles.flexGrow1]}
+                        >
+                            <SignInPageGraphics />
+                            <Footer />
+                        </ScrollView>
+                    </View>
+                )
+                    : (
+                        <ScrollView
+
+                            // To scroll on both mobile and web, we need to set the container height manually
+                            style={StyleUtils.getHeight(1 + props.windowHeight)}
+                            contentContainerStyle={[styles.flexGrow1]}
+                        >
+                            <SignInPageContent
+                                welcomeText={props.welcomeText}
+                                shouldShowWelcomeText={props.shouldShowWelcomeText}
+                            >
+                                {props.children}
+                            </SignInPageContent>
+                            <Footer />
+                        </ScrollView>
+                    )}
+            </View>
+        </ScreenWrapper>
     );
 };
 

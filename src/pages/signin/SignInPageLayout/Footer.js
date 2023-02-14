@@ -4,6 +4,7 @@ import React from 'react';
 import _ from 'underscore';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
+import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import TextLink from '../../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -134,70 +135,68 @@ const columns = [
 ];
 
 const Footer = (props) => {
-    const imageDirection = props.isSmallScreenWidth ? styles.flexRow : styles.flexColumn;
-    const columnDirection = props.isSmallScreenWidth ? styles.flexColumn : styles.flexRow;
+    const isVertical = props.isSmallScreenWidth;
+    const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
+    const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
+    const columnDirection = isVertical ? styles.flexColumn : styles.flexRow;
 
-    const pageFooter = [styles.flex1, styles.flexGrow1];
-    const pageFooterWrapper = [styles.footerWrapper, imageDirection];
-    let footerColumns = [styles.footerColumnsContainer, columnDirection];
-    let footerColumn = [styles.footerColumn];
-
-    if (!props.isSmallScreenWidth) {
-        footerColumn = [...footerColumn, styles.p4, styles.flex1];
-        footerColumns = [...footerColumns, styles.footerLargeScreenAlign];
-    }
+    const pageFooterWrapper = [styles.footerWrapper, imageDirection, imageStyle];
+    const footerColumns = [styles.footerColumnsContainer, columnDirection];
+    const footerColumn = isVertical ? [styles.p4] : [styles.p4, styles.flex1, props.isMediumScreenWidth ? styles.mnw50 : styles.mnw25];
 
     return (
-        <View style={pageFooter}>
-            <View style={pageFooterWrapper}>
-                <View style={footerColumns}>
-                    { /** Columns * */ }
-                    {_.map(columns, (column, i) => (
-                        <View
-                            key={column.translationPath + i}
-                            style={footerColumn}
-                        >
-                            <Text style={[styles.textHeadline, styles.footerTitle]}>
-                                {props.translate(column.translationPath)}
-                            </Text>
-                            <View style={[styles.footerRow]}>
-                                { /** Rows * */ }
-                                {_.map(column.rows, (row, j) => (
-                                    <Hoverable
-                                        key={row.translationPath + j}
-                                    >
-                                        {hovered => (
-                                            <TextLink
-                                                style={[styles.footerRow, hovered ? styles.textBlue : {}]}
-                                                href={row.link}
-                                            >
-                                                {props.translate(row.translationPath)}
-                                            </TextLink>
-                                        )}
-                                    </Hoverable>
-                                ))}
-                                {(i === 2) && (
-                                    <View style={styles.mt5}>
-                                        <Socials />
-                                    </View>
-                                )}
-                                {(i === 3) && (
-                                    <View style={styles.footerTermsContainer}>
-                                        <TermsAndLicenses />
-                                    </View>
-                                )}
+        <View style={styles.flex1}>
+            <View style={styles.footerContainer}>
+                <View style={pageFooterWrapper}>
+                    <View style={footerColumns}>
+                        { /** Columns * */ }
+                        {_.map(columns, (column, i) => (
+                            <View
+                                key={column.translationPath + i}
+                                style={footerColumn}
+                            >
+                                <Text style={[styles.textHeadline, styles.footerTitle]}>
+                                    {props.translate(column.translationPath)}
+                                </Text>
+                                <View style={[styles.footerRow]}>
+                                    { /** Rows * */ }
+                                    {_.map(column.rows, (row, j) => (
+                                        <Hoverable
+                                            key={row.translationPath + j}
+                                        >
+                                            {hovered => (
+                                                <TextLink
+                                                    style={[styles.footerRow, hovered ? styles.textBlue : {}]}
+                                                    href={row.link}
+                                                >
+                                                    {props.translate(row.translationPath)}
+                                                </TextLink>
+                                            )}
+                                        </Hoverable>
+                                    ))}
+                                    {(i === 2) && (
+                                        <View style={styles.mt5}>
+                                            <Socials />
+                                        </View>
+                                    )}
+                                    {(i === 3) && (
+                                        <View style={styles.mv4}>
+                                            <TermsAndLicenses />
+                                        </View>
+                                    )}
+                                </View>
                             </View>
-                        </View>
-                    ))}
-                </View>
-                { /** Expensify Wordmark * */ }
-                <View style={[!props.isSmallScreenWidth && styles.footerLargeScreenAlign]}>
-                    {!props.isSmallScreenWidth ? (
-                        <Expensicons.ExpensifyFooterLogo />
-                    )
-                        : (
-                            <Expensicons.ExpensifyFooterLogoVertical height={634} width={111} />
-                        )}
+                        ))}
+                    </View>
+                    { /** Expensify Wordmark * */ }
+                    <View style={[!isVertical && styles.footerBottomLogo]}>
+                        {!isVertical ? (
+                            <Expensicons.ExpensifyFooterLogo />
+                        )
+                            : (
+                                <Expensicons.ExpensifyFooterLogoVertical height={634} width={111} />
+                            )}
+                    </View>
                 </View>
             </View>
         </View>

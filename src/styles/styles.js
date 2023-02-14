@@ -2918,22 +2918,22 @@ const styles = {
         letterSpacing: 4,
     },
 
-    footerWrapper: {
+    footerContainer: {
         backgroundColor: themeColors.midtone,
+    },
+
+    footerWrapper: {
         fontSize: variables.fontSizeNormal,
         paddingTop: 64,
-        paddingLeft: 17,
+        paddingHorizontal: 32,
+        maxWidth: 1100,
     },
 
     footerColumnsContainer: {
-        maxWidth: 1100,
         flex: 1,
         flexWrap: 'wrap',
         marginBottom: 40,
-    },
-
-    footerColumn: {
-        padding: 15,
+        marginHorizontal: -16,
     },
 
     footerTitle: {
@@ -2949,13 +2949,9 @@ const styles = {
         fontSize: variables.fontSizeMedium,
     },
 
-    footerLargeScreenAlign: {
-        minWidth: '80%',
-        alignSelf: 'center',
-    },
-
-    footerTermsContainer: {
-        marginVertical: 16,
+    footerBottomLogo: {
+        marginTop: 40,
+        width: '100%',
     },
 
 };
