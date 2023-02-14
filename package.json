@@ -87,7 +87,7 @@
     "react-content-loader": "^6.1.0",
     "react-dom": "18.1.0",
     "react-native": "npm:@expensify/react-native@0.70.4-alpha.2",
-    "react-native-blob-util": "github:j-piasecki/react-native-blob-util#expensify",
+    "react-native-blob-util": "github:j-piasecki/react-native-blob-util#ba67c544a43a7925a060e0598d313a849fa6f612",
     "react-native-collapsible": "^1.6.0",
     "react-native-config": "^1.4.5",
     "react-native-document-picker": "^8.0.0",
