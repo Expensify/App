@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import {AppState} from 'react-native';
 import {UrbanAirship, EventType, iOS} from 'urbanairship-react-native';
 import lodashGet from 'lodash/get';
 import Log from '../../Log';
