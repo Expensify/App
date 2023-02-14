@@ -2,23 +2,22 @@
 title: Expensify Playbook for US-Based VC-Backed Startups
 description: Best practices for how to deploy Expensify for your business
 ---
-# Expensify Playbook for US-based VC-Backed Startups
-## Overview
+# Overview
 This playbook details best practices on how Seed to Series A startups with under 100 employees can use Expensify to prioritize top-line revenue growth while managing spend responsibly.
 
 - See our Playbook for Small Businesses if you are more concerned with maintaining profitability than growing top-line revenue. [Coming soon…]
 - See our Playbook for Midsize Businesses if you are series B or beyond, or have more than 100 employees. [Coming soon…]
 
-## Who you are
+# Who you are
 As a VC-backed business focused on growth and efficiency, you are looking for a product that puts smart automation in your hands. You prioritize top-line revenue growth over cash conservation, understanding that you’ll need to spend in order to grow. As a result, you want to enable your employees by putting spending power in their hands responsibly so there are appropriate compliance controls in place that scale with the business growth. Not only that, you want to decrease the amount of time you spend at the end of each month reimbursing employees, reconciling spend, and closing your books.
 
-## Step-by-step instructions for setting up Expensify
+# Step-by-step instructions for setting up Expensify
 This playbook is built based on best practices we’ve developed after processing expenses for tens of thousands of companies around the world. As such, use this playbook as your starting point, knowing that you can customize Expensify to suit your business needs. Every company is different, and we’re always one chat away with any questions you may have.
 
-## Step 1: Create your Expensify account
+# Step 1: Create your Expensify account
 If you don't already have one, go to [Expensify.com](https://expensify.com) and sign up for an account with your work email address. The account is free so don’t worry about the cost at this stage.
 
-## Step 2: Create a Control Policy
+# Step 2: Create a Control Policy
 There are three policy types, but for your needs we recommend the Control Policy for the following reasons:
 
 - You can cap spend on certain expense types, and set compliance controls so Expensify’s built-in Concierge Audit Tracking can detect violations on your behalf
@@ -26,13 +25,13 @@ There are three policy types, but for your needs we recommend the Control Policy
 
 To create your Control Policy:
 
-1. Go to *Settings > Policies* 
+1. Go to *Settings > Policies*
 2. Select *Group* and click the button that says *New Policy*
-3. Click *Select* under Control  
+3. Click *Select* under Control
 
 The Control plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your policy's #admins room in new.expensify.com, and chat with them there. The Control plan bundled with the Expensify Card is $9 per user per month when you commit annually, which is a 75% discount off our standard unbundled price point. The Control plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your policy's *#admins* room in [new.expensify.com](https://new.expensify.com), and chat with them there.
 
-## Step 3: Connect your accounting system
+# Step 3: Connect your accounting system
 As a VC-backed company, your investors will want to see that your books are managed properly. That means making sure that:
 
 - Every purchase is categorized into the correct account in your chart of accounts
@@ -51,13 +50,13 @@ You do this by synchronizing Expensify and your accounting package as follows:
 "“Expensify syncs seamlessly with QuickBooks, supports our web-based, paperless workflow, and offers internal controls, so it was the natural choice.”
 Laura Redmond, CEO of Redmond Accounting
 
-## Step 4: Set up category rules
+# Step 4: Set up category rules
 [Category rules](https://community.expensify.com/discussion/4638/how-to-enable-category-specific-rules-and-descriptions) are how you provide employees hints and requirements to make sure purchases stay within reasonable ranges and are documented appropriately for approval. For your company size and stage, we recommend the following:
 
 1. Click *Settings > Policies*
 2. Navigate to the *Categories* tab where you’ll see all the categories you just imported from your accounting package
-3. To set a rule for a specific category, click *“Edit Rules”* 
-4. The Edit Rules section will provide several expense category rules that tie to specific general ledger categories. While the individual rules might change slightly from business to business, and the exact category name will depend on your specific chart of accounts, we recommend these settings for VC backed startups: 
+3. To set a rule for a specific category, click *“Edit Rules”*
+4. The Edit Rules section will provide several expense category rules that tie to specific general ledger categories. While the individual rules might change slightly from business to business, and the exact category name will depend on your specific chart of accounts, we recommend these settings for VC backed startups:
   - Set a $75 daily limit on meals and entertainment purchases
   - Though we recommend [Expensify Guaranteed eReceipts](https://community.expensify.com/discussion/5542/deep-dive-what-are-ereceipts) for most purchases, for large purchases or those in categories most often associated with fraud, we recommend scanned receipts for extra protection:
     - For any purchase over $1000
@@ -71,7 +70,7 @@ Laura Redmond, CEO of Redmond Accounting
     - Require a description for all rideshare and taxi expenses, ensuring employees are listing a purpose for the expense
 
 Setting up these category rules allows you to concentrate on growth versus needing to micromanage your employees' spending.
-## Step 5: Set up scheduled submit
+# Step 5: Set up scheduled submit
 For an efficiency-focused company, we recommend setting up [Scheduled Submit](https://community.expensify.com/discussion/4476/how-to-enable-scheduled-submit-for-a-group-policy) on a Daily frequency:
 
 1. Click *Settings > Policies*
@@ -87,7 +86,7 @@ Scheduled Submit will ensure all expenses are submitted automatically. Any expen
 "“Our employees just SmartScan a receipt as soon as they receive it, and regardless of what currency it's in, we process the expense and issue reimbursement automatically.”"
 Amina Mobasher, Accountant at Ideo.org
 
-## Step 6: Connect your business bank account
+# Step 6: Connect your business bank account
 If you’re located in the US, you can utilize Expensify’s payment processing and reimbursement features. 
 
 *Note:* Before you begin, you’ll need the following to validate your business bank account:
@@ -107,7 +106,7 @@ Let’s walk through the process of linking your business bank account:
 
 You only need to do this once: you are fully set up for not only reimbursing expense reports, but issuing Expensify Cards, collecting invoice payments online, as well as paying bills online.
 
-## Step 7: Invite employees
+# Step 7: Invite employees
 Next, you’ll want to invite your employees to the company policy you created. You can invite employees under *Settings > Policies > Policy Name > People*. From there, you can add employees one of three ways:
 
 - [Unique Policy Link](https://community.expensify.com/discussion/4643/how-to-invite-people-to-your-policy-using-a-join-link) - Each policy has a unique policy invite link, which is located at the top of the People tab in your policy settings. Simply share that link with anyone you’d like to add to your policy. 
@@ -116,7 +115,7 @@ Next, you’ll want to invite your employees to the company policy you created. 
 
 In the next section, we’ll go through how to configure approval routing but it’s important to remember that you’ll always have these 3 options to utilize, specifically the unique policy link and manual invites as your team continues to grow.
 
-## Step 8: Set up an approval workflow
+# Step 8: Set up an approval workflow
 Now, let’s set up some approval rules for your business as well as the ideal approval workflow that employee reports will follow after report submission:
 
 1. Go to *Settings > Policies*, and select the *People* tab.
@@ -130,10 +129,10 @@ Now, let’s set up some approval rules for your business as well as the ideal a
 
 Thanks to our [Concierge Receipt audit technology](https://community.expensify.com/discussion/5738/deep-dive-how-does-concierge-receipt-audit-work), once you set up an approval workflow, most expenses will be audited automatically and won’t require manual review. Your time is valuable, so you should focus it on reviewing only the expenses that fall outside of your policy’s rules.  
 
-## Step 9: Set up your corporate card and assign cards to employees
+# Step 9: Set up your corporate card and assign cards to employees
 Expensify is optimized to work with corporate cards from all banks – or even better, use our own perfectly integrated Expensify Card.
 
-### If you have an existing corporate card
+## If you have an existing corporate card
 Expensify supports direct card feeds from most financial institutions. Setting up a corporate card feed will pull in the transactions from the connected cards on a daily basis. To set this up, do the following: 
 
 1. Go to *Settings > Domains > Company Cards >* Select your bank 
@@ -146,7 +145,7 @@ Expensify supports direct card feeds from most financial institutions. Setting u
 
 As mentioned above, we’ll be able to pull in transactions as they post (daily) and handle receipt-matching for you and your employees. However, with the Expensify Card, we’re able to bring in transactions at the point of sale which provides you with real time compliance. Next, let’s dive into how to set up the Expensify Card and the benefits of using the Expensify Card.  
 
-### If you don't have a corporate card, use the Expensify Card
+## If you don't have a corporate card, use the Expensify Card
 Expensify provides a corporate card with the following features:
 
 - 2% cashback on all card spend
@@ -172,7 +171,7 @@ If you have an accounting system we directly integrate with, check out how we ta
 “Moving from our other bank and getting Expensify cards into the hands of employees was super easy. I also love how simple it is to adjust credit limits and the auto reconciliation with the daily settlement.’”
 Robin Gresham, Senior Accounting Systems Manager at SunCommon
 
-## Step 9: Set up Bill Pay and Invoicing
+# Step 10: Set up Bill Pay and Invoicing
 As a VC-backed startup, you might have vendors you work with that send you bills. And in most cases, you probably use some third party to pay those bills if you aren’t cutting checks the old fashioned way. Similarly, you probably have clients you invoice from time to time. As an all-in-one solution, we’re here to make bill payments and invoicing easy, and every policy and workspace comes with bill pay and invoicing - at no additional cost. Since you have your business bank account verified, you can either pay your bills via ACH. Alternatively, you can pay via credit card or by check. 
 
 Let’s first chat through how Bill Pay works
@@ -197,7 +196,7 @@ Reports, invoices and bills - they are largely the same in theory, just with dif
 
 You’ll notice it’s a slightly different flow from creating a Bill. Here, you are adding the transactions tied to the Invoice, and establishing a due date for when it needs to get paid. If you need to apply any markups, you can do so from your policy settings under the Invoices tab.
 
-## Step 10: Add a billing card
+# Step 11: Add a billing card
 Now that we’ve gone through all of the steps for setting up your account, let’s make it official so there are no interruptions in service as your employees begin using Expensify. We handle billing via a billing card, and to add one:
 
 1. Go to *Account > Settings > Payments*
