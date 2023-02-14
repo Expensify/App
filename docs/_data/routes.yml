@@ -33,6 +33,9 @@ hubs:
     title: Playbooks
     icon: /assets/images/playbook.svg
     description: Best practices for how to best deploy Expensify for your business
+    articles:
+      - href: Expensify-Playbook-for-US-based-VC-Backed-Startups
+        title: Expensify Playbook for US-Based VC-Backed Startups
 
   - href: other
     title: Other
