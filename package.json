@@ -96,7 +96,7 @@
     "react-native-google-places-autocomplete": "git+https://github.com/Expensify/react-native-google-places-autocomplete.git#e12768f1542e7982d90f6449798f0d6b7f18f192",
     "react-native-haptic-feedback": "^1.13.0",
     "react-native-image-pan-zoom": "^2.1.12",
-    "react-native-image-picker": "^5.0.1",
+    "react-native-image-picker": "github:j-piasecki/react-native-image-picker#fccb68cabd992cb2ddc7b5b5f0e146d03df0a110",
     "react-native-image-size": "git+https://github.com/Expensify/react-native-image-size#6b5ab5110dc3ed554f8eafbc38d7d87c17147972",
     "react-native-modal": "^13.0.0",
     "react-native-onyx": "1.0.36",

@@ -756,8 +756,14 @@ PODS:
     - React-Codegen
     - React-RCTFabric
     - ReactCommon/turbomodule/core
-  - react-native-image-picker (5.0.1):
-    - React-Core
+  - react-native-image-picker (5.0.2):
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
+    - React
+    - React-Codegen
+    - React-RCTFabric
+    - ReactCommon/turbomodule/core
   - react-native-netinfo (8.3.1):
     - React-Core
   - react-native-pdf (6.6.2):
@@ -1342,7 +1348,7 @@ SPEC CHECKSUMS:
   react-native-config: 7cd105e71d903104e8919261480858940a6b9c0e
   react-native-document-picker: f68191637788994baed5f57d12994aa32cf8bf88
   react-native-image-manipulator: 39f7fded66a1170ccb5055095beafa657d0cb36a
-  react-native-image-picker: 8cb4280e2c1efc3daeb2d9d597f9429a60472e40
+  react-native-image-picker: 128a741b5314a15091bdb4b9800cf4b2dd686afa
   react-native-netinfo: 1a6035d3b9780221d407c277ebfb5722ace00658
   react-native-pdf: 98810171111685a679dfb6beaf638090ba3a9eb9
   react-native-performance: 426cc34043381602a59f059755a04452315effb4
