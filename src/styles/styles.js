@@ -19,6 +19,7 @@ import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
+import getOperatingSystem from '../libs/getOperatingSystem';
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -1101,16 +1102,16 @@ const styles = {
     },
 
     emojiMessageText: {
-        top: 3,
         position: 'relative',
         fontSize: variables.fontSizeEmoji,
         lineHeight: variables.fontSizeEmojiHeight,
+        top: getOperatingSystem() === CONST.OS.ANDROID ? 8 : 3,
     },
 
     profileEmojiText: {
-        top: 4,
         fontSize: variables.fontSizeEmojiProfile,
         lineHeight: variables.fontSizeEmojiProfileHeight,
+        top: getOperatingSystem() === CONST.OS.ANDROID ? 8 : 4,
     },
 
     createMenuPositionSidebar: {

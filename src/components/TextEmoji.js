@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {View} from 'react-native';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import Text from './Text';
@@ -31,9 +32,19 @@ const TextEmoji = (props) => {
     const propsStyle = StyleUtils.parseStyleAsArray(props.style);
 
     return _.map([...Str.htmlDecode(props.children)], ((char, index) => (
-        <Text key={`${char}_${index}`} style={EmojiUtils.isEmoji(char) ? propsStyle : undefined}>
-            {char}
-        </Text>
+        EmojiUtils.isEmoji(char)
+            ? (
+                <View key={`${char}_${index}`}>
+                    <Text style={propsStyle}>
+                        {char}
+                    </Text>
+                </View>
+            )
+            : (
+                <Text key={`${char}_${index}`}>
+                    {char}
+                </Text>
+            )
     )));
 };
 
