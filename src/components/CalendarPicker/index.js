@@ -175,48 +175,46 @@ const CalendarPicker = (props) => {
 
     return (
         <View>
-            <View>
-                <View style={styles.calendarHeader}>
-                    <TouchableOpacity onPress={onMonthPickerPress} style={[styles.rowCenter, flex.flex1, flex.justifyContentStart]}>
-                        <Text style={styles.textBold}>{monthNames[currentMonthView]}</Text>
+            <View style={styles.calendarHeader}>
+                <TouchableOpacity onPress={onMonthPickerPress} style={[styles.rowCenter, flex.flex1, flex.justifyContentStart]}>
+                    <Text style={styles.textBold}>{monthNames[currentMonthView]}</Text>
+                    <ArrowIcon />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={onYearPickerPress} style={[styles.rowCenter, flex.flex1, flex.justifyContentCenter]}>
+                    <Text style={styles.textBold}>{currentYearView}</Text>
+                    <ArrowIcon />
+                </TouchableOpacity>
+                <View style={[styles.rowCenter, flex.flex1, flex.justifyContentEnd]}>
+                    <TouchableOpacity onPress={onPrevMonthPress}>
+                        <ArrowIcon direction="left" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={onNextMonthPress}>
                         <ArrowIcon />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={onYearPickerPress} style={[styles.rowCenter, flex.flex1, flex.justifyContentCenter]}>
-                        <Text style={styles.textBold}>{currentYearView}</Text>
-                        <ArrowIcon />
-                    </TouchableOpacity>
-                    <View style={[styles.rowCenter, flex.flex1, flex.justifyContentEnd]}>
-                        <TouchableOpacity onPress={onPrevMonthPress}>
-                            <ArrowIcon direction="left" />
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={onNextMonthPress}>
-                            <ArrowIcon />
-                        </TouchableOpacity>
-                    </View>
                 </View>
-                <View style={styles.row}>
-                    {_.map(daysOfWeek, (dayOfWeek => (
-                        <View style={styles.dayContainer}>
-                            <Text style={[styles.dayText, styles.textBold]}>{dayOfWeek[0]}</Text>
-                        </View>
-                    )))}
-                </View>
-                {_.map(monthMatrix, week => (
-                    <View style={styles.row}>
-                        {_.map(week, day => (
-                            <TouchableOpacity
-                                disabled={!day}
-                                onPress={() => onDayPress(day)}
-                                style={styles.dayContainer}
-                            >
-                                <View style={[moment(props.value).isSame(moment([currentYearView, currentMonthView, day]), 'day') && styles.daySelected]}>
-                                    <Text style={styles.dayText}>{day || ''}</Text>
-                                </View>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                ))}
             </View>
+            <View style={styles.row}>
+                {_.map(daysOfWeek, (dayOfWeek => (
+                    <View style={styles.dayContainer}>
+                        <Text style={[styles.dayText, styles.textBold]}>{dayOfWeek[0]}</Text>
+                    </View>
+                )))}
+            </View>
+            {_.map(monthMatrix, week => (
+                <View style={styles.row}>
+                    {_.map(week, day => (
+                        <TouchableOpacity
+                            disabled={!day}
+                            onPress={() => onDayPress(day)}
+                            style={styles.dayContainer}
+                        >
+                            <View style={[moment(props.value).isSame(moment([currentYearView, currentMonthView, day]), 'day') && styles.daySelected]}>
+                                <Text style={styles.dayText}>{day || ''}</Text>
+                            </View>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+            ))}
         </View>
     );
 };
