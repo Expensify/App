@@ -453,6 +453,7 @@ class IOUModal extends Component {
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
                                                 onAddParticipants={this.addParticipants}
                                                 onStepComplete={this.navigateToNextStep}
+                                                safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                                             />
                                         </AnimatedStep>
                                     )}

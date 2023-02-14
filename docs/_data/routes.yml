@@ -29,6 +29,11 @@ hubs:
       - href: Request-and-Send-Money
         title: Request and Send Money
 
+  - href: playbooks
+    title: Playbooks
+    icon: /assets/images/playbook.svg
+    description: Best practices for how to best deploy Expensify for your business
+
   - href: other
     title: Other
     description: Everything else you're looking for is right here.
