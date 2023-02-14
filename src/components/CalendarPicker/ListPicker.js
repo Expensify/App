@@ -39,9 +39,9 @@ const ListPicker = (props) => {
             <Text>{props.format ? props.format(item) : item}</Text>
             {props.selected === item && <Icon src={Expensicons.Checkmark} fill={themeColors.checkBox} height={20} width={20} />}
         </TouchableOpacity>
-    ));
+    ), []);
 
-    const getItemLayout = React.useCallback((_, index) => ({length: 51, offset: 51 * index, index}));
+    const getItemLayout = React.useCallback((_, index) => ({length: 51, offset: 51 * index, index}), []);
 
     return (
         <FlatList
