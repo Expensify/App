@@ -9,7 +9,6 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import TextInput from './TextInput';
-import Log from '../libs/Log';
 import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
 import CONST from '../CONST';
 
@@ -103,21 +102,33 @@ const AddressSearch = (props) => {
         }
 
         // Gather the values from the Google details
-        const streetNumber = GooglePlacesUtils.getAddressComponent(addressComponents, 'street_number', 'long_name') || '';
-        const streetName = GooglePlacesUtils.getAddressComponent(addressComponents, 'route', 'long_name') || '';
-        const street = `${streetNumber} ${streetName}`.trim();
-        let city = GooglePlacesUtils.getAddressComponent(addressComponents, 'locality', 'long_name');
-        if (!city) {
-            city = GooglePlacesUtils.getAddressComponent(addressComponents, 'sublocality', 'long_name');
-            Log.hmmm('[AddressSearch] Replacing missing locality with sublocality: ', {address: details.formatted_address, sublocality: city});
-        }
-        const zipCode = GooglePlacesUtils.getAddressComponent(addressComponents, 'postal_code', 'long_name');
-        const state = GooglePlacesUtils.getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
-        const country = GooglePlacesUtils.getAddressComponent(addressComponents, 'country', 'long_name');
+        const {
+            street_number: streetNumber,
+            route: streetName,
+            locality: city,
+            sublocality: cityFallback, // Some locations only return sublocality instead of locality
+            postal_code: zipCode,
+            administrative_area_level_1: state,
+            country,
+        } = GooglePlacesUtils.getAddressComponents(addressComponents, {
+            street_number: 'long_name',
+            route: 'long_name',
+            locality: 'long_name',
+            sublocality: 'long_name',
+            postal_code: 'long_name',
+            administrative_area_level_1: 'short_name',
+            country: 'long_name',
+        });
 
         const values = {
             street: props.value ? props.value.trim() : '',
+            city: city || cityFallback,
+            zipCode,
+            state,
+            country: '',
         };
+
+        const street = `${streetNumber} ${streetName}`.trim();
         if (street && street.length >= values.street.length) {
             // We are only passing the street number and name if the combined length is longer than the value
             // that was initially passed to the autocomplete component. Google Places can truncate details
@@ -125,27 +136,11 @@ const AddressSearch = (props) => {
             // specific than the one the user entered manually.
             values.street = street;
         }
-        if (city) {
-            values.city = city;
+
+        if (_.includes(CONST.ALL_COUNTRIES, country)) {
+            values.country = country;
         }
-        if (zipCode) {
-            values.zipCode = zipCode;
-        }
-        if (state) {
-            values.state = state;
-        }
-        if (country) {
-            // If country doesn't match our list of countries (maybe spelling issue),
-            // default the country to empty string so the country picker value doesn't
-            // hold a value but show '-'
-            values.country = '';
-            if (_.includes(CONST.ALL_COUNTRIES, country)) {
-                values.country = country;
-            }
-        }
-        if (_.size(values) === 0) {
-            return;
-        }
+
         if (props.inputID) {
             _.each(values, (value, key) => {
                 const inputKey = lodashGet(props.renamedInputKeys, key, key);

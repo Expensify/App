@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import Log from '../../../libs/Log';
 import * as Report from '../../../libs/actions/Report';
 import reportActionPropTypes from './reportActionPropTypes';
 import Visibility from '../../../libs/Visibility';
@@ -264,6 +265,7 @@ class ReportActionsView extends React.Component {
             }
 
             if (String(reportAction.sequenceNumber) === key) {
+                Log.warn('Front-end filtered out reportAction keyed by sequenceNumber!', reportAction);
                 return false;
             }
 

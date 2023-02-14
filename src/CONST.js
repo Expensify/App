@@ -28,7 +28,7 @@ const CONST = {
 
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
 
-    AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp'],
+    AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
 
     // Minimum width and height size in px for a selected image
     AVATAR_MIN_WIDTH_PX: 80,
@@ -485,6 +485,11 @@ const CONST = {
 
     EMOJI_SPACER: 'SPACER',
 
+    // This is the number of columns in each row of the picker.
+    // Because of how flatList implements these rows, each row is an index rather than each element
+    // For this reason to make headers work, we need to have the header be the only rendered element in its row
+    // If this number is changed, emojis.js will need to be updated to have the proper number of spacer elements
+    // around each header.
     EMOJI_NUM_PER_ROW: 8,
 
     EMOJI_FREQUENT_ROW_COUNT: 3,
@@ -531,9 +536,9 @@ const CONST = {
     ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_SIZE: {
         WIDTH: 320,
-        HEIGHT: 390,
+        HEIGHT: 392,
     },
-    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 288,
+    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 256,
     EMOJI_PICKER_ITEM_HEIGHT: 32,
     EMOJI_PICKER_HEADER_HEIGHT: 32,
     COMPOSER_MAX_HEIGHT: 125,
@@ -843,6 +848,7 @@ const CONST = {
 
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
+    WORKSPACE_NAME_CHARACTER_LIMIT: 80,
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
         // Values define in how many times the image can be bigger than its container.
