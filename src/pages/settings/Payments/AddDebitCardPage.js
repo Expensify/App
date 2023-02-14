@@ -39,6 +39,7 @@ const defaultProps = {
     formData: {
         setupComplete: false,
     },
+    betas: [],
 };
 
 class DebitCardPage extends Component {
@@ -180,7 +181,7 @@ class DebitCardPage extends Component {
                             />
                         </View>
                     </View>
-                    {!Permissions.canUsePolicyRooms(this.props.betas) &&
+                    {!Permissions.canUsePolicyRooms(this.props.betas) && (
                         <View style={[styles.mt4]}>
                             <TextInput
                                 inputID="password"
@@ -190,7 +191,7 @@ class DebitCardPage extends Component {
                                 secureTextEntry
                             />
                         </View>
-                    }
+                    )}
                     <CheckboxWithLabel
                         inputID="acceptedTerms"
                         LabelComponent={() => (
