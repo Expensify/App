@@ -155,6 +155,14 @@ export default {
         youCanAlso: 'También puedes',
         openLinkInBrowser: 'abrir este enlace en tu navegador',
     },
+    validateCodeModal: {
+        successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
+        successfulSignInDescription: 'Vuelve a la pestaña original para continuar.',
+        title: 'Aquí está tu código mágico',
+        or: ', ¡o',
+        description: 'Por favor, introduzca el código utilizando el dispositivo\nen el que se solicitó originalmente',
+        signInHere: 'simplemente inicia sesión aquí',
+    },
     iOUConfirmationList: {
         whoPaid: '¿Quién pago?',
         whoWasThere: '¿Quién asistió?',

@@ -86,13 +86,13 @@ function containsOnlyEmojis(message) {
  * @param {Object[]} emojis
  * @returns {Number[]}
  */
-function getDynamicHeaderIndices(emojis) {
+function getHeaderIndices(emojis) {
     const headerIndices = [];
     _.each(emojis, (emoji, index) => {
         if (!emoji.header) {
             return;
         }
-        headerIndices.push(Math.floor(index / CONST.EMOJI_NUM_PER_ROW));
+        headerIndices.push(index);
     });
     return headerIndices;
 }
@@ -246,7 +246,7 @@ function suggestEmojis(text, limit = 5) {
 }
 
 export {
-    getDynamicHeaderIndices,
+    getHeaderIndices,
     mergeEmojisWithFrequentlyUsedEmojis,
     addToFrequentlyUsedEmojis,
     containsOnlyEmojis,
