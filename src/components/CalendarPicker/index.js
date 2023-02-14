@@ -5,12 +5,11 @@ import {
 } from 'react-native';
 import moment from 'moment';
 import PropTypes from 'prop-types';
-import * as Expensicons from '../Icon/Expensicons';
-import Icon from '../Icon';
 import Text from '../Text';
 import colors from '../../styles/colors';
 import flex from '../../styles/utilities/flex';
 import ListPicker from './ListPicker';
+import ArrowIcon from './ArrowIcon';
 
 const styles = StyleSheet.create({
     row: {
@@ -52,10 +51,6 @@ const styles = StyleSheet.create({
     },
     monthControls: {
         flexDirection: 'row',
-    },
-    icon: {
-        padding: 5,
-        paddingHorizontal: 8,
     },
 });
 
@@ -106,12 +101,6 @@ function generateMonthMatrix(year, month) {
 
 const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-const ArrowIcon = props => (
-    <View style={[styles.icon, props?.direction === 'left' ? {transform: [{rotate: '180deg'}]} : undefined]}>
-        <Icon src={Expensicons.ArrowRight} />
-    </View>
-);
 
 const addMonths = (date, months) => {
     const d = new Date(date.getTime());
@@ -195,15 +184,16 @@ const CalendarPicker = (props) => {
             </View>
             <View style={styles.row}>
                 {_.map(daysOfWeek, (dayOfWeek => (
-                    <View style={styles.dayContainer}>
+                    <View key={dayOfWeek} style={styles.dayContainer}>
                         <Text style={[styles.dayText, styles.textBold]}>{dayOfWeek[0]}</Text>
                     </View>
                 )))}
             </View>
             {_.map(monthMatrix, week => (
-                <View style={styles.row}>
-                    {_.map(week, day => (
+                <View key={`week-${week}`} style={styles.row}>
+                    {_.map(week, (day, index) => (
                         <TouchableOpacity
+                            key={`${index}_day-${day}`}
                             disabled={!day}
                             onPress={() => onDayPress(day)}
                             style={styles.dayContainer}
