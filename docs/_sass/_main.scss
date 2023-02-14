@@ -605,11 +605,12 @@ button {
 
 .page-footer {
     font-size: 15px;
+    margin: 0px !important;
 
     @include maxBreakpoint($breakpoint-desktop) {
-        padding-right: 0 !important;
         background: url('/assets/images/expensify-footer-logo--vertical.svg') no-repeat right 120px;
         background-size: 111px 618px;
+        margin-right: -25px;
     }
 
     h3 {
@@ -620,7 +621,7 @@ button {
     }
 
     ul {
-        margin: 0 0 20px !important;
+        margin: 0px !important;
         padding: 0;
 
         li {
@@ -641,7 +642,6 @@ button {
     }
 
     &__social-icons {
-        margin: 0 0 20px;
 
         a {
             color: $color-white;
