@@ -9,12 +9,16 @@ import Text from '../Text';
 import colors from '../../styles/colors';
 import themeColors from '../../styles/themes/default';
 
+const ITEM_SEPARATOR = 1;
+const ITEM_HEIGHT = 50;
+const ITEM_LENGTH = ITEM_HEIGHT + ITEM_SEPARATOR;
+
 const styles = StyleSheet.create({
     root: {
-        height: 500,
+        height: (ITEM_LENGTH * 10) - ITEM_SEPARATOR,
     },
     item: {
-        height: 50,
+        height: ITEM_HEIGHT,
         marginHorizontal: 5,
         flexDirection: 'row',
         alignItems: 'center',
@@ -41,7 +45,7 @@ const ListPicker = (props) => {
         </TouchableOpacity>
     ), []);
 
-    const getItemLayout = React.useCallback((_, index) => ({length: 51, offset: 51 * index, index}), []);
+    const getItemLayout = React.useCallback((_, index) => ({length: ITEM_LENGTH, offset: ITEM_LENGTH * index, index}), []);
 
     return (
         <FlatList
