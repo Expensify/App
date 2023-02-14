@@ -12,7 +12,7 @@ Unlike Concierge, a Partner Manager’s support will not be real-time, 24 hours 
 For real-time responses and simple troubleshooting issues, you can always message our general support by writing to Concierge via the in-product chat or by emailing concierge@expensify.com.
 
 # How do I know if I have a Partner Manager?
-For your firm to be assigned a Partner Manager, you must complete the [ExpensifyApproved! University] (https://use.expensify.com/accountants) training course. Every external accountant or bookkeeper who completes the training is automatically enrolled in our program and receives all the benefits, including access to the Partner Manager. So everyone at your firm must complete the training to receive the maximum benefit.
+For your firm to be assigned a Partner Manager, you must complete the [ExpensifyApproved! University](https://use.expensify.com/accountants) training course. Every external accountant or bookkeeper who completes the training is automatically enrolled in our program and receives all the benefits, including access to the Partner Manager. So everyone at your firm must complete the training to receive the maximum benefit.
 
 You can check to see if you’ve completed the course and enrolled in the ExpensifyApproved! Accountants program simply by logging into your Expensify account. In the bottom left-hand corner of the website, you will see the ExpensifyApproved! logo.
 
