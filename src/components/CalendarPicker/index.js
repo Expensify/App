@@ -162,7 +162,7 @@ const CalendarPicker = (props) => {
         const months = Array.from({length: 12}, (k, v) => v);
         return (
             <ListPicker
-                selected={currentYearView}
+                selected={currentMonthView}
                 data={months}
                 format={index => monthNames[index]}
                 onSelect={(month) => {
