@@ -11,27 +11,30 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import LocalePicker from '../../components/LocalePicker';
 
 const currentYear = new Date().getFullYear();
+const linkStyles = [styles.textExtraSmallSupporting, styles.link];
 
 const TermsAndLicenses = props => (
     <>
-        <Text style={[styles.textExtraSmallSupporting, styles.mb2]}>
+        <Text style={[styles.textExtraSmallSupporting, styles.mb4]}>
             {`© ${currentYear} Expensify`}
         </Text>
-        <Text style={[styles.textExtraSmallSupporting]}>
+        <Text style={[styles.textExtraSmallSupporting, styles.mb4]}>
             {props.translate('termsOfUse.phrase1')}
-            <TextLink style={[styles.textExtraSmallSupporting, styles.link]} href={CONST.TERMS_URL}>
+            <TextLink style={linkStyles} href={CONST.TERMS_URL}>
                 {' '}
                 {props.translate('termsOfUse.phrase2')}
                 {' '}
             </TextLink>
             {props.translate('termsOfUse.phrase3')}
-            <TextLink style={[styles.textExtraSmallSupporting, styles.link]} href={CONST.PRIVACY_URL}>
+            <TextLink style={linkStyles} href={CONST.PRIVACY_URL}>
                 {' '}
                 {props.translate('termsOfUse.phrase4')}
             </TextLink>
             {'. '}
+        </Text>
+        <Text style={[styles.textExtraSmallSupporting]}>
             {props.translate('termsOfUse.phrase5')}
-            <TextLink style={[styles.textExtraSmallSupporting, styles.link]} href={CONST.LICENSES_URL}>
+            <TextLink style={linkStyles} href={CONST.LICENSES_URL}>
                 {' '}
                 {props.translate('termsOfUse.phrase6')}
             </TextLink>

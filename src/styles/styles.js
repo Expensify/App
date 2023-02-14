@@ -2956,7 +2956,6 @@ const styles = {
 
     footerTermsContainer: {
         marginVertical: 16,
-        maxWidth: 200,
     },
 
 };

@@ -71,9 +71,6 @@ const SignInPageContent = props => (
                         {props.children}
                     </SignInPageForm>
                 </View>
-                {/* <View style={[styles.mv5]}>
-                    <TermsAndLicenses />
-                </View> */}
             </KeyboardAvoidingView>
         </View>
     </TouchableDismissKeyboard>
