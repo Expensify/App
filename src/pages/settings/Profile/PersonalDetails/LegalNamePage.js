@@ -66,18 +66,13 @@ class LegalNamePage extends Component {
     validate(values) {
         const errors = {};
 
-        // Check for invalid characters in legal first and last name
-        const [doesLegalFirstNameHaveInvalidCharacters, doesLegalLastNameHaveInvalidCharacters] = ValidationUtils.doesContainCommaOrSemicolon(
-            [values.legalFirstName, values.legalLastName],
-        );
-
-        if (doesLegalFirstNameHaveInvalidCharacters) {
+        if (!ValidationUtils.isValidDisplayName(values.legalFirstName)) {
             errors.legalFirstName = this.props.translate('personalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalFirstName)) {
             errors.legalFirstName = this.props.translate('common.error.fieldRequired');
         }
 
-        if (doesLegalLastNameHaveInvalidCharacters) {
+        if (!ValidationUtils.isValidDisplayName(values.legalLastName)) {
             errors.legalLastName = this.props.translate('personalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalLastName)) {
             errors.legalLastName = this.props.translate('common.error.fieldRequired');

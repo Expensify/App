@@ -55,19 +55,16 @@ class DisplayNamePage extends Component {
      */
     validate(values) {
         const errors = {};
-        const [doesFirstNameHaveInvalidCharacters, doesLastNameHaveInvalidCharacters] = ValidationUtils.doesContainCommaOrSemicolon(
-            [values.firstName, values.lastName],
-        );
 
         // First we validate the first name field
-        if (doesFirstNameHaveInvalidCharacters) {
+        if (!ValidationUtils.isValidDisplayName(values.firstName)) {
             errors.firstName = this.props.translate('personalDetails.error.hasInvalidCharacter');
         } else if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
             errors.firstName = this.props.translate('personalDetails.error.containsReservedWord');
         }
 
         // Then we validate the last name field
-        if (doesLastNameHaveInvalidCharacters) {
+        if (!ValidationUtils.isValidDisplayName(values.lastName)) {
             errors.lastName = this.props.translate('personalDetails.error.hasInvalidCharacter');
         }
 
