@@ -293,7 +293,7 @@ button {
     background-color: $color-super-dark-green;
     min-height: 100vh;
     margin-left: 0;
-    padding: 80px 24px 24px 24px;
+    padding: 80px 24px 0px 24px;
 
     @include breakpoint($breakpoint-tablet) {
         margin-left: 320px;
@@ -302,7 +302,7 @@ button {
     @include breakpoint($breakpoint-desktop) {
         /* Same as the width of the lhn */
         margin-left: 420px;
-        padding: 52px 68px;
+        padding: 52px 68px 0 68px;
         box-sizing: border-box;
     }
 
@@ -310,7 +310,7 @@ button {
         margin-left: 420px;
         /* On wide screens, the padding needs to be equal to
         the view width, minus the content size, minus the lhn size, divided by two. */
-        padding: 52px calc((100vw - 1000px - 420px)/2);
+        padding: 52px calc((100vw - 1000px - 420px)/2) 0 calc((100vw - 1000px - 420px)/2);
     }
 
     ul,
@@ -606,7 +606,7 @@ button {
 .page-footer {
     font-size: 15px;
 
-    // @include mq(sm) {
+    // @include maxBreakpoint($breakpoint-tablet) {
     //     background: $color-dark url('#{ $images }homepage/expensify-footer-logo--vertical.svg') no-repeat right 120px;
     //     background-size: 111px 618px;
     // }
