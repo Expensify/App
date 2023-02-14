@@ -581,12 +581,12 @@ function getOptions(reports, personalDetails, {
     const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
         ? `+${countryCodeByIP}${searchValue}`
         : searchValue;
-    if (searchValue && (noOptions || noOptionsMatchExactly)
-        && !isCurrentUser({login: searchValue})
-        && _.every(selectedOptions, option => option.login !== searchValue)
-        && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(login))
-        && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()))
-        && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
+    if (login && (noOptions || noOptionsMatchExactly)
+        && !isCurrentUser({login})
+        && _.every(selectedOptions, option => option.login !== login)
+        && ((Str.isValidEmail(login) && !Str.isDomainEmail(login)) || Str.isValidPhone(login))
+        && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(login).toLowerCase()))
+        && (login !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
         userToInvite = createOption([login], personalDetails, null, reportActions, {
             showChatPreviewLine,
