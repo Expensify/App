@@ -12,7 +12,7 @@ const propTypes = {
     /** The message text to render */
     children: PropTypes.string.isRequired,
 
-    /** Text additional style */
+    /** The message text additional style */
     style: stylePropTypes,
 };
 
