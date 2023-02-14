@@ -605,7 +605,6 @@ button {
 
 .page-footer {
     font-size: 15px;
-    margin: 0px !important;
 
     @include maxBreakpoint($breakpoint-desktop) {
         background: url('/assets/images/expensify-footer-logo--vertical.svg') no-repeat right 120px;
