@@ -265,7 +265,7 @@ class ReportActionsView extends React.Component {
             }
 
             if (String(reportAction.sequenceNumber) === key) {
-                Log.warn('Front-end filtered out reportAction keyed by sequenceNumber!', reportAction);
+                Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
                 return false;
             }
 

@@ -600,9 +600,10 @@ export default {
     },
     personalDetails: {
         error: {
-            firstNameLength: 'First name shouldn\'t be longer than 50 characters',
-            lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
-            hasInvalidCharacter: ({invalidCharacter}) => `Please remove the ${invalidCharacter} from the name field.`,
+            firstNameLength: `First name cannot be longer than ${CONST.DISPLAY_NAME.MAX_LENGTH} characters`,
+            lastNameLength: `Last name cannot be longer than ${CONST.DISPLAY_NAME.MAX_LENGTH} characters`,
+            containsReservedWord: 'First name cannot contain the words Expensify or Concierge',
+            hasInvalidCharacter: 'Name cannot contain a comma or semicolon',
         },
     },
     privatePersonalDetails: {
@@ -613,7 +614,6 @@ export default {
         legalLastName: 'Legal last name',
         homeAddress: 'Home address',
         error: {
-            hasInvalidCharacter: ({invalidCharacter}) => `Please remove the ${invalidCharacter} from the field above.`,
             dateShouldBeBefore: ({dateString}) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,
         },
@@ -1067,8 +1067,6 @@ export default {
             phoneNumberExtension: 'Please enter a valid phone extension number',
             firstName: 'Please provide your first name',
             lastName: 'Please provide your last name',
-            firstNameLength: 'First name shouldn\'t be longer than 50 characters',
-            lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
         },
     },
     requestCallConfirmationScreen: {
