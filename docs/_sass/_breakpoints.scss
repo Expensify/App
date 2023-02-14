@@ -13,3 +13,45 @@ $breakpoint-wide: 1600px;
     @content
   }
 }
+
+// Media Query Breakpoints
+@mixin mq($breakpoint) {
+    $mq-xs: '(max-width: 500px)';
+    $mq-sm: '(max-width: 899px)';
+    $mq-md: '(min-width: 900px)';
+    $mq-lg-thumb: '(min-width: 1150px)';
+    $mq-lg: '(min-width: 1200px)';
+    $mq-xl: '(min-width: 1650px)';
+    $mq-hideDetails: '(max-width: 1150px)';
+    $mq-mdOnly: '(min-width: 900px) and (max-width: 1199px)';
+
+    @if $breakpoint == xs {
+        @media #{$mq-xs} {
+            @content;
+        }
+    }
+
+    @if $breakpoint == sm {
+        @media #{$mq-sm} {
+            @content;
+        }
+    }
+
+    @else if $breakpoint == md {
+        @media #{$mq-md} {
+            @content;
+        }
+    }
+
+    @else if $breakpoint == lg {
+        @media #{$mq-lg} {
+            @content;
+        }
+    }
+
+    @else if $breakpoint == xl {
+        @media #{$mq-xl} {
+            @content;
+        }
+    }
+}
