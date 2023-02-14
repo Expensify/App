@@ -857,14 +857,11 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {
-                [optimisticIOUReportAction.reportActionID]: {
-                    pendingAction: null,
-                    errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
-                    },
-                },
+                ...iouReport,
+                hasOutstandingIOU: true,
+                stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
             },
         },
     ];
@@ -875,6 +872,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             chatReportID: chatReport.reportID,
             reportActionID: optimisticIOUReportAction.reportActionID,
             paymentMethodType,
+            amount: iouReport.total,
         },
         optimisticData,
         successData,
