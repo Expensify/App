@@ -437,13 +437,6 @@ describe('NetworkTests', () => {
 
     // Given a retry response create a mock and run a common set of expectations for exponential back off
     const backOffExpectations = (retryResponse) => {
-        // Given a mock where a retry response is returned several times before a successful response
-        global.fetch = jest.fn()
-            .mockResolvedValueOnce(retryResponse)
-            .mockResolvedValueOnce(retryResponse)
-            .mockResolvedValueOnce(retryResponse)
-            .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS});
-
         // Let's do a little math so that this test doesn't have to be ultra repetitive!
         // How many times do we need to double the mocked initialRequestWaitTime (100) before we hit the max retry wait time (10,000)?
         // We will be doubling the wait time until it's greater than or equal to the max, so we divide the max wait time by the initial wait time to figure out how much it needs to scale.
@@ -452,6 +445,18 @@ describe('NetworkTests', () => {
         // Then we take the ceiling of that to know when it will be greater than or equal to the scale factor.
         // So we need to double the initial request wait time 7 times.
         const numRetriesToMaxWaitTime = Math.ceil(Math.log2(CONST.NETWORK.MAX_RETRY_WAIT_TIME / RequestThrottleMock.initialRequestWaitTime));
+
+        // Given a mock where a retry response is returned until the max wait time is reached, then a successful response
+        let fetchCalls = 0;
+        global.fetch = jest.fn().mockImplementation(() => {
+            fetchCalls++;
+
+            // Add one call for the initial failing request
+            if (fetchCalls <= (numRetriesToMaxWaitTime + 1)) {
+                return Promise.resolve(retryResponse);
+            }
+            return Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
+        });
 
         // Given we have a request made while we're offline
         return Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
