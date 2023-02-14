@@ -41,11 +41,18 @@ const propTypes = {
         /** Whether or not the IOU step is loading (retrieving participants) */
         loading: PropTypes.bool,
     }),
+
+    /** padding bottom style of safe area */
+    safeAreaPaddingBottomStyle: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
 };
 
 const defaultProps = {
     iou: {},
     participants: [],
+    safeAreaPaddingBottomStyle: {},
 };
 
 const IOUParticipantsPage = (props) => {
@@ -63,12 +70,14 @@ const IOUParticipantsPage = (props) => {
                 onStepComplete={props.onStepComplete}
                 participants={props.participants}
                 onAddParticipants={props.onAddParticipants}
+                safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle}
             />
         )
         : (
             <IOUParticipantsRequest
                 onStepComplete={props.onStepComplete}
                 onAddParticipants={props.onAddParticipants}
+                safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle}
             />
         )
     );

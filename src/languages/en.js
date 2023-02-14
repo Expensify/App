@@ -155,6 +155,14 @@ export default {
         youCanAlso: 'You can also',
         openLinkInBrowser: 'open this link in your browser',
     },
+    validateCodeModal: {
+        successfulSignInTitle: 'Abracadabra,\nyou are signed in!',
+        successfulSignInDescription: 'Head back to your original tab to continue.',
+        title: 'Here is your magic code',
+        description: 'Please enter the code using the device\nwhere it was originally requested',
+        or: ', or',
+        signInHere: 'just sign in here',
+    },
     iOUConfirmationList: {
         whoPaid: 'Who paid?',
         whoWasThere: 'Who was there?',
