@@ -270,7 +270,8 @@ const AvatarCropModal = (props) => {
             height: size, width: size, originX, originY,
         };
 
-        // Svg images are converted to a png blob, so we need to update the image name and type accordingly.
+        // Svg images are converted to a png blob, so we need to update the image name and type
+        // accordingly to ensure that the file is received as the correct format on the backend.
         const isSvg = props.imageType.includes('image/svg');
         const imageName = isSvg ? 'fileName.png' : props.imageName;
         const imageType = isSvg ? 'image/png' : props.imageType;
