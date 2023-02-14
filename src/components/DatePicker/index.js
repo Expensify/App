@@ -27,6 +27,9 @@ class DatePicker extends React.Component {
 
         this.setDate = this.setDate.bind(this);
         this.togglePicker = this.togglePicker.bind(this);
+        this.onWindowResize = this.onWindowResize.bind(this);
+
+        window.addEventListener('resize', this.onWindowResize);
 
         /* We're using uncontrolled input otherwise it wont be possible to
         * raise change events with a date value - each change will produce a date
@@ -34,6 +37,25 @@ class DatePicker extends React.Component {
         this.defaultValue = props.defaultValue
             ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
             : '';
+    }
+
+    onWindowResize() {
+        if (this.wrapperRef) {
+            const {
+                x, y, width, height, left, top,
+            } = this.wrapperRef.getBoundingClientRect();
+            this.setState({
+                pickerLayout: {
+                    x, y, width, height, left, top,
+                },
+            });
+        }
+
+        if (!this.state.isPickerVisible) {
+            return;
+        }
+
+        this.setState({isPickerVisible: false});
     }
 
     /**
@@ -61,7 +83,10 @@ class DatePicker extends React.Component {
 
     render() {
         return (
-            <View onLayout={({nativeEvent}) => this.setState({pickerLayout: nativeEvent.layout})}>
+            <View
+                onLayout={({nativeEvent}) => { this.setState({pickerLayout: nativeEvent.layout}); }}
+                ref={ref => this.wrapperRef = ref}
+            >
                 <TextInput
                     forceActiveLabel
                     ref={(el) => {
