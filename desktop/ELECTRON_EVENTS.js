@@ -3,6 +3,7 @@ const ELECTRON_EVENTS = {
     REQUEST_VISIBILITY: 'requestVisibility',
     REQUEST_FOCUS_APP: 'requestFocusApp',
     SHOW_KEYBOARD_SHORTCUTS_MODAL: 'show-keyboard-shortcuts-modal',
+    INIT_UPDATER: 'init-updater',
     START_UPDATE: 'start-update',
     UPDATE_DOWNLOADED: 'update-downloaded',
     FOCUS: 'focus',

@@ -1,5 +1,5 @@
-import pkg from "../../../package.json";
-import Visibility from "../Visibility";
+import pkg from '../../../package.json';
+import Visibility from '../Visibility';
 
 /**
  * Download the latest app version from the server, and if it is different than the current one,
