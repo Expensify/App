@@ -76,6 +76,25 @@ class DatePicker extends React.Component {
         this.setState({isPickerVisible: false});
     }
 
+    onWindowResize() {
+        if (this.wrapperRef) {
+            const {
+                x, y, width, height, left, top,
+            } = this.wrapperRef.getBoundingClientRect();
+            this.setState({
+                pickerLayout: {
+                    x, y, width, height, left, top,
+                },
+            });
+        }
+
+        if (!this.state.isPickerVisible) {
+            return;
+        }
+
+        this.setState({isPickerVisible: false});
+    }
+
     /**
      * Trigger the `onChange` handler when the user input has a complete date or is cleared
      * @param {String} text
