@@ -2,6 +2,10 @@
 @import 'colors';
 @import 'fonts';
 
+$sidepaneWidthMobile     : 500px;
+$smallSpacing            : 15px;
+$mediumSpacing           : 32px;
+
 * {
     margin: 0;
     padding: 0;
@@ -596,5 +600,105 @@ button {
 .disable-scrollbar {
     @media screen and (max-width: $breakpoint-tablet) {
         overflow: hidden;
+    }
+}
+
+.page-footer {
+    font-size: 15px;
+
+    // @include mq(sm) {
+    //     background: $color-dark url('#{ $images }homepage/expensify-footer-logo--vertical.svg') no-repeat right 120px;
+    //     background-size: 111px 618px;
+    // }
+
+    h3 {
+        color: $color-green;
+        font-size: 17px;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+
+    ul {
+        margin: 0 0 20px !important;
+        padding: 0;
+
+        li {
+            list-style-type: none !important;
+            margin: 0 0 8px;
+
+            a {
+                color: $color-white;
+                display: block;
+                padding: 4px 0;
+                word-break: break-word;
+
+                &:hover {
+                    color: $color-green;
+                }
+            }
+        }
+    }
+
+    &__social-icons {
+        margin: 0 0 20px;
+
+        a {
+            color: $color-white;
+            display: inline-block;
+
+            &:hover {
+                color: $color-green;
+            }
+        }
+    }
+
+    &__fine-print {
+        color: $color-text-supporting;
+        font-size: 10px;
+
+        a {
+            color: $color-green;
+        }
+    }
+
+    // Big logo at the bottom
+    &__logo {
+        margin-top: 40px;
+
+        img {
+            display: block;
+        }
+
+        @include mq (sm) {
+            display: none;
+        }
+    }
+
+    &__wrapper {
+        margin: 0 auto;
+        max-width: 1000px;
+        padding: 64px $mediumSpacing 0;
+
+        @include mq(sm) {
+            max-width: $sidepaneWidthMobile;
+            padding: 64px 40px 20px;
+        }
+    }
+
+    .columns {
+        @include mq(md) {
+            display: flex;
+            margin-left: (-1 * 16px);
+            margin-right: (-1 * 16px);
+        }
+    }
+
+    .column {
+        margin-bottom: 40px;
+
+        @include mq(md) {
+            padding: 16px;
+            width: 25%;
+        }
     }
 }
