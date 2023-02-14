@@ -112,11 +112,7 @@ export default [
                     if (!Clipboard.canSetHtml()) {
                         Clipboard.setString(parser.htmlToMarkdown(content));
                     } else {
-                        // Thanks to how browsers work, when text is highlighted and CTRL+c is pressed, browsers end up doubling the amount of newlines. Since the code in this file is
-                        // triggered from a context menu and not CTRL+c, the newlines need to be doubled so that the content that goes into the clipboard is consistent with CTRL+c behavior.
-                        // The extra newlines are stripped when the contents are pasted into the compose input, but if the contents are pasted outside of the comment composer, it will
-                        // contain extra newlines and that's OK because it is consistent with CTRL+c behavior.
-                        const plainText = Str.htmlDecode(parser.htmlToText(content)).replace(/\n/g, '\n\n');
+                        const plainText = Str.htmlDecode(parser.htmlToText(content));
                         Clipboard.setHtml(content, plainText);
                     }
                 }
