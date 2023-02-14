@@ -488,6 +488,9 @@ describe('NetworkTests', () => {
                         // Then we have retried the failing request. The request has been made once more than the retry count
                         expect(global.fetch).toHaveBeenCalledTimes(retryCount + 1);
 
+                        // And we still have 1 persisted request
+                        expect(_.size(PersistedRequests.getAll())).toEqual(1);
+
                         // Now we will double the wait time before the next retry
                         jest.advanceTimersByTime(RequestThrottleMock.initialRequestWaitTime * (2 ** retryCount));
                         return waitForPromisesToResolve();
