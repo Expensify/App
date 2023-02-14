@@ -488,7 +488,7 @@ describe('NetworkTests', () => {
                 let backOffChain = Promise.resolve();
 
                 // We will double the wait time 1 less than needed so that we don't exceed the max wait time just yet
-                for (let retryCount = 1; retryCount <= numRetriesToMaxWaitTime; retryCount++) {
+                for (let retryCount = 1; retryCount < numRetriesToMaxWaitTime; retryCount++) {
                     backOffChain = backOffChain.then(() => {
                         // Then we have retried the failing request. The request has been made once more than the retry count
                         expect(global.fetch).toHaveBeenCalledTimes(retryCount + 1);
@@ -504,8 +504,11 @@ describe('NetworkTests', () => {
                 return backOffChain;
             })
             .then(() => {
-                // Then we have retried again. The first retry is the 2nd request, so the 7th retry is the 9th request.
-                expect(global.fetch).toHaveBeenCalledTimes(numRetriesToMaxWaitTime + 2);
+                // Then we have retried again. The first retry is the 2nd request, so the nth retry is request n+1
+                expect(global.fetch).toHaveBeenCalledTimes(numRetriesToMaxWaitTime + 1);
+
+                // And we still have 1 persisted request
+                expect(_.size(PersistedRequests.getAll())).toEqual(1);
 
                 // Now we have hit the max wait time
                 jest.advanceTimersByTime(CONST.NETWORK.MAX_RETRY_WAIT_TIME);
@@ -513,7 +516,7 @@ describe('NetworkTests', () => {
             })
             .then(() => {
                 // Then the request is retried again
-                expect(global.fetch).toHaveBeenCalledTimes(numRetriesToMaxWaitTime + 3);
+                expect(global.fetch).toHaveBeenCalledTimes(numRetriesToMaxWaitTime + 2);
 
                 // The request succeeds so the queue is empty
                 expect(_.size(PersistedRequests.getAll())).toEqual(0);
