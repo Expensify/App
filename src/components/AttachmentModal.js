@@ -114,8 +114,8 @@ class AttachmentModal extends PureComponent {
     }
 
     /**
+     * Set modal visibility when it is either completely visible or closed.
      * @param {boolean} value
-     * set modal visibility when it is either completely visible or closed.
      */
     setModalVisibility(value) {
         this.setState({isModalVisible: value});
