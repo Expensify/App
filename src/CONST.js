@@ -505,6 +505,7 @@ const CONST = {
         VISIBLE_PASSWORD: 'visible-password',
         EMAIL_ADDRESS: 'email-address',
         ASCII_CAPABLE: 'ascii-capable',
+        URL: 'url',
     },
 
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
