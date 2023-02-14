@@ -229,7 +229,7 @@ function isChatRoom(report) {
 
 /**
  * Whether the provided report is a direct message
- * @param {Object} report 
+ * @param {Object} report
  * @returns {Boolean}
  */
 function isDirectMessage(report) {
