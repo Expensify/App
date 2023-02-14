@@ -641,6 +641,7 @@ button {
     }
 
     &__social-icons {
+        padding-bottom: 20px;
 
         a {
             color: $color-white;
@@ -653,11 +654,11 @@ button {
     }
 
     &__fine-print {
-        color: $color-text-supporting;
+        color: $color-gray-green;
         font-size: 10px;
 
         a {
-            color: $color-green;
+            color: $color-link;
         }
     }
 
