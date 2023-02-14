@@ -174,7 +174,6 @@ class ValidateCodeForm extends React.Component {
 
     render() {
         const wasValidateCodeSentRecently = !_.isEmpty(this.props.account.message);
-        console.log(this.props.account);
         return (
             <>
                 {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
