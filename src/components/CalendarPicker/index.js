@@ -5,11 +5,12 @@ import {
 } from 'react-native';
 import moment from 'moment';
 import PropTypes from 'prop-types';
-import * as Expensicons from './Icon/Expensicons';
-import Icon from './Icon';
-import Text from './Text';
-import colors from '../styles/colors';
-import flex from '../styles/utilities/flex';
+import * as Expensicons from '../Icon/Expensicons';
+import Icon from '../Icon';
+import Text from '../Text';
+import colors from '../../styles/colors';
+import flex from '../../styles/utilities/flex';
+import ListPicker from './ListPicker';
 
 const styles = StyleSheet.create({
     row: {
@@ -63,23 +64,31 @@ const propTypes = {
     onChange: PropTypes.func.isRequired,
 
     /** A value initial of date */
-    value: PropTypes.object,
+    value: PropTypes.objectOf(Date),
+
+    /** A minimum date of calendar to select */
+    minDate: PropTypes.objectOf(Date),
+
+    /** A maximum date of calendar to select */
+    maxDate: PropTypes.objectOf(Date),
 };
 
 const defaultProps = {
     value: new Date(),
+    minDate: null,
+    maxDate: null,
 };
 
 function generateMonthMatrix(year, month) {
     const daysInMonth = moment([year, month]).daysInMonth();
-    const firstDay = moment([year, month, 1]).startOf('month');
+    const firstDay = moment([year, month, 1]).startOf('month').locale('en');
     const matrix = [];
     let currentWeek = [];
     for (let i = 0; i < firstDay.weekday(); i++) {
         currentWeek.push(null);
     }
     for (let i = 1; i <= daysInMonth; i++) {
-        const day = moment([year, month, i]);
+        const day = moment([year, month, i]).locale('en');
         currentWeek.push(day.date());
         if (day.weekday() === 6) {
             matrix.push(currentWeek);
@@ -96,7 +105,7 @@ function generateMonthMatrix(year, month) {
 }
 
 const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 const ArrowIcon = props => (
     <View style={[styles.icon, props?.direction === 'left' ? {transform: [{rotate: '180deg'}]} : undefined]}>
@@ -113,6 +122,8 @@ const addMonths = (date, months) => {
 
 const CalendarPicker = (props) => {
     const [currentDateView, setCurrentDateView] = React.useState(new Date());
+    const [yearPickerVisible, setYearPickerVisible] = React.useState(false);
+    const [monthPickerVisible, setMonthPickerVisible] = React.useState(false);
 
     const currentMonthView = currentDateView.getMonth();
     const currentYearView = currentDateView.getFullYear();
@@ -120,8 +131,8 @@ const CalendarPicker = (props) => {
 
     const onNextMonthPress = () => setCurrentDateView(prev => addMonths(prev, 1));
     const onPrevMonthPress = () => setCurrentDateView(prev => addMonths(prev, -1));
-    const onMonthPickerPress = () => {};
-    const onYearPickerPress = () => {};
+    const onMonthPickerPress = () => setMonthPickerVisible(true);
+    const onYearPickerPress = () => setYearPickerVisible(true);
 
     const onDayPress = (day) => {
         if (!props.onChange) {
@@ -131,8 +142,39 @@ const CalendarPicker = (props) => {
         props.onChange(selectedDate);
     };
 
+    if (yearPickerVisible) {
+        const minYear = props.minDate ? props.minDate.getFullYear() : 1970;
+        const maxDate = props.maxDate ? minYear - props.maxDate.getFullYear() : 200;
+        const years = Array.from({length: maxDate}, (k, v) => v + minYear);
+        return (
+            <ListPicker
+                selected={currentYearView}
+                data={years}
+                onSelect={(year) => {
+                    setYearPickerVisible(false);
+                    setCurrentDateView(prev => new Date(year, prev.getMonth(), prev.getDay()));
+                }}
+            />
+        );
+    }
+
+    if (monthPickerVisible) {
+        const months = Array.from({length: 12}, (k, v) => v);
+        return (
+            <ListPicker
+                selected={currentYearView}
+                data={months}
+                format={index => monthNames[index]}
+                onSelect={(month) => {
+                    setMonthPickerVisible(false);
+                    setCurrentDateView(prev => new Date(prev.getFullYear(), month, prev.getDay()));
+                }}
+            />
+        );
+    }
+
     return (
-        <View style={styles.root}>
+        <View>
             <View>
                 <View style={styles.calendarHeader}>
                     <TouchableOpacity onPress={onMonthPickerPress} style={[styles.rowCenter, flex.flex1, flex.justifyContentStart]}>
