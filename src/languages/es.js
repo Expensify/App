@@ -600,9 +600,10 @@ export default {
     },
     personalDetails: {
         error: {
-            firstNameLength: 'El nombre no debe tener más de 50 caracteres',
-            lastNameLength: 'Los apellidos no pueden tener más de 50 caracteres',
-            hasInvalidCharacter: ({invalidCharacter}) => `Por favor elimina ${invalidCharacter} del campo nombre.`,
+            firstNameLength: `El nombre no puede tener más de ${CONST.DISPLAY_NAME.MAX_LENGTH} caracteres`,
+            lastNameLength: `El apellido no puede tener más de ${CONST.DISPLAY_NAME.MAX_LENGTH} caracteres`,
+            containsReservedWord: 'El nombre no puede contener las palabras Expensify o Concierge',
+            hasInvalidCharacter: 'El nombre no puede contener una coma o un punto y coma',
         },
     },
     privatePersonalDetails: {
@@ -613,7 +614,6 @@ export default {
         legalLastName: 'Apellidos legales',
         homeAddress: 'Domicilio',
         error: {
-            hasInvalidCharacter: ({invalidCharacter}) => `Por favor elimina ${invalidCharacter}`,
             dateShouldBeBefore: ({dateString}) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `La fecha debe ser posterior a ${dateString}.`,
         },
@@ -1069,8 +1069,6 @@ export default {
             phoneNumberExtension: 'Por favor, introduce una extensión telefónica válida',
             firstName: 'Por favor, ingresa tu nombre',
             lastName: 'Por favor, ingresa tus apellidos',
-            firstNameLength: 'El nombre no debe tener más de 50 caracteres',
-            lastNameLength: 'Los apellidos no deben tener más de 50 caracteres',
         },
     },
     requestCallConfirmationScreen: {
