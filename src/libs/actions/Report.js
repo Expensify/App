@@ -658,8 +658,8 @@ function handleReportChanged(report) {
         }
     }
 
-    // A report can be missing a name if a comment is received via pusher event
-    // and the report does not yet exist in Onyx (eg. a new DM created with the logged in person)
+    // A report can be missing a name if a comment is received via pusher event and the report does not yet exist in Onyx (eg. a new DM created with the logged in person)
+    // In this case, we call reconnect so that we can fetch the report data without marking it as read
     if (report.reportID && report.reportName === undefined) {
         reconnect(report.reportID);
     }
