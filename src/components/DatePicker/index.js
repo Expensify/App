@@ -39,6 +39,10 @@ class DatePicker extends React.Component {
             : '';
     }
 
+    componentWillUnmount() {
+        window.removeEventListener('resize', this.onWindowResize);
+    }
+
     onWindowResize() {
         if (this.wrapperRef) {
             const {
