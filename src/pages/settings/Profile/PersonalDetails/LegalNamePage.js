@@ -66,29 +66,14 @@ class LegalNamePage extends Component {
     validate(values) {
         const errors = {};
 
-        // Check for invalid characters in legal first and last name
-        const [invalidLegalFirstNameCharacter, invalidLegalLastNameCharacter] = ValidationUtils.findInvalidSymbols(
-            [values.legalFirstName, values.legalLastName],
-        );
-        const [hasLegalFirstNameLengthError, hasLegalLastNameLengthError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
-            CONST.LEGAL_NAMES_CHARACTER_LIMIT,
-            [values.legalFirstName, values.legalLastName],
-        );
-
-        if (!_.isEmpty(invalidLegalFirstNameCharacter)) {
-            errors.legalFirstName = Localize.translateLocal(
-                'privatePersonalDetails.error.hasInvalidCharacter',
-                {invalidCharacter: invalidLegalFirstNameCharacter},
-            );
+        if (!ValidationUtils.isValidDisplayName(values.legalFirstName)) {
+            errors.legalFirstName = this.props.translate('personalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalFirstName)) {
             errors.legalFirstName = this.props.translate('common.error.fieldRequired');
         }
 
-        if (!_.isEmpty(invalidLegalLastNameCharacter)) {
-            errors.legalLastName = Localize.translateLocal(
-                'privatePersonalDetails.error.hasInvalidCharacter',
-                {invalidCharacter: invalidLegalLastNameCharacter},
-            );
+        if (!ValidationUtils.isValidDisplayName(values.legalLastName)) {
+            errors.legalLastName = this.props.translate('personalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalLastName)) {
             errors.legalLastName = this.props.translate('common.error.fieldRequired');
         }

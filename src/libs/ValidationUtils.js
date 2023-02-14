@@ -357,13 +357,13 @@ function isValidRoutingNumber(number) {
 }
 
 /**
- * Checks if each provided string includes any commas or semicolons
+ * Checks that the provided name doesn't contain any commas or semicolons
  *
- * @param {String[]} valuesToBeValidated
- * @returns {Boolean[]}
+ * @param {String} name
+ * @returns {Boolean}
  */
-function doesContainCommaOrSemicolon(valuesToBeValidated) {
-    return _.map(valuesToBeValidated, value => (value.includes(',') || value.includes(';')));
+function isValidDisplayName(name) {
+    return !name.includes(',') && !name.includes(';');
 }
 
 /**
@@ -457,6 +457,6 @@ export {
     isValidRoomName,
     isValidTaxID,
     isValidValidateCode,
-    doesContainCommaOrSemicolon,
+    isValidDisplayName,
     doesContainReservedWord,
 };
