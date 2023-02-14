@@ -174,6 +174,7 @@ class ValidateCodeForm extends React.Component {
 
     render() {
         const wasValidateCodeSentRecently = !_.isEmpty(this.props.account.message);
+        console.log(this.props.account);
         return (
             <>
                 {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
@@ -229,7 +230,7 @@ class ValidateCodeForm extends React.Component {
                 {wasValidateCodeSentRecently && (
 
                     // DotIndicatorMessage mostly expects onyxData errors so we need to mock an object so that the messages looks similar to prop.account.errors
-                    <DotIndicatorMessage style={[styles.mb5, styles.flex0]} type="success" messages={{0: this.props.account.message}} />
+                    <DotIndicatorMessage style={[styles.mb5, styles.mt2, styles.flex0]} type="success" messages={{0: this.props.account.message}} />
                 )}
                 {this.props.account && !_.isEmpty(this.props.account.errors) && (
                     <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(this.props.account)} />
