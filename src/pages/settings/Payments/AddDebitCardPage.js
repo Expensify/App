@@ -181,7 +181,7 @@ class DebitCardPage extends Component {
                             />
                         </View>
                     </View>
-                    {!Permissions.canUsePolicyRooms(this.props.betas) && (
+                    {!Permissions.canUsePasswordlessLogins(this.props.betas) && (
                         <View style={[styles.mt4]}>
                             <TextInput
                                 inputID="password"
