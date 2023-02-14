@@ -1,4 +1,4 @@
-import {PixelRatio} from 'react-native';
+import {PixelRatio, Platform} from 'react-native';
 
 /**
  * Calculate the fontSize, lineHeight and padding when the device font size is changed, In most cases users do not change their device font size so PixelRatio.getFontScale() = 1 and this
@@ -40,9 +40,9 @@ export default {
     fontSizeOnlyEmojis: 30,
     fontSizeOnlyEmojisHeight: 35,
     fontSizeEmoji: 19,
-    fontSizeEmojiHeight: 24,
+    fontSizeEmojiHeight: Platform.OS === 'web' ? 26 : 24,
     fontSizeEmojiProfile: 21,
-    fontSizeEmojiProfileHeight: 25,
+    fontSizeEmojiProfileHeight: Platform.OS === 'web' ? 29 : 25,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
     fontSizeExtraSmall: 9,
     fontSizeLabel: getValueUsingPixelRatio(13, 19),

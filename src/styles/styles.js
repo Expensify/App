@@ -1,3 +1,4 @@
+import {Platform} from 'react-native';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -19,7 +20,6 @@ import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
-import getOperatingSystem from '../libs/getOperatingSystem';
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -1105,13 +1105,13 @@ const styles = {
         position: 'relative',
         fontSize: variables.fontSizeEmoji,
         lineHeight: variables.fontSizeEmojiHeight,
-        top: getOperatingSystem() === CONST.OS.ANDROID ? 8 : 3,
+        top: Platform.OS === 'android' ? 8 : 3,
     },
 
     profileEmojiText: {
         fontSize: variables.fontSizeEmojiProfile,
         lineHeight: variables.fontSizeEmojiProfileHeight,
-        top: getOperatingSystem() === CONST.OS.ANDROID ? 8 : 4,
+        top: Platform.OS === 'android' ? 8 : 4,
     },
 
     createMenuPositionSidebar: {
