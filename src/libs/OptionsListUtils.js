@@ -575,18 +575,19 @@ function getOptions(reports, personalDetails, {
     let userToInvite = null;
     const noOptions = (recentReportOptions.length + personalDetailsOptions.length) === 0;
     const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), option => option.login === searchValue.toLowerCase());
+    const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
+        ? `+${countryCodeByIP}${searchValue}`
+        : searchValue;
     if (searchValue && (noOptions || noOptionsMatchExactly)
         && !isCurrentUser({login: searchValue})
         && _.every(selectedOptions, option => option.login !== searchValue)
-        && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
+        && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(login))
         && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()))
         && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
         // If the phone number doesn't have an international code then let's prefix it with the
         // current user's international code based on their IP address.
-        const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
-            ? `+${countryCodeByIP}${searchValue}`
-            : searchValue;
+
         userToInvite = createOption([login], personalDetails, null, reportActions, {
             showChatPreviewLine,
         });
