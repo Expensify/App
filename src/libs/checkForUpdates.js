@@ -14,7 +14,7 @@ function checkForUpdates(platformSpecificUpdater) {
         platformSpecificUpdater.init();
     }
 
-    // Check for updates every hour
+    // Check for updates every 8 hours
     setInterval(() => {
         platformSpecificUpdater.update();
     }, UPDATE_INTERVAL);
