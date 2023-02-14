@@ -606,10 +606,11 @@ button {
 .page-footer {
     font-size: 15px;
 
-    // @include maxBreakpoint($breakpoint-tablet) {
-    //     background: $color-dark url('#{ $images }homepage/expensify-footer-logo--vertical.svg') no-repeat right 120px;
-    //     background-size: 111px 618px;
-    // }
+    @include maxBreakpoint($breakpoint-desktop) {
+        padding-right: 0 !important;
+        background: url('/assets/images/expensify-footer-logo--vertical.svg') no-repeat right 120px;
+        background-size: 111px 618px;
+    }
 
     h3 {
         color: $color-green;
@@ -669,7 +670,7 @@ button {
             display: block;
         }
 
-        @include maxBreakpoint($breakpoint-tablet) {
+        @include maxBreakpoint($breakpoint-desktop) {
             display: none;
         }
     }
