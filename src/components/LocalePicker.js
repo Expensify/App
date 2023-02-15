@@ -18,16 +18,12 @@ const propTypes = {
     /** Indicates size of a picker component and whether to render the label or not */
     size: PropTypes.oneOf(['normal', 'small']),
 
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     preferredLocale: CONST.DEFAULT_LOCALE,
     size: 'normal',
-    betas: [],
 };
 
 const localesToLanguages = {
@@ -41,7 +37,7 @@ const localesToLanguages = {
     },
 };
 
-const LocalePicker = (props) => (
+const LocalePicker = props => (
     <Picker
         label={props.size === 'normal' ? props.translate('languagePage.language') : null}
         onInputChange={(locale) => {
@@ -67,9 +63,6 @@ export default compose(
     withOnyx({
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
 )(LocalePicker);
