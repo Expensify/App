@@ -49,11 +49,11 @@ export default {
     EXPENSIFY: {
         // Note: This will be EXACTLY what is set for EXPENSIFY_URL whether the proxy is enabled or not.
         EXPENSIFY_URL: expensifyURL,
-        SECURE_EXPENSIFY_URL: secureURLRoot,
         NEW_EXPENSIFY_URL: newExpensifyURL,
-        URL_API_ROOT: expensifyURLRoot,
-        STAGING_EXPENSIFY_URL: stagingExpensifyURL,
-        STAGING_SECURE_EXPENSIFY_URL: stagingSecureExpensifyUrl,
+        PRODUCTION_API_ROOT: expensifyURLRoot,
+        PRODUCTION_SECURE_API_ROOT: secureURLRoot,
+        STAGING_API_ROOT: stagingExpensifyURL,
+        STAGING_SECURE_API_ROOT: stagingSecureExpensifyUrl,
         PARTNER_NAME: lodashGet(Config, 'EXPENSIFY_PARTNER_NAME', 'chat-expensify-com'),
         PARTNER_PASSWORD: lodashGet(Config, 'EXPENSIFY_PARTNER_PASSWORD', 'e21965746fd75f82bb66'),
         EXPENSIFY_CASH_REFERER: 'ecash',
