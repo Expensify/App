@@ -129,6 +129,13 @@ class BaseTextInput extends Component {
     onBlur(event) {
         if (this.props.onBlur) { this.props.onBlur(event); }
         this.setState({isFocused: false});
+
+        // If the text has been supplied by Chrome autofill, the value state is not synced with the value
+        // as Chrome doesn't trigger a change event. When there is autofill text, don't deactivate label.
+        const textWasAutoFilled = this.input.matches(':-internal-autofill-selected');
+        if (!textWasAutoFilled) {
+            this.deactivateLabel();
+        }
     }
 
     /**
