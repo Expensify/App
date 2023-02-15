@@ -33,7 +33,7 @@ const SignInPageLayout = (props) => {
     }
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper includesHeaderGap={false}>
             <View style={containerStyles}>
                 {!props.isSmallScreenWidth ? (
                     <View style={contentContainerStyles}>

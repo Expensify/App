@@ -97,7 +97,7 @@ class ScreenWrapper extends React.Component {
                             ]}
                         >
                             <KeyboardAvoidingView style={[styles.w100, styles.h100, {maxHeight: this.props.windowHeight}]} behavior={this.props.keyboardAvoidingViewBehavior}>
-                                <HeaderGap />
+                                {this.props.includesHeaderGap && (<HeaderGap />)}
                                 {// If props.children is a function, call it to provide the insets to the children.
                                     _.isFunction(this.props.children)
                                         ? this.props.children({

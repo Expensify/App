@@ -28,6 +28,9 @@ const propTypes = {
         /** Indicates when an Alert modal is about to be visible */
         willAlertModalBecomeVisible: PropTypes.bool,
     }),
+
+    /** Whether to include HeaderGap */
+    includesHeaderGap: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -37,6 +40,7 @@ const defaultProps = {
     onTransitionEnd: () => {},
     modal: {},
     keyboardAvoidingViewBehavior: 'padding',
+    includesHeaderGap: true,
 };
 
 export {propTypes, defaultProps};
