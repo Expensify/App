@@ -1,3 +1,4 @@
+import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import EmojiReactionBubble from './EmojiReactionBubble';
@@ -26,8 +27,9 @@ const EMOJI_BUBBLE_SCALE = 1.5;
 
 const QuickEmojiReactions = () => (
     <View style={{
+        gap: 12,
         flexDirection: 'row',
-        paddingHorizontal: 30,
+        paddingHorizontal: 25,
         paddingVertical: 12,
         justifyContent: 'space-between',
     }}
