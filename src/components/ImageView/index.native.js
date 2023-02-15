@@ -116,7 +116,7 @@ class ImageView extends PureComponent {
                     duration: 0,
                 });
             }
-                
+
             let imageWidth = nativeEvent.width;
             let imageHeight = nativeEvent.height;
             const containerWidth = Math.round(this.props.windowWidth);
