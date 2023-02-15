@@ -20,6 +20,7 @@ import FixedFooter from '../../components/FixedFooter';
 import TextInput from '../../components/TextInput';
 import userPropTypes from './userPropTypes';
 import * as LoginUtils from '../../libs/LoginUtils';
+import Permissions from '../../libs/Permissions';
 
 const propTypes = {
     /* Onyx Props */
@@ -32,6 +33,10 @@ const propTypes = {
             // The type of secondary login to be added (email|phone)
             type: PropTypes.string,
         }),
+
+        /** List of betas available to current user */
+        betas: PropTypes.arrayOf(PropTypes.string),
+
     }),
 
     ...withLocalizePropTypes,
@@ -40,6 +45,7 @@ const propTypes = {
 const defaultProps = {
     user: {},
     route: {},
+    betas: [],
 };
 
 class AddSecondaryLoginPage extends Component {
@@ -85,7 +91,12 @@ class AddSecondaryLoginPage extends Component {
             : this.state.login;
 
         const validationMethod = this.formType === CONST.LOGIN_TYPE.PHONE ? Str.isValidPhone : Str.isValidEmail;
-        return !this.state.password || !validationMethod(login);
+
+        if (!validationMethod(login)) {
+            return false;
+        }
+
+        return !Permissions.canUsePasswordlessLogins(this.props.betas)  && !this.state.password;
     }
 
     render() {
@@ -127,17 +138,19 @@ class AddSecondaryLoginPage extends Component {
                             returnKeyType="done"
                         />
                     </View>
-                    <View style={styles.mb6}>
-                        <TextInput
-                            label={this.props.translate('common.password')}
-                            value={this.state.password}
-                            onChangeText={password => this.setState({password})}
-                            secureTextEntry
-                            autoCompleteType="password"
-                            textContentType="password"
-                            onSubmitEditing={this.submitForm}
-                        />
-                    </View>
+                    {!Permissions.canUsePasswordlessLogins(this.props.betas) && (
+                        <View style={styles.mb6}>
+                            <TextInput
+                                label={this.props.translate('common.password')}
+                                value={this.state.password}
+                                onChangeText={password => this.setState({password})}
+                                secureTextEntry
+                                autoCompleteType="password"
+                                textContentType="password"
+                                onSubmitEditing={this.submitForm}
+                            />
+                        </View>
+                    )}
                     {!_.isEmpty(this.props.user.error) && (
                         <Text style={styles.formError}>
                             {this.props.user.error}
@@ -167,6 +180,9 @@ export default compose(
     withOnyx({
         user: {
             key: ONYXKEYS.USER,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(AddSecondaryLoginPage);
