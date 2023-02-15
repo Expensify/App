@@ -56,7 +56,7 @@ class ContactMethodsPage extends Component {
 
         // Recalculate logins if loginList has changed
         if (_.keys(this.props.loginList).length !== _.keys(prevProps.loginList).length) {
-            stateToUpdate = {...stateToUpdate, logins: this.getLogins()};
+            stateToUpdate = {logins: this.getLogins()};
         }
 
         if (_.isEmpty(stateToUpdate)) {
