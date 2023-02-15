@@ -8,6 +8,7 @@ import Text from '../../components/Text';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
+import variables from '../../styles/variables';
 
 const socialsList = [
     {
@@ -43,7 +44,7 @@ const Socials = () => (
                 key={social.link}
             >
                 {({hovered}) => (
-                    <Icon src={social.iconURL} height={24} width={24} fill={hovered ? themeColors.link : themeColors.textLight} />
+                    <Icon src={social.iconURL} height={variables.iconSizeLarge} width={variables.iconSizeLarge} fill={hovered ? themeColors.link : themeColors.textLight} />
                 )}
             </Pressable>
         ))}

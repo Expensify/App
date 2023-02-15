@@ -4,6 +4,7 @@ import React from 'react';
 import _ from 'underscore';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import TextLink from '../../../components/TextLink';
@@ -134,6 +135,9 @@ const columns = [
     },
 ];
 
+const verticalLogoHeight = 634;
+const verticalLogoWidth = 111;
+
 const Footer = (props) => {
     const isVertical = props.isSmallScreenWidth;
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
@@ -146,7 +150,7 @@ const Footer = (props) => {
 
     return (
         <View style={styles.flex1}>
-            <View style={styles.footerContainer}>
+            <View style={StyleUtils.getBackgroundColorStyle(themeColors.midtone)}>
                 <View style={pageFooterWrapper}>
                     <View style={footerColumns}>
                         { /** Columns * */ }
@@ -194,7 +198,7 @@ const Footer = (props) => {
                             <Expensicons.ExpensifyFooterLogo />
                         )
                             : (
-                                <Expensicons.ExpensifyFooterLogoVertical height={634} width={111} />
+                                <Expensicons.ExpensifyFooterLogoVertical height={verticalLogoHeight} width={verticalLogoWidth} />
                             )}
                     </View>
                 </View>

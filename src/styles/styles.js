@@ -2918,10 +2918,6 @@ const styles = {
         letterSpacing: 4,
     },
 
-    footerContainer: {
-        backgroundColor: themeColors.midtone,
-    },
-
     footerWrapper: {
         fontSize: variables.fontSizeNormal,
         paddingTop: 64,
