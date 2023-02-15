@@ -1366,7 +1366,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         return false;
     }
 
-    // Exclude direct message reports that have no chat
+    // Exclude direct message chats that don't have any chat history
     if (isDirectMessage(report) && report.maxSequenceNumber === 1) {
         return false;
     }
