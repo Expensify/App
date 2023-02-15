@@ -33,6 +33,8 @@ const getUniqueEmojiCodes = (emoji, users) => {
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     reactions: PropTypes.arrayOf(PropTypes.object).isRequired,
+    removeReaction: PropTypes.func.isRequired,
+    addReaction: PropTypes.func.isRequired,
 
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -41,33 +43,45 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const ReportActionItemReactions = props => (
-    <View style={[styles.flexRow, styles.flexWrap]}>
-        {_.map(props.reactions, (reaction) => {
-            const reactionCount = reaction.users.length;
-            const hasUserReacted = _.find(reaction.users, reactor => reactor.accountID === props.currentUserPersonalDetails.accountID) != null;
-            const senderIDs = _.map(reaction.users, sender => sender.login);
-            const emoji = _.find(emojis, e => e.name === reaction.emoji);
-            const emojiCodes = getUniqueEmojiCodes(emoji, reaction.users);
+const ReportActionItemReactions = (props) => {
+    console.log('render reportactionitemreactions');
+    return (
+        <View style={[styles.flexRow, styles.flexWrap]}>
+            {_.map(props.reactions, (reaction) => {
+                const reactionCount = reaction.users.length;
+                const hasUserReacted = _.find(reaction.users, reactor => reactor.accountID === props.currentUserPersonalDetails.accountID) != null;
+                const senderIDs = _.map(reaction.users, sender => sender.accountID);
+                const emoji = _.find(emojis, e => e.name === reaction.emoji);
+                const emojiCodes = getUniqueEmojiCodes(emoji, reaction.users);
 
-            return (
-                <EmojiReactionBubble
-                    key={reaction.emoji}
-                    count={reactionCount}
-                    emojiName={reaction.emoji}
-                    emojiCodes={emojiCodes}
-                    hasUserReacted={hasUserReacted}
-                    onPress={console.log}
+                const onPress = () => {
+                    if (hasUserReacted) {
+                        props.removeReaction(emoji);
+                    } else {
+                        props.addReaction(emoji);
+                    }
+                };
 
-                            // onPress={() => this.removeReaction(reaction.emojiCodes[0])}
-                    // onLongPress={() => ReactionsContextMenu.showContextMenu(reactions)}
-                    senderIDs={senderIDs}
-                />
-            );
-        })}
-        {/* {props.reactions && props.reactions.length > 0 && <AddReactionBubble onSelectEmoji={this.addReaction} />} */}
-    </View>
-);
+                if (senderIDs.length === 0) { return null; }
+
+                return (
+                    <EmojiReactionBubble
+                        key={reaction.emoji}
+                        count={reactionCount}
+                        emojiName={reaction.emoji}
+                        emojiCodes={emojiCodes}
+                        hasUserReacted={hasUserReacted}
+                        onPress={onPress}
+
+                        // TODO: onLongPress={() => ReactionsContextMenu.showContextMenu(reactions)}
+                        senderIDs={senderIDs}
+                    />
+                );
+            })}
+            {/* TODO: {props.reactions && props.reactions.length > 0 && <AddReactionBubble onSelectEmoji={this.addReaction} />} */}
+        </View>
+    );
+};
 
 ReportActionItemReactions.displayName = 'ReportActionItemReactions';
 ReportActionItemReactions.propTypes = propTypes;

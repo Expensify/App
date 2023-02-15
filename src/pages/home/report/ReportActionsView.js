@@ -368,6 +368,7 @@ class ReportActionsView extends React.Component {
             return null;
         }
 
+        console.log("render reportactionsview")
         return (
             <>
                 {!this.props.isComposerFullSize && (

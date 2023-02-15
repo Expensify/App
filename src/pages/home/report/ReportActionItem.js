@@ -36,6 +36,7 @@ import reportPropTypes from '../../reportPropTypes';
 import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext';
 import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
 import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
+import * as Report from '../../../libs/actions/Report';
 
 const propTypes = {
     /** Report for this action */
@@ -80,6 +81,8 @@ class ReportActionItem extends Component {
         this.checkIfContextMenuActive = this.checkIfContextMenuActive.bind(this);
         this.showPopover = this.showPopover.bind(this);
         this.renderItemContent = this.renderItemContent.bind(this);
+        this.addReaction = this.addReaction.bind(this);
+        this.removeReaction = this.removeReaction.bind(this);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -137,6 +140,14 @@ class ReportActionItem extends Component {
             ReportUtils.isArchivedRoom(this.props.report),
             ReportUtils.chatIncludesChronos(this.props.report),
         );
+    }
+
+    addReaction(emoji) {
+        Report.addReaction(this.props.report.reportID, this.props.action, emoji);
+    }
+
+    removeReaction(emoji) {
+        Report.removeReaction(this.props.report.reportID, this.props.action, emoji);
     }
 
     /**
@@ -203,7 +214,11 @@ class ReportActionItem extends Component {
             <>
                 {children}
                 {hasReactions && (
-                    <ReportActionItemReactions reactions={filteredReactions} />
+                    <ReportActionItemReactions
+                        reactions={filteredReactions}
+                        addReaction={this.addReaction}
+                        removeReaction={this.removeReaction}
+                    />
                 )}
             </>
         );
@@ -216,6 +231,8 @@ class ReportActionItem extends Component {
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             return <RenameAction action={this.props.action} />;
         }
+
+        console.log("Render ReportActionItem");
         return (
             <PressableWithSecondaryInteraction
                 pointerEvents={this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? 'none' : 'auto'}

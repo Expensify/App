@@ -203,6 +203,7 @@ class ReportScreen extends React.Component {
         // (which is shown, until all the actual views of the ReportScreen have been rendered)
         const animatePlaceholder = !freeze;
 
+        console.log('rerender reportscreen')
         return (
             <ScreenWrapper
                 style={screenWrapperStyle}

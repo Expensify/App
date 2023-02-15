@@ -14,7 +14,7 @@ const propTypes = {
     onLongPress: PropTypes.func,
     count: PropTypes.number,
     hasUserReacted: PropTypes.bool,
-    senderIDs: PropTypes.arrayOf(PropTypes.string),
+    senderIDs: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number])),
     sizeScale: PropTypes.number,
 };
 
@@ -28,7 +28,7 @@ const defaultProps = {
 
 const EmojiReactionBubble = (props) => {
     const emoji = _.find(emojis, e => `${e.name}` === props.emojiName);
-    if (!emoji || props.senderIDs === 0) {
+    if (!emoji) {
         return null;
     }
 

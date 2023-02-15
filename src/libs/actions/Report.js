@@ -1243,9 +1243,7 @@ function addReaction(reportID, originalReportAction, emoji, skinTone) {
     const optimisticData = getOptimisticDataForReportActionUpdate(originalReportAction, updatedMessage, reportID);
 
     // TODO: only make the API call once its live
-    Onyx.update(optimisticData).then(() => {
-        Onyx.update(optimisticData);
-    });
+    Onyx.update(optimisticData);
 
     // const parameters = {
     //     reportID,
@@ -1264,11 +1262,6 @@ function removeReaction(reportID, originalReportAction, emoji) {
         return;
     }
 
-    const isReacted = hasAccountIDReacted(currentUserAccountID, reactionObject.users);
-    if (!isReacted) {
-        return;
-    }
-
     reactionObject.users = _.filter(reactionObject.users, sender => sender.accountID !== currentUserAccountID);
     const updatedReactions = _.map(message.reactions, reaction => (reaction.emoji === emoji.name ? reactionObject : reaction));
 
@@ -1282,7 +1275,7 @@ function removeReaction(reportID, originalReportAction, emoji) {
 
     // TODO: only make the API call once its live
     Onyx.update(optimisticData).then(() => {
-        Onyx.update(optimisticData);
+        console.log('updated state', optimisticData);
     });
 
     // const parameters = {
@@ -1291,7 +1284,7 @@ function removeReaction(reportID, originalReportAction, emoji) {
     //     reportActionID: originalReportAction.reportActionID,
     //     reaction: emojiCode,
     // };
-    // API.write('RemoveReaction', parameters, {optimisticData, successData, failureData});
+    // API.write('RemoveReaction', parameters, {optimisticData});
 }
 
 export {
