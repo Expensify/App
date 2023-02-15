@@ -1176,6 +1176,124 @@ function clearIOUError(reportID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errorFields: {iou: null}});
 }
 
+/**
+ * Internal function to help with updating the onyx state of a message of a report action.
+ * @param {Object} originalReportAction
+ * @param {Object} message
+ * @param {String} reportID
+ * @return {Object[]}
+ */
+function getOptimisticDataForReportActionUpdate(originalReportAction, message, reportID) {
+    const reportActionID = originalReportAction.reportActionID;
+
+    return [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportActionID]: {
+                    message: [message],
+                },
+            },
+        },
+    ];
+}
+
+function hasLoginReacted(login, users, skinTone) {
+    return _.find(users, user => user.login === login && (skinTone == null ? true : user.skinTone === skinTone)) != null;
+}
+
+/**
+ * Adds a reaction to the report action.
+ * @param {String} reportID
+ * @param {Object} originalReportAction
+ * @param {{ name: string, code: string, types: string[] }} emoji
+ * @param {number} [skinTone] Optional.
+ */
+function addReaction(reportID, originalReportAction, emoji, skinTone) {
+    const message = originalReportAction.message[0];
+    let reactionObject = message.reactions && _.find(message.reactions, reaction => reaction.emoji === emoji.name);
+    const needToInsertReactionObject = !reactionObject;
+    if (needToInsertReactionObject) {
+        reactionObject = {
+            emoji: emoji.name,
+            users: [],
+        };
+    }
+
+    const isReacted = hasLoginReacted(currentUserEmail, reactionObject.users, skinTone);
+    if (isReacted) {
+        return;
+    }
+
+    reactionObject.users = [...reactionObject.users, {login: currentUserEmail, skinTone}];
+    let updatedReactions = [...(message.reactions || [])];
+    if (needToInsertReactionObject) {
+        updatedReactions = [...updatedReactions, reactionObject];
+    } else {
+        updatedReactions = _.map(updatedReactions, reaction => (reaction.emoji === emoji.name ? reactionObject : reaction));
+    }
+
+    const updatedMessage = {
+        ...message,
+        reactions: updatedReactions,
+    };
+
+    // Optimistically update the reportAction with the reaction
+    const optimisticData = getOptimisticDataForReportActionUpdate(originalReportAction, updatedMessage, reportID);
+
+    // TODO: only make the API call once its live
+    Onyx.update(optimisticData).then(() => {
+        Onyx.update(optimisticData);
+    });
+
+    // const parameters = {
+    //     reportID,
+    //     skinTone,
+    //     reaction: emoji.name,
+    //     sequenceNumber: originalReportAction.sequenceNumber,
+    //     reportActionID: originalReportAction.reportActionID,
+    // };
+    // API.write('AddReaction', parameters, {optimisticData});
+}
+
+function removeReaction(reportID, originalReportAction, emoji) {
+    const message = originalReportAction.message[0];
+    const reactionObject = message.reactions && _.find(message.reactions, reaction => reaction.emoji === emoji.name);
+    if (!reactionObject) {
+        return;
+    }
+
+    const isReacted = hasLoginReacted(currentUserEmail, reactionObject.users);
+    if (!isReacted) {
+        return;
+    }
+
+    reactionObject.users = _.filter(reactionObject.users, sender => sender.login !== currentUserEmail);
+    const updatedReactions = _.map(message.reactions, reaction => (reaction.emoji === emoji.name ? reactionObject : reaction));
+
+    const updatedMessage = {
+        ...message,
+        reactions: updatedReactions,
+    };
+
+    // Optimistically update the reportAction with the reaction
+    const optimisticData = getOptimisticDataForReportActionUpdate(originalReportAction, updatedMessage, reportID);
+
+    // TODO: only make the API call once its live
+    Onyx.update(optimisticData).then(() => {
+        Onyx.update(optimisticData);
+    });
+
+    // const parameters = {
+    //     reportID,
+    //     sequenceNumber: originalReportAction.sequenceNumber,
+    //     reportActionID: originalReportAction.reportActionID,
+    //     reaction: emojiCode,
+    // };
+    // API.write('RemoveReaction', parameters, {optimisticData, successData, failureData});
+}
+
 export {
     addComment,
     addAttachment,
@@ -1207,4 +1325,6 @@ export {
     clearIOUError,
     subscribeToNewActionEvent,
     showReportActionNotification,
+    addReaction,
+    removeReaction,
 };
