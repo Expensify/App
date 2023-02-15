@@ -1,20 +1,9 @@
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import HttpsError from './Errors/HttpsError';
-import shouldUseStagingServer from './shouldUseStagingServer';
-import getPlatform from './getPlatform';
-
-// Desktop and web use staging config too so we we should default to staging API endpoint if on those platforms
-const shouldDefaultToStaging = _.contains([CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP], getPlatform());
-let stagingServerToggleState = false;
-Onyx.connect({
-    key: ONYXKEYS.USER,
-    callback: val => stagingServerToggleState = lodashGet(val, 'shouldUseStagingServer', shouldDefaultToStaging),
-});
+import * as ApiUtils from './ApiUtils';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -119,13 +108,8 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
         formData.append(key, val);
     });
 
-    let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.PRODUCTION_SECURE_API_ROOT : CONFIG.EXPENSIFY.PRODUCTION_API_ROOT;
-
-    if (shouldUseStagingServer(stagingServerToggleState)) {
-        apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.STAGING_SECURE_API_ROOT : CONFIG.EXPENSIFY.STAGING_API_ROOT;
-    }
-
-    return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData, data.canCancel);
+    const url = ApiUtils.getCommandUrl({shouldUseSecure, command});
+    return processHTTPRequest(url, type, formData, data.canCancel);
 }
 
 function cancelPendingRequests() {

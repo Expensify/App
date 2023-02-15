@@ -30,8 +30,21 @@ function getApiRoot(request) {
         : CONFIG.EXPENSIFY.PRODUCTION_API_ROOT;
 }
 
+/**
+ * Get the command url for the given request
+ *
+ * @param {Object} request
+ * @param {Boolean} request.shouldUseSecure
+ * @param {String} request.command - the name of the API command
+ * @returns {string}
+ */
+function getCommandUrl(request) {
+    return `${getApiRoot(request)}api?command=${request.command}`;
+}
+
 export {
     getApiRoot,
+    getCommandUrl,
     canUseStagingToggle,
 };
 
