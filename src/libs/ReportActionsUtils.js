@@ -7,6 +7,7 @@ import moment from 'moment';
 import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
+import isReportMessageAttachment from './isReportMessageAttachment';
 
 const allReportActions = {};
 Onyx.connect({
@@ -165,7 +166,8 @@ function getLastVisibleAction(reportID, actionsToMerge = {}) {
  */
 function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
     const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
-    if (lastVisibleAction.isAttachment) {
+    const message = lodashGet(lastVisibleAction, ['message', 0]);
+    if (isReportMessageAttachment(message)) {
         return CONST.ATTACHMENT_MESSAGE_TEXT;
     }
 
