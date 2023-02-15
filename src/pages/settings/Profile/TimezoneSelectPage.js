@@ -56,7 +56,6 @@ class TimezoneSelectPage extends Component {
     }
 
     componentDidUpdate() {
-
         // Update timezoneInputText & all timezoneOptions when the timezone object changes
         const newTimezone = lodashGet(this.props.currentUserPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
         if (_.isEqual(this.timezone, newTimezone)) { return; }
