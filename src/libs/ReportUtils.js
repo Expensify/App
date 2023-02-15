@@ -107,7 +107,7 @@ function isIOUReport(report) {
  * @returns {Boolean}
  */
 function isReportMessageAttachment({text, html}) {
-    return text === '[Attachment]' && html !== '[Attachment]';
+    return text === CONST.ATTACHMENT_MESSAGE_TEXT && html !== CONST.ATTACHMENT_MESSAGE_TEXT;
 }
 
 /**
@@ -791,7 +791,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
     const htmlForNewComment = isAttachment ? 'Uploading Attachment...' : commentText;
 
     // Remove HTML from text when applying optimistic offline comment
-    const textForNewComment = isAttachment ? '[Attachment]'
+    const textForNewComment = isAttachment ? CONST.ATTACHMENT_MESSAGE_TEXT
         : parser.htmlToText(htmlForNewComment);
 
     return {
