@@ -1,58 +1,12 @@
 import _ from 'underscore';
 import React from 'react';
-import {
-    StyleSheet, View, TouchableOpacity,
-} from 'react-native';
+import {View, TouchableOpacity} from 'react-native';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import Text from '../Text';
-import colors from '../../styles/colors';
-import flex from '../../styles/utilities/flex';
 import ListPicker from './ListPicker';
 import ArrowIcon from './ArrowIcon';
-
-const styles = StyleSheet.create({
-    row: {
-        flexDirection: 'row',
-    },
-    calendarHeader: {
-        height: 50,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 15,
-        paddingRight: 5,
-    },
-    rowCenter: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    dayContainer: {
-        flex: 1,
-        height: 45,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    daySelected: {
-        backgroundColor: colors.greenDefaultButton,
-        width: 30,
-        height: 30,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderRadius: 15,
-    },
-    dayText: {
-        color: 'white',
-    },
-    textBold: {
-        color: 'white',
-        fontWeight: '700',
-    },
-    monthControls: {
-        flexDirection: 'row',
-    },
-});
+import styles from '../../styles/styles';
 
 const propTypes = {
     /** A function that is called when the day is clicked */
@@ -165,15 +119,15 @@ const CalendarPicker = (props) => {
     return (
         <View>
             <View style={styles.calendarHeader}>
-                <TouchableOpacity onPress={onMonthPickerPress} style={[styles.rowCenter, flex.flex1, flex.justifyContentStart]}>
-                    <Text style={styles.textBold}>{monthNames[currentMonthView]}</Text>
+                <TouchableOpacity onPress={onMonthPickerPress} style={[styles.alignItemsCenter, styles.flexRow, styles.flex1]}>
+                    <Text style={styles.sidebarLinkTextBold}>{monthNames[currentMonthView]}</Text>
                     <ArrowIcon />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={onYearPickerPress} style={[styles.rowCenter, flex.flex1, flex.justifyContentCenter]}>
-                    <Text style={styles.textBold}>{currentYearView}</Text>
+                <TouchableOpacity onPress={onYearPickerPress} style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flex1]}>
+                    <Text style={styles.sidebarLinkTextBold}>{currentYearView}</Text>
                     <ArrowIcon />
                 </TouchableOpacity>
-                <View style={[styles.rowCenter, flex.flex1, flex.justifyContentEnd]}>
+                <View style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentEnd]}>
                     <TouchableOpacity onPress={onPrevMonthPress}>
                         <ArrowIcon direction="left" />
                     </TouchableOpacity>
@@ -182,24 +136,24 @@ const CalendarPicker = (props) => {
                     </TouchableOpacity>
                 </View>
             </View>
-            <View style={styles.row}>
+            <View style={styles.flexRow}>
                 {_.map(daysOfWeek, (dayOfWeek => (
-                    <View key={dayOfWeek} style={styles.dayContainer}>
-                        <Text style={[styles.dayText, styles.textBold]}>{dayOfWeek[0]}</Text>
+                    <View key={dayOfWeek} style={styles.calendarDayRoot}>
+                        <Text style={styles.sidebarLinkTextBold}>{dayOfWeek[0]}</Text>
                     </View>
                 )))}
             </View>
             {_.map(monthMatrix, week => (
-                <View key={`week-${week}`} style={styles.row}>
+                <View key={`week-${week}`} style={styles.flexRow}>
                     {_.map(week, (day, index) => (
                         <TouchableOpacity
                             key={`${index}_day-${day}`}
                             disabled={!day}
                             onPress={() => onDayPress(day)}
-                            style={styles.dayContainer}
+                            style={styles.calendarDayRoot}
                         >
-                            <View style={[moment(props.value).isSame(moment([currentYearView, currentMonthView, day]), 'day') && styles.daySelected]}>
-                                <Text style={styles.dayText}>{day || ''}</Text>
+                            <View style={[moment(props.value).isSame(moment([currentYearView, currentMonthView, day]), 'day') && styles.calendarDayContainerSelected]}>
+                                <Text>{day || ''}</Text>
                             </View>
                         </TouchableOpacity>
                     ))}

@@ -717,6 +717,31 @@ const styles = {
         height: variables.inputHeight,
     },
 
+    calendarHeader: {
+        height: 50,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingRight: 5,
+    },
+
+    calendarDayRoot: {
+        flex: 1,
+        height: 45,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    calendarDayContainerSelected: {
+        backgroundColor: themeColors.greenDefaultButton,
+        width: 30,
+        height: 30,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 15,
+    },
+
     textInputContainer: {
         flex: 1,
         justifyContent: 'center',
