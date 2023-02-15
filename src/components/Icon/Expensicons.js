@@ -98,9 +98,11 @@ import Zoom from '../../../assets/images/zoom.svg';
 import FallbackAvatar from '../../../assets/images/avatars/fallback-avatar.svg';
 import FallbackWorkspaceAvatar from '../../../assets/images/avatars/fallback-workspace-avatar.svg';
 import DragAndDrop from '../../../assets/images/drag-and-drop.svg';
+import AddReaction from '../../../assets/images/add-reaction.svg';
 
 export {
     ActiveRoomAvatar,
+    AddReaction,
     AdminRoomAvatar,
     Android,
     AnnounceRoomAvatar,

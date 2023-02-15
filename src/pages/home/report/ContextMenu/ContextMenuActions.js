@@ -16,6 +16,7 @@ import addEncryptedAuthTokenToURL from '../../../../libs/addEncryptedAuthTokenTo
 import * as ContextMenuUtils from './ContextMenuUtils';
 import * as Environment from '../../../../libs/Environment/Environment';
 import Permissions from '../../../../libs/Permissions';
+import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReactions';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -35,6 +36,12 @@ const CONTEXT_MENU_TYPES = {
 
 // A list of all the context actions in this menu.
 export default [
+    {
+        shouldShow: () => true,
+        renderContent: (closePopup, {reportAction}) => (
+            <QuickEmojiReactions key="QuickEmojiReactions" />
+        ),
+    },
     {
         textTranslateKey: 'common.download',
         icon: Expensicons.Download,
