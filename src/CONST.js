@@ -41,6 +41,11 @@ const CONST = {
     DEFAULT_AVATAR_COUNT: 24,
     OLD_DEFAULT_AVATAR_COUNT: 8,
 
+    DISPLAY_NAME: {
+        MAX_LENGTH: 50,
+        RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
+    },
+
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
         SMALL_SCREEN: {
@@ -510,6 +515,7 @@ const CONST = {
         VISIBLE_PASSWORD: 'visible-password',
         EMAIL_ADDRESS: 'email-address',
         ASCII_CAPABLE: 'ascii-capable',
+        URL: 'url',
     },
 
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
@@ -723,7 +729,6 @@ const CONST = {
     },
 
     DEFAULT_LOCALE: 'en',
-    DEFAULT_SKIN_TONE: 'default',
 
     POLICY: {
         TYPE: {
