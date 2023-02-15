@@ -273,44 +273,25 @@ class ReportActionCompose extends React.Component {
      * @returns {Array<object>}
      */
     getIOUOptions(reportParticipants) {
-        const participants = _.filter(reportParticipants, email => this.props.currentUserPersonalDetails.login !== email);
-        const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
-        const hasMultipleParticipants = participants.length > 1;
-
-        if (hasExcludedIOUEmails || participants.length === 0 || !Permissions.canUseIOU(this.props.betas)) {
-            return [];
-        }
-
-        // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
-        // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
-        // DM chats and workspace chats will have the Split Bill option only when there are at least 3 people in the chat.
-        if (ReportUtils.isChatRoom(this.props.report) || hasMultipleParticipants) {
-            return [
-                {
-                    icon: Expensicons.Receipt,
-                    text: this.props.translate('iou.splitBill'),
-                    onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
-                },
-            ];
-        }
-
-        // DM chats that only have 2 people will see the Send / Request money options.
-        // Workspace chats should only see the Request money option, as "easy overages" is not available.
-        return [
-            {
-                icon: Expensicons.MoneyCircle,
-                text: this.props.translate('iou.requestMoney'),
-                onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
+        const options = {
+            [CONST.IOU.IOU_TYPE.SPLIT]: {
+                icon: Expensicons.Receipt,
+                text: this.props.translate('iou.splitBill'),
+                onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
             },
-            ...((Permissions.canUseIOUSend(this.props.betas) && !ReportUtils.isPolicyExpenseChat(this.props.report))
-                ? [
-                    {
-                        icon: Expensicons.Send,
-                        text: this.props.translate('iou.sendMoney'),
-                        onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
-                    }]
-                : []),
-        ];
+            [CONST.IOU.IOU_TYPE.REQUEST]: {
+                    icon: Expensicons.MoneyCircle,
+                    text: this.props.translate('iou.requestMoney'),
+                    onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
+                },
+            [CONST.IOU.IOU_TYPE.SEND]: {
+                icon: Expensicons.Send,
+                text: this.props.translate('iou.sendMoney'),
+                onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
+            },
+        };
+        return ReportUtils.getIOUOptions(this.props.report, reportParticipants, this.props.betas)
+            .map(option => options[option]);
     }
 
     /**
