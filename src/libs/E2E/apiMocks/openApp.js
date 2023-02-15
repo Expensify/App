@@ -888,7 +888,7 @@ export default () => ({
         {
             onyxMethod: 'merge',
             key: 'preferredEmojiSkinTone',
-            value: 'default',
+            value: -1,
         },
         {
             onyxMethod: 'set',

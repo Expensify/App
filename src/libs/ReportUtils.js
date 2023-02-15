@@ -228,6 +228,15 @@ function isChatRoom(report) {
 }
 
 /**
+ * Whether the provided report is a direct message
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isDirectMessage(report) {
+    return _.isEmpty(getChatType(report));
+}
+
+/**
  * Get the policy type from a given report
  * @param {Object} report
  * @param {String} report.policyID
@@ -1354,6 +1363,11 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
 
     // Include policy expense chats if the user isn't in the policy expense chat beta
     if (isPolicyExpenseChat(report) && !Permissions.canUsePolicyExpenseChat(betas)) {
+        return false;
+    }
+
+    // Exclude direct message chats that don't have any chat history
+    if (isDirectMessage(report) && report.maxSequenceNumber === 1) {
         return false;
     }
 

@@ -219,16 +219,6 @@ class RequestCallPage extends Component {
             errors.lastName = this.props.translate('requestCallPage.error.lastName');
         }
 
-        const [firstNameLengthError, lastNameLengthError] = ValidationUtils.doesFailCharacterLimit(50, [values.firstName, values.lastName]);
-
-        if (firstNameLengthError) {
-            errors.firstName = this.props.translate('requestCallPage.error.firstNameLength');
-        }
-
-        if (lastNameLengthError) {
-            errors.lastName = this.props.translate('requestCallPage.error.lastNameLength');
-        }
-
         const phoneNumber = LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneNumber);
         if (_.isEmpty(values.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
             errors.phoneNumber = this.props.translate('common.error.phoneNumber');
@@ -285,6 +275,7 @@ class RequestCallPage extends Component {
                                 name="fname"
                                 placeholder={this.props.translate('profilePage.john')}
                                 containerStyles={[styles.mt4]}
+                                maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             />
                             <TextInput
                                 inputID="lastName"
@@ -293,6 +284,7 @@ class RequestCallPage extends Component {
                                 name="lname"
                                 placeholder={this.props.translate('profilePage.doe')}
                                 containerStyles={[styles.mt4]}
+                                maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             />
                             <TextInput
                                 inputID="phoneNumber"
