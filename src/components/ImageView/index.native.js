@@ -104,6 +104,19 @@ class ImageView extends PureComponent {
     configureImageZoom({nativeEvent}) {
         // Wait till animations are over to prevent stutter in navigation animation
         this.state.interactionPromise = InteractionManager.runAfterInteractions(() => {
+            if (this.imageZoomScale !== 1) {
+                this.imageZoomScale = 1;
+            }
+
+            if (this.zoom) {
+                this.zoom.centerOn({
+                    x: 0,
+                    y: 0,
+                    scale: 1,
+                    duration: 0,
+                });
+            }
+                
             let imageWidth = nativeEvent.width;
             let imageHeight = nativeEvent.height;
             const containerWidth = Math.round(this.props.windowWidth);

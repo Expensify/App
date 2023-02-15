@@ -277,9 +277,10 @@ class ImageView extends PureComponent {
                 >
                     <Image
                         source={{uri: this.props.url}}
-                        style={this.state.zoomScale === 0 ? undefined : [
+                        style={this.state.isLoading === 0 ? undefined : [
                             styles.h100,
                             styles.w100,
+
                         ]} // Hide image until zoomScale calculated to prevent showing preview with wrong dimensions.
                         resizeMode={Image.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}
