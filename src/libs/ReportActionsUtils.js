@@ -174,6 +174,34 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
         .substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
 }
 
+/**
+ * Filter out any reportActions which should not be displayed
+ * Then, sort by their created timestamp first, and reportActionID second
+ * This is a combination of getSortedReportActions() and filterReportActionsForDisplay()
+ *
+ * @param {Array} reportActions
+ * @returns {Array}
+ */
+function getSortedReportActionsForDisplay(reportActions) {
+    // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
+    // to prevent bugs during the migration from sequenceNumber -> reportActionID
+    const filteredReportActions = _.filter(reportActions, (reportAction, key) => {
+        if (!reportAction) {
+            return false;
+        }
+
+        if (String(reportAction.sequenceNumber) === key) {
+            return false;
+        }
+
+        return true;
+    });
+
+    let sortedReportActions = getSortedReportActions(filteredReportActions, true);
+    sortedReportActions = filterReportActionsForDisplay(sortedReportActions);
+    return sortedReportActions;
+}
+
 export {
     getSortedReportActions,
     filterReportActionsForDisplay,
@@ -182,4 +210,5 @@ export {
     getMostRecentIOUReportActionID,
     isDeletedAction,
     isConsecutiveActionMadeByPreviousActor,
+    getSortedReportActionsForDisplay,
 };
