@@ -2,31 +2,11 @@ import _ from 'underscore';
 import React from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import moment from 'moment';
-import PropTypes from 'prop-types';
 import Text from '../Text';
 import ListPicker from './ListPicker';
 import ArrowIcon from './ArrowIcon';
 import styles from '../../styles/styles';
-
-const propTypes = {
-    /** A function that is called when the day is clicked */
-    onChange: PropTypes.func.isRequired,
-
-    /** A value initial of date */
-    value: PropTypes.objectOf(Date),
-
-    /** A minimum date of calendar to select */
-    minDate: PropTypes.objectOf(Date),
-
-    /** A maximum date of calendar to select */
-    maxDate: PropTypes.objectOf(Date),
-};
-
-const defaultProps = {
-    value: new Date(),
-    minDate: null,
-    maxDate: null,
-};
+import {propTypes, defaultProps} from './calendarPickerPropTypes';
 
 function generateMonthMatrix(year, month) {
     const daysInMonth = moment([year, month]).daysInMonth();
