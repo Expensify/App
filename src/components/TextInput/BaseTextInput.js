@@ -129,7 +129,6 @@ class BaseTextInput extends Component {
     onBlur(event) {
         if (this.props.onBlur) { this.props.onBlur(event); }
         this.setState({isFocused: false});
-        this.deactivateLabel();
     }
 
     /**
