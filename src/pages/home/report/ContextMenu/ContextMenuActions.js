@@ -39,8 +39,14 @@ const CONTEXT_MENU_TYPES = {
 export default [
     {
         shouldShow: () => true,
-        renderContent: (closePopup, {reportAction}) => (
-            <QuickEmojiReactions key="QuickEmojiReactions" />
+        renderContent: (closePopup, {reportID, reportAction}) => (
+            <QuickEmojiReactions
+                key="QuickEmojiReactions"
+                onEmojiSelected={(emoji) => {
+                    console.log('emoji selected', emoji);
+                    Report.addReaction(reportID, reportAction, emoji);
+                }}
+            />
         ),
     },
     {

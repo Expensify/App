@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'underscore';
 import {Pressable, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Tooltip from '../Tooltip';
@@ -9,6 +10,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
 import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
+import emojis from '../../../assets/emojis';
 
 const propTypes = {
     sizeScale: PropTypes.number,
@@ -25,7 +27,12 @@ const AddReactionBubble = (props) => {
     const ref = React.createRef();
 
     const onPress = () => {
-        EmojiPickerAction.showEmojiPicker(() => {}, props.onSelectEmoji, ref.current);
+        EmojiPickerAction.showEmojiPicker(() => {}, (emojiCode) => {
+            const emoji = _.find(emojis, e => e.code === emojiCode);
+            if (emoji != null) {
+                props.onSelectEmoji(emoji);
+            }
+        }, ref.current);
     };
 
     return (

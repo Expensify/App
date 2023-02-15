@@ -1,31 +1,41 @@
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
+import PropTypes from 'prop-types';
 import EmojiReactionBubble from './EmojiReactionBubble';
 import AddReactionBubble from './AddReactionBubble';
 
 const QUICK_REACTIONS = [
     {
         name: '+1',
-        codes: ['👍'],
+        code: '👍',
     },
     {
         name: 'heart',
-        codes: ['❤️'],
+        code: '❤️',
     },
     {
         name: 'joy',
-        codes: ['😂'],
+        code: '😂',
     },
     {
         name: 'fire',
-        codes: ['🔥'],
+        code: '🔥',
     },
 ];
 
 const EMOJI_BUBBLE_SCALE = 1.5;
 
-const QuickEmojiReactions = () => (
+const propTypes = {
+    onEmojiSelected: PropTypes.func.isRequired,
+    emojiIconRef: PropTypes.func,
+};
+
+const defaultProps = {
+    emojiIconRef: () => {},
+};
+
+const QuickEmojiReactions = props => (
     <View style={{
         gap: 12,
         flexDirection: 'row',
@@ -37,19 +47,23 @@ const QuickEmojiReactions = () => (
         {_.map(QUICK_REACTIONS, reaction => (
             <EmojiReactionBubble
                 key={reaction.name}
-                onPress={console.log}
                 emojiName={reaction.name}
-                emojiCodes={reaction.codes}
+                emojiCodes={[reaction.code]}
                 sizeScale={EMOJI_BUBBLE_SCALE}
+                onPress={() => {
+                    props.onEmojiSelected(reaction);
+                }}
             />
         ))}
         <AddReactionBubble
             iconSizeScale={1.2}
-            onSelectEmoji={console.log}
             sizeScale={EMOJI_BUBBLE_SCALE}
+            onSelectEmoji={props.onEmojiSelected}
         />
     </View>
 );
 
 QuickEmojiReactions.displayName = 'QuickEmojiReactions';
+QuickEmojiReactions.propTypes = propTypes;
+QuickEmojiReactions.defaultProps = defaultProps;
 export default QuickEmojiReactions;
