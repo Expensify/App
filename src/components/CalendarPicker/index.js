@@ -25,6 +25,8 @@ const CalendarPicker = (props) => {
     const [monthPickerVisible, setMonthPickerVisible] = React.useState(false);
 
     const currentMonthView = currentDateView.getMonth();
+
+    // const initialMonthView = props.maxDate ? props.maxDate.getMonth() : currentMonthView;
     const currentYearView = currentDateView.getFullYear();
     const monthMatrix = generateMonthMatrix(currentYearView, currentMonthView);
 
@@ -38,6 +40,12 @@ const CalendarPicker = (props) => {
             return;
         }
         const selectedDate = new Date(currentYearView, currentMonthView, day);
+
+        if ((props.minDate && selectedDate < new Date(props.minDate))
+             || (props.maxDate && selectedDate > new Date(props.maxDate))) {
+            return;
+        }
+
         props.onChange(selectedDate);
     };
 
@@ -101,18 +109,25 @@ const CalendarPicker = (props) => {
             </View>
             {_.map(monthMatrix, week => (
                 <View key={`week-${week}`} style={styles.flexRow}>
-                    {_.map(week, (day, index) => (
-                        <TouchableOpacity
-                            key={`${index}_day-${day}`}
-                            disabled={!day}
-                            onPress={() => onDayPress(day)}
-                            style={styles.calendarDayRoot}
-                        >
-                            <View style={[moment(props.value).isSame(moment([currentYearView, currentMonthView, day]), 'day') && styles.calendarDayContainerSelected]}>
-                                <Text>{day || ''}</Text>
-                            </View>
-                        </TouchableOpacity>
-                    ))}
+                    {_.map(week, (day, index) => {
+                        const currentDate = moment([currentYearView, currentMonthView, day]);
+                        const isBeforeMinDate = props.minDate && (currentDate.toDate() < new Date(props.minDate));
+                        const isAfterMaxDate = props.maxDate && (currentDate.toDate() > new Date(props.maxDate));
+                        const isDisabled = isBeforeMinDate || isAfterMaxDate;
+
+                        return (
+                            <TouchableOpacity
+                                key={`${index}_day-${day}`}
+                                disabled={!day || isDisabled}
+                                onPress={() => onDayPress(day)}
+                                style={styles.calendarDayRoot}
+                            >
+                                <View style={[moment(props.value).isSame(moment([currentYearView, currentMonthView, day]), 'day') && styles.calendarDayContainerSelected]}>
+                                    <Text style={isDisabled ? styles.calendarButtonDisabled : styles.dayText}>{day || ''}</Text>
+                                </View>
+                            </TouchableOpacity>
+                        );
+                    })}
                 </View>
             ))}
         </View>

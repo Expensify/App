@@ -741,7 +741,9 @@ const styles = {
         alignItems: 'center',
         borderRadius: 15,
     },
-
+    calendarButtonDisabled: {
+        opacity: 0.5,
+    },
     textInputContainer: {
         flex: 1,
         justifyContent: 'center',
