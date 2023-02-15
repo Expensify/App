@@ -515,7 +515,7 @@ function isDefaultAvatar(avatarURL) {
  *
  * @param {String} [avatarURL] - the avatar source from user's personalDetails
  * @param {String} [login] - the email of the user
- * @returns {String | Function}
+ * @returns {String|Function}
  */
 function getAvatar(avatarURL, login) {
     if (isDefaultAvatar(avatarURL)) {
@@ -530,10 +530,14 @@ function getAvatar(avatarURL, login) {
  *
  * @param {String} [avatarURL]
  * @param {String} [login]
- * @returns {String}
+ * @returns {String|Function}
  */
 function getFullSizeAvatar(avatarURL, login) {
-    return getAvatar(avatarURL, login).replace('_128', '');
+    const source = getAvatar(avatarURL, login);
+    if (!_.isString(source)) {
+        return source;
+    }
+    return source.replace('_128', '');
 }
 
 /**
