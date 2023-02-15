@@ -97,13 +97,13 @@ describe('Migrations', () => {
     });
 
     describe('AddLastVisibleActionCreated', () => {
-        it('Should add lastVisibleActionCreated wherever lastMessageTimestamp currently is', () => (
+        it('Should add lastVisibleActionCreated wherever lastActionCreated currently is', () => (
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
-                    lastMessageTimestamp: 1668562273702,
+                    lastActionCreated: '2022-11-16 01:31:13.702',
                 },
                 [`${ONYXKEYS.COLLECTION.REPORT}2`]: {
-                    lastMessageTimestamp: 1668562314821,
+                    lastActionCreated: '2022-11-16 01:31:54.821',
                 },
             })
                 .then(AddLastVisibleActionCreated)
