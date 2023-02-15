@@ -2931,6 +2931,7 @@ const styles = {
     },
     reactionCounterText: {
         fontSize: 11,
+        marginLeft: 4,
         fontWeight: 'bold',
         color: themeColors.textLight,
     },

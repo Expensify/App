@@ -35,6 +35,7 @@ import * as ReportActions from '../../../libs/actions/ReportActions';
 import reportPropTypes from '../../reportPropTypes';
 import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext';
 import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
+import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
 
 const propTypes = {
     /** Report for this action */
@@ -193,7 +194,19 @@ class ReportActionItem extends Component {
                 </ShowContextMenuContext.Provider>
             );
         }
-        return children;
+
+        const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
+        const filteredReactions = _.filter(reactions, r => r.users.length > 0);
+        const hasReactions = filteredReactions.length > 0;
+
+        return (
+            <>
+                {children}
+                {hasReactions && (
+                    <ReportActionItemReactions reactions={filteredReactions} />
+                )}
+            </>
+        );
     }
 
     render() {
