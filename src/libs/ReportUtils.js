@@ -525,6 +525,18 @@ function getAvatar(avatarURL, login) {
 }
 
 /**
+ * Avatars uploaded by users will have a _128 appended so that the asset server returns a small version.
+ * This removes that part of the URL so the full version of the image can load.
+ *
+ * @param {String} [avatarURL]
+ * @param {String} [login]
+ * @returns {String}
+ */
+function getFullSizeAvatar(avatarURL, login) {
+    return getAvatar(avatarURL, login).replace('_128', '');
+}
+
+/**
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
  *
@@ -1546,4 +1558,5 @@ export {
     canSeeDefaultRoom,
     getCommentLength,
     openReportFromDeepLink,
+    getFullSizeAvatar,
 };
