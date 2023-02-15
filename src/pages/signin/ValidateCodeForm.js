@@ -76,6 +76,7 @@ class ValidateCodeForm extends React.Component {
             return;
         }
         this.inputValidateCode.focus();
+        Session.clearAccountMessages();
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -107,10 +108,6 @@ class ValidateCodeForm extends React.Component {
             [key]: text,
             formError: {[key]: ''},
         });
-
-        if (this.props.account.errors) {
-            Session.clearAccountMessages();
-        }
     }
 
     /**
