@@ -34,7 +34,7 @@ class TimezoneSelectPage extends Component {
         this.saveSelectedTimezone = this.saveSelectedTimezone.bind(this);
         this.filterShownTimezones = this.filterShownTimezones.bind(this);
 
-        this.currentSelectedTimezone = lodashGet(props.currentUserPersonalDetails, 'timezone.selected', CONST.DEFAULT_TIME_ZONE.selected);
+        this.timezone = lodashGet(props.currentUserPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
         this.allTimezones = _.chain(moment.tz.names())
             .filter(timezone => !timezone.startsWith('Etc/GMT'))
             .map(timezone => ({
@@ -42,17 +42,38 @@ class TimezoneSelectPage extends Component {
                 keyForList: timezone,
 
                 // Include the green checkmark icon to indicate the currently selected value
-                customIcon: timezone === this.currentSelectedTimezone ? greenCheckmark : undefined,
+                customIcon: timezone === this.timezone.selected ? greenCheckmark : undefined,
 
                 // This property will make the currently selected value have bold text
-                boldStyle: timezone === this.currentSelectedTimezone,
+                boldStyle: timezone === this.timezone.selected,
             }))
             .value();
 
         this.state = {
-            timezoneInputText: this.currentSelectedTimezone,
+            timezoneInputText: this.timezone.selected,
             timezoneOptions: this.allTimezones,
         };
+    }
+
+    componentDidUpdate() {
+        // Update timezoneInputText & all timezoneOptions when the timezone object changes
+        const newTimezone = lodashGet(this.props.currentUserPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
+        if (_.isEqual(this.timezone, newTimezone)) { return; }
+        this.timezone = newTimezone;
+        const updatedAllTimezones = _.map(this.allTimezones, timezone => ({
+            ...timezone,
+
+            // Include the green checkmark icon to indicate the currently selected value
+            customIcon: timezone === this.timezone.selected ? greenCheckmark : undefined,
+
+            // This property will make the currently selected value have bold text
+            boldStyle: timezone === this.timezone.selected,
+        }));
+
+        this.setState({
+            timezoneInputText: this.timezone.selected,
+            timezoneOptions: updatedAllTimezones,
+        });
     }
 
     /**
@@ -90,7 +111,7 @@ class TimezoneSelectPage extends Component {
                             onChangeText={this.filterShownTimezones}
                             onSelectRow={this.saveSelectedTimezone}
                             optionHoveredStyle={styles.hoveredComponentBG}
-                            sections={[{data: this.state.timezoneOptions}]}
+                            sections={[{data: this.state.timezoneOptions, isDisabled: this.timezone.automatic}]}
                             shouldHaveOptionSeparator
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         />
