@@ -170,7 +170,7 @@ class SearchPage extends Component {
         );
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                {({didScreenTransitionEnd}) => (
+                {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
                         <HeaderWithCloseButton
                             title={this.props.translate('common.search')}
@@ -188,6 +188,7 @@ class SearchPage extends Component {
                                 shouldShowOptions={didScreenTransitionEnd}
                                 placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                                 onLayout={this.searchRendered}
+                                safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             />
                         </View>
                     </>
