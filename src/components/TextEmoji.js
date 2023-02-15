@@ -21,7 +21,7 @@ const defaultProps = {
 };
 
 const TextEmoji = (props) => {
-    if (!EmojiUtils.isEmoji(props.children)) {
+    if (!EmojiUtils.containsEmoji(props.children)) {
         return (
             <Text>
                 {props.children}
@@ -32,7 +32,7 @@ const TextEmoji = (props) => {
     const propsStyle = StyleUtils.parseStyleAsArray(props.style);
 
     return _.map([...Str.htmlDecode(props.children)], ((char, index) => (
-        EmojiUtils.isEmoji(char)
+        EmojiUtils.containsEmoji(char)
             ? (
                 <View key={`${char}_${index}`}>
                     <Text style={propsStyle}>

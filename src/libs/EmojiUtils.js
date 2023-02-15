@@ -250,7 +250,7 @@ function suggestEmojis(text, limit = 5) {
  * @param {String} text
  * @returns {Array}
  */
-function isEmoji(text) {
+function containsEmoji(text) {
     return Boolean(text.match(CONST.REGEX.EMOJIS));
 }
 
@@ -262,5 +262,5 @@ export {
     replaceEmojis,
     suggestEmojis,
     trimEmojiUnicode,
-    isEmoji,
+    containsEmoji,
 };

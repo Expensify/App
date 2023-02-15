@@ -128,4 +128,14 @@ describe('EmojiTest', () => {
         const text = ':thumb';
         expect(EmojiUtils.suggestEmojis(text)).toEqual([{code: '👍', name: '+1'}, {code: '👎', name: '-1'}]);
     });
+
+    it('will check text to contain emoji', () => {
+        const text = 'Hello 👍';
+        expect(EmojiUtils.containsEmoji(text)).toBeTruthy();
+    });
+
+    it('will check text not to contain emoji', () => {
+        const text = 'Hello world';
+        expect(EmojiUtils.containsEmoji(text)).toBeFalsy();
+    });
 });
