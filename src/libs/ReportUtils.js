@@ -1485,9 +1485,9 @@ function openReportFromDeepLink(url) {
 }
 
 /**
- * @param {Object} report 
- * @param {Array} reportParticipants 
- * @param {Array} betas 
+ * @param {Object} report
+ * @param {Array} reportParticipants
+ * @param {Array} betas
  * @returns {Array}
  */
 function getIOUOptions(report, reportParticipants, betas) {
