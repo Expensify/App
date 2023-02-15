@@ -8,7 +8,6 @@ import {
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import lodashIntersection from 'lodash/intersection';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import Composer from '../../../components/Composer';
@@ -23,7 +22,6 @@ import compose from '../../../libs/compose';
 import PopoverMenu from '../../../components/PopoverMenu';
 import willBlurTextInputOnTapOutside from '../../../libs/willBlurTextInputOnTapOutside';
 import CONST from '../../../CONST';
-import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -280,18 +278,17 @@ class ReportActionCompose extends React.Component {
                 onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
             },
             [CONST.IOU.IOU_TYPE.REQUEST]: {
-                    icon: Expensicons.MoneyCircle,
-                    text: this.props.translate('iou.requestMoney'),
-                    onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
-                },
+                icon: Expensicons.MoneyCircle,
+                text: this.props.translate('iou.requestMoney'),
+                onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
+            },
             [CONST.IOU.IOU_TYPE.SEND]: {
                 icon: Expensicons.Send,
                 text: this.props.translate('iou.sendMoney'),
                 onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
             },
         };
-        return ReportUtils.getIOUOptions(this.props.report, reportParticipants, this.props.betas)
-            .map(option => options[option]);
+        return _.map(ReportUtils.getIOUOptions(this.props.report, reportParticipants, this.props.betas), option => options[option]);
     }
 
     /**
