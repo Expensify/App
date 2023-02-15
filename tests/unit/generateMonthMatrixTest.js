@@ -82,6 +82,7 @@ describe('generateMonthMatrix', () => {
 
     it('throws an error if year or month is not a number', () => {
         expect(() => generateMonthMatrix()).toThrow();
+        expect(() => generateMonthMatrix(2022, 'invalid')).toThrow();
         expect(() => generateMonthMatrix('2022', '0')).toThrow();
         expect(() => generateMonthMatrix(null, undefined)).toThrow();
     });
