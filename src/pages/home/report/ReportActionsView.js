@@ -90,7 +90,11 @@ class ReportActionsView extends React.Component {
             // If the app user becomes active and they have no unread actions we clear the new marker to sync their device
             // e.g. they could have read these messages on another device and only just become active here
             this.openReportIfNecessary();
-            this.setState({newMarkerReportActionID: ''});
+
+            const hasUnreadActions = ReportUtils.isUnread(this.props.report);
+            if (!hasUnreadActions) {
+                this.setState({newMarkerReportActionID: ''});
+            }
         });
 
         if (this.getIsReportFullyVisible()) {
