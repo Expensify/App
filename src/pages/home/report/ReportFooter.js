@@ -24,7 +24,7 @@ const propTypes = {
     report: reportPropTypes,
 
     /** Report actions for the current report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Offline status */
     isOffline: PropTypes.bool.isRequired,
@@ -50,7 +50,7 @@ const propTypes = {
 
 const defaultProps = {
     report: {reportID: '0'},
-    reportActions: {},
+    reportActions: [],
     onSubmitComment: () => {},
     errors: {},
     pendingAction: null,

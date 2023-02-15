@@ -33,6 +33,7 @@ import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -111,6 +112,9 @@ class ReportScreen extends React.Component {
         this.chatWithAccountManager = this.chatWithAccountManager.bind(this);
         this.dismissBanner = this.dismissBanner.bind(this);
 
+        // We need this.sortedAndFilteredReportActions to be set before this.state is initialized because the function to calculate the newMarkerReportActionID uses the sorted report actions
+        this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(props.reportActions);
+
         this.state = {
             skeletonViewContainerHeight: reportActionsListViewHeight,
             isBannerVisible: true,
@@ -121,6 +125,60 @@ class ReportScreen extends React.Component {
         this.fetchReportIfNeeded();
         toggleReportActionComposeView(true);
         Navigation.setIsReportScreenIsReady();
+    }
+
+    shouldComponentUpdate(nextProps) {
+        if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
+            this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(nextProps.reportActions);
+
+            return true;
+        }
+
+        if (nextProps.report.isLoadingMoreReportActions !== this.props.report.isLoadingMoreReportActions) {
+            return true;
+        }
+
+        if (nextProps.report.isLoadingReportActions !== this.props.report.isLoadingReportActions) {
+            return true;
+        }
+
+        if (nextProps.report.lastReadTime !== this.props.report.lastReadTime) {
+            return true;
+        }
+
+        if (this.props.isSmallScreenWidth !== nextProps.isSmallScreenWidth) {
+            return true;
+        }
+
+        if (this.props.isDrawerOpen !== nextProps.isDrawerOpen) {
+            return true;
+        }
+
+        if (lodashGet(this.props.report, 'hasOutstandingIOU') !== lodashGet(nextProps.report, 'hasOutstandingIOU')) {
+            return true;
+        }
+
+        if (this.props.isComposerFullSize !== nextProps.isComposerFullSize) {
+            return true;
+        }
+
+        if (this.props.isSidebarLoaded !== nextProps.isSidebarLoaded) {
+            return true;
+        }
+
+        if (this.props.personalDetails !== nextProps.personalDetails) {
+            return true;
+        }
+
+        if (this.props.policies !== nextProps.policies) {
+            return true;
+        }
+
+        if (this.props.betas !== nextProps.betas) {
+            return true;
+        }
+
+        return !_.isEqual(lodashGet(this.props.report, 'icons', []), lodashGet(nextProps.report, 'icons', []));
     }
 
     componentDidUpdate(prevProps) {
@@ -137,6 +195,29 @@ class ReportScreen extends React.Component {
      */
     onSubmitComment(text) {
         Report.addComment(getReportID(this.props.route), text);
+    }
+
+    /**
+     * @param {Object} reportActions
+     * @returns {Array}
+     */
+    getSortedReportActionsForDisplay(reportActions) {
+        // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
+        // to prevent bugs during the migration from sequenceNumber -> reportActionID
+        const filteredReportActions = _.filter(reportActions, (reportAction, key) => {
+            if (!reportAction) {
+                return false;
+            }
+
+            if (String(reportAction.sequenceNumber) === key) {
+                return false;
+            }
+
+            return true;
+        });
+
+        const sortedReportActions = ReportActionsUtils.getSortedReportActions(filteredReportActions, true);
+        return ReportActionsUtils.filterReportActionsForDisplay(sortedReportActions);
     }
 
     /**
@@ -269,7 +350,7 @@ class ReportScreen extends React.Component {
                             {(this.isReportReadyForDisplay() && !isLoadingInitialReportActions) && (
                                 <>
                                     <ReportActionsView
-                                        reportActions={this.props.reportActions}
+                                        reportActions={this.sortedAndFilteredReportActions}
                                         report={this.props.report}
                                         session={this.props.session}
                                         isComposerFullSize={this.props.isComposerFullSize}
@@ -280,7 +361,7 @@ class ReportScreen extends React.Component {
                                         errors={addWorkspaceRoomOrChatErrors}
                                         pendingAction={addWorkspaceRoomOrChatPendingAction}
                                         isOffline={this.props.network.isOffline}
-                                        reportActions={this.props.reportActions}
+                                        reportActions={this.sortedAndFilteredReportActions}
                                         report={this.props.report}
                                         isComposerFullSize={this.props.isComposerFullSize}
                                         onSubmitComment={this.onSubmitComment}
