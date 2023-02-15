@@ -1476,6 +1476,12 @@ function openReportFromDeepLink(url) {
     });
 }
 
+/**
+ * @param {Object} report 
+ * @param {Array} reportParticipants 
+ * @param {Array} betas 
+ * @returns {Array}
+ */
 function getIOUOptions(report, reportParticipants, betas) {
     const participants = _.filter(reportParticipants, email => currentUserPersonalDetails.login !== email);
     const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
