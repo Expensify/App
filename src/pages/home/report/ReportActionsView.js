@@ -211,9 +211,7 @@ class ReportActionsView extends React.Component {
             const reportAction = this.props.reportActions[this.state.newMarkerReportActionID];
             if (!reportAction || _.isEmpty(lodashGet(reportAction, 'message[0].html')) || reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 this.setState({
-                    newMarkerReportActionID: ReportUtils.isUnread(this.props.report)
-                        ? ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions)
-                        : '',
+                    newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions),
                 });
             }
         }
