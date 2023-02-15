@@ -39,7 +39,7 @@ class DatePicker extends React.Component {
             : '';
 
         this.minDate = props.minDate ? moment(props.minDate).toDate() : null;
-        this.maxDate = props.minDate ? moment(props.maxDate).toDate() : null;
+        this.maxDate = props.maxDate ? moment(props.maxDate).toDate() : null;
     }
 
     componentWillUnmount() {

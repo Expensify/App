@@ -97,8 +97,6 @@ class DateOfBirthPage extends Component {
                             label={this.props.translate('common.date')}
                             defaultValue={privateDetails.dob || ''}
                             shouldSaveDraft
-                            minDate="2022-01-17"
-                            maxDate="2023-01-17"
                         />
                     </View>
                 </Form>

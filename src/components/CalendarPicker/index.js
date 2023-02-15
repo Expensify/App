@@ -24,16 +24,17 @@ const CalendarPicker = (props) => {
     const [yearPickerVisible, setYearPickerVisible] = React.useState(false);
     const [monthPickerVisible, setMonthPickerVisible] = React.useState(false);
 
-    const currentMonthView = currentDateView.getMonth();
-
-    // const initialMonthView = props.maxDate ? props.maxDate.getMonth() : currentMonthView;
-    const currentYearView = currentDateView.getFullYear();
+    const currentMonthView = moment(props.maxDate).toDate() < currentDateView ? moment(props.maxDate).month() : currentDateView.getMonth();
+    const currentYearView = moment(props.maxDate).toDate() < currentDateView ? moment(props.maxDate).year() : currentDateView.getFullYear();
     const monthMatrix = generateMonthMatrix(currentYearView, currentMonthView);
 
     const onNextMonthPress = () => setCurrentDateView(prev => addMonths(prev, 1));
     const onPrevMonthPress = () => setCurrentDateView(prev => addMonths(prev, -1));
     const onMonthPickerPress = () => setMonthPickerVisible(true);
     const onYearPickerPress = () => setYearPickerVisible(true);
+
+    const hasAvailableDatesNextMonth = props.maxDate ? moment(props.maxDate).toDate() > addMonths(currentDateView, 1) : true;
+    const hasAvailableDatesPrevMonth = props.minDate ? moment(props.minDate).toDate() < moment(addMonths(currentDateView, 0)).toDate() : true;
 
     const onDayPress = (day) => {
         if (!props.onChange) {
@@ -50,8 +51,8 @@ const CalendarPicker = (props) => {
     };
 
     if (yearPickerVisible) {
-        const minYear = props.minDate ? props.minDate.getFullYear() : 1970;
-        const maxDate = props.maxDate ? minYear - props.maxDate.getFullYear() : 200;
+        const minYear = props.minDate ? moment(props.minDate).year() : 1970;
+        const maxDate = props.maxDate ? moment(props.maxDate).year() - minYear : 200;
         const years = Array.from({length: maxDate}, (k, v) => v + minYear);
         return (
             <ListPicker
@@ -92,11 +93,11 @@ const CalendarPicker = (props) => {
                     <ArrowIcon />
                 </TouchableOpacity>
                 <View style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentEnd]}>
-                    <TouchableOpacity onPress={onPrevMonthPress}>
-                        <ArrowIcon direction="left" />
+                    <TouchableOpacity disabled={!hasAvailableDatesPrevMonth} onPress={onPrevMonthPress}>
+                        <ArrowIcon disabled={!hasAvailableDatesPrevMonth} direction="left" />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={onNextMonthPress}>
-                        <ArrowIcon />
+                    <TouchableOpacity disabled={!hasAvailableDatesNextMonth} onPress={onNextMonthPress}>
+                        <ArrowIcon disabled={!hasAvailableDatesNextMonth} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -113,12 +114,12 @@ const CalendarPicker = (props) => {
                         const currentDate = moment([currentYearView, currentMonthView, day]);
                         const isBeforeMinDate = props.minDate && (currentDate.toDate() < new Date(props.minDate));
                         const isAfterMaxDate = props.maxDate && (currentDate.toDate() > new Date(props.maxDate));
-                        const isDisabled = isBeforeMinDate || isAfterMaxDate;
+                        const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
 
                         return (
                             <TouchableOpacity
                                 key={`${index}_day-${day}`}
-                                disabled={!day || isDisabled}
+                                disabled={isDisabled}
                                 onPress={() => onDayPress(day)}
                                 style={styles.calendarDayRoot}
                             >
