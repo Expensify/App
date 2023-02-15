@@ -142,7 +142,7 @@ const Footer = (props) => {
 
     const pageFooterWrapper = [styles.footerWrapper, imageDirection, imageStyle];
     const footerColumns = [styles.footerColumnsContainer, columnDirection];
-    const footerColumn = isVertical ? [styles.p4] : [styles.p4, styles.flex1, props.isMediumScreenWidth ? styles.mnw50 : styles.mnw25];
+    const footerColumn = isVertical ? [styles.p4] : [styles.p4, props.isMediumScreenWidth ? styles.w50 : styles.w25];
 
     return (
         <View style={styles.flex1}>

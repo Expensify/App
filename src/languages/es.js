@@ -1183,7 +1183,7 @@ export default {
         genericAddCommentFailureMessage: 'Error inesperado al agregar el comentario, por favor inténtalo más tarde',
     },
     footer: {
-        features: '',
+        features: 'Características',
         expenseManagement: '',
         spendManagement: '',
         expenseReports: '',
