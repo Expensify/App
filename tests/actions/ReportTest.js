@@ -548,7 +548,7 @@ describe('actions/Report', () => {
                         expect.objectContaining({
                             emoji: EMOJI_NAME,
                             users: expect.arrayContaining([
-                                expect.objectContaining({login: TEST_USER_LOGIN}),
+                                expect.objectContaining({accountID: TEST_USER_ACCOUNT_ID}),
                             ]),
                         })]));
 
@@ -593,10 +593,10 @@ describe('actions/Report', () => {
                                     emoji: EMOJI_NAME,
                                     users: expect.arrayContaining([
                                         {
-                                            login: TEST_USER_LOGIN,
+                                            accountID: TEST_USER_ACCOUNT_ID,
                                         },
                                         {
-                                            login: TEST_USER_LOGIN,
+                                            accountID: TEST_USER_ACCOUNT_ID,
                                             skinTone: EMOJI_SKIN_TONE,
                                         },
                                     ]),

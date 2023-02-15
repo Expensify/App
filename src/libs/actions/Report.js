@@ -1199,8 +1199,8 @@ function getOptimisticDataForReportActionUpdate(originalReportAction, message, r
     ];
 }
 
-function hasLoginReacted(login, users, skinTone) {
-    return _.find(users, user => user.login === login && (skinTone == null ? true : user.skinTone === skinTone)) != null;
+function hasAccountIDReacted(accountID, users, skinTone) {
+    return _.find(users, user => user.accountID === accountID && (skinTone == null ? true : user.skinTone === skinTone)) != null;
 }
 
 /**
@@ -1221,12 +1221,12 @@ function addReaction(reportID, originalReportAction, emoji, skinTone) {
         };
     }
 
-    const isReacted = hasLoginReacted(currentUserEmail, reactionObject.users, skinTone);
+    const isReacted = hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone);
     if (isReacted) {
         return;
     }
 
-    reactionObject.users = [...reactionObject.users, {login: currentUserEmail, skinTone}];
+    reactionObject.users = [...reactionObject.users, {accountID: currentUserAccountID, skinTone}];
     let updatedReactions = [...(message.reactions || [])];
     if (needToInsertReactionObject) {
         updatedReactions = [...updatedReactions, reactionObject];
@@ -1264,12 +1264,12 @@ function removeReaction(reportID, originalReportAction, emoji) {
         return;
     }
 
-    const isReacted = hasLoginReacted(currentUserEmail, reactionObject.users);
+    const isReacted = hasAccountIDReacted(currentUserAccountID, reactionObject.users);
     if (!isReacted) {
         return;
     }
 
-    reactionObject.users = _.filter(reactionObject.users, sender => sender.login !== currentUserEmail);
+    reactionObject.users = _.filter(reactionObject.users, sender => sender.accountID !== currentUserAccountID);
     const updatedReactions = _.map(message.reactions, reaction => (reaction.emoji === emoji.name ? reactionObject : reaction));
 
     const updatedMessage = {
