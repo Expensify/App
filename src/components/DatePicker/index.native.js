@@ -32,7 +32,7 @@ class DatePicker extends React.Component {
 
         this.showPicker = this.showPicker.bind(this);
         this.reset = this.reset.bind(this);
-        this.selectDate = this.selectDate.bind(this);
+        this.hidePicker = this.hidePicker.bind(this);
         this.updateLocalDate = this.updateLocalDate.bind(this);
     }
 
@@ -56,6 +56,10 @@ class DatePicker extends React.Component {
         event.preventDefault();
     }
 
+    hidePicker() {
+        this.setState({isPickerVisible: false});
+    }
+
     /**
      * Reset the date spinner to the initial value
      */
@@ -64,19 +68,12 @@ class DatePicker extends React.Component {
     }
 
     /**
-     * Accept the current spinner changes, close the spinner and propagate the change
-     * to the parent component (props.onInputChange)
-     */
-    selectDate() {
-        this.setState({isPickerVisible: false});
-        this.props.onInputChange(this.state.selectedDate);
-    }
-
-    /**
      * @param {Date} selectedDate
      */
     updateLocalDate(selectedDate) {
         this.setState({selectedDate});
+        this.props.onInputChange(selectedDate);
+        this.hidePicker();
     }
 
     render() {
@@ -113,7 +110,7 @@ class DatePicker extends React.Component {
                 />
                 <Popover
                     isVisible={this.state.isPickerVisible}
-                    onClose={this.selectDate}
+                    onClose={this.hidePicker}
                     fromSidebarMediumScreen
                     anchorPosition={{
                         top: this.state.pickerLayout.height + this.state.spaceFromTop + StatusBar.currentHeight + 10,
