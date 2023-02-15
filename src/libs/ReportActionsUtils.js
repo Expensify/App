@@ -165,8 +165,11 @@ function getLastVisibleAction(reportID, actionsToMerge = {}) {
  */
 function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
     const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
-    const htmlText = lodashGet(lastVisibleAction, 'message[0].html', '');
+    if (lastVisibleAction.isAttachment) {
+        return CONST.ATTACHMENT_MESSAGE_TEXT;
+    }
 
+    const htmlText = lodashGet(lastVisibleAction, 'message[0].html', '');
     const parser = new ExpensiMark();
     const messageText = parser.htmlToText(htmlText);
     return String(messageText)
