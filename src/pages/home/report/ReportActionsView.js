@@ -207,13 +207,10 @@ class ReportActionsView extends React.Component {
         }
 
         // If the report action marking the unread point is deleted we need to recalculate which action should be the unread marker
-        if (this.state.newMarkerReportActionID) {
-            const reportAction = this.props.reportActions[this.state.newMarkerReportActionID];
-            if (!reportAction || _.isEmpty(lodashGet(reportAction, 'message[0].html')) || reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                this.setState({
-                    newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions),
-                });
-            }
+        if (this.state.newMarkerReportActionID && _.isEmpty(lodashGet(this.props.reportActions[this.state.newMarkerReportActionID], 'message[0].html'))) {
+            this.setState({
+                newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions),
+            });
         }
 
         // When the user navigates to the LHN the ReportActionsView doesn't unmount and just remains hidden.
