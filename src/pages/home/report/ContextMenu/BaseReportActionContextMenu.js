@@ -43,6 +43,10 @@ class BaseReportActionContextMenu extends React.Component {
     constructor(props) {
         super(props);
         this.wrapperStyle = getReportActionContextMenuStyles(this.props.isMini);
+
+        this.state = {
+            keepOpen: false,
+        };
     }
 
     render() {
@@ -55,7 +59,7 @@ class BaseReportActionContextMenu extends React.Component {
             this.props.isChronosReport,
         );
 
-        return this.props.isVisible && (
+        return (this.props.isVisible || this.state.keepOpen) && (
             <View style={this.wrapperStyle}>
                 {_.map(_.filter(ContextMenuActions, shouldShowFilter), (contextAction) => {
                     const closePopup = !this.props.isMini;
@@ -64,6 +68,8 @@ class BaseReportActionContextMenu extends React.Component {
                         reportID: this.props.reportID,
                         draftMessage: this.props.draftMessage,
                         selection: this.props.selection,
+                        close: () => this.setState({keepOpen: false}),
+                        keepOpen: () => this.setState({keepOpen: true}),
                     };
 
                     if (contextAction.renderContent) {
