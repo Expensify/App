@@ -34,7 +34,7 @@ class TimezoneSelectPage extends Component {
         this.saveSelectedTimezone = this.saveSelectedTimezone.bind(this);
         this.filterShownTimezones = this.filterShownTimezones.bind(this);
 
-        this.timezone = lodashGet(props.currentUserPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
+        this.timezone = this.getUserTimezone(props.currentUserPersonalDetails);
         this.allTimezones = _.chain(moment.tz.names())
             .filter(timezone => !timezone.startsWith('Etc/GMT'))
             .map(timezone => ({
@@ -58,7 +58,7 @@ class TimezoneSelectPage extends Component {
     componentDidUpdate() {
         // componentDidUpdate is added in order to update the timezone options when automatic is toggled on/off as
         // navigating back doesn't unmount the page, thus it won't update the timezone options & stay disabled without this.
-        const newTimezone = lodashGet(this.props.currentUserPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
+        const newTimezone = this.getUserTimezone(this.props.currentUserPersonalDetails);
         if (_.isEqual(this.timezone, newTimezone)) {
             return;
         }
@@ -89,6 +89,14 @@ class TimezoneSelectPage extends Component {
      */
     getKey(text) {
         return `${text}-${(new Date()).getTime()}`;
+    }
+
+    /**
+     * @param {Object} currentUserPersonalDetails
+     * @return {Object} user's timezone data
+     */
+    getUserTimezone(currentUserPersonalDetails) {
+        return lodashGet(currentUserPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
     }
 
     /**
