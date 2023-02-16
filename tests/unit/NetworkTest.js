@@ -18,7 +18,6 @@ import Log from '../../src/libs/Log';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import * as MainQueue from '../../src/libs/Network/MainQueue';
 import * as Request from '../../src/libs/Request';
-import * as RequestThrottleMock from '../../src/libs/__mocks__/RequestThrottle';
 
 jest.useFakeTimers();
 jest.mock('../../src/libs/RequestThrottle');
