@@ -46,6 +46,9 @@ class DatePicker extends React.Component {
         window.removeEventListener('resize', this.onWindowResize);
     }
 
+    /**
+     * Function called on window resize, to hide DatePicker and recalculate position of the calendar popover in the window
+     */
     onWindowResize() {
         if (this.wrapperRef) {
             const {
@@ -120,6 +123,7 @@ class DatePicker extends React.Component {
                     fullscreen
                     isSmallScreenWidth={false}
                     anchorPosition={{
+                        // calculating absolute position of popover with additional space of 10px from the input
                         top: this.state.pickerLayout.height + this.state.pickerLayout.top + 10,
                         left: this.state.pickerLayout.left,
                     }}

@@ -19,6 +19,7 @@ const addMonths = (date, months) => {
     return d;
 };
 
+// sometimes setting time to midnight is needed to compare dates correctly
 const midnight = date => new Date(date).setHours(0, 0, 0, 0);
 
 const CalendarPicker = (props) => {
