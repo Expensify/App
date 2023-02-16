@@ -5,10 +5,9 @@ import * as NetworkStore from './NetworkStore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ActiveClientManager from '../ActiveClientManager';
 import * as Request from '../Request';
-import RequestThrottle from '../RequestThrottle';
+import * as RequestThrottle from '../RequestThrottle';
 import CONST from '../../CONST';
 
-const requestThrottle = new RequestThrottle();
 const errorsToRetry = [
     CONST.ERROR.FAILED_TO_FETCH,
     CONST.ERROR.IOS_NETWORK_CONNECTION_LOST,
@@ -58,23 +57,20 @@ function process() {
         // - Clear any wait time we may have added if it failed before
         // - Call process again to process the other requests in the queue
         PersistedRequests.remove(currentRequest);
-        requestThrottle.clear();
+        RequestThrottle.clear();
         return process();
     }).catch((error) => {
         // If a request fails with a non-retryable error we just remove it from the queue and move on to the next request
         if (!_.contains(errorsToRetry, error.message)) {
             PersistedRequests.remove(currentRequest);
-            requestThrottle.clear();
+            RequestThrottle.clear();
             return process();
         }
 
         // If the request failed and we want to retry it:
         // - Sleep for a period of time
         // - Call process again. This will retry the same request since we have not removed it from the queue
-        // eslint-disable-next-line arrow-body-style
-        return requestThrottle.sleep().then(() => {
-            return process();
-        });
+        return RequestThrottle.sleep().then(process);
     });
 }
 
