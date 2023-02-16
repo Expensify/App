@@ -914,6 +914,25 @@ const CONST = {
         MAKE_REQUEST_WITH_SIDE_EFFECTS: 'makeRequestWithSideEffects',
     },
 
+    QUICK_REACTIONS: [
+        {
+            name: '+1',
+            code: '👍',
+        },
+        {
+            name: 'heart',
+            code: '❤️',
+        },
+        {
+            name: 'joy',
+            code: '😂',
+        },
+        {
+            name: 'fire',
+            code: '🔥',
+        },
+    ],
+
     TFA_CODE_LENGTH: 6,
     CHAT_ATTACHMENT_TOKEN_KEY: 'X-Chat-Attachment-Token',
 

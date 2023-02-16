@@ -18,6 +18,7 @@ import * as ContextMenuUtils from './ContextMenuUtils';
 import * as Environment from '../../../../libs/Environment/Environment';
 import Permissions from '../../../../libs/Permissions';
 import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReactions';
+import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickEmojiReactions';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -47,15 +48,29 @@ export default [
                 hideContextMenu(false);
             };
 
+            const onEmojiSelected = (emoji) => {
+                // TODO: we need to add the preferred skin tone here as well somehow
+                Report.toggleReaction(reportID, reportAction, emoji);
+                close();
+            };
+
+            const isMini = !closePopover;
+
+            if (isMini) {
+                return (
+                    <MiniQuickEmojiReactions
+                        key="MiniQuickEmojiReactions"
+                        onPressOpenPicker={close}
+                        onEmojiSelected={onEmojiSelected}
+                    />
+                );
+            }
+
             return (
                 <QuickEmojiReactions
                     key="QuickEmojiReactions"
-                    onEmojiSelected={(emoji) => {
-                        // TODO: we need to add the preferred skin tone here as well somehow
-                        Report.toggleReaction(reportID, reportAction, emoji);
-                        close();
-                    }}
                     onPressOpenPicker={close}
+                    onEmojiSelected={onEmojiSelected}
                 />
             );
         },

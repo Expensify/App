@@ -4,36 +4,16 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import EmojiReactionBubble from './EmojiReactionBubble';
 import AddReactionBubble from './AddReactionBubble';
-
-const QUICK_REACTIONS = [
-    {
-        name: '+1',
-        code: '👍',
-    },
-    {
-        name: 'heart',
-        code: '❤️',
-    },
-    {
-        name: 'joy',
-        code: '😂',
-    },
-    {
-        name: 'fire',
-        code: '🔥',
-    },
-];
+import CONST from '../../CONST';
 
 const EMOJI_BUBBLE_SCALE = 1.5;
 
 const propTypes = {
-    emojiIconRef: PropTypes.func,
     onEmojiSelected: PropTypes.func.isRequired,
     onPressOpenPicker: PropTypes.func,
 };
 
 const defaultProps = {
-    emojiIconRef: () => {},
     onPressOpenPicker: () => {},
 };
 
@@ -46,7 +26,7 @@ const QuickEmojiReactions = props => (
         justifyContent: 'space-between',
     }}
     >
-        {_.map(QUICK_REACTIONS, reaction => (
+        {_.map(CONST.QUICK_REACTIONS, reaction => (
             <EmojiReactionBubble
                 key={reaction.name}
                 emojiName={reaction.name}
