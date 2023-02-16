@@ -436,28 +436,13 @@ describe('NetworkTests', () => {
             });
     });
 
-    // Given a retry response create a mock and run a common set of expectations for exponential back off
-    const backOffExpectations = (retryResponse) => {
-        // Let's do a little math so that this test doesn't have to be ultra repetitive!
-        // How many times do we need to double the mocked initialRequestWaitTime (100) before we hit the max retry wait time (10,000)?
-        // We will be doubling the wait time until it's greater than or equal to the max, so we divide the max wait time by the initial wait time to figure out how much it needs to scale.
-        // 10,000 / 100 = 100 (scale factor)
-        // Next we want to know how many times we need to double to scale the initial wait time above the max, so we take log base 2 of the scale factor.
-        // Then we take the ceiling of that to know when it will be greater than or equal to the scale factor.
-        // So we need to double the initial request wait time 7 times.
-        const numRetriesToMaxWaitTime = Math.ceil(Math.log2(CONST.NETWORK.MAX_RETRY_WAIT_TIME / RequestThrottleMock.initialRequestWaitTime));
-
-        // Given a mock where a retry response is returned until the max wait time is reached, then a successful response
-        let fetchCalls = 0;
-        global.fetch = jest.fn().mockImplementation(() => {
-            fetchCalls++;
-
-            // Add one call for the initial failing request
-            if (fetchCalls <= (numRetriesToMaxWaitTime + 1)) {
-                return Promise.resolve(retryResponse);
-            }
-            return Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
-        });
+    // Given a retry response create a mock and run some expectations for retrying requests
+    const retryExpectations = (retryResponse) => {
+        // Given a mock where a retry response is returned twice before a successful response
+        global.fetch = jest.fn()
+            .mockResolvedValueOnce(retryResponse)
+            .mockResolvedValueOnce(retryResponse)
+            .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS});
 
         // Given we have a request made while we're offline
         return Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
@@ -474,72 +459,48 @@ describe('NetworkTests', () => {
                 // Then there has only been one request so far
                 expect(global.fetch).toHaveBeenCalledTimes(1);
 
-                // And we still have 1 persisted request
+                // And we still have 1 persisted request since it failed
                 expect(_.size(PersistedRequests.getAll())).toEqual(1);
                 expect(PersistedRequests.getAll()).toEqual([
                     expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})}),
                 ]);
 
-                // After the initial wait time
-                jest.advanceTimersByTime(RequestThrottleMock.initialRequestWaitTime);
+                // We let the SequentialQueue process again after its wait time
+                jest.runOnlyPendingTimers();
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // Chain these promises together
-                let backOffChain = Promise.resolve();
+                // Then we have retried the failing request
+                expect(global.fetch).toHaveBeenCalledTimes(2);
 
-                // We will double the wait time 1 less than needed so that we don't exceed the max wait time just yet
-                for (let retryCount = 1; retryCount < numRetriesToMaxWaitTime; retryCount++) {
-                    backOffChain = backOffChain.then(() => {
-                        // Then we have retried the failing request. The request has been made once more than the retry count
-                        expect(global.fetch).toHaveBeenCalledTimes(retryCount + 1);
-
-                        // And we still have 1 persisted request
-                        expect(_.size(PersistedRequests.getAll())).toEqual(1);
-
-                        const expectedWaitTime = RequestThrottleMock.initialRequestWaitTime * (2 ** retryCount);
-                        const hardExpectedWaitTime = 100 * (2 ** retryCount);
-
-                        // Now we will double the wait time before the next retry
-                        jest.advanceTimersByTime(hardExpectedWaitTime);
-                        return waitForPromisesToResolve();
-                    });
-                }
-                return backOffChain;
-            })
-            .then(() => {
-                // Then we have retried again. The first retry is the 2nd request, so the nth retry is request n+1
-                expect(global.fetch).toHaveBeenCalledTimes(numRetriesToMaxWaitTime + 1);
-
-                // And we still have 1 persisted request
+                // And we still have 1 persisted request since it failed
                 expect(_.size(PersistedRequests.getAll())).toEqual(1);
+                expect(PersistedRequests.getAll()).toEqual([
+                    expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})}),
+                ]);
 
-                // Now we have hit the max wait time
-                jest.advanceTimersByTime(CONST.NETWORK.MAX_RETRY_WAIT_TIME);
+                // We let the SequentialQueue process again after its wait time
+                jest.runOnlyPendingTimers();
                 return waitForPromisesToResolve();
             })
             .then(() => {
                 // Then the request is retried again
-                expect(global.fetch).toHaveBeenCalledTimes(numRetriesToMaxWaitTime + 2);
+                expect(global.fetch).toHaveBeenCalledTimes(4);
 
                 // The request succeeds so the queue is empty
                 expect(_.size(PersistedRequests.getAll())).toEqual(0);
             });
     };
 
-    // Given that a request fails to fetch several times
-    // When we make a persisted request and it fails to fetch then it is retried with exponential back off
-    test('persisted requests should be retried using exponential back off', () => backOffExpectations({ok: false, status: 500, message: CONST.ERROR.FAILED_TO_FETCH}));
-
     test.each([429, 500, 502, 504, 520])(
-        'request with http status %d uses exponential back off',
+        'request with http status %d are retried',
 
         // Given that a request resolves as not ok and with a particular http status
         // When we make a persisted request and the http status represents a server error then it is retried with exponential back off
-        httpStatus => backOffExpectations({ok: false, status: httpStatus}),
+        httpStatus => retryExpectations({ok: false, status: httpStatus}),
     );
 
-    test('write requests are retried using exponential back off when Auth is down', () => {
+    test('write requests are retried when Auth is down', () => {
         // Given the response data returned when auth is down
         const responseData = {
             ok: true,
@@ -555,8 +516,8 @@ describe('NetworkTests', () => {
             json: () => Promise.resolve(responseData),
         };
 
-        // When we make a request and auth is down then we use exponential back off until it's back
-        return backOffExpectations(authIsDownResponse);
+        // When we make a request and auth is down then we retry until it's back
+        return retryExpectations(authIsDownResponse);
     });
 
     test('test Bad Gateway status will log hmmm', () => {
