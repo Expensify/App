@@ -199,9 +199,8 @@ function getSortedReportActionsForDisplay(reportActions) {
         return true;
     });
 
-    let sortedReportActions = getSortedReportActions(filteredReportActions, true);
-    sortedReportActions = filterReportActionsForDisplay(sortedReportActions);
-    return sortedReportActions;
+    const sortedReportActions = getSortedReportActions(filteredReportActions, true);
+    return filterReportActionsForDisplay(sortedReportActions);
 }
 
 export {
