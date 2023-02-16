@@ -56,7 +56,8 @@ class TimezoneSelectPage extends Component {
     }
 
     componentDidUpdate() {
-        // Update timezoneInputText & all timezoneOptions when the timezone object changes
+        // componentDidUpdate is added in order to update the timezone options when automatic is toggled on/off as
+        // navigating back doesn't unmount the page, thus it won't update the timezone options & stay disabled without this.
         const newTimezone = lodashGet(this.props.currentUserPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
         if (_.isEqual(this.timezone, newTimezone)) { return; }
         this.timezone = newTimezone;
