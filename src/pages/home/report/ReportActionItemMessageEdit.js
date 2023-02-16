@@ -71,7 +71,7 @@ class ReportActionItemMessageEdit extends React.Component {
         this.saveButtonID = 'saveButton';
         this.cancelButtonID = 'cancelButton';
         this.emojiButtonID = 'emojiButton';
-        this.messageEditInput = 'MessageEditInput';
+        this.messageEditInput = 'messageEditInput';
 
         const parser = new ExpensiMark();
         const draftMessage = parser.htmlToMarkdown(this.props.draftMessage);
@@ -234,6 +234,7 @@ class ReportActionItemMessageEdit extends React.Component {
                             this.textInput = el;
                             this.props.forwardedRef(el);
                         }}
+                        nativeID={this.messageEditInput}
                         onChangeText={this.updateDraft} // Debounced saveDraftComment
                         onKeyPress={this.triggerSaveOrCancel}
                         value={this.state.draft}
@@ -245,6 +246,8 @@ class ReportActionItemMessageEdit extends React.Component {
                             toggleReportActionComposeView(false, this.props.isSmallScreenWidth);
                         }}
                         onBlur={(event) => {
+                            console.log("lodashGet(event, 'nativeEvent.relatedTarget.id')", lodashGet(event, 'nativeEvent.relatedTarget.id'));
+
                             // Return to prevent re-render when save/cancel button is pressed which cancels the onPress event by re-rendering
                             if (_.contains([this.saveButtonID, this.cancelButtonID, this.emojiButtonID, this.messageEditInput], lodashGet(event, 'nativeEvent.relatedTarget.id'))) {
                                 return;
