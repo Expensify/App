@@ -366,10 +366,22 @@ describe('ReportUtils', () => {
             });
         });
 
-        it('return only iou request option if does not have iou send permission', () => {
-            const iouOptions = ReportUtils.getIOUOptions({}, [currentUserEmail, participants], [CONST.BETAS.IOU]);
-            expect(iouOptions.length).toBe(1);
-            expect(iouOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)).toBe(true);
+        describe('return only iou request option if', () => {
+            it(' does not have iou send permission', () => {
+                const iouOptions = ReportUtils.getIOUOptions({}, [currentUserEmail, participants], [CONST.BETAS.IOU]);
+                expect(iouOptions.length).toBe(1);
+                expect(iouOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)).toBe(true);
+            });
+
+            it('a policy expense chat', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                };
+                const iouOptions = ReportUtils.getIOUOptions(report, [currentUserEmail, participants], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND]);
+                expect(iouOptions.length).toBe(1);
+                expect(iouOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)).toBe(true);
+            });
         });
 
         it('return both iou send and request money', () => {
