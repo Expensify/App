@@ -31,13 +31,19 @@ const AddReactionBubble = (props) => {
     const ref = React.createRef();
 
     const onPress = () => {
-        props.onPressOpenPicker();
-        EmojiPickerAction.showEmojiPicker(() => {}, (emojiCode) => {
-            const emoji = _.find(emojis, e => e.code === emojiCode);
-            if (emoji != null) {
-                props.onSelectEmoji(emoji);
-            }
-        }, ref.current);
+        EmojiPickerAction.showEmojiPicker(
+            () => {},
+            (emojiCode) => {
+                const emoji = _.find(emojis, e => e.code === emojiCode);
+                if (emoji != null) {
+                    props.onSelectEmoji(emoji);
+                }
+            },
+            ref.current,
+            () => {
+                props.onPressOpenPicker();
+            },
+        );
     };
 
     return (
