@@ -11,17 +11,20 @@ import Tooltip from './Tooltip';
 const propTypes = {
     tooltipText: PropTypes.string.isRequired,
     onPress: PropTypes.func.isRequired,
-    children: PropTypes.oneOf([PropTypes.func, PropTypes.node]).isRequired,
+    children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
     isDelayButtonStateComplete: PropTypes.bool,
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 };
 
 const defaultProps = {
     isDelayButtonStateComplete: true,
+    innerRef: () => {},
 };
 
 const BaseMiniContextMenuItem = props => (
     <Tooltip text={props.tooltipText}>
         <Pressable
+            ref={props.innerRef}
             focusable
             onPress={props.onPress}
             accessibilityLabel={props.tooltipText}
@@ -44,4 +47,6 @@ const BaseMiniContextMenuItem = props => (
 BaseMiniContextMenuItem.propTypes = propTypes;
 BaseMiniContextMenuItem.defaultProps = defaultProps;
 BaseMiniContextMenuItem.displayName = 'BaseMiniContextMenuItem';
-export default BaseMiniContextMenuItem;
+
+// eslint-disable-next-line react/jsx-props-no-spreading
+export default React.forwardRef((props, ref) => <BaseMiniContextMenuItem {...props} innerRef={ref} />);

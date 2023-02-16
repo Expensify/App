@@ -64,8 +64,6 @@ const ReportActionItemReactions = props => (
                     emojiCodes={emojiCodes}
                     hasUserReacted={hasUserReacted}
                     onPress={onPress}
-
-                    // TODO: onLongPress={() => ReactionsContextMenu.showContextMenu(reactions)}
                     senderIDs={senderIDs}
                 />
             );
