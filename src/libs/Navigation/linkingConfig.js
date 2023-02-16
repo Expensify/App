@@ -26,8 +26,8 @@ export default {
 
             // Main Routes
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
+            SignInWithValidateLink: ROUTES.SIGN_IN_WITH_VALIDATE_LINK,
             ValidateLogin: ROUTES.VALIDATE_LOGIN,
-            ValidateLogin: ROUTES.VALIDATE_SECONDARY_LOGIN,
             [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
             Concierge: ROUTES.CONCIERGE,
 

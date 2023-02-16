@@ -190,14 +190,14 @@ class AuthScreens extends React.Component {
                     initialParams={{openOnAdminRoom: openOnAdminRoom === 'true'}}
                 />
                 <RootStack.Screen
-                    name="ValidateLogin"
+                    name="SignInWithValidateLink"
                     options={{
                         headerShown: false,
                         title: 'New Expensify',
                     }}
                     getComponent={() => {
-                        const ValidateLoginPage = require('../../../pages/ValidateLoginPage').default;
-                        return ValidateLoginPage;
+                        const SignInWithValidateLinkPage = require('../../../pages/SignInWithValidateLinkPage').default;
+                        return SignInWithValidateLinkPage;
                     }}
                 />
                 <RootStack.Screen

@@ -2,7 +2,7 @@ import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import SignInPage from '../../../pages/signin/SignInPage';
 import SetPasswordPage from '../../../pages/SetPasswordPage';
-import ValidateLoginPage from '../../../pages/ValidateLoginPage';
+import SignInWithValidateLinkPage from '../../../pages/SignInWithValidateLinkPage';
 import LogInWithShortLivedAuthTokenPage from '../../../pages/LogInWithShortLivedAuthTokenPage';
 import ConciergePage from '../../../pages/ConciergePage';
 import SCREENS from '../../../SCREENS';
@@ -23,9 +23,9 @@ const PublicScreens = () => (
             component={LogInWithShortLivedAuthTokenPage}
         />
         <RootStack.Screen
-            name="ValidateLogin"
+            name="SignInWithValidateLink"
             options={defaultScreenOptions}
-            component={ValidateLoginPage}
+            component={SignInWithValidateLinkPage}
         />
         <RootStack.Screen
             name="SetPassword"

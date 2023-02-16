@@ -98,8 +98,8 @@ export default {
     REPORT_SETTINGS: 'r/:reportID/settings',
     getReportSettingsRoute: reportID => `r/${reportID}/settings`,
     TRANSITION_FROM_OLD_DOT: 'transition',
-    VALIDATE_LOGIN: 'v/:accountID/:validateCode',
-    VALIDATE_SECONDARY_LOGIN: 'v/:accountID/:validateCode/secondary',
+    SIGN_IN_WITH_VALIDATE_LINK: 'v/:accountID/:validateCode',
+    VALIDATE_LOGIN: 'v/:accountID/:validateCode/secondary',
     GET_ASSISTANCE: 'get-assistance/:taskID',
     getGetAssistanceRoute: taskID => `get-assistance/${taskID}`,
 
