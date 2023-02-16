@@ -142,6 +142,10 @@ class ReportScreen extends React.Component {
             return true;
         }
 
+        if (nextProps.report.isPinned !== this.props.report.isPinned) {
+            return true;
+        }
+
         if (nextProps.report.lastReadTime !== this.props.report.lastReadTime) {
             return true;
         }
