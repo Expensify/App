@@ -1185,8 +1185,6 @@ const CONST = {
         'Zambia',
         'Zimbabwe',
     ],
-
-    // EMOJI_PICKER_ITEM_HEIGHT: 36,
 };
 
 export default CONST;
