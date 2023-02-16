@@ -2944,6 +2944,13 @@ const styles = {
         fontSize: variables.iconSizeLarge,
         lineHeight: variables.iconSizeXLarge,
     },
+
+    magicCodeDigits: {
+        color: themeColors.text,
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeXXLarge,
+        letterSpacing: 4,
+    },
 };
 
 export default styles;
