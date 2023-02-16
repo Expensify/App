@@ -22,6 +22,18 @@ function toggleHeaderMenu() {
     }
 }
 
+/**
+ * Clamp a number in a range.
+ *
+ * @param {Number} num
+ * @param {Number} min
+ * @param {Number} max
+ * @returns {number}
+ */
+function clamp(num, min, max) {
+    return Math.min(Math.max(num, min), max);
+}
+
 function navigateBack() {
     if (window.location.pathname.includes('/request-money/')) {
         window.location.href = '/hubs/request-money';
@@ -82,4 +94,12 @@ window.addEventListener('DOMContentLoaded', () => {
     if (backButton) {
         backButton.addEventListener('click', navigateBack);
     }
+
+    const articleContent = document.getElementById('article-content');
+    const lhnContent = document.getElementById('lhn-content');
+    window.addEventListener('scroll', (e) => {
+        const scrollingElement = e?.target?.scrollingElement;
+        const scrollPercentageInArticleContent = clamp(scrollingElement?.scrollTop - articleContent?.offsetTop, 0, articleContent?.scrollHeight) / articleContent?.scrollHeight;
+        lhnContent.scrollTop = scrollPercentageInArticleContent * lhnContent.scrollHeight;
+    });
 });
