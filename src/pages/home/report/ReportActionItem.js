@@ -207,15 +207,14 @@ class ReportActionItem extends Component {
         }
 
         const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
-        const filteredReactions = _.filter(reactions, r => r.users.length > 0);
-        const hasReactions = filteredReactions.length > 0;
+        const hasReactions = reactions.length > 0;
 
         return (
             <>
                 {children}
                 {hasReactions && (
                     <ReportActionItemReactions
-                        reactions={filteredReactions}
+                        reactions={reactions}
                         addReaction={this.addReaction}
                         removeReaction={this.removeReaction}
                     />
@@ -232,7 +231,6 @@ class ReportActionItem extends Component {
             return <RenameAction action={this.props.action} />;
         }
 
-        console.log("Render ReportActionItem");
         return (
             <PressableWithSecondaryInteraction
                 pointerEvents={this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? 'none' : 'auto'}
