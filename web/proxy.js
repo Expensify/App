@@ -1,5 +1,6 @@
 const http = require('http');
 const https = require('https');
+const lodashGet = require('lodash/get');
 require('dotenv').config();
 
 if (process.env.USE_WEB_PROXY === 'false') {
@@ -7,15 +8,16 @@ if (process.env.USE_WEB_PROXY === 'false') {
     process.exit();
 }
 
-let host = 'www.expensify.com';
-
-// If we are testing against the staging API then we must use the correct host here or nothing with work.
-if (/staging/.test(process.env.EXPENSIFY_URL)) {
-    host = 'staging.expensify.com';
-}
+const host = new URL(lodashGet(process.env.EXPENSIFY_URL, 'EXPENSIFY_URL', 'https://www.expensify.com')).hostname;
+const stagingHost = new URL(lodashGet(process.env.STAGING_EXPENSIFY_URL, 'STAGING_EXPENSIFY_URL', 'https://staging.expensify.com')).hostname;
+const stagingSecureHost = new URL(lodashGet(process.env.STAGING_SECURE_EXPENSIFY_URL, 'STAGING_SECURE_EXPENSIFY_URL', 'https://staging-secure.expensify.com')).hostname;
+const HOST_MAP = {
+    'staging-api': stagingHost,
+    'staging-secure-api': stagingSecureHost,
+};
 
 // eslint-disable-next-line no-console
-console.log(`Creating proxy with host: ${host}`);
+console.log(`Creating proxy with host: ${host} for production API and ${stagingHost} for staging API`);
 
 /**
  * Local proxy server that hits the production endpoint
@@ -24,13 +26,16 @@ console.log(`Creating proxy with host: ${host}`);
  * environment that has no local API.
  */
 const server = http.createServer((request, response) => {
+    const apiRegex = /\/(.*api)/g;
+    const apiRoot = apiRegex.exec(request.url)[1];
+    const hostname = HOST_MAP[apiRoot] || host;
     const proxyRequest = https.request({
-        hostname: host,
+        hostname,
         method: 'POST',
-        path: request.url,
+        path: request.url.replace(apiRoot, 'api'),
         headers: {
             ...request.headers,
-            host,
+            host: hostname,
             'user-agent': request.headers['user-agent'].concat(' Development-NewDot/1.0'),
         },
         port: 443,

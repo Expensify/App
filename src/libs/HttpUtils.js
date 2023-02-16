@@ -5,7 +5,6 @@ import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import HttpsError from './Errors/HttpsError';
-import shouldUseStagingServer from './shouldUseStagingServer';
 import getPlatform from './getPlatform';
 
 // Desktop and web use staging config too so we we should default to staging API endpoint if on those platforms
@@ -109,10 +108,13 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
 
     let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
 
-    if (shouldUseStagingServer(stagingServerToggleState)) {
-        apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.STAGING_SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.STAGING_EXPENSIFY_URL;
+    if (stagingServerToggleState) {
+        if (CONFIG.EXPENSIFY.URL_API_ROOT === '/') {
+            apiRoot += shouldUseSecure ? CONST.API_MAP.STAGING_SECURE : CONST.API_MAP.STAGING;
+        } else {
+            apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.STAGING_SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.STAGING_EXPENSIFY_URL;
+        }
     }
-
     return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData, data.canCancel);
 }
 

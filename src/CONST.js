@@ -1189,6 +1189,10 @@ const CONST = {
         SAMPLE_INPUT: '123456.789',
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
+    API_MAP: {
+        STAGING: 'staging-',
+        STAGING_SECURE: 'staging-secure-',
+    },
 };
 
 export default CONST;
