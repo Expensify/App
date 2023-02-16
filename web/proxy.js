@@ -26,12 +26,15 @@ console.log(`Creating proxy with host: ${host} for production API and ${stagingH
  * environment that has no local API.
  */
 const server = http.createServer((request, response) => {
+    // regex not declared globally to reset internal regex pointer for each request
     const apiRegex = /\/(.*api)/g;
     const apiRoot = apiRegex.exec(request.url)[1];
     const hostname = HOST_MAP[apiRoot] || host;
     const proxyRequest = https.request({
         hostname,
         method: 'POST',
+
+        // replace the mapping url with the actual path
         path: request.url.replace(apiRoot, 'api'),
         headers: {
             ...request.headers,

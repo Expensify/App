@@ -109,6 +109,7 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
     let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
 
     if (stagingServerToggleState) {
+        // If web proxy is used, URL will always be /
         if (CONFIG.EXPENSIFY.URL_API_ROOT === '/') {
             apiRoot += shouldUseSecure ? CONST.API_MAP.STAGING_SECURE : CONST.API_MAP.STAGING;
         } else {
