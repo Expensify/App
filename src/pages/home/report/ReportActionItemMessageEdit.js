@@ -10,6 +10,7 @@ import Composer from '../../../components/Composer';
 import * as Report from '../../../libs/actions/Report';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
+import toggleReportActionComposeViewWhenCloseEditMessage from '../../../libs/toggleReportActionComposeViewWhenCloseEditMessage';
 import Button from '../../../components/Button';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import compose from '../../../libs/compose';
@@ -251,7 +252,7 @@ class ReportActionItemMessageEdit extends React.Component {
                                 return;
                             }
                             this.setState({isFocused: false});
-                            toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
+                            toggleReportActionComposeViewWhenCloseEditMessage(true, this.props.isSmallScreenWidth);
                         }}
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
