@@ -171,10 +171,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         String message = reportAction.get("message").getList().get(0).getMap().get("text").getString();
         long time = Timestamp.valueOf(reportAction.get("created").getString(Instant.now().toString())).getTime();
         String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
-        String conversationTitle = "Chat with " + name;
-        if (!roomName.isEmpty()) {
-            conversationTitle = "#" + roomName;
-        }
+        String conversationTitle = roomName.isEmpty() ? "Chat with " + name : roomName;
 
         // Retrieve or create the Person object who sent the latest report comment
         Person person = notificationCache.people.get(accountID);

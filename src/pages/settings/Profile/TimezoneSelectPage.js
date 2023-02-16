@@ -76,21 +76,26 @@ class TimezoneSelectPage extends Component {
     render() {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <HeaderWithCloseButton
-                    title={this.props.translate('timezonePage.timezone')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <OptionsSelector
-                    textInputLabel={this.props.translate('timezonePage.timezone')}
-                    value={this.state.timezoneInputText}
-                    onChangeText={this.filterShownTimezones}
-                    onSelectRow={this.saveSelectedTimezone}
-                    optionHoveredStyle={styles.hoveredComponentBG}
-                    sections={[{data: this.state.timezoneOptions}]}
-                    shouldHaveOptionSeparator
-                />
+                {({safeAreaPaddingBottomStyle}) => (
+                    <>
+                        <HeaderWithCloseButton
+                            title={this.props.translate('timezonePage.timezone')}
+                            shouldShowBackButton
+                            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE)}
+                            onCloseButtonPress={() => Navigation.dismissModal(true)}
+                        />
+                        <OptionsSelector
+                            textInputLabel={this.props.translate('timezonePage.timezone')}
+                            value={this.state.timezoneInputText}
+                            onChangeText={this.filterShownTimezones}
+                            onSelectRow={this.saveSelectedTimezone}
+                            optionHoveredStyle={styles.hoveredComponentBG}
+                            sections={[{data: this.state.timezoneOptions}]}
+                            shouldHaveOptionSeparator
+                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                        />
+                    </>
+                )}
             </ScreenWrapper>
         );
     }
