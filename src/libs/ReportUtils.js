@@ -1512,8 +1512,12 @@ function getIOUOptions(report, reportParticipants, betas) {
         return [CONST.IOU.IOU_TYPE.SPLIT];
     }
 
-    // DM chats and workspace chats that only have 2 people will see the Send / Request money options.
-    return [CONST.IOU.IOU_TYPE.REQUEST, ...(Permissions.canUseIOUSend(betas) ? [CONST.IOU.IOU_TYPE.SEND] : [])];
+    // DM chats that only have 2 people will see the Send / Request money options.
+    // Workspace chats should only see the Request money option, as "easy overages" is not available.
+    return [
+        CONST.IOU.IOU_TYPE.REQUEST,
+        ...(Permissions.canUseIOUSend(betas) && !isPolicyExpenseChat(report) ? [CONST.IOU.IOU_TYPE.SEND] : []),
+    ];
 }
 
 export {
