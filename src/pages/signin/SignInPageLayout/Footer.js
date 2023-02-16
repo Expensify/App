@@ -14,6 +14,7 @@ import compose from '../../../libs/compose';
 import TermsAndLicenses from '../TermsAndLicenses';
 import Socials from '../Socials';
 import Hoverable from '../../../components/Hoverable';
+import CONST from '../../../CONST';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -25,43 +26,43 @@ const columns = [
         translationPath: 'footer.features',
         rows: [
             {
-                link: 'https://use.expensify.com/expense-management',
+                link: CONST.FOOTER.EXPENSE_MANAGEMENT_URL,
                 translationPath: 'footer.expenseManagement',
             },
             {
-                link: 'https://use.expensify.com/spend-management',
+                link: CONST.FOOTER.SPEND_MANAGEMENT_URL,
                 translationPath: 'footer.spendManagement',
             },
             {
-                link: 'https://use.expensify.com/expense-reports',
+                link: CONST.FOOTER.EXPENSE_REPORTS_URL,
                 translationPath: 'footer.expenseReports',
             },
             {
-                link: 'https://use.expensify.com/company-credit-card',
+                link: CONST.FOOTER.COMPANY_CARD_URL,
                 translationPath: 'footer.companyCreditCard',
             },
             {
-                link: 'https://use.expensify.com/receipt-scanning-app',
+                link: CONST.FOOTER.RECIEPT_SCANNING_URL,
                 translationPath: 'footer.receiptScanningApp',
             },
             {
-                link: 'https://use.expensify.com/bills',
+                link: CONST.FOOTER.BILL_PAY_URL,
                 translationPath: 'footer.billPay',
             },
             {
-                link: 'https://use.expensify.com/invoices',
+                link: CONST.FOOTER.INVOICES_URL,
                 translationPath: 'footer.invoicing',
             },
             {
-                link: 'https://use.expensify.com/cpa-card',
+                link: CONST.FOOTER.CPA_CARD_URL,
                 translationPath: 'footer.CPACard',
             },
             {
-                link: 'https://use.expensify.com/payroll',
+                link: CONST.FOOTER.PAYROLL_URL,
                 translationPath: 'footer.payroll',
             },
             {
-                link: 'https://use.expensify.com/travel',
+                link: CONST.FOOTER.TRAVEL_URL,
                 translationPath: 'footer.travel',
             },
         ],
@@ -70,27 +71,27 @@ const columns = [
         translationPath: 'footer.resources',
         rows: [
             {
-                link: 'https://use.expensify.com/accountants',
+                link: CONST.FOOTER.EXPENSIFY_APPROVED_URL,
                 translationPath: 'footer.expensifyApproved',
             },
             {
-                link: 'https://we.are.expensify.com/press-kit',
+                link: CONST.FOOTER.PRESS_KIT_URL,
                 translationPath: 'footer.pressKit',
             },
             {
-                link: 'https://use.expensify.com/support',
+                link: CONST.FOOTER.SUPPORT_URL,
                 translationPath: 'footer.support',
             },
             {
-                link: 'https://help.expensify.com/',
+                link: CONST.FOOTER.HELP_URL,
                 translationPath: 'footer.expensifyHelp',
             },
             {
-                link: 'https://community.expensify.com/',
+                link: CONST.FOOTER.COMMUNITY_URL,
                 translationPath: 'footer.community',
             },
             {
-                link: 'https://use.expensify.com/privacy',
+                link: CONST.FOOTER.PRIVACY_URL,
                 translationPath: 'footer.privacy',
             },
         ],
@@ -99,23 +100,23 @@ const columns = [
         translationPath: 'footer.learnMore',
         rows: [
             {
-                link: 'https://we.are.expensify.com/',
+                link: CONST.FOOTER.ABOUT_URL,
                 translationPath: 'footer.aboutExpensify',
             },
             {
-                link: 'https://blog.expensify.com/',
+                link: CONST.FOOTER.BLOG_URL,
                 translationPath: 'footer.blog',
             },
             {
-                link: 'https://we.are.expensify.com/apply',
+                link: CONST.FOOTER.JOBS_URL,
                 translationPath: 'footer.jobs',
             },
             {
-                link: 'https://www.expensify.org/',
+                link: CONST.FOOTER.ORG_URL,
                 translationPath: 'footer.expensifyOrg',
             },
             {
-                link: 'https://ir.expensify.com/',
+                link: CONST.FOOTER.INVESTOR_RELATIONS_URL,
                 translationPath: 'footer.investorRelations',
             },
         ],
@@ -124,11 +125,11 @@ const columns = [
         translationPath: 'footer.getStarted',
         rows: [
             {
-                link: 'https://www.new.expensify.com/',
+                link: CONST.NEW_EXPENSIFY_URL,
                 translationPath: 'footer.createAccount',
             },
             {
-                link: 'https://www.new.expensify.com/',
+                link: CONST.NEW_EXPENSIFY_URL,
                 translationPath: 'footer.logIn',
             },
         ],

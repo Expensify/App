@@ -889,6 +889,30 @@ const CONST = {
         LEAVE_ROOM: 'leaveRoom',
     },
 
+    FOOTER: {
+        EXPENSE_MANAGEMENT_URL: 'https://use.expensify.com/expense-management',
+        SPEND_MANAGEMENT_URL: 'https://use.expensify.com/spend-management',
+        EXPENSE_REPORTS_URL: 'https://use.expensify.com/expense-reports',
+        COMPANY_CARD_URL: 'https://use.expensify.com/company-credit-card',
+        RECIEPT_SCANNING_URL: 'https://use.expensify.com/receipt-scanning-app',
+        BILL_PAY_URL: 'https://use.expensify.com/bills',
+        INVOICES_URL: 'https://use.expensify.com/invoices',
+        CPA_CARD_URL: 'https://use.expensify.com/cpa-card',
+        PAYROLL_URL: 'https://use.expensify.com/payroll',
+        TRAVEL_URL: 'https://use.expensify.com/travel',
+        EXPENSIFY_APPROVED_URL: 'https://use.expensify.com/accountants',
+        PRESS_KIT_URL: 'https://we.are.expensify.com/press-kit',
+        SUPPORT_URL: 'https://use.expensify.com/support',
+        HELP_URL: 'https://help.expensify.com/',
+        COMMUNITY_URL: 'https://community.expensify.com/',
+        PRIVACY_URL: 'https://use.expensify.com/privacy',
+        ABOUT_URL: 'https://we.are.expensify.com/',
+        BLOG_URL: 'https://blog.expensify.com/',
+        JOBS_URL: 'https://we.are.expensify.com/apply',
+        ORG_URL: 'https://expensify.org/',
+        INVESTOR_RELATIONS_URL: 'https://ir.expensify.com/',
+    },
+
     // These split the maximum decimal value of a signed 64-bit number (9,223,372,036,854,775,807) into parts where none of them are too big to fit into a 32-bit number, so that we can
     // generate them each with a random number generator with only 32-bits of precision.
     MAX_64BIT_LEFT_PART: 92233,
