@@ -19,6 +19,7 @@ import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
 import paypalMeDataPropTypes from '../../../components/paypalMeDataPropTypes';
 import cardPropTypes from '../../../components/cardPropTypes';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
+import FormAlertWrapper from '../../../components/FormAlertWrapper';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import Log from '../../../libs/Log';
@@ -229,17 +230,24 @@ class PaymentMethodList extends Component {
                 {
                     this.props.shouldShowAddPaymentMethodButton
                     && (
-                    <Button
-                        text={this.props.translate('paymentMethodList.addPaymentMethod')}
-                        icon={Expensicons.CreditCard}
-                        onPress={e => this.props.onPress(e)}
-                        style={[styles.mh4, styles.buttonCTA]}
-                        iconStyles={[styles.buttonCTAIcon]}
-                        key="addPaymentMethodButton"
-                        success
-                        shouldShowRightIcon
-                        large
-                    />
+                        <FormAlertWrapper>
+                            {
+                                isOffline => (
+                                    <Button
+                                        text={this.props.translate('paymentMethodList.addPaymentMethod')}
+                                        icon={Expensicons.CreditCard}
+                                        onPress={e => this.props.onPress(e)}
+                                        isDisabled={isOffline}
+                                        style={[styles.mh4, styles.buttonCTA]}
+                                        iconStyles={[styles.buttonCTAIcon]}
+                                        key="addPaymentMethodButton"
+                                        success
+                                        shouldShowRightIcon
+                                        large
+                                    />
+                                )
+                            }
+                        </FormAlertWrapper>
                     )
                 }
             </>
