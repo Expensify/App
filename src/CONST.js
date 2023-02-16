@@ -881,6 +881,7 @@ const CONST = {
     BRICK_ROAD_INDICATOR_STATUS: {
         ERROR: 'error',
         INFO: 'info',
+        GREEN: 'green',
     },
     REPORT_DETAILS_MENU_ITEM: {
         MEMBERS: 'member',
