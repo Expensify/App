@@ -99,7 +99,9 @@ class Form extends React.Component {
 
         this.state = {
             errors: {},
-            inputValues: props.draftValues,
+            inputValues: {
+                ...props.draftValues,
+            },
         };
 
         this.formRef = React.createRef(null);
