@@ -54,32 +54,8 @@ class DatePicker extends React.Component {
     }
 
     /**
-     * To prevent bad UX, calendar should be hidden when resizing window.
-     * After opening it again, it will be positioned correctly with recalculated value.
+     * Function called on window resize, to hide DatePicker and recalculate position of the calendar popover in the window
      */
-    onWindowResize() {
-        if (this.wrapperRef) {
-            const {
-                x, y, width, height, left, top,
-            } = this.wrapperRef.getBoundingClientRect();
-            this.setState({
-                pickerLayout: {
-                    x, y, width, height, left, top,
-                },
-            });
-        }
-
-        if (!this.state.isPickerVisible) {
-            return;
-        }
-
-        this.setState({isPickerVisible: false});
-    }
-
-    componentWillUnmount() {
-        window.removeEventListener('resize', this.onWindowResize);
-    }
-
     onWindowResize() {
         if (this.wrapperRef) {
             const {
