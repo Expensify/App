@@ -180,7 +180,7 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
  * Then, sort by their created timestamp first, and reportActionID second
  * This is a combination of getSortedReportActions() and filterReportActionsForDisplay()
  *
- * @param {Array} reportActions
+ * @param {Object} reportActions
  * @returns {Array}
  */
 function getSortedReportActionsForDisplay(reportActions) {
