@@ -196,6 +196,7 @@ function getSortedReportActionsForDisplay(reportActions) {
         }
 
         if (String(reportAction.sequenceNumber) === key) {
+            Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
             return false;
         }
 
