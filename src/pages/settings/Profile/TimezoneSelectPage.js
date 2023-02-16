@@ -39,7 +39,7 @@ class TimezoneSelectPage extends Component {
             .filter(timezone => !timezone.startsWith('Etc/GMT'))
             .map(timezone => ({
                 text: timezone,
-                keyForList: timezone,
+                keyForList: this.getKey(timezone),
 
                 // Include the green checkmark icon to indicate the currently selected value
                 customIcon: timezone === this.timezone.selected ? greenCheckmark : undefined,
@@ -59,22 +59,36 @@ class TimezoneSelectPage extends Component {
         // componentDidUpdate is added in order to update the timezone options when automatic is toggled on/off as
         // navigating back doesn't unmount the page, thus it won't update the timezone options & stay disabled without this.
         const newTimezone = lodashGet(this.props.currentUserPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
-        if (_.isEqual(this.timezone, newTimezone)) { return; }
+        if (_.isEqual(this.timezone, newTimezone)) {
+            return;
+        }
         this.timezone = newTimezone;
-        const updatedAllTimezones = _.map(this.allTimezones, timezone => ({
-            ...timezone,
+        this.allTimezones = _.map(this.allTimezones, (timezone) => {
+            const text = timezone.text.split('-')[0];
+            return {
+                text,
+                keyForList: this.getKey(text),
 
-            // Include the green checkmark icon to indicate the currently selected value
-            customIcon: timezone === this.timezone.selected ? greenCheckmark : undefined,
+                // Include the green checkmark icon to indicate the currently selected value
+                customIcon: text === this.timezone.selected ? greenCheckmark : undefined,
 
-            // This property will make the currently selected value have bold text
-            boldStyle: timezone === this.timezone.selected,
-        }));
+                // This property will make the currently selected value have bold text
+                boldStyle: text === this.timezone.selected,
+            };
+        });
 
         this.setState({
             timezoneInputText: this.timezone.selected,
-            timezoneOptions: updatedAllTimezones,
+            timezoneOptions: this.allTimezones,
         });
+    }
+
+    /**
+     * @param {String} text
+     * @return {string} key for list item
+     */
+    getKey(text) {
+        return `${text}-${(new Date()).getTime()}`;
     }
 
     /**
