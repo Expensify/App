@@ -54,7 +54,10 @@ class AttachmentPicker extends React.Component {
                 />
                 {this.props.children({
                     openPicker: ({onPicked}) => {
-                        this.onPicked = onPicked;
+                        this.onPicked = (file) => {
+                            onPicked(file);
+                            this.props.onClose();
+                        };
                         this.fileInput.click();
                     },
                 })}

@@ -134,6 +134,7 @@ class ReportActionCompose extends React.Component {
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
         this.getIOUOptions = this.getIOUOptions.bind(this);
         this.addAttachment = this.addAttachment.bind(this);
+        this.setIsOpeningAttachmentPicker = this.setIsOpeningAttachmentPicker.bind(this);
         this.comment = props.comment;
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
@@ -155,6 +156,7 @@ class ReportActionCompose extends React.Component {
 
             // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
             conciergePlaceholderRandomIndex: _.random(this.props.translate('reportActionCompose.conciergePlaceholderOptions').length - (this.props.isSmallScreenWidth ? 4 : 1)),
+            isOpeningAttachmentPicker: false,
         };
     }
 
@@ -182,7 +184,7 @@ class ReportActionCompose extends React.Component {
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
         if (this.willBlurTextInputOnTapOutside && this.props.isFocused
-            && prevProps.modal.isVisible && !this.props.modal.isVisible) {
+            && prevProps.modal.isVisible && !this.props.modal.isVisible && !this.state.isOpeningAttachmentPicker) {
             this.focus();
         }
 
@@ -218,6 +220,10 @@ class ReportActionCompose extends React.Component {
 
     setIsFullComposerAvailable(isFullComposerAvailable) {
         this.setState({isFullComposerAvailable});
+    }
+
+    setIsOpeningAttachmentPicker(isOpeningAttachmentPicker) {
+        this.setState({isOpeningAttachmentPicker});
     }
 
     /**
@@ -632,16 +638,21 @@ class ReportActionCompose extends React.Component {
                                                 animationInTiming={CONST.ANIMATION_IN_TIMING}
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => {
+                                                    this.setIsOpeningAttachmentPicker(false);
                                                     this.setMenuVisibility(false);
                                                     this.focus(true);
                                                 }}
-                                                onItemSelected={() => this.setMenuVisibility(false)}
+                                                onItemSelected={() => {
+                                                    this.setIsOpeningAttachmentPicker(false);
+                                                    this.setMenuVisibility(false);
+                                                }}
                                                 anchorPosition={styles.createMenuPositionReportActionCompose}
                                                 menuItems={[...this.getIOUOptions(reportParticipants),
                                                     {
                                                         icon: Expensicons.Paperclip,
                                                         text: this.props.translate('reportActionCompose.addAttachment'),
                                                         onSelected: () => {
+                                                            this.setIsOpeningAttachmentPicker(true);
                                                             openPicker({
                                                                 onPicked: displayFileInModal,
                                                             });
