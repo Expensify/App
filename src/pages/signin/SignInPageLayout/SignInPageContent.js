@@ -73,7 +73,7 @@ const SignInPageContent = props => (
                         {props.children}
                     </SignInPageForm>
                 </View>
-                <View style={[styles.mb8]}>
+                <View style={[props.isSmallScreenWidth ? styles.flex1 : styles.mv5]}>
                     <Terms />
                 </View>
             </KeyboardAvoidingView>
