@@ -112,10 +112,10 @@ function getOrderedReportIDs(reportIDFromRoute) {
     // 2. Outstanding IOUs - Always sorted by iouReportAmount with the largest amounts at the top of the group
     // 3. Drafts - Always sorted by reportDisplayName
     // 4. Non-archived reports
-    //      - Sorted by lastActionCreated in default (most recent) view mode
+    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
     // 5. Archived reports
-    //      - Sorted by lastActionCreated in default (most recent) view mode
+    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
     let pinnedReports = [];
     let outstandingIOUReports = [];
@@ -152,9 +152,9 @@ function getOrderedReportIDs(reportIDFromRoute) {
     outstandingIOUReports = lodashOrderBy(outstandingIOUReports, ['iouReportAmount', report => report.displayName.toLowerCase()], ['desc', 'asc']);
     draftReports = _.sortBy(draftReports, report => report.displayName.toLowerCase());
     nonArchivedReports = isInDefaultMode
-        ? lodashOrderBy(nonArchivedReports, ['lastActionCreated', report => report.displayName.toLowerCase()], ['desc', 'asc'])
+        ? lodashOrderBy(nonArchivedReports, ['lastVisibleActionCreated', report => report.displayName.toLowerCase()], ['desc', 'asc'])
         : lodashOrderBy(nonArchivedReports, [report => report.displayName.toLowerCase()], ['asc']);
-    archivedReports = _.sortBy(archivedReports, report => (isInDefaultMode ? report.lastActionCreated : report.displayName.toLowerCase()));
+    archivedReports = _.sortBy(archivedReports, report => (isInDefaultMode ? report.lastVisibleActionCreated : report.displayName.toLowerCase()));
 
     // For archived reports ensure that most recent reports are at the top by reversing the order of the arrays because underscore will only sort them in ascending order
     if (isInDefaultMode) {
