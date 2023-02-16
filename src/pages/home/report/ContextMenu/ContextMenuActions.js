@@ -43,8 +43,8 @@ export default [
             <QuickEmojiReactions
                 key="QuickEmojiReactions"
                 onEmojiSelected={(emoji) => {
-                    console.log('emoji selected', emoji);
-                    Report.addReaction(reportID, reportAction, emoji);
+                    // TODO: we need to add the preferred skin tone here as well somehow
+                    Report.toggleReaction(reportID, reportAction, emoji);
                 }}
             />
         ),

@@ -1221,8 +1221,8 @@ function addReaction(reportID, originalReportAction, emoji, skinTone) {
         };
     }
 
-    const isReacted = hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone);
-    if (isReacted) {
+    const hasCurrentUserReacted = hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone);
+    if (hasCurrentUserReacted) {
         return;
     }
 
@@ -1298,6 +1298,18 @@ function removeReaction(reportID, originalReportAction, emoji) {
     // API.write('RemoveReaction', parameters, {optimisticData});
 }
 
+function toggleReaction(reportID, reportAction, emoji, skinTone) {
+    const message = reportAction.message[0];
+    const reactionObject = message.reactions && _.find(message.reactions, reaction => reaction.emoji === emoji.name);
+    if (reactionObject) {
+        const hasCurrentUserReacted = hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone);
+        if (hasCurrentUserReacted) {
+            return removeReaction(reportID, reportAction, emoji, skinTone);
+        }
+    }
+    return addReaction(reportID, reportAction, emoji, skinTone);
+}
+
 export {
     addComment,
     addAttachment,
@@ -1331,4 +1343,5 @@ export {
     showReportActionNotification,
     addReaction,
     removeReaction,
+    toggleReaction,
 };

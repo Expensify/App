@@ -81,8 +81,7 @@ class ReportActionItem extends Component {
         this.checkIfContextMenuActive = this.checkIfContextMenuActive.bind(this);
         this.showPopover = this.showPopover.bind(this);
         this.renderItemContent = this.renderItemContent.bind(this);
-        this.addReaction = this.addReaction.bind(this);
-        this.removeReaction = this.removeReaction.bind(this);
+        this.toggleReaction = this.toggleReaction.bind(this);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -142,12 +141,9 @@ class ReportActionItem extends Component {
         );
     }
 
-    addReaction(emoji) {
-        Report.addReaction(this.props.report.reportID, this.props.action, emoji);
-    }
-
-    removeReaction(emoji) {
-        Report.removeReaction(this.props.report.reportID, this.props.action, emoji);
+    toggleReaction(emoji) {
+        // TODO: we need to add the skin tone here somehow
+        Report.toggleReaction(this.props.report.reportID, this.props.action, emoji);
     }
 
     /**
@@ -215,8 +211,7 @@ class ReportActionItem extends Component {
                 {hasReactions && (
                     <ReportActionItemReactions
                         reactions={reactions}
-                        addReaction={this.addReaction}
-                        removeReaction={this.removeReaction}
+                        toggleReaction={this.toggleReaction}
                     />
                 )}
             </>
