@@ -148,6 +148,10 @@ class PDFView extends Component {
                                 width={pageWidth}
                                 key={`page_${index + 1}`}
                                 pageNumber={index + 1}
+
+                                // This needs to be empty to avoid multiple loading texts which show per page and look ugly
+                                // See https://github.com/Expensify/App/issues/14358 for more details
+                                loading=""
                             />
                         ))}
                     </Document>
@@ -157,7 +161,6 @@ class PDFView extends Component {
                         onSubmit={this.attemptPDFLoad}
                         onPasswordUpdated={() => this.setState({isPasswordInvalid: false})}
                         isPasswordInvalid={this.state.isPasswordInvalid}
-                        shouldAutofocusPasswordField={!this.props.isSmallScreenWidth}
                         onPasswordFieldFocused={this.toggleKeyboardOnSmallScreens}
                     />
                 )}

@@ -10,13 +10,11 @@ import PDFInfoMessage from './PDFInfoMessage';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import shouldDelayFocus from '../../libs/shouldDelayFocus';
 
 const propTypes = {
     /** If the submitted password is invalid (show an error message) */
     isPasswordInvalid: PropTypes.bool,
-
-    /** If the password field should be auto-focused */
-    shouldAutofocusPasswordField: PropTypes.bool,
 
     /** If loading indicator should be shown */
     shouldShowLoadingIndicator: PropTypes.bool,
@@ -36,7 +34,6 @@ const propTypes = {
 
 const defaultProps = {
     isPasswordInvalid: false,
-    shouldAutofocusPasswordField: false,
     shouldShowLoadingIndicator: false,
     onSubmit: () => {},
     onPasswordUpdated: () => {},
@@ -120,7 +117,8 @@ class PDFPasswordForm extends Component {
                             errorText={this.props.isPasswordInvalid ? this.props.translate('attachmentView.passwordIncorrect') : this.state.validationErrorText}
                             onFocus={() => this.props.onPasswordFieldFocused(true)}
                             onBlur={this.validateAndNotifyPasswordBlur}
-                            autoFocus={this.props.shouldAutofocusPasswordField}
+                            autoFocus
+                            shouldDelayFocus={shouldDelayFocus}
                             secureTextEntry
                         />
                         <Button

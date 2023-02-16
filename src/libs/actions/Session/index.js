@@ -15,7 +15,10 @@ import * as Authentication from '../../Authentication';
 import * as Welcome from '../Welcome';
 import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
+import * as Report from '../Report';
 import DateUtils from '../../DateUtils';
+import Navigation from '../../Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 let credentials = {};
 Onyx.connect({
@@ -40,6 +43,10 @@ Onyx.connect({
 
         if (accountID) {
             PushNotification.register(accountID);
+
+            // Prevent issue where report linking fails after users switch accounts without closing the app
+            PushNotification.init();
+            Report.subscribeToReportCommentPushNotifications();
         } else {
             PushNotification.deregister();
             PushNotification.clearNotifications();
@@ -133,6 +140,13 @@ function beginSignIn(login) {
                 isLoading: false,
             },
         },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.CREDENTIALS,
+            value: {
+                validateCode: null,
+            },
+        },
     ];
 
     const failureData = [
@@ -201,10 +215,11 @@ function signInWithShortLivedAuthToken(email, authToken) {
  * then it will create a temporary login for them which is used when re-authenticating
  * after an authToken expires.
  *
- * @param {String} password
+ * @param {String} password This will be removed after passwordless beta ends
+ * @param {String} [validateCode] Code for passwordless login
  * @param {String} [twoFactorAuthCode]
  */
-function signIn(password, twoFactorAuthCode) {
+function signIn(password, validateCode, twoFactorAuthCode) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -236,7 +251,75 @@ function signIn(password, twoFactorAuthCode) {
         },
     ];
 
-    API.write('SigninUser', {email: credentials.login, password, twoFactorAuthCode}, {optimisticData, successData, failureData});
+    const params = {twoFactorAuthCode};
+    if (credentials.login) {
+        // The user initiated the sign in operation on the current device, sign in with the email
+        params.email = credentials.login;
+    } else {
+        // The user is signing in with the accountID and validateCode from the magic link
+        params.accountID = credentials.accountID;
+    }
+
+    // Conditionally pass a password or validateCode to command since we temporarily allow both flows
+    if (validateCode) {
+        params.validateCode = validateCode;
+    } else {
+        params.password = password;
+    }
+
+    API.write('SigninUser', params, {optimisticData, successData, failureData});
+}
+
+function signInWithValidateCode(accountID, validateCode) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                ...CONST.DEFAULT_ACCOUNT_DATA,
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.CREDENTIALS,
+            value: {
+                accountID,
+                validateCode,
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    // This is temporary for now. Server should login with the accountID and validateCode
+    API.write('SigninUser', {
+        validateCode,
+        accountID,
+    }, {optimisticData, successData, failureData});
+}
+
+function signInWithValidateCodeAndNavigate(accountID, validateCode) {
+    signInWithValidateCode(accountID, validateCode);
+    Navigation.navigate(ROUTES.HOME);
 }
 
 /**
@@ -457,6 +540,8 @@ export {
     beginSignIn,
     updatePasswordAndSignin,
     signIn,
+    signInWithValidateCode,
+    signInWithValidateCodeAndNavigate,
     signInWithShortLivedAuthToken,
     cleanupSession,
     signOut,

@@ -103,7 +103,7 @@ class CompanyStep extends React.Component {
         }
 
         if (!values.incorporationDate || !ValidationUtils.isValidDate(values.incorporationDate)) {
-            errors.incorporationDate = this.props.translate('bankAccount.error.incorporationDate');
+            errors.incorporationDate = this.props.translate('common.error.dateInvalid');
         } else if (!values.incorporationDate || !ValidationUtils.isValidPastDate(values.incorporationDate)) {
             errors.incorporationDate = this.props.translate('bankAccount.error.incorporationDateFuture');
         }
@@ -137,9 +137,9 @@ class CompanyStep extends React.Component {
     }
 
     render() {
-        const bankAccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0;
-        const shouldDisableCompanyName = bankAccountID && this.props.getDefaultStateForField('companyName');
-        const shouldDisableCompanyTaxID = bankAccountID && this.props.getDefaultStateForField('companyTaxID');
+        const bankAccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID', 0);
+        const shouldDisableCompanyName = Boolean(bankAccountID && this.props.getDefaultStateForField('companyName'));
+        const shouldDisableCompanyTaxID = Boolean(bankAccountID && this.props.getDefaultStateForField('companyTaxID'));
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -200,6 +200,7 @@ class CompanyStep extends React.Component {
                         defaultValue={this.props.getDefaultStateForField('website', this.defaultWebsite)}
                         shouldSaveDraft
                         hint={this.props.translate('common.websiteExample')}
+                        keyboardType={CONST.KEYBOARD_TYPE.URL}
                     />
                     <TextInput
                         inputID="companyTaxID"

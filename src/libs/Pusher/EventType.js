@@ -8,4 +8,5 @@ export default {
     EXPENSIFY_CARD_UPDATE: 'expensifyCardUpdate',
     SCREEN_SHARE_REQUEST: 'screenshareRequest',
     ONYX_API_UPDATE: 'onyxApiUpdate',
+    USER_IS_TYPING: 'client-userIsTyping',
 };
