@@ -84,10 +84,10 @@ const CalendarPicker = (props) => {
                     <ArrowIcon />
                 </TouchableOpacity>
                 <View style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentEnd]}>
-                    <TouchableOpacity onPress={onPrevMonthPress}>
+                    <TouchableOpacity testID="prev-month-arrow" onPress={onPrevMonthPress}>
                         <ArrowIcon direction="left" />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={onNextMonthPress}>
+                    <TouchableOpacity testID="next-month-arrow" onPress={onNextMonthPress}>
                         <ArrowIcon />
                     </TouchableOpacity>
                 </View>
