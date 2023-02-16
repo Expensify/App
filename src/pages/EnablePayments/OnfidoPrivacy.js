@@ -13,16 +13,13 @@ import compose from '../../libs/compose';
 import Text from '../../components/Text';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import FormScrollView from '../../components/FormScrollView';
-import walletAdditionalDetailsDraftPropTypes from './walletAdditionalDetailsDraftPropTypes';
 import walletOnfidoDataPropTypes from './walletOnfidoDataPropTypes';
 import * as ErrorUtils from '../../libs/ErrorUtils';
+import FixedFooter from '../../components/FixedFooter';
 
 const propTypes = {
     /** Stores various information used to build the UI and call any APIs */
     walletOnfidoData: walletOnfidoDataPropTypes,
-
-    /** Stores the personal details typed by the user */
-    walletAdditionalDetailsDraft: walletAdditionalDetailsDraftPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -46,11 +43,7 @@ class OnfidoPrivacy extends React.Component {
     }
 
     openOnfidoFlow() {
-        BankAccounts.openOnfidoFlow(
-            this.props.walletAdditionalDetailsDraft.legalFirstName,
-            this.props.walletAdditionalDetailsDraft.legalLastName,
-            this.props.walletAdditionalDetailsDraft.dob,
-        );
+        BankAccounts.openOnfidoFlow();
     }
 
     render() {
@@ -59,43 +52,48 @@ class OnfidoPrivacy extends React.Component {
         onfidoError += !_.isEmpty(onfidoFixableErrors) ? `\n${onfidoFixableErrors.join('\n')}` : '';
 
         return (
-            <View style={[styles.mb5, styles.flex1, styles.justifyContentBetween]}>
+            <View style={[styles.flex1, styles.justifyContentBetween]}>
                 {!this.props.walletOnfidoData.hasAcceptedPrivacyPolicy ? (
-                    <FormScrollView ref={el => this.form = el}>
-                        <View style={[styles.mh5, styles.justifyContentCenter]}>
-                            <Text style={[styles.mb5]}>
-                                {this.props.translate('onfidoStep.acceptTerms')}
-                                <TextLink
-                                    href="https://onfido.com/facial-scan-policy-and-release/"
-                                >
-                                    {this.props.translate('onfidoStep.facialScan')}
-                                </TextLink>
-                                {', '}
-                                <TextLink
-                                    href="https://onfido.com/privacy/"
-                                >
-                                    {this.props.translate('common.privacy')}
-                                </TextLink>
-                                {` ${this.props.translate('common.and')} `}
-                                <TextLink
-                                    href="https://onfido.com/terms-of-service/"
-                                >
-                                    {this.props.translate('common.termsOfService')}
-                                </TextLink>
-                                .
-                            </Text>
-                        </View>
-                        <FormAlertWithSubmitButton
-                            isAlertVisible={Boolean(onfidoError)}
-                            onSubmit={this.openOnfidoFlow}
-                            onFixTheErrorsLinkPressed={() => {
-                                this.form.scrollTo({y: 0, animated: true});
-                            }}
-                            message={onfidoError}
-                            isLoading={this.props.walletOnfidoData.isLoading}
-                            buttonText={onfidoError ? this.props.translate('onfidoStep.tryAgain') : this.props.translate('common.continue')}
-                        />
-                    </FormScrollView>
+                    <>
+                        <FormScrollView ref={el => this.form = el}>
+                            <View style={[styles.mh5, styles.justifyContentCenter]}>
+                                <Text style={[styles.mb5]}>
+                                    {this.props.translate('onfidoStep.acceptTerms')}
+                                    <TextLink
+                                        href="https://onfido.com/facial-scan-policy-and-release/"
+                                    >
+                                        {this.props.translate('onfidoStep.facialScan')}
+                                    </TextLink>
+                                    {', '}
+                                    <TextLink
+                                        href="https://onfido.com/privacy/"
+                                    >
+                                        {this.props.translate('common.privacy')}
+                                    </TextLink>
+                                    {` ${this.props.translate('common.and')} `}
+                                    <TextLink
+                                        href="https://onfido.com/terms-of-service/"
+                                    >
+                                        {this.props.translate('common.termsOfService')}
+                                    </TextLink>
+                                    .
+                                </Text>
+                            </View>
+                        </FormScrollView>
+                        <FixedFooter>
+                            <FormAlertWithSubmitButton
+                                isAlertVisible={Boolean(onfidoError)}
+                                onSubmit={this.openOnfidoFlow}
+                                onFixTheErrorsLinkPressed={() => {
+                                    this.form.scrollTo({y: 0, animated: true});
+                                }}
+                                message={onfidoError}
+                                isLoading={this.props.walletOnfidoData.isLoading}
+                                buttonText={onfidoError ? this.props.translate('onfidoStep.tryAgain') : this.props.translate('common.continue')}
+                                containerStyles={[styles.mh0, styles.mv0, styles.mb0]}
+                            />
+                        </FixedFooter>
+                    </>
                 ) : null}
                 {this.props.walletOnfidoData.hasAcceptedPrivacyPolicy && this.props.walletOnfidoData.isLoading ? <FullscreenLoadingIndicator /> : null}
             </View>
