@@ -346,6 +346,8 @@ export default {
         helpTextAfterEmail: ' from multiple email addresses.',
         pleaseVerify: 'Please verify this contact method',
         getInTouch: "Whenever we need to get in touch with you, we'll use this contact method.",
+        clickVerificationLink: 'Click the verification link we sent you to verify this contact method, or tap above to resend.',
+        tempContactVerifiedText: 'This contact method is verified so there is nothing to do here at the moment. Soon you will be able to delete this contact method if desired.',
     },
     pronouns: {
         coCos: 'Co / Cos',

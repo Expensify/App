@@ -346,6 +346,8 @@ export default {
         helpTextAfterEmail: '',
         pleaseVerify: '',
         getInTouch: '',
+        clickVerificationLink: '',
+        tempContactVerifiedText: '',
     },
     pronouns: {
         coCos: 'Co / Cos',
