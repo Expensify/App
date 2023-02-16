@@ -71,6 +71,7 @@ class ReportActionItemMessageEdit extends React.Component {
         this.saveButtonID = 'saveButton';
         this.cancelButtonID = 'cancelButton';
         this.emojiButtonID = 'emojiButton';
+        this.messageEditInput = 'MessageEditInput';
 
         const parser = new ExpensiMark();
         const draftMessage = parser.htmlToMarkdown(this.props.draftMessage);
@@ -245,7 +246,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         }}
                         onBlur={(event) => {
                             // Return to prevent re-render when save/cancel button is pressed which cancels the onPress event by re-rendering
-                            if (_.contains([this.saveButtonID, this.cancelButtonID, this.emojiButtonID], lodashGet(event, 'nativeEvent.relatedTarget.id'))) {
+                            if (_.contains([this.saveButtonID, this.cancelButtonID, this.emojiButtonID, this.messageEditInput], lodashGet(event, 'nativeEvent.relatedTarget.id'))) {
                                 return;
                             }
                             this.setState({isFocused: false});
