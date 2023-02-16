@@ -112,7 +112,7 @@ const CalendarPicker = (props) => {
                 <View key={`week-${week}`} style={styles.flexRow}>
                     {_.map(week, (day, index) => {
                         const currentDate = moment([currentYearView, currentMonthView, day]);
-                        const isBeforeMinDate = props.minDate && (currentDate.toDate() < new Date(props.minDate));
+                        const isBeforeMinDate = props.minDate && (currentDate.toDate() < new Date(props.minDate).setHours(0, 0, 0, 0));
                         const isAfterMaxDate = props.maxDate && (currentDate.toDate() > new Date(props.maxDate));
                         const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
 
