@@ -4,6 +4,7 @@ import {
     View,
     TouchableOpacity,
     InteractionManager,
+    LayoutAnimation,
 } from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -21,6 +22,9 @@ import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
 import PopoverMenu from '../../../components/PopoverMenu';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withDrawerState from '../../../components/withDrawerState';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import willBlurTextInputOnTapOutside from '../../../libs/willBlurTextInputOnTapOutside';
 import CONST from '../../../CONST';
 import Permissions from '../../../libs/Permissions';
@@ -42,13 +46,12 @@ import OfflineIndicator from '../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
-import reportPropTypes from '../../reportPropTypes';
 import ReportDropUI from './ReportDropUI';
 import DragAndDrop from '../../../components/DragAndDrop';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import withDrawerState from '../../../components/withDrawerState';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import reportPropTypes from '../../reportPropTypes';
+import EmojiSuggestions from '../../../components/EmojiSuggestions';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
+import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
 
 const propTypes = {
     /** Beta features list */
@@ -88,7 +91,7 @@ const propTypes = {
     isFocused: PropTypes.bool.isRequired,
 
     /** Is the composer full size */
-    isComposerFullSize: PropTypes.bool,
+    isComposerFullSize: PropTypes.bool.isRequired,
 
     /** Whether user interactions should be disabled */
     disabled: PropTypes.bool,
@@ -116,6 +119,14 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
+/**
+  * Return number of emoji suggestions. For small screen we can fit 3 items and for large we show up to 5 items
+ * @param {Number} numRows
+ * @param {Boolean} isEmojiPickerLarge
+ * @returns {Number}
+ */
+const getEmojiRowCount = (numRows, isEmojiPickerLarge) => (isEmojiPickerLarge ? Math.max(numRows, 5) : Math.max(numRows, 3));
+
 class ReportActionCompose extends React.Component {
     constructor(props) {
         super(props);
@@ -126,14 +137,19 @@ class ReportActionCompose extends React.Component {
         this.triggerHotkeyActions = this.triggerHotkeyActions.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
+        this.onCloseEmojiSuggestions = this.onCloseEmojiSuggestions.bind(this);
         this.setIsFullComposerAvailable = this.setIsFullComposerAvailable.bind(this);
         this.focus = this.focus.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
+
+        this.calculateEmojiSuggestion = _.debounce(this.calculateEmojiSuggestion.bind(this), 10, false);
         this.onSelectionChange = this.onSelectionChange.bind(this);
+        this.isLikeEmojiCode = this.isLikeEmojiCode.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
         this.getIOUOptions = this.getIOUOptions.bind(this);
         this.addAttachment = this.addAttachment.bind(this);
+        this.insertSelectedEmoji = this.insertSelectedEmoji.bind(this);
         this.comment = props.comment;
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
@@ -155,6 +171,12 @@ class ReportActionCompose extends React.Component {
 
             // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
             conciergePlaceholderRandomIndex: _.random(this.props.translate('reportActionCompose.conciergePlaceholderOptions').length - (this.props.isSmallScreenWidth ? 4 : 1)),
+            suggestedEmojis: [],
+            highlightedEmojiIndex: 0,
+            colonIndex: -1,
+            shouldShowSuggestionMenu: false,
+            isEmojiPickerLarge: false,
+            composerHeight: 0,
         };
     }
 
@@ -205,6 +227,19 @@ class ReportActionCompose extends React.Component {
 
     onSelectionChange(e) {
         this.setState({selection: e.nativeEvent.selection});
+        this.calculateEmojiSuggestion();
+    }
+
+    /**
+     * Clean data related to EmojiSuggestions
+     *
+     * @param {Boolean} shouldHighlight
+     */
+    onCloseEmojiSuggestions() {
+        this.setState({
+            suggestedEmojis: [],
+            shouldShowSuggestionMenu: false,
+        });
     }
 
     /**
@@ -294,14 +329,15 @@ class ReportActionCompose extends React.Component {
             ];
         }
 
-        // DM chats and workspace chats that only have 2 people will see the Send / Request money options.
+        // DM chats that only have 2 people will see the Send / Request money options.
+        // Workspace chats should only see the Request money option, as "easy overages" is not available.
         return [
             {
                 icon: Expensicons.MoneyCircle,
                 text: this.props.translate('iou.requestMoney'),
                 onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
             },
-            ...(Permissions.canUseIOUSend(this.props.betas)
+            ...((Permissions.canUseIOUSend(this.props.betas) && !ReportUtils.isPolicyExpenseChat(this.props.report))
                 ? [
                     {
                         icon: Expensicons.Send,
@@ -323,6 +359,69 @@ class ReportActionCompose extends React.Component {
         this.setState({maxLines});
     }
 
+    /**
+     * Calculates and cares about the content of an Emoji Suggester
+     */
+    calculateEmojiSuggestion() {
+        const leftString = this.state.value.substring(0, this.state.selection.end);
+        const colonIndex = leftString.lastIndexOf(':');
+        const isCurrentlyShowingEmojiSuggestion = this.isLikeEmojiCode(this.state.value, this.state.selection.end);
+
+        // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
+        const isEnoughSpaceForSuggestion = this.props.windowHeight / this.state.composerHeight >= 6.8;
+        const isEmojiPickerLarge = !this.props.isSmallScreenWidth || (this.props.isSmallScreenWidth && isEnoughSpaceForSuggestion);
+
+        const nextState = {
+            suggestedEmojis: [],
+            highlightedEmojiIndex: 0,
+            colonIndex,
+            shouldShowSuggestionMenu: false,
+            isEmojiPickerLarge,
+        };
+        const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString);
+
+        if (newSuggestedEmojis.length && isCurrentlyShowingEmojiSuggestion) {
+            nextState.suggestedEmojis = newSuggestedEmojis;
+            nextState.shouldShowSuggestionMenu = !_.isEmpty(newSuggestedEmojis);
+        }
+
+        LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
+
+        this.setState(nextState);
+    }
+
+    /**
+     * Check if this piece of string looks like an emoji
+     * @param {Number} str
+     * @param {Number} pos
+     * @returns {Boolean}
+     */
+    isLikeEmojiCode(str, pos) {
+        const leftWords = str.slice(0, pos).split(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE);
+        const leftWord = _.last(leftWords);
+
+        return CONST.REGEX.HAS_COLON_ONLY_AT_THE_BEGINNING.test(leftWord) && leftWord.length > 2;
+    }
+
+    /**
+     * Replace the code of emoji and update selection
+     * @param {Number} highlightedEmojiIndex
+     */
+    insertSelectedEmoji(highlightedEmojiIndex) {
+        const commentBeforeColon = this.state.value.slice(0, this.state.colonIndex);
+        const emojiCode = this.state.suggestedEmojis[highlightedEmojiIndex].code;
+        const commentAfterColonWithEmojiNameRemoved = this.state.value.slice(this.state.selection.end).replace(CONST.REGEX.EMOJI_REPLACER, ' ');
+
+        this.updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, false);
+        this.setState(prevState => ({
+            selection: {
+                start: prevState.colonIndex + emojiCode.length,
+                end: prevState.colonIndex + emojiCode.length,
+            },
+            suggestedEmojis: [],
+        }));
+    }
+
     isEmptyChat() {
         return _.size(this.props.reportActions) === 1;
     }
@@ -333,12 +432,14 @@ class ReportActionCompose extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
+        const emojiWithSpace = `${emoji} `;
         const newComment = this.comment.slice(0, this.state.selection.start)
-            + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
+            + emojiWithSpace
+            + this.comment.slice(this.state.selection.end, this.comment.length);
         this.setState(prevState => ({
             selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
+                start: prevState.selection.start + emojiWithSpace.length,
+                end: prevState.selection.start + emojiWithSpace.length,
             },
         }));
         this.updateComment(newComment);
@@ -438,7 +539,14 @@ class ReportActionCompose extends React.Component {
      */
     triggerHotkeyActions(e) {
         // Do not trigger actions for mobileWeb or native clients that have the keyboard open because for those devices, we want the return key to insert newlines rather than submit the form
-        if (!e || this.props.isSmallScreenWidth || this.props.isKeyboardShown) {
+        if (e.key === 'Enter' && this.state.suggestedEmojis.length) {
+            e.preventDefault();
+            this.insertSelectedEmoji(this.state.highlightedEmojiIndex);
+            return;
+        }
+        if (e.key === 'Escape' && this.state.suggestedEmojis.length) {
+            e.preventDefault();
+            this.onCloseEmojiSuggestions();
             return;
         }
 
@@ -471,7 +579,7 @@ class ReportActionCompose extends React.Component {
         const trimmedComment = this.comment.trim();
 
         // Don't submit empty comments or comments that exceed the character limit
-        if (this.state.isCommentEmpty || trimmedComment.length > CONST.MAX_COMMENT_LENGTH) {
+        if (this.state.isCommentEmpty || ReportUtils.getCommentLength(trimmedComment) > CONST.MAX_COMMENT_LENGTH) {
             return '';
         }
 
@@ -534,7 +642,9 @@ class ReportActionCompose extends React.Component {
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
-        const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
+        const encodedCommentLength = ReportUtils.getCommentLength(this.comment);
+        const hasExceededMaxCommentLength = encodedCommentLength > CONST.MAX_COMMENT_LENGTH;
+        const shouldUseFocusedColor = !isBlockedFromConcierge && !this.props.disabled && (this.state.isFocused || this.state.isDraggingOver);
 
         return (
             <View style={[
@@ -542,10 +652,9 @@ class ReportActionCompose extends React.Component {
                 this.props.isComposerFullSize && styles.chatItemFullComposeRow,
             ]}
             >
-                {shouldShowReportRecipientLocalTime
-                    && <ParticipantLocalTime participant={reportRecipient} />}
+                {shouldShowReportRecipientLocalTime && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
-                    (!isBlockedFromConcierge && !this.props.disabled && (this.state.isFocused || this.state.isDraggingOver))
+                    shouldUseFocusedColor
                         ? styles.chatItemComposeBoxFocusedColor
                         : styles.chatItemComposeBoxColor,
                     styles.flexRow,
@@ -573,6 +682,7 @@ class ReportActionCompose extends React.Component {
                                                         <TouchableOpacity
                                                             onPress={(e) => {
                                                                 e.preventDefault();
+                                                                this.setState({shouldShowSuggestionMenu: false});
                                                                 Report.setIsComposerFullSize(this.props.reportID, false);
                                                             }}
 
@@ -591,6 +701,7 @@ class ReportActionCompose extends React.Component {
                                                         <TouchableOpacity
                                                             onPress={(e) => {
                                                                 e.preventDefault();
+                                                                this.setState({shouldShowSuggestionMenu: false});
                                                                 Report.setIsComposerFullSize(this.props.reportID, true);
                                                             }}
 
@@ -676,7 +787,10 @@ class ReportActionCompose extends React.Component {
                                             style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                                             maxLines={this.state.maxLines}
                                             onFocus={() => this.setIsFocused(true)}
-                                            onBlur={() => this.setIsFocused(false)}
+                                            onBlur={() => {
+                                                this.setIsFocused(false);
+                                                this.onCloseEmojiSuggestions();
+                                            }}
                                             onPasteFile={displayFileInModal}
                                             shouldClear={this.state.textInputShouldClear}
                                             onClear={() => this.setTextInputShouldClear(false)}
@@ -687,6 +801,8 @@ class ReportActionCompose extends React.Component {
                                             setIsFullComposerAvailable={this.setIsFullComposerAvailable}
                                             isComposerFullSize={this.props.isComposerFullSize}
                                             value={this.state.value}
+                                            onLayout={e => this.setState({composerHeight: e.nativeEvent.layout.height})}
+                                            onScroll={() => this.setState({shouldShowSuggestionMenu: false})}
                                         />
                                     </DragAndDrop>
                                 </View>
@@ -729,9 +845,32 @@ class ReportActionCompose extends React.Component {
                 >
                     {!this.props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                     <ReportTypingIndicator reportID={this.props.reportID} />
-                    <ExceededCommentLength commentLength={this.comment.length} />
+                    <ExceededCommentLength commentLength={encodedCommentLength} />
                 </View>
                 {this.state.isDraggingOver && <ReportDropUI />}
+                {!_.isEmpty(this.state.suggestedEmojis) && this.state.shouldShowSuggestionMenu && (
+                    <ArrowKeyFocusManager
+                        focusedIndex={this.state.highlightedEmojiIndex}
+                        maxIndex={getEmojiRowCount(this.state.suggestedEmojis.length, this.state.isEmojiPickerLarge)}
+                        onFocusedIndexChanged={index => this.setState({highlightedEmojiIndex: index})}
+                    >
+                        <EmojiSuggestions
+                            isVisible={!_.isEmpty(this.state.suggestedEmojis)}
+                            onClose={() => this.setState({suggestedEmojis: []})}
+                            highlightedEmojiIndex={this.state.highlightedEmojiIndex}
+                            emojis={this.state.suggestedEmojis}
+                            comment={this.state.value}
+                            updateComment={newComment => this.setState({value: newComment})}
+                            colonIndex={this.state.colonIndex}
+                            prefix={this.state.value.slice(this.state.colonIndex + 1).split(' ')[0]}
+                            onSelect={this.insertSelectedEmoji}
+                            isComposerFullSize={this.props.isComposerFullSize}
+                            isEmojiPickerLarge={this.state.isEmojiPickerLarge}
+                            composerHeight={this.state.composerHeight}
+                            shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
+                        />
+                    </ArrowKeyFocusManager>
+                )}
             </View>
         );
     }
