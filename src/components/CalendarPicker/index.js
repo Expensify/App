@@ -24,10 +24,9 @@ const CalendarPicker = (props) => {
     const [yearPickerVisible, setYearPickerVisible] = React.useState(false);
     const [monthPickerVisible, setMonthPickerVisible] = React.useState(false);
 
-    const currentMonthView = moment(props.maxDate).toDate() < currentDateView ? moment(props.maxDate).month() : currentDateView.getMonth();
-    const currentYearView = moment(props.maxDate).toDate() < currentDateView ? moment(props.maxDate).year() : currentDateView.getFullYear();
+    const currentMonthView = props.maxDate && moment(props.maxDate).toDate() < currentDateView ? moment(props.maxDate).month() : currentDateView.getMonth();
+    const currentYearView = props.maxDate && moment(props.maxDate).toDate() < currentDateView ? moment(props.maxDate).year() : currentDateView.getFullYear();
     const monthMatrix = generateMonthMatrix(currentYearView, currentMonthView);
-
     const onNextMonthPress = () => setCurrentDateView(prev => addMonths(prev, 1));
     const onPrevMonthPress = () => setCurrentDateView(prev => addMonths(prev, -1));
     const onMonthPickerPress = () => setMonthPickerVisible(true);
@@ -42,7 +41,7 @@ const CalendarPicker = (props) => {
         }
         const selectedDate = new Date(currentYearView, currentMonthView, day);
 
-        if ((props.minDate && selectedDate < new Date(props.minDate))
+        if ((props.minDate && selectedDate < new Date(props.minDate).setHours(0, 0, 0, 0))
              || (props.maxDate && selectedDate > new Date(props.maxDate))) {
             return;
         }
