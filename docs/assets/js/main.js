@@ -1,4 +1,3 @@
-
 /* eslint-disable no-unused-vars */
 function toggleHeaderMenu() {
     const lhn = document.getElementById('lhn');
@@ -23,12 +22,12 @@ function toggleHeaderMenu() {
 }
 
 function navigateBack() {
-    if (window.location.pathname.includes('/request-money/')) {
-        window.location.href = '/hubs/request-money';
-    } else if (window.location.pathname.includes('/send-money/')) {
-        window.location.href = '/hubs/send-money';
+    const hubs = JSON.parse(document.getElementById('hubs-data').value);
+    const hubToNavigate = hubs.find(hub => window.location.pathname.includes(hub));
+    if (hubToNavigate) {
+        window.location.href = `/hubs/${hubToNavigate}`;
     } else {
-        window.location.href = '/hubs/other';
+        window.location.href = '/';
     }
 
     // Add a little delay to avoid showing the previous content in a fraction of a time
