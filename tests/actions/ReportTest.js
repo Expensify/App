@@ -560,13 +560,7 @@ describe('actions/Report', () => {
                 // Expect that the reaction is removed
                 const resultAction = _.first(_.values(reportActions));
 
-                expect(resultAction.message[0].reactions)
-                    .toEqual(expect.arrayContaining([
-                        expect.objectContaining({
-                            emoji: EMOJI_NAME,
-                            users: [],
-                        }),
-                    ]));
+                expect(resultAction.message[0].reactions).toHaveLength(0);
             })
             .then(() => {
                 const resultAction = _.first(_.values(reportActions));
@@ -575,9 +569,10 @@ describe('actions/Report', () => {
                 Report.addReaction(REPORT_ID, resultAction, EMOJI);
                 return waitForPromisesToResolve()
                     .then(() => {
+                        const updatedResultAction = _.first(_.values(reportActions));
                         Report.addReaction(
                             REPORT_ID,
-                            resultAction,
+                            updatedResultAction,
                             EMOJI,
                             2,
                         );
@@ -610,13 +605,7 @@ describe('actions/Report', () => {
                         // Expect that the reaction is removed
                         const updatedResultAction = _.first(_.values(reportActions));
 
-                        expect(updatedResultAction.message[0].reactions)
-                            .toEqual(expect.arrayContaining([
-                                expect.objectContaining({
-                                    emoji: EMOJI_NAME,
-                                    users: [],
-                                }),
-                            ]));
+                        expect(updatedResultAction.message[0].reactions).toHaveLength(0);
                     });
             });
     });

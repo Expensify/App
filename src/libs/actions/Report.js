@@ -1263,7 +1263,20 @@ function removeReaction(reportID, originalReportAction, emoji) {
     }
 
     reactionObject.users = _.filter(reactionObject.users, sender => sender.accountID !== currentUserAccountID);
-    const updatedReactions = _.map(message.reactions, reaction => (reaction.emoji === emoji.name ? reactionObject : reaction));
+    const updatedReactions = _.filter(
+
+        // Replace the reaction object either with the updated one or null if there are no users
+        _.map(message.reactions, (reaction) => {
+            if (reaction.emoji === emoji.name) {
+                if (reaction.users.length === 0) { return null; }
+                return reactionObject;
+            }
+            return reaction;
+        }),
+
+        // Remove any null reactions
+        r => r != null,
+    );
 
     const updatedMessage = {
         ...message,
@@ -1274,9 +1287,7 @@ function removeReaction(reportID, originalReportAction, emoji) {
     const optimisticData = getOptimisticDataForReportActionUpdate(originalReportAction, updatedMessage, reportID);
 
     // TODO: only make the API call once its live
-    Onyx.update(optimisticData).then(() => {
-        console.log('updated state', optimisticData);
-    });
+    Onyx.update(optimisticData);
 
     // const parameters = {
     //     reportID,
