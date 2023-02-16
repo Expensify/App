@@ -141,7 +141,6 @@ class ReportActionCompose extends React.Component {
         this.setIsFullComposerAvailable = this.setIsFullComposerAvailable.bind(this);
         this.focus = this.focus.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
-
         this.calculateEmojiSuggestion = _.debounce(this.calculateEmojiSuggestion.bind(this), 10, false);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.isLikeEmojiCode = this.isLikeEmojiCode.bind(this);
