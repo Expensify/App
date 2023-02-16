@@ -58,7 +58,7 @@ const darkTheme = {
     dropUIBG: 'rgba(6,27,9,0.92)',
     dropTransparentOverlay: 'rgba(255,255,255,0)',
     checkBox: colors.green,
-    pickerOptionsTextColor: colors.midnight,
+    pickerOptionsTextColor: colors.white,
     imageCropBackgroundColor: colors.greenIcons,
 };
 

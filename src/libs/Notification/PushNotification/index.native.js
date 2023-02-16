@@ -5,7 +5,6 @@ import {UrbanAirship, EventType, iOS} from 'urbanairship-react-native';
 import lodashGet from 'lodash/get';
 import Log from '../../Log';
 import NotificationType from './NotificationType';
-import * as Report from '../../actions/Report';
 import * as PushNotification from '../../actions/PushNotification';
 import ONYXKEYS from '../../../ONYXKEYS';
 
@@ -144,12 +143,6 @@ function register(accountID) {
 
     // Refresh notification opt-in status NVP for the new user.
     refreshNotificationOptInStatus();
-
-    // When the user logged out and then logged in with a different account
-    // while the app is still in background, we must resubscribe to the report
-    // push notification in order to render the report click behaviour correctly
-    init();
-    Report.subscribeToReportCommentPushNotifications();
 }
 
 /**
