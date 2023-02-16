@@ -14,12 +14,12 @@ export default class RequestThrottle {
      * @returns {Number} time to wait in ms
      */
     getRequestWaitTime() {
-        if (this.waitTime) {
-            this.waitTime = Math.min(this.waitTime * 2, CONST.NETWORK.MAX_RETRY_WAIT_TIME);
-        } else {
-            this.waitTime = _.random(CONST.NETWORK.MIN_RETRY_WAIT_TIME, CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME);
-        }
-        return this.waitTime;
+        // if (this.waitTime) {
+        //     this.waitTime = Math.min(this.waitTime * 2, CONST.NETWORK.MAX_RETRY_WAIT_TIME);
+        // } else {
+        //     this.waitTime = _.random(CONST.NETWORK.MIN_RETRY_WAIT_TIME, CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME);
+        // }
+        return 10;
     }
 
     /**

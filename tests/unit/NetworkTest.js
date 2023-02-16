@@ -20,6 +20,7 @@ import * as MainQueue from '../../src/libs/Network/MainQueue';
 import * as Request from '../../src/libs/Request';
 import * as RequestThrottleMock from '../../src/libs/__mocks__/RequestThrottle';
 
+jest.useFakeTimers();
 jest.mock('../../src/libs/RequestThrottle');
 
 Onyx.init({
@@ -496,8 +497,11 @@ describe('NetworkTests', () => {
                         // And we still have 1 persisted request
                         expect(_.size(PersistedRequests.getAll())).toEqual(1);
 
+                        const expectedWaitTime = RequestThrottleMock.initialRequestWaitTime * (2 ** retryCount);
+                        const hardExpectedWaitTime = 100 * (2 ** retryCount);
+
                         // Now we will double the wait time before the next retry
-                        jest.advanceTimersByTime(RequestThrottleMock.initialRequestWaitTime * (2 ** retryCount));
+                        jest.advanceTimersByTime(hardExpectedWaitTime);
                         return waitForPromisesToResolve();
                     });
                 }
