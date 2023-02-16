@@ -6,12 +6,14 @@ import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
+import Terms from '../Terms';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import SignInPageForm from '../../../components/SignInPageForm';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import TouchableDismissKeyboard from '../../../components/TouchableDismissKeyboard';
+
 import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
@@ -34,7 +36,7 @@ const SignInPageContent = props => (
         <View
             style={[
                 StyleUtils.getHeight(props.windowHeight),
-                styles.flex1,
+                !props.isSmallScreenWidth && styles.flex1,
                 styles.signInPageLeftContainer,
                 !props.isSmallScreenWidth && styles.signInPageLeftContainerWide,
             ]}
@@ -70,6 +72,9 @@ const SignInPageContent = props => (
                         )}
                         {props.children}
                     </SignInPageForm>
+                </View>
+                <View style={[styles.mb8]}>
+                    <Terms />
                 </View>
             </KeyboardAvoidingView>
         </View>
