@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
-import {Keyboard} from 'react-native';
 import ONYXKEYS from '../../ONYXKEYS';
 import OptionsSelector from '../../components/OptionsSelector';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -14,7 +13,6 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import * as IOU from '../../libs/actions/IOU';
 import * as CurrencySymbolUtils from '../../libs/CurrencySymbolUtils';
 import {withNetwork} from '../../components/OnyxProvider';
-import withKeyboardState from '../../components/withKeyboardState';
 
 /**
  * IOU Currency selection for selecting currency
@@ -51,17 +49,6 @@ class IOUCurrencySelection extends Component {
         this.getSections = this.getSections.bind(this);
         this.confirmCurrencySelection = this.confirmCurrencySelection.bind(this);
         this.changeSearchValue = this.changeSearchValue.bind(this);
-    }
-
-    componentDidMount() {
-        this.beforeRemoveSubscription = this.props.navigation.addListener('beforeRemove', () => {
-            if (!this.props.isKeyboardShown) { return; }
-            Keyboard.dismiss();
-        });
-    }
-
-    componentWillUnmount() {
-        this.beforeRemoveSubscription();
     }
 
     /**
@@ -153,7 +140,6 @@ IOUCurrencySelection.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withKeyboardState,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),
