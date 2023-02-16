@@ -1,13 +1,12 @@
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {Component} from 'react';
+import React from 'react';
+import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../../components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import CONST from '../../../../CONST';
 import compose from '../../../../libs/compose';
@@ -15,6 +14,10 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
 import LoginField from './LoginField';
+import MenuItem from '../../../../components/MenuItem';
+import Text from '../../../../components/Text';
+import styles from '../../../../styles/styles';
+import CopyTextToClipboard from '../../../../components/CopyTextToClipboard';
 
 const propTypes = {
     /* Onyx Props */
@@ -31,108 +34,107 @@ const propTypes = {
         validatedDate: PropTypes.string,
     }),
 
+    /** Current user session */
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }).isRequired,
+
     ...withLocalizePropTypes,
-    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     loginList: {},
-    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-class ContactMethodsPage extends Component {
-    constructor(props) {
-        super(props);
+const ContactMethodsPage = props => {
+    let hasPhoneNumberLogin = false;
+    let hasEmailLogin = false;
 
-        this.state = {
-            logins: this.getLogins(),
-        };
-
-        this.getLogins = this.getLogins.bind(this);
-    }
-
-    componentDidUpdate(prevProps) {
-        let stateToUpdate = {};
-
-        // Recalculate logins if loginList has changed
-        if (_.keys(this.props.loginList).length !== _.keys(prevProps.loginList).length) {
-            stateToUpdate = {logins: this.getLogins()};
+    const loginMenuItems = _.map(props.loginList, (login) => {
+        let description = '';
+        if (props.session.email === login.partnerUserID) {
+            description = props.translate('contacts.getInTouch');
+        } else if (!login.validatedDate) {
+            description = props.translate('contacts.pleaseVerify');
+        }
+        let indicator = null;
+        if (!_.isEmpty(login.errorFields)) {
+            indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        } else if (!login.validatedDate) {
+            indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.GREEN;
         }
 
-        if (_.isEmpty(stateToUpdate)) {
-            return;
+        // Temporary checks to determine if we need to show specific LoginField
+        // components. This check will be removed soon.
+        if (Str.isValidPhone(login.partnerUserID)) {
+            hasPhoneNumberLogin = true;
+        } else if (Str.isValidEmail(login.partnerUserID)) {
+            hasEmailLogin = true;
         }
-
-        // eslint-disable-next-line react/no-did-update-set-state
-        this.setState(stateToUpdate);
-    }
-
-    /**
-     * Get the most validated login of each type
-     *
-     * @returns {Object}
-     */
-    getLogins() {
-        return _.reduce(_.values(this.props.loginList), (logins, currentLogin) => {
-            const type = Str.isSMSLogin(currentLogin.partnerUserID) ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL;
-            const login = Str.removeSMSDomain(currentLogin.partnerUserID);
-
-            // If there's already a login type that's validated and/or currentLogin isn't valid then return early
-            if ((login !== lodashGet(this.props.currentUserPersonalDetails, 'login')) && !_.isEmpty(logins[type])
-                && (logins[type].validatedDate || !currentLogin.validatedDate)) {
-                return logins;
-            }
-            return {
-                ...logins,
-                [type]: {
-                    ...currentLogin,
-                    type,
-                    partnerUserID: Str.removeSMSDomain(currentLogin.partnerUserID),
-                },
-            };
-        }, {
-            phone: {},
-            email: {},
-        });
-    }
-
-    render() {
         return (
-            <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('contacts.contactMethods')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <ScrollView>
+            <MenuItem
+                title={Str.removeSMSDomain(login.partnerUserID)}
+                description={description}
+                onPress={() => Navigation.navigate(ROUTES.getEditContactMethodRoute(login.partnerUserID))}
+                brickRoadIndicator={indicator}
+                shouldShowBasicTitle
+                shouldShowRightIcon
+            />
+        )
+    });
+
+    return (
+        <ScreenWrapper>
+            <HeaderWithCloseButton
+                title={props.translate('contacts.contactMethods')}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
+                onCloseButtonPress={() => Navigation.dismissModal(true)}
+            />
+            <ScrollView>
+                <View style={[styles.ph8, styles.mv3, styles.flexRow, styles.flexWrap]}>
+                    <Text>
+                        {props.translate('contacts.helpTextBeforeEmail')}
+                        <CopyTextToClipboard
+                            text="receipts@expensify.com"
+                            textStyles={[styles.textBlue]}
+                        />
+                        <Text>{props.translate('contacts.helpTextAfterEmail')}</Text>
+                    </Text>
+                </View>
+                {loginMenuItems}
+                {/* The below fields will be removed soon, when we implement the new Add Contact Method page */}
+                {!hasEmailLogin && (
                     <LoginField
-                        label={this.props.translate('profilePage.emailAddress')}
+                        label={props.translate('profilePage.emailAddress')}
                         type="email"
-                        login={this.state.logins.email}
-                        defaultValue={this.state.logins.email}
+                        login={{}}
                     />
+                )}
+                {!hasPhoneNumberLogin && (
                     <LoginField
-                        label={this.props.translate('common.phoneNumber')}
+                        label={props.translate('common.phoneNumber')}
                         type="phone"
-                        login={this.state.logins.phone}
-                        defaultValue={this.state.logins.phone}
+                        login={{}}
                     />
-                </ScrollView>
-            </ScreenWrapper>
-        );
-    }
-}
+                )}
+            </ScrollView>
+        </ScreenWrapper>
+    );
+};
 
 ContactMethodsPage.propTypes = propTypes;
 ContactMethodsPage.defaultProps = defaultProps;
+ContactMethodsPage.displayName = 'ContactMethodsPage';
 
 export default compose(
     withLocalize,
-    withCurrentUserPersonalDetails,
     withOnyx({
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(ContactMethodsPage);
