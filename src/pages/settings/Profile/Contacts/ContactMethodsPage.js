@@ -79,6 +79,7 @@ const ContactMethodsPage = props => {
                 brickRoadIndicator={indicator}
                 shouldShowBasicTitle
                 shouldShowRightIcon
+                key={login.partnerUserID}
             />
         )
     });
