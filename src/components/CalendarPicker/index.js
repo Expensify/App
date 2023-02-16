@@ -19,21 +19,40 @@ const addMonths = (date, months) => {
     return d;
 };
 
+const midnight = date => new Date(date).setHours(0, 0, 0, 0);
+
 const CalendarPicker = (props) => {
     const [currentDateView, setCurrentDateView] = React.useState(props.value ? props.value : new Date());
+
     const [yearPickerVisible, setYearPickerVisible] = React.useState(false);
     const [monthPickerVisible, setMonthPickerVisible] = React.useState(false);
 
-    const currentMonthView = props.maxDate && moment(props.maxDate).toDate() < currentDateView ? moment(props.maxDate).month() : currentDateView.getMonth();
-    const currentYearView = props.maxDate && moment(props.maxDate).toDate() < currentDateView ? moment(props.maxDate).year() : currentDateView.getFullYear();
+    const isMaxDateBeforeCurrentDate = (props.maxDate && midnight(moment(props.maxDate).toDate()) < currentDateView);
+    const isMinDateAfterCurrentDate = (props.minDate && midnight(moment(props.minDate).toDate()) > currentDateView);
+    const dateToUse = isMinDateAfterCurrentDate ? props.minDate : props.maxDate;
+
+    const currentMonthView = isMaxDateBeforeCurrentDate || isMinDateAfterCurrentDate ? moment(dateToUse).month() : currentDateView.getMonth();
+    const currentYearView = isMaxDateBeforeCurrentDate || isMinDateAfterCurrentDate ? moment(dateToUse).year() : currentDateView.getFullYear();
     const monthMatrix = generateMonthMatrix(currentYearView, currentMonthView);
     const onNextMonthPress = () => setCurrentDateView(prev => addMonths(prev, 1));
     const onPrevMonthPress = () => setCurrentDateView(prev => addMonths(prev, -1));
     const onMonthPickerPress = () => setMonthPickerVisible(true);
     const onYearPickerPress = () => setYearPickerVisible(true);
 
-    const hasAvailableDatesNextMonth = props.maxDate ? moment(props.maxDate).toDate() > addMonths(currentDateView, 1) : true;
-    const hasAvailableDatesPrevMonth = props.minDate ? moment(props.minDate).toDate() < moment(addMonths(currentDateView, 0)).toDate() : true;
+    const hasAvailableDatesNextMonth = props.maxDate ? midnight(moment(props.maxDate).endOf('month').toDate()) > addMonths(currentDateView, 1) : true;
+    const hasAvailableDatesPrevMonth = props.minDate ? midnight(moment(props.minDate).toDate()) < moment(addMonths(currentDateView, -1)).endOf('month').toDate() : true;
+
+    React.useEffect(() => {
+        if (!isMinDateAfterCurrentDate) { return; }
+
+        setCurrentDateView(new Date(currentYearView, currentMonthView));
+    }, []);
+
+    React.useEffect(() => {
+        if (!isMaxDateBeforeCurrentDate) { return; }
+
+        setCurrentDateView(new Date(currentYearView, currentMonthView));
+    }, []);
 
     const onDayPress = (day) => {
         if (!props.onChange) {
@@ -41,8 +60,8 @@ const CalendarPicker = (props) => {
         }
         const selectedDate = new Date(currentYearView, currentMonthView, day);
 
-        if ((props.minDate && selectedDate < new Date(props.minDate).setHours(0, 0, 0, 0))
-             || (props.maxDate && selectedDate > new Date(props.maxDate))) {
+        if ((props.minDate && selectedDate < midnight(new Date(props.minDate)))
+             || (props.maxDate && selectedDate > midnight(new Date(props.maxDate)))) {
             return;
         }
 
@@ -111,8 +130,8 @@ const CalendarPicker = (props) => {
                 <View key={`week-${week}`} style={styles.flexRow}>
                     {_.map(week, (day, index) => {
                         const currentDate = moment([currentYearView, currentMonthView, day]);
-                        const isBeforeMinDate = props.minDate && (currentDate.toDate() < new Date(props.minDate).setHours(0, 0, 0, 0));
-                        const isAfterMaxDate = props.maxDate && (currentDate.toDate() > new Date(props.maxDate));
+                        const isBeforeMinDate = props.minDate && (currentDate.toDate() < midnight(new Date(props.minDate)));
+                        const isAfterMaxDate = props.maxDate && (currentDate.toDate() > midnight(new Date(props.maxDate)));
                         const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
 
                         return (
