@@ -27,12 +27,14 @@ const QUICK_REACTIONS = [
 const EMOJI_BUBBLE_SCALE = 1.5;
 
 const propTypes = {
-    onEmojiSelected: PropTypes.func.isRequired,
     emojiIconRef: PropTypes.func,
+    onEmojiSelected: PropTypes.func.isRequired,
+    onPressOpenPicker: PropTypes.func,
 };
 
 const defaultProps = {
     emojiIconRef: () => {},
+    onPressOpenPicker: () => {},
 };
 
 const QuickEmojiReactions = props => (
@@ -59,6 +61,7 @@ const QuickEmojiReactions = props => (
             iconSizeScale={1.2}
             sizeScale={EMOJI_BUBBLE_SCALE}
             onSelectEmoji={props.onEmojiSelected}
+            onPressOpenPicker={props.onPressOpenPicker}
         />
     </View>
 );

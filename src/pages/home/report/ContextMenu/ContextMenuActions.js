@@ -39,15 +39,26 @@ const CONTEXT_MENU_TYPES = {
 export default [
     {
         shouldShow: () => true,
-        renderContent: (closePopup, {reportID, reportAction}) => (
-            <QuickEmojiReactions
-                key="QuickEmojiReactions"
-                onEmojiSelected={(emoji) => {
-                    // TODO: we need to add the preferred skin tone here as well somehow
-                    Report.toggleReaction(reportID, reportAction, emoji);
-                }}
-            />
-        ),
+        renderContent: (closePopover, {reportID, reportAction}) => {
+            const close = () => {
+                if (!closePopover) {
+                    return;
+                }
+                hideContextMenu(false);
+            };
+
+            return (
+                <QuickEmojiReactions
+                    key="QuickEmojiReactions"
+                    onEmojiSelected={(emoji) => {
+                        // TODO: we need to add the preferred skin tone here as well somehow
+                        Report.toggleReaction(reportID, reportAction, emoji);
+                        close();
+                    }}
+                    onPressOpenPicker={close}
+                />
+            );
+        },
     },
     {
         textTranslateKey: 'common.download',

@@ -15,18 +15,23 @@ import emojis from '../../../assets/emojis';
 const propTypes = {
     sizeScale: PropTypes.number,
     iconSizeScale: PropTypes.number,
+    onPressOpenPicker: PropTypes.func,
     onSelectEmoji: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
     sizeScale: 1,
     iconSizeScale: 1,
+    onPressOpenPicker: () => {
+
+    },
 };
 
 const AddReactionBubble = (props) => {
     const ref = React.createRef();
 
     const onPress = () => {
+        props.onPressOpenPicker();
         EmojiPickerAction.showEmojiPicker(() => {}, (emojiCode) => {
             const emoji = _.find(emojis, e => e.code === emojiCode);
             if (emoji != null) {
