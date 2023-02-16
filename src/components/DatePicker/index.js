@@ -37,6 +37,9 @@ class DatePicker extends React.Component {
         this.defaultValue = props.defaultValue
             ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
             : '';
+
+        this.minDate = props.minDate ? moment(props.minDate).toDate() : null;
+        this.maxDate = props.maxDate ? moment(props.maxDate).toDate() : null;
     }
 
     componentWillUnmount() {
@@ -102,7 +105,6 @@ class DatePicker extends React.Component {
                     }}
                     onPress={this.togglePicker}
                     label={this.props.label}
-                    onInputChange={this.setDate}
                     value={this.props.value}
                     defaultValue={this.defaultValue}
                     placeholder={this.props.placeholder || CONST.DATE.MOMENT_FORMAT_STRING}
@@ -123,7 +125,7 @@ class DatePicker extends React.Component {
                     }}
                 >
                     <View style={{width: this.state.pickerLayout.width}}>
-                        <CalendarPicker value={this.state.selectedDate} onChange={this.setDate} />
+                        <CalendarPicker minDate={this.minDate} maxDate={this.maxDate} value={this.state.selectedDate} onChange={this.setDate} />
                     </View>
                 </Popover>
             </View>
