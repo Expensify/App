@@ -342,6 +342,10 @@ export default {
     contacts: {
         contactMethod: 'Método de contacto',
         contactMethods: 'Métodos de contacto',
+        helpTextBeforeEmail: '',
+        helpTextAfterEmail: '',
+        pleaseVerify: '',
+        getInTouch: '',
     },
     pronouns: {
         coCos: 'Co / Cos',

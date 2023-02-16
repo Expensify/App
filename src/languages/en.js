@@ -342,6 +342,10 @@ export default {
     contacts: {
         contactMethod: 'Contact method',
         contactMethods: 'Contact methods',
+        helpTextBeforeEmail: 'Add more ways for people to find you, and forward receipts to ',
+        helpTextAfterEmail: ' from multiple email addresses.',
+        pleaseVerify: 'Please verify this contact method',
+        getInTouch: "Whenever we need to get in touch with you, we'll use this contact method.",
     },
     pronouns: {
         coCos: 'Co / Cos',
