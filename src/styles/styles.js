@@ -734,7 +734,7 @@ const styles = {
     },
 
     calendarDayContainerSelected: {
-        backgroundColor: themeColors.greenDefaultButton,
+        backgroundColor: themeColors.buttonDefaultBG,
         width: 30,
         height: 30,
         justifyContent: 'center',
