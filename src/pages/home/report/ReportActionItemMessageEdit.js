@@ -247,11 +247,17 @@ class ReportActionItemMessageEdit extends React.Component {
                             toggleReportActionComposeView(false, this.props.isSmallScreenWidth);
                         }}
                         onBlur={(event) => {
+                            const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
+
                             // Return to prevent re-render when save/cancel button is pressed which cancels the onPress event by re-rendering
-                            if (_.contains([this.saveButtonID, this.cancelButtonID, this.emojiButtonID, this.messageEditInput], lodashGet(event, 'nativeEvent.relatedTarget.id'))) {
+                            if (_.contains([this.saveButtonID, this.cancelButtonID, this.emojiButtonID], relatedTargetId)) {
                                 return;
                             }
                             this.setState({isFocused: false});
+
+                            if (this.messageEditInput === relatedTargetId) {
+                                return;
+                            }
                             openReportActionComposeViewWhenClosingMessageEdit(this.props.isSmallScreenWidth);
                         }}
                         selection={this.state.selection}
