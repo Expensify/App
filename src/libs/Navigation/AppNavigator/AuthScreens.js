@@ -201,6 +201,17 @@ class AuthScreens extends React.Component {
                     }}
                 />
                 <RootStack.Screen
+                    name="ValidateLogin"
+                    options={{
+                        headerShown: false,
+                        title: 'New Expensify',
+                    }}
+                    getComponent={() => {
+                        const ValidateLoginPage = require('../../../pages/ValidateLoginPage').default;
+                        return ValidateLoginPage;
+                    }}
+                />
+                <RootStack.Screen
                     name={SCREENS.TRANSITION_FROM_OLD_DOT}
                     options={defaultScreenOptions}
                     getComponent={() => {

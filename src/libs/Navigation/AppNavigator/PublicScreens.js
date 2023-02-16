@@ -3,6 +3,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 import SignInPage from '../../../pages/signin/SignInPage';
 import SetPasswordPage from '../../../pages/SetPasswordPage';
 import SignInWithValidateLinkPage from '../../../pages/SignInWithValidateLinkPage';
+import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import LogInWithShortLivedAuthTokenPage from '../../../pages/LogInWithShortLivedAuthTokenPage';
 import ConciergePage from '../../../pages/ConciergePage';
 import SCREENS from '../../../SCREENS';
@@ -26,6 +27,11 @@ const PublicScreens = () => (
             name="SignInWithValidateLink"
             options={defaultScreenOptions}
             component={SignInWithValidateLinkPage}
+        />
+        <RootStack.Screen
+            name="ValidateLogin"
+            options={defaultScreenOptions}
+            component={ValidateLoginPage}
         />
         <RootStack.Screen
             name="SetPassword"
