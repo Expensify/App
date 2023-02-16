@@ -7,6 +7,7 @@ import moment from 'moment';
 import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
+import Log from './Log';
 
 const allReportActions = {};
 Onyx.connect({
@@ -191,6 +192,7 @@ function getSortedReportActionsForDisplay(reportActions) {
         }
 
         if (String(reportAction.sequenceNumber) === key) {
+            Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
             return false;
         }
 
