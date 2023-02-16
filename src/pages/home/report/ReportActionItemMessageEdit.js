@@ -252,7 +252,7 @@ class ReportActionItemMessageEdit extends React.Component {
                                 return;
                             }
                             this.setState({isFocused: false});
-                            toggleReportActionComposeViewWhenCloseEditMessage(true, this.props.isSmallScreenWidth);
+                            toggleReportActionComposeViewWhenCloseEditMessage(this.props.isSmallScreenWidth);
                         }}
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
