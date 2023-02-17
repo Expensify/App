@@ -5,7 +5,7 @@ import CONST from '../CONST';
 import platformSetup from './platformSetup';
 import * as Metrics from '../libs/Metrics';
 import * as Device from '../libs/actions/Device';
-import polyfill from '../libs/usePolyfill';
+import polyfill from '../libs/polyfill';
 
 export default function () {
     /*
