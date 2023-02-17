@@ -13,7 +13,6 @@ import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import TouchableDismissKeyboard from '../../../components/TouchableDismissKeyboard';
-
 import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {

@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import {View} from 'react-native';
 import React from 'react';
 import _ from 'underscore';
@@ -144,7 +143,6 @@ const Footer = (props) => {
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
     const columnDirection = isVertical ? styles.flexColumn : styles.flexRow;
-
     const pageFooterWrapper = [styles.footerWrapper, imageDirection, imageStyle];
     const footerColumns = [styles.footerColumnsContainer, columnDirection];
     const footerColumn = isVertical ? [styles.p4] : [styles.p4, props.isMediumScreenWidth ? styles.w50 : styles.w25];
@@ -193,7 +191,6 @@ const Footer = (props) => {
                             </View>
                         ))}
                     </View>
-                    { /** Expensify Wordmark * */ }
                     <View style={[!isVertical && styles.footerBottomLogo]}>
                         {!isVertical ? (
                             <Expensicons.ExpensifyFooterLogo />

@@ -1,10 +1,8 @@
 import React from 'react';
 import _ from 'underscore';
 import {Pressable, Linking} from 'react-native';
-
 import Icon from '../../components/Icon';
 import Text from '../../components/Text';
-
 import * as Expensicons from '../../components/Icon/Expensicons';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
