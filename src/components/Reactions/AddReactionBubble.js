@@ -11,39 +11,64 @@ import Text from '../Text';
 import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import emojis from '../../../assets/emojis';
+import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     sizeScale: PropTypes.number,
     iconSizeScale: PropTypes.number,
+
+    /**
+     * Called when the user presses on the icon button.
+     * Will have a function as parameter which you can call
+     * to open the picker.
+     */
     onPressOpenPicker: PropTypes.func,
+
+    /**
+     * Will get called the moment before the picker opens.
+     */
+    onWillShowPicker: PropTypes.func,
+
+    /**
+     * Called when the user selects an emoji.
+     */
     onSelectEmoji: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
     sizeScale: 1,
     iconSizeScale: 1,
-    onPressOpenPicker: () => {
-
-    },
+    onWillShowPicker: () => {},
+    onPressOpenPicker: undefined,
 };
 
 const AddReactionBubble = (props) => {
     const ref = React.createRef();
 
     const onPress = () => {
-        EmojiPickerAction.showEmojiPicker(
-            () => {},
-            (emojiCode) => {
-                const emoji = _.find(emojis, e => e.code === emojiCode);
-                if (emoji != null) {
-                    props.onSelectEmoji(emoji);
-                }
-            },
-            ref.current,
-            () => {
-                props.onPressOpenPicker();
-            },
-        );
+        const openPicker = () => {
+            EmojiPickerAction.showEmojiPicker(
+                () => {},
+                (emojiCode) => {
+                    const emoji = _.find(emojis, e => e.code === emojiCode);
+                    if (emoji != null) {
+                        props.onSelectEmoji(emoji);
+                    }
+                },
+
+                // The ref can become null, if e.g. the AddReactionBubble component
+                // gets removed before showing the picker. In this case we want to
+                // default fallback to anchor to the composer.
+                ref.current || ReportActionComposeFocusManager.composerRef.current,
+                props.onWillShowPicker,
+            );
+        };
+
+        if (props.onPressOpenPicker) {
+            props.onPressOpenPicker(openPicker);
+        } else {
+            openPicker();
+        }
     };
 
     return (

@@ -44,21 +44,24 @@ export default [
         renderContent: (closePopover, {
             reportID, reportAction, close: closeManually, keepOpen,
         }) => {
-            const close = () => {
-                if (!closePopover) {
+            const isMini = !closePopover;
+
+            const closeContextMenu = (onHideCallback) => {
+                if (isMini) {
                     closeManually();
-                    return;
+                    if (onHideCallback) {
+                        onHideCallback();
+                    }
+                } else {
+                    hideContextMenu(false, onHideCallback);
                 }
-                hideContextMenu(false);
             };
 
             const onEmojiSelected = (emoji) => {
                 // TODO: we need to add the preferred skin tone here as well somehow
                 Report.toggleReaction(reportID, reportAction, emoji);
-                close();
+                closeContextMenu();
             };
-
-            const isMini = !closePopover;
 
             if (isMini) {
                 return (
@@ -72,8 +75,8 @@ export default [
 
             return (
                 <QuickEmojiReactions
-                    key="QuickEmojiReactions"
-                    onPressOpenPicker={close}
+                    key="BaseQuickEmojiReactions"
+                    closeContextMenu={closeContextMenu}
                     onEmojiSelected={onEmojiSelected}
                 />
             );

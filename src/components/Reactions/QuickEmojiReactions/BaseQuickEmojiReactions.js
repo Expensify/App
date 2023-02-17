@@ -2,22 +2,26 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import EmojiReactionBubble from './EmojiReactionBubble';
-import AddReactionBubble from './AddReactionBubble';
-import CONST from '../../CONST';
+import EmojiReactionBubble from '../EmojiReactionBubble';
+import AddReactionBubble from '../AddReactionBubble';
+import CONST from '../../../CONST';
 
 const EMOJI_BUBBLE_SCALE = 1.5;
 
-const propTypes = {
+const baseQuickEmojiReactionsPropTypes = {
     onEmojiSelected: PropTypes.func.isRequired,
+    onWillShowPicker: PropTypes.func,
     onPressOpenPicker: PropTypes.func,
 };
 
-const defaultProps = {
-    onPressOpenPicker: () => {},
+const baseQuickEmojiReactionsDefaultProps = {
+    onWillShowPicker: undefined,
+    onPressOpenPicker: undefined,
 };
 
-const QuickEmojiReactions = props => (
+const BaseQuickEmojiReactions = props => (
+
+    // TODO: move this to styles file
     <View style={{
         gap: 12,
         flexDirection: 'row',
@@ -40,13 +44,19 @@ const QuickEmojiReactions = props => (
         <AddReactionBubble
             iconSizeScale={1.2}
             sizeScale={EMOJI_BUBBLE_SCALE}
-            onSelectEmoji={props.onEmojiSelected}
             onPressOpenPicker={props.onPressOpenPicker}
+            onWillShowPicker={props.onWillShowPicker}
+            onSelectEmoji={props.onEmojiSelected}
         />
     </View>
 );
 
-QuickEmojiReactions.displayName = 'QuickEmojiReactions';
-QuickEmojiReactions.propTypes = propTypes;
-QuickEmojiReactions.defaultProps = defaultProps;
-export default QuickEmojiReactions;
+BaseQuickEmojiReactions.displayName = 'BaseQuickEmojiReactions';
+BaseQuickEmojiReactions.propTypes = baseQuickEmojiReactionsPropTypes;
+BaseQuickEmojiReactions.defaultProps = baseQuickEmojiReactionsDefaultProps;
+export default BaseQuickEmojiReactions;
+
+export {
+    baseQuickEmojiReactionsPropTypes,
+    baseQuickEmojiReactionsDefaultProps,
+};

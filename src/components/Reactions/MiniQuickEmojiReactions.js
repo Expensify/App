@@ -16,11 +16,9 @@ import emojis from '../../../assets/emojis';
 const propTypes = {
     onEmojiSelected: PropTypes.func.isRequired,
     onPressOpenPicker: PropTypes.func,
-    onEmojiPickerWillShow: PropTypes.func,
 };
 
 const defaultProps = {
-    onEmojiPickerWillShow: () => {},
     onPressOpenPicker: () => {},
 };
 
@@ -39,7 +37,6 @@ const MiniQuickEmojiReactions = (props) => {
                 }
             },
             ref.current,
-            props.onEmojiPickerWillShow,
         );
     };
 
