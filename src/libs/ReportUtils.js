@@ -19,6 +19,7 @@ import Permissions from './Permissions';
 import DateUtils from './DateUtils';
 import linkingConfig from './Navigation/linkingConfig';
 import * as defaultAvatars from '../components/Icon/DefaultAvatars';
+import isReportMessageAttachment from './isReportMessageAttachment';
 
 let sessionEmail;
 Onyx.connect({
@@ -97,17 +98,6 @@ function getReportParticipantsTitle(logins) {
  */
 function isIOUReport(report) {
     return report && _.has(report, 'total');
-}
-
-/**
- * Check whether a report action is Attachment or not.
- * Ignore messages containing [Attachment] as the main content. Attachments are actions with only text as [Attachment].
- *
- * @param {Object} reportActionMessage report action's message as text and html
- * @returns {Boolean}
- */
-function isReportMessageAttachment({text, html}) {
-    return text === '[Attachment]' && html !== '[Attachment]';
 }
 
 /**
@@ -225,6 +215,15 @@ function isPolicyExpenseChat(report) {
  */
 function isChatRoom(report) {
     return isUserCreatedPolicyRoom(report) || isDefaultRoom(report);
+}
+
+/**
+ * Whether the provided report is a direct message
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isDirectMessage(report) {
+    return _.isEmpty(getChatType(report));
 }
 
 /**
@@ -782,7 +781,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
     const htmlForNewComment = isAttachment ? 'Uploading Attachment...' : commentText;
 
     // Remove HTML from text when applying optimistic offline comment
-    const textForNewComment = isAttachment ? '[Attachment]'
+    const textForNewComment = isAttachment ? CONST.ATTACHMENT_MESSAGE_TEXT
         : parser.htmlToText(htmlForNewComment);
 
     return {
@@ -1015,7 +1014,7 @@ function buildOptimisticChatReport(
         lastMessageHtml: '',
         lastMessageText: null,
         lastReadTime: currentTime,
-        lastActionCreated: currentTime,
+        lastVisibleActionCreated: currentTime,
         notificationPreference,
         oldPolicyName,
         ownerEmail: ownerEmail || CONST.REPORT.OWNER_EMAIL_FAKE,
@@ -1190,10 +1189,10 @@ function isUnread(report) {
         return false;
     }
 
-    // lastActionCreated and lastReadTime are both datetime strings and can be compared directly
-    const lastActionCreated = report.lastActionCreated || '';
+    // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
+    const lastVisibleActionCreated = report.lastVisibleActionCreated || '';
     const lastReadTime = report.lastReadTime || '';
-    return lastReadTime < lastActionCreated;
+    return lastReadTime < lastVisibleActionCreated;
 }
 
 /**
@@ -1357,6 +1356,11 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         return false;
     }
 
+    // Exclude direct message chats that don't have any chat history
+    if (isDirectMessage(report) && report.maxSequenceNumber === 1) {
+        return false;
+    }
+
     return true;
 }
 
@@ -1456,7 +1460,11 @@ function getReportIDFromDeepLink(url) {
             route = route.replace('/', '');
         }
     });
-    const {reportID} = ROUTES.parseReportRouteParams(route);
+    const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(route);
+    if (isSubReportPageRoute) {
+        // We allow the Sub-Report deep link routes (settings, details, etc.) to be handled by their respective component pages
+        return '';
+    }
     return reportID;
 }
 
