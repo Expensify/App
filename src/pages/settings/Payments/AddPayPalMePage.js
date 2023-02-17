@@ -54,7 +54,7 @@ class AddPayPalMePage extends React.Component {
 
     render() {
         return (
-            <ScreenWrapper onTransitionEnd={this.focusPayPalMeInput}>
+            <ScreenWrapper onEntryTransitionEnd={this.focusPayPalMeInput}>
                 <HeaderWithCloseButton
                     title={this.props.translate('common.payPalMe')}
                     shouldShowBackButton
