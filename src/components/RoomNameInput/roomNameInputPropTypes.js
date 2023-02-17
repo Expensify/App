@@ -27,6 +27,9 @@ const propTypes = {
 
     /** AutoFocus */
     autoFocus: PropTypes.bool,
+
+    /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
+    shouldDelayFocus: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -39,6 +42,7 @@ const defaultProps = {
     inputID: undefined,
     onBlur: () => {},
     autoFocus: false,
+    shouldDelayFocus: false,
 };
 
 export {propTypes, defaultProps};
