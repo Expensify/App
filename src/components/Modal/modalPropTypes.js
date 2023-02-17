@@ -56,7 +56,7 @@ const propTypes = {
     }),
 
     /** Modal container styles  */
-    containerStyle: stylePropTypes,
+    innerContainerStyle: stylePropTypes,
 
     /** Whether the modal should go under the system statusbar */
     statusBarTranslucent: PropTypes.bool,
@@ -75,7 +75,7 @@ const defaultProps = {
     animationIn: null,
     animationOut: null,
     popoverAnchorPosition: {},
-    containerStyle: {},
+    innerContainerStyle: {},
     statusBarTranslucent: true,
 };
 
