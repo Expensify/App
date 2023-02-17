@@ -251,7 +251,47 @@ function suggestEmojis(text, limit = 5) {
  * @returns {Array}
  */
 function containsEmoji(text) {
-    return Boolean(text.match(CONST.REGEX.EMOJIS));
+    const result = [];
+
+    if (!text.match(CONST.REGEX.EMOJIS)) {
+        result.push({text, isEmoji: false});
+        return result;
+    }
+
+    const emptySpaceChecker = '\u200D';
+    const emojiCharacterSpaceReplacer = '~';
+    const splittedMessage = text.split('');
+    const convertedSplittedMessage = [];
+
+    for (let i = 0; i < splittedMessage.length; i++) {
+        const char = splittedMessage[i];
+        convertedSplittedMessage.push((char === emptySpaceChecker) ? emojiCharacterSpaceReplacer : char);
+    }
+
+    let wordHolder = '';
+    let emojiHolder = '';
+
+    const setWord = word => result.push({text: word, isEmoji: false});
+    const setEmoji = word => result.push({text: Str.replaceAll(word, emojiCharacterSpaceReplacer, emptySpaceChecker), isEmoji: true});
+
+    _.forEach(convertedSplittedMessage, (word, index) => {
+        if (CONST.REGEX.EMOJI_SURROGATE.test(word) || word === emojiCharacterSpaceReplacer) {
+            setWord(wordHolder);
+            wordHolder = '';
+            emojiHolder += word;
+        } else {
+            setEmoji(emojiHolder);
+            emojiHolder = '';
+            wordHolder += word;
+        }
+
+        if (index === convertedSplittedMessage.length - 1) {
+            setEmoji(emojiHolder);
+            setWord(wordHolder);
+        }
+    });
+
+    return _.filter(result, res => res.text);
 }
 
 export {

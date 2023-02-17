@@ -131,11 +131,13 @@ describe('EmojiTest', () => {
 
     it('will check text to contain emoji', () => {
         const text = 'Hello 👍';
-        expect(EmojiUtils.containsEmoji(text)).toBeTruthy();
+        expect(EmojiUtils.containsEmoji(text)).toHaveLength(2);
+        expect(EmojiUtils.containsEmoji(text)).toEqual([{isEmoji: false, text: 'Hello '}, {isEmoji: true, text: '👍'}]);
     });
 
     it('will check text not to contain emoji', () => {
         const text = 'Hello world';
-        expect(EmojiUtils.containsEmoji(text)).toBeFalsy();
+        expect(EmojiUtils.containsEmoji(text)).toHaveLength(1);
+        expect(EmojiUtils.containsEmoji(text)).toEqual([{isEmoji: false, text: 'Hello world'}]);
     });
 });

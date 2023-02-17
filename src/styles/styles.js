@@ -1105,13 +1105,33 @@ const styles = {
         position: 'relative',
         fontSize: variables.fontSizeEmoji,
         lineHeight: variables.fontSizeEmojiHeight,
-        top: Platform.OS === 'android' ? 8 : 3,
+        ...Platform.select({
+            ios: {
+                top: 8,
+            },
+            android: {
+                top: 8,
+            },
+            default: {
+                top: 3,
+            },
+        }),
     },
 
     profileEmojiText: {
         fontSize: variables.fontSizeEmojiProfile,
         lineHeight: variables.fontSizeEmojiProfileHeight,
-        top: Platform.OS === 'android' ? 8 : 4,
+        ...Platform.select({
+            ios: {
+                top: 8,
+            },
+            android: {
+                top: 8,
+            },
+            default: {
+                top: 4,
+            },
+        }),
     },
 
     createMenuPositionSidebar: {
@@ -1353,6 +1373,7 @@ const styles = {
         display: 'flex',
         flexDirection: 'row',
         flexWrap: 'nowrap',
+        marginBottom: 3,
     },
 
     chatItemMessageHeaderSender: {

@@ -1,8 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import _ from 'underscore';
-import Str from 'expensify-common/lib/str';
 import Text from './Text';
 import * as EmojiUtils from '../libs/EmojiUtils';
 import * as StyleUtils from '../styles/StyleUtils';
@@ -21,31 +20,21 @@ const defaultProps = {
 };
 
 const TextEmoji = (props) => {
-    if (!EmojiUtils.containsEmoji(props.children)) {
-        return (
-            <Text>
-                {props.children}
-            </Text>
-        );
-    }
-
+    const words = EmojiUtils.containsEmoji(props.children);
     const propsStyle = StyleUtils.parseStyleAsArray(props.style);
 
-    return _.map([...Str.htmlDecode(props.children)], ((char, index) => (
-        EmojiUtils.containsEmoji(char)
-            ? (
-                <View key={`${char}_${index}`}>
-                    <Text style={propsStyle}>
-                        {char}
-                    </Text>
-                </View>
-            )
-            : (
-                <Text key={`${char}_${index}`}>
-                    {char}
-                </Text>
-            )
-    )));
+    return _.map(words, ({text, isEmoji}, index) => (isEmoji ? (
+        <View key={`${text}_${index}`} style={Platform.OS !== 'web' && propsStyle}>
+            <Text style={propsStyle}>
+                {text}
+            </Text>
+        </View>
+    )
+        : (
+            <Text key={`${text}_${index}`}>
+                {text}
+            </Text>
+        )));
 };
 
 TextEmoji.displayName = 'TextEmoji';
