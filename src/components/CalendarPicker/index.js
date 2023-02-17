@@ -36,6 +36,13 @@ const CalendarPicker = (props) => {
         return initialValue;
     });
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    React.useEffect(() => {
+        if (props.minDate && props.maxDate && props.minDate > props.maxDate) {
+            throw new Error('Minimum date cannot be greater than the maximum date.');
+        }
+    }, [props.minDate, props.maxDate]);
+
     const currentMonthView = currentDateView.getMonth();
     const currentYearView = currentDateView.getFullYear();
     const monthMatrix = generateMonthMatrix(currentYearView, currentMonthView);
