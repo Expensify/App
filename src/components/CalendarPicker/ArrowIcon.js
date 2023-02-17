@@ -1,15 +1,9 @@
 import React from 'react';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import styles from '../../styles/styles';
 import * as Expensicons from '../Icon/Expensicons';
 import Icon from '../Icon';
-
-const styles = StyleSheet.create({
-    icon: {
-        padding: 5,
-        paddingHorizontal: 8,
-    },
-});
 
 const propTypes = {
     disabled: PropTypes.bool,
@@ -22,7 +16,7 @@ const defaultProps = {
 };
 
 const ArrowIcon = props => (
-    <View style={[styles.icon, props.direction === 'left' ? {transform: [{rotate: '180deg'}]} : undefined, props.disabled && {opacity: 0.25}]}>
+    <View style={[styles.p1, styles.ph2, props.direction === 'left' ? {transform: [{rotate: '180deg'}]} : undefined, props.disabled && styles.calendarButtonDisabled]}>
         <Icon src={Expensicons.ArrowRight} />
     </View>
 );
