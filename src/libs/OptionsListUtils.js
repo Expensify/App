@@ -470,7 +470,7 @@ function getOptions(reports, personalDetails, {
             return CONST.DATE.UNIX_EPOCH;
         }
 
-        return report.lastActionCreated;
+        return report.lastVisibleActionCreated;
     });
     orderedReports.reverse();
 
