@@ -19,9 +19,6 @@ const addMonths = (date, months) => {
     return d;
 };
 
-// sometimes setting time to midnight is needed to compare dates correctly
-const midnight = date => new Date(date).setHours(0, 0, 0, 0);
-
 const CalendarPicker = (props) => {
     const [yearPickerVisible, setYearPickerVisible] = React.useState(false);
     const [monthPickerVisible, setMonthPickerVisible] = React.useState(false);
@@ -60,8 +57,8 @@ const CalendarPicker = (props) => {
         }
         const selectedDate = new Date(currentYearView, currentMonthView, day);
 
-        if ((props.minDate && selectedDate < midnight(new Date(props.minDate)))
-             || (props.maxDate && selectedDate > midnight(new Date(props.maxDate)))) {
+        if ((props.minDate && moment(selectedDate) < moment(props.minDate).startOf('day'))
+             || (props.maxDate && moment(selectedDate) > moment(props.maxDate).startOf('day'))) {
             return;
         }
 
@@ -130,8 +127,8 @@ const CalendarPicker = (props) => {
                 <View key={`week-${week}`} style={styles.flexRow}>
                     {_.map(week, (day, index) => {
                         const currentDate = moment([currentYearView, currentMonthView, day]);
-                        const isBeforeMinDate = props.minDate && (currentDate.toDate() < midnight(new Date(props.minDate)));
-                        const isAfterMaxDate = props.maxDate && (currentDate.toDate() > midnight(new Date(props.maxDate)));
+                        const isBeforeMinDate = props.minDate && (currentDate < moment(props.minDate).startOf('day'));
+                        const isAfterMaxDate = props.maxDate && (currentDate > moment(props.maxDate).startOf('day'));
                         const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
 
                         return (
