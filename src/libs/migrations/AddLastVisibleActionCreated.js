@@ -4,7 +4,7 @@ import Log from '../Log';
 import ONYXKEYS from '../../ONYXKEYS';
 
 /**
- * This migration adds lastActionCreated to all reports in Onyx, using the value of lastMessageTimestamp
+ * This migration adds lastVisibleActionCreated to all reports in Onyx, using the value of lastMessageTimestamp
  *
  * @returns {Promise}
  */
@@ -17,27 +17,25 @@ export default function () {
                 Onyx.disconnect(connectionID);
                 const reportsToUpdate = {};
                 _.each(allReports, (report, key) => {
-                    if (_.has(report, 'lastActionCreated')) {
+                    if (_.has(report, 'lastVisibleActionCreated')) {
                         return;
                     }
 
-                    if (!_.has(report, 'lastMessageTimestamp')) {
+                    if (!_.has(report, 'lastActionCreated')) {
                         return;
                     }
 
                     reportsToUpdate[key] = report;
-                    reportsToUpdate[key].lastActionCreated = new Date(report.lastMessageTimestamp)
-                        .toISOString()
-                        .replace('T', ' ')
-                        .replace('Z', '');
+                    reportsToUpdate[key].lastVisibleActionCreated = report.lastActionCreated;
+                    reportsToUpdate[key].lastActionCreated = null;
                 });
 
                 if (_.isEmpty(reportsToUpdate)) {
-                    Log.info('[Migrate Onyx] Skipped migration AddLastActionCreated');
+                    Log.info('[Migrate Onyx] Skipped migration AddLastVisibleActionCreated');
                     return resolve();
                 }
 
-                Log.info(`[Migrate Onyx] Adding lastActionCreated field to ${_.keys(reportsToUpdate).length} reports`);
+                Log.info(`[Migrate Onyx] Adding lastVisibleActionCreated field to ${_.keys(reportsToUpdate).length} reports`);
                 // eslint-disable-next-line rulesdir/prefer-actions-set-data
                 return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate)
                     .then(resolve);
