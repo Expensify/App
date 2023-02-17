@@ -1,4 +1,4 @@
-import shouldPolyfill from './shouldPolyfill';
+import shouldPolyfill from './intl-polyfill';
 
 /**
  * Polyfill the Intl API, always performed for native devices.
