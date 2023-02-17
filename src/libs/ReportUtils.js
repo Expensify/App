@@ -19,6 +19,7 @@ import Permissions from './Permissions';
 import DateUtils from './DateUtils';
 import linkingConfig from './Navigation/linkingConfig';
 import * as defaultAvatars from '../components/Icon/DefaultAvatars';
+import isReportMessageAttachment from './isReportMessageAttachment';
 
 let sessionEmail;
 Onyx.connect({
@@ -97,17 +98,6 @@ function getReportParticipantsTitle(logins) {
  */
 function isIOUReport(report) {
     return report && _.has(report, 'total');
-}
-
-/**
- * Check whether a report action is Attachment or not.
- * Ignore messages containing [Attachment] as the main content. Attachments are actions with only text as [Attachment].
- *
- * @param {Object} reportActionMessage report action's message as text and html
- * @returns {Boolean}
- */
-function isReportMessageAttachment({text, html}) {
-    return text === '[Attachment]' && html !== '[Attachment]';
 }
 
 /**
@@ -791,7 +781,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
     const htmlForNewComment = isAttachment ? 'Uploading Attachment...' : commentText;
 
     // Remove HTML from text when applying optimistic offline comment
-    const textForNewComment = isAttachment ? '[Attachment]'
+    const textForNewComment = isAttachment ? CONST.ATTACHMENT_MESSAGE_TEXT
         : parser.htmlToText(htmlForNewComment);
 
     return {
