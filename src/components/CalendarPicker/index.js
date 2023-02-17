@@ -47,8 +47,8 @@ const CalendarPicker = (props) => {
     const currentYearView = currentDateView.getFullYear();
     const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
 
-    const hasAvailableDatesNextMonth = props.maxDate ? midnight(moment(props.maxDate).endOf('month').toDate()) > addMonths(currentDateView, 1) : true;
-    const hasAvailableDatesPrevMonth = props.minDate ? midnight(moment(props.minDate).toDate()) < moment(addMonths(currentDateView, -1)).endOf('month').toDate() : true;
+    const hasAvailableDatesNextMonth = props.maxDate ? moment(props.maxDate).endOf('month').startOf('day') > addMonths(currentDateView, 1) : true;
+    const hasAvailableDatesPrevMonth = props.minDate ? moment(props.minDate).startOf('day').toDate() < moment(addMonths(currentDateView, -1)).endOf('month').toDate() : true;
 
     const onNextMonthPress = () => setCurrentDateView(prev => addMonths(prev, 1));
     const onPrevMonthPress = () => setCurrentDateView(prev => addMonths(prev, -1));
