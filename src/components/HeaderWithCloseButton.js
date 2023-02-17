@@ -128,7 +128,7 @@ class HeaderWithCloseButton extends Component {
 
     render() {
         return (
-            <View style={[styles.headerBar, this.props.shouldShowBorderBottom && styles.borderBottom]}>
+            <View style={[styles.headerBar, this.props.shouldShowBorderBottom && styles.borderBottom, this.props.shouldShowBackButton && styles.pl2]}>
                 <View style={[
                     styles.dFlex,
                     styles.flexRow,
@@ -147,7 +147,7 @@ class HeaderWithCloseButton extends Component {
                                     }
                                     this.props.onBackButtonPress();
                                 }}
-                                style={[styles.headerBackButtonImage]}
+                                style={[styles.touchableButtonImage]}
                             >
                                 <Icon src={Expensicons.BackArrow} />
                             </Pressable>

@@ -1853,12 +1853,6 @@ const styles = {
         width: '100%',
     },
 
-    headerBackButtonImage: {
-        height: variables.componentSizeNormal,
-        justifyContent: 'center',
-        width: variables.componentSizeSmall,
-    },
-
     imageViewContainer: {
         width: '100%',
         height: '100%',
