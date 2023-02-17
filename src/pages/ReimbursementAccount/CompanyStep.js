@@ -200,6 +200,7 @@ class CompanyStep extends React.Component {
                         defaultValue={this.props.getDefaultStateForField('website', this.defaultWebsite)}
                         shouldSaveDraft
                         hint={this.props.translate('common.websiteExample')}
+                        keyboardType={CONST.KEYBOARD_TYPE.URL}
                     />
                     <TextInput
                         inputID="companyTaxID"

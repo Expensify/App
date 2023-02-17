@@ -45,7 +45,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class CustomNotificationProvider extends ReactNotificationProvider {
-
     // Resize icons to 100 dp x 100 dp
     private static final int MAX_ICON_SIZE_DPS = 100;
 

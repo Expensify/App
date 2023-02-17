@@ -357,46 +357,25 @@ function isValidRoutingNumber(number) {
 }
 
 /**
- * Checks if each string in array is of valid length and then returns true
- * for each string which exceeds the limit.
+ * Checks that the provided name doesn't contain any commas or semicolons
  *
- * @param {Number} maxLength
- * @param {String[]} valuesToBeValidated
- * @returns {Boolean[]}
+ * @param {String} name
+ * @returns {Boolean}
  */
-function doesFailCharacterLimit(maxLength, valuesToBeValidated) {
-    return _.map(valuesToBeValidated, value => value && value.length > maxLength);
+function isValidDisplayName(name) {
+    return !name.includes(',') && !name.includes(';');
 }
 
 /**
- * Checks if each string in array is of valid length and then returns true
- * for each string which exceeds the limit. The function trims the passed values.
+ * Checks if the provided string includes any of the provided reserved words
  *
- * @param {Number} maxLength
- * @param {String[]} valuesToBeValidated
- * @returns {Boolean[]}
+ * @param {String} value
+ * @param {String[]} reservedWords
+ * @returns {Boolean}
  */
-function doesFailCharacterLimitAfterTrim(maxLength, valuesToBeValidated) {
-    return _.map(valuesToBeValidated, value => value && value.trim().length > maxLength);
-}
-
-/**
- * Checks if input value includes comma or semicolon which are not accepted
- *
- * @param {String[]} valuesToBeValidated
- * @returns {String[]}
- */
-function findInvalidSymbols(valuesToBeValidated) {
-    return _.map(valuesToBeValidated, (value) => {
-        if (!value) {
-            return '';
-        }
-        let inValidSymbol = value.replace(/[,]+/g, '') !== value ? Localize.translateLocal('common.comma') : '';
-        if (_.isEmpty(inValidSymbol)) {
-            inValidSymbol = value.replace(/[;]+/g, '') !== value ? Localize.translateLocal('common.semicolon') : '';
-        }
-        return inValidSymbol;
-    });
+function doesContainReservedWord(value, reservedWords) {
+    const valueToCheck = value.trim().toLowerCase();
+    return _.some(reservedWords, reservedWord => valueToCheck.includes(reservedWord.toLowerCase()));
 }
 
 /**
@@ -473,12 +452,11 @@ export {
     isValidRoutingNumber,
     isValidSSNLastFour,
     isValidSSNFullNine,
-    doesFailCharacterLimit,
-    doesFailCharacterLimitAfterTrim,
     isReservedRoomName,
     isExistingRoomName,
     isValidRoomName,
     isValidTaxID,
     isValidValidateCode,
-    findInvalidSymbols,
+    isValidDisplayName,
+    doesContainReservedWord,
 };

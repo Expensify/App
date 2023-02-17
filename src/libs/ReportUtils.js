@@ -228,6 +228,15 @@ function isChatRoom(report) {
 }
 
 /**
+ * Whether the provided report is a direct message
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isDirectMessage(report) {
+    return _.isEmpty(getChatType(report));
+}
+
+/**
  * Get the policy type from a given report
  * @param {Object} report
  * @param {String} report.policyID
@@ -1015,7 +1024,7 @@ function buildOptimisticChatReport(
         lastMessageHtml: '',
         lastMessageText: null,
         lastReadTime: currentTime,
-        lastActionCreated: currentTime,
+        lastVisibleActionCreated: currentTime,
         notificationPreference,
         oldPolicyName,
         ownerEmail: ownerEmail || CONST.REPORT.OWNER_EMAIL_FAKE,
@@ -1190,10 +1199,10 @@ function isUnread(report) {
         return false;
     }
 
-    // lastActionCreated and lastReadTime are both datetime strings and can be compared directly
-    const lastActionCreated = report.lastActionCreated || '';
+    // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
+    const lastVisibleActionCreated = report.lastVisibleActionCreated || '';
     const lastReadTime = report.lastReadTime || '';
-    return lastReadTime < lastActionCreated;
+    return lastReadTime < lastVisibleActionCreated;
 }
 
 /**
@@ -1357,6 +1366,11 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         return false;
     }
 
+    // Exclude direct message chats that don't have any chat history
+    if (isDirectMessage(report) && report.maxSequenceNumber === 1) {
+        return false;
+    }
+
     return true;
 }
 
@@ -1456,7 +1470,11 @@ function getReportIDFromDeepLink(url) {
             route = route.replace('/', '');
         }
     });
-    const {reportID} = ROUTES.parseReportRouteParams(route);
+    const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(route);
+    if (isSubReportPageRoute) {
+        // We allow the Sub-Report deep link routes (settings, details, etc.) to be handled by their respective component pages
+        return '';
+    }
     return reportID;
 }
 

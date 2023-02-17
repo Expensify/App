@@ -1,12 +1,10 @@
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as Localize from '../../../libs/Localize';
 import ROUTES from '../../../ROUTES';
 import Form from '../../../components/Form';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -58,57 +56,19 @@ class DisplayNamePage extends Component {
     validate(values) {
         const errors = {};
 
-        // Check for invalid characters in first and last name
-        const [firstNameInvalidCharacter, lastNameInvalidCharacter] = ValidationUtils.findInvalidSymbols(
-            [values.firstName, values.lastName],
-        );
-        this.assignError(
-            errors,
-            'firstName',
-            !_.isEmpty(firstNameInvalidCharacter),
-            Localize.translateLocal(
-                'personalDetails.error.hasInvalidCharacter',
-                {invalidCharacter: firstNameInvalidCharacter},
-            ),
-        );
-        this.assignError(
-            errors,
-            'lastName',
-            !_.isEmpty(lastNameInvalidCharacter),
-            Localize.translateLocal(
-                'personalDetails.error.hasInvalidCharacter',
-                {invalidCharacter: lastNameInvalidCharacter},
-            ),
-        );
-        if (!_.isEmpty(errors)) {
-            return errors;
+        // First we validate the first name field
+        if (!ValidationUtils.isValidDisplayName(values.firstName)) {
+            errors.firstName = this.props.translate('personalDetails.error.hasInvalidCharacter');
+        } else if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
+            errors.firstName = this.props.translate('personalDetails.error.containsReservedWord');
         }
 
-        // Check the character limit for first and last name
-        const characterLimitError = Localize.translateLocal('common.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
-        const [hasFirstNameError, hasLastNameError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
-            CONST.FORM_CHARACTER_LIMIT,
-            [values.firstName, values.lastName],
-        );
-        this.assignError(errors, 'firstName', hasFirstNameError, characterLimitError);
-        this.assignError(errors, 'lastName', hasLastNameError, characterLimitError);
+        // Then we validate the last name field
+        if (!ValidationUtils.isValidDisplayName(values.lastName)) {
+            errors.lastName = this.props.translate('personalDetails.error.hasInvalidCharacter');
+        }
 
         return errors;
-    }
-
-    /**
-     * @param {Object} errors
-     * @param {String} errorKey
-     * @param {Boolean} hasError
-     * @param {String} errorCopy
-     * @returns {Object} - An object containing the errors for each inputID
-     */
-    assignError(errors, errorKey, hasError, errorCopy) {
-        const validateErrors = errors;
-        if (hasError) {
-            validateErrors[errorKey] = errorCopy;
-        }
-        return validateErrors;
     }
 
     render() {
@@ -140,6 +100,7 @@ class DisplayNamePage extends Component {
                             label={this.props.translate('common.firstName')}
                             defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
                             placeholder={this.props.translate('displayNamePage.john')}
+                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         />
                     </View>
                     <View>
@@ -149,6 +110,7 @@ class DisplayNamePage extends Component {
                             label={this.props.translate('common.lastName')}
                             defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
                             placeholder={this.props.translate('displayNamePage.doe')}
+                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         />
                     </View>
                 </Form>
