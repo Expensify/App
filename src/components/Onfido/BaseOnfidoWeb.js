@@ -107,6 +107,7 @@ class Onfido extends React.Component {
             onModalRequestClose: () => {
                 Log.hmmm('Onfido user closed the modal');
             },
+            language: this.props.preferredLocale,
         });
 
         window.addEventListener('userAnalyticsEvent', (event) => {
