@@ -23,33 +23,25 @@ const addMonths = (date, months) => {
 const midnight = date => new Date(date).setHours(0, 0, 0, 0);
 
 const CalendarPicker = (props) => {
-    const [currentDateView, setCurrentDateView] = React.useState(props.value ? props.value : new Date());
-
     const [yearPickerVisible, setYearPickerVisible] = React.useState(false);
     const [monthPickerVisible, setMonthPickerVisible] = React.useState(false);
+    const [currentDateView, setCurrentDateView] = React.useState(() => {
+        let initialValue = props.value || new Date();
+        if (props.maxDate && props.maxDate < initialValue) {
+            initialValue = props.maxDate;
+        } else if (props.minDate && props.minDate > initialValue) {
+            initialValue = props.minDate;
+        }
 
-    const isMaxDateBeforeCurrentDate = (props.maxDate && midnight(moment(props.maxDate).toDate()) < currentDateView);
-    const isMinDateAfterCurrentDate = (props.minDate && midnight(moment(props.minDate).toDate()) > currentDateView);
-    const dateToUse = isMinDateAfterCurrentDate ? props.minDate : props.maxDate;
+        return initialValue;
+    });
 
-    const currentMonthView = isMaxDateBeforeCurrentDate || isMinDateAfterCurrentDate ? moment(dateToUse).month() : currentDateView.getMonth();
-    const currentYearView = isMaxDateBeforeCurrentDate || isMinDateAfterCurrentDate ? moment(dateToUse).year() : currentDateView.getFullYear();
+    const currentMonthView = currentDateView.getMonth();
+    const currentYearView = currentDateView.getFullYear();
     const monthMatrix = generateMonthMatrix(currentYearView, currentMonthView);
 
     const hasAvailableDatesNextMonth = props.maxDate ? midnight(moment(props.maxDate).endOf('month').toDate()) > addMonths(currentDateView, 1) : true;
     const hasAvailableDatesPrevMonth = props.minDate ? midnight(moment(props.minDate).toDate()) < moment(addMonths(currentDateView, -1)).endOf('month').toDate() : true;
-
-    React.useEffect(() => {
-        if (!isMinDateAfterCurrentDate) { return; }
-
-        setCurrentDateView(new Date(currentYearView, currentMonthView));
-    }, []);
-
-    React.useEffect(() => {
-        if (!isMaxDateBeforeCurrentDate) { return; }
-
-        setCurrentDateView(new Date(currentYearView, currentMonthView));
-    }, []);
 
     const onNextMonthPress = () => setCurrentDateView(prev => addMonths(prev, 1));
     const onPrevMonthPress = () => setCurrentDateView(prev => addMonths(prev, -1));
