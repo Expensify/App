@@ -3,7 +3,7 @@ import lodashGet from 'lodash/get';
 import {
     propTypes as validateLinkPropTypes,
     defaultProps as validateLinkDefaultProps,
-} from './SignInWithValidateLinkPage/validateLinkPropTypes'
+} from './SignInWithValidateLinkPage/validateLinkPropTypes';
 import * as User from '../libs/actions/User';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 

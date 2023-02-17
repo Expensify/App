@@ -33,11 +33,10 @@ const propTypes = {
             // The type of secondary login to be added (email|phone)
             type: PropTypes.string,
         }),
-
-        /** List of betas available to current user */
-        betas: PropTypes.arrayOf(PropTypes.string),
-
     }),
+
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     ...withLocalizePropTypes,
 };
@@ -96,7 +95,7 @@ class AddSecondaryLoginPage extends Component {
             return false;
         }
 
-        return !Permissions.canUsePasswordlessLogins(this.props.betas)  && !this.state.password;
+        return !Permissions.canUsePasswordlessLogins(this.props.betas) && !this.state.password;
     }
 
     render() {
