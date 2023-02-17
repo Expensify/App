@@ -13,13 +13,10 @@ import * as NetworkStore from './NetworkStore';
 function isAuthTokenRequired(command) {
     return !_.contains([
         'Log',
-        'Graphite_Timer',
         'Authenticate',
         'BeginSignIn',
         'SetPassword',
-        'User_SignUp',
         'ResendValidateCode',
-        'ValidateEmail',
     ], command);
 }
 

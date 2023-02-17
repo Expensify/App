@@ -18,6 +18,7 @@ import variables from '../../styles/variables';
 import Checkbox from '../Checkbox';
 import getSecureEntryKeyboardType from '../../libs/getSecureEntryKeyboardType';
 import CONST from '../../CONST';
+import FormHelpMessage from '../FormHelpMessage';
 
 class BaseTextInput extends Component {
     constructor(props) {
@@ -65,7 +66,8 @@ class BaseTextInput extends Component {
         }
 
         if (this.props.shouldDelayFocus) {
-            return setTimeout(() => this.input.focus(), CONST.ANIMATED_TRANSITION);
+            this.focusTimeout = setTimeout(() => this.input.focus(), CONST.ANIMATED_TRANSITION);
+            return;
         }
         this.input.focus();
     }
@@ -93,6 +95,10 @@ class BaseTextInput extends Component {
     }
 
     componentWillUnmount() {
+        if (this.focusTimeout) {
+            clearTimeout(this.focusTimeout);
+        }
+
         if (!this.props.disableKeyboard || !this.appStateSubscription) {
             return;
         }
@@ -198,12 +204,11 @@ class BaseTextInput extends Component {
         const inputProps = _.omit(this.props, _.keys(baseTextInputPropTypes.propTypes));
         const hasLabel = Boolean(this.props.label.length);
         const inputHelpText = this.props.errorText || this.props.hint;
-        const formHelpStyles = this.props.errorText ? styles.formError : styles.formHelp;
         const placeholder = (this.props.prefixCharacter || this.state.isFocused || !hasLabel || (hasLabel && this.props.forceActiveLabel)) ? this.props.placeholder : null;
         const textInputContainerStyles = _.reduce([
             styles.textInputContainer,
             ...this.props.textInputContainerStyles,
-            this.props.autoGrow && StyleUtils.getAutoGrowTextInputStyle(this.state.textInputWidth),
+            this.props.autoGrow && StyleUtils.getWidthStyle(this.state.textInputWidth),
             !this.props.hideFocusedState && this.state.isFocused && styles.borderColorFocus,
             (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
         ], (finalStyles, s) => ({...finalStyles, ...s}), {});
@@ -242,19 +247,27 @@ class BaseTextInput extends Component {
                                         />
                                     </>
                                 ) : null}
-                                <View style={[styles.textInputAndIconContainer]} pointerEvents="box-none">
+                                <View
+                                    style={[
+                                        styles.textInputAndIconContainer,
+                                        (this.props.multiline && hasLabel) && styles.textInputMultilineContainer,
+                                    ]}
+                                    pointerEvents="box-none"
+                                >
                                     {Boolean(this.props.prefixCharacter) && (
-                                        <Text
-                                            pointerEvents="none"
-                                            selectable={false}
-                                            style={[
-                                                styles.textInputPrefix,
-                                                !hasLabel && styles.pv0,
-                                            ]}
-                                            onLayout={this.storePrefixLayoutDimensions}
-                                        >
-                                            {this.props.prefixCharacter}
-                                        </Text>
+                                        <View style={styles.textInputPrefixWrapper}>
+                                            <Text
+                                                pointerEvents="none"
+                                                selectable={false}
+                                                style={[
+                                                    styles.textInputPrefix,
+                                                    !hasLabel && styles.pv0,
+                                                ]}
+                                                onLayout={this.storePrefixLayoutDimensions}
+                                            >
+                                                {this.props.prefixCharacter}
+                                            </Text>
+                                        </View>
                                     )}
                                     <RNTextInput
                                         ref={(ref) => {
@@ -271,10 +284,13 @@ class BaseTextInput extends Component {
                                             styles.flex1,
                                             styles.w100,
                                             this.props.inputStyle,
-                                            !hasLabel && styles.pv0,
+                                            (!hasLabel || this.props.multiline) && styles.pv0,
                                             this.props.prefixCharacter && StyleUtils.getPaddingLeft(this.state.prefixWidth + styles.pl1.paddingLeft),
                                             this.props.secureTextEntry && styles.secureInput,
-                                            !this.props.multiline && {height: this.state.height},
+
+                                            // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
+                                            // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
+                                            !this.props.multiline && {height: this.state.height, lineHeight: undefined},
                                         ]}
                                         multiline={this.props.multiline}
                                         maxLength={this.props.maxLength}
@@ -287,6 +303,12 @@ class BaseTextInput extends Component {
                                         keyboardType={getSecureEntryKeyboardType(this.props.keyboardType, this.props.secureTextEntry, this.state.passwordHidden)}
                                         value={this.state.value}
                                         selection={this.state.selection}
+                                        editable={_.isUndefined(this.props.editable) ? !this.props.disabled : this.props.editable}
+
+                                        // FormSubmit Enter key handler does not have access to direct props.
+                                        // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
+                                        dataSet={{submitOnEnter: this.props.multiline && this.props.submitOnEnter}}
+
                                     />
                                     {this.props.secureTextEntry && (
                                         <Checkbox
@@ -305,9 +327,7 @@ class BaseTextInput extends Component {
                         </TouchableWithoutFeedback>
                     </View>
                     {!_.isEmpty(inputHelpText) && (
-                        <Text style={[formHelpStyles, styles.mt1, styles.ph3]}>
-                            {inputHelpText}
-                        </Text>
+                        <FormHelpMessage isError={!_.isEmpty(this.props.errorText)} message={inputHelpText} />
                     )}
                 </View>
                 {/*

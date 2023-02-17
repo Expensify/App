@@ -3,6 +3,7 @@ import _ from 'underscore';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
+import * as Localize from './Localize';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -206,11 +207,38 @@ function meetsAgeRequirements(date) {
 }
 
 /**
+ * Validate that given date is in a specified range of years before now.
+ *
+ * @param {String} date
+ * @param {Number} minimumAge
+ * @param {Number} maximumAge
+ * @returns {String}
+ */
+function getAgeRequirementError(date, minimumAge, maximumAge) {
+    const recentDate = moment().subtract(minimumAge, 'years');
+    const longAgoDate = moment().subtract(maximumAge, 'years');
+    const testDate = moment(date);
+    if (!testDate.isValid()) {
+        return Localize.translateLocal('common.error.dateInvalid');
+    }
+    if (testDate.isBetween(longAgoDate, recentDate)) {
+        return '';
+    }
+    if (testDate.isAfter(recentDate)) {
+        return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: recentDate.format(CONST.DATE.MOMENT_FORMAT_STRING)});
+    }
+    return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: longAgoDate.format(CONST.DATE.MOMENT_FORMAT_STRING)});
+}
+
+/**
+ * Similar to backend, checks whether a website has a valid URL or not.
+ * http/https/ftp URL scheme required.
+ *
  * @param {String} url
  * @returns {Boolean}
  */
-function isValidURL(url) {
-    return CONST.REGEX.HYPERLINK.test(url);
+function isValidWebsite(url) {
+    return CONST.REGEX.WEBSITE.test(url);
 }
 
 /**
@@ -274,6 +302,22 @@ function isValidPassword(password) {
 }
 
 /**
+ * @param {string} validateCode
+ * @returns {Boolean}
+ */
+function isValidValidateCode(validateCode) {
+    return validateCode.match(CONST.VALIDATE_CODE_REGEX_STRING);
+}
+
+/**
+ * @param {String} code
+ * @returns {Boolean}
+ */
+function isValidTwoFactorCode(code) {
+    return Boolean(code.match(CONST.REGEX.CODE_2FA));
+}
+
+/**
  * @param {String} input
  * @returns {Boolean}
  */
@@ -313,27 +357,25 @@ function isValidRoutingNumber(number) {
 }
 
 /**
- * Checks if each string in array is of valid length and then returns true
- * for each string which exceeds the limit.
+ * Checks that the provided name doesn't contain any commas or semicolons
  *
- * @param {Number} maxLength
- * @param {String[]} valuesToBeValidated
- * @returns {Boolean[]}
+ * @param {String} name
+ * @returns {Boolean}
  */
-function doesFailCharacterLimit(maxLength, valuesToBeValidated) {
-    return _.map(valuesToBeValidated, value => value && value.length > maxLength);
+function isValidDisplayName(name) {
+    return !name.includes(',') && !name.includes(';');
 }
 
 /**
- * Checks if each string in array is of valid length and then returns true
- * for each string which exceeds the limit. The function trims the passed values.
+ * Checks if the provided string includes any of the provided reserved words
  *
- * @param {Number} maxLength
- * @param {String[]} valuesToBeValidated
- * @returns {Boolean[]}
+ * @param {String} value
+ * @param {String[]} reservedWords
+ * @returns {Boolean}
  */
-function doesFailCharacterLimitAfterTrim(maxLength, valuesToBeValidated) {
-    return _.map(valuesToBeValidated, value => value && value.trim().length > maxLength);
+function doesContainReservedWord(value, reservedWords) {
+    const valueToCheck = value.trim().toLowerCase();
+    return _.some(reservedWords, reservedWord => valueToCheck.includes(reservedWord.toLowerCase()));
 }
 
 /**
@@ -364,6 +406,19 @@ function isExistingRoomName(roomName, reports, policyID) {
 }
 
 /**
+ * Checks if a room name is valid by checking that:
+ * - It starts with a hash '#'
+ * - After the first character, it contains only lowercase letters, numbers, and dashes
+ * - It's between 1 and MAX_ROOM_NAME_LENGTH characters long
+ *
+ * @param {String} roomName
+ * @returns {Boolean}
+ */
+function isValidRoomName(roomName) {
+    return CONST.REGEX.ROOM_NAME.test(roomName);
+}
+
+/**
  * Checks if tax ID consists of 9 digits
  *
  * @param {String} taxID
@@ -375,6 +430,7 @@ function isValidTaxID(taxID) {
 
 export {
     meetsAgeRequirements,
+    getAgeRequirementError,
     isValidAddress,
     isValidDate,
     isValidCardName,
@@ -386,18 +442,21 @@ export {
     isValidZipCode,
     isRequiredFulfilled,
     isValidUSPhone,
-    isValidURL,
+    isValidWebsite,
     validateIdentity,
     isValidPassword,
+    isValidTwoFactorCode,
     isPositiveInteger,
     isNumericWithSpecialChars,
     isValidPaypalUsername,
     isValidRoutingNumber,
     isValidSSNLastFour,
     isValidSSNFullNine,
-    doesFailCharacterLimit,
-    doesFailCharacterLimitAfterTrim,
     isReservedRoomName,
     isExistingRoomName,
+    isValidRoomName,
     isValidTaxID,
+    isValidValidateCode,
+    isValidDisplayName,
+    doesContainReservedWord,
 };

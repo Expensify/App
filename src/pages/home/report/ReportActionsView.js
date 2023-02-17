@@ -1,14 +1,10 @@
 import React from 'react';
-import {
-    Keyboard,
-    AppState,
-} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import Log from '../../../libs/Log';
 import * as Report from '../../../libs/actions/Report';
 import reportActionPropTypes from './reportActionPropTypes';
-import * as CollectionUtils from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
 import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
@@ -17,9 +13,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import {withDrawerPropTypes} from '../../../components/withDrawerState';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
-import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
-import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 import Performance from '../../../libs/Performance';
 import {withNetwork} from '../../../components/OnyxProvider';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
@@ -33,8 +26,6 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
-    /* Onyx Props */
-
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
 
@@ -67,56 +58,83 @@ class ReportActionsView extends React.Component {
     constructor(props) {
         super(props);
 
-        this.appStateChangeListener = null;
-
         this.didLayout = false;
+        this.didSubscribeToReportTypingEvents = false;
+        this.unsubscribeVisibilityListener = null;
+        this.hasCachedActions = _.size(props.reportActions) > 0;
+
+        // We need this.sortedAndFilteredReportActions to be set before this.state is initialized because the function to calculate the newMarkerReportActionID uses the sorted report actions
+        this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(props.reportActions);
 
         this.state = {
             isFloatingMessageCounterVisible: false,
-            newMarkerSequenceNumber: ReportUtils.isUnread(props.report)
-                ? props.report.lastReadSequenceNumber + 1
-                : 0,
+            newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions),
         };
 
         this.currentScrollOffset = 0;
-        this.sortedReportActions = ReportActionsUtils.getSortedReportActions(props.reportActions);
-        this.mostRecentIOUReportSequenceNumber = ReportActionsUtils.getMostRecentIOUReportSequenceNumber(props.reportActions);
+        this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(props.reportActions);
         this.trackScroll = this.trackScroll.bind(this);
         this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
         this.scrollToBottomAndMarkReportAsRead = this.scrollToBottomAndMarkReportAsRead.bind(this);
+        this.openReportIfNecessary = this.openReportIfNecessary.bind(this);
     }
 
     componentDidMount() {
-        this.appStateChangeListener = AppState.addEventListener('change', () => {
+        this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
             if (!this.getIsReportFullyVisible()) {
                 return;
             }
 
             // If the app user becomes active and they have no unread actions we clear the new marker to sync their device
             // e.g. they could have read these messages on another device and only just become active here
-            Report.openReport(this.props.report.reportID);
-            this.setState({newMarkerSequenceNumber: 0});
-        });
+            this.openReportIfNecessary();
 
-        Report.subscribeToReportTypingEvents(this.props.report.reportID);
-        this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
-            if (!ReportActionComposeFocusManager.isFocused()) {
-                return;
+            const hasUnreadActions = ReportUtils.isUnread(this.props.report);
+            if (!hasUnreadActions) {
+                this.setState({newMarkerReportActionID: ''});
             }
-            ReportScrollManager.scrollToBottom();
         });
 
         if (this.getIsReportFullyVisible()) {
-            Report.openReport(this.props.report.reportID);
+            this.openReportIfNecessary();
         }
+
+        // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
+        // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
+        this.unsubscribeFromNewActionEvent = Report.subscribeToNewActionEvent(this.props.report.reportID, (isFromCurrentUser, newActionID) => {
+            const isNewMarkerReportActionIDSet = !_.isEmpty(this.state.newMarkerReportActionID);
+
+            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
+            // they are now in the list.
+            if (isFromCurrentUser) {
+                ReportScrollManager.scrollToBottom();
+
+                // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
+                this.setState({newMarkerReportActionID: ''});
+            } else if (this.getIsReportFullyVisible()) {
+                // We use the scroll position to determine whether the report should be marked as read and the new line indicator reset.
+                // If the user is scrolled up and no new line marker is set we will set it otherwise we will do nothing so the new marker
+                // stays in it's previous position.
+                if (this.currentScrollOffset === 0) {
+                    Report.readNewestAction(this.props.report.reportID);
+                    this.setState({newMarkerReportActionID: ''});
+                } else if (!isNewMarkerReportActionIDSet) {
+                    this.setState({newMarkerReportActionID: newActionID});
+                }
+            } else if (!isNewMarkerReportActionIDSet) {
+                // The report is not in view and we received a comment from another user while the new marker is not set
+                // so we will set the new marker now.
+                this.setState({newMarkerReportActionID: newActionID});
+            }
+        });
     }
 
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            this.sortedReportActions = ReportActionsUtils.getSortedReportActions(nextProps.reportActions);
-            this.mostRecentIOUReportSequenceNumber = ReportActionsUtils.getMostRecentIOUReportSequenceNumber(nextProps.reportActions);
+            this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(nextProps.reportActions);
+            this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(nextProps.reportActions);
             return true;
         }
 
@@ -128,7 +146,11 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (nextProps.report.lastReadSequenceNumber !== this.props.report.lastReadSequenceNumber) {
+        if (nextProps.report.isLoadingReportActions !== this.props.report.isLoadingReportActions) {
+            return true;
+        }
+
+        if (nextProps.report.lastReadTime !== this.props.report.lastReadTime) {
             return true;
         }
 
@@ -136,7 +158,7 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (nextState.newMarkerSequenceNumber !== this.state.newMarkerSequenceNumber) {
+        if (nextState.newMarkerReportActionID !== this.state.newMarkerReportActionID) {
             return true;
         }
 
@@ -168,40 +190,9 @@ class ReportActionsView extends React.Component {
         const wasNetworkChangeDetected = lodashGet(prevProps.network, 'isOffline') && !lodashGet(this.props.network, 'isOffline');
         if (wasNetworkChangeDetected) {
             if (isReportFullyVisible) {
-                Report.openReport(this.props.report.reportID);
+                this.openReportIfNecessary();
             } else {
                 Report.reconnect(this.props.report.reportID);
-            }
-        }
-
-        const previousLastSequenceNumber = lodashGet(CollectionUtils.lastItem(prevProps.reportActions), 'sequenceNumber');
-        const currentLastSequenceNumber = lodashGet(CollectionUtils.lastItem(this.props.reportActions), 'sequenceNumber');
-        const didNewReportActionAppear = previousLastSequenceNumber !== currentLastSequenceNumber;
-        if (didNewReportActionAppear) {
-            const lastAction = CollectionUtils.lastItem(this.props.reportActions);
-            const isLastActionFromCurrentUser = lodashGet(lastAction, 'actorEmail', '') === lodashGet(this.props.session, 'email', '');
-
-            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
-            // they are now in the list.
-            if (isLastActionFromCurrentUser) {
-                ReportScrollManager.scrollToBottom();
-
-                // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
-                this.setState({newMarkerSequenceNumber: 0});
-            } else if (isReportFullyVisible) {
-                // We use the scroll position to determine whether the report should be marked as read and the new line indicator reset.
-                // If the user is scrolled up and no new line marker is set we will set it otherwise we will do nothing so the new marker
-                // stays in it's previous position.
-                if (this.currentScrollOffset === 0) {
-                    Report.readNewestAction(this.props.report.reportID);
-                    this.setState({newMarkerSequenceNumber: 0});
-                } else if (this.state.newMarkerSequenceNumber === 0) {
-                    this.setState({newMarkerSequenceNumber: currentLastSequenceNumber});
-                }
-            } else if (this.state.newMarkerSequenceNumber === 0) {
-                // The report is not in view and we received a comment from another user while the new marker is not set
-                // so we will set the new marker now.
-                this.setState({newMarkerSequenceNumber: currentLastSequenceNumber});
             }
         }
 
@@ -212,11 +203,18 @@ class ReportActionsView extends React.Component {
         const didReportBecomeVisible = isReportFullyVisible && (didSidebarClose || didScreenSizeIncrease);
         if (didReportBecomeVisible) {
             this.setState({
-                newMarkerSequenceNumber: !ReportUtils.isUnread(this.props.report)
-                    ? 0
-                    : this.props.report.lastReadSequenceNumber + 1,
+                newMarkerReportActionID: ReportUtils.isUnread(this.props.report)
+                    ? ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions)
+                    : '',
             });
-            Report.openReport(this.props.report.reportID);
+            this.openReportIfNecessary();
+        }
+
+        // If the report action marking the unread point is deleted we need to recalculate which action should be the unread marker
+        if (this.state.newMarkerReportActionID && _.isEmpty(lodashGet(this.props.reportActions[this.state.newMarkerReportActionID], 'message[0].html'))) {
+            this.setState({
+                newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions),
+            });
         }
 
         // When the user navigates to the LHN the ReportActionsView doesn't unmount and just remains hidden.
@@ -224,28 +222,63 @@ class ReportActionsView extends React.Component {
         const didSidebarOpen = !prevProps.isDrawerOpen && this.props.isDrawerOpen;
         const didUserNavigateToSidebarAfterReadingReport = didSidebarOpen && !ReportUtils.isUnread(this.props.report);
         if (didUserNavigateToSidebarAfterReadingReport) {
-            this.setState({newMarkerSequenceNumber: 0});
+            this.setState({newMarkerReportActionID: ''});
         }
 
-        // Checks to see if a report comment has been manually "marked as unread". All other times when the lastReadSequenceNumber
+        // Checks to see if a report comment has been manually "marked as unread". All other times when the lastReadTime
         // changes it will be because we marked the entire report as read.
-        const didManuallyMarkReportAsUnread = (prevProps.report.lastReadSequenceNumber !== this.props.report.lastReadSequenceNumber)
+        const didManuallyMarkReportAsUnread = (prevProps.report.lastReadTime !== this.props.report.lastReadTime)
             && ReportUtils.isUnread(this.props.report);
         if (didManuallyMarkReportAsUnread) {
-            this.setState({newMarkerSequenceNumber: this.props.report.lastReadSequenceNumber + 1});
+            this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions)});
+        }
+
+        // Ensures subscription event succeeds when the report/workspace room is created optimistically.
+        // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
+        // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
+        // Existing reports created will have empty fields for `pendingFields`.
+        const didCreateReportSuccessfully = !this.props.report.pendingFields
+            || (!this.props.report.pendingFields.addWorkspaceRoom && !this.props.report.pendingFields.createChat);
+        if (!this.didSubscribeToReportTypingEvents && didCreateReportSuccessfully) {
+            Report.subscribeToReportTypingEvents(this.props.report.reportID);
+            this.didSubscribeToReportTypingEvents = true;
         }
     }
 
     componentWillUnmount() {
-        if (this.keyboardEvent) {
-            this.keyboardEvent.remove();
+        if (this.unsubscribeVisibilityListener) {
+            this.unsubscribeVisibilityListener();
         }
 
-        if (this.appStateChangeListener) {
-            this.appStateChangeListener.remove();
+        if (this.unsubscribeFromNewActionEvent) {
+            this.unsubscribeFromNewActionEvent();
         }
 
         Report.unsubscribeFromReportChannel(this.props.report.reportID);
+    }
+
+    /**
+     * @param {Object} reportActions
+     * @returns {Array}
+     */
+    getSortedReportActionsForDisplay(reportActions) {
+        // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
+        // to prevent bugs during the migration from sequenceNumber -> reportActionID
+        const filteredReportActions = _.filter(reportActions, (reportAction, key) => {
+            if (!reportAction) {
+                return false;
+            }
+
+            if (String(reportAction.sequenceNumber) === key) {
+                Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
+                return false;
+            }
+
+            return true;
+        });
+
+        const sortedReportActions = ReportActionsUtils.getSortedReportActions(filteredReportActions, true);
+        return ReportActionsUtils.filterReportActionsForDisplay(sortedReportActions);
     }
 
     /**
@@ -254,6 +287,15 @@ class ReportActionsView extends React.Component {
     getIsReportFullyVisible() {
         const isSidebarCoveringReportView = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
         return Visibility.isVisible() && !isSidebarCoveringReportView;
+    }
+
+    // If the report is optimistic (AKA not yet created) we don't need to call openReport again
+    openReportIfNecessary() {
+        if (this.props.report.isOptimisticReport) {
+            return;
+        }
+
+        Report.openReport(this.props.report.reportID);
     }
 
     /**
@@ -266,19 +308,15 @@ class ReportActionsView extends React.Component {
             return;
         }
 
-        const minSequenceNumber = _.chain(this.props.reportActions)
-            .pluck('sequenceNumber')
-            .min()
-            .value();
+        const oldestReportAction = _.last(this.sortedAndFilteredReportActions);
 
-        if (minSequenceNumber === 0) {
+        // Don't load more chats if we're already at the beginning of the chat history
+        if (oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return;
         }
 
-        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
-        // case just get everything starting from 0.
-        const oldestActionSequenceNumber = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
-        Report.readOldestAction(this.props.report.reportID, oldestActionSequenceNumber);
+        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
+        Report.readOldestAction(this.props.report.reportID, oldestReportAction.reportActionID);
     }
 
     scrollToBottomAndMarkReportAsRead() {
@@ -318,7 +356,7 @@ class ReportActionsView extends React.Component {
         }
 
         this.didLayout = true;
-        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
+        Timing.end(CONST.TIMING.SWITCH_REPORT, this.hasCachedActions ? CONST.TIMING.WARM : CONST.TIMING.COLD);
 
         // Capture the init measurement only once not per each chat switch as the value gets overwritten
         if (!ReportActionsView.initMeasured) {
@@ -340,22 +378,18 @@ class ReportActionsView extends React.Component {
                 {!this.props.isComposerFullSize && (
                     <>
                         <FloatingMessageCounter
-                            isActive={this.state.isFloatingMessageCounterVisible && this.state.newMarkerSequenceNumber > 0}
+                            isActive={this.state.isFloatingMessageCounterVisible && !_.isEmpty(this.state.newMarkerReportActionID)}
                             onClick={this.scrollToBottomAndMarkReportAsRead}
                         />
                         <ReportActionsList
                             report={this.props.report}
                             onScroll={this.trackScroll}
                             onLayout={this.recordTimeToMeasureItemLayout}
-                            sortedReportActions={this.sortedReportActions}
-                            mostRecentIOUReportSequenceNumber={this.mostRecentIOUReportSequenceNumber}
+                            sortedReportActions={this.sortedAndFilteredReportActions}
+                            mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
                             isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
                             loadMoreChats={this.loadMoreChats}
-                            newMarkerSequenceNumber={this.state.newMarkerSequenceNumber}
-                        />
-                        <PopoverReportActionContextMenu
-                            ref={ReportActionContextMenu.contextMenuRef}
-                            isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
+                            newMarkerReportActionID={this.state.newMarkerReportActionID}
                         />
                     </>
                 )}

@@ -15,6 +15,9 @@ export default {
     // which tab is the leader, and which ones are the followers
     ACTIVE_CLIENTS: 'activeClients',
 
+    // A unique ID for the device
+    DEVICE_ID: 'deviceID',
+
     // Boolean flag set whenever the sidebar has loaded
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
@@ -38,6 +41,9 @@ export default {
 
     // Contains all the personalDetails the user has access to
     PERSONAL_DETAILS: 'personalDetails',
+
+    // Contains all the private personal details of the user
+    PRIVATE_PERSONAL_DETAILS: 'private_personalDetails',
 
     // Contains a list of all currencies available to the user - user can
     // select a currency based on the list
@@ -76,8 +82,14 @@ export default {
     // Contains the users's block expiration (if they have one)
     NVP_BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
 
+    // Does this user have push notifications enabled for this device?
+    PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
+
     // Plaid data (access tokens, bank accounts ...)
     PLAID_DATA: 'plaidData',
+
+    // If we disabled Plaid because of too many attempts
+    IS_PLAID_DISABLED: 'isPlaidDisabled',
 
     // Token needed to initialize Plaid link
     PLAID_LINK_TOKEN: 'plaidLinkToken',
@@ -92,10 +104,10 @@ export default {
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
-        REPORT_IOUS: 'reportIOUs_',
         POLICY: 'policy_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         POLICY_MEMBER_LIST: 'policyMemberList_',
+        DOWNLOAD: 'download_',
     },
 
     // Indicates which locale should be used
@@ -112,9 +124,6 @@ export default {
 
     // Stores information about additional details form entry
     WALLET_ADDITIONAL_DETAILS: 'walletAdditionalDetails',
-
-    // Stores values put into the additional details step of the wallet KYC flow
-    WALLET_ADDITIONAL_DETAILS_DRAFT: 'walletAdditionalDetailsDraft',
 
     // Object containing Wallet terms step state
     WALLET_TERMS: 'walletTerms',
@@ -155,14 +164,8 @@ export default {
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
-    // Is policy data loading?
-    IS_LOADING_POLICY_DATA: 'isLoadingPolicyData',
-
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
-
-    // Data related to user closing their account (loading status and error message)
-    CLOSE_ACCOUNT: 'closeAccount',
 
     // Stores information about active wallet transfer amount, selectedAccountID, status, etc
     WALLET_TRANSFER: 'walletTransfer',
@@ -175,8 +178,20 @@ export default {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
         REQUEST_CALL_FORM: 'requestCallForm',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
+        WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
+        CLOSE_ACCOUNT_FORM: 'closeAccount',
+        PROFILE_SETTINGS_FORM: 'profileSettingsForm',
+        DISPLAY_NAME_FORM: 'displayNameForm',
+        LEGAL_NAME_FORM: 'legalNameForm',
+        DATE_OF_BIRTH_FORM: 'dateOfBirthForm',
+        HOME_ADDRESS_FORM: 'homeAddressForm',
+        NEW_ROOM_FORM: 'newRoomForm',
+        ROOM_SETTINGS_FORM: 'roomSettingsForm',
     },
 
     // Whether we should show the compose input or not
     SHOULD_SHOW_COMPOSE_INPUT: 'shouldShowComposeInput',
+
+    // Is app in beta version
+    IS_BETA: 'isBeta',
 };

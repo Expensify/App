@@ -16,7 +16,7 @@ const propTypes = {
 const WorkspaceTravelVBAView = props => (
     <Section
         title={props.translate('workspace.travel.packYourBags')}
-        icon={Illustrations.RocketOrange}
+        icon={Illustrations.Luggage}
         menuItems={[
             {
                 title: props.translate('workspace.common.issueAndManageCards'),
@@ -24,6 +24,7 @@ const WorkspaceTravelVBAView = props => (
                 icon: Expensicons.ExpensifyCard,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
+                wrapperStyle: [styles.cardMenuItem],
             },
             {
                 title: props.translate('workspace.travel.bookTravelWithConcierge'),
@@ -32,6 +33,7 @@ const WorkspaceTravelVBAView = props => (
                 },
                 icon: Expensicons.Concierge,
                 shouldShowRightIcon: true,
+                wrapperStyle: [styles.cardMenuItem],
             },
             {
                 title: props.translate('requestorStep.learnMore'),
@@ -39,10 +41,11 @@ const WorkspaceTravelVBAView = props => (
                 icon: Expensicons.Info,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
+                wrapperStyle: [styles.cardMenuItem],
             },
         ]}
     >
-        <View style={[styles.mv4]}>
+        <View style={[styles.mv3]}>
             <Text>{props.translate('workspace.travel.VBACopy')}</Text>
         </View>
     </Section>

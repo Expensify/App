@@ -5,6 +5,8 @@ import RenameActiveClientsKey from './migrations/RenameActiveClientsKey';
 import RenamePriorityModeKey from './migrations/RenamePriorityModeKey';
 import MoveToIndexedDB from './migrations/MoveToIndexedDB';
 import RenameExpensifyNewsStatus from './migrations/RenameExpensifyNewsStatus';
+import AddLastVisibleActionCreated from './migrations/AddLastVisibleActionCreated';
+import KeyReportActionsByReportActionID from './migrations/KeyReportActionsByReportActionID';
 
 export default function () {
     const startTime = Date.now();
@@ -18,6 +20,8 @@ export default function () {
             RenamePriorityModeKey,
             AddEncryptedAuthToken,
             RenameExpensifyNewsStatus,
+            AddLastVisibleActionCreated,
+            KeyReportActionsByReportActionID,
         ];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the

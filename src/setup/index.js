@@ -4,6 +4,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import platformSetup from './platformSetup';
 import * as Metrics from '../libs/Metrics';
+import * as Device from '../libs/actions/Device';
 
 export default function () {
     /*
@@ -21,6 +22,9 @@ export default function () {
      */
     Onyx.init({
         keys: ONYXKEYS,
+
+        // Increase the cached key count so that the app works more consistently for accounts with large numbers of reports
+        maxCachedKeysCount: 10000,
         safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         captureMetrics: Metrics.canCaptureOnyxMetrics(),
         initialKeyStates: {
@@ -36,6 +40,8 @@ export default function () {
             [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
         },
     });
+
+    Device.setDeviceID();
 
     // Force app layout to work left to right because our design does not currently support devices using this mode
     I18nManager.allowRTL(false);

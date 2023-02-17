@@ -11,13 +11,13 @@ const propTypes = {
     ]).isRequired,
 
     /** Whether to include padding bottom */
-    includePaddingBottom: PropTypes.bool,
+    includeSafeAreaPaddingBottom: PropTypes.bool,
 
     /** Whether to include padding top */
     includePaddingTop: PropTypes.bool,
 
-    // Called when navigated Screen's transition is finished.
-    onTransitionEnd: PropTypes.func,
+    // Called when navigated Screen's transition is finished. It does not fire when user exit the page.
+    onEntryTransitionEnd: PropTypes.func,
 
     /** The behavior to pass to the KeyboardAvoidingView, requires some trial and error depending on the layout/devices used.
      *  Search 'switch(behavior)' in ./node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js for more context */
@@ -32,9 +32,9 @@ const propTypes = {
 
 const defaultProps = {
     style: [],
-    includePaddingBottom: true,
+    includeSafeAreaPaddingBottom: true,
     includePaddingTop: true,
-    onTransitionEnd: () => {},
+    onEntryTransitionEnd: () => {},
     modal: {},
     keyboardAvoidingViewBehavior: 'padding',
 };

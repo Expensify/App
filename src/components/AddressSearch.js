@@ -7,9 +7,10 @@ import lodashGet from 'lodash/get';
 import CONFIG from '../CONFIG';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import TextInput from './TextInput';
-import Log from '../libs/Log';
 import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
+import CONST from '../CONST';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -48,6 +49,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Should address search be limited to results in the USA */
+    isLimitedToUSA: PropTypes.bool,
+
     /** A map of inputID key names */
     renamedInputKeys: PropTypes.shape({
         street: PropTypes.string,
@@ -55,6 +59,9 @@ const propTypes = {
         state: PropTypes.string,
         zipCode: PropTypes.string,
     }),
+
+    /** Maximum number of characters allowed in search input */
+    maxInputLength: PropTypes.number,
 
     ...withLocalizePropTypes,
 };
@@ -68,12 +75,14 @@ const defaultProps = {
     value: undefined,
     defaultValue: undefined,
     containerStyles: [],
+    isLimitedToUSA: true,
     renamedInputKeys: {
         street: 'addressStreet',
         city: 'addressCity',
         state: 'addressState',
         zipCode: 'addressZipCode',
     },
+    maxInputLength: undefined,
 };
 
 // Do not convert to class component! It's been tried before and presents more challenges than it's worth.
@@ -81,6 +90,10 @@ const defaultProps = {
 // Reference: https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/609#issuecomment-886133839
 const AddressSearch = (props) => {
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
+    const query = {language: props.preferredLocale, types: 'address'};
+    if (props.isLimitedToUSA) {
+        query.components = 'country:us';
+    }
 
     const saveLocationDetails = (details) => {
         const addressComponents = details.address_components;
@@ -89,20 +102,33 @@ const AddressSearch = (props) => {
         }
 
         // Gather the values from the Google details
-        const streetNumber = GooglePlacesUtils.getAddressComponent(addressComponents, 'street_number', 'long_name') || '';
-        const streetName = GooglePlacesUtils.getAddressComponent(addressComponents, 'route', 'long_name') || '';
-        const street = `${streetNumber} ${streetName}`.trim();
-        let city = GooglePlacesUtils.getAddressComponent(addressComponents, 'locality', 'long_name');
-        if (!city) {
-            city = GooglePlacesUtils.getAddressComponent(addressComponents, 'sublocality', 'long_name');
-            Log.hmmm('[AddressSearch] Replacing missing locality with sublocality: ', {address: details.formatted_address, sublocality: city});
-        }
-        const zipCode = GooglePlacesUtils.getAddressComponent(addressComponents, 'postal_code', 'long_name');
-        const state = GooglePlacesUtils.getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
+        const {
+            street_number: streetNumber,
+            route: streetName,
+            locality: city,
+            sublocality: cityFallback, // Some locations only return sublocality instead of locality
+            postal_code: zipCode,
+            administrative_area_level_1: state,
+            country,
+        } = GooglePlacesUtils.getAddressComponents(addressComponents, {
+            street_number: 'long_name',
+            route: 'long_name',
+            locality: 'long_name',
+            sublocality: 'long_name',
+            postal_code: 'long_name',
+            administrative_area_level_1: 'short_name',
+            country: 'long_name',
+        });
 
         const values = {
             street: props.value ? props.value.trim() : '',
+            city: city || cityFallback,
+            zipCode,
+            state,
+            country: '',
         };
+
+        const street = `${streetNumber} ${streetName}`.trim();
         if (street && street.length >= values.street.length) {
             // We are only passing the street number and name if the combined length is longer than the value
             // that was initially passed to the autocomplete component. Google Places can truncate details
@@ -110,18 +136,11 @@ const AddressSearch = (props) => {
             // specific than the one the user entered manually.
             values.street = street;
         }
-        if (city) {
-            values.city = city;
+
+        if (_.includes(CONST.ALL_COUNTRIES, country)) {
+            values.country = country;
         }
-        if (zipCode) {
-            values.zipCode = zipCode;
-        }
-        if (state) {
-            values.state = state;
-        }
-        if (_.size(values) === 0) {
-            return;
-        }
+
         if (props.inputID) {
             _.each(values, (value, key) => {
                 const inputKey = lodashGet(props.renamedInputKeys, key, key);
@@ -144,9 +163,15 @@ const AddressSearch = (props) => {
             horizontal
             contentContainerStyle={styles.flex1}
             scrollEnabled={false}
+
+            // keyboardShouldPersistTaps="always" is required for Android native,
+            // otherwise tapping on a result doesn't do anything. More information
+            // here: https://github.com/FaridSafi/react-native-google-places-autocomplete#use-inside-a-scrollview-or-flatlist
+            keyboardShouldPersistTaps="always"
         >
             <View style={styles.w100}>
                 <GooglePlacesAutocomplete
+                    disableScroll
                     fetchDetails
                     suppressDefaultStyles
                     enablePoweredByContainer={false}
@@ -156,15 +181,10 @@ const AddressSearch = (props) => {
                         // After we select an option, we set displayListViewBorder to false to prevent UI flickering
                         setDisplayListViewBorder(false);
                     }}
-                    query={{
-                        key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
-                        language: props.preferredLocale,
-                        types: 'address',
-                        components: 'country:us',
-                    }}
+                    query={query}
                     requestUrl={{
-                        useOnPlatform: 'web',
-                        url: `${CONFIG.EXPENSIFY.EXPENSIFY_URL}api?command=Proxy_GooglePlaces&proxyUrl=`,
+                        useOnPlatform: 'all',
+                        url: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Proxy_GooglePlaces&proxyUrl=`,
                     }}
                     textInputProps={{
                         InputComp: TextInput,
@@ -203,6 +223,7 @@ const AddressSearch = (props) => {
                                 setDisplayListViewBorder(false);
                             }
                         },
+                        maxLength: props.maxInputLength,
                     }}
                     styles={{
                         textInputContainer: [styles.flexColumn],
@@ -223,10 +244,12 @@ const AddressSearch = (props) => {
                         description: [styles.googleSearchText],
                         separator: [styles.googleSearchSeparator],
                     }}
+                    listHoverColor={themeColors.border}
+                    listUnderlayColor={themeColors.buttonPressedBG}
                     onLayout={(event) => {
-                    // We use the height of the element to determine if we should hide the border of the listView dropdown
-                    // to prevent a lingering border when there are no address suggestions.
-                    // The height of the empty element is 2px (1px height for each top and bottom borders)
+                        // We use the height of the element to determine if we should hide the border of the listView dropdown
+                        // to prevent a lingering border when there are no address suggestions.
+                        // The height of the empty element is 2px (1px height for each top and bottom borders)
                         setDisplayListViewBorder(event.nativeEvent.layout.height > 2);
                     }}
                 />

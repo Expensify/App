@@ -1,6 +1,8 @@
 import React from 'react';
 import OptionRow from '../components/OptionRow';
 import * as Expensicons from '../components/Icon/Expensicons';
+import OnyxProvider from '../components/OnyxProvider';
+/* eslint-disable react/jsx-props-no-spreading */
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -21,20 +23,16 @@ export default {
         optionIsFocused: false,
         showSelectedState: false,
         isSelected: false,
-        hideAdditionalOptionStates: false,
-        forceTextUnreadStyle: false,
+        boldStyle: false,
         showTitleTooltip: false,
         isDisabled: false,
         backgroundColor: 'white',
         option: {
-            isUnread: false,
             text: 'Test Option',
             alternateText: 'Alternate text',
             icons: [Expensicons.ActiveRoomAvatar],
             login: 'test@expensify.com',
             reportID: null,
-            hasDraftComment: false,
-            isPinned: false,
             isChatRoom: false,
             participantsList: [],
             descriptiveText: '',
@@ -43,8 +41,11 @@ export default {
     },
 };
 
-// eslint-disable-next-line react/jsx-props-no-spreading
-const Template = args => <OptionRow {...args} />;
+const Template = args => (
+    <OnyxProvider>
+        <OptionRow {...args} />
+    </OnyxProvider>
+);
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args

@@ -48,7 +48,7 @@ runs:
         fi
 
     # Version: 3.0.2
-    - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
       with:
         ref: ${{ env.SOURCE_BRANCH }}
         fetch-depth: 0
@@ -92,15 +92,15 @@ runs:
           --label "automerge" \
           --base ${{ inputs.TARGET_BRANCH }}
         sleep 5
-        echo "::set-output name=PR_NUMBER::$(gh pr view --json 'number' --jq '.number')"
+        echo "PR_NUMBER=$(gh pr view --json 'number' --jq '.number')" >> "$GITHUB_OUTPUT"
       env:
         GITHUB_TOKEN: ${{ inputs.OS_BOTIFY_TOKEN }}
 
     - name: Check changed files
       if: ${{ inputs.TARGET_BRANCH == 'main' }}
       id: changedFiles
-      # Version: 3.3.0
-      uses: umani/changed-files@1d252c611c64289d35243fc37ece7323ea5e93e1
+      # TODO: Remove and switch back to upstream when https://github.com/umani/changed-files/pull/27 is merged
+      uses: roryabraham/changed-files@c14fad74000cf77ff62b7f78cfd34c2124665c35
       with:
         repo-token: ${{ github.token }}
         pr-number: ${{ steps.createPullRequest.outputs.PR_NUMBER }}

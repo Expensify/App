@@ -18,23 +18,23 @@ function setErrors(formID, errors) {
 
 /**
  * @param {String} formID
- * @param {Object} draftValues
+ * @param {Object} errorFields
  */
-function setDraftValues(formID, draftValues) {
-    Onyx.merge(`${formID}DraftValues`, draftValues);
+function setErrorFields(formID, errorFields) {
+    Onyx.merge(formID, {errorFields});
 }
 
 /**
  * @param {String} formID
- * @returns {String}
+ * @param {Object} draftValues
  */
-function getDraftValuesKey(formID) {
-    return `${formID}DraftValues`;
+function setDraftValues(formID, draftValues) {
+    Onyx.merge(`${formID}Draft`, draftValues);
 }
 
 export {
-    getDraftValuesKey,
     setIsLoading,
     setErrors,
+    setErrorFields,
     setDraftValues,
 };

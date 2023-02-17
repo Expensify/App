@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {Pressable} from 'react-native';
+import {Pressable, View} from 'react-native';
 import MenuItem from './MenuItem';
 import Tooltip from './Tooltip';
 import Icon from './Icon';
@@ -8,6 +8,7 @@ import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import getButtonState from '../libs/getButtonState';
 import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
+import variables from '../styles/variables';
 
 const propTypes = {
     /** Icon Component */
@@ -41,7 +42,7 @@ const defaultProps = {
     isMini: false,
     successIcon: null,
     successText: '',
-    autoReset: false,
+    autoReset: true,
     description: '',
 };
 
@@ -87,10 +88,13 @@ class ContextMenuItem extends Component {
                             }
                         >
                             {({hovered, pressed}) => (
-                                <Icon
-                                    src={icon}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.props.isDelayButtonStateComplete))}
-                                />
+                                <View style={[StyleUtils.getWidthAndHeightStyle(variables.iconSizeNormal), styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                    <Icon
+                                        small
+                                        src={icon}
+                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.props.isDelayButtonStateComplete))}
+                                    />
+                                </View>
                             )}
                         </Pressable>
                     </Tooltip>

@@ -9,14 +9,14 @@ import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Tooltip from './Tooltip';
-import ThreeDotsMenu, {ThreeDotsMenuItemPropTypes} from './ThreeDotsMenu';
-import VirtualKeyboard from '../libs/VirtualKeyboard';
 import getButtonState from '../libs/getButtonState';
 import * as StyleUtils from '../styles/StyleUtils';
-import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
 import compose from '../libs/compose';
+import ThreeDotsMenu, {ThreeDotsMenuItemPropTypes} from './ThreeDotsMenu';
+import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import withKeyboardState, {keyboardStatePropTypes} from './withKeyboardState';
 
 const propTypes = {
     /** Title of the Header */
@@ -79,8 +79,8 @@ const propTypes = {
     }),
 
     ...withLocalizePropTypes,
-
     ...withDelayToggleButtonStatePropTypes,
+    ...keyboardStatePropTypes,
 };
 
 const defaultProps = {
@@ -139,10 +139,11 @@ class HeaderWithCloseButton extends Component {
                 ]}
                 >
                     {this.props.shouldShowBackButton && (
+                    <View style={[styles.mr2]}>
                         <Tooltip text={this.props.translate('common.back')}>
                             <Pressable
                                 onPress={() => {
-                                    if (VirtualKeyboard.isOpen()) {
+                                    if (this.props.isKeyboardShown) {
                                         Keyboard.dismiss();
                                     }
                                     this.props.onBackButtonPress();
@@ -152,6 +153,7 @@ class HeaderWithCloseButton extends Component {
                                 <Icon src={Expensicons.BackArrow} />
                             </Pressable>
                         </Tooltip>
+                    </View>
                     )}
                     <Header
                         title={this.props.title}
@@ -180,7 +182,7 @@ class HeaderWithCloseButton extends Component {
                         <Tooltip text={this.props.translate('getAssistancePage.questionMarkButtonTooltip')}>
                             <Pressable
                                 onPress={() => Navigation.navigate(ROUTES.getGetAssistanceRoute(this.props.guidesCallTaskID))}
-                                style={[styles.touchableButtonImage, styles.mr0]}
+                                style={[styles.touchableButtonImage]}
                                 accessibilityRole="button"
                                 accessibilityLabel={this.props.translate('getAssistancePage.questionMarkButtonTooltip')}
                             >
@@ -193,7 +195,6 @@ class HeaderWithCloseButton extends Component {
                             <ThreeDotsMenu
                                 menuItems={this.props.threeDotsMenuItems}
                                 onIconPress={this.props.onThreeDotsButtonPress}
-                                iconStyles={[styles.mr0]}
                                 anchorPosition={this.props.threeDotsAnchorPosition}
                             />
                         )}
@@ -203,7 +204,7 @@ class HeaderWithCloseButton extends Component {
                         <Tooltip text={this.props.translate('common.close')}>
                             <Pressable
                                 onPress={this.props.onCloseButtonPress}
-                                style={[styles.touchableButtonImage, styles.mr0]}
+                                style={[styles.touchableButtonImage]}
                                 accessibilityRole="button"
                                 accessibilityLabel={this.props.translate('common.close')}
                             >
@@ -224,4 +225,5 @@ HeaderWithCloseButton.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withDelayToggleButtonState,
+    withKeyboardState,
 )(HeaderWithCloseButton);

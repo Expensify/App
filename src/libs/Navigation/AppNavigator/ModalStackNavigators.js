@@ -205,10 +205,73 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsWorkspacesPage = require('../../../pages/workspace/WorkspacesListPage').default;
+            return SettingsWorkspacesPage;
+        },
+        name: 'Settings_Workspaces',
+    },
+    {
+        getComponent: () => {
             const SettingsProfilePage = require('../../../pages/settings/Profile/ProfilePage').default;
             return SettingsProfilePage;
         },
         name: 'Settings_Profile',
+    },
+    {
+        getComponent: () => {
+            const SettingsPronounsPage = require('../../../pages/settings/Profile/PronounsPage').default;
+            return SettingsPronounsPage;
+        },
+        name: 'Settings_Pronouns',
+    },
+    {
+        getComponent: () => {
+            const SettingsDisplayNamePage = require('../../../pages/settings/Profile/DisplayNamePage').default;
+            return SettingsDisplayNamePage;
+        },
+        name: 'Settings_Display_Name',
+    },
+    {
+        getComponent: () => {
+            const SettingsTimezoneInitialPage = require('../../../pages/settings/Profile/TimezoneInitialPage').default;
+            return SettingsTimezoneInitialPage;
+        },
+        name: 'Settings_Timezone',
+    },
+    {
+        getComponent: () => {
+            const SettingsTimezoneSelectPage = require('../../../pages/settings/Profile/TimezoneSelectPage').default;
+            return SettingsTimezoneSelectPage;
+        },
+        name: 'Settings_Timezone_Select',
+    },
+    {
+        getComponent: () => {
+            const SettingsPersonalDetailsInitialPage = require('../../../pages/settings/Profile/PersonalDetails/PersonalDetailsInitialPage').default;
+            return SettingsPersonalDetailsInitialPage;
+        },
+        name: 'Settings_PersonalDetails_Initial',
+    },
+    {
+        getComponent: () => {
+            const SettingsLegalNamePage = require('../../../pages/settings/Profile/PersonalDetails/LegalNamePage').default;
+            return SettingsLegalNamePage;
+        },
+        name: 'Settings_PersonalDetails_LegalName',
+    },
+    {
+        getComponent: () => {
+            const SettingsDateOfBirthPage = require('../../../pages/settings/Profile/PersonalDetails/DateOfBirthPage').default;
+            return SettingsDateOfBirthPage;
+        },
+        name: 'Settings_PersonalDetails_DateOfBirth',
+    },
+    {
+        getComponent: () => {
+            const SettingsAddressPage = require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default;
+            return SettingsAddressPage;
+        },
+        name: 'Settings_PersonalDetails_Address',
     },
     {
         getComponent: () => {
@@ -219,10 +282,24 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const SettingsPreferencesPage = require('../../../pages/settings/PreferencesPage').default;
+            const SettingsPreferencesPage = require('../../../pages/settings/Preferences/PreferencesPage').default;
             return SettingsPreferencesPage;
         },
         name: 'Settings_Preferences',
+    },
+    {
+        getComponent: () => {
+            const SettingsPreferencesPriorityModePage = require('../../../pages/settings/Preferences/PriorityModePage').default;
+            return SettingsPreferencesPriorityModePage;
+        },
+        name: 'Settings_Preferences_PriorityMode',
+    },
+    {
+        getComponent: () => {
+            const SettingsPreferencesLanguagePage = require('../../../pages/settings/Preferences/LanguagePage').default;
+            return SettingsPreferencesLanguagePage;
+        },
+        name: 'Settings_Preferences_Language',
     },
     {
         getComponent: () => {
@@ -363,13 +440,6 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             return WorkspaceMembersPage;
         },
         name: 'Workspace_Members',
-    },
-    {
-        getComponent: () => {
-            const WorkspaceBankAccountPage = require('../../../pages/workspace/WorkspaceBankAccountPage').default;
-            return WorkspaceBankAccountPage;
-        },
-        name: 'Workspace_BankAccount',
     },
     {
         getComponent: () => {

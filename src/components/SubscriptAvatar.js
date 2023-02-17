@@ -24,12 +24,16 @@ const propTypes = {
 
     /** Set the size of avatars */
     size: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
+
+    /** Background color used for subscript avatar border */
+    backgroundColor: PropTypes.string,
 };
 
 const defaultProps = {
     mainTooltip: '',
     secondaryTooltip: '',
     size: CONST.AVATAR_SIZE.DEFAULT,
+    backgroundColor: themeColors.componentBG,
 };
 
 const SubscriptAvatar = props => (
@@ -42,7 +46,7 @@ const SubscriptAvatar = props => (
         </Tooltip>
         <View style={[
             props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSubscriptCompact : styles.secondAvatarSubscript,
-            StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG)]}
+            StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor)]}
         >
             <Tooltip text={props.secondaryTooltip}>
                 <Avatar

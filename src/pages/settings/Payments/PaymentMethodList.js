@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import {FlatList} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import {withNetwork} from '../../../components/OnyxProvider';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import MenuItem from '../../../components/MenuItem';
@@ -39,6 +40,9 @@ const propTypes = {
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton: PropTypes.bool,
 
+    /** Are we loading payment methods? */
+    isLoadingPaymentMethods: PropTypes.bool,
+
     /** Type to filter the payment Method list */
     filterType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT, '']),
 
@@ -60,6 +64,9 @@ const propTypes = {
     /** ID of selected payment method */
     selectedMethodID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
+    /** Content for the FlatList header component */
+    listHeaderComponent: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
@@ -71,11 +78,13 @@ const defaultProps = {
         walletLinkedAccountID: 0,
         walletLinkedAccountType: '',
     },
+    isLoadingPaymentMethods: true,
     shouldShowAddPaymentMethodButton: true,
     filterType: '',
     actionPaymentMethodType: '',
     activePaymentMethodID: '',
     selectedMethodID: '',
+    listHeaderComponent: null,
 };
 
 class PaymentMethodList extends Component {
@@ -118,11 +127,17 @@ class PaymentMethodList extends Component {
             combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
         }
 
+        if (!this.props.network.isOffline) {
+            combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+                || !_.isEmpty(paymentMethod.errors));
+        }
+
         combinedPaymentMethods = _.map(combinedPaymentMethods, paymentMethod => ({
             ...paymentMethod,
             onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID),
             iconFill: this.isPaymentMethodActive(paymentMethod) ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
             wrapperStyle: this.isPaymentMethodActive(paymentMethod) ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
+            disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         }));
 
         return combinedPaymentMethods;
@@ -215,6 +230,7 @@ class PaymentMethodList extends Component {
                     renderItem={this.renderItem}
                     keyExtractor={item => item.key}
                     ListEmptyComponent={this.renderListEmptyComponent()}
+                    ListHeaderComponent={this.props.listHeaderComponent}
                 />
                 {
                     this.props.shouldShowAddPaymentMethodButton
@@ -226,8 +242,8 @@ class PaymentMethodList extends Component {
                                         text={this.props.translate('paymentMethodList.addPaymentMethod')}
                                         icon={Expensicons.CreditCard}
                                         onPress={e => this.props.onPress(e)}
-                                        isDisabled={this.props.isLoadingPayments || isOffline}
-                                        style={[styles.mh4, styles.mb4, styles.buttonCTA]}
+                                        isDisabled={this.props.isLoadingPaymentMethods || isOffline}
+                                        style={[styles.mh4, styles.buttonCTA]}
                                         iconStyles={[styles.buttonCTAIcon]}
                                         key="addPaymentMethodButton"
                                         success
@@ -249,12 +265,16 @@ PaymentMethodList.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
+        },
+        isLoadingPaymentMethods: {
+            key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
         },
         payPalMeData: {
             key: ONYXKEYS.PAYPAL,

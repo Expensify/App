@@ -33,8 +33,6 @@ const propTypes = {
         searchText: PropTypes.string,
         text: PropTypes.string,
         keyForList: PropTypes.string,
-        isPinned: PropTypes.bool,
-        isUnread: PropTypes.bool,
         reportID: PropTypes.string,
     })),
 
@@ -44,11 +42,18 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes).isRequired,
 
+    /** padding bottom style of safe area */
+    safeAreaPaddingBottomStyle: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     participants: [],
+    safeAreaPaddingBottomStyle: {},
 };
 
 class IOUParticipantsSplit extends Component {
@@ -57,6 +62,7 @@ class IOUParticipantsSplit extends Component {
 
         this.toggleOption = this.toggleOption.bind(this);
         this.finalizeParticipants = this.finalizeParticipants.bind(this);
+        this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
 
         const {
             recentReports,
@@ -72,7 +78,7 @@ class IOUParticipantsSplit extends Component {
         );
 
         this.state = {
-            searchValue: '',
+            searchTerm: '',
             recentReports,
             personalDetails,
             userToInvite,
@@ -87,12 +93,15 @@ class IOUParticipantsSplit extends Component {
      */
     getSections(maxParticipantsReached) {
         const sections = [];
+        let indexOffset = 0;
+
         sections.push({
             title: undefined,
             data: this.props.participants,
             shouldShow: true,
-            indexOffset: 0,
+            indexOffset,
         });
+        indexOffset += this.props.participants.length;
 
         if (maxParticipantsReached) {
             return sections;
@@ -102,32 +111,49 @@ class IOUParticipantsSplit extends Component {
             title: this.props.translate('common.recents'),
             data: this.state.recentReports,
             shouldShow: !_.isEmpty(this.state.recentReports),
-
-            // takes the sum off the length of all data
-            // (this.state.selectedOptions) in previous sections
-            indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
+            indexOffset,
         });
+        indexOffset += this.state.recentReports.length;
 
         sections.push({
             title: this.props.translate('common.contacts'),
             data: this.state.personalDetails,
             shouldShow: !_.isEmpty(this.state.personalDetails),
-
-            // takes the sum off the length of all data
-            // (this.state.selectedOptions, this.state.recentReports) in previous sections
-            indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
+            indexOffset,
         });
+        indexOffset += this.state.personalDetails.length;
 
         if (this.state.userToInvite && !OptionsListUtils.isCurrentUser(this.state.userToInvite)) {
             sections.push(({
                 undefined,
                 data: [this.state.userToInvite],
                 shouldShow: true,
-                indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
+                indexOffset,
             }));
         }
 
         return sections;
+    }
+
+    updateOptionsWithSearchTerm(searchTerm = '') {
+        const {
+            recentReports,
+            personalDetails,
+            userToInvite,
+        } = OptionsListUtils.getNewChatOptions(
+            this.props.reports,
+            this.props.personalDetails,
+            this.props.betas,
+            searchTerm,
+            this.props.participants,
+            CONST.EXPENSIFY_EMAILS,
+        );
+        this.setState({
+            searchTerm,
+            userToInvite,
+            recentReports,
+            personalDetails,
+        });
     }
 
     /**
@@ -167,7 +193,7 @@ class IOUParticipantsSplit extends Component {
                 this.props.reports,
                 this.props.personalDetails,
                 this.props.betas,
-                isOptionInList ? prevState.searchValue : '',
+                isOptionInList ? prevState.searchTerm : '',
                 newSelectedOptions,
                 CONST.EXPENSIFY_EMAILS,
             );
@@ -175,7 +201,7 @@ class IOUParticipantsSplit extends Component {
                 recentReports,
                 personalDetails,
                 userToInvite,
-                searchValue: isOptionInList ? prevState.searchValue : '',
+                searchTerm: isOptionInList ? prevState.searchTerm : '',
             };
         });
     }
@@ -186,50 +212,30 @@ class IOUParticipantsSplit extends Component {
         const headerMessage = OptionsListUtils.getHeaderMessage(
             this.state.personalDetails.length + this.state.recentReports.length !== 0,
             Boolean(this.state.userToInvite),
-            this.state.searchValue,
+            this.state.searchTerm,
             maxParticipantsReached,
         );
         return (
-            <>
-                <View style={[styles.flex1, styles.w100]}>
-                    <Text style={[styles.formLabel, styles.pt3, styles.ph5]}>
-                        {this.props.translate('common.to')}
-                    </Text>
-                    <OptionsSelector
-                        canSelectMultipleOptions
-                        sections={sections}
-                        selectedOptions={this.props.participants}
-                        value={this.state.searchValue}
-                        onSelectRow={this.toggleOption}
-                        onChangeText={(searchValue = '') => {
-                            const {
-                                recentReports,
-                                personalDetails,
-                                userToInvite,
-                            } = OptionsListUtils.getNewChatOptions(
-                                this.props.reports,
-                                this.props.personalDetails,
-                                this.props.betas,
-                                searchValue,
-                                this.props.participants,
-                                CONST.EXPENSIFY_EMAILS,
-                            );
-                            this.setState({
-                                searchValue,
-                                userToInvite,
-                                recentReports,
-                                personalDetails,
-                            });
-                        }}
-                        headerMessage={headerMessage}
-                        hideAdditionalOptionStates
-                        forceTextUnreadStyle
-                        shouldShowConfirmButton
-                        confirmButtonText={this.props.translate('common.next')}
-                        onConfirmSelection={this.finalizeParticipants}
-                    />
-                </View>
-            </>
+            <View style={[styles.flex1, styles.w100, (this.props.participants.length > 0 ? this.props.safeAreaPaddingBottomStyle : {})]}>
+                <Text style={[styles.textLabelSupporting, styles.pt3, styles.ph5]}>
+                    {this.props.translate('common.to')}
+                </Text>
+                <OptionsSelector
+                    canSelectMultipleOptions
+                    sections={sections}
+                    selectedOptions={this.props.participants}
+                    value={this.state.searchTerm}
+                    onSelectRow={this.toggleOption}
+                    onChangeText={this.updateOptionsWithSearchTerm}
+                    headerMessage={headerMessage}
+                    boldStyle
+                    shouldShowConfirmButton
+                    confirmButtonText={this.props.translate('common.next')}
+                    onConfirmSelection={this.finalizeParticipants}
+                    placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                    safeAreaPaddingBottomStyle={this.props.safeAreaPaddingBottomStyle}
+                />
+            </View>
         );
     }
 }

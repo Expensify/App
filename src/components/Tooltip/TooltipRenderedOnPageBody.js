@@ -77,7 +77,10 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
         if (prevProps.text === this.props.text) {
             return;
         }
-        this.updateTooltipTextWidth();
+
+        // Reset the tooltip text width to 0 so that we can measure it again.
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({tooltipTextWidth: 0}, this.updateTooltipTextWidth);
     }
 
     updateTooltipTextWidth() {
@@ -125,7 +128,21 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
                 style={[tooltipWrapperStyle, animationStyle]}
             >
                 <Text numberOfLines={this.props.numberOfLines} style={tooltipTextStyle}>
-                    <Text style={tooltipTextStyle} ref={ref => this.textRef = ref}>{this.props.text}</Text>
+                    <Text
+                        style={tooltipTextStyle}
+                        ref={(ref) => {
+                            // Once the text for the tooltip first renders, update the width of the tooltip dynamically to fit the width of the text.
+                            // Note that we can't have this code in componentDidMount because the ref for the text won't be set until after the first render
+                            if (this.textRef) {
+                                return;
+                            }
+
+                            this.textRef = ref;
+                            this.updateTooltipTextWidth();
+                        }}
+                    >
+                        {this.props.text}
+                    </Text>
                 </Text>
                 <View style={pointerWrapperStyle}>
                     <View style={pointerStyle} />
