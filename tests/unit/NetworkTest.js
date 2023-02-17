@@ -20,7 +20,6 @@ import * as MainQueue from '../../src/libs/Network/MainQueue';
 import * as Request from '../../src/libs/Request';
 
 jest.useFakeTimers();
-jest.mock('../../src/libs/RequestThrottle');
 
 Onyx.init({
     keys: ONYXKEYS,
