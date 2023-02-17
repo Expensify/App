@@ -407,6 +407,14 @@ const CONST = {
         EXP_ERROR: 666,
         UNABLE_TO_RETRY: 'unableToRetry',
     },
+    HTTP_STATUS: {
+        // When Cloudflare throttles
+        TOO_MANY_REQUESTS: 429,
+        INTERNAL_SERVER_ERROR: 500,
+        BAD_GATEWAY: 502,
+        GATEWAY_TIMEOUT: 504,
+        UNKNOWN_ERROR: 520,
+    },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
         THROTTLED: 'throttled',
@@ -438,7 +446,6 @@ const CONST = {
         METHOD: {
             POST: 'post',
         },
-        MAX_REQUEST_RETRIES: 10,
         MIN_RETRY_WAIT_TIME: 10,
         MAX_RANDOM_RETRY_WAIT_TIME: 100,
         MAX_RETRY_WAIT_TIME: 10 * 1000,

@@ -490,7 +490,12 @@ describe('NetworkTests', () => {
             });
     };
 
-    test.each([429, 500, 502, 504, 520])(
+    test.each([
+        CONST.HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        CONST.HTTP_STATUS.BAD_GATEWAY,
+        CONST.HTTP_STATUS.GATEWAY_TIMEOUT,
+        CONST.HTTP_STATUS.UNKNOWN_ERROR,
+    ])(
         'request with http status %d are retried',
 
         // Given that a request resolves as not ok and with a particular http status
@@ -520,7 +525,7 @@ describe('NetworkTests', () => {
 
     test('test Bad Gateway status will log hmmm', () => {
         global.fetch = jest.fn()
-            .mockResolvedValueOnce({ok: false, status: 502, statusText: 'Bad Gateway'});
+            .mockResolvedValueOnce({ok: false, status: CONST.HTTP_STATUS.BAD_GATEWAY, statusText: 'Bad Gateway'});
 
         const logHmmmSpy = jest.spyOn(Log, 'hmmm');
 
