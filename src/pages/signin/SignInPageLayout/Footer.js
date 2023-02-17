@@ -10,7 +10,7 @@ import TextLink from '../../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
-import TermsAndLicenses from '../TermsAndLicenses';
+import Licenses from '../Licenses';
 import Socials from '../Socials';
 import Hoverable from '../../../components/Hoverable';
 import CONST from '../../../CONST';
@@ -184,7 +184,7 @@ const Footer = (props) => {
                                     )}
                                     {(i === 3) && (
                                         <View style={styles.mv4}>
-                                            <TermsAndLicenses />
+                                            <Licenses />
                                         </View>
                                     )}
                                 </View>

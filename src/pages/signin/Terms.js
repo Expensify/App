@@ -1,6 +1,5 @@
 import React from 'react';
 import styles from '../../styles/styles';
-
 import CONST from '../../CONST';
 import Text from '../../components/Text';
 import TextLink from '../../components/TextLink';

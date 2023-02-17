@@ -9,7 +9,7 @@ import LocalePicker from '../../components/LocalePicker';
 
 const currentYear = new Date().getFullYear();
 
-const TermsAndLicenses = props => (
+const Licenses = props => (
     <>
         <Text style={[styles.textExtraSmallSupporting, styles.mb4]}>
             {`© ${currentYear} Expensify`}
@@ -28,7 +28,7 @@ const TermsAndLicenses = props => (
     </>
 );
 
-TermsAndLicenses.propTypes = {...withLocalizePropTypes};
-TermsAndLicenses.displayName = 'TermsAndLicenses';
+Licenses.propTypes = {...withLocalizePropTypes};
+Licenses.displayName = 'Licenses';
 
-export default withLocalize(TermsAndLicenses);
+export default withLocalize(Licenses);
