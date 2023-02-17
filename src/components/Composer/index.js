@@ -361,7 +361,7 @@ class Composer extends React.Component {
                 style={[
                     propStyles,
 
-                    // We are hiding the scrollbar to prevent it from reducing the text input width, 
+                    // We are hiding the scrollbar to prevent it from reducing the text input width,
                     // so we can get the correct scroll height while calculating the number of lines.
                     this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
                 ]}
