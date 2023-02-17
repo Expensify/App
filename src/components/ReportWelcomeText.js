@@ -125,12 +125,12 @@ const ReportWelcomeText = (props) => {
                                 {(index < displayNamesWithTooltips.length - 2) && <Text>, </Text>}
                             </Text>
                         ))}
-                        {(iouOptions.includes(CONST.IOU.IOU_TYPE.SEND) || iouOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)) && (
-                            <Text>
-                                {/* Need to confirm copy for the below with marketing, and then add to translations. */}
-                                {props.translate('reportActionsView.usePlusButton')}
-                            </Text>
-                        )}
+                    </Text>
+                )}
+                {(iouOptions.includes(CONST.IOU.IOU_TYPE.SEND) || iouOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)) && (
+                    <Text>
+                        {/* Need to confirm copy for the below with marketing, and then add to translations. */}
+                        {props.translate('reportActionsView.usePlusButton')}
                     </Text>
                 )}
             </Text>
