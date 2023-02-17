@@ -104,11 +104,11 @@ const CalendarPicker = (props) => {
         <View>
             <View style={styles.calendarHeader}>
                 <TouchableOpacity onPress={onMonthPickerPress} style={[styles.alignItemsCenter, styles.flexRow, styles.flex1]}>
-                    <Text style={styles.sidebarLinkTextBold}>{monthNames[currentMonthView]}</Text>
+                    <Text style={styles.sidebarLinkTextBold} accessibilityLabel="Current month">{monthNames[currentMonthView]}</Text>
                     <ArrowIcon />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={onYearPickerPress} style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flex1]}>
-                    <Text style={styles.sidebarLinkTextBold}>{currentYearView}</Text>
+                    <Text style={styles.sidebarLinkTextBold} accessibilityLabel="Current year">{currentYearView}</Text>
                     <ArrowIcon />
                 </TouchableOpacity>
                 <View style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentEnd]}>
@@ -141,6 +141,7 @@ const CalendarPicker = (props) => {
                                 disabled={isDisabled}
                                 onPress={() => onDayPress(day)}
                                 style={styles.calendarDayRoot}
+                                accessibilityLabel={day ? day.toString() : undefined}
                             >
                                 <View style={[moment(props.value).isSame(moment([currentYearView, currentMonthView, day]), 'day') && styles.calendarDayContainerSelected]}>
                                     <Text style={isDisabled ? styles.calendarButtonDisabled : styles.dayText}>{day || ''}</Text>
