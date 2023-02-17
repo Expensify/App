@@ -221,11 +221,11 @@ class EmojiPickerMenu extends Component {
                 </View>
                 <Animated.FlatList
                     ref={el => this.emojiList = el}
+                    keyboardShouldPersistTaps="handled"
                     data={this.emojis}
                     renderItem={this.renderItem}
                     keyExtractor={item => (`emoji_picker_${item.code}`)}
                     numColumns={CONST.EMOJI_NUM_PER_ROW}
-
                     style={[
                         styles.emojiPickerList,
                         this.isMobileLandscape() && styles.emojiPickerListLandscape,
@@ -237,22 +237,19 @@ class EmojiPickerMenu extends Component {
                 {!!this.state.value && (
                 <View style={styles.emojiPickerSearchListContainer}>
                     <FlatList
+                        ref={el => this.emojiList = el}
                         keyboardShouldPersistTaps="handled"
-                        ref={el => (this.emojiList = el)}
                         data={this.state.filteredEmojis}
                         renderItem={this.renderItem}
                         keyExtractor={item => `emoji_picker_${item.code}`}
-                        numColumns={this.numColumns}
+                        numColumns={CONST.EMOJI_NUM_PER_ROW}
                         style={[
                             styles.emojiPickerList,
                             this.isMobileLandscape() && styles.emojiPickerListLandscape,
                         ]}
-                        extraData={[
-                            this.state.filteredEmojis,
-                            this.props.preferredSkinTone,
-                        ]}
                         getItemLayout={this.getItemLayout}
                         ListEmptyComponent={this.listEmptyComponent()}
+                        showsVerticalScrollIndicator
                     />
                 </View>
                 )}

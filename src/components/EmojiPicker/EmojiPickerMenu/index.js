@@ -472,21 +472,19 @@ class EmojiPickerMenu extends Component {
                     headerIndices={this.headerIndices}
                     onPress={this.scrollToHeader}
                 />
-                {!this.props.isSmallScreenWidth && (
-                    <View style={[styles.ph4, styles.pb1]}>
-                        <TextInput
-                            label={this.props.translate('common.search')}
-                            onChangeText={this.filterEmojis}
-                            defaultValue=""
-                            ref={el => this.searchInput = el}
-                            autoFocus
-                            selectTextOnFocus={this.state.selectTextOnFocus}
-                            onSelectionChange={this.onSelectionChange}
-                            onFocus={() => this.setState({isFocused: true, highlightedIndex: -1, isUsingKeyboardMovement: false})}
-                            onBlur={() => this.setState({isFocused: false})}
-                        />
-                    </View>
-                )}
+                <View style={[styles.ph4, styles.pb1]}>
+                    <TextInput
+                        label={this.props.translate('common.search')}
+                        onChangeText={this.filterEmojis}
+                        defaultValue=""
+                        ref={el => this.searchInput = el}
+                        autoFocus={!this.isMobileLandscape()}
+                        selectTextOnFocus={this.state.selectTextOnFocus}
+                        onSelectionChange={this.onSelectionChange}
+                        onFocus={() => this.setState({isFocused: true, highlightedIndex: -1, isUsingKeyboardMovement: false})}
+                        onBlur={() => this.setState({isFocused: false})}
+                    />
+                </View>
                 {this.state.filteredEmojis.length === 0
                     ? (
                         <Text
