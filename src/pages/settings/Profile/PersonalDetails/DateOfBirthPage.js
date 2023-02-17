@@ -79,6 +79,7 @@ class DateOfBirthPage extends Component {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
+                    title={this.props.translate('common.dob')}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}

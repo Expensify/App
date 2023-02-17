@@ -20,7 +20,6 @@ import HeaderWithCloseButton from './HeaderWithCloseButton';
 import fileDownload from '../libs/fileDownload';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ConfirmModal from './ConfirmModal';
-import TextWithEllipsis from './TextWithEllipsis';
 import HeaderGap from './HeaderGap';
 import SafeAreaConsumer from './SafeAreaConsumer';
 
@@ -75,6 +74,7 @@ class AttachmentModal extends PureComponent {
 
         this.state = {
             isModalOpen: false,
+            shouldLoadAttachment: false,
             isAttachmentInvalid: false,
             attachmentInvalidReasonTitle: null,
             attachmentInvalidReason: null,
@@ -233,8 +233,6 @@ class AttachmentModal extends PureComponent {
         // If source is a URL, add auth token to get access
         const source = this.state.source;
 
-        const {fileName, fileExtension} = FileUtils.splitExtensionFromFileName(this.props.originalFileName || lodashGet(this.state, 'file.name', ''));
-
         return (
             <>
                 <Modal
@@ -244,7 +242,11 @@ class AttachmentModal extends PureComponent {
                     onClose={() => this.setState({isModalOpen: false})}
                     isVisible={this.state.isModalOpen}
                     backgroundColor={themeColors.componentBG}
-                    onModalHide={this.props.onModalHide}
+                    onModalShow={() => this.setState({shouldLoadAttachment: true})}
+                    onModalHide={(e) => {
+                        this.props.onModalHide(e);
+                        this.setState({shouldLoadAttachment: false});
+                    }}
                     propagateSwipe
                 >
                     {this.props.isSmallScreenWidth && <HeaderGap />}
@@ -254,17 +256,10 @@ class AttachmentModal extends PureComponent {
                         shouldShowDownloadButton={this.props.allowDownload}
                         onDownloadButtonPress={() => this.downloadAttachment(source)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
-                        subtitle={fileName ? (
-                            <TextWithEllipsis
-                                leadingText={fileName}
-                                trailingText={fileExtension ? `.${fileExtension}` : ''}
-                                wrapperStyle={[styles.w100]}
-                                textStyle={styles.mutedTextLabel}
-                            />
-                        ) : ''}
                     />
+
                     <View style={styles.imageModalImageCenterContainer}>
-                        {this.state.source && (
+                        {this.state.source && this.state.shouldLoadAttachment && (
                             <AttachmentView
                                 source={source}
                                 isAuthTokenRequired={this.props.isAuthTokenRequired}

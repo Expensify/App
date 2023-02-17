@@ -10,7 +10,7 @@ import lodashGet from 'lodash/get';
 import {
     propTypes as validateLinkPropTypes,
     defaultProps as validateLinkDefaultProps,
-} from './validateLinkPropTypes';
+} from './ValidateLoginPage/validateLinkPropTypes';
 import styles from '../styles/styles';
 import * as Session from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
