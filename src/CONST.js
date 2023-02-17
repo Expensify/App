@@ -28,7 +28,7 @@ const CONST = {
 
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
 
-    AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp'],
+    AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
 
     // Minimum width and height size in px for a selected image
     AVATAR_MIN_WIDTH_PX: 80,
@@ -40,6 +40,11 @@ const CONST = {
 
     DEFAULT_AVATAR_COUNT: 24,
     OLD_DEFAULT_AVATAR_COUNT: 8,
+
+    DISPLAY_NAME: {
+        MAX_LENGTH: 50,
+        RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
+    },
 
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
@@ -455,6 +460,7 @@ const CONST = {
         KYC_MIGRATION: 'expensify_migration_2020_04_28_RunKycVerifications',
         PREFERRED_EMOJI_SKIN_TONE: 'expensify_preferredEmojiSkinTone',
         FREQUENTLY_USED_EMOJIS: 'expensify_frequentlyUsedEmojis',
+        PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
@@ -510,8 +516,10 @@ const CONST = {
         VISIBLE_PASSWORD: 'visible-password',
         EMAIL_ADDRESS: 'email-address',
         ASCII_CAPABLE: 'ascii-capable',
+        URL: 'url',
     },
 
+    ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
@@ -723,7 +731,6 @@ const CONST = {
     },
 
     DEFAULT_LOCALE: 'en',
-    DEFAULT_SKIN_TONE: 'default',
 
     POLICY: {
         TYPE: {
