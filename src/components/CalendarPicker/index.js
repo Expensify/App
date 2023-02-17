@@ -34,10 +34,6 @@ const CalendarPicker = (props) => {
     const currentMonthView = isMaxDateBeforeCurrentDate || isMinDateAfterCurrentDate ? moment(dateToUse).month() : currentDateView.getMonth();
     const currentYearView = isMaxDateBeforeCurrentDate || isMinDateAfterCurrentDate ? moment(dateToUse).year() : currentDateView.getFullYear();
     const monthMatrix = generateMonthMatrix(currentYearView, currentMonthView);
-    const onNextMonthPress = () => setCurrentDateView(prev => addMonths(prev, 1));
-    const onPrevMonthPress = () => setCurrentDateView(prev => addMonths(prev, -1));
-    const onMonthPickerPress = () => setMonthPickerVisible(true);
-    const onYearPickerPress = () => setYearPickerVisible(true);
 
     const hasAvailableDatesNextMonth = props.maxDate ? midnight(moment(props.maxDate).endOf('month').toDate()) > addMonths(currentDateView, 1) : true;
     const hasAvailableDatesPrevMonth = props.minDate ? midnight(moment(props.minDate).toDate()) < moment(addMonths(currentDateView, -1)).endOf('month').toDate() : true;
@@ -54,6 +50,10 @@ const CalendarPicker = (props) => {
         setCurrentDateView(new Date(currentYearView, currentMonthView));
     }, []);
 
+    const onNextMonthPress = () => setCurrentDateView(prev => addMonths(prev, 1));
+    const onPrevMonthPress = () => setCurrentDateView(prev => addMonths(prev, -1));
+    const onMonthPickerPress = () => setMonthPickerVisible(true);
+    const onYearPickerPress = () => setYearPickerVisible(true);
     const onDayPress = (day) => {
         if (!props.onChange) {
             return;
