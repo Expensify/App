@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import EmojiReactionBubble from '../EmojiReactionBubble';
 import AddReactionBubble from '../AddReactionBubble';
 import CONST from '../../../CONST';
+import styles from '../../../styles/styles';
 
 const EMOJI_BUBBLE_SCALE = 1.5;
 
@@ -20,16 +21,7 @@ const baseQuickEmojiReactionsDefaultProps = {
 };
 
 const BaseQuickEmojiReactions = props => (
-
-    // TODO: move this to styles file
-    <View style={{
-        gap: 12,
-        flexDirection: 'row',
-        paddingHorizontal: 25,
-        paddingVertical: 12,
-        justifyContent: 'space-between',
-    }}
-    >
+    <View style={styles.quickReactionsContainer}>
         {_.map(CONST.QUICK_REACTIONS, reaction => (
             <EmojiReactionBubble
                 key={reaction.name}

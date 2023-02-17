@@ -2945,6 +2945,14 @@ const styles = {
         lineHeight: variables.iconSizeXLarge,
     },
 
+    quickReactionsContainer: {
+        gap: 12,
+        flexDirection: 'row',
+        paddingHorizontal: 25,
+        paddingVertical: 12,
+        justifyContent: 'space-between',
+    },
+
     magicCodeDigits: {
         color: themeColors.text,
         fontFamily: fontFamily.EXP_NEUE,
