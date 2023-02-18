@@ -570,6 +570,7 @@ function markCommentAsUnread(reportID, reportActionCreated) {
     API.write('MarkAsUnread',
         {
             reportID,
+            lastReadTime,
         },
         {
             optimisticData: [{
