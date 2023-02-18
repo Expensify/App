@@ -227,10 +227,15 @@ class ReportActionsView extends React.Component {
 
         // Checks to see if a report comment has been manually "marked as unread". All other times when the lastReadTime
         // changes it will be because we marked the entire report as read.
-        const didManuallyMarkReportAsUnread = (prevProps.report.lastReadTime !== this.props.report.lastReadTime)
-            && ReportUtils.isUnread(this.props.report);
-        if (didManuallyMarkReportAsUnread) {
-            this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions)});
+        if (prevProps.report.lastReadTime !== this.props.report.lastReadTime) {
+            debugger;
+            if (ReportUtils.isUnread(this.props.report)) {
+                this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions)});
+            }
+            const lastAction = ReportActionsUtils.getLastVisibleAction(this.props.report.reportID);
+            if (this.props.report.lastReadTime >= lastAction.created) {
+                this.setState({newMarkerReportActionID: ''});
+            }
         }
 
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
