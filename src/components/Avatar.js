@@ -103,7 +103,7 @@ class Avatar extends PureComponent {
                                 fill={this.state.imageError ? themeColors.offline : this.props.fill}
                                 isWorkspaceAvatar={isWorkspace}
                                 additionalStyles={[
-                                    StyleUtils.getAvatarSVGBorder(this.props.type, iconSize),
+                                    StyleUtils.getAvatarBorderStyle(this.props.type, iconSize),
                                     isWorkspace ? StyleUtils.getDefaultWorspaceAvatarColor(this.props.name) : {},
                                 ]}
                             />

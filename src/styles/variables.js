@@ -22,6 +22,7 @@ export default {
     componentSizeLarge: 52,
     componentBorderRadius: 8,
     componentBorderRadiusSmall: 4,
+    componentBorderRadiusMedium: 6,
     componentBorderRadiusNormal: 8,
     componentBorderRadiusLarge: 16,
     componentBorderRadiusCard: 12,

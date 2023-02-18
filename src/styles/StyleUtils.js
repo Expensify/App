@@ -60,6 +60,10 @@ function getAvatarBorderRadius(size = 0, type) {
             borderRadius = variables.componentBorderRadiusSmall;
             return {borderRadius};
         }
+        if (size <= variables.avatarSizeSmall) {
+            borderRadius = variables.componentBorderRadiusMedium;
+            return {borderRadius};
+        }
         if (size <= variables.avatarSizeNormal) {
             borderRadius = variables.componentBorderRadiusNormal;
             return {borderRadius};
@@ -81,14 +85,11 @@ function getAvatarBorderRadius(size = 0, type) {
  * @param {Number} size
  * @returns {Object}
  */
-function getAvatarSVGBorder(type, size = 0) {
-    if (type === CONST.ICON_TYPE_WORKSPACE) {
-        return {
-            overflow: 'hidden',
-            ...getAvatarBorderRadius(size, type),
-        };
-    }
-    return styles.svgAvatarBorder;
+function getAvatarBorderStyle(type, size = 0) {
+    return {
+        overflow: 'hidden',
+        ...getAvatarBorderRadius(size, type),
+    };
 }
 
 /**
@@ -802,7 +803,7 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth) {
 export {
     getAvatarSize,
     getAvatarStyle,
-    getAvatarSVGBorder,
+    getAvatarBorderStyle,
     getErrorPageContainerStyle,
     getSafeAreaPadding,
     getSafeAreaMargins,

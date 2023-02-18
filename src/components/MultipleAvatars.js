@@ -91,7 +91,8 @@ const MultipleAvatars = (props) => {
                         _.map([...props.icons].splice(0, 4).reverse(), (icon, index) => (
                             <View
                                 key={`stackedAvatars-${index}`}
-                                style={[styles.horizontalStackedAvatar, StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed), horizontalStyles[index]]}
+                                style={[styles.horizontalStackedAvatar, StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed), horizontalStyles[index],
+                                    StyleUtils.getAvatarBorderRadius(StyleUtils.getAvatarSize(props.size), icon.type)]}
                             >
                                 <Avatar
                                     source={icon.source || props.fallbackIcon}
@@ -113,6 +114,7 @@ const MultipleAvatars = (props) => {
                                 // Set overlay background color with RGBA value so that the text will not inherit opacity
                                 StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.overlay, variables.overlayOpacity),
                                 styles.horizontalStackedAvatar4Overlay,
+                                StyleUtils.getAvatarBorderRadius(StyleUtils.getAvatarSize(props.size), props.icons[3].type),
                             ]}
                         >
                             <Text style={styles.avatarInnerTextSmall}>

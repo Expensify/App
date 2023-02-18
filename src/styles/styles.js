@@ -1625,7 +1625,6 @@ const styles = {
         height: 28,
         width: 28,
         backgroundColor: themeColors.appBG,
-        borderRadius: 8,
         paddingTop: 2,
         alignItems: 'center',
     },
@@ -1792,7 +1791,6 @@ const styles = {
         width: 28,
         borderWidth: 2,
         borderStyle: 'solid',
-        borderRadius: 10,
         zIndex: 6,
     },
 
@@ -2060,16 +2058,6 @@ const styles = {
 
     svgAvatarBorder: {
         borderRadius: 100,
-        overflow: 'hidden',
-    },
-
-    squareAvatarBorder: {
-        borderRadius: 8,
-        overflow: 'hidden',
-    },
-
-    squareAvatarBorderSubscript: {
-        borderRadius: 4,
         overflow: 'hidden',
     },
 
