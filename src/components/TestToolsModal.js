@@ -22,7 +22,7 @@ const TestToolsModal = props => (
     <Modal
         isVisible={props.isTestToolsModalOpen}
         type={CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
-        onClose={App.closeTestToolsModal}
+        onClose={App.toggleTestToolsModal}
     >
         <View style={[styles.settingsPageBody, styles.p5]}>
             <TestToolMenu />

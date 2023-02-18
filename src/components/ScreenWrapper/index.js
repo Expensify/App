@@ -87,7 +87,7 @@ class ScreenWrapper extends React.Component {
                 if (!isDevEnvironment) {
                     return;
                 }
-                App.openTestToolsModal();
+                App.toggleTestToolsModal();
             });
         return (
             <SafeAreaConsumer>
