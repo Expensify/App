@@ -119,7 +119,7 @@ function getDefaultWorspaceAvatarColor(workspaceName) {
         ['#28736D', '#CCF7FF'],
     ];
 
-    const colorHash = ReportUtils.hashLogin(workspaceName, colorOptions.length - 1);
+    const colorHash = ReportUtils.hashLogin(workspaceName.trim(), colorOptions.length - 1);
 
     return {backgroundColor: colorOptions[colorHash][0], fill: colorOptions[colorHash][1]};
 }

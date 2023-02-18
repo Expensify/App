@@ -34,6 +34,7 @@ import WorkspaceW from '../../../assets/images/avatars/workspace/default-avatar_
 import WorkspaceX from '../../../assets/images/avatars/workspace/default-avatar_x.svg';
 import WorkspaceY from '../../../assets/images/avatars/workspace/default-avatar_y.svg';
 import WorkspaceZ from '../../../assets/images/avatars/workspace/default-avatar_z.svg';
+import WorkspaceBuilding from '../../../assets/images/avatars/workspace/default-avatar_building.svg';
 
 export {
     Workspace0,
@@ -72,4 +73,5 @@ export {
     WorkspaceX,
     WorkspaceY,
     WorkspaceZ,
+    WorkspaceBuilding,
 };

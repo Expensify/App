@@ -478,9 +478,8 @@ function getDefaultWorkspaceAvatar(workspaceName) {
 
     // Remove all chars not A-Z or 0-9 including underscore
     const alphaNumeric = workspaceName.replace(/[^0-9a-z]/gi, '').toUpperCase();
-    const firstChar = alphaNumeric[0];
 
-    return !firstChar ? Expensicons.FallbackWorkspaceAvatar : defaultWorkspaceAvatars[`Workspace${firstChar}`];
+    return !alphaNumeric ? defaultWorkspaceAvatars.WorkspaceBuilding : defaultWorkspaceAvatars[`Workspace${alphaNumeric[0]}`];
 }
 
 /**
@@ -560,37 +559,39 @@ function getFullSizeAvatar(avatarURL, login) {
  * @returns {Array<*>}
  */
 function getIcons(report, personalDetails, policies, defaultIcon = null) {
-    let source = '';
-    let type = CONST.ICON_TYPE_AVATAR;
-    let name = '';
+    const result = {
+        source: '',
+        type: CONST.ICON_TYPE_AVATAR,
+        name: '',
+    };
 
     if (_.isEmpty(report)) {
-        source = defaultIcon || Expensicons.FallbackAvatar;
-        return [{source, type, name}];
+        result.source = defaultIcon || Expensicons.FallbackAvatar;
+        return [result];
     }
     if (isConciergeChatReport(report)) {
-        source = CONST.CONCIERGE_ICON_URL;
-        return [{source, type, name}];
+        result.source = CONST.CONCIERGE_ICON_URL;
+        return [result];
     }
     if (isArchivedRoom(report)) {
-        source = Expensicons.DeletedRoomAvatar;
-        return [{source, type, name}];
+        result.source = Expensicons.DeletedRoomAvatar;
+        return [result];
     }
     if (isDomainRoom(report)) {
-        source = Expensicons.DomainRoomAvatar;
-        return [{source, type, name}];
+        result.source = Expensicons.DomainRoomAvatar;
+        return [result];
     }
     if (isAdminRoom(report)) {
-        source = Expensicons.AdminRoomAvatar;
-        return [{source, type, name}];
+        result.source = Expensicons.AdminRoomAvatar;
+        return [result];
     }
     if (isAnnounceRoom(report)) {
-        source = Expensicons.AnnounceRoomAvatar;
-        return [{source, type, name}];
+        result.source = Expensicons.AnnounceRoomAvatar;
+        return [result];
     }
     if (isChatRoom(report)) {
-        source = Expensicons.ActiveRoomAvatar;
-        return [{source, type, name}];
+        result.source = Expensicons.ActiveRoomAvatar;
+        return [result];
     }
     if (isPolicyExpenseChat(report)) {
         const workspaceName = lodashGet(policies, [
@@ -603,10 +604,10 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
 
         // Return the workspace avatar if the user is the owner of the policy expense chat
         if (report.isOwnPolicyExpenseChat) {
-            source = policyExpenseChatAvatarSource;
-            type = CONST.ICON_TYPE_WORKSPACE;
-            name = workspaceName;
-            return [{source, type, name}];
+            result.source = policyExpenseChatAvatarSource;
+            result.type = CONST.ICON_TYPE_WORKSPACE;
+            result.name = workspaceName;
+            return [result];
         }
 
         const adminIcon = {
