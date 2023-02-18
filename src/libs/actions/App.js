@@ -280,7 +280,7 @@ Onyx.connect({
  */
 function toggleTestToolsModal() {
     const toggle = () => Onyx.set(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN, !isTestToolsModalOpen);
-    const throttledToggle = _.throttle(toggle, 800, true);
+    const throttledToggle = _.throttle(toggle, CONST.TIMING.TEST_TOOLS_MODAL_THROTTLE_TIME);
     throttledToggle();
 }
 
