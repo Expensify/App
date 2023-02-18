@@ -143,8 +143,8 @@ function goBack(shouldOpenDrawer = true) {
  * @returns {Boolean}
  */
 function isDrawerRoute(route) {
-    const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
-    return reportID && !isParticipantsRoute;
+    const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(route);
+    return reportID && !isSubReportPageRoute;
 }
 
 /**

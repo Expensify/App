@@ -29,7 +29,6 @@ import EnableStep from './EnableStep';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
-import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 
@@ -263,13 +262,8 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
 
-        if (this.props.reimbursementAccount.shouldShowResetModal && Boolean(achData.bankAccountID)) {
-            return (
-                <WorkspaceResetBankAccountModal reimbursementAccount={this.props.reimbursementAccount} />
-            );
-        }
-
         // Show the "Continue with setup" button if a bank account setup is already in progress and no specific further step was passed in the url
+        // We'll show the workspace bank account reset modal if the user wishes to start over
         if (!this.state.shouldHideContinueSetupButton
             && Boolean(achData.bankAccountID)
             && achData.state !== BankAccount.STATE.OPEN
@@ -280,11 +274,9 @@ class ReimbursementAccountPage extends React.Component {
             )) {
             return (
                 <ContinueBankAccountSetup
+                    reimbursementAccount={this.props.reimbursementAccount}
                     continue={this.continue}
-                    startOver={() => {
-                        this.setState({shouldHideContinueSetupButton: true});
-                        BankAccounts.requestResetFreePlanBankAccount();
-                    }}
+                    startOver={() => this.setState({shouldHideContinueSetupButton: true})}
                 />
             );
         }

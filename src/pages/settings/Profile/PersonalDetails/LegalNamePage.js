@@ -6,7 +6,6 @@ import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import * as Localize from '../../../../libs/Localize';
 import ROUTES from '../../../../ROUTES';
 import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -67,35 +66,16 @@ class LegalNamePage extends Component {
     validate(values) {
         const errors = {};
 
-        // Check for invalid characters in legal first and last name
-        const [invalidLegalFirstNameCharacter, invalidLegalLastNameCharacter] = ValidationUtils.findInvalidSymbols(
-            [values.legalFirstName, values.legalLastName],
-        );
-        const [hasLegalFirstNameLengthError, hasLegalLastNameLengthError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
-            CONST.LEGAL_NAMES_CHARACTER_LIMIT,
-            [values.legalFirstName, values.legalLastName],
-        );
-
-        if (!_.isEmpty(invalidLegalFirstNameCharacter)) {
-            errors.legalFirstName = Localize.translateLocal(
-                'privatePersonalDetails.error.hasInvalidCharacter',
-                {invalidCharacter: invalidLegalFirstNameCharacter},
-            );
+        if (!ValidationUtils.isValidDisplayName(values.legalFirstName)) {
+            errors.legalFirstName = this.props.translate('personalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalFirstName)) {
-            errors.legalFirstName = Localize.translateLocal('common.error.fieldRequired');
-        } else if (hasLegalFirstNameLengthError) {
-            errors.legalFirstName = Localize.translateLocal('common.error.characterLimit', {limit: CONST.LEGAL_NAMES_CHARACTER_LIMIT});
+            errors.legalFirstName = this.props.translate('common.error.fieldRequired');
         }
 
-        if (!_.isEmpty(invalidLegalLastNameCharacter)) {
-            errors.legalLastName = Localize.translateLocal(
-                'privatePersonalDetails.error.hasInvalidCharacter',
-                {invalidCharacter: invalidLegalLastNameCharacter},
-            );
+        if (!ValidationUtils.isValidDisplayName(values.legalLastName)) {
+            errors.legalLastName = this.props.translate('personalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalLastName)) {
-            errors.legalLastName = Localize.translateLocal('common.error.fieldRequired');
-        } else if (hasLegalLastNameLengthError) {
-            errors.legalLastName = Localize.translateLocal('common.error.characterLimit', {limit: CONST.LEGAL_NAMES_CHARACTER_LIMIT});
+            errors.legalLastName = this.props.translate('common.error.fieldRequired');
         }
 
         return errors;
@@ -126,6 +106,7 @@ class LegalNamePage extends Component {
                             name="lfname"
                             label={this.props.translate('privatePersonalDetails.legalFirstName')}
                             defaultValue={privateDetails.legalFirstName || ''}
+                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         />
                     </View>
                     <View>
@@ -134,6 +115,7 @@ class LegalNamePage extends Component {
                             name="llname"
                             label={this.props.translate('privatePersonalDetails.legalLastName')}
                             defaultValue={privateDetails.legalLastName || ''}
+                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         />
                     </View>
                 </Form>
