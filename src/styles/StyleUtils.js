@@ -47,18 +47,46 @@ function getAvatarStyle(size) {
 }
 
 /**
+* Return the border style if avatar is SVG
+*
+* @param {Number} size
+* @param {String} type
+* @returns {Object}
+*/
+function getAvatarBorderRadius(size = 0, type) {
+    let borderRadius = variables.buttonBorderRadius;
+    if (type === CONST.ICON_TYPE_WORKSPACE) {
+        if (size <= variables.avatarSizeSubscript) {
+            borderRadius = variables.componentBorderRadiusSmall;
+            return {borderRadius};
+        }
+        if (size <= variables.avatarSizeNormal) {
+            borderRadius = variables.componentBorderRadiusNormal;
+            return {borderRadius};
+        }
+        if (size <= variables.avatarSizeLarge) {
+            borderRadius = variables.componentBorderRadiusLarge;
+            return {borderRadius};
+        }
+        borderRadius = variables.componentBorderRadiusRounded;
+        return {borderRadius};
+    }
+    return {borderRadius};
+}
+
+/**
  * Return the border style if avatar is SVG
  *
- * @param {Boolean} isSVG
- * @param {Boolean} isWorkspace
+ * @param {String} type
+ * @param {Number} size
  * @returns {Object}
  */
-function getAvatarSVGBorder(isSVG, isWorkspace = false) {
-    if (isWorkspace) {
-        return styles.squareAvatarBorder;
-    }
-    if (!isSVG) {
-        return {};
+function getAvatarSVGBorder(type, size = 0) {
+    if (type === CONST.ICON_TYPE_WORKSPACE) {
+        return {
+            overflow: 'hidden',
+            ...getAvatarBorderRadius(size, type),
+        };
     }
     return styles.svgAvatarBorder;
 }
@@ -92,9 +120,6 @@ function getDefaultWorspaceAvatarColor(workspaceName) {
     ];
 
     const colorHash = ReportUtils.hashLogin(workspaceName, colorOptions.length - 1);
-
-    // eslint-disable-next-line no-console
-    console.log('HASH RESULTS', colorHash, {backgroundColor: colorOptions[colorHash][0], fill: colorOptions[colorHash][1]});
 
     return {backgroundColor: colorOptions[colorHash][0], fill: colorOptions[colorHash][1]};
 }
@@ -815,4 +840,5 @@ export {
     getReportWelcomeBackgroundImageViewStyle,
     getReportWelcomeContainerStyle,
     getDefaultWorspaceAvatarColor,
+    getAvatarBorderRadius,
 };

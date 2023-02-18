@@ -23,7 +23,11 @@ const propTypes = {
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
         hasDraftComment: PropTypes.bool,
-        icons: PropTypes.arrayOf(PropTypes.string),
+        icons: PropTypes.arrayOf(PropTypes.shape({
+            source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+            type: PropTypes.string,
+            name: PropTypes.string,
+        })),
         searchText: PropTypes.string,
         text: PropTypes.string,
         keyForList: PropTypes.string,

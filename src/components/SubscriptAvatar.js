@@ -11,10 +11,18 @@ import * as StyleUtils from '../styles/StyleUtils';
 
 const propTypes = {
     /** Avatar URL or icon */
-    mainAvatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
+    mainAvatar: PropTypes.shape({
+        source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+        type: PropTypes.string,
+        name: PropTypes.string,
+    }),
 
     /** Subscript avatar URL or icon */
-    secondaryAvatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
+    secondaryAvatar: PropTypes.shape({
+        source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+        type: PropTypes.string,
+        name: PropTypes.string,
+    }),
 
     /** Tooltip for the main avatar */
     mainTooltip: PropTypes.string,
@@ -34,25 +42,33 @@ const defaultProps = {
     secondaryTooltip: '',
     size: CONST.AVATAR_SIZE.DEFAULT,
     backgroundColor: themeColors.componentBG,
+    mainAvatar: {},
+    secondaryAvatar: {},
 };
 
 const SubscriptAvatar = props => (
     <View style={props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarSmall : styles.emptyAvatar}>
         <Tooltip text={props.mainTooltip}>
             <Avatar
-                source={props.mainAvatar}
+                source={props.mainAvatar.source}
                 size={props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                name={props.mainAvatar.name}
+                type={props.mainAvatar.type}
             />
         </Tooltip>
         <View style={[
             props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSubscriptCompact : styles.secondAvatarSubscript,
-            StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor)]}
+            StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
+            StyleUtils.getAvatarSVGBorder(props.secondaryAvatar.type, StyleUtils.getAvatarSize(props.size)),
+        ]}
         >
             <Tooltip text={props.secondaryTooltip}>
                 <Avatar
-                    source={props.secondaryAvatar}
+                    source={props.secondaryAvatar.source}
                     size={props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
                     fill={themeColors.iconSuccessFill}
+                    name={props.secondaryAvatar.name}
+                    type={props.secondaryAvatar.type}
                 />
             </Tooltip>
         </View>

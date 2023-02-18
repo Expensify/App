@@ -34,6 +34,12 @@ const propTypes = {
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.func,
 
+    /** Denotes whether it is an avatar or a workspace avatar */
+    type: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE]),
+
+    /** Owner of the avatar, typically a login email or workspace name */
+    name: PropTypes.string,
+
     /** Props to detect online status */
     network: networkPropTypes.isRequired,
 };
@@ -45,6 +51,8 @@ const defaultProps = {
     size: CONST.AVATAR_SIZE.DEFAULT,
     fill: themeColors.icon,
     fallbackIcon: Expensicons.FallbackAvatar,
+    type: CONST.ICON_TYPE_AVATAR,
+    name: '',
 };
 
 class Avatar extends PureComponent {
@@ -68,9 +76,13 @@ class Avatar extends PureComponent {
             return null;
         }
 
+        const isWorkspace = this.props.type === CONST.ICON_TYPE_WORKSPACE;
+        const iconSize = StyleUtils.getAvatarSize(this.props.size);
+
         const imageStyle = [
             StyleUtils.getAvatarStyle(this.props.size),
             ...this.props.imageStyles,
+            StyleUtils.getAvatarBorderRadius(iconSize, this.props.type),
         ];
 
         const iconStyle = [
@@ -78,7 +90,6 @@ class Avatar extends PureComponent {
             styles.bgTransparent,
             ...this.props.imageStyles,
         ];
-        const iconSize = StyleUtils.getAvatarSize(this.props.size);
 
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
@@ -90,7 +101,11 @@ class Avatar extends PureComponent {
                                 height={iconSize}
                                 width={iconSize}
                                 fill={this.state.imageError ? themeColors.offline : this.props.fill}
-                                isSVGAvatar
+                                isWorkspaceAvatar
+                                additionalStyles={[
+                                    StyleUtils.getAvatarSVGBorder(this.props.type, iconSize),
+                                    isWorkspace ? StyleUtils.getDefaultWorspaceAvatarColor(this.props.name) : {},
+                                ]}
                             />
                         </View>
                     )

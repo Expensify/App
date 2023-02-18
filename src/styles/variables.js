@@ -23,6 +23,7 @@ export default {
     componentBorderRadius: 8,
     componentBorderRadiusSmall: 4,
     componentBorderRadiusNormal: 8,
+    componentBorderRadiusLarge: 16,
     componentBorderRadiusCard: 12,
     componentBorderRadiusRounded: 20,
     buttonBorderRadius: 100,

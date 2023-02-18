@@ -43,7 +43,6 @@ const defaultProps = {
 
 const ReportActionItemCreated = (props) => {
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
-
     return (
         <OfflineWithFeedback
             pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}

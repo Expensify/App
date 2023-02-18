@@ -101,6 +101,23 @@ const MenuItem = (props) => {
                                 />
                             </View>
                         )}
+                        {(props.icon && props.iconType === CONST.ICON_TYPE_WORKSPACE) && (
+                            <View
+                                style={[
+                                    styles.popoverMenuIcon,
+                                    ...props.iconStyles,
+                                ]}
+                            >
+                                <Avatar
+                                    imageStyles={[styles.alignSelfCenter]}
+                                    size={CONST.AVATAR_SIZE.DEFAULT}
+                                    source={props.icon}
+                                    fallbackIcon={props.fallbackIcon}
+                                    name={props.title}
+                                    type={CONST.ICON_TYPE_WORKSPACE}
+                                />
+                            </View>
+                        )}
                         {(props.icon && props.iconType === CONST.ICON_TYPE_AVATAR) && (
                             <View
                                 style={[

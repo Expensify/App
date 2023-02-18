@@ -134,8 +134,13 @@ class InitialSettingsPage extends React.Component {
         const policiesAvatars = _.chain(this.props.policies)
             .filter(policy => PolicyUtils.shouldShowPolicy(policy, this.props.network.isOffline))
             .sortBy(policy => policy.name)
-            .pluck('avatar')
+            .map(policy => ({
+                source: policy.avatar || ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+                name: policy.name,
+                type: CONST.ICON_TYPE_WORKSPACE,
+            }))
             .value();
+
         const policyBrickRoadIndicator = _.chain(this.props.policies)
             .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
             .find(policy => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers))

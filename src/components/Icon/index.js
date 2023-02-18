@@ -26,14 +26,11 @@ const propTypes = {
     /** Is inline icon */
     inline: PropTypes.bool,
 
-    /** Is SVG avatar icon */
-    isSVGAvatar: PropTypes.bool,
-
     /** Is workspace icon */
     isWorkspaceAvatar: PropTypes.bool,
 
     // eslint-disable-next-line react/forbid-prop-types
-    workspaceColorStyle: PropTypes.object,
+    additionalStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
@@ -42,9 +39,8 @@ const defaultProps = {
     fill: themeColors.icon,
     small: false,
     inline: false,
-    isSVGAvatar: false,
     isWorkspaceAvatar: false,
-    workspaceColorStyle: {},
+    additionalStyles: [],
 };
 
 // We must use a class component to create an animatable component with the Animated API
@@ -54,7 +50,8 @@ class Icon extends PureComponent {
         const width = this.props.small ? variables.iconSizeSmall : this.props.width;
         const height = this.props.small ? variables.iconSizeSmall : this.props.height;
         const iconStyles = [StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute,
-            StyleUtils.getAvatarSVGBorder(this.props.isSVGAvatar, this.props.isWorkspaceAvatar), this.props.workspaceColorStyle];
+            ...this.props.additionalStyles,
+        ];
 
         if (this.props.inline) {
             return (
@@ -76,11 +73,7 @@ class Icon extends PureComponent {
         return (
             <View
                 accessibilityHint={`${this.props.src.name} Icon`}
-                style={[
-                    StyleUtils.getAvatarSVGBorder(this.props.isSVGAvatar,
-                        this.props.isWorkspaceAvatar),
-                    this.props.workspaceColorStyle,
-                ]}
+                style={this.props.additionalStyles}
             >
                 <this.props.src
                     width={width}

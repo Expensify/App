@@ -13,7 +13,11 @@ export default PropTypes.shape({
     alternateText: PropTypes.string,
 
     // Array of URLs or icons
-    icons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])),
+    icons: PropTypes.arrayOf(PropTypes.shape({
+        source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+        type: PropTypes.string,
+        name: PropTypes.string,
+    })),
 
     // Login (only present when there is a single participant)
     login: PropTypes.string,

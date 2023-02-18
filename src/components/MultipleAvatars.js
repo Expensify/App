@@ -13,7 +13,11 @@ import variables from '../styles/variables';
 
 const propTypes = {
     /** Array of avatar URLs or icons */
-    icons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])),
+    icons: PropTypes.arrayOf(PropTypes.shape({
+        source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+        type: PropTypes.string,
+        name: PropTypes.string,
+    })),
 
     /** Set the size of avatars */
     size: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
@@ -71,9 +75,11 @@ const MultipleAvatars = (props) => {
             <View style={avatarContainerStyles}>
                 <Tooltip text={props.avatarTooltips[0]}>
                     <Avatar
-                        source={props.icons[0]}
+                        source={props.icons[0].source}
                         size={props.size}
                         fill={themeColors.iconSuccessFill}
+                        name={props.icons[0].name}
+                        type={props.icons[0].type}
                     />
                 </Tooltip>
             </View>
@@ -91,9 +97,11 @@ const MultipleAvatars = (props) => {
                                 style={[styles.horizontalStackedAvatar, StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed), horizontalStyles[index]]}
                             >
                                 <Avatar
-                                    source={icon || props.fallbackIcon}
+                                    source={icon.source || props.fallbackIcon}
                                     fill={themeColors.iconSuccessFill}
                                     size={CONST.AVATAR_SIZE.SMALLER}
+                                    name={icon.name}
+                                    type={icon.type}
                                 />
                             </View>
                         ))
@@ -124,11 +132,13 @@ const MultipleAvatars = (props) => {
                         {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                         <View>
                             <Avatar
-                                source={props.icons[0] || props.fallbackIcon}
+                                source={props.icons[0].source || props.fallbackIcon}
                                 fill={themeColors.iconSuccessFill}
                                 size={props.isFocusMode ? CONST.AVATAR_SIZE.MID_SUBSCRIPT : CONST.AVATAR_SIZE.SMALLER}
 
                                 imageStyles={[singleAvatarStyles]}
+                                name={props.icons[0].name}
+                                type={props.icons[0].type}
                             />
                         </View>
                     </Tooltip>
@@ -139,11 +149,13 @@ const MultipleAvatars = (props) => {
                             <Tooltip text={props.avatarTooltips[1]} absolute>
                                 <View>
                                     <Avatar
-                                        source={props.icons[1] || props.fallbackIcon}
+                                        source={props.icons[1].source || props.fallbackIcon}
                                         fill={themeColors.iconSuccessFill}
                                         size={props.isFocusMode ? CONST.AVATAR_SIZE.MID_SUBSCRIPT : CONST.AVATAR_SIZE.SMALLER}
 
                                         imageStyles={[singleAvatarStyles]}
+                                        name={props.icons[1].name}
+                                        type={props.icons[1].type}
                                     />
                                 </View>
                             </Tooltip>

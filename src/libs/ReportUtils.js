@@ -479,8 +479,6 @@ function getDefaultWorkspaceAvatar(workspaceName) {
     // Remove all chars not A-Z or 0-9 including underscore
     const alphaNumeric = workspaceName.replace(/[^0-9a-z]/gi, '').toUpperCase();
     const firstChar = alphaNumeric[0];
-    // eslint-disable-next-line no-console
-    console.log('first character: ', firstChar, defaultWorkspaceAvatars[`Workspace${firstChar}`]);
 
     return !firstChar ? Expensicons.FallbackWorkspaceAvatar : defaultWorkspaceAvatars[`Workspace${firstChar}`];
 }
@@ -562,42 +560,72 @@ function getFullSizeAvatar(avatarURL, login) {
  * @returns {Array<*>}
  */
 function getIcons(report, personalDetails, policies, defaultIcon = null) {
+    let source = '';
+    let type = CONST.ICON_TYPE_AVATAR;
+    let name = '';
+
     if (_.isEmpty(report)) {
-        return [defaultIcon || Expensicons.FallbackAvatar];
+        source = defaultIcon || Expensicons.FallbackAvatar;
+        return [{source, type, name}];
     }
     if (isConciergeChatReport(report)) {
-        return [CONST.CONCIERGE_ICON_URL];
+        source = CONST.CONCIERGE_ICON_URL;
+        return [{source, type, name}];
     }
     if (isArchivedRoom(report)) {
-        return [Expensicons.DeletedRoomAvatar];
+        source = Expensicons.DeletedRoomAvatar;
+        return [{source, type, name}];
     }
     if (isDomainRoom(report)) {
-        return [Expensicons.DomainRoomAvatar];
+        source = Expensicons.DomainRoomAvatar;
+        return [{source, type, name}];
     }
     if (isAdminRoom(report)) {
-        return [Expensicons.AdminRoomAvatar];
+        source = Expensicons.AdminRoomAvatar;
+        return [{source, type, name}];
     }
     if (isAnnounceRoom(report)) {
-        return [Expensicons.AnnounceRoomAvatar];
+        source = Expensicons.AnnounceRoomAvatar;
+        return [{source, type, name}];
     }
     if (isChatRoom(report)) {
-        return [Expensicons.ActiveRoomAvatar];
+        source = Expensicons.ActiveRoomAvatar;
+        return [{source, type, name}];
     }
     if (isPolicyExpenseChat(report)) {
+        const workspaceName = lodashGet(policies, [
+            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name',
+        ]);
+
         const policyExpenseChatAvatarSource = lodashGet(policies, [
             `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar',
-        ]) || Expensicons.Workspace;
+        ]) || getDefaultWorkspaceAvatar(workspaceName);
 
         // Return the workspace avatar if the user is the owner of the policy expense chat
         if (report.isOwnPolicyExpenseChat) {
-            return [policyExpenseChatAvatarSource];
+            source = policyExpenseChatAvatarSource;
+            type = CONST.ICON_TYPE_WORKSPACE;
+            name = workspaceName;
+            return [{source, type, name}];
         }
+
+        const adminIcon = {
+            source: getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
+            name: report.ownerEmail,
+            type: CONST.ICON_TYPE_AVATAR,
+        };
+
+        const workspaceIcon = {
+            source: policyExpenseChatAvatarSource,
+            type: CONST.ICON_TYPE_WORKSPACE,
+            name: workspaceName,
+        };
 
         // If the user is an admin, return avatar source of the other participant of the report
         // (their workspace chat) and the avatar source of the workspace
         return [
-            getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
-            policyExpenseChatAvatarSource,
+            adminIcon,
+            workspaceIcon,
         ];
     }
 
@@ -606,7 +634,6 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
 
     for (let i = 0; i < participants.length; i++) {
         const login = participants[i];
-
         const avatarSource = getAvatar(lodashGet(personalDetails, [login, 'avatar'], ''), login);
         participantDetails.push([
             login,
@@ -621,7 +648,12 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
     // Now that things are sorted, gather only the avatars (third element in the array) and return those
     const avatars = [];
     for (let i = 0; i < sortedParticipantDetails.length; i++) {
-        avatars.push(sortedParticipantDetails[i][2]);
+        const userIcon = {
+            source: sortedParticipantDetails[i][2],
+            type: CONST.ICON_TYPE_AVATAR,
+            name: sortedParticipantDetails[i][0],
+        };
+        avatars.push(userIcon);
     }
 
     return avatars;
