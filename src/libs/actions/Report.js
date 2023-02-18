@@ -566,10 +566,12 @@ function markCommentAsUnread(reportID, reportActionCreated) {
     // For example, if we want to mark a report action with ID 100 and created date '2014-04-01 16:07:02.999' unread, we set the lastReadTime to '2014-04-01 16:07:02.998'
     // Since the report action with ID 100 will be the first with a timestamp above '2014-04-01 16:07:02.998', it's the first one that will be shown as unread
     const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(reportActionCreated, 1);
+    const oldLastReadTime = lodashGet(allReports, [reportID, 'lastReadTime']);
+    console.log(`over here 1 ${lastReadTime}`);
+    console.log(`over here 2 ${oldLastReadTime}`);
     API.write('MarkAsUnread',
         {
             reportID,
-            lastReadTime,
         },
         {
             optimisticData: [{
@@ -577,6 +579,13 @@ function markCommentAsUnread(reportID, reportActionCreated) {
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     lastReadTime,
+                },
+            }],
+            failureData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    lastReadTime: oldLastReadTime,
                 },
             }],
         });
