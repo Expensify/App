@@ -46,6 +46,7 @@ class RoomNameInput extends Component {
                 onBlur={this.props.onBlur}
                 autoFocus={this.props.autoFocus}
                 autoCapitalize="none"
+                shouldDelayFocus={this.props.shouldDelayFocus}
             />
         );
     }

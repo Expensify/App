@@ -73,12 +73,12 @@ let lastFakeReportID = 0;
  * @returns {Object}
  */
 function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], millisecondsInThePast = 0, isUnread = false) {
-    const lastActionCreated = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
+    const lastVisibleActionCreated = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
     return {
         reportID: `${++lastFakeReportID}`,
         reportName: 'Report',
-        lastActionCreated,
-        lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastActionCreated, 1) : lastActionCreated,
+        lastVisibleActionCreated,
+        lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1) : lastVisibleActionCreated,
         participants,
     };
 }
@@ -109,7 +109,6 @@ function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorksp
 
 /**
  * @param {String} [reportIDFromRoute]
- * @returns {RenderAPI}
  */
 function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
     // An ErrorBoundary needs to be added to the rendering so that any errors that happen while the component
@@ -138,7 +137,7 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
     // are passed to the component. If this is not done, then all the locale props are missing
     // and there are a lot of render warnings. It needs to be done like this because normally in
     // our app (App.js) is when the react application is wrapped in the context providers
-    return render((
+    render((
         <ComposeProviders
             components={[
                 OnyxProvider,

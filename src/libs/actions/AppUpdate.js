@@ -5,7 +5,14 @@ function triggerUpdateAvailable() {
     Onyx.set(ONYXKEYS.UPDATE_AVAILABLE, true);
 }
 
+/**
+ * @param {Boolean} isBeta
+ */
+function setIsAppInBeta(isBeta) {
+    Onyx.set(ONYXKEYS.IS_BETA, isBeta);
+}
+
 export {
-    // eslint-disable-next-line import/prefer-default-export
     triggerUpdateAvailable,
+    setIsAppInBeta,
 };

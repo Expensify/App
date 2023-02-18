@@ -21,6 +21,11 @@ const drawerIsReadyPromise = new Promise((resolve) => {
     resolveDrawerIsReadyPromise = resolve;
 });
 
+let resolveReportScreenIsReadyPromise;
+const reportScreenIsReadyPromise = new Promise((resolve) => {
+    resolveReportScreenIsReadyPromise = resolve;
+});
+
 let isLoggedIn = false;
 let pendingRoute = null;
 let isNavigating = false;
@@ -136,8 +141,8 @@ function goBack(shouldOpenDrawer = true) {
  * @returns {Boolean}
  */
 function isDrawerRoute(route) {
-    const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
-    return reportID && !isParticipantsRoute;
+    const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(route);
+    return reportID && !isSubReportPageRoute;
 }
 
 /**
@@ -267,6 +272,14 @@ function setIsDrawerReady() {
     resolveDrawerIsReadyPromise();
 }
 
+function isReportScreenReady() {
+    return reportScreenIsReadyPromise;
+}
+
+function setIsReportScreenIsReady() {
+    resolveReportScreenIsReadyPromise();
+}
+
 export default {
     canNavigate,
     navigate,
@@ -284,6 +297,8 @@ export default {
     setIsDrawerReady,
     isDrawerRoute,
     setIsNavigating,
+    isReportScreenReady,
+    setIsReportScreenIsReady,
 };
 
 export {
