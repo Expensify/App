@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import CONST from '../CONST';
 import stylePropTypes from '../styles/stylePropTypes';
+import avatarPropTypes from './avatarPropTypes';
 
 const propTypes = {
     /** Text to be shown as badge near the right end. */
@@ -77,11 +78,7 @@ const propTypes = {
     fallbackIcon: PropTypes.func,
 
     /** Avatars to show on the right of the menu item */
-    floatRightAvatars: PropTypes.arrayOf(PropTypes.shape({
-        source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
-        type: PropTypes.string,
-        name: PropTypes.string,
-    })),
+    floatRightAvatars: PropTypes.arrayOf(avatarPropTypes),
 
     /** The type of brick road indicator to show. */
     brickRoadIndicator: PropTypes.oneOf([CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, CONST.BRICK_ROAD_INDICATOR_STATUS.INFO, '']),
