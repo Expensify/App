@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import CONST from '../CONST';
 import participantPropTypes from './participantPropTypes';
+import avatarPropTypes from './avatarPropTypes';
 
 export default PropTypes.shape({
     // Text to display
@@ -12,12 +13,8 @@ export default PropTypes.shape({
     // Alternate text to display
     alternateText: PropTypes.string,
 
-    // Array of URLs or icons
-    icons: PropTypes.arrayOf(PropTypes.shape({
-        source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
-        type: PropTypes.string,
-        name: PropTypes.string,
-    })),
+    // Array of icon information
+    icons: PropTypes.arrayOf(avatarPropTypes),
 
     // Login (only present when there is a single participant)
     login: PropTypes.string,

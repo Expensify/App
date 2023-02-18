@@ -10,14 +10,11 @@ import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import CONST from '../CONST';
 import variables from '../styles/variables';
+import avatarPropTypes from './avatarPropTypes';
 
 const propTypes = {
     /** Array of avatar URLs or icons */
-    icons: PropTypes.arrayOf(PropTypes.shape({
-        source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
-        type: PropTypes.string,
-        name: PropTypes.string,
-    })),
+    icons: PropTypes.arrayOf(avatarPropTypes),
 
     /** Set the size of avatars */
     size: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),

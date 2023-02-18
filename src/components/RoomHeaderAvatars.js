@@ -8,13 +8,10 @@ import CONST from '../CONST';
 import Avatar from './Avatar';
 import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
+import avatarPropTypes from './avatarPropTypes';
 
 const propTypes = {
-    icons: PropTypes.arrayOf(PropTypes.shape({
-        source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
-        type: PropTypes.string,
-        name: PropTypes.string,
-    })),
+    icons: PropTypes.arrayOf(avatarPropTypes),
 };
 
 const defaultProps = {

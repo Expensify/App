@@ -57,8 +57,8 @@ const propTypes = {
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.func,
 
-    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    type: PropTypes.string,
+    /** Denotes whether it is an avatar or a workspace avatar */
+    type: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE]),
 
     ...withLocalizePropTypes,
 };

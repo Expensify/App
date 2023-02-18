@@ -8,21 +8,14 @@ import themeColors from '../styles/themes/default';
 import Avatar from './Avatar';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
+import avatarPropTypes from './avatarPropTypes';
 
 const propTypes = {
     /** Avatar URL or icon */
-    mainAvatar: PropTypes.shape({
-        source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
-        type: PropTypes.string,
-        name: PropTypes.string,
-    }),
+    mainAvatar: avatarPropTypes,
 
     /** Subscript avatar URL or icon */
-    secondaryAvatar: PropTypes.shape({
-        source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
-        type: PropTypes.string,
-        name: PropTypes.string,
-    }),
+    secondaryAvatar: avatarPropTypes,
 
     /** Tooltip for the main avatar */
     mainTooltip: PropTypes.string,
