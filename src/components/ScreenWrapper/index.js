@@ -2,6 +2,7 @@ import {View} from 'react-native';
 import React from 'react';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import CONST from '../../CONST';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
@@ -40,10 +41,15 @@ class ScreenWrapper extends React.Component {
             Navigation.setIsNavigating(true);
         });
 
-        this.unsubscribeTransitionEnd = this.props.navigation.addListener('transitionEnd', () => {
-            this.setState({didScreenTransitionEnd: true});
-            this.props.onTransitionEnd();
+        this.unsubscribeTransitionEnd = this.props.navigation.addListener('transitionEnd', (event) => {
             Navigation.setIsNavigating(false);
+
+            // Prevent firing the prop callback when user is exiting the page.
+            if (lodashGet(event, 'data.closing')) {
+                return;
+            }
+            this.setState({didScreenTransitionEnd: true});
+            this.props.onEntryTransitionEnd();
         });
     }
 
