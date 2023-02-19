@@ -536,7 +536,7 @@ describe('actions/Report', () => {
                 const resultAction = _.first(_.values(reportActions));
 
                 // Add a reaction to the comment
-                Report.addReaction(REPORT_ID, resultAction, EMOJI);
+                Report.addEmojiReaction(REPORT_ID, resultAction, EMOJI);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -553,7 +553,7 @@ describe('actions/Report', () => {
                         })]));
 
                 // Now we remove the reaction
-                Report.removeReaction(REPORT_ID, resultAction, EMOJI);
+                Report.removeEmojiReaction(REPORT_ID, resultAction, EMOJI);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -566,11 +566,11 @@ describe('actions/Report', () => {
                 const resultAction = _.first(_.values(reportActions));
 
                 // Add the reaction to the comment, but two times with different variations
-                Report.addReaction(REPORT_ID, resultAction, EMOJI);
+                Report.addEmojiReaction(REPORT_ID, resultAction, EMOJI);
                 return waitForPromisesToResolve()
                     .then(() => {
                         const updatedResultAction = _.first(_.values(reportActions));
-                        Report.addReaction(
+                        Report.addEmojiReaction(
                             REPORT_ID,
                             updatedResultAction,
                             EMOJI,
@@ -598,7 +598,7 @@ describe('actions/Report', () => {
                                 })]));
 
                         // Now we remove the reaction, and expect that both variations are removed
-                        Report.removeReaction(REPORT_ID, updatedResultAction, EMOJI);
+                        Report.removeEmojiReaction(REPORT_ID, updatedResultAction, EMOJI);
                         return waitForPromisesToResolve();
                     })
                     .then(() => {

@@ -59,7 +59,7 @@ export default [
 
             const onEmojiSelected = (emoji) => {
                 // TODO: we need to add the preferred skin tone here as well somehow
-                Report.toggleReaction(reportID, reportAction, emoji);
+                Report.toggleEmojiReaction(reportID, reportAction, emoji);
                 closeContextMenu();
             };
 

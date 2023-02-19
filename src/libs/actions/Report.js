@@ -1210,7 +1210,7 @@ function hasAccountIDReacted(accountID, users, skinTone) {
  * @param {{ name: string, code: string, types: string[] }} emoji
  * @param {number} [skinTone] Optional.
  */
-function addReaction(reportID, originalReportAction, emoji, skinTone) {
+function addEmojiReaction(reportID, originalReportAction, emoji, skinTone) {
     const message = originalReportAction.message[0];
     let reactionObject = message.reactions && _.find(message.reactions, reaction => reaction.emoji === emoji.name);
     const needToInsertReactionObject = !reactionObject;
@@ -1255,7 +1255,13 @@ function addReaction(reportID, originalReportAction, emoji, skinTone) {
     // API.write('AddReaction', parameters, {optimisticData});
 }
 
-function removeReaction(reportID, originalReportAction, emoji) {
+/**
+ * Removes a reaction to the report action.
+ * @param {String} reportID
+ * @param {Object} originalReportAction
+ * @param {{ name: string, code: string, types: string[] }} emoji
+ */
+function removeEmojiReaction(reportID, originalReportAction, emoji) {
     const message = originalReportAction.message[0];
     const reactionObject = message.reactions && _.find(message.reactions, reaction => reaction.emoji === emoji.name);
     if (!reactionObject) {
@@ -1298,16 +1304,24 @@ function removeReaction(reportID, originalReportAction, emoji) {
     // API.write('RemoveReaction', parameters, {optimisticData});
 }
 
-function toggleReaction(reportID, reportAction, emoji, skinTone) {
+/**
+ * Calls either addEmojiReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
+ * @param {String} reportID
+ * @param {Object} reportAction
+ * @param {Object} emoji
+ * @param {number} skinTone
+ * @returns {Promise}
+ */
+function toggleEmojiReaction(reportID, reportAction, emoji, skinTone) {
     const message = reportAction.message[0];
     const reactionObject = message.reactions && _.find(message.reactions, reaction => reaction.emoji === emoji.name);
     if (reactionObject) {
         const hasCurrentUserReacted = hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone);
         if (hasCurrentUserReacted) {
-            return removeReaction(reportID, reportAction, emoji, skinTone);
+            return removeEmojiReaction(reportID, reportAction, emoji, skinTone);
         }
     }
-    return addReaction(reportID, reportAction, emoji, skinTone);
+    return addEmojiReaction(reportID, reportAction, emoji, skinTone);
 }
 
 export {
@@ -1341,7 +1355,7 @@ export {
     clearIOUError,
     subscribeToNewActionEvent,
     showReportActionNotification,
-    addReaction,
-    removeReaction,
-    toggleReaction,
+    addEmojiReaction,
+    removeEmojiReaction,
+    toggleEmojiReaction,
 };

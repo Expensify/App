@@ -143,7 +143,7 @@ class ReportActionItem extends Component {
 
     toggleReaction(emoji) {
         // TODO: we need to add the skin tone here somehow
-        Report.toggleReaction(this.props.report.reportID, this.props.action, emoji);
+        Report.toggleEmojiReaction(this.props.report.reportID, this.props.action, emoji);
     }
 
     /**
