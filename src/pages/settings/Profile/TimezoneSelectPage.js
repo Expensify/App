@@ -38,7 +38,7 @@ class TimezoneSelectPage extends Component {
         this.timezone = this.getUserTimezone(props.currentUserPersonalDetails);
         this.allTimezones = _.chain(moment.tz.names())
             .filter(timezone => !timezone.startsWith('Etc/GMT'))
-            .map(timezone => this.getTimezoneOption(timezone))
+            .map(this.getTimezoneOption)
             .value();
 
         this.state = {
