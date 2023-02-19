@@ -4,6 +4,12 @@ import BaseQuickEmojiReactions, {baseQuickEmojiReactionsDefaultProps, baseQuickE
 
 const propTypes = {
     ...baseQuickEmojiReactionsPropTypes,
+
+    /**
+     * Function that can be called to close the
+     * context menu in which this component is
+     * rendered.
+     */
     closeContextMenu: PropTypes.func.isRequired,
 };
 

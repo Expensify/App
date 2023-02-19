@@ -14,7 +14,19 @@ import emojis from '../../../assets/emojis';
 import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
+    /**
+     * The default size of the reaction bubble is defined
+     * by the styles in styles.js. This scale factor can be used
+     * to make the bubble bigger or smaller.
+     */
     sizeScale: PropTypes.number,
+
+    /**
+     * The default size of the icon is defined
+     * by the styles in styles.js. This scale factor can be used
+     * to make the icon bigger or smaller. The icon refers to the
+     * emoji.
+     */
     iconSizeScale: PropTypes.number,
 
     /**

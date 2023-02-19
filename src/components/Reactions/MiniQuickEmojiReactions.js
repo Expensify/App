@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import Text from '../Text';
@@ -12,15 +11,10 @@ import * as Expensicons from '../Icon/Expensicons';
 import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import emojis from '../../../assets/emojis';
-
-const propTypes = {
-    onEmojiSelected: PropTypes.func.isRequired,
-    onPressOpenPicker: PropTypes.func,
-};
-
-const defaultProps = {
-    onPressOpenPicker: () => {},
-};
+import {
+    baseQuickEmojiReactionsDefaultProps,
+    baseQuickEmojiReactionsPropTypes,
+} from './QuickEmojiReactions/BaseQuickEmojiReactions';
 
 const MiniQuickEmojiReactions = (props) => {
     // TODO: this is duplicated code with the add reaction bubble. Can we consolidate?
@@ -77,6 +71,6 @@ const MiniQuickEmojiReactions = (props) => {
 };
 
 MiniQuickEmojiReactions.displayName = 'MiniQuickEmojiReactions';
-MiniQuickEmojiReactions.propTypes = propTypes;
-MiniQuickEmojiReactions.defaultProps = defaultProps;
+MiniQuickEmojiReactions.propTypes = baseQuickEmojiReactionsPropTypes;
+MiniQuickEmojiReactions.defaultProps = baseQuickEmojiReactionsDefaultProps;
 export default MiniQuickEmojiReactions;

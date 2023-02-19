@@ -9,10 +9,29 @@ import variables from '../styles/variables';
 import Tooltip from './Tooltip';
 
 const propTypes = {
+    /**
+     * Text to display when hovering the menu item
+     */
     tooltipText: PropTypes.string.isRequired,
+
+    /**
+     * Callback to fire on press
+     */
     onPress: PropTypes.func.isRequired,
+
+    /**
+     * The children to display within the menu item
+     */
     children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
+
+    /**
+     * Whether the button should be in the active state
+     */
     isDelayButtonStateComplete: PropTypes.bool,
+
+    /**
+     * A ref to forward to the Pressable
+     */
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 };
 

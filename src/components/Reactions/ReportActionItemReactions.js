@@ -32,8 +32,17 @@ const getUniqueEmojiCodes = (emoji, users) => {
 };
 
 const propTypes = {
+    /**
+     * An array of objects containing the reaction data.
+     */
     // eslint-disable-next-line react/forbid-prop-types
     reactions: PropTypes.arrayOf(PropTypes.object).isRequired,
+
+    /**
+     * Function to call when the user presses on an emoji.
+     * This can also be an emoji the user already reacted with,
+     * hence this function asks to toggle the reaction by emoji.
+     */
     toggleReaction: PropTypes.func.isRequired,
 
     ...withCurrentUserPersonalDetailsPropTypes,
