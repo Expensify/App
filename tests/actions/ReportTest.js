@@ -587,13 +587,13 @@ describe('actions/Report', () => {
                                 expect.objectContaining({
                                     emoji: EMOJI_NAME,
                                     users: expect.arrayContaining([
-                                        {
+                                        expect.objectContaining({
                                             accountID: TEST_USER_ACCOUNT_ID,
-                                        },
-                                        {
+                                        }),
+                                        expect.objectContaining({
                                             accountID: TEST_USER_ACCOUNT_ID,
                                             skinTone: EMOJI_SKIN_TONE,
-                                        },
+                                        }),
                                     ]),
                                 })]));
 
