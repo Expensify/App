@@ -33,20 +33,12 @@ class TimezoneSelectPage extends Component {
 
         this.saveSelectedTimezone = this.saveSelectedTimezone.bind(this);
         this.filterShownTimezones = this.filterShownTimezones.bind(this);
+        this.getTimezoneOption = this.getTimezoneOption.bind(this);
 
         this.timezone = this.getUserTimezone(props.currentUserPersonalDetails);
         this.allTimezones = _.chain(moment.tz.names())
             .filter(timezone => !timezone.startsWith('Etc/GMT'))
-            .map(timezone => ({
-                text: timezone,
-                keyForList: this.getKey(timezone),
-
-                // Include the green checkmark icon to indicate the currently selected value
-                customIcon: timezone === this.timezone.selected ? greenCheckmark : undefined,
-
-                // This property will make the currently selected value have bold text
-                boldStyle: timezone === this.timezone.selected,
-            }))
+            .map(timezone => this.getTimezoneOption(timezone))
             .value();
 
         this.state = {
@@ -65,16 +57,7 @@ class TimezoneSelectPage extends Component {
         this.timezone = newTimezone;
         this.allTimezones = _.map(this.allTimezones, (timezone) => {
             const text = timezone.text.split('-')[0];
-            return {
-                text,
-                keyForList: this.getKey(text),
-
-                // Include the green checkmark icon to indicate the currently selected value
-                customIcon: text === this.timezone.selected ? greenCheckmark : undefined,
-
-                // This property will make the currently selected value have bold text
-                boldStyle: text === this.timezone.selected,
-            };
+            return this.getTimezoneOption(text);
         });
 
         this.setState({
@@ -84,11 +67,30 @@ class TimezoneSelectPage extends Component {
     }
 
     /**
+     * We add the current time to the key to fix a bug where the list options don't update unless the key is updated.
      * @param {String} text
      * @return {string} key for list item
      */
     getKey(text) {
         return `${text}-${(new Date()).getTime()}`;
+    }
+
+    /**
+     * Get timezone option object for the list.
+     * @param {String} text
+     * @return {Object} Timezone list option
+     */
+    getTimezoneOption(text) {
+        return {
+            text,
+            keyForList: this.getKey(text),
+
+            // Include the green checkmark icon to indicate the currently selected value
+            customIcon: text === this.timezone.selected ? greenCheckmark : undefined,
+
+            // This property will make the currently selected value have bold text
+            boldStyle: text === this.timezone.selected,
+        };
     }
 
     /**
