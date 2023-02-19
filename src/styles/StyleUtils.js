@@ -49,30 +49,26 @@ function getAvatarStyle(size) {
 /**
 * Return the border style if avatar is SVG
 *
-* @param {Number} size
+* @param {String} size
 * @param {String} type
 * @returns {Object}
 */
-function getAvatarBorderRadius(size = 0, type) {
+function getAvatarBorderRadius(size, type) {
+    const AVATAR_BORDERS = {
+        [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.componentBorderRadiusSmall,
+        [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.componentBorderRadiusSmall,
+        [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.componentBorderRadiusSmall,
+        [CONST.AVATAR_SIZE.SMALLER]: variables.componentBorderRadiusMedium,
+        [CONST.AVATAR_SIZE.SMALL]: variables.componentBorderRadiusMedium,
+        [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
+        [CONST.AVATAR_SIZE.MEDIUM]: variables.componentBorderRadiusLarge,
+        [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
+        [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.componentBorderRadiusRounded,
+    };
+
     let borderRadius = variables.buttonBorderRadius;
     if (type === CONST.ICON_TYPE_WORKSPACE) {
-        if (size <= variables.avatarSizeSubscript) {
-            borderRadius = variables.componentBorderRadiusSmall;
-            return {borderRadius};
-        }
-        if (size <= variables.avatarSizeSmall) {
-            borderRadius = variables.componentBorderRadiusMedium;
-            return {borderRadius};
-        }
-        if (size <= variables.avatarSizeNormal) {
-            borderRadius = variables.componentBorderRadiusNormal;
-            return {borderRadius};
-        }
-        if (size <= variables.avatarSizeLarge) {
-            borderRadius = variables.componentBorderRadiusLarge;
-            return {borderRadius};
-        }
-        borderRadius = variables.componentBorderRadiusRounded;
+        borderRadius = AVATAR_BORDERS[size];
         return {borderRadius};
     }
     return {borderRadius};
@@ -81,11 +77,11 @@ function getAvatarBorderRadius(size = 0, type) {
 /**
  * Return the border style if avatar is SVG
  *
+ * @param {String} size
  * @param {String} type
- * @param {Number} size
  * @returns {Object}
  */
-function getAvatarBorderStyle(type, size = 0) {
+function getAvatarBorderStyle(size, type) {
     return {
         overflow: 'hidden',
         ...getAvatarBorderRadius(size, type),

@@ -82,7 +82,7 @@ class Avatar extends PureComponent {
         const imageStyle = [
             StyleUtils.getAvatarStyle(this.props.size),
             ...this.props.imageStyles,
-            StyleUtils.getAvatarBorderRadius(iconSize, this.props.type),
+            StyleUtils.getAvatarBorderRadius(this.props.size, this.props.type),
         ];
 
         const iconStyle = [
@@ -103,7 +103,7 @@ class Avatar extends PureComponent {
                                 fill={this.state.imageError ? themeColors.offline : this.props.fill}
                                 isWorkspaceAvatar={isWorkspace}
                                 additionalStyles={[
-                                    StyleUtils.getAvatarBorderStyle(this.props.type, iconSize),
+                                    StyleUtils.getAvatarBorderStyle(this.props.size, this.props.type),
                                     isWorkspace ? StyleUtils.getDefaultWorspaceAvatarColor(this.props.name) : {},
                                 ]}
                             />
