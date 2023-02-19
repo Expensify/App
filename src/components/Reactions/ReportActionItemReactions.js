@@ -4,10 +4,6 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import EmojiReactionBubble from './EmojiReactionBubble';
-import withCurrentUserPersonalDetails, {
-    withCurrentUserPersonalDetailsDefaultProps,
-    withCurrentUserPersonalDetailsPropTypes,
-} from '../withCurrentUserPersonalDetails';
 import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
 
@@ -44,19 +40,12 @@ const propTypes = {
      * hence this function asks to toggle the reaction by emoji.
      */
     toggleReaction: PropTypes.func.isRequired,
-
-    ...withCurrentUserPersonalDetailsPropTypes,
-};
-
-const defaultProps = {
-    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 const ReportActionItemReactions = props => (
     <View style={[styles.flexRow, styles.flexWrap]}>
         {_.map(props.reactions, (reaction) => {
             const reactionCount = reaction.users.length;
-            const hasUserReacted = _.find(reaction.users, reactor => `${reactor.accountID}` === `${props.currentUserPersonalDetails.accountID}`) != null;
             const senderIDs = _.map(reaction.users, sender => sender.accountID);
             const emoji = _.find(emojis, e => e.name === reaction.emoji);
             const emojiCodes = getUniqueEmojiCodes(emoji, reaction.users);
@@ -71,7 +60,6 @@ const ReportActionItemReactions = props => (
                     count={reactionCount}
                     emojiName={reaction.emoji}
                     emojiCodes={emojiCodes}
-                    hasUserReacted={hasUserReacted}
                     onPress={onPress}
                     senderIDs={senderIDs}
                 />
@@ -83,5 +71,4 @@ const ReportActionItemReactions = props => (
 
 ReportActionItemReactions.displayName = 'ReportActionItemReactions';
 ReportActionItemReactions.propTypes = propTypes;
-ReportActionItemReactions.defaultProps = defaultProps;
-export default withCurrentUserPersonalDetails(ReportActionItemReactions);
+export default ReportActionItemReactions;
