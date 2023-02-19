@@ -40,6 +40,12 @@ const defaultProps = {
     innerRef: () => {},
 };
 
+/**
+ * Component that renders a mini context menu item with a
+ * pressable. Also renders a tooltip when hovering the item.
+ * @param {Object} props
+ * @returns {JSX.Element}
+ */
 const BaseMiniContextMenuItem = props => (
     <Tooltip text={props.tooltipText}>
         <Pressable
