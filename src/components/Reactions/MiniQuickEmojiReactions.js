@@ -16,8 +16,15 @@ import {
     baseQuickEmojiReactionsPropTypes,
 } from './QuickEmojiReactions/BaseQuickEmojiReactions';
 
+/**
+ * Shows the four common quick reactions and a
+ * emoji picker icon button. This is used for the mini
+ * context menu which we just show on web, when hovering
+ * a message.
+ * @param {Props} props
+ * @returns {JSX.Element}
+ */
 const MiniQuickEmojiReactions = (props) => {
-    // TODO: this is duplicated code with the add reaction bubble. Can we consolidate?
     const ref = React.createRef();
 
     const openEmojiPicker = () => {
