@@ -36,6 +36,12 @@ Onyx.connect({
     },
 });
 
+let preferredSkinTone;
+Onyx.connect({
+    key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+    callback: val => preferredSkinTone = val,
+});
+
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
@@ -1210,7 +1216,7 @@ function hasAccountIDReacted(accountID, users, skinTone) {
  * @param {{ name: string, code: string, types: string[] }} emoji
  * @param {number} [skinTone] Optional.
  */
-function addEmojiReaction(reportID, originalReportAction, emoji, skinTone) {
+function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = preferredSkinTone) {
     const message = originalReportAction.message[0];
     let reactionObject = message.reactions && _.find(message.reactions, reaction => reaction.emoji === emoji.name);
     const needToInsertReactionObject = !reactionObject;
@@ -1312,7 +1318,7 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
  * @param {number} skinTone
  * @returns {Promise}
  */
-function toggleEmojiReaction(reportID, reportAction, emoji, skinTone) {
+function toggleEmojiReaction(reportID, reportAction, emoji, skinTone = preferredSkinTone) {
     const message = reportAction.message[0];
     const reactionObject = message.reactions && _.find(message.reactions, reaction => reaction.emoji === emoji.name);
     if (reactionObject) {
