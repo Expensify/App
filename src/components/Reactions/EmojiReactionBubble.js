@@ -35,7 +35,7 @@ const propTypes = {
     /**
      * The account ids of the users who reacted.
      */
-    senderIDs: PropTypes.arrayOf(PropTypes.string),
+    senderIDs: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number])),
 
     /**
      * The default size of the reaction bubble is defined
