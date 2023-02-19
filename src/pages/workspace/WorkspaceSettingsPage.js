@@ -112,7 +112,6 @@ class WorkspaceSettingsPage extends React.Component {
                                         size={CONST.AVATAR_SIZE.LARGE}
                                         name={policyName}
                                         type={CONST.ICON_TYPE_WORKSPACE}
-                                        isWorkspaceAvatar
                                     />
                                 )}
                                 type={CONST.ICON_TYPE_WORKSPACE}

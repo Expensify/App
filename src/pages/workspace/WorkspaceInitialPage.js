@@ -200,7 +200,6 @@ class WorkspaceInitialPage extends React.Component {
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                     name={policyName}
                                                     type={CONST.ICON_TYPE_WORKSPACE}
-                                                    isWorkspaceAvatar
                                                 />
                                             </Pressable>
                                             {!_.isEmpty(this.props.policy.name) && (
