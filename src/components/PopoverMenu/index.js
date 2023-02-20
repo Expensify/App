@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
-import Animated, {FadeIn} from 'react-native-reanimated';
 import Popover from '../Popover';
 import styles from '../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
