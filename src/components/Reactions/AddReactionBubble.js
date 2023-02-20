@@ -9,7 +9,6 @@ import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
 import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
-import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     /**
@@ -56,17 +55,13 @@ const AddReactionBubble = (props) => {
     const ref = React.createRef();
 
     const onPress = () => {
-        const openPicker = () => {
+        const openPicker = (refParam) => {
             EmojiPickerAction.showEmojiPicker(
                 () => {},
                 (emojiCode, emojiObject) => {
                     props.onSelectEmoji(emojiObject);
                 },
-
-                // The ref can become null, if e.g. the AddReactionBubble component
-                // gets removed before showing the picker. In this case we want to
-                // default fallback to anchor to the composer.
-                ref.current || ReportActionComposeFocusManager.composerRef.current,
+                refParam || ref.current,
                 props.onWillShowPicker,
             );
         };
