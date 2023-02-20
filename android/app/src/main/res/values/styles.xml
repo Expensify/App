@@ -5,7 +5,6 @@
 
     <!-- Base application theme. Applied to all Android versions -->
     <style name="BaseAppTheme" parent="Theme.AppCompat.NoActionBar">
-        <item name="android:textColor">@color/dark</item>
         <item name="android:colorEdgeEffect">@color/gray4</item>
         <item name="android:statusBarColor">#061B09</item>
         <item name="colorAccent">@color/accent</item>

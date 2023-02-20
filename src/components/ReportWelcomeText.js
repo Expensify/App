@@ -15,6 +15,7 @@ import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Tooltip from './Tooltip';
 import reportPropTypes from '../pages/reportPropTypes';
+import CONST from '../CONST';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -62,6 +63,7 @@ const ReportWelcomeText = (props) => {
         isMultipleParticipant,
     );
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, props.policies);
+    const iouOptions = ReportUtils.getIOUOptions(props.report, participants, props.betas);
     return (
         <>
             <View>
@@ -123,10 +125,12 @@ const ReportWelcomeText = (props) => {
                                 {(index < displayNamesWithTooltips.length - 2) && <Text>, </Text>}
                             </Text>
                         ))}
-                        <Text>
-                            {/* Need to confirm copy for the below with marketing, and then add to translations. */}
-                            {props.translate('reportActionsView.usePlusButton')}
-                        </Text>
+                    </Text>
+                )}
+                {(iouOptions.includes(CONST.IOU.IOU_TYPE.SEND) || iouOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)) && (
+                    <Text>
+                        {/* Need to confirm copy for the below with marketing, and then add to translations. */}
+                        {props.translate('reportActionsView.usePlusButton')}
                     </Text>
                 )}
             </Text>
@@ -141,6 +145,9 @@ ReportWelcomeText.displayName = 'ReportWelcomeText';
 export default compose(
     withLocalize,
     withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },

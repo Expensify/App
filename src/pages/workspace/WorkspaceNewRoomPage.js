@@ -19,6 +19,7 @@ import Permissions from '../../libs/Permissions';
 import Log from '../../libs/Log';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import Form from '../../components/Form';
+import shouldDelayFocus from '../../libs/shouldDelayFocus';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -141,6 +142,7 @@ class WorkspaceNewRoomPage extends React.Component {
                         <RoomNameInput
                             inputID="roomName"
                             autoFocus
+                            shouldDelayFocus={shouldDelayFocus}
                         />
                     </View>
                     <View style={styles.mb5}>

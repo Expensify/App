@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
@@ -49,7 +48,7 @@ class DateOfBirthPage extends Component {
      */
     updateDateOfBirth(values) {
         PersonalDetails.updateDateOfBirth(
-            values.dob.trim(),
+            values.dob,
         );
     }
 
@@ -63,7 +62,7 @@ class DateOfBirthPage extends Component {
         const minimumAge = 5;
         const maximumAge = 150;
 
-        if (_.isEmpty(values.dob)) {
+        if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
             errors.dob = this.props.translate('common.error.fieldRequired');
         }
         const dateError = ValidationUtils.getAgeRequirementError(values.dob, minimumAge, maximumAge);
@@ -80,6 +79,7 @@ class DateOfBirthPage extends Component {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
+                    title={this.props.translate('common.dob')}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
