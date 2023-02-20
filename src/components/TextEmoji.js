@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import Text from './Text';
 import * as EmojiUtils from '../libs/EmojiUtils';
 import * as StyleUtils from '../styles/StyleUtils';
 import stylePropTypes from '../styles/stylePropTypes';
+import styles from '../styles/styles';
 
 const propTypes = {
     /** The message text to render */
@@ -24,16 +25,18 @@ const TextEmoji = (props) => {
     const propsStyle = StyleUtils.parseStyleAsArray(props.style);
 
     return _.map(words, ({text, isEmoji}, index) => (isEmoji ? (
-        <View key={`${text}_${index}`} style={Platform.OS !== 'web' && propsStyle}>
+        <View key={`${text}_${index}`}>
             <Text style={propsStyle}>
                 {text}
             </Text>
         </View>
     )
         : (
-            <Text key={`${text}_${index}`}>
-                {text}
-            </Text>
+            <View key={`${text}_${index}`} style={styles.messageTextWithoutEmoji}>
+                <Text>
+                    {text}
+                </Text>
+            </View>
         )));
 };
 

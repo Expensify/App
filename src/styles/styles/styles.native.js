@@ -1,25 +1,24 @@
-import {Platform} from 'react-native';
-import fontFamily from './fontFamily';
-import addOutlineWidth from './addOutlineWidth';
-import themeColors from './themes/default';
-import fontWeightBold from './fontWeight/bold';
-import variables from './variables';
-import spacing from './utilities/spacing';
-import sizing from './utilities/sizing';
-import flex from './utilities/flex';
-import display from './utilities/display';
-import overflow from './utilities/overflow';
-import whiteSpace from './utilities/whiteSpace';
-import wordBreak from './utilities/wordBreak';
-import positioning from './utilities/positioning';
-import codeStyles from './codeStyles';
-import visibility from './utilities/visibility';
-import writingDirection from './utilities/writingDirection';
-import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
-import pointerEventsNone from './pointerEventsNone';
-import pointerEventsAuto from './pointerEventsAuto';
-import overflowXHidden from './overflowXHidden';
-import CONST from '../CONST';
+import fontFamily from '../fontFamily';
+import addOutlineWidth from '../addOutlineWidth';
+import themeColors from '../themes/default';
+import fontWeightBold from '../fontWeight/bold';
+import variables from '../variables';
+import spacing from '../utilities/spacing';
+import sizing from '../utilities/sizing';
+import flex from '../utilities/flex';
+import display from '../utilities/display';
+import overflow from '../utilities/overflow';
+import whiteSpace from '../utilities/whiteSpace';
+import wordBreak from '../utilities/wordBreak';
+import positioning from '../utilities/positioning';
+import codeStyles from '../codeStyles';
+import visibility from '../utilities/visibility';
+import writingDirection from '../utilities/writingDirection';
+import optionAlternateTextPlatformStyles from '../optionAlternateTextPlatformStyles';
+import pointerEventsNone from '../pointerEventsNone';
+import pointerEventsAuto from '../pointerEventsAuto';
+import overflowXHidden from '../overflowXHidden';
+import CONST from '../../CONST';
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -300,6 +299,8 @@ const styles = {
         color: themeColors.heading,
         fontSize: variables.fontSizeXLarge,
     },
+
+    displayNameText: {},
 
     textDecorationNoLine: {
         textDecorationLine: 'none',
@@ -1101,37 +1102,25 @@ const styles = {
         lineHeight: variables.fontSizeOnlyEmojisHeight,
     },
 
+    inboxMessageText: {},
+
     emojiMessageText: {
         position: 'relative',
         fontSize: variables.fontSizeEmoji,
         lineHeight: variables.fontSizeEmojiHeight,
-        ...Platform.select({
-            ios: {
-                top: 8,
-            },
-            android: {
-                top: 8,
-            },
-            default: {
-                top: 3,
-            },
-        }),
+        top: 2,
+    },
+
+    inboxEmojiMessageText: {},
+
+    messageTextWithoutEmoji: {
+        height: '100%',
     },
 
     profileEmojiText: {
         fontSize: variables.fontSizeEmojiProfile,
         lineHeight: variables.fontSizeEmojiProfileHeight,
-        ...Platform.select({
-            ios: {
-                top: 8,
-            },
-            android: {
-                top: 8,
-            },
-            default: {
-                top: 4,
-            },
-        }),
+        top: 4,
     },
 
     createMenuPositionSidebar: {
@@ -1373,7 +1362,6 @@ const styles = {
         display: 'flex',
         flexDirection: 'row',
         flexWrap: 'nowrap',
-        marginBottom: 3,
     },
 
     chatItemMessageHeaderSender: {

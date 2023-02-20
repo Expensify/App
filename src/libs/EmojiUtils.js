@@ -247,13 +247,24 @@ function suggestEmojis(text, limit = 5) {
 
 /**
  * Validates that this message contains emojis
+ *
+ * @param {String} message
+ * @returns {Boolean}
+ */
+function hasEmojis(message) {
+    const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
+    return Boolean(trimmedMessage.match(CONST.REGEX.EMOJIS));
+}
+
+/**
+ * Validates that this message contains emojis
  * @param {String} text
  * @returns {Array}
  */
 function containsEmoji(text) {
     const result = [];
 
-    if (!text.match(CONST.REGEX.EMOJIS)) {
+    if (!hasEmojis(text)) {
         result.push({text, isEmoji: false});
         return result;
     }
@@ -303,4 +314,5 @@ export {
     suggestEmojis,
     trimEmojiUnicode,
     containsEmoji,
+    hasEmojis,
 };

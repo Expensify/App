@@ -122,9 +122,19 @@ const ReportActionItemFragment = (props) => {
                 <Text
                     family="EMOJI_TEXT_FONT"
                     selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
-                    style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
+                    style={[
+                        styles.ltr, ...props.style, styles.inboxMessageText,
+                        EmojiUtils.hasEmojis(text) ? styles.inboxEmojiMessageText: undefined, 
+                        EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined
+                    ]}
                 >
-                    {StyleUtils.convertToLTR(Str.htmlDecode(text))}
+                    <TextEmoji style={[
+                        styles.emojiMessageText, styles.ltr, ...props.style,
+                        EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined
+                    ]}
+                    >
+                        {StyleUtils.convertToLTR(Str.htmlDecode(text))}
+                    </TextEmoji>
                     {props.fragment.isEdited && (
                     <Text
                         fontSize={variables.fontSizeSmall}

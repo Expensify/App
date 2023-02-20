@@ -151,7 +151,7 @@ class DetailsPage extends React.PureComponent {
                                     <Text style={[styles.textHeadline, styles.mb6]} numberOfLines={1}>
                                         {isSMSLogin
                                             ? this.props.toLocalPhone(details.displayName)
-                                            : <TextEmoji style={[styles.emojiMessageText, styles.profileEmojiText]}>{details.displayName}</TextEmoji>}
+                                            : <TextEmoji style={[styles.emojiMessageText]}>{details.displayName}</TextEmoji>}
                                     </Text>
                                 )}
                                 {details.login ? (

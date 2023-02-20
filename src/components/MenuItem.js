@@ -6,6 +6,7 @@ import {
 import Text from './Text';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
+import * as EmojiUtils from '../libs/EmojiUtils';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import getButtonState from '../libs/getButtonState';
@@ -58,6 +59,7 @@ const MenuItem = (props) => {
         styles.ml3,
         (props.shouldShowBasicTitle ? undefined : styles.textStrong),
         (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
+        EmojiUtils.hasEmojis(props.title) ? styles.displayNameText: undefined,
     ], props.style);
     const descriptionTextStyle = StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml3, styles.breakAll, styles.lineHeightNormal], props.style);
 
