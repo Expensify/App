@@ -319,6 +319,16 @@ class Composer extends React.Component {
     }
 
     /**
+     * Update numberOfLines when first time the TextInput renders on the screen and initial numberOfLines is 0
+     */
+    updateNumberOfLinesOnLayoutChange() {
+        if (this.state.numberOfLines !== 0) {
+            return;
+        }
+        this.updateNumberOfLines();
+    }
+
+    /**
      * Check the current scrollHeight of the textarea (minus any padding) and
      * divide by line height to get the total number of rows for the textarea.
      */
@@ -357,6 +367,7 @@ class Composer extends React.Component {
                 selection={this.state.selection}
                 onChange={this.shouldCallUpdateNumberOfLines}
                 onSelectionChange={this.onSelectionChange}
+                onLayout={() => this.updateNumberOfLinesOnLayoutChange()}
                 numberOfLines={this.state.numberOfLines}
                 style={[
                     propStyles,
