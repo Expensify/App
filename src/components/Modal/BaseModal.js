@@ -14,12 +14,16 @@ import variables from '../../styles/variables';
 const propTypes = {
     ...modalPropTypes,
 
+    /** replace onModalHide with onDismiss for the web */
+    isWeb: PropTypes.bool,
+
     /** The ref to the modal container */
     forwardedRef: PropTypes.func,
 };
 
 const defaultProps = {
     ...modalDefaultProps,
+    isWeb: false,
     forwardedRef: () => {},
 };
 
@@ -98,7 +102,8 @@ class BaseModal extends PureComponent {
                     this.props.onModalShow();
                 }}
                 propagateSwipe={this.props.propagateSwipe}
-                onModalHide={this.hideModal}
+                onModalHide={!this.props.isWeb ? this.hideModal : () => {}}
+                onDismiss={this.props.isWeb ? this.hideModal : () => {}}
                 onSwipeComplete={this.props.onClose}
                 swipeDirection={swipeDirection}
                 isVisible={this.props.isVisible}
