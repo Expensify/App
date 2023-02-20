@@ -70,9 +70,12 @@ describe('CalendarPicker', () => {
     });
 
     test('should open the calendar on a month from max date if it is earlier than current month', () => {
-        const {getByLabelText} = render(<CalendarPicker maxDate={new Date('2011-03-01')} />);
+        const onChangeMock = jest.fn();
+        const {getByText} = render(<CalendarPicker onChange={onChangeMock} maxDate={new Date('2011-03-01')} />);
 
-        expect(within(getByLabelText('Current month')).getByText('March')).toBeTruthy();
+        fireEvent.press(getByText('1'));
+
+        expect(onChangeMock).toHaveBeenCalledWith(new Date('2011-03-01'));
     });
 
     test('should open the calendar on a year from max date if it is earlier than current year', () => {

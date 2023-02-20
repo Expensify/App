@@ -8,13 +8,14 @@ import ArrowIcon from './ArrowIcon';
 import styles from '../../styles/styles';
 import {propTypes, defaultProps} from './calendarPickerPropTypes';
 import generateMonthMatrix from './generateMonthMatrix';
-
-const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+import withLocalize from '../withLocalize';
 
 class CalendarPicker extends React.Component {
     constructor(props) {
         super(props);
+
+        this.monthNames = moment.localeData(props.preferredLocale).months();
+        this.daysOfWeek = moment.localeData(props.preferredLocale).weekdays();
 
         let currentDateView = props.value || new Date();
         if (props.maxDate && props.maxDate < currentDateView) {
@@ -120,7 +121,7 @@ class CalendarPicker extends React.Component {
                 <ListPicker
                     selected={currentMonthView}
                     data={months}
-                    format={index => monthNames[index]}
+                    format={index => this.monthNames[index]}
                     onSelect={(month) => {
                         this.setState(prev => ({monthPickerVisible: false, currentDateView: new Date(prev.currentDateView.getFullYear(), month, prev.currentDateView.getDay())}));
                     }}
@@ -132,7 +133,7 @@ class CalendarPicker extends React.Component {
             <View>
                 <View style={styles.calendarHeader}>
                     <TouchableOpacity onPress={this.onMonthPickerPress} style={[styles.alignItemsCenter, styles.flexRow, styles.flex1]}>
-                        <Text style={styles.sidebarLinkTextBold} accessibilityLabel="Current month">{monthNames[currentMonthView]}</Text>
+                        <Text style={styles.sidebarLinkTextBold} accessibilityLabel="Current month">{this.monthNames[currentMonthView]}</Text>
                         <ArrowIcon />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={this.onYearPickerPress} style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flex1]}>
@@ -149,7 +150,7 @@ class CalendarPicker extends React.Component {
                     </View>
                 </View>
                 <View style={styles.flexRow}>
-                    {_.map(daysOfWeek, (dayOfWeek => (
+                    {_.map(this.daysOfWeek, (dayOfWeek => (
                         <View key={dayOfWeek} style={styles.calendarDayRoot}>
                             <Text style={styles.sidebarLinkTextBold}>{dayOfWeek[0]}</Text>
                         </View>
@@ -187,4 +188,4 @@ class CalendarPicker extends React.Component {
 CalendarPicker.propTypes = propTypes;
 CalendarPicker.defaultProps = defaultProps;
 
-export default CalendarPicker;
+export default withLocalize(CalendarPicker);
