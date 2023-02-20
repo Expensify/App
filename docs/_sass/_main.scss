@@ -289,7 +289,7 @@ button {
     background-color: $color-super-dark-green;
     min-height: 100vh;
     margin-left: 0;
-    padding: 80px 24px 24px 24px;
+    padding: 80px 24px 0px 24px;
 
     @include breakpoint($breakpoint-tablet) {
         margin-left: 320px;
@@ -298,7 +298,7 @@ button {
     @include breakpoint($breakpoint-desktop) {
         /* Same as the width of the lhn */
         margin-left: 420px;
-        padding: 52px 68px;
+        padding: 52px 68px 0 68px;
         box-sizing: border-box;
     }
 
@@ -306,7 +306,7 @@ button {
         margin-left: 420px;
         /* On wide screens, the padding needs to be equal to
         the view width, minus the content size, minus the lhn size, divided by two. */
-        padding: 52px calc((100vw - 1000px - 420px)/2);
+        padding: 52px calc((100vw - 1000px - 420px)/2) 0 calc((100vw - 1000px - 420px)/2);
     }
 
     ul,
@@ -596,5 +596,105 @@ button {
 .disable-scrollbar {
     @media screen and (max-width: $breakpoint-tablet) {
         overflow: hidden;
+    }
+}
+
+.page-footer {
+    font-size: 15px;
+
+    @include maxBreakpoint($breakpoint-desktop) {
+        background: url('/assets/images/expensify-footer-logo--vertical.svg') no-repeat right 120px;
+        background-size: 111px 618px;
+        margin-right: -25px;
+    }
+
+    h3 {
+        color: $color-green;
+        font-size: 17px;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+
+    ul {
+        margin: 0px !important;
+        padding: 0;
+
+        li {
+            list-style-type: none !important;
+            margin: 0 0 8px;
+
+            a {
+                color: $color-white;
+                display: block;
+                padding: 4px 0;
+                word-break: break-word;
+
+                &:hover {
+                    color: $color-green;
+                }
+            }
+        }
+    }
+
+    &__social-icons {
+        padding-bottom: 20px;
+
+        a {
+            color: $color-white;
+            display: inline-block;
+
+            &:hover {
+                color: $color-green;
+            }
+        }
+    }
+
+    &__fine-print {
+        color: $color-gray-green;
+        font-size: 10px;
+
+        a {
+            color: $color-link;
+        }
+    }
+
+    // Big logo at the bottom
+    &__logo {
+        margin-top: 40px;
+
+        img {
+            display: block;
+        }
+
+        @include maxBreakpoint($breakpoint-desktop) {
+            display: none;
+        }
+    }
+
+    &__wrapper {
+        margin: 0 auto;
+        max-width: 1000px;
+        padding: 64px 0 0;
+
+        @include maxBreakpoint($breakpoint-tablet) {
+            padding: 64px 0px 20px;
+        }
+    }
+
+    .columns {
+        @include breakpoint($breakpoint-desktop) {
+            display: flex;
+            margin-left: (-1 * 16px);
+            margin-right: (-1 * 16px);
+        }
+    }
+
+    .column {
+        margin-bottom: 40px;
+
+        @include breakpoint($breakpoint-desktop) {
+            padding: 16px;
+            width: 25%;
+        }
     }
 }
