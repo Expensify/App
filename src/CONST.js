@@ -70,6 +70,7 @@ const CONST = {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
         UNIX_EPOCH: '1970-01-01 00:00:00.000',
         MAX_DATE: '9999-12-31',
+        MIN_DATE: '0001-01-01',
     },
     SMS: {
         DOMAIN: '@expensify.sms',
@@ -460,6 +461,7 @@ const CONST = {
         KYC_MIGRATION: 'expensify_migration_2020_04_28_RunKycVerifications',
         PREFERRED_EMOJI_SKIN_TONE: 'expensify_preferredEmojiSkinTone',
         FREQUENTLY_USED_EMOJIS: 'expensify_frequentlyUsedEmojis',
+        PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
@@ -518,6 +520,7 @@ const CONST = {
         URL: 'url',
     },
 
+    ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
