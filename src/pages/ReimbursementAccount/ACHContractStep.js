@@ -85,7 +85,7 @@ class ACHContractStep extends React.Component {
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.acceptTermsAndConditions)) {
-            errors.acceptTermsAndConditions = this.props.translate('common.error.acceptedTerms');
+            errors.acceptTermsAndConditions = this.props.translate('common.error.acceptTerms');
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.certifyTrueInformation)) {
