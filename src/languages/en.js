@@ -328,7 +328,6 @@ export default {
         emailAddress: 'Email address',
         setMyTimezoneAutomatically: 'Set my timezone automatically',
         timezone: 'Timezone',
-        growlMessageOnSave: 'Your profile was successfully saved',
         invalidFileMessage: 'Invalid file. Please try a different image.',
         avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
         online: 'Online',
@@ -600,8 +599,6 @@ export default {
     },
     personalDetails: {
         error: {
-            firstNameLength: `First name cannot be longer than ${CONST.DISPLAY_NAME.MAX_LENGTH} characters`,
-            lastNameLength: `Last name cannot be longer than ${CONST.DISPLAY_NAME.MAX_LENGTH} characters`,
             containsReservedWord: 'First name cannot contain the words Expensify or Concierge',
             hasInvalidCharacter: 'Name cannot contain a comma or semicolon',
         },
