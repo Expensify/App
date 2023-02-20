@@ -28,6 +28,8 @@
         }
         body {
            overflow: hidden;
+           overscroll-behavior: none;
+           touch-action: none;
         }
         #drag-area {
             -webkit-app-region: drag;
@@ -47,9 +49,14 @@
             outline: 0;
             box-shadow: inset 0px 0px 0px 1px #5AB0FF;
         }
+        @keyframes blink_input_opacity_to_prevent_scrolling_when_focus {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
         input:focus-visible, input:focus[data-focusvisible-polyfill],
         select:focus-visible, select:focus[data-focusvisible-polyfill]  {
             box-shadow: none;
+            animation: blink_input_opacity_to_prevent_scrolling_when_focus 0.01s;
         }
         ::-ms-reveal {
             display: none;
@@ -70,7 +77,7 @@
             caret-color: #ffffff;
         }
     </style>
-    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, interactive-widget=resizes-content">
     <link rel="shortcut icon" id="favicon" href="/favicon.png">
     <% if (htmlWebpackPlugin.options.usePolyfillIO) { %>
         <!-- polyfill.io is only needed on Web to support older browsers. It should not be loaded for desktop -->

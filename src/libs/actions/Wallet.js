@@ -8,12 +8,9 @@ import * as API from '../API';
  * - The sdkToken is used to initialize the Onfido SDK client
  * - The applicantID is combined with the data returned from the Onfido SDK as we need both to create an
  *   identity check. Note: This happens in Web-Secure when we call Activate_Wallet during the OnfidoStep.
- * @param {String} firstName
- * @param {String} lastName
- * @param {String} dob
  */
-function openOnfidoFlow(firstName, lastName, dob) {
-    API.read('OpenOnfidoFlow', {firstName, lastName, dob}, {
+function openOnfidoFlow() {
+    API.read('OpenOnfidoFlow', {}, {
         optimisticData: [
             {
                 // Use Onyx.set() since we are resetting the Onfido flow completely.

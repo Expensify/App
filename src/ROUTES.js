@@ -142,7 +142,7 @@ export default {
         const pathSegments = route.split('/');
         return {
             reportID: lodashGet(pathSegments, 1),
-            isParticipantsRoute: Boolean(lodashGet(pathSegments, 2)),
+            isSubReportPageRoute: Boolean(lodashGet(pathSegments, 2)),
         };
     },
 };

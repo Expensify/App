@@ -15,6 +15,9 @@ export default {
     // which tab is the leader, and which ones are the followers
     ACTIVE_CLIENTS: 'activeClients',
 
+    // A unique ID for the device
+    DEVICE_ID: 'deviceID',
+
     // Boolean flag set whenever the sidebar has loaded
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
@@ -78,6 +81,9 @@ export default {
 
     // Contains the users's block expiration (if they have one)
     NVP_BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
+
+    // Does this user have push notifications enabled for this device?
+    PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
 
     // Plaid data (access tokens, bank accounts ...)
     PLAID_DATA: 'plaidData',
