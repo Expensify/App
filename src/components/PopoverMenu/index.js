@@ -113,17 +113,16 @@ class PopoverMenu extends PureComponent {
                         onFocusedIndexChanged={index => this.setState({focusedIndex: index})}
                     >
                         {_.map(this.props.menuItems, (item, menuIndex) => (
-                            <Animated.View entering={FadeIn} key={item.text}>
-                                <MenuItem
-                                    icon={item.icon}
-                                    iconWidth={item.iconWidth}
-                                    iconHeight={item.iconHeight}
-                                    title={item.text}
-                                    description={item.description}
-                                    onPress={() => this.selectItem(item)}
-                                    focused={this.state.focusedIndex === menuIndex}
-                                />
-                            </Animated.View>
+                            <MenuItem
+                                key={item.text}
+                                icon={item.icon}
+                                iconWidth={item.iconWidth}
+                                iconHeight={item.iconHeight}
+                                title={item.text}
+                                description={item.description}
+                                onPress={() => this.selectItem(item)}
+                                focused={this.state.focusedIndex === menuIndex}
+                            />
                         ))}
                     </ArrowKeyFocusManager>
                 </View>
