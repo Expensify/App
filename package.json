@@ -170,7 +170,7 @@
     "electron-builder": "23.5.0",
     "electron-notarize": "^1.2.1",
     "eslint": "^7.6.0",
-    "eslint-config-expensify": "2.0.30",
+    "eslint-config-expensify": "^2.0.31",
     "eslint-plugin-jest": "^24.1.0",
     "eslint-plugin-jsx-a11y": "^6.6.1",
     "eslint-plugin-storybook": "^0.5.13",
