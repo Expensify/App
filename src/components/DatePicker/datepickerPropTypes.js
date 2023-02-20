@@ -19,8 +19,11 @@ const propTypes = {
      */
     defaultValue: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
 
-    minDate: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
-    maxDate: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
+    /** A minimum date of calendar to select */
+    minDate: PropTypes.objectOf(Date),
+
+    /** A maximum date of calendar to select */
+    maxDate: PropTypes.objectOf(Date),
 
 };
 

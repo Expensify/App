@@ -116,7 +116,7 @@ class DatePicker extends React.Component {
                     onClose={this.hidePicker}
                     fromSidebarMediumScreen
                     anchorPosition={{
-                        // calculating absolute position of popover with additional space of 10px from the input
+                        // The position of the popover needs to be calculated. 10px space is added to move it a little bit from the TextInput
                         top: this.state.pickerLayout.height + this.state.spaceFromTop + StatusBar.currentHeight + 10,
                         left: 20,
                     }}

@@ -12,13 +12,6 @@ import generateMonthMatrix from './generateMonthMatrix';
 const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-const addMonths = (date, months) => {
-    const d = new Date(date.getTime());
-    const newMonth = d.getMonth() + months;
-    d.setMonth(newMonth);
-    return d;
-};
-
 const CalendarPicker = (props) => {
     const [yearPickerVisible, setYearPickerVisible] = React.useState(false);
     const [monthPickerVisible, setMonthPickerVisible] = React.useState(false);
@@ -44,11 +37,11 @@ const CalendarPicker = (props) => {
     const currentYearView = currentDateView.getFullYear();
     const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
 
-    const hasAvailableDatesNextMonth = props.maxDate ? moment(props.maxDate).endOf('month').startOf('day') > addMonths(currentDateView, 1) : true;
-    const hasAvailableDatesPrevMonth = props.minDate ? moment(props.minDate).startOf('day').toDate() < moment(addMonths(currentDateView, -1)).endOf('month').toDate() : true;
+    const hasAvailableDatesNextMonth = props.maxDate ? moment(props.maxDate).endOf('month').startOf('day') > moment(currentDateView).add(1, 'M') : true;
+    const hasAvailableDatesPrevMonth = props.minDate ? moment(props.minDate).startOf('day') < moment(currentDateView).subtract(1, 'M').endOf('month') : true;
 
-    const onNextMonthPress = () => setCurrentDateView(prev => addMonths(prev, 1));
-    const onPrevMonthPress = () => setCurrentDateView(prev => addMonths(prev, -1));
+    const onNextMonthPress = () => setCurrentDateView(prev => moment(prev).add(1, 'M').toDate());
+    const onPrevMonthPress = () => setCurrentDateView(prev => moment(prev).subtract(1, 'M').toDate());
     const onMonthPickerPress = () => setMonthPickerVisible(true);
     const onYearPickerPress = () => setYearPickerVisible(true);
     const onDayPress = (day) => {
