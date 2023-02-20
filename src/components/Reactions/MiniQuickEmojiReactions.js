@@ -10,7 +10,6 @@ import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
-import emojis from '../../../assets/emojis';
 import {
     baseQuickEmojiReactionsDefaultProps,
     baseQuickEmojiReactionsPropTypes,
@@ -31,11 +30,8 @@ const MiniQuickEmojiReactions = (props) => {
         props.onPressOpenPicker();
         EmojiPickerAction.showEmojiPicker(
             () => {},
-            (emojiCode) => {
-                const emoji = _.find(emojis, e => e.code === emojiCode);
-                if (emoji != null) {
-                    props.onEmojiSelected(emoji);
-                }
+            (emojiCode, emojiObject) => {
+                props.onEmojiSelected(emojiObject);
             },
             ref.current,
         );

@@ -1,5 +1,4 @@
 import React from 'react';
-import _ from 'underscore';
 import {Pressable, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Tooltip from '../Tooltip';
@@ -10,7 +9,6 @@ import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
 import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
-import emojis from '../../../assets/emojis';
 import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
@@ -61,11 +59,8 @@ const AddReactionBubble = (props) => {
         const openPicker = () => {
             EmojiPickerAction.showEmojiPicker(
                 () => {},
-                (emojiCode) => {
-                    const emoji = _.find(emojis, e => e.code === emojiCode);
-                    if (emoji != null) {
-                        props.onSelectEmoji(emoji);
-                    }
+                (emojiCode, emojiObject) => {
+                    props.onSelectEmoji(emojiObject);
                 },
 
                 // The ref can become null, if e.g. the AddReactionBubble component

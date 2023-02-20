@@ -54,8 +54,9 @@ class EmojiPicker extends React.Component {
      * Callback for the emoji picker to add whatever emoji is chosen into the main input
      *
      * @param {String} emoji
+     * @param {Object} emojiObject
      */
-    selectEmoji(emoji) {
+    selectEmoji(emoji, emojiObject) {
         // Prevent fast click / multiple emoji selection;
         // The first click will hide the emoji picker by calling the hideEmojiPicker() function
         // and in that function the emojiPopoverAnchor prop to will be set to null (synchronously)
@@ -66,7 +67,7 @@ class EmojiPicker extends React.Component {
 
         this.hideEmojiPicker();
         if (_.isFunction(this.onEmojiSelected)) {
-            this.onEmojiSelected(emoji);
+            this.onEmojiSelected(emoji, emojiObject);
         }
     }
 
