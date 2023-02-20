@@ -6,7 +6,10 @@ import * as Expensicons from '../Icon/Expensicons';
 import Icon from '../Icon';
 
 const propTypes = {
+    /** Specifies if the arrow icon should be disabled or not. */
     disabled: PropTypes.bool,
+
+    /** Specifies direction or icon */
     direction: PropTypes.oneOf(['left', 'right']),
 };
 
