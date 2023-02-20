@@ -43,22 +43,43 @@ class CalendarPicker extends React.Component {
         }
     }
 
+    /**
+     * Updates the currentDateView state by subtracting one month from it.
+     * @returns {void}
+     */
     onPrevMonthPress() {
         this.setState(prev => ({currentDateView: moment(prev.currentDateView).subtract(1, 'M').toDate()}));
     }
 
+    /**
+     * Updates the currentDateView state by adding one month to it.
+     * @returns {void}
+     */
     onNextMonthPress() {
         this.setState(prev => ({currentDateView: moment(prev.currentDateView).add(1, 'M').toDate()}));
     }
 
+    /**
+     * Sets the monthPickerVisible state to true, displaying the month picker component.
+     * @returns {void}
+     */
     onMonthPickerPress() {
         this.setState({monthPickerVisible: true});
     }
 
+    /**
+     * Sets the yearPickerVisible state to true, displaying the year picker component.
+     * @returns {void}
+     */
     onYearPickerPress() {
         this.setState({yearPickerVisible: true});
     }
 
+    /**
+     * Calls the onChange function with the selected date, if it is within the min/max range.
+     * @param {number} day - The day of the month that was selected.
+     * @returns {void}
+     */
     onDayPress(day) {
         if (!this.props.onChange) {
             return;
