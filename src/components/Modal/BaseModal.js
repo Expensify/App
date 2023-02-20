@@ -14,17 +14,17 @@ import variables from '../../styles/variables';
 const propTypes = {
     ...modalPropTypes,
 
-    /** replace onModalHide with onDismiss for the web */
-    isWeb: PropTypes.bool,
-
     /** The ref to the modal container */
     forwardedRef: PropTypes.func,
+
+    /** Ensure that callback and trap deactivation are in the same loop on the web platform */
+    onDismiss: PropTypes.func,
 };
 
 const defaultProps = {
     ...modalDefaultProps,
-    isWeb: false,
     forwardedRef: () => {},
+    onDismiss: () => {},
 };
 
 class BaseModal extends PureComponent {
@@ -32,6 +32,7 @@ class BaseModal extends PureComponent {
         super(props);
 
         this.hideModal = this.hideModal.bind(this);
+        this.onDismiss = this.onDismiss.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -45,6 +46,14 @@ class BaseModal extends PureComponent {
     componentWillUnmount() {
         // we don't want to call the onModalHide on unmount
         this.hideModal(this.props.isVisible);
+        this.onDismiss(this.props.isVisible);
+    }
+
+    onDismiss(callHideCallback = true) {
+        if (!callHideCallback) {
+            return;
+        }
+        this.props.onDismiss();
     }
 
     /**
@@ -102,8 +111,8 @@ class BaseModal extends PureComponent {
                     this.props.onModalShow();
                 }}
                 propagateSwipe={this.props.propagateSwipe}
-                onModalHide={!this.props.isWeb ? this.hideModal : () => {}}
-                onDismiss={this.props.isWeb ? this.hideModal : () => {}}
+                onModalHide={this.hideModal}
+                onDismiss={this.onDismiss}
                 onSwipeComplete={this.props.onClose}
                 swipeDirection={swipeDirection}
                 isVisible={this.props.isVisible}
