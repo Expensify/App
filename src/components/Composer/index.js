@@ -319,7 +319,7 @@ class Composer extends React.Component {
     }
 
     /**
-     * Update numberOfLines when first time the TextInput renders on the screen and initial numberOfLines is 0
+     * Update numberOfLines when TextInput renders on the screen and initial numberOfLines is 0
      */
     updateNumberOfLinesOnLayoutChange() {
         if (this.state.numberOfLines !== 0) {
