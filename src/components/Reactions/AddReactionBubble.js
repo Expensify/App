@@ -55,13 +55,14 @@ const AddReactionBubble = (props) => {
     const ref = React.createRef();
 
     const onPress = () => {
-        const openPicker = (refParam) => {
+        const openPicker = (refParam, anchorOrigin) => {
             EmojiPickerAction.showEmojiPicker(
                 () => {},
                 (emojiCode, emojiObject) => {
                     props.onSelectEmoji(emojiObject);
                 },
                 refParam || ref.current,
+                anchorOrigin,
                 props.onWillShowPicker,
             );
         };

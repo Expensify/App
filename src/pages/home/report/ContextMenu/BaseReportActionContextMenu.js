@@ -27,6 +27,8 @@ const propTypes = {
     /** Whether the provided report is an archived room */
     isArchivedRoom: PropTypes.bool,
 
+    contentRef: PropTypes.oneOfType([PropTypes.node, PropTypes.object, PropTypes.func]),
+
     ...genericReportActionContextMenuPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -35,6 +37,7 @@ const propTypes = {
 const defaultProps = {
     type: CONTEXT_MENU_TYPES.REPORT_ACTION,
     anchor: null,
+    contentRef: null,
     isChronosReport: false,
     isArchivedRoom: false,
     ...GenericReportActionContextMenuDefaultProps,
@@ -60,7 +63,10 @@ class BaseReportActionContextMenu extends React.Component {
         );
 
         return (this.props.isVisible || this.state.keepOpen) && (
-            <View style={this.wrapperStyle}>
+            <View
+                ref={this.props.contentRef}
+                style={this.wrapperStyle}
+            >
                 {_.map(_.filter(ContextMenuActions, shouldShowFilter), (contextAction) => {
                     const closePopup = !this.props.isMini;
                     const payload = {
