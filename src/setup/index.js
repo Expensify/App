@@ -5,7 +5,7 @@ import CONST from '../CONST';
 import platformSetup from './platformSetup';
 import * as Metrics from '../libs/Metrics';
 import * as Device from '../libs/actions/Device';
-import polyfill from '../libs/polyfill';
+import intlPolyfill from '../libs/IntlPolyfill';
 
 export default function () {
     /*
@@ -49,7 +49,7 @@ export default function () {
     I18nManager.forceRTL(false);
 
     // Polyfill the Intl API if locale data is not as expected
-    polyfill();
+    intlPolyfill();
 
     // Perform any other platform-specific setup
     platformSetup();
