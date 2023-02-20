@@ -1175,6 +1175,8 @@ const CONST = {
         'Zambia',
         'Zimbabwe',
     ],
+
+    // Values for checking if polyfill is required on a platform
     POLYFILL_TEST: {
         STYLE: 'currency',
         CURRENCY: 'XAF',
