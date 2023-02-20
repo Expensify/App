@@ -1,4 +1,5 @@
 import shouldPolyfill from './shouldPolyfill';
+import polyfillNumberFormat from './polyfillNumberFormat';
 
 /**
  * Polyfill the Intl API if the ICU version is old.
@@ -10,9 +11,5 @@ export default function intlPolyfill() {
     }
 
     // Just need to polyfill Intl.NumberFormat for web based platforms
-    require('@formatjs/intl-numberformat/polyfill-force');
-
-    // Load en & es Locale data
-    require('@formatjs/intl-numberformat/locale-data/en');
-    require('@formatjs/intl-numberformat/locale-data/es');
+    polyfillNumberFormat();
 }
