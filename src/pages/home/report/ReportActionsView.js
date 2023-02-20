@@ -90,7 +90,11 @@ class ReportActionsView extends React.Component {
             // If the app user becomes active and they have no unread actions we clear the new marker to sync their device
             // e.g. they could have read these messages on another device and only just become active here
             this.openReportIfNecessary();
-            this.setState({newMarkerReportActionID: ''});
+
+            const hasUnreadActions = ReportUtils.isUnread(this.props.report);
+            if (!hasUnreadActions) {
+                this.setState({newMarkerReportActionID: ''});
+            }
         });
 
         if (this.getIsReportFullyVisible()) {
@@ -206,10 +210,11 @@ class ReportActionsView extends React.Component {
             this.openReportIfNecessary();
         }
 
-        // If the report is unread, we want to check if the number of actions has decreased. If so, then it seems that one of them was deleted. In this case, if the deleted action was the
-        // one marking the unread point, we need to recalculate which action should be the unread marker.
-        if (ReportUtils.isUnread(this.props.report) && ReportActionsUtils.filterReportActionsForDisplay(prevProps.reportActions).length > this.sortedAndFilteredReportActions.length) {
-            this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions)});
+        // If the report action marking the unread point is deleted we need to recalculate which action should be the unread marker
+        if (this.state.newMarkerReportActionID && _.isEmpty(lodashGet(this.props.reportActions[this.state.newMarkerReportActionID], 'message[0].html'))) {
+            this.setState({
+                newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions),
+            });
         }
 
         // When the user navigates to the LHN the ReportActionsView doesn't unmount and just remains hidden.
