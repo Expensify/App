@@ -1,4 +1,5 @@
 import shouldPolyfill from './shouldPolyfill';
+import polyfillNumberFormat from './polyfillNumberFormat';
 
 /**
  * Polyfill the Intl API, always performed for native devices.
@@ -12,9 +13,5 @@ export default function polyfill() {
     require('@formatjs/intl-getcanonicallocales/polyfill');
     require('@formatjs/intl-locale/polyfill');
     require('@formatjs/intl-pluralrules/polyfill');
-    require('@formatjs/intl-numberformat/polyfill-force');
-
-    // Load en & es Locale data
-    require('@formatjs/intl-numberformat/locale-data/en');
-    require('@formatjs/intl-numberformat/locale-data/es');
+    polyfillNumberFormat();
 }
