@@ -35,7 +35,7 @@ const propTypes = {
     /**
      * The account ids of the users who reacted.
      */
-    senderIDs: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number])),
+    reactionUsers: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number])),
 
     /**
      * The default size of the reaction bubble is defined
@@ -50,14 +50,14 @@ const propTypes = {
 const defaultProps = {
     count: 0,
     onReactionListOpen: () => {},
-    senderIDs: [],
+    reactionUsers: [],
     sizeScale: 1,
 
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 const EmojiReactionBubble = (props) => {
-    const hasUserReacted = _.find(props.senderIDs, accountID => `${accountID}` === `${props.currentUserPersonalDetails.accountID}`) != null;
+    const hasUserReacted = _.find(props.reactionUsers, accountID => `${accountID}` === `${props.currentUserPersonalDetails.accountID}`) != null;
     return (
         <Pressable
             style={({hovered}) => [

@@ -46,7 +46,7 @@ const ReportActionItemReactions = props => (
     <View style={[styles.flexRow, styles.flexWrap]}>
         {_.map(props.reactions, (reaction) => {
             const reactionCount = reaction.users.length;
-            const senderIDs = _.map(reaction.users, sender => sender.accountID);
+            const reactionUsers = _.map(reaction.users, sender => sender.accountID);
             const emoji = _.find(emojis, e => e.name === reaction.emoji);
             const emojiCodes = getUniqueEmojiCodes(emoji, reaction.users);
 
@@ -61,7 +61,7 @@ const ReportActionItemReactions = props => (
                     emojiName={reaction.emoji}
                     emojiCodes={emojiCodes}
                     onPress={onPress}
-                    senderIDs={senderIDs}
+                    reactionUsers={reactionUsers}
                 />
             );
         })}

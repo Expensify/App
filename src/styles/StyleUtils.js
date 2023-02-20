@@ -740,7 +740,7 @@ function getEmojiReactionBubbleStyle(isHovered, hasUserReacted, sizeScale = 1) {
     };
 
     if (hasUserReacted) {
-        return {backgroundColor: '#003C73', ...sizeStyles};
+        return {backgroundColor: themeColors.reactionActive, ...sizeStyles};
     }
     if (isHovered) {
         return {backgroundColor: themeColors.buttonHoveredBG, ...sizeStyles};

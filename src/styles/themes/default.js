@@ -60,6 +60,7 @@ const darkTheme = {
     checkBox: colors.green,
     pickerOptionsTextColor: colors.white,
     imageCropBackgroundColor: colors.greenIcons,
+    reactionActive: '#003C73',
 };
 
 const oldTheme = {

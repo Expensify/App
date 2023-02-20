@@ -15,6 +15,8 @@ import {
     baseQuickEmojiReactionsPropTypes,
 } from './QuickEmojiReactions/BaseQuickEmojiReactions';
 
+const ICON_SIZE_SCALE_FACTOR = 1.3;
+
 /**
  * Shows the four common quick reactions and a
  * emoji picker icon button. This is used for the mini
@@ -48,7 +50,7 @@ const MiniQuickEmojiReactions = (props) => {
                 >
                     <Text style={[
                         styles.emojiReactionText,
-                        StyleUtils.getEmojiReactionTextStyle(1.3),
+                        StyleUtils.getEmojiReactionTextStyle(ICON_SIZE_SCALE_FACTOR),
                     ]}
                     >
                         {reaction.code}

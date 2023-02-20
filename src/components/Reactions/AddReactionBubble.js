@@ -9,6 +9,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
 import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
+import variables from '../../styles/variables';
 
 const propTypes = {
     /**
@@ -92,7 +93,7 @@ const AddReactionBubble = (props) => {
                     pressed,
                 }) => (
                     <>
-                        {/* This text will make the view have the same size as a regular
+                        {/* This (invisible) text will make the view have the same size as a regular
                             emoji reaction. We make the text invisible and put the
                             icon on top of it. */}
                         <Text style={[
@@ -101,13 +102,13 @@ const AddReactionBubble = (props) => {
                             StyleUtils.getEmojiReactionTextStyle(props.sizeScale),
                         ]}
                         >
-                            aw
+                            {'\u2800\u2800'}
                         </Text>
                         <View style={styles.pAbsolute}>
                             <Icon
                                 src={Expensicons.AddReaction}
-                                width={16 * props.iconSizeScale}
-                                height={16 * props.iconSizeScale}
+                                width={variables.iconSizeSmall * props.iconSizeScale}
+                                height={variables.iconSizeSmall * props.iconSizeScale}
                                 fill={StyleUtils.getIconFillColor(
                                     getButtonState(hovered, pressed),
                                 )}
