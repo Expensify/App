@@ -506,13 +506,29 @@ function isDefaultAvatar(avatarURL) {
  *
  * @param {String} [avatarURL] - the avatar source from user's personalDetails
  * @param {String} [login] - the email of the user
- * @returns {String | Function}
+ * @returns {String|Function}
  */
 function getAvatar(avatarURL, login) {
     if (isDefaultAvatar(avatarURL)) {
         return getDefaultAvatar(login);
     }
     return avatarURL;
+}
+
+/**
+ * Avatars uploaded by users will have a _128 appended so that the asset server returns a small version.
+ * This removes that part of the URL so the full version of the image can load.
+ *
+ * @param {String} [avatarURL]
+ * @param {String} [login]
+ * @returns {String|Function}
+ */
+function getFullSizeAvatar(avatarURL, login) {
+    const source = getAvatar(avatarURL, login);
+    if (!_.isString(source)) {
+        return source;
+    }
+    return source.replace('_128', '');
 }
 
 /**
@@ -1377,7 +1393,9 @@ function getChatByParticipants(newParticipantList) {
         if (!report || !report.participants) {
             return false;
         }
-        return _.isEqual(newParticipantList, report.participants.sort());
+
+        // Only return the room if it has all the participants and is not a policy room
+        return !isUserCreatedPolicyRoom(report) && _.isEqual(newParticipantList, report.participants.sort());
     });
 }
 
@@ -1571,5 +1589,6 @@ export {
     canSeeDefaultRoom,
     getCommentLength,
     openReportFromDeepLink,
+    getFullSizeAvatar,
     getIOUOptions,
 };
