@@ -3,7 +3,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import moment from 'moment';
 import IdologyQuestions from './IdologyQuestions';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -178,7 +177,7 @@ class AdditionalDetailsStep extends React.Component {
             addressCity: values[INPUT_IDS.ADDRESS.city],
             addressState: values[INPUT_IDS.ADDRESS.state],
             addressZip: values[INPUT_IDS.ADDRESS.zipCode],
-            dob: moment(values[INPUT_IDS.DOB]).format(CONST.DATE.MOMENT_FORMAT_STRING),
+            dob: values[INPUT_IDS.DOB],
             ssn: values[INPUT_IDS.SSN],
         };
 

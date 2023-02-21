@@ -91,7 +91,7 @@ class AddSecondaryLoginPage extends Component {
     render() {
         return (
             <ScreenWrapper
-                onTransitionEnd={() => {
+                onEntryTransitionEnd={() => {
                     if (!this.phoneNumberInputRef) {
                         return;
                     }
