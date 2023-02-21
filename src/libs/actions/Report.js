@@ -831,9 +831,13 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const originalCommentHTML = lodashGet(originalReportAction, 'message[0].html');
     const markdownForNewComment = handleUserDeletedLinks(textForNewComment, originalCommentHTML);
 
-    const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')};
-    const htmlForNewComment = parser.replace(markdownForNewComment, autolinkFilter);
-    const parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML), autolinkFilter);
+    const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')}
+    let htmlForNewComment = markdownForNewComment;
+    let parsedOriginalCommentHTML = originalCommentHTML;
+    if (markdownForNewComment.length < 10000) {
+        htmlForNewComment = parser.replace(markdownForNewComment, autolinkFilter);
+        parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML), autolinkFilter);
+    }
 
     //  Delete the comment if it's empty
     if (_.isEmpty(htmlForNewComment)) {
