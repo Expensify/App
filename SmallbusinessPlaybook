@@ -54,7 +54,7 @@ You do this by synchronizing Expensify and your accounting package as follows:
 “Employees really appreciate how easy it is to use, and the fact that the reimbursement drops right into their bank account. Since most employees are submitting expenses from their phones, the ease of use of the app is critical.”.”
 Robyn Gresham, Senior Accounting Systems Manager at SunCommon
 
-# Step 4: Set up scheduled submit
+## Step 4: Set up scheduled submit
 For an efficient company, we recommend setting up [Scheduled Submit](https://community.expensify.com/discussion/4476/how-to-enable-scheduled-submit-for-a-group-policy) on a Daily frequency:
 
 1. Click *Settings > Policies*
