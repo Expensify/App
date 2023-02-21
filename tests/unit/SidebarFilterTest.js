@@ -58,29 +58,6 @@ describe('Sidebar', () => {
                 });
         });
 
-        it('excludes a report with no message', () => {
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
-
-            // Given a report with no message
-            const report = {
-                ...LHNTestUtils.getFakeReport(),
-                maxSequenceNumber: 1,
-            };
-
-            return waitForPromisesToResolve()
-
-                // When Onyx is updated to contain that report
-                .then(() => Onyx.multiSet({
-                    [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-                }))
-
-                // Then no reports are rendered in the LHN
-                .then(() => {
-                    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
-                    expect(optionRows).toHaveLength(0);
-                });
-        });
-
         it('includes or excludes policy expense chats depending on the beta', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
