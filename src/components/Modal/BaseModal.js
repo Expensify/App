@@ -32,7 +32,6 @@ class BaseModal extends PureComponent {
         super(props);
 
         this.hideModal = this.hideModal.bind(this);
-        this.onDismiss = this.onDismiss.bind(this);
     }
 
     componentDidUpdate(prevProps) {
