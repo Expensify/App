@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
+import lodashIntersection from 'lodash/intersection';
 import Onyx from 'react-native-onyx';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {InteractionManager} from 'react-native';
@@ -58,7 +59,7 @@ let currentUserPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
     callback: (val) => {
-        currentUserPersonalDetails = lodashGet(val, currentUserEmail);
+        currentUserPersonalDetails = lodashGet(val, currentUserEmail, {});
         allPersonalDetails = val;
     },
 });
@@ -505,13 +506,29 @@ function isDefaultAvatar(avatarURL) {
  *
  * @param {String} [avatarURL] - the avatar source from user's personalDetails
  * @param {String} [login] - the email of the user
- * @returns {String | Function}
+ * @returns {String|Function}
  */
 function getAvatar(avatarURL, login) {
     if (isDefaultAvatar(avatarURL)) {
         return getDefaultAvatar(login);
     }
     return avatarURL;
+}
+
+/**
+ * Avatars uploaded by users will have a _128 appended so that the asset server returns a small version.
+ * This removes that part of the URL so the full version of the image can load.
+ *
+ * @param {String} [avatarURL]
+ * @param {String} [login]
+ * @returns {String|Function}
+ */
+function getFullSizeAvatar(avatarURL, login) {
+    const source = getAvatar(avatarURL, login);
+    if (!_.isString(source)) {
+        return source;
+    }
+    return source.replace('_128', '');
 }
 
 /**
@@ -1376,7 +1393,9 @@ function getChatByParticipants(newParticipantList) {
         if (!report || !report.participants) {
             return false;
         }
-        return _.isEqual(newParticipantList, report.participants.sort());
+
+        // Only return the room if it has all the participants and is not a policy room
+        return !isUserCreatedPolicyRoom(report) && _.isEqual(newParticipantList, report.participants.sort());
     });
 }
 
@@ -1483,6 +1502,36 @@ function openReportFromDeepLink(url) {
     });
 }
 
+/**
+ * @param {Object} report
+ * @param {Array} reportParticipants
+ * @param {Array} betas
+ * @returns {Array}
+ */
+function getIOUOptions(report, reportParticipants, betas) {
+    const participants = _.filter(reportParticipants, email => currentUserPersonalDetails.login !== email);
+    const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
+    const hasMultipleParticipants = participants.length > 1;
+
+    if (hasExcludedIOUEmails || participants.length === 0 || !Permissions.canUseIOU(betas)) {
+        return [];
+    }
+
+    // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
+    // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
+    // DM chats and workspace chats will have the Split Bill option only when there are at least 3 people in the chat.
+    if (isChatRoom(report) || hasMultipleParticipants) {
+        return [CONST.IOU.IOU_TYPE.SPLIT];
+    }
+
+    // DM chats that only have 2 people will see the Send / Request money options.
+    // Workspace chats should only see the Request money option, as "easy overages" is not available.
+    return [
+        CONST.IOU.IOU_TYPE.REQUEST,
+        ...(Permissions.canUseIOUSend(betas) && !isPolicyExpenseChat(report) ? [CONST.IOU.IOU_TYPE.SEND] : []),
+    ];
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1540,4 +1589,6 @@ export {
     canSeeDefaultRoom,
     getCommentLength,
     openReportFromDeepLink,
+    getFullSizeAvatar,
+    getIOUOptions,
 };
