@@ -99,7 +99,7 @@ Next, you’ll want to invite your employees to the company policy you created. 
 
 In the next section, we’ll go through how to configure approval routing but it’s important to remember that you’ll always have these 3 options to utilize, specifically the unique policy link and manual invites as your team continues to grow. 
 
-# Step 7: Set a Report Approver
+## Step 7: Set a Report Approver
 Now, let’s set up who will be responsible for approving reports for your business:
 
 1. Go to *Settings > Policies*, and select the *People* tab.
