@@ -50,238 +50,246 @@ afterEach(async () => {
 const LINT_JOB_MOCK_STEPS = [
     {
         name: 'Run lint workflow',
-        mockWith: 'echo [MOCK] Running lint workflow',
+        mockWith: 'echo [MOCK] [LINT] Running lint workflow',
     },
 ];
 
 const TEST_JOB_MOCK_STEPS = [
     {
         name: 'Run test workflow',
-        mockWith: 'echo [MOCK] Running test workflow',
+        mockWith: 'echo [MOCK] [TEST] Running test workflow',
     },
 ];
 
 const CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS = [
     {
         name: 'Announce failed workflow in Slack',
-        mockWith: 'echo [MOCK] Announcing failed workflow in slack',
+        mockWith: 'echo [MOCK] [CONFIRM_PASSING_BUILD] Announcing failed workflow in slack',
     },
     {
         name: 'Exit failed workflow',
-        mockWith: 'echo [MOCK] Exiting with failed status',
+        mockWith: 'echo [MOCK] [CONFIRM_PASSING_BUILD] Exiting with failed status',
     },
 ];
 
 const CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS = [
     {
         name: 'Get merged pull request',
-        mockWith: 'echo [MOCK] Getting merged pull request',
+        mockWith: 'echo [MOCK] [CHOOSE_DEPLOY_ACTIONS] Getting merged pull request\n'
+            + 'echo "number=1" >> "$GITHUB_OUTPUT"',
     },
     {
         name: 'Check if StagingDeployCash is locked',
-        mockWith: 'echo [MOCK] Checking StagingDeployCash',
+        mockWith: 'echo [MOCK] [CHOOSE_DEPLOY_ACTIONS] Checking StagingDeployCash\n'
+            + 'echo "IS_LOCKED=false" >> "$GITHUB_OUTPUT"',
     },
     {
         name: 'Check if merged pull request was an automated PR',
-        mockWith: 'echo [MOCK] Checking for automated PR',
+        mockWith: 'echo [MOCK] [CHOOSE_DEPLOY_ACTIONS] Checking for automated PR\n'
+            + 'echo "IS_AUTOMATED_PR=false" >> "$GITHUB_OUTPUT"',
     },
     {
         name: 'Check if merged pull request has `CP Staging` label',
-        mockWith: 'echo [MOCK] Checking CP Staging',
+        mockWith: 'echo [MOCK] [CHOOSE_DEPLOY_ACTIONS] Checking CP Staging\n'
+            + 'echo "HAS_CP_LABEL=false" >> "$GITHUB_OUTPUT"',
     },
     {
         name: 'Check if merged pull request should trigger a deploy',
-        mockWith: 'echo [MOCK] Checking deploy trigger',
+        mockWith: 'echo [MOCK] [CHOOSE_DEPLOY_ACTIONS] Checking deploy trigger\n'
+            + 'echo "SHOULD_DEPLOY=true" >> "$GITHUB_OUTPUT"',
     },
 ];
 
-const SKIP_DEPLOY_MOCK_STEPS = [
+const SKIP_DEPLOY_JOB_MOCK_STEPS = [
     {
         name: 'Comment on deferred PR',
-        mockWith: 'echo [MOCK] Skipping deploy',
+        mockWith: 'echo [MOCK] [SKIP_DEPLOY] Skipping deploy',
     },
 ];
 
 const CREATE_NEW_VERSION_JOB_MOCK_STEPS = [
     {
         name: 'Create new version',
-        mockWith: 'echo [MOCK] Creating new version',
+        mockWith: 'echo [MOCK] [CREATE_NEW_VERSION] Creating new version',
     },
 ];
 
 const UPDATE_STAGING_JOB_MOCK_STEPS = [
     {
         name: 'Run turnstyle',
-        mockWith: 'echo [MOCK] Running turnstyle',
+        mockWith: 'echo [MOCK] [UPDATE_STAGING] Running turnstyle',
     },
     {
         name: 'Update staging branch from main',
-        mockWith: 'echo [MOCK] Updating staging branch',
+        mockWith: 'echo [MOCK] [UPDATE_STAGING] Updating staging branch',
     },
     {
         name: 'Cherry-pick PR to staging',
-        mockWith: 'echo [MOCK] Cherry picking',
+        mockWith: 'echo [MOCK] [UPDATE_STAGING] Cherry picking',
     },
     {
         name: 'Checkout staging',
-        mockWith: 'echo [MOCK] Checking out staging',
+        mockWith: 'echo [MOCK] [UPDATE_STAGING] Checking out staging',
     },
     {
         name: 'Tag staging',
-        mockWith: 'echo [MOCK] Tagging staging',
+        mockWith: 'echo [MOCK] [UPDATE_STAGING] Tagging staging',
     },
     {
         name: 'Update StagingDeployCash',
-        mockWith: 'echo [MOCK] Updating StagingDeployCash',
+        mockWith: 'echo [MOCK] [UPDATE_STAGING] Updating StagingDeployCash',
     },
     {
         name: 'Find open StagingDeployCash',
-        mockWith: 'echo [MOCK] Finding open StagingDeployCash',
+        mockWith: 'echo [MOCK] [UPDATE_STAGING] Finding open StagingDeployCash\n'
+            + 'echo "STAGING_DEPLOY_CASH=1234" >> "$GITHUB_OUTPUT"',
     },
     {
         name: 'Comment in StagingDeployCash to alert Applause that a new pull request has been cherry-picked',
-        mockWith: 'echo [MOCK] Commenting in StagingDeployCash',
+        mockWith: 'echo [MOCK] [UPDATE_STAGING] Commenting in StagingDeployCash',
     },
     {
         name: 'Wait for staging deploys to finish',
-        mockWith: 'echo [MOCK] Waiting for staging deploy to finish',
+        mockWith: 'echo [MOCK] [UPDATE_STAGING] Waiting for staging deploy to finish',
     },
     {
         name: 'Comment in StagingDeployCash to alert Applause that cherry-picked pull request has been deployed.',
-        mockWith: 'echo [MOCK] Commenting in StagingDeployCash',
+        mockWith: 'echo [MOCK] [UPDATE_STAGING] Commenting in StagingDeployCash',
     },
     {
         name: 'Announce failed workflow in Slack',
-        mockWith: 'echo [MOCK] Announcing failed workflow in slack',
+        mockWith: 'echo [MOCK] [UPDATE_STAGING] Announcing failed workflow in slack',
     },
 ];
 
 const IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS = [
     {
         name: 'Get merged pull request',
-        mockWith: 'echo [MOCK] Getting merged pull request',
+        mockWith: 'echo [MOCK] [IS_EXPENSIFY_EMPLOYEE] Getting merged pull request\n'
+            + 'echo "author=Dummy Author" >> "$GITHUB_OUTPUT"',
     },
     {
         name: 'Check whether the actor is member of Expensify/expensify team',
-        mockWith: 'echo [MOCK] Checking actor\'s Expensify membership',
+        mockWith: 'echo [MOCK] [IS_EXPENSIFY_EMPLOYEE] Checking actors Expensify membership\n'
+            + 'echo "isTeamMember=true" >> "$GITHUB_OUTPUT"',
     },
 ];
 
 const NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS = [
     {
         name: 'Checkout',
-        mockWith: 'echo [MOCK] Checking out',
+        mockWith: 'echo [MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Checking out',
     },
     {
         name: 'Get merged pull request',
-        mockWith: 'echo [MOCK] Getting merged pull request',
+        mockWith: 'echo [MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Getting merged pull request',
     },
     {
         name: 'Get PR count for ${{ steps.getMergedPullRequest.outputs.author }}',
-        mockWith: 'echo [MOCK] Getting PR count',
+        mockWith: 'echo [MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Getting PR count',
     },
     {
-        name: 'Comment on ${{ steps.getMergedPullRequest.outputs.author }}\'s first pull request!',
-        mockWith: 'echo [MOCK] Creating comment',
+        name: 'Comment on ${{ steps.getMergedPullRequest.outputs.author }}\\\'s first pull request!',
+        mockWith: 'echo [MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Creating comment',
     },
 ];
 
 const E2E_TESTS_JOB_MOCK_STEPS = [
     {
         name: 'Checkout',
-        mockWith: 'echo [MOCK] Checking out',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Checking out',
     },
     {
         name: 'Setup node',
-        mockWith: 'echo [MOCK] Setting up node',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Setting up node',
     },
     {
         name: 'Setup ruby',
-        mockWith: 'echo [MOCK] Setting up ruby',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Setting up ruby',
     },
     {
         name: 'Gradle cache',
-        mockWith: 'echo [MOCK] Building with gradle',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Building with gradle',
     },
     {
         name: 'Make zip directory for everything to send to AWS Device Farm',
-        mockWith: 'echo [MOCK] Creating zip directory',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Creating zip directory',
     },
     {
         name: 'Checkout "Compare" commit',
-        mockWith: 'echo [MOCK] Checking out compare commit',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Checking out compare commit',
     },
     {
         name: 'Install node packages',
-        mockWith: 'echo [MOCK] Installing node packages',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Installing node packages',
     },
     {
         name: 'Build "Compare" APK',
-        mockWith: 'echo [MOCK] Building compare apk',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Building compare apk',
     },
     {
         name: 'Copy "Compare" APK',
-        mockWith: 'echo [MOCK] Copying compare apk',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Copying compare apk',
     },
     {
         name: 'Checkout "Baseline" commit (last release)',
-        mockWith: 'echo [MOCK] Checking out baseline commit',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Checking out baseline commit',
     },
     {
         name: 'Install node packages',
-        mockWith: 'echo [MOCK] Installing node packages',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Installing node packages',
     },
     {
         name: 'Build "Baseline" APK',
-        mockWith: 'echo [MOCK] Building baseline apk',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Building baseline apk',
     },
     {
         name: 'Copy "Baseline" APK',
-        mockWith: 'echo [MOCK] Copying baseline apk',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Copying baseline apk',
     },
     {
         name: 'Checkout previous branch for source code to run on AWS Device farm',
-        mockWith: 'echo [MOCK] Checking out previous branch',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Checking out previous branch',
     },
     {
         name: 'Copy e2e code into zip folder',
-        mockWith: 'echo [MOCK] Copying e2e tests',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Copying e2e tests',
     },
     {
         name: 'Zip everything in the zip directory up',
-        mockWith: 'echo [MOCK] Zipping everything',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Zipping everything',
     },
     {
         name: 'Configure AWS Credentials',
-        mockWith: 'echo [MOCK] Configuring AWS credentials',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Configuring AWS credentials',
     },
     {
         name: 'Schedule AWS Device Farm test run',
-        mockWith: 'echo [MOCK] Scheduling AWS test run',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Scheduling AWS test run',
     },
     {
         name: 'Unzip AWS Device Farm results',
-        mockWith: 'echo [MOCK] Unzipping test results',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Unzipping test results',
     },
     {
         name: 'Print AWS Device Farm run results',
-        mockWith: 'echo [MOCK] Printing test results',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Printing test results',
     },
     {
         name: 'Set output of AWS Device Farm into GitHub ENV',
-        mockWith: 'echo [MOCK] Setting AWS output',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Setting AWS output',
     },
     {
         name: 'Get merged pull request',
-        mockWith: 'echo [MOCK] Getting merged pull request',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Getting merged pull request',
     },
     {
         name: 'Leave output of AWS Device Farm as a PR comment',
-        mockWith: 'echo [MOCK] Leaving comment with test results',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Leaving comment with test results',
     },
     {
         name: 'Check if test failed, if so leave a deploy blocker label',
-        mockWith: 'echo [MOCK] Checking if tests failed',
+        mockWith: 'echo [MOCK] [E2E_TESTS] Checking if tests failed',
     },
 ];
 
@@ -290,7 +298,7 @@ const WIP_MOCK_STEPS = {
     test: TEST_JOB_MOCK_STEPS,
     confirmPassingBuild: CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
     chooseDeployActions: CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS,
-    skipDeploy: SKIP_DEPLOY_MOCK_STEPS,
+    skipDeploy: SKIP_DEPLOY_JOB_MOCK_STEPS,
     createNewVersion: CREATE_NEW_VERSION_JOB_MOCK_STEPS,
     updateStaging: UPDATE_STAGING_JOB_MOCK_STEPS,
     isExpensifyEmployee: IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS,
@@ -306,16 +314,29 @@ test('test workflow preDeploy push to main', async () => {
     const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
 
     // instantiate Act in the context of the test repo and given workflow file
-    const act = new Act(repoPath, workflowPath);
+    let act = new Act(repoPath, workflowPath);
+
+    // set run parameters
+    act = act
+        .setEvent({
+            pull_request: {
+                head: {
+                    ref: 'main',
+                },
+            },
+        })
+        .setSecret('OS_BOTIFY_TOKEN', 'dummy_token')
+        .setGithubToken('dummy_github_token');
 
     // run an event and get the result
-    const result = await act.runEvent('push', {
-        workflowFile: path.join(repoPath, '.github', 'workflows'),
-        mockSteps: WIP_MOCK_STEPS,
-    });
+    const result = await act
+        .runEvent('push', {
+            workflowFile: path.join(repoPath, '.github', 'workflows'),
+            mockSteps: WIP_MOCK_STEPS,
+        });
 
     console.debug(`RunEvent result: ${JSON.stringify(result, null, '\t')}`);
 
     // assert results
     // expect(result)...;
-});
+}, 300000);

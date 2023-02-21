@@ -6,12 +6,16 @@ on:
 
 jobs:
   lint:
-    name: Run lint workflow
-    uses: Expensify/App/.github/workflows/lint.yml@main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run lint workflow
+        uses: Expensify/App/.github/workflows/lint.yml@main
 
   test:
-    name: Run test workflow
-    uses: Expensify/App/.github/workflows/test.yml@main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run test workflow
+        uses: Expensify/App/.github/workflows/test.yml@main
 
   confirmPassingBuild:
     runs-on: ubuntu-latest
@@ -77,11 +81,13 @@ jobs:
             :hand: This PR was not deployed to staging yet because QA is ongoing. It will be automatically deployed to staging after the next production release.
 
   createNewVersion:
+    runs-on: ubuntu-latest
     needs: chooseDeployActions
     if: ${{ fromJSON(needs.chooseDeployActions.outputs.SHOULD_DEPLOY) }}
-    name: Create new version
-    uses: Expensify/App/.github/workflows/createNewVersion.yml@main
     secrets: inherit
+    steps:
+      - name: Create new version
+        uses: Expensify/App/.github/workflows/createNewVersion.yml@main
 
   updateStaging:
     needs: [chooseDeployActions, createNewVersion]
