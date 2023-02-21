@@ -66,7 +66,7 @@ const ContactMethodsPage = props => {
 
         // Temporary checks to determine if we need to show specific LoginField
         // components. This check will be removed soon.
-        if (Str.isValidPhone(login.partnerUserID)) {
+        if (Str.isValidPhone(Str.removeSMSDomain(login.partnerUserID))) {
             hasPhoneNumberLogin = true;
         } else if (Str.isValidEmail(login.partnerUserID)) {
             hasEmailLogin = true;
