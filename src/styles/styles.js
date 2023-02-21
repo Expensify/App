@@ -2919,7 +2919,6 @@ const styles = {
     },
 
     footer: {
-        flex: 1,
         backgroundColor: themeColors.midtone,
     },
 
