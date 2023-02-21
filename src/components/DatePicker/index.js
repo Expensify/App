@@ -31,6 +31,7 @@ class DatePicker extends React.Component {
         // Adds nice native datepicker on web/desktop. Not possible to set this through props
         this.inputRef.setAttribute('type', 'date');
         this.inputRef.setAttribute('max', CONST.DATE.MAX_DATE);
+        this.inputRef.setAttribute('min', CONST.DATE.MIN_DATE);
         this.inputRef.classList.add('expensify-datepicker');
     }
 
