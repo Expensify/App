@@ -1213,4 +1213,214 @@ export default {
         createAccount: 'Crear Una Cuenta Nueva',
         logIn: 'Conectarse',
     },
+    allStates: {
+        AK: {
+            stateISO: 'AK',
+            stateName: 'Alaska',
+        },
+        AL: {
+            stateISO: 'AL',
+            stateName: 'Alabama',
+        },
+        AR: {
+            stateISO: 'AR',
+            stateName: 'Arkansas',
+        },
+        AZ: {
+            stateISO: 'AZ',
+            stateName: 'Arizona',
+        },
+        CA: {
+            stateISO: 'CA',
+            stateName: 'California',
+        },
+        CO: {
+            stateISO: 'CO',
+            stateName: 'Colorado',
+        },
+        CT: {
+            stateISO: 'CT',
+            stateName: 'Connecticut',
+        },
+        DE: {
+            stateISO: 'DE',
+            stateName: 'Delaware',
+        },
+        FL: {
+            stateISO: 'FL',
+            stateName: 'Florida',
+        },
+        GA: {
+            stateISO: 'GA',
+            stateName: 'Georgia',
+        },
+        HI: {
+            stateISO: 'HI',
+            stateName: 'Hawái',
+        },
+        IA: {
+            stateISO: 'IA',
+            stateName: 'Iowa',
+        },
+        ID: {
+            stateISO: 'ID',
+            stateName: 'Idaho',
+        },
+        IL: {
+            stateISO: 'IL',
+            stateName: 'Illinois',
+        },
+        IN: {
+            stateISO: 'IN',
+            stateName: 'Indiana',
+        },
+        KS: {
+            stateISO: 'KS',
+            stateName: 'Kansas',
+        },
+        KY: {
+            stateISO: 'KY',
+            stateName: 'Kentucky',
+        },
+        LA: {
+            stateISO: 'LA',
+            stateName: 'Luisiana',
+        },
+        MA: {
+            stateISO: 'MA',
+            stateName: 'Massachusetts',
+        },
+        MD: {
+            stateISO: 'MD',
+            stateName: 'Maryland',
+        },
+        ME: {
+            stateISO: 'ME',
+            stateName: 'Maine',
+        },
+        MI: {
+            stateISO: 'MI',
+            stateName: 'Míchigan',
+        },
+        MN: {
+            stateISO: 'MN',
+            stateName: 'Minnesota',
+        },
+        MO: {
+            stateISO: 'MO',
+            stateName: 'Misuri',
+        },
+        MS: {
+            stateISO: 'MS',
+            stateName: 'Misisipi',
+        },
+        MT: {
+            stateISO: 'MT',
+            stateName: 'Montana',
+        },
+        NC: {
+            stateISO: 'NC',
+            stateName: 'Carolina del Norte',
+        },
+        ND: {
+            stateISO: 'ND',
+            stateName: 'Dakota del Norte',
+        },
+        NE: {
+            stateISO: 'NE',
+            stateName: 'Nebraska',
+        },
+        NH: {
+            stateISO: 'NH',
+            stateName: 'Nuevo Hampshire',
+        },
+        NJ: {
+            stateISO: 'NJ',
+            stateName: 'Nueva Jersey',
+        },
+        NM: {
+            stateISO: 'NM',
+            stateName: 'Nuevo México',
+        },
+        NV: {
+            stateISO: 'NV',
+            stateName: 'Nevada',
+        },
+        NY: {
+            stateISO: 'NY',
+            stateName: 'Nueva York',
+        },
+        OH: {
+            stateISO: 'OH',
+            stateName: 'Ohio',
+        },
+        OK: {
+            stateISO: 'OK',
+            stateName: 'Oklahoma',
+        },
+        OR: {
+            stateISO: 'OR',
+            stateName: 'Oregón',
+        },
+        PA: {
+            stateISO: 'PA',
+            stateName: 'Pensilvania',
+        },
+        PR: {
+            stateISO: 'PR',
+            stateName: 'Puerto Rico',
+        },
+        RI: {
+            stateISO: 'RI',
+            stateName: 'Rhode Island',
+        },
+        SC: {
+            stateISO: 'SC',
+            stateName: 'Carolina del Sur',
+        },
+        SD: {
+            stateISO: 'SD',
+            stateName: 'Dakota del Sur',
+        },
+        TN: {
+            stateISO: 'TN',
+            stateName: 'Tennessee',
+        },
+        TX: {
+            stateISO: 'TX',
+            stateName: 'Texas',
+        },
+        UT: {
+            stateISO: 'UT',
+            stateName: 'Utah',
+        },
+        VA: {
+            stateISO: 'VA',
+            stateName: 'Virginia',
+        },
+        VT: {
+            stateISO: 'VT',
+            stateName: 'Vermont',
+        },
+        WA: {
+            stateISO: 'WA',
+            stateName: 'Washington',
+        },
+        WI: {
+            stateISO: 'WI',
+            stateName: 'Wisconsin',
+        },
+        WV: {
+            stateISO: 'WV',
+            stateName: 'Virginia Occidental',
+        },
+        WY: {
+            stateISO: 'WY',
+            stateName: 'Wyoming',
+        },
+        DC: {
+            stateISO: 'DC',
+            stateName: 'District Of Columbia',
+        },
+    },
 };

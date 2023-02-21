@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '../CONST';
 
 /* eslint-disable max-len */
@@ -1211,4 +1212,5 @@ export default {
         createAccount: 'Create a new account',
         logIn: 'Log in',
     },
+    allStates: COMMON_CONST.STATES,
 };
