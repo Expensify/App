@@ -169,7 +169,7 @@ Similarly, you can send bills directly from Expensify as well.
 3. At this point, you can also upload an attachment to further validate the bill if necessary
 4. Click *Submit*, we’ll forward the newly created bill directly to your Supplier.
 
-Reports, invoices, and bills - are largely the same in theory, just with different rules. As such, creating a customer invoice is just like creating an expense report and even a Bill.
+Reports, invoices, and bills are largely the same, in theory, just with different rules. As such, creating a customer invoice is just like creating an expense report and even a bill.
 
 1. From the *Reports* tab, select the down arrow next to *New Report* and select *Invoice*.
 2. Add all of the expenses/transactions tied to the Invoice
