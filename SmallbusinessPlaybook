@@ -177,7 +177,7 @@ Reports, invoices, and bills - are largely the same in theory, just with differe
 
 You’ll notice it’s a slightly different flow from creating a Bill. Here, you are adding the transactions tied to the Invoice, and establishing a due date for when it needs to get paid. If you need to apply any markups, you can do so from your policy settings under the Invoices tab. Your customers can pay their invoice in Expensify via ACH, or Check, or Credit Card. 
 
-# Step 10: Add a Payment card
+## Step 10: Add a Payment card
 Now that we’ve gone through all of the steps for setting up your account, let’s make it official so there are no interruptions in service as your employees begin using Expensify. We handle payments for our service via a paymentcard, and to add one:
 
 1. Go to *Account > Settings > Payments*
