@@ -181,9 +181,10 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
 }
 
 /**
- * This method returns the report actions that are ready for display in the ReportActionsView
- * after being sorted by getSortedReportActions()
- * and filtered by filterReportActionsForDisplay()
+ * This method returns the report actions that are ready for display in the ReportActionsView.
+ * The report actions need to be sorted by created timestamp first, and reportActionID second
+ * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
+ * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
  *
  * @param {Object} reportActions
  * @returns {Array}
