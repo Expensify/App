@@ -5,6 +5,8 @@ import React, {Component} from 'react';
 import {ScrollView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import Button from '../../../../components/Button';
+import FixedFooter from '../../../../components/FixedFooter';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../../components/withCurrentUserPersonalDetails';
@@ -14,7 +16,9 @@ import compose from '../../../../libs/compose';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
+import styles from '../../../../styles/styles';
 import LoginField from './LoginField';
+import * as Expensicons from '../../../../components/Icon/Expensicons';
 
 const propTypes = {
     /* Onyx Props */
@@ -119,6 +123,17 @@ class ContactMethodsPage extends Component {
                         defaultValue={this.state.logins.phone}
                     />
                 </ScrollView>
+                <FixedFooter style={[styles.flexGrow0]}>
+                    <Button
+                        style={[styles.buttonCTA]}
+                        iconStyles={[styles.buttonCTAIcon]}
+                        success
+                        icon={Expensicons.Plus}
+                        text={this.props.translate('contacts.newContactMethod')}
+                        onPress={()=>{}}
+                        pressOnEnter
+                    />
+                </FixedFooter>
             </ScreenWrapper>
         );
     }

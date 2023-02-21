@@ -341,6 +341,7 @@ export default {
     contacts: {
         contactMethod: 'Contact method',
         contactMethods: 'Contact methods',
+        newContactMethod: 'New contact method',
     },
     pronouns: {
         coCos: 'Co / Cos',
