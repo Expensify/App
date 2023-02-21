@@ -23,7 +23,7 @@ function toggleHeaderMenu() {
 
 function navigateBack() {
     const hubs = JSON.parse(document.getElementById('hubs-data').value);
-    const hubToNavigate = hubs.find(hub => window.location.pathname.includes(hub));
+    const hubToNavigate = hubs.find(hub => window.location.pathname.includes(hub)); // eslint-disable-line rulesdir/prefer-underscore-method
     if (hubToNavigate) {
         window.location.href = `/hubs/${hubToNavigate}`;
     } else {
