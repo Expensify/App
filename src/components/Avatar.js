@@ -91,6 +91,8 @@ class Avatar extends PureComponent {
             ...this.props.imageStyles,
         ];
 
+        const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorspaceAvatarColor(this.props.name).fill : this.props.fill;
+
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
                 {_.isFunction(this.props.source) || this.state.imageError
@@ -100,7 +102,7 @@ class Avatar extends PureComponent {
                                 src={this.state.imageError ? this.props.fallbackIcon : this.props.source}
                                 height={iconSize}
                                 width={iconSize}
-                                fill={this.state.imageError ? themeColors.offline : this.props.fill}
+                                fill={this.state.imageError ? themeColors.offline : iconFillColor}
                                 isWorkspaceAvatar={isWorkspace}
                                 additionalStyles={[
                                     StyleUtils.getAvatarBorderStyle(this.props.size, this.props.type),

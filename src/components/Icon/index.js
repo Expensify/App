@@ -52,7 +52,7 @@ class Icon extends PureComponent {
         const iconStyles = [StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute,
             ...this.props.additionalStyles,
         ];
-        const iconFill = this.props.isWorkspaceAvatar ? {} : this.props.fill;
+        const iconFill = this.props.isWorkspaceAvatar ? this.props.fill : this.props.fill;
 
         if (this.props.inline) {
             return (
