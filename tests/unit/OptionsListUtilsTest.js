@@ -10,7 +10,7 @@ describe('OptionsListUtils', () => {
     const REPORTS = {
         1: {
             lastReadTime: '2021-01-14 11:25:39.295',
-            lastActionCreated: '2022-11-22 03:26:02.015',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.015',
             isPinned: false,
             reportID: 1,
             participants: ['tonystark@expensify.com', 'reedrichards@expensify.com'],
@@ -19,7 +19,7 @@ describe('OptionsListUtils', () => {
         },
         2: {
             lastReadTime: '2021-01-14 11:25:39.296',
-            lastActionCreated: '2022-11-22 03:26:02.016',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.016',
             isPinned: false,
             reportID: 2,
             participants: ['peterparker@expensify.com'],
@@ -29,7 +29,7 @@ describe('OptionsListUtils', () => {
         // This is the only report we are pinning in this test
         3: {
             lastReadTime: '2021-01-14 11:25:39.297',
-            lastActionCreated: '2022-11-22 03:26:02.170',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.170',
             isPinned: true,
             reportID: 3,
             participants: ['reedrichards@expensify.com'],
@@ -37,7 +37,7 @@ describe('OptionsListUtils', () => {
         },
         4: {
             lastReadTime: '2021-01-14 11:25:39.298',
-            lastActionCreated: '2022-11-22 03:26:02.180',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.180',
             isPinned: false,
             reportID: 4,
             participants: ['tchalla@expensify.com'],
@@ -45,7 +45,7 @@ describe('OptionsListUtils', () => {
         },
         5: {
             lastReadTime: '2021-01-14 11:25:39.299',
-            lastActionCreated: '2022-11-22 03:26:02.019',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.019',
             isPinned: false,
             reportID: 5,
             participants: ['suestorm@expensify.com'],
@@ -53,27 +53,27 @@ describe('OptionsListUtils', () => {
         },
         6: {
             lastReadTime: '2021-01-14 11:25:39.300',
-            lastActionCreated: '2022-11-22 03:26:02.020',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.020',
             isPinned: false,
             reportID: 6,
             participants: ['thor@expensify.com'],
             reportName: 'Thor',
         },
 
-        // Note: This report has the largest lastActionCreated
+        // Note: This report has the largest lastVisibleActionCreated
         7: {
             lastReadTime: '2021-01-14 11:25:39.301',
-            lastActionCreated: '2022-11-22 03:26:03.999',
+            lastVisibleActionCreated: '2022-11-22 03:26:03.999',
             isPinned: false,
             reportID: 7,
             participants: ['steverogers@expensify.com'],
             reportName: 'Captain America',
         },
 
-        // Note: This report has no lastActionCreated
+        // Note: This report has no lastVisibleActionCreated
         8: {
             lastReadTime: '2021-01-14 11:25:39.301',
-            lastActionCreated: '2022-11-22 03:26:02.000',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.000',
             isPinned: false,
             reportID: 8,
             participants: ['galactus_herald@expensify.com'],
@@ -83,7 +83,7 @@ describe('OptionsListUtils', () => {
         // Note: This report has an IOU
         9: {
             lastReadTime: '2021-01-14 11:25:39.302',
-            lastActionCreated: '2022-11-22 03:26:02.998',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.998',
             isPinned: false,
             reportID: 9,
             participants: ['mistersinister@marauders.com'],
@@ -95,7 +95,7 @@ describe('OptionsListUtils', () => {
         // This report is an archived room – it does not have a name and instead falls back on oldPolicyName
         10: {
             lastReadTime: '2021-01-14 11:25:39.200',
-            lastActionCreated: '2022-11-22 03:26:02.001',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.001',
             reportID: 10,
             isPinned: false,
             participants: ['tonystark@expensify.com', 'steverogers@expensify.com'],
@@ -158,7 +158,7 @@ describe('OptionsListUtils', () => {
 
         11: {
             lastReadTime: '2021-01-14 11:25:39.302',
-            lastActionCreated: '2022-11-22 03:26:02.022',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: 11,
             participants: ['concierge@expensify.com'],
@@ -170,7 +170,7 @@ describe('OptionsListUtils', () => {
         ...REPORTS,
         12: {
             lastReadTime: '2021-01-14 11:25:39.302',
-            lastActionCreated: '2022-11-22 03:26:02.022',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: 12,
             participants: ['chronos@expensify.com'],
@@ -182,7 +182,7 @@ describe('OptionsListUtils', () => {
         ...REPORTS,
         13: {
             lastReadTime: '2021-01-14 11:25:39.302',
-            lastActionCreated: '2022-11-22 03:26:02.022',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: 13,
             participants: ['receipts@expensify.com'],
@@ -269,7 +269,7 @@ describe('OptionsListUtils', () => {
         // When we filter again but provide a searchValue that should match multiple times
         results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, 'fantastic');
 
-        // Value with latest lastActionCreated should be at the top.
+        // Value with latest lastVisibleActionCreated should be at the top.
         expect(results.recentReports.length).toBe(2);
         expect(results.recentReports[0].text).toBe('Mister Fantastic');
         expect(results.recentReports[1].text).toBe('Mister Fantastic');
@@ -342,7 +342,7 @@ describe('OptionsListUtils', () => {
 
         // Then several options will be returned and they will be each have the search string in their email or name
         // even though the currently logged in user matches they should not show.
-        // Should be ordered by lastActionCreated values.
+        // Should be ordered by lastVisibleActionCreated values.
         expect(results.personalDetails.length).toBe(4);
         expect(results.recentReports.length).toBe(5);
         expect(results.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
