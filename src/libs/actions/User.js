@@ -19,6 +19,7 @@ import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
 import * as Report from './Report';
 import * as ReportActionsUtils from '../ReportActionsUtils';
+import DateUtils from '../DateUtils';
 
 let currentUserAccountID = '';
 Onyx.connect({
@@ -159,6 +160,59 @@ function setSecondaryLoginAndNavigate(login, password) {
     }).finally(() => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
     });
+}
+
+/**
+ * Delete a specific contact method
+ *
+ * @param {String} contactMethod - the contact method being deleted
+ * @param {Object} oldLoginData
+ */
+function deleteContactMethod(contactMethod, oldLoginData) {
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                partnerUserID: null,
+                errorFields: {
+                    deletedLogin: null,
+                },
+                pendingFields: {
+                    deletedLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            },
+        },
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: null,
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                ...oldLoginData,
+                errorFields: {
+                    deletedLogin: {
+                        [DateUtils.getMicroseconds()]: 'Generic failure message',
+                    },
+                },
+                pendingFields: {
+                    deletedLogin: null,
+                },
+            },
+        },
+    }];
+
+    API.write('DeleteContactMethod', {
+        partnerUserID: contactMethod,
+    }, {optimisticData, successData, failureData});
+    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**
@@ -475,6 +529,7 @@ export {
     resendValidateCode,
     updateNewsletterSubscription,
     setSecondaryLoginAndNavigate,
+    deleteContactMethod,
     validateLogin,
     isBlockedFromConcierge,
     subscribeToUserEvents,
