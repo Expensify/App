@@ -19,6 +19,7 @@ import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import * as MainQueue from '../../src/libs/Network/MainQueue';
 import * as Request from '../../src/libs/Request';
 
+jest.mock('../../src/libs/Log');
 jest.useFakeTimers();
 
 Onyx.init({

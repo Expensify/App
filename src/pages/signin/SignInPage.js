@@ -55,7 +55,8 @@ class SignInPage extends Component {
     render() {
         // Show the login form if
         // - A login has not been entered yet
-        const showLoginForm = !this.props.credentials.login;
+        // - AND a validateCode has not been cached with sign in link
+        const showLoginForm = !this.props.credentials.login && !this.props.credentials.validateCode;
 
         // Show the old password form if
         // - A login has been entered
@@ -70,9 +71,10 @@ class SignInPage extends Component {
             && !Permissions.canUsePasswordlessLogins(this.props.betas);
 
         // Show the new magic code / validate code form if
-        // - A login has been entered
+        // - A login has been entered or a validateCode has been cached from sign in link
         // - AND the user is on the 'passwordless' beta
-        const showValidateCodeForm = this.props.credentials.login
+        const showValidateCodeForm = (this.props.credentials.login
+            || this.props.credentials.validateCode)
             && Permissions.canUsePasswordlessLogins(this.props.betas);
 
         // Show the resend validation link form if

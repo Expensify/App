@@ -1,6 +1,7 @@
 import React from 'react';
 import {TouchableOpacity, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import Text from '../../components/Text';
@@ -30,14 +31,16 @@ const defaultProps = {
 
 const ChangeExpensifyLoginLink = props => (
     <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
-        <Text>
-            {props.translate('common.not')}
-            &nbsp;
-            {Str.isSMSLogin(props.credentials.login || '')
-                ? props.toLocalPhone(Str.removeSMSDomain(props.credentials.login || ''))
-                : Str.removeSMSDomain(props.credentials.login || '')}
-            {'? '}
-        </Text>
+        {!_.isEmpty(props.credentials.login) && (
+            <Text>
+                {props.translate('common.not')}
+                &nbsp;
+                {Str.isSMSLogin(props.credentials.login || '')
+                    ? props.toLocalPhone(Str.removeSMSDomain(props.credentials.login || ''))
+                    : Str.removeSMSDomain(props.credentials.login || '')}
+                {'? '}
+            </Text>
+        )}
         <TouchableOpacity
             style={[styles.link]}
             onPress={props.onPress}

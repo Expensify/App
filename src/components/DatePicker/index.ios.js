@@ -68,7 +68,8 @@ class DatePicker extends React.Component {
      */
     selectDate() {
         this.setState({isPickerVisible: false});
-        this.props.onInputChange(this.state.selectedDate);
+        const asMoment = moment(this.state.selectedDate, true);
+        this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
     }
 
     /**
@@ -131,6 +132,8 @@ class DatePicker extends React.Component {
                         themeVariant="dark"
                         onChange={this.updateLocalDate}
                         locale={this.props.preferredLocale}
+                        maximumDate={new Date(CONST.DATE.MAX_DATE)}
+                        minimumDate={new Date(CONST.DATE.MIN_DATE)}
                     />
                 </Popover>
             </>

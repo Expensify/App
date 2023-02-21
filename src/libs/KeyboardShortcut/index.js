@@ -75,6 +75,11 @@ function bindHandlerToKeydownEvent(event) {
 
     // Loop over all the callbacks
     _.every(eventHandlers[displayName], (callback) => {
+        // Early return for excludedNodes
+        if (_.contains(callback.excludedNodes, event.target.nodeName)) {
+            return true;
+        }
+
         // If configured to do so, prevent input text control to trigger this event
         if (!callback.captureOnInputs && (
             event.target.nodeName === 'INPUT'
@@ -145,9 +150,10 @@ function getPlatformEquivalentForKeys(keys) {
  * @param {Boolean|Function} [shouldBubble] Should the event bubble?
  * @param {Number} [priority] The position the callback should take in the stack. 0 means top priority, and 1 means less priority than the most recently added.
  * @param {Boolean} [shouldPreventDefault] Should call event.preventDefault after callback?
+ * @param {Array<String>} [excludedNodes] Do not capture key events targeting excluded nodes (i.e. do not prevent default and let the event bubble)
  * @returns {Function} clean up method
  */
-function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0, shouldPreventDefault = true) {
+function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0, shouldPreventDefault = true, excludedNodes = []) {
     const platformAdjustedModifiers = getPlatformEquivalentForKeys(modifiers);
     const displayName = getDisplayName(key, platformAdjustedModifiers);
     if (!_.has(eventHandlers, displayName)) {
@@ -161,6 +167,7 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
         captureOnInputs,
         shouldPreventDefault,
         shouldBubble,
+        excludedNodes,
     });
 
     if (descriptionKey) {
