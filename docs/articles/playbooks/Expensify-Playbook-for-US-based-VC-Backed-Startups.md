@@ -87,7 +87,7 @@ _“Our employees just SmartScan a receipt as soon as they receive it, and regar
 _- Amina Mobasher, Accountant at Ideo.org_
 
 ## Step 6: Connect your business bank account
-If you’re located in the US, you can utilize Expensify’s payment processing and reimbursement features. 
+If you’re located in the US, you can utilize Expensify’s payment processing and reimbursement features.
 
 *Note:* Before you begin, you’ll need the following to validate your business bank account:
 
@@ -113,7 +113,7 @@ Next, you’ll want to invite your employees to the company policy you created. 
 - [Manually](https://community.expensify.com/discussion/4975/how-to-invite-users-to-your-policy-manually-or-in-bulk/p1?new=1) - Enter employee email addresses manually by clicking the green Invite button in the People tab of your policy
 - [Google SSO](https://community.expensify.com/discussion/4774/how-to-enable-google-apps-sso-with-your-expensify-group-policy) - Or, if you have a Google Workspace configured, you can synchronize your policy's people list to match your Google Workspace employee list.
 
-In the next section, we’ll go through how to configure approval routing but it’s important to remember that you’ll always have these 3 options to utilize, specifically the unique policy link and manual invites as your team continues to grow. 
+In the next section, we’ll go through how to configure approval routing but it’s important to remember that you’ll always have these 3 options to utilize, specifically the unique policy link and manual invites as your team continues to grow.
 
 ## Step 8: Set up an approval workflow
 Now, let’s set up some approval rules for your business as well as the ideal approval workflow that employee reports will follow after report submission:
@@ -127,7 +127,7 @@ Now, let’s set up some approval rules for your business as well as the ideal a
   - This ensures that employees are required to submit to you and not to someone else.
 5. Disable *Prevent Self-Approval*. This is a more powerful feature recommended for companies with advanced compliance requirements, but generally isn't recommended for a company of your scale.
 
-Thanks to our [Concierge Receipt audit technology](https://community.expensify.com/discussion/5738/deep-dive-how-does-concierge-receipt-audit-work), once you set up an approval workflow, most expenses will be audited automatically and won’t require manual review. Your time is valuable, so you should focus it on reviewing only the expenses that fall outside of your policy’s rules.  
+Thanks to our [Concierge Receipt audit technology](https://community.expensify.com/discussion/5738/deep-dive-how-does-concierge-receipt-audit-work), once you set up an approval workflow, most expenses will be audited automatically and won’t require manual review. Your time is valuable, so you should focus it on reviewing only the expenses that fall outside of your policy’s rules.
 
 ## Step 9: Set up your corporate card and assign cards to employees
 Expensify is optimized to work with corporate cards from all banks – or even better, use our own perfectly integrated Expensify Card.
@@ -135,7 +135,7 @@ Expensify is optimized to work with corporate cards from all banks – or even b
 ### If you have an existing corporate card
 Expensify supports direct card feeds from most financial institutions. Setting up a corporate card feed will pull in the transactions from the connected cards on a daily basis. To set this up, do the following:
 
-1. Go to *Settings > Domains > Company Cards >* Select your bank 
+1. Go to *Settings > Domains > Company Cards >* Select your bank
   - If you don’t see your financial institution in the list of banks we support, you can review an alternative solution in the Feature Deep Dives section below
 2. Next, enter your bank account login credentials.
   - To successfully connect to your bank, we’ll need the *master admin (primary) account* login credentials.
@@ -143,7 +143,7 @@ Expensify supports direct card feeds from most financial institutions. Setting u
 4. Set a transaction start date
   - If you don’t have a backlog of transactions you’d like to account for, feel free to skip this step.
 
-As mentioned above, we’ll be able to pull in transactions as they post (daily) and handle receipt matching for you and your employees. However, with the Expensify Card, we’re able to bring in transactions at the point of sale which provides you with real-time compliance. Next, let’s dive into how to set up the Expensify Card and the benefits of using the Expensify Card.  
+As mentioned above, we’ll be able to pull in transactions as they post (daily) and handle receipt matching for you and your employees. However, with the Expensify Card, we’re able to bring in transactions at the point of sale which provides you with real-time compliance. Next, let’s dive into how to set up the Expensify Card and the benefits of using the Expensify Card.
 
 ### If you don't have a corporate card, use the Expensify Card
 Expensify provides a corporate card with the following features:
@@ -152,7 +152,7 @@ Expensify provides a corporate card with the following features:
 - [SmartLimits](https://community.expensify.com/discussion/4851/deep-dive-what-are-unapproved-expense-limits#latest)
 - A stable, unbreakable connection (third-party bank feeds can run into connectivity issues)
 
-The Expensify Card is recommended as the most efficient way to manage your company's spending. 
+The Expensify Card is recommended as the most efficient way to manage your company's spending.
 
 Here’s how to enable it:
 
@@ -172,7 +172,7 @@ _“Moving from our other bank and getting Expensify cards into the hands of emp
 _- Robin Gresham, Senior Accounting Systems Manager at SunCommon_
 
 ## Step 10: Set up Bill Pay and Invoicing
-As a VC-backed startup, you might have vendors you work with that send you bills. And in most cases, you probably use some third party to pay those bills if you aren’t cutting checks the old fashioned way. Similarly, you probably have clients you invoice from time to time. As an all-in-one solution, we’re here to make bill payments and invoicing easy, and every policy and workspace comes with bill pay and invoicing - at no additional cost. Since you have your business bank account verified, you can either pay your bills via ACH. Alternatively, you can pay via credit card or by check. 
+As a VC-backed startup, you might have vendors you work with that send you bills. And in most cases, you probably use some third party to pay those bills if you aren’t cutting checks the old fashioned way. Similarly, you probably have clients you invoice from time to time. As an all-in-one solution, we’re here to make bill payments and invoicing easy, and every policy and workspace comes with bill pay and invoicing - at no additional cost. Since you have your business bank account verified, you can either pay your bills via ACH. Alternatively, you can pay via credit card or by check.
 
 Let’s first chat through how Bill Pay works
 
@@ -181,7 +181,7 @@ Let’s first chat through how Bill Pay works
 2. Once the bill has been received, we’ll create the bill for your review directly in Expensify
 3. At the top of the bill/invoice, you’ll notice a Pay button. Once you click that, you’ll see options including ACH, credit/debit card, along with mailing a physical check.
 
-Similarly, you can send bills directly from Expensify as well. 
+Similarly, you can send bills directly from Expensify as well.
 
 1. From the *Reports* tab, select the down arrow next to *New Report* and select *Bill*
 2. Next, enter in the Supplier’s email address, the Merchant name, total amount and date
@@ -205,4 +205,4 @@ Now that we’ve gone through all of the steps for setting up your account, let�
 4. Click *Accept Terms*
 
 # You’re all set!
-Congrats, you are all set up! If you need any assistance with anything mentioned above, reach out to either your Setup Specialist or your Account Manager directly in new.expensify.com. Don’t have one yet? Create a Control Policy, and we’ll automatically assign a dedicated Setup Specialist to you. 
+Congrats, you are all set up! If you need any assistance with anything mentioned above, reach out to either your Setup Specialist or your Account Manager directly in new.expensify.com. Don’t have one yet? Create a Control Policy, and we’ll automatically assign a dedicated Setup Specialist to you.
