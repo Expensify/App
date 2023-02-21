@@ -36,16 +36,21 @@ const propTypes = {
     /** Text to be shown in the tooltip */
     text: PropTypes.string.isRequired,
 
+    /** Maximum number of lines to show in tooltip */
+    numberOfLines: PropTypes.number.isRequired,
+
     /** Number of pixels to set max-width on tooltip  */
     maxWidth: PropTypes.number.isRequired,
 
-    /** Maximum number of lines to show in tooltip */
-    numberOfLines: PropTypes.number.isRequired,
+    /** Render custom content inside the tooltip. Note: This cannot be used together with the text props. */
+    renderTooltipContent: PropTypes.func,
+
 };
 
 const defaultProps = {
     shiftHorizontal: 0,
     shiftVertical: 0,
+    renderTooltipContent: undefined,
 };
 
 // Props will change frequently.
@@ -122,11 +127,12 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
             this.props.shiftHorizontal,
             this.props.shiftVertical,
         );
-        return ReactDOM.createPortal(
-            <Animated.View
-                onLayout={this.measureTooltip}
-                style={[tooltipWrapperStyle, animationStyle]}
-            >
+
+        let content;
+        if (this.props.renderTooltipContent) {
+            content = this.props.renderTooltipContent();
+        } else {
+            content = (
                 <Text numberOfLines={this.props.numberOfLines} style={tooltipTextStyle}>
                     <Text
                         style={tooltipTextStyle}
@@ -144,6 +150,15 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
                         {this.props.text}
                     </Text>
                 </Text>
+            );
+        }
+
+        return ReactDOM.createPortal(
+            <Animated.View
+                onLayout={this.measureTooltip}
+                style={[tooltipWrapperStyle, animationStyle]}
+            >
+                {content}
                 <View style={pointerWrapperStyle}>
                     <View style={pointerStyle} />
                 </View>

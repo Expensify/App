@@ -8,6 +8,7 @@ import {propTypes, defaultProps} from './tooltipPropTypes';
 import TooltipSense from './TooltipSense';
 import makeCancellablePromise from '../../libs/MakeCancellablePromise';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
+import styles from '../../styles/styles';
 
 class Tooltip extends PureComponent {
     constructor(props) {
@@ -26,6 +27,9 @@ class Tooltip extends PureComponent {
             // The width and height of the wrapper view
             wrapperWidth: 0,
             wrapperHeight: 0,
+
+            contentWidth: 0,
+            contentHeight: 0,
         };
 
         // Whether the tooltip is first tooltip to activate the TooltipSense
@@ -37,6 +41,7 @@ class Tooltip extends PureComponent {
         this.getWrapperPosition = this.getWrapperPosition.bind(this);
         this.showTooltip = this.showTooltip.bind(this);
         this.hideTooltip = this.hideTooltip.bind(this);
+        this.measureContent = this.measureContent.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -141,9 +146,16 @@ class Tooltip extends PureComponent {
         TooltipSense.deactivate();
     }
 
+    measureContent({nativeEvent}) {
+        this.setState({
+            contentWidth: nativeEvent.layout.width,
+            contentHeight: nativeEvent.layout.height,
+        });
+    }
+
     render() {
         // Skip the tooltip and return the children if the text is empty or the device does not support hovering
-        if (_.isEmpty(this.props.text) || !this.hasHoverSupport) {
+        if ((_.isEmpty(this.props.text) && this.props.renderTooltipContent == null) || !this.hasHoverSupport) {
             return this.props.children;
         }
         let child = (
@@ -180,8 +192,21 @@ class Tooltip extends PureComponent {
                 focusable: true,
             });
         }
+
+        const isCustomContent = _.isFunction(this.props.renderTooltipContent);
+
+        // New state is introduced for the content dimensions
+        const isContentMeasured = this.state.contentWidth > 0 && this.state.contentHeight > 0;
         return (
             <>
+                {isCustomContent && !isContentMeasured && (
+                    <View
+                        style={styles.invisible}
+                        onLayout={this.measureContent}
+                    >
+                        {this.props.renderTooltipContent()}
+                    </View>
+                )}
                 {this.state.isRendered && (
                     <TooltipRenderedOnPageBody
                         animation={this.animation}
