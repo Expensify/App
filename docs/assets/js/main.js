@@ -28,10 +28,22 @@ function toggleHeaderMenu() {
  * @param {Number} num
  * @param {Number} min
  * @param {Number} max
- * @returns {number}
+ * @returns {Number}
  */
 function clamp(num, min, max) {
     return Math.min(Math.max(num, min), max);
+}
+
+/**
+ * Check if a number is in a range.
+ *
+ * @param {Number} num
+ * @param {Number} min
+ * @param {Number} max
+ * @returns {Boolean}
+ */
+function isInRange(num, min, max) {
+    return num >= min && num <= max;
 }
 
 function navigateBack() {
@@ -97,9 +109,20 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const articleContent = document.getElementById('article-content');
     const lhnContent = document.getElementById('lhn-content');
+    lhnContent.addEventListener('wheel', (e) => {
+        const scrollTop = lhnContent.scrollTop;
+        const isScrollingPastLHNTop = e.deltaY < 0 && scrollTop === 0;
+        const isScrollingPastLHNBottom = (
+            e.deltaY > 0
+            && isInRange(lhnContent.scrollHeight - lhnContent.offsetHeight, scrollTop - 1, scrollTop + 1)
+        );
+        if (isScrollingPastLHNTop || isScrollingPastLHNBottom) {
+            e.preventDefault();
+        }
+    });
     window.addEventListener('scroll', (e) => {
-        const scrollingElement = e?.target?.scrollingElement;
-        const scrollPercentageInArticleContent = clamp(scrollingElement?.scrollTop - articleContent?.offsetTop, 0, articleContent?.scrollHeight) / articleContent?.scrollHeight;
+        const scrollingElement = e.target.scrollingElement;
+        const scrollPercentageInArticleContent = clamp(scrollingElement.scrollTop - articleContent.offsetTop, 0, articleContent.scrollHeight) / articleContent.scrollHeight;
         lhnContent.scrollTop = scrollPercentageInArticleContent * lhnContent.scrollHeight;
     });
 });
