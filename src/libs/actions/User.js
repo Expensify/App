@@ -215,6 +215,19 @@ function deleteContactMethod(contactMethod, oldLoginData) {
     Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
+function clearContactMethodErrors(contactMethod, fieldName) {
+    Onyx.merge(ONYXKEYS.LOGIN_LIST, {
+        [contactMethod]: {
+            errorFields: {
+                [fieldName]: null,
+            },
+            pendingFields: {
+                [fieldName]: null,
+            },
+        },
+    });
+}
+
 /**
  * Validates a login given an accountID and validation code
  *
@@ -530,6 +543,7 @@ export {
     updateNewsletterSubscription,
     setSecondaryLoginAndNavigate,
     deleteContactMethod,
+    clearContactMethodErrors,
     validateLogin,
     isBlockedFromConcierge,
     subscribeToUserEvents,
