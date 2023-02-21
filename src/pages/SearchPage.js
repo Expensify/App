@@ -189,6 +189,7 @@ class SearchPage extends Component {
                                 placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                                 onLayout={this.searchRendered}
                                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                                shouldDelayFocus
                             />
                         </View>
                     </>
