@@ -118,7 +118,7 @@ Expensify is optimized to work with corporate cards from all banks – or even b
 5. Next, assign the corporate cards to your employees by selecting the employee’s email address and the corresponding card number from the two drop-down menus under the *Assign a Card* section
 6. Set a transaction start date (this is really important to avoid pulling in multiple outdated historical expenses that you don’t want employees to submit)
 
-As mentioned above, we’ll be able to pull in transactions as they post (daily) and handle receipt matching for you and your employees. One benefit of the Expensify Card for your company, is being able to  see transactions at the point of purchasewhich provides you with real time compliance. We even send users push notifications to SmartScan their receipt when it’s required and generate IRS compliant e-receipts as a backup wherever applicable. 
+As mentioned above, we’ll be able to pull in transactions as they post (daily) and handle receipt matching for you and your employees. One benefit of the Expensify Card for your company, is being able to see transactions at the point of purchase which provides you with real time compliance. We even send users push notifications to SmartScan their receipt when it’s required and generate IRS compliant e-receipts as a backup wherever applicable. 
 
 *If you don't have a corporate card, use the Expensify Card (US only)*
 Expensify provides a corporate card with the following features:
