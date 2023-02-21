@@ -181,7 +181,7 @@ class Form extends React.Component {
             if (inputValue.search(/<(.|\n)*?>/g) !== -1) {
                 validationErrors[inputID] = this.props.translate('common.error.inputHasHtml');
             }
-        })
+        });
 
         if (!_.isObject(validationErrors)) {
             throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');
