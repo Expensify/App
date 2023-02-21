@@ -1,5 +1,5 @@
 import styles from '../../../../styles/styles';
 
-const scrollViewContentContainerStyles = styles.mnh100;
+const scrollViewContentContainerStyles = [styles.flex1, styles.mnh100];
 
 export default scrollViewContentContainerStyles;

@@ -58,7 +58,7 @@ const SignInPageLayout = (props) => {
                 : (
                     <ScrollView
                         style={containerHeight}
-                        contentContainerStyle={[scrollViewContentContainerStyles]}
+                        contentContainerStyle={scrollViewContentContainerStyles}
                     >
                         <SignInPageContent
                             welcomeText={props.welcomeText}

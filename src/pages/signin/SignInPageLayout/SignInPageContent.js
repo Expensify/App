@@ -31,9 +31,9 @@ const propTypes = {
 
 const SignInPageContent = props => (
     <ScrollView
-        contentContainerStyle={[StyleUtils.getHeight(props.windowHeight - props.insets.top - props.insets.bottom), styles.signInPageLeftContainer]}
+        contentContainerStyle={[styles.flex1, styles.signInPageLeftContainer]}
         keyboardShouldPersistTaps="handled"
-        style={[!props.isSmallScreenWidth && styles.signInPageLeftContainerWide]}
+        style={[StyleUtils.getHeight(props.windowHeight - props.insets.top - props.insets.bottom), !props.isSmallScreenWidth && styles.signInPageLeftContainerWide]}
     >
         <KeyboardAvoidingView
             behavior="padding"
