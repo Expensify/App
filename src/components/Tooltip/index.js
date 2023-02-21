@@ -154,7 +154,8 @@ class Tooltip extends PureComponent {
     }
 
     render() {
-        // Skip the tooltip and return the children if the text is empty or the device does not support hovering
+        // Skip the tooltip and return the children if the text is empty,
+        // we don't have a render function or the device does not support hovering
         if ((_.isEmpty(this.props.text) && this.props.renderTooltipContent == null) || !this.hasHoverSupport) {
             return this.props.children;
         }
@@ -194,8 +195,6 @@ class Tooltip extends PureComponent {
         }
 
         const isCustomContent = _.isFunction(this.props.renderTooltipContent);
-
-        // New state is introduced for the content dimensions
         const isContentMeasured = this.state.contentWidth > 0 && this.state.contentHeight > 0;
 
         return (
