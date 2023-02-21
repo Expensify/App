@@ -178,7 +178,7 @@ class Form extends React.Component {
 
         _.each(values, (inputValue, inputID) => {
             if (inputValue.search(/<(.|\n)*?>/g) !== -1) {
-                validationErrors[inputID] = 'You dumb dumb';
+                validationErrors[inputID] = this.props.translate('common.error.inputHasHtml');
             }
         })
 

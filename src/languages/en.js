@@ -90,6 +90,7 @@ export default {
             fieldRequired: 'This field is required.',
             characterLimit: ({limit}) => `Exceeds the maximum length of ${limit} characters`,
             dateInvalid: 'Please enter a valid date',
+            inputHasHtml: 'Html tags are not allowed',
         },
         comma: 'comma',
         semicolon: 'semicolon',
