@@ -916,6 +916,14 @@ const CONST = {
         INVESTOR_RELATIONS_URL: 'https://ir.expensify.com/',
     },
 
+    SOCIALS: {
+        PODCAST: 'https://we.are.expensify.com/podcast',
+        TWITTER: 'https://www.twitter.com/expensify',
+        INSTAGRAM: 'http://www.instagram.com/expensify',
+        FACEBOOK: 'https://www.facebook.com/expensify',
+        LINKEDIN: 'http://www.linkedin.com/company/expensify',
+    },
+
     // These split the maximum decimal value of a signed 64-bit number (9,223,372,036,854,775,807) into parts where none of them are too big to fit into a 32-bit number, so that we can
     // generate them each with a random number generator with only 32-bits of precision.
     MAX_64BIT_LEFT_PART: 92233,

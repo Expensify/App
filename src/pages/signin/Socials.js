@@ -7,27 +7,28 @@ import * as Expensicons from '../../components/Icon/Expensicons';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
+import CONST from '../../CONST';
 
 const socialsList = [
     {
         iconURL: Expensicons.Podcast,
-        link: 'https://we.are.expensify.com/podcast',
+        link: CONST.SOCIALS.PODCAST,
     },
     {
         iconURL: Expensicons.Twitter,
-        link: 'https://www.twitter.com/expensify',
+        link: CONST.SOCIALS.TWITTER,
     },
     {
         iconURL: Expensicons.Instagram,
-        link: 'http://www.instagram.com/expensify',
+        link: CONST.SOCIALS.INSTAGRAM,
     },
     {
         iconURL: Expensicons.Facebook,
-        link: 'https://www.facebook.com/expensify',
+        link: CONST.SOCIALS.FACEBOOK,
     },
     {
         iconURL: Expensicons.Linkedin,
-        link: 'http://www.linkedin.com/company/expensify',
+        link: CONST.SOCIALS.LINKEDIN,
     },
 ];
 

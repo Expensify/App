@@ -3,8 +3,7 @@ import React from 'react';
 import _ from 'underscore';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import themeColors from '../../../styles/themes/default';
+import variables from '../../../styles/variables';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import TextLink from '../../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -135,9 +134,6 @@ const columns = [
     },
 ];
 
-const verticalLogoHeight = 634;
-const verticalLogoWidth = 111;
-
 const Footer = (props) => {
     const isVertical = props.isSmallScreenWidth;
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
@@ -148,57 +144,56 @@ const Footer = (props) => {
     const footerColumn = isVertical ? [styles.p4] : [styles.p4, props.isMediumScreenWidth ? styles.w50 : styles.w25];
 
     return (
-        <View style={styles.flex1}>
-            <View style={StyleUtils.getBackgroundColorStyle(themeColors.midtone)}>
-                <View style={pageFooterWrapper}>
-                    <View style={footerColumns}>
-                        { /** Columns * */ }
-                        {_.map(columns, (column, i) => (
-                            <View
-                                key={column.translationPath + i}
-                                style={footerColumn}
-                            >
-                                <Text style={[styles.textHeadline, styles.footerTitle]}>
-                                    {props.translate(column.translationPath)}
-                                </Text>
-                                <View style={[styles.footerRow]}>
-                                    { /** Rows * */ }
-                                    {_.map(column.rows, (row, j) => (
-                                        <Hoverable
-                                            key={row.translationPath + j}
-                                        >
-                                            {hovered => (
-                                                <TextLink
-                                                    style={[styles.footerRow, hovered ? styles.textBlue : {}]}
-                                                    href={row.link}
-                                                >
-                                                    {props.translate(row.translationPath)}
-                                                </TextLink>
-                                            )}
-                                        </Hoverable>
-                                    ))}
-                                    {(i === 2) && (
-                                        <View style={styles.mt5}>
-                                            <Socials />
-                                        </View>
-                                    )}
-                                    {(i === 3) && (
-                                        <View style={styles.mv4}>
-                                            <Licenses />
-                                        </View>
-                                    )}
-                                </View>
+        <View style={styles.footer}>
+            <View style={pageFooterWrapper}>
+                <View style={footerColumns}>
+                    { /** Columns * */ }
+                    {_.map(columns, (column, i) => (
+                        <View
+                            key={column.translationPath}
+                            style={footerColumn}
+                        >
+                            <Text style={[styles.textHeadline, styles.footerTitle]}>
+                                {props.translate(column.translationPath)}
+                            </Text>
+                            <View style={[styles.footerRow]}>
+                                { /** Rows * */ }
+                                {_.map(column.rows, row => (
+                                    <Hoverable
+                                        key={row.translationPath}
+                                    >
+                                        {hovered => (
+                                            <TextLink
+                                                style={[styles.footerRow, hovered ? styles.textBlue : {}]}
+                                                href={row.link}
+                                            >
+                                                {props.translate(row.translationPath)}
+                                            </TextLink>
+                                        )}
+                                    </Hoverable>
+                                ))}
+                                {(i === 2) && (
+                                    <View style={styles.mt5}>
+                                        <Socials />
+                                    </View>
+                                )}
+                                {(i === 3) && (
+                                    <View style={styles.mv4}>
+                                        <Licenses />
+                                    </View>
+                                )}
                             </View>
-                        ))}
-                    </View>
-                    <View style={[!isVertical && styles.footerBottomLogo]}>
-                        {!isVertical ? (
+                        </View>
+                    ))}
+                </View>
+                <View style={[!isVertical && styles.footerBottomLogo]}>
+                    {!isVertical
+                        ? (
                             <Expensicons.ExpensifyFooterLogo />
                         )
-                            : (
-                                <Expensicons.ExpensifyFooterLogoVertical height={verticalLogoHeight} width={verticalLogoWidth} />
-                            )}
-                    </View>
+                        : (
+                            <Expensicons.ExpensifyFooterLogoVertical height={variables.verticalLogoHeight} width={variables.verticalLogoWidth} />
+                        )}
                 </View>
             </View>
         </View>
