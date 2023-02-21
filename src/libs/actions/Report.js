@@ -831,7 +831,10 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const originalCommentHTML = lodashGet(originalReportAction, 'message[0].html');
     const markdownForNewComment = handleUserDeletedLinks(textForNewComment, originalCommentHTML);
 
-    const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')}
+    const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')};
+
+    // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
+    // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     let htmlForNewComment = markdownForNewComment;
     let parsedOriginalCommentHTML = originalCommentHTML;
     if (markdownForNewComment.length < 10000) {
