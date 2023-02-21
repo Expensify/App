@@ -53,6 +53,8 @@
     "@formatjs/intl-numberformat": "^8.5.0",
     "@formatjs/intl-pluralrules": "^5.2.2",
     "@gorhom/portal": "^1.0.14",
+    "@kie/act-js": "^2.0.1",
+    "@kie/mock-github": "^1.0.0",
     "@oguzhnatly/react-native-image-manipulator": "github:Expensify/react-native-image-manipulator#5cdae3d4455b03a04c57f50be3863e2fe6c92c52",
     "@onfido/react-native-sdk": "7.4.0",
     "@react-native-async-storage/async-storage": "^1.17.10",
@@ -72,6 +74,9 @@
     "@react-ng/bounds-observer": "^0.2.1",
     "@ua/react-native-airship": "^15.2.6",
     "awesome-phonenumber": "^5.4.0",
+    "@react-navigation/drawer": "github:Expensify/react-navigation#react-navigation-drawer-v6.5.0-alpha1-gitpkg",
+    "@types/jest": "^29.4.0",
+    "@types/node": "^18.14.0",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "babel-polyfill": "^6.26.0",
     "dom-serializer": "^0.2.2",
@@ -135,7 +140,12 @@
     "save": "^2.4.0",
     "semver": "^7.3.8",
     "shim-keyboard-event-key": "^1.0.3",
-    "underscore": "^1.13.1"
+    "ts-jest": "^29.0.5",
+    "ts-node": "^10.9.1",
+    "tsc": "^2.0.4",
+    "typescript": "^4.9.5",
+    "underscore": "^1.13.1",
+    "urbanairship-react-native": "^14.6.1"
   },
   "devDependencies": {
     "@actions/core": "1.10.0",
