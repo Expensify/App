@@ -108,7 +108,7 @@ Now, let’s set up who will be responsible for approving reports for your busin
 
 Thanks to our [Concierge Receipt audit technology](https://community.expensify.com/discussion/5738/deep-dive-how-does-concierge-receipt-audit-work), once you set up an approval workflow, most expenses will be audited automatically and won’t require manual review, however you can elect to manually approve expense reports too. Your time is valuable, so you should focus it on reviewing only the expenses that fall outside of your policy’s rules.  
 
-# Step 8: Set up your corporate card and assign cards to employees
+## Step 8: Set up your corporate card and assign cards to employees
 Expensify is optimized to work with corporate cards from all banks – or even better, use our own perfectly integrated Expensify Card.If you have an existing corporate card Expensify supports direct card feeds from most financial institutions. Setting up a corporate card feed will pull in the transactions from the connected cards on a daily basis. To set this up, do the following: 
 
 1. Go to *Settings > Domains > Company Cards >* Select your bank 
