@@ -172,7 +172,15 @@ class Form extends React.Component {
     validate(values) {
         FormActions.setErrors(this.props.formID, null);
         FormActions.setErrorFields(this.props.formID, null);
+
+        // Run any validations passed as a prop
         const validationErrors = this.props.validate(values);
+
+        _.each(values, (inputValue, inputID) => {
+            if (inputValue.search(/<(.|\n)*?>/g) !== -1) {
+                validationErrors[inputID] = 'You dumb dumb';
+            }
+        })
 
         if (!_.isObject(validationErrors)) {
             throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');
