@@ -8,20 +8,6 @@ import * as Request from '../Request';
 import * as RequestThrottle from '../RequestThrottle';
 import CONST from '../../CONST';
 
-const errorsToRetry = [
-    CONST.ERROR.FAILED_TO_FETCH,
-    CONST.ERROR.IOS_NETWORK_CONNECTION_LOST,
-    CONST.ERROR.NETWORK_REQUEST_FAILED,
-    CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_RUSSIAN,
-    CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_SWEDISH,
-    CONST.ERROR.FIREFOX_DOCUMENT_LOAD_ABORTED,
-    CONST.ERROR.SAFARI_DOCUMENT_LOAD_ABORTED,
-    CONST.ERROR.IOS_LOAD_FAILED,
-    CONST.ERROR.GATEWAY_TIMEOUT,
-    CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
-    CONST.ERROR.THROTTLED,
-];
-
 let resolveIsReadyPromise;
 let isReadyPromise = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
@@ -60,8 +46,8 @@ function process() {
         RequestThrottle.clear();
         return process();
     }).catch((error) => {
-        // If a request fails with a non-retryable error we just remove it from the queue and move on to the next request
-        if (!_.contains(errorsToRetry, error.message)) {
+        // If the request was cancelled we don't want to retry it, so remove it from the queue and move on to the next request
+        if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
             PersistedRequests.remove(currentRequest);
             RequestThrottle.clear();
             return process();
