@@ -1,6 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
-import React from 'react';
+import React, {Component} from 'react';
 import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import Navigation from '../../../../libs/Navigation/Navigation';
@@ -55,71 +55,100 @@ const defaultProps = {
     loginList: {},
 };
 
-const ContactMethodDetailsPage = props => {
-    const contactMethod = decodeURIComponent(lodashGet(props.route, 'params.contactMethod'));
-    const loginData = props.loginList[contactMethod];
-    if (!contactMethod || !loginData) {
+class ContactMethodDetailsPage extends Component {
+    constructor(props) {
+        super(props);
+
+        this.toggleDeleteModal = this.toggleDeleteModal.bind(this);
+
+        this.state = {
+            isDeleteModalOpen: false,
+        };
+    }
+
+    /**
+     * Toggle delete confirm modal visibility
+     * @param {Boolean} shouldOpen
+     */
+    toggleDeleteModal(shouldOpen) {
+        this.setState({isDeleteModalOpen: shouldOpen});
+    }
+
+    /**
+     * Delete the contact method and hide the modal
+     */
+    confirmDeleteAndHideModal() {
+        User.deleteContactMethod(contactMethod)
+        this.toggleDeleteModal(false);
         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
     }
 
-    const isDefaultContactMethod = (props.session.email === loginData.partnerUserID);
+    render() {
+        const contactMethod = decodeURIComponent(lodashGet(this.props.route, 'params.contactMethod'));
+        const loginData = this.props.loginList[contactMethod];
+        if (!contactMethod || !loginData) {
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+        }
 
-    return (
-        <ScreenWrapper>
-            <HeaderWithCloseButton
-                title={Str.removeSMSDomain(contactMethod)}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
-            />
-            <ScrollView>
-                <ConfirmModal
-                    title="Remove contact method"
-                    onConfirm={() => User.deleteContactMethod(contactMethod)}
-                    onCancel={() => console.log('hi')}
-                    prompt="Are you sure you want to remove this contact method? This action cannot be undone."
-                    confirmText="Yes, continue"
-                    isVisible={false}
+        const isDefaultContactMethod = (this.props.session.email === loginData.partnerUserID);
+
+        return (
+            <ScreenWrapper>
+                <HeaderWithCloseButton
+                    title={Str.removeSMSDomain(contactMethod)}
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                {isDefaultContactMethod && (
-                    <Text>
-                        This is your current default contact method. You will not be able to delete this contact method until you set an alternative default by selecting another contact method and pressing “Set as default”.
-                    </Text>
-                )}
-                {!loginData.validatedDate && (
-                    <>
-                        <MenuItem
-                            title="Resend verification"
-                            icon={Expensicons.Mail}
-                            iconRight={Expensicons.Checkmark}
-                            onPress={() => console.log('hi')}
-                            shouldShowRightIcon
-                            success
-                        />
-                        <DotIndicatorMessage style={[styles.ph8, styles.mv2, styles.ml3]} messages={{0: props.translate('contacts.clickVerificationLink')}} type="success" />
-                    </>
-                )}
-                <OfflineWithFeedback
-                    pendingAction={lodashGet(loginData, 'pendingFields.deletedLogin', null)}
-                    errors={lodashGet(loginData, 'errorFields.deletedLogin', null)}
-                    errorRowStyles={[styles.mt6]}
-                    onClose={() => User.clearContactMethodErrors(contactMethod, 'deletedLogin')}
-                >
-                    <MenuItem
-                        title="Remove"
-                        icon={Expensicons.Trashcan}
-                        onPress={() => User.deleteContactMethod(contactMethod, loginData)}
-                        disabled={isDefaultContactMethod}
+                <ScrollView>
+                    <ConfirmModal
+                        title="Remove contact method"
+                        onConfirm={this.confirmDeleteAndHideModal}
+                        onCancel={() => this.toggleDeleteModal(false)}
+                        prompt="Are you sure you want to remove this contact method? This action cannot be undone."
+                        confirmText="Yes, continue"
+                        isVisible={this.state.isDeleteModalOpen}
+                        danger
                     />
-                </OfflineWithFeedback>
-            </ScrollView>
-        </ScreenWrapper>
-    )
+                    {isDefaultContactMethod && (
+                        <Text>
+                            This is your current default contact method. You will not be able to delete this contact method until you set an alternative default by selecting another contact method and pressing “Set as default”.
+                        </Text>
+                    )}
+                    {!loginData.validatedDate && (
+                        <>
+                            <MenuItem
+                                title="Resend verification"
+                                icon={Expensicons.Mail}
+                                iconRight={Expensicons.Checkmark}
+                                onPress={() => console.log('hi')}
+                                shouldShowRightIcon
+                                success
+                            />
+                            <DotIndicatorMessage style={[styles.ph8, styles.mv2, styles.ml3]} messages={{0: this.props.translate('contacts.clickVerificationLink')}} type="success" />
+                        </>
+                    )}
+                    <OfflineWithFeedback
+                        pendingAction={lodashGet(loginData, 'pendingFields.deletedLogin', null)}
+                        errors={lodashGet(loginData, 'errorFields.deletedLogin', null)}
+                        errorRowStyles={[styles.mt6]}
+                        onClose={() => User.clearContactMethodErrors(contactMethod, 'deletedLogin')}
+                    >
+                        <MenuItem
+                            title="Remove"
+                            icon={Expensicons.Trashcan}
+                            onPress={() => User.deleteContactMethod(contactMethod, loginData)}
+                            disabled={isDefaultContactMethod}
+                        />
+                    </OfflineWithFeedback>
+                </ScrollView>
+            </ScreenWrapper>
+        );
+    }
 };
 
 ContactMethodDetailsPage.propTypes = propTypes;
 ContactMethodDetailsPage.defaultProps = defaultProps;
-ContactMethodDetailsPage.displayName = 'ContactMethodDetailsPage';
 
 export default compose(
     withLocalize,
