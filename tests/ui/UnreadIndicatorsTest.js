@@ -145,7 +145,7 @@ function signInAndGetAppWithUnreadChat() {
                 reportID: REPORT_ID,
                 reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                 lastReadTime: reportAction3CreatedDate,
-                lastActionCreated: reportAction9CreatedDate,
+                lastVisibleActionCreated: reportAction9CreatedDate,
                 lastMessageText: 'Test',
                 participants: [USER_B_EMAIL],
             });
@@ -288,7 +288,7 @@ describe('Unread Indicators', () => {
                         reportID: NEW_REPORT_ID,
                         reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                         lastReadTime: '',
-                        lastActionCreated: DateUtils.getDBTime(NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf()),
+                        lastVisibleActionCreated: DateUtils.getDBTime(NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf()),
                         lastMessageText: 'Comment 1',
                         participants: [USER_C_EMAIL],
                     },
@@ -441,7 +441,7 @@ describe('Unread Indicators', () => {
             expect(unreadIndicator).toHaveLength(0);
         }));
 
-    it('Clears the new line indicator when the user moves the App to the background', () => signInAndGetAppWithUnreadChat()
+    it('Keeps the new line indicator when the user moves the App to the background', () => signInAndGetAppWithUnreadChat()
         .then(() => {
             // Verify we are on the LHN and that the chat shows as unread in the LHN
             expect(isDrawerOpen()).toBe(true);
@@ -478,9 +478,9 @@ describe('Unread Indicators', () => {
             AppState.emitCurrentTestState('background');
             AppState.emitCurrentTestState('active');
 
-            // Verify the new line is cleared
+            // Verify the new line is still present
             unreadIndicator = screen.queryAllByLabelText('New message line indicator');
-            expect(unreadIndicator).toHaveLength(0);
+            expect(unreadIndicator).toHaveLength(1);
         }));
 
     it('Displays the correct chat message preview in the LHN when a comment is added then deleted', () => {
@@ -504,7 +504,7 @@ describe('Unread Indicators', () => {
                 lastReportAction = {...CollectionUtils.lastItem(reportActions)};
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                     lastMessageText: lastReportAction.message[0].text,
-                    lastActionCreated: DateUtils.getDBTime(lastReportAction.timestamp),
+                    lastVisibleActionCreated: DateUtils.getDBTime(lastReportAction.timestamp),
                     lastActorEmail: lastReportAction.actorEmail,
                     reportID: REPORT_ID,
                 });

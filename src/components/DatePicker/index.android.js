@@ -26,7 +26,8 @@ class DatePicker extends React.Component {
      */
     setDate(event, selectedDate) {
         if (event.type === 'set') {
-            this.props.onInputChange(selectedDate);
+            const asMoment = moment(selectedDate, true);
+            this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
         }
 
         this.setState({isPickerVisible: false});
@@ -69,6 +70,8 @@ class DatePicker extends React.Component {
                         value={this.props.value || this.props.defaultValue ? moment(this.props.value || this.props.defaultValue).toDate() : new Date()}
                         mode="date"
                         onChange={this.setDate}
+                        maximumDate={new Date(CONST.DATE.MAX_DATE)}
+                        minimumDate={new Date(CONST.DATE.MIN_DATE)}
                     />
                 )}
             </>

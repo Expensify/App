@@ -86,13 +86,13 @@ function containsOnlyEmojis(message) {
  * @param {Object[]} emojis
  * @returns {Number[]}
  */
-function getDynamicHeaderIndices(emojis) {
+function getHeaderIndices(emojis) {
     const headerIndices = [];
     _.each(emojis, (emoji, index) => {
         if (!emoji.header) {
             return;
         }
-        headerIndices.push(Math.floor(index / CONST.EMOJI_NUM_PER_ROW));
+        headerIndices.push(index);
     });
     return headerIndices;
 }
@@ -228,7 +228,7 @@ function suggestEmojis(text, limit = 5) {
                 if (matching.length === limit) {
                     return matching;
                 }
-                matching.push({code: nodes[j].metaData.code, name: nodes[j].name});
+                matching.push({code: nodes[j].metaData.code, name: nodes[j].name, types: nodes[j].metaData.types});
             }
             const suggestions = nodes[j].metaData.suggestions;
             for (let i = 0; i < suggestions.length; i++) {
@@ -246,7 +246,7 @@ function suggestEmojis(text, limit = 5) {
 }
 
 export {
-    getDynamicHeaderIndices,
+    getHeaderIndices,
     mergeEmojisWithFrequentlyUsedEmojis,
     addToFrequentlyUsedEmojis,
     containsOnlyEmojis,
