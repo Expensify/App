@@ -45,11 +45,14 @@ const propTypes = {
     /** Render custom content inside the tooltip. Note: This cannot be used together with the text props. */
     renderTooltipContent: PropTypes.func,
 
+    /** When rendering arbitrarily content using renderTooltipContent you should specify the width of the content */
+    contentWidth: PropTypes.number,
 };
 
 const defaultProps = {
     shiftHorizontal: 0,
     shiftVertical: 0,
+    contentWidth: 0,
     renderTooltipContent: undefined,
 };
 
@@ -62,8 +65,8 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            // The width of tooltip's inner text
-            tooltipTextWidth: 0,
+            // The width of tooltip's inner content
+            tooltipContentWidth: props.contentWidth,
 
             // The width and height of the tooltip itself
             tooltipWidth: 0,
@@ -85,12 +88,16 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
 
         // Reset the tooltip text width to 0 so that we can measure it again.
         // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({tooltipTextWidth: 0}, this.updateTooltipTextWidth);
+        this.setState({tooltipContentWidth: 0}, this.updateTooltipTextWidth);
     }
 
     updateTooltipTextWidth() {
+        if (!this.textRef) {
+            return;
+        }
+
         this.setState({
-            tooltipTextWidth: this.textRef.offsetWidth,
+            tooltipContentWidth: this.textRef.offsetWidth,
         });
     }
 
@@ -123,7 +130,7 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
             this.props.maxWidth,
             this.state.tooltipWidth,
             this.state.tooltipHeight,
-            this.state.tooltipTextWidth,
+            this.state.tooltipContentWidth,
             this.props.shiftHorizontal,
             this.props.shiftVertical,
         );

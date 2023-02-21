@@ -197,6 +197,7 @@ class Tooltip extends PureComponent {
 
         // New state is introduced for the content dimensions
         const isContentMeasured = this.state.contentWidth > 0 && this.state.contentHeight > 0;
+
         return (
             <>
                 {isCustomContent && !isContentMeasured && (
@@ -220,6 +221,9 @@ class Tooltip extends PureComponent {
                         text={this.props.text}
                         maxWidth={this.props.maxWidth}
                         numberOfLines={this.props.numberOfLines}
+                        contentWidth={this.state.contentWidth}
+                        contentHeight={this.state.contentHeight}
+                        renderTooltipContent={this.props.renderTooltipContent}
                     />
                 )}
                 <Hoverable

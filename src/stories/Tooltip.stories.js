@@ -18,20 +18,19 @@ const Template = args => (
     }}
     >
         {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-        <Tooltip {...args} maxWidth={args.maxWidth || undefined} />
-    </div>
-);
-
-const Children = (
-    <div style={{
-        width: 100,
-        height: 60,
-        backgroundColor: 'red',
-        justifyContent: 'center',
-        alignItems: 'center',
-    }}
-    >
-        Hover me
+        <Tooltip {...args} maxWidth={args.maxWidth || undefined}>
+            <div style={{
+                width: 100,
+                height: 60,
+                display: 'flex',
+                backgroundColor: 'red',
+                justifyContent: 'center',
+                alignItems: 'center',
+            }}
+            >
+                Hover me
+            </div>
+        </Tooltip>
     </div>
 );
 
@@ -43,10 +42,22 @@ Default.args = {
     numberOfLines: 1,
     maxWidth: 0,
     absolute: false,
-    children: Children,
+};
+
+const RenderContent = Template.bind({});
+RenderContent.args = {
+    renderTooltipContent: () => (
+        <div style={{
+            width: 40,
+            height: 40,
+            backgroundColor: 'blue',
+        }}
+        />
+    ),
 };
 
 export default story;
 export {
     Default,
+    RenderContent,
 };
