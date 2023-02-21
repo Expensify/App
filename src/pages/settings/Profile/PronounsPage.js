@@ -59,20 +59,26 @@ class PronounsPage extends Component {
         this.setState({searchValue});
     }
 
+    /**
+     * Returns the pronouns list filtered by searchValue needed for the OptionsSelector. 
+     * Empty array is returned if the searchValue is empty.
+     *
+     * @returns {Array}
+     */
     getFilteredPronouns() {
-        if (this.state.searchValue.length === 0) {
+        const searchedValue = this.state.searchValue.trim();
+        if (searchedValue.length === 0) {
             return [];
         }
         return _.filter(this.pronounsList,
-            pronous => pronous.text.toLowerCase().indexOf(this.state.searchValue.toLowerCase()) >= 0);
+            pronous => pronous.text.toLowerCase().indexOf(searchedValue.toLowerCase()) >= 0);
     }
 
     /**
-     * @param {String} selectedPronouns
+     * @param {Obj} selectedPronouns
      */
     updatePronouns(selectedPronouns) {
-        console.log('selectedPronouns', selectedPronouns);
-        PersonalDetails.updatePronouns(selectedPronouns);
+        PersonalDetails.updatePronouns(selectedPronouns.value);
     }
 
     render() {
@@ -92,6 +98,7 @@ class PronounsPage extends Component {
                             {this.props.translate('pronounsPage.isShownOnProfile')}
                         </Text>
                         <OptionsSelector
+                            textInputLabel={this.props.translate('pronounsPage.pronouns')}
                             sections={[{data: filteredPronounsList}]}
                             value={this.state.searchValue}
                             onSelectRow={this.updatePronouns}
