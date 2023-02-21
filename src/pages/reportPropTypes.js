@@ -32,7 +32,7 @@ export default PropTypes.shape({
     lastMessageText: PropTypes.string,
 
     /** The time of the last message on the report */
-    lastActionCreated: PropTypes.string,
+    lastVisibleActionCreated: PropTypes.string,
 
     /** The last time the report was visited */
     lastReadTime: PropTypes.string,
