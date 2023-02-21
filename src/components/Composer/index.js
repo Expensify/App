@@ -129,7 +129,7 @@ class Composer extends React.Component {
         this.handleWheel = this.handleWheel.bind(this);
         this.putSelectionInClipboard = this.putSelectionInClipboard.bind(this);
         this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
-        this.updateNumberOfLinesOnLayoutChange = this.updateNumberOfLinesOnLayoutChange(this);
+        this.updateNumberOfLinesOnLayoutChange = this.updateNumberOfLinesOnLayoutChange.bind(this);
     }
 
     componentDidMount() {
