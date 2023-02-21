@@ -147,7 +147,7 @@ Once the Expensify Cards have been assigned, each employee will be prompted to e
 
 If you have an accounting system we directly integrate with, check out how we take automation a step further with [Continuous Reconciliation](https://community.expensify.com/discussion/7335/faq-what-is-the-expensify-card-auto-reconciliation-process). We’ll create an Expensify Card clearing and liability account for you. Each time settlement occurs, we’ll take the total amount of your purchases and create a journal entry that credits the settlement account and debits the liability account - saving you hours of manual reconciliation work at the end of your statement period. 
 
-# Step 9: Set up Bill Pay and Invoicing
+## Step 9: Set up Bill Pay and Invoicing
 As a small business, managing bills and invoices can be a complex and time-consuming task. Whether you receive bills from vendors or need to invoice clients, it's important to have a solution that makes the process simple, efficient, and cost-effective.
 
 Here are some of the key benefits of using Expensify for bill payments and invoicing:
