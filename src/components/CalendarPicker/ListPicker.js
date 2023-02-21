@@ -30,12 +30,17 @@ const styles = StyleSheet.create({
     },
 });
 
-const Separator = () => <View style={styles.separator} />;
-
 const propTypes = {
+    /** Value selected from the list */
     selected: PropTypes.number,
+
+    /** Function allowing to pass custom names for items */
     format: PropTypes.func,
+
+    /** Function to call when value from the list is selected */
     onSelect: PropTypes.func.isRequired,
+
+    /** List of the elements */
     data: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.number, PropTypes.string])).isRequired,
 };
 
@@ -44,36 +49,44 @@ const defaultProps = {
     selected: null,
 };
 
-const ListPicker = (props) => {
-    const ref = React.useRef(null);
+class ListPicker extends React.Component {
+    constructor(props) {
+        super(props);
 
-    const renderItem = React.useCallback(({item}) => (
-        <TouchableOpacity
-            style={styles.item}
-            onPress={() => props.onSelect(item)}
-        >
-            <Text>{props.format ? props.format(item) : item}</Text>
-            {props.selected === item && <Icon src={Expensicons.Checkmark} fill={themeColors.checkBox} height={20} width={20} />}
-        </TouchableOpacity>
-    ), []);
+        this.renderItem = this.renderItem.bind(this);
+    }
 
-    const getItemLayout = React.useCallback((_, index) => ({length: ITEM_LENGTH, offset: ITEM_LENGTH * index, index}), []);
+    getItemLayout(_, index) {
+        return {length: ITEM_LENGTH, offset: ITEM_LENGTH * index, index};
+    }
 
-    return (
-        <FlatList
-            ref={ref}
-            style={styles.root}
-            initialNumToRender={20}
-            data={props.data}
-            initialScrollIndex={props.data.indexOf(props.selected)}
-            renderItem={renderItem}
-            getItemLayout={getItemLayout}
-            ItemSeparatorComponent={Separator}
-        />
-    );
-};
+    renderItem({item}) {
+        return (
+            <TouchableOpacity
+                style={styles.item}
+                onPress={() => this.props.onSelect(item)}
+            >
+                <Text>{this.props.format ? this.props.format(item) : item}</Text>
+                {this.props.selected === item && <Icon src={Expensicons.Checkmark} fill={themeColors.checkBox} height={20} width={20} />}
+            </TouchableOpacity>
+        );
+    }
 
-ListPicker.displayName = 'ListPicker';
+    render() {
+        return (
+            <FlatList
+                style={styles.root}
+                initialNumToRender={20}
+                data={this.props.data}
+                initialScrollIndex={this.props.data.indexOf(this.props.selected)}
+                renderItem={this.renderItem}
+                getItemLayout={this.getItemLayout}
+                ItemSeparatorComponent={() => <View style={styles.separator} />}
+            />
+        );
+    }
+}
+
 ListPicker.propTypes = propTypes;
 ListPicker.defaultProps = defaultProps;
 
