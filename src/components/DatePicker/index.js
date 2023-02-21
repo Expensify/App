@@ -8,6 +8,8 @@ import CalendarPicker from '../CalendarPicker';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withNavigation from '../withNavigation';
+import compose from '../../libs/compose';
 import './styles.css';
 
 const datePickerPropTypes = {
@@ -42,8 +44,13 @@ class DatePicker extends React.Component {
         this.maxDate = props.maxDate ? moment(props.maxDate).toDate() : null;
     }
 
+    componentDidMount() {
+        this.props.navigation.addListener('transitionEnd', this.onWindowResize);
+    }
+
     componentWillUnmount() {
         window.removeEventListener('resize', this.onWindowResize);
+        this.props.navigation.removeListener('transitionEnd', this.onWindowResize);
     }
 
     /**
@@ -94,10 +101,7 @@ class DatePicker extends React.Component {
 
     render() {
         return (
-            <View
-                onLayout={({nativeEvent}) => { this.setState({pickerLayout: nativeEvent.layout}); }}
-                ref={ref => this.wrapperRef = ref}
-            >
+            <View ref={ref => this.wrapperRef = ref}>
                 <TextInput
                     forceActiveLabel
                     ref={(el) => {
@@ -141,7 +145,8 @@ class DatePicker extends React.Component {
 DatePicker.propTypes = datePickerPropTypes;
 DatePicker.defaultProps = defaultProps;
 
-export default withWindowDimensions(React.forwardRef((props, ref) => (
+export default compose(withNavigation,
+    withWindowDimensions)(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <DatePicker {...props} innerRef={ref} />
+        <DatePicker {...props} innerRef={ref} />
 )));
