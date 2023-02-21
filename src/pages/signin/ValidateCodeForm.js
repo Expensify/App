@@ -77,7 +77,7 @@ class ValidateCodeForm extends React.Component {
         }
         this.inputValidateCode.focus();
 
-        // wasValidateCodeSentRecently checks for a message. This will clear it and let users rerequest codes on refresh
+        // Clears validation code message to let users re-request codes on refresh
         Session.clearAccountMessages();
     }
 
