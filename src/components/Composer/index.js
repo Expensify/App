@@ -129,6 +129,7 @@ class Composer extends React.Component {
         this.handleWheel = this.handleWheel.bind(this);
         this.putSelectionInClipboard = this.putSelectionInClipboard.bind(this);
         this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
+        this.updateNumberOfLinesOnLayoutChange = this.updateNumberOfLinesOnLayoutChange(this);
     }
 
     componentDidMount() {
@@ -367,7 +368,7 @@ class Composer extends React.Component {
                 selection={this.state.selection}
                 onChange={this.shouldCallUpdateNumberOfLines}
                 onSelectionChange={this.onSelectionChange}
-                onLayout={() => this.updateNumberOfLinesOnLayoutChange()}
+                onLayout={this.updateNumberOfLinesOnLayoutChange}
                 numberOfLines={this.state.numberOfLines}
                 style={[
                     propStyles,
