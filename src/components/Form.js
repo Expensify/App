@@ -176,6 +176,7 @@ class Form extends React.Component {
         // Run any validations passed as a prop
         const validationErrors = this.props.validate(values);
 
+        // Validate the input for html tags. It should superseed any other error
         _.each(values, (inputValue, inputID) => {
             if (inputValue.search(/<(.|\n)*?>/g) !== -1) {
                 validationErrors[inputID] = this.props.translate('common.error.inputHasHtml');
