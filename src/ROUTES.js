@@ -51,6 +51,7 @@ export default {
     SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH: `${SETTINGS_PERSONAL_DETAILS}/date-of-birth`,
     SETTINGS_PERSONAL_DETAILS_ADDRESS: `${SETTINGS_PERSONAL_DETAILS}/address`,
     SETTINGS_CONTACT_METHODS,
+    SETTINGS_NEW_CONTACT_METHOD: 'settings/profile/contact-methods/new',
     NEW_GROUP: 'new/group',
     NEW_CHAT: 'new/chat',
     REPORT,

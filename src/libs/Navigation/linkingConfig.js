@@ -127,6 +127,10 @@ export default {
                     Settings_Add_Secondary_Login: {
                         path: ROUTES.SETTINGS_ADD_LOGIN,
                     },
+                    Settings_NewContactMethod: {
+                        path: ROUTES.SETTINGS_NEW_CONTACT_METHOD,
+                        exact: true,
+                    },
                     Settings_PersonalDetails_Initial: {
                         path: ROUTES.SETTINGS_PERSONAL_DETAILS,
                         exact: true,

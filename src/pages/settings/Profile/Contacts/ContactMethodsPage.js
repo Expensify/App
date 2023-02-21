@@ -130,7 +130,7 @@ class ContactMethodsPage extends Component {
                         success
                         icon={Expensicons.Plus}
                         text={this.props.translate('contacts.newContactMethod')}
-                        onPress={()=>{}}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD)}
                         pressOnEnter
                     />
                 </FixedFooter>

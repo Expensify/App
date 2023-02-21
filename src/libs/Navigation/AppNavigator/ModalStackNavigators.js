@@ -289,6 +289,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsNewContactMethodPage = require('../../../pages/settings/Profile/Contacts/NewContactMethodPage').default;
+            return SettingsNewContactMethodPage;
+        },
+        name: 'Settings_NewContactMethod',
+    },
+    {
+        getComponent: () => {
             const SettingsPreferencesPage = require('../../../pages/settings/Preferences/PreferencesPage').default;
             return SettingsPreferencesPage;
         },
