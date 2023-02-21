@@ -7,6 +7,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import styles from '../../../styles/styles';
 import SignInPageGraphics from './SignInPageGraphics';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import scrollViewContentContainerStyles from './signInPageStyles';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -26,6 +27,9 @@ const SignInPageLayout = (props) => {
     let containerStyles = [styles.flex1, styles.signInPageInner];
     let contentContainerStyles = [styles.flex1, styles.flexRow];
 
+    // To scroll on both mobile and web, we need to set the container height manually
+    const containerHeight = StyleUtils.getHeight(props.windowHeight);
+
     if (props.isSmallScreenWidth) {
         containerStyles = [styles.flex1];
         contentContainerStyles = [styles.flex1, styles.flexColumn];
@@ -42,8 +46,8 @@ const SignInPageLayout = (props) => {
                         {props.children}
                     </SignInPageContent>
                     <ScrollView
-                        style={[styles.flex1, StyleUtils.getHeight(1 + props.windowHeight)]}
-                        contentContainerStyle={[styles.flexGrow1]}
+                        style={[styles.flex1, containerHeight]}
+                        contentContainerStyle={[scrollViewContentContainerStyles]}
                     >
                         <SignInPageGraphics />
                         <Footer />
@@ -52,10 +56,8 @@ const SignInPageLayout = (props) => {
             )
                 : (
                     <ScrollView
-
-                        // To scroll on both mobile and web, we need to set the container height manually
-                        style={StyleUtils.getHeight(1 + props.windowHeight)}
-                        contentContainerStyle={[styles.flexGrow1]}
+                        style={containerHeight}
+                        contentContainerStyle={[scrollViewContentContainerStyles]}
                     >
                         <SignInPageContent
                             welcomeText={props.welcomeText}

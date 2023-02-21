@@ -605,13 +605,13 @@ function hasSafeAreas(windowWidth, windowHeight) {
 }
 
 /**
- * Get variable keyboard height as style
- * @param {Number} keyboardHeight
+ * Get height as style
+ * @param {Number} height
  * @returns {Object}
  */
-function getHeight(keyboardHeight) {
+function getHeight(height) {
     return {
-        height: keyboardHeight,
+        height,
     };
 }
 
