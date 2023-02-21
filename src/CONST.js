@@ -70,6 +70,7 @@ const CONST = {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
         UNIX_EPOCH: '1970-01-01 00:00:00.000',
         MAX_DATE: '9999-12-31',
+        MIN_DATE: '0001-01-01',
     },
     SMS: {
         DOMAIN: '@expensify.sms',
@@ -519,6 +520,7 @@ const CONST = {
         URL: 'url',
     },
 
+    ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
@@ -1175,6 +1177,15 @@ const CONST = {
         'Zambia',
         'Zimbabwe',
     ],
+
+    // Values for checking if polyfill is required on a platform
+    POLYFILL_TEST: {
+        STYLE: 'currency',
+        CURRENCY: 'XAF',
+        FORMAT: 'symbol',
+        SAMPLE_INPUT: '123456.789',
+        EXPECTED_OUTPUT: 'FCFA 123,457',
+    },
 };
 
 export default CONST;
