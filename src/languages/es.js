@@ -328,7 +328,6 @@ export default {
         emailAddress: 'Dirección de email',
         setMyTimezoneAutomatically: 'Configura mi zona horaria automáticamente',
         timezone: 'Zona horaria',
-        growlMessageOnSave: 'Tu perfil se ha guardado correctamente',
         invalidFileMessage: 'Archivo inválido. Pruebe con una imagen diferente.',
         avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
         online: 'En línea',
@@ -338,6 +337,10 @@ export default {
     pronounsPage: {
         pronouns: 'Pronombres',
         isShownOnProfile: 'Tus pronombres se muestran en tu perfil.',
+    },
+    contacts: {
+        contactMethod: 'Método de contacto',
+        contactMethods: 'Métodos de contacto',
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -600,8 +603,6 @@ export default {
     },
     personalDetails: {
         error: {
-            firstNameLength: `El nombre no puede tener más de ${CONST.DISPLAY_NAME.MAX_LENGTH} caracteres`,
-            lastNameLength: `El apellido no puede tener más de ${CONST.DISPLAY_NAME.MAX_LENGTH} caracteres`,
             containsReservedWord: 'El nombre no puede contener las palabras Expensify o Concierge',
             hasInvalidCharacter: 'El nombre no puede contener una coma o un punto y coma',
         },
