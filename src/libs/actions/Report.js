@@ -805,6 +805,9 @@ const removeLinks = (comment, links) => {
  */
 const handleUserDeletedLinks = (newCommentText, originalHtml) => {
     const parser = new ExpensiMark();
+    if (newCommentText.length >= 10000) {
+        return newCommentText;
+    }
     const htmlWithAutoLinks = parser.replace(newCommentText);
     const markdownWithAutoLinks = parser.htmlToMarkdown(htmlWithAutoLinks);
     const markdownOriginalComment = parser.htmlToMarkdown(originalHtml);
