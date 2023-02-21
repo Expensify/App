@@ -69,7 +69,7 @@ class AddressPage extends Component {
      * @param {String} newCountry - new country selected in form
      */
     onCountryUpdate(newCountry) {
-        if (newCountry === CONST.USA_COUNTRY_NAME) {
+        if (newCountry === CONST.COUNTRY.US) {
             this.setState({isUsaForm: true});
         } else {
             this.setState({isUsaForm: false});

@@ -10,7 +10,6 @@ import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import TextInput from './TextInput';
 import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
-import CONST from '../CONST';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -117,7 +116,7 @@ const AddressSearch = (props) => {
             sublocality: 'long_name',
             postal_code: 'long_name',
             administrative_area_level_1: 'short_name',
-            country: 'long_name',
+            country: 'short_name',
         });
 
         const values = {
@@ -137,7 +136,7 @@ const AddressSearch = (props) => {
             values.street = street;
         }
 
-        if (_.includes(CONST.ALL_COUNTRIES, country)) {
+        if (props.translate('allCountries')[country]) {
             values.country = country;
         }
 
