@@ -37,6 +37,7 @@ class ListPicker extends React.Component {
         super(props);
 
         this.renderItem = this.renderItem.bind(this);
+        this.getItemLayout = this.getItemLayout.bind(this);
     }
 
     getItemLayout(_, index) {
