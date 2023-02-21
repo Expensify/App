@@ -231,7 +231,7 @@ const chatReportSelector = (report) => {
         },
         lastReadTime: report.lastReadTime,
         lastMessageText: report.lastMessageText,
-        lastActionCreated: report.lastActionCreated,
+        lastVisibleActionCreated: report.lastVisibleActionCreated,
         iouReportID: report.iouReportID,
         hasOutstandingIOU: report.hasOutstandingIOU,
         statusNum: report.statusNum,
