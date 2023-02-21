@@ -46,14 +46,6 @@ class BaseModal extends PureComponent {
     componentWillUnmount() {
         // we don't want to call the onModalHide on unmount
         this.hideModal(this.props.isVisible);
-        this.onDismiss(this.props.isVisible);
-    }
-
-    onDismiss(callHideCallback = true) {
-        if (!callHideCallback) {
-            return;
-        }
-        this.props.onDismiss();
     }
 
     /**
