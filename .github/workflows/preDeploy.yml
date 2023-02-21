@@ -6,9 +6,11 @@ on:
 
 jobs:
   lint:
+    name: Run lint workflow
     uses: Expensify/App/.github/workflows/lint.yml@main
 
   test:
+    name: Run test workflow
     uses: Expensify/App/.github/workflows/test.yml@main
 
   confirmPassingBuild:
@@ -17,12 +19,14 @@ jobs:
     if: ${{ always() }}
 
     steps:
-      - if: ${{ needs.lint.result == 'failure' || needs.test.result == 'failure' }}
+      - name: Announce failed workflow in Slack
+        if: ${{ needs.lint.result == 'failure' || needs.test.result == 'failure' }}
         uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
-      - if: ${{ needs.lint.result == 'failure' || needs.test.result == 'failure' }}
+      - name: Exit failed workflow
+        if: ${{ needs.lint.result == 'failure' || needs.test.result == 'failure' }}
         run: exit 1
 
   chooseDeployActions:
@@ -75,6 +79,7 @@ jobs:
   createNewVersion:
     needs: chooseDeployActions
     if: ${{ fromJSON(needs.chooseDeployActions.outputs.SHOULD_DEPLOY) }}
+    name: Create new version
     uses: Expensify/App/.github/workflows/createNewVersion.yml@main
     secrets: inherit
 
@@ -82,7 +87,8 @@ jobs:
     needs: [chooseDeployActions, createNewVersion]
     runs-on: ubuntu-latest
     steps:
-      - uses: softprops/turnstyle@ca99add00ff0c9cbc697d22631d2992f377e5bd5
+      - name: Run turnstyle
+        uses: softprops/turnstyle@ca99add00ff0c9cbc697d22631d2992f377e5bd5
         with:
           poll-interval-seconds: 10
         env:
@@ -105,7 +111,8 @@ jobs:
           INPUTS: '{ "PULL_REQUEST_NUMBER": "${{ needs.chooseDeployActions.outputs.MERGED_PR }}", "NEW_VERSION": "${{ needs.createNewVersion.outputs.NEW_VERSION }}" }'
 
       # Version: 3.0.2
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - name: Checkout staging
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           ref: staging
           fetch-depth: 0
@@ -156,7 +163,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - if: ${{ failure() }}
+      - name: Announce failed workflow in Slack
+        if: ${{ failure() }}
         uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
@@ -189,7 +197,8 @@ jobs:
     if: ${{ github.actor != 'OSBotify' && !fromJSON(needs.isExpensifyEmployee.outputs.IS_EXPENSIFY_EMPLOYEE) }}
     steps:
       # Version: 2.3.4
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - name: Checkout
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
