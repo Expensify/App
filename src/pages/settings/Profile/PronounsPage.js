@@ -59,7 +59,7 @@ class PronounsPage extends Component {
     }
 
     /**
-     * Returns the pronouns list filtered by searchValue needed for the OptionsSelector. 
+     * Returns the pronouns list filtered by searchValue needed for the OptionsSelector.
      * Empty array is returned if the searchValue is empty.
      *
      * @returns {Array}
@@ -109,7 +109,7 @@ class PronounsPage extends Component {
             </ScreenWrapper>
         );
     }
-};
+}
 
 PronounsPage.propTypes = propTypes;
 PronounsPage.defaultProps = defaultProps;
