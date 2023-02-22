@@ -304,6 +304,15 @@ class ReportActionCompose extends React.Component {
         this.setState({maxLines});
     }
 
+    /**
+     * Set isInAddAttachmentFlow state
+     *
+     * @param {Boolean} value
+     */
+    setIsInAddAttachmentFlow(value) {
+        this.setState({isInAddAttachmentFlow: value});
+    }
+
     isEmptyChat() {
         return _.size(this.props.reportActions) === 1;
     }
@@ -477,11 +486,12 @@ class ReportActionCompose extends React.Component {
 
     /**
      * Set the focus back to the composer
-     *
-     * @param {SyntheticEvent} [e]
      */
     finishAddAttachmentFlow() {
-        this.setState({isInAddAttachmentFlow: false});
+        this.setIsInAddAttachmentFlow(false);
+
+        // Explicitly focus the composer from here as componentDidUpdate does not do that in native
+        // because willBlurTextInputOnTapOutside is false on native which doesn't let it focus
         this.focus(true);
     }
 
@@ -618,15 +628,21 @@ class ReportActionCompose extends React.Component {
                                             <PopoverMenu
                                                 animationInTiming={CONST.ANIMATION_IN_TIMING}
                                                 isVisible={this.state.isMenuVisible}
-                                                onClose={() => this.setMenuVisibility(false)}
-                                                onItemSelected={() => this.setMenuVisibility(false)}
+                                                onClose={() => {
+                                                    this.setMenuVisibility(false);
+                                                    this.finishAddAttachmentFlow();
+                                                }}
+                                                onItemSelected={() => {
+                                                    this.setMenuVisibility(false);
+                                                    this.setIsInAddAttachmentFlow(false);
+                                                }}
                                                 anchorPosition={styles.createMenuPositionReportActionCompose}
                                                 menuItems={[...this.getIOUOptions(reportParticipants),
                                                     {
                                                         icon: Expensicons.Paperclip,
                                                         text: this.props.translate('reportActionCompose.addAttachment'),
                                                         onSelected: () => {
-                                                            this.setState({isInAddAttachmentFlow: true});
+                                                            this.setIsInAddAttachmentFlow(true);
                                                             openPicker({
                                                                 onPicked: displayFileInModal,
                                                                 onClose: this.finishAddAttachmentFlow,
