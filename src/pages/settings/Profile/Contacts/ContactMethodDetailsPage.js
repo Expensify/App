@@ -1,7 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
-import {View, ScrollView} from 'react-native';
+import {View, ScrollView, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
@@ -19,6 +19,10 @@ import Text from '../../../../components/Text';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import ConfirmModal from '../../../../components/ConfirmModal';
 import * as User from '../../../../libs/actions/User';
+import TextInput from '../../../../components/TextInput';
+import CONST from '../../../../CONST';
+import Icon from '../../../../components/Icon';
+import colors from '../../../../styles/colors';
 
 const propTypes = {
     /* Onyx Props */
@@ -60,9 +64,13 @@ class ContactMethodDetailsPage extends Component {
         super(props);
 
         this.toggleDeleteModal = this.toggleDeleteModal.bind(this);
+        this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
+        this.resendValidateCode = this.resendValidateCode.bind(this);
+        this.getContactMethod = this.getContactMethod.bind(this);
 
         this.state = {
             isDeleteModalOpen: false,
+            validateCode: '',
         };
     }
 
@@ -74,20 +82,33 @@ class ContactMethodDetailsPage extends Component {
         this.setState({isDeleteModalOpen: shouldOpen});
     }
 
+    getContactMethod() {
+        return decodeURIComponent(lodashGet(this.props.route, 'params.contactMethod'));
+    }
+
     /**
      * Delete the contact method and hide the modal
      */
     confirmDeleteAndHideModal() {
+        const contactMethod = this.getContactMethod();
         User.deleteContactMethod(contactMethod)
         this.toggleDeleteModal(false);
         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
     }
 
+    /**
+     * Request a validate code / magic code be sent to verify this contact method
+     */
+    resendValidateCode() {
+        User.requestContactMethodValidateCode(this.getContactMethod());
+    }
+
     render() {
-        const contactMethod = decodeURIComponent(lodashGet(this.props.route, 'params.contactMethod'));
+        const contactMethod = this.getContactMethod();
         const loginData = this.props.loginList[contactMethod];
         if (!contactMethod || !loginData) {
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+            return null;
         }
 
         const isDefaultContactMethod = (this.props.session.email === loginData.partnerUserID);
@@ -102,30 +123,56 @@ class ContactMethodDetailsPage extends Component {
                 />
                 <ScrollView>
                     <ConfirmModal
-                        title="Remove contact method"
+                        title={this.props.translate('contacts.removeContactMethod')}
                         onConfirm={this.confirmDeleteAndHideModal}
                         onCancel={() => this.toggleDeleteModal(false)}
-                        prompt="Are you sure you want to remove this contact method? This action cannot be undone."
-                        confirmText="Yes, continue"
+                        prompt={this.props.translate('contacts.removeAreYouSure')}
+                        confirmText={this.props.translate('common.yesContinue')}
                         isVisible={this.state.isDeleteModalOpen}
                         danger
                     />
-                    {isDefaultContactMethod && (
-                        <Text>
-                            This is your current default contact method. You will not be able to delete this contact method until you set an alternative default by selecting another contact method and pressing “Set as default”.
-                        </Text>
-                    )}
                     {!loginData.validatedDate && (
                         <>
-                            <MenuItem
+                            {/* <MenuItem
                                 title="Resend verification"
                                 icon={Expensicons.Mail}
                                 iconRight={Expensicons.Checkmark}
                                 onPress={() => console.log('hi')}
                                 shouldShowRightIcon
                                 success
-                            />
-                            <DotIndicatorMessage style={[styles.ph8, styles.mv2, styles.ml3]} messages={{0: this.props.translate('contacts.clickVerificationLink')}} type="success" />
+                            /> */}
+                            {/* <DotIndicatorMessage style={[styles.ph8, styles.mt2]} messages={{0: this.props.translate('contacts.enterMagicCode', {contactMethod})}} type="success" /> */}
+                            
+
+                            <View style={[styles.mh8, styles.mb2]}>
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb1, styles.mt3]}>
+                                    <Icon src={Expensicons.DotIndicator} fill={colors.green} />
+                                    <View style={[styles.flex1, styles.ml2]}>
+                                        <Text style={[styles.mb0]}>
+                                            {this.props.translate('contacts.enterMagicCode', {contactMethod})}
+                                        </Text>
+                                    </View>
+                                </View>
+                                <TextInput
+                                    label={this.props.translate('common.magicCode')}
+                                    name="validateCode"
+                                    value={this.state.validateCode}
+                                    onChangeText={text => this.setState({validateCode: text})}
+                                    // onSubmitEditing={this.validateAndSubmitForm}
+                                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                                    errorText=""
+                                    blurOnSubmit={false}
+                                />
+                                <TouchableOpacity
+                                    style={[styles.mt2]}
+                                    onPress={this.resendValidateCode}
+                                    // underlayColor={themeColors.componentBG}
+                                >
+                                    <Text style={[styles.link]}>
+                                        {this.props.translate('contacts.resendMagicCode')}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
                         </>
                     )}
                     <OfflineWithFeedback
@@ -135,12 +182,17 @@ class ContactMethodDetailsPage extends Component {
                         onClose={() => User.clearContactMethodErrors(contactMethod, 'deletedLogin')}
                     >
                         <MenuItem
-                            title="Remove"
+                            title={this.props.translate('common.remove')}
                             icon={Expensicons.Trashcan}
-                            onPress={() => User.deleteContactMethod(contactMethod, loginData)}
+                            onPress={() => this.toggleDeleteModal(true)}
                             disabled={isDefaultContactMethod}
                         />
                     </OfflineWithFeedback>
+                    {isDefaultContactMethod && (
+                        <Text style={[styles.ph8]}>
+                            {this.props.translate('contacts.yourDefaultContactMethod')}
+                        </Text>
+                    )}
                 </ScrollView>
             </ScreenWrapper>
         );
