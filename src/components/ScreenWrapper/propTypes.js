@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import {environmentPropTypes} from '../withEnvironment';
 
 const propTypes = {
     /** Array of additional styles to add */
@@ -19,6 +20,9 @@ const propTypes = {
     // Called when navigated Screen's transition is finished. It does not fire when user exit the page.
     onEntryTransitionEnd: PropTypes.func,
 
+    // Is the test tools modal open?
+    isTestToolsModalOpen: PropTypes.bool,
+
     /** The behavior to pass to the KeyboardAvoidingView, requires some trial and error depending on the layout/devices used.
      *  Search 'switch(behavior)' in ./node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js for more context */
     keyboardAvoidingViewBehavior: PropTypes.oneOf(['padding', 'height', 'position']),
@@ -28,6 +32,8 @@ const propTypes = {
         /** Indicates when an Alert modal is about to be visible */
         willAlertModalBecomeVisible: PropTypes.bool,
     }),
+
+    ...environmentPropTypes,
 };
 
 const defaultProps = {
@@ -36,6 +42,7 @@ const defaultProps = {
     includePaddingTop: true,
     onEntryTransitionEnd: () => {},
     modal: {},
+    isTestToolsModalOpen: false,
     keyboardAvoidingViewBehavior: 'padding',
 };
 
