@@ -118,6 +118,7 @@ export default {
         youAppearToBeOffline: 'Parece que estás desconectado.',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
         areYouSure: '¿Estás seguro?',
+        verify: '',
         yesContinue: '',
         zipCodeExample: 'p. ej. 12345, 12345-1234, 12345 1234',
         websiteExample: 'p. ej. https://www.expensify.com',
@@ -354,6 +355,7 @@ export default {
         resendMagicCode: '',
         genericFailureMessages: {
             requestContactMethodValidateCode: '',
+            validateSecondaryLogin: '',
         },
     },
     pronouns: {

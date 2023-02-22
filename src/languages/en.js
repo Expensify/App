@@ -118,6 +118,7 @@ export default {
         youAppearToBeOffline: 'You appear to be offline.',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
         areYouSure: 'Are you sure?',
+        verify: 'Verify',
         yesContinue: 'Yes, continue',
         zipCodeExample: 'e.g. 12345, 12345-1234, 12345 1234',
         websiteExample: 'e.g. https://www.expensify.com',
@@ -354,6 +355,7 @@ export default {
         resendMagicCode: 'Resend magic code',
         genericFailureMessages: {
             requestContactMethodValidateCode: 'Failed to send a new magic code. Please wait a bit and try again.',
+            validateSecondaryLogin: 'Failed to validate contact method with given magic code. Please request a new code and try again.',
         },
     },
     pronouns: {

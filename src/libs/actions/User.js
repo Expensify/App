@@ -306,6 +306,58 @@ function validateLogin(accountID, validateCode) {
 }
 
 /**
+ * Validates a secondary login / contact method
+ *
+ * @param {String} contactMethod - The contact method the user is trying to verify
+ * @param {String} validateCode
+ */
+function validateSecondaryLogin(contactMethod, validateCode) {
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                errorFields: {
+                    validateLogin: null,
+                },
+                pendingFields: {
+                    validateLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                pendingFields: {
+                    validateLogin: null,
+                },
+            },
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                errorFields: {
+                    validateLogin: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.validateSecondaryLogin'),
+                    },
+                },
+                pendingFields: {
+                    validateLogin: null,
+                },
+            },
+        },
+    }];
+
+    API.write('ValidateSecondaryLogin', {validateCode}, {optimisticData, successData, failureData});
+}
+
+/**
  * Checks the blockedFromConcierge object to see if it has an expiresAt key,
  * and if so whether the expiresAt date of a user's ban is before right now
  *
@@ -598,6 +650,7 @@ export {
     deleteContactMethod,
     clearContactMethodErrors,
     validateLogin,
+    validateSecondaryLogin,
     isBlockedFromConcierge,
     subscribeToUserEvents,
     updatePreferredSkinTone,
