@@ -129,7 +129,13 @@ class BaseTextInput extends Component {
     onBlur(event) {
         if (this.props.onBlur) { this.props.onBlur(event); }
         this.setState({isFocused: false});
-        this.deactivateLabel();
+
+        // If the text has been supplied by Chrome autofill, the value state is not synced with the value
+        // as Chrome doesn't trigger a change event. When there is autofill text, don't deactivate label.
+        const textWasAutoFilledOnChrome = this.input.matches && this.input.matches(':-webkit-autofill');
+        if (!textWasAutoFilledOnChrome) {
+            this.deactivateLabel();
+        }
     }
 
     /**
@@ -255,17 +261,19 @@ class BaseTextInput extends Component {
                                     pointerEvents="box-none"
                                 >
                                     {Boolean(this.props.prefixCharacter) && (
-                                        <Text
-                                            pointerEvents="none"
-                                            selectable={false}
-                                            style={[
-                                                styles.textInputPrefix,
-                                                !hasLabel && styles.pv0,
-                                            ]}
-                                            onLayout={this.storePrefixLayoutDimensions}
-                                        >
-                                            {this.props.prefixCharacter}
-                                        </Text>
+                                        <View style={styles.textInputPrefixWrapper}>
+                                            <Text
+                                                pointerEvents="none"
+                                                selectable={false}
+                                                style={[
+                                                    styles.textInputPrefix,
+                                                    !hasLabel && styles.pv0,
+                                                ]}
+                                                onLayout={this.storePrefixLayoutDimensions}
+                                            >
+                                                {this.props.prefixCharacter}
+                                            </Text>
+                                        </View>
                                     )}
                                     <RNTextInput
                                         ref={(ref) => {

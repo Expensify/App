@@ -244,57 +244,61 @@ class InitialSettingsPage extends React.Component {
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <HeaderWithCloseButton
-                    title={this.props.translate('common.settings')}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <ScrollView style={[styles.settingsPageBackground]}>
-                    <View style={styles.w100}>
-                        <View style={styles.avatarSectionWrapper}>
-                            <Pressable style={[styles.mb3]} onPress={this.openProfileSettings}>
-                                <Tooltip text={this.props.currentUserPersonalDetails.displayName}>
-                                    <OfflineWithFeedback
-                                        pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
-                                    >
-                                        <Avatar
-                                            imageStyles={[styles.avatarLarge]}
-                                            source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.email)}
-                                            size={CONST.AVATAR_SIZE.LARGE}
-                                        />
-                                    </OfflineWithFeedback>
-                                </Tooltip>
-                            </Pressable>
-
-                            <Pressable style={[styles.mt1, styles.mw100]} onPress={this.openProfileSettings}>
-                                <Text style={[styles.textHeadline]} numberOfLines={1}>
-                                    {this.props.currentUserPersonalDetails.displayName
-                                        ? this.props.currentUserPersonalDetails.displayName
-                                        : Str.removeSMSDomain(this.props.session.email)}
-                                </Text>
-                            </Pressable>
-                            {this.props.currentUserPersonalDetails.displayName && (
-                                <Text
-                                    style={[styles.textLabelSupporting, styles.mt1]}
-                                    numberOfLines={1}
-                                >
-                                    {Str.removeSMSDomain(this.props.session.email)}
-                                </Text>
-                            )}
-                        </View>
-                        {_.map(this.getDefaultMenuItems(), (item, index) => this.getMenuItem(item, index))}
-
-                        <ConfirmModal
-                            danger
-                            title={this.props.translate('common.areYouSure')}
-                            prompt={this.props.translate('initialSettingsPage.signOutConfirmationText')}
-                            confirmText={this.props.translate('initialSettingsPage.signOut')}
-                            cancelText={this.props.translate('common.cancel')}
-                            isVisible={this.state.shouldShowSignoutConfirmModal}
-                            onConfirm={() => this.signOut(true)}
-                            onCancel={() => this.toggleSignoutConfirmModal(false)}
+                {({safeAreaPaddingBottomStyle}) => (
+                    <>
+                        <HeaderWithCloseButton
+                            title={this.props.translate('common.settings')}
+                            onCloseButtonPress={() => Navigation.dismissModal(true)}
                         />
-                    </View>
-                </ScrollView>
+                        <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle} style={[styles.settingsPageBackground]}>
+                            <View style={styles.w100}>
+                                <View style={styles.avatarSectionWrapper}>
+                                    <Pressable style={[styles.mb3]} onPress={this.openProfileSettings}>
+                                        <Tooltip text={this.props.currentUserPersonalDetails.displayName}>
+                                            <OfflineWithFeedback
+                                                pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
+                                            >
+                                                <Avatar
+                                                    imageStyles={[styles.avatarLarge]}
+                                                    source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.email)}
+                                                    size={CONST.AVATAR_SIZE.LARGE}
+                                                />
+                                            </OfflineWithFeedback>
+                                        </Tooltip>
+                                    </Pressable>
+
+                                    <Pressable style={[styles.mt1, styles.mw100]} onPress={this.openProfileSettings}>
+                                        <Text style={[styles.textHeadline]} numberOfLines={1}>
+                                            {this.props.currentUserPersonalDetails.displayName
+                                                ? this.props.currentUserPersonalDetails.displayName
+                                                : Str.removeSMSDomain(this.props.session.email)}
+                                        </Text>
+                                    </Pressable>
+                                    {this.props.currentUserPersonalDetails.displayName && (
+                                        <Text
+                                            style={[styles.textLabelSupporting, styles.mt1]}
+                                            numberOfLines={1}
+                                        >
+                                            {Str.removeSMSDomain(this.props.session.email)}
+                                        </Text>
+                                    )}
+                                </View>
+                                {_.map(this.getDefaultMenuItems(), (item, index) => this.getMenuItem(item, index))}
+
+                                <ConfirmModal
+                                    danger
+                                    title={this.props.translate('common.areYouSure')}
+                                    prompt={this.props.translate('initialSettingsPage.signOutConfirmationText')}
+                                    confirmText={this.props.translate('initialSettingsPage.signOut')}
+                                    cancelText={this.props.translate('common.cancel')}
+                                    isVisible={this.state.shouldShowSignoutConfirmModal}
+                                    onConfirm={() => this.signOut(true)}
+                                    onCancel={() => this.toggleSignoutConfirmModal(false)}
+                                />
+                            </View>
+                        </ScrollView>
+                    </>
+                )}
             </ScreenWrapper>
         );
     }

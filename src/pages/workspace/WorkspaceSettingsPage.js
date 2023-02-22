@@ -126,6 +126,7 @@ class WorkspaceSettingsPage extends React.Component {
                                 label={this.props.translate('workspace.editor.nameInputLabel')}
                                 containerStyles={[styles.mt4]}
                                 defaultValue={this.props.policy.name}
+                                maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
                             />
                             <View style={[styles.mt4]}>
                                 <Picker
