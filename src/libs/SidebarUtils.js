@@ -129,7 +129,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
             return;
         }
 
-        if (report.hasOutstandingIOU && !report.isIOUReportOwner) {
+        if (report.hasOutstandingIOU && !ReportUtils.isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports)) {
             outstandingIOUReports.push(report);
             return;
         }
