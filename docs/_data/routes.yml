@@ -44,5 +44,7 @@ hubs:
     articles:
       - href: Your-Expensify-Account-Manager
         title: Your Expensify Account Manager
+      - href: Your-Expensify-Partner-Manager
+        title: Your Expensify Partner Manager
       - href: Everything-About-Chat
         title: Everything About Chat
