@@ -465,7 +465,7 @@ class BasePaymentsPage extends React.Component {
                                     // https://github.com/Expensify/App/issues/7768#issuecomment-1044879541
                                     InteractionManager.runAfterInteractions(() => {
                                         this.setState({
-                                            shouldShowPasswordPrompt: true,
+                                            shouldShowPasswordPrompt: !Permissions.canUsePasswordlessLogins(this.props.betas),
                                             passwordButtonText: this.props.translate('paymentsPage.setDefaultConfirmation'),
                                         });
                                     });
