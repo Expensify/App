@@ -1,7 +1,9 @@
 import {View} from 'react-native';
 import React from 'react';
+import {GestureDetector, Gesture} from 'react-native-gesture-handler';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import CONST from '../../CONST';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
@@ -12,10 +14,13 @@ import OfflineIndicator from '../OfflineIndicator';
 import compose from '../../libs/compose';
 import withNavigation from '../withNavigation';
 import withWindowDimensions from '../withWindowDimensions';
+import withEnvironment from '../withEnvironment';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withNetwork} from '../OnyxProvider';
 import {propTypes, defaultProps} from './propTypes';
+import * as App from '../../libs/actions/App';
 import SafeAreaConsumer from '../SafeAreaConsumer';
+import TestToolsModal from '../TestToolsModal';
 
 class ScreenWrapper extends React.Component {
     constructor(props) {
@@ -40,10 +45,15 @@ class ScreenWrapper extends React.Component {
             Navigation.setIsNavigating(true);
         });
 
-        this.unsubscribeTransitionEnd = this.props.navigation.addListener('transitionEnd', () => {
-            this.setState({didScreenTransitionEnd: true});
-            this.props.onTransitionEnd();
+        this.unsubscribeTransitionEnd = this.props.navigation.addListener('transitionEnd', (event) => {
             Navigation.setIsNavigating(false);
+
+            // Prevent firing the prop callback when user is exiting the page.
+            if (lodashGet(event, 'data.closing')) {
+                return;
+            }
+            this.setState({didScreenTransitionEnd: true});
+            this.props.onEntryTransitionEnd();
         });
     }
 
@@ -72,6 +82,19 @@ class ScreenWrapper extends React.Component {
     }
 
     render() {
+        // Open the test tools menu on 5 taps in dev only
+        const isDevEnvironment = this.props.environment === CONST.ENVIRONMENT.DEV;
+        const quintupleTap = Gesture.Tap()
+            .numberOfTaps(5)
+
+            // Run the callbacks on the JS thread otherwise there's an error on iOS
+            .runOnJS(true)
+            .onEnd(() => {
+                if (!isDevEnvironment) {
+                    return;
+                }
+                App.toggleTestToolsModal();
+            });
         return (
             <SafeAreaConsumer>
                 {({
@@ -89,29 +112,32 @@ class ScreenWrapper extends React.Component {
                     }
 
                     return (
-                        <View
-                            style={[
-                                ...this.props.style,
-                                styles.flex1,
-                                paddingStyle,
-                            ]}
-                        >
-                            <KeyboardAvoidingView style={[styles.w100, styles.h100, {maxHeight: this.props.windowHeight}]} behavior={this.props.keyboardAvoidingViewBehavior}>
-                                <HeaderGap />
-                                {// If props.children is a function, call it to provide the insets to the children.
-                                    _.isFunction(this.props.children)
-                                        ? this.props.children({
-                                            insets,
-                                            safeAreaPaddingBottomStyle,
-                                            didScreenTransitionEnd: this.state.didScreenTransitionEnd,
-                                        })
-                                        : this.props.children
-                                }
-                                {this.props.isSmallScreenWidth && (
-                                    <OfflineIndicator />
-                                )}
-                            </KeyboardAvoidingView>
-                        </View>
+                        <GestureDetector gesture={quintupleTap}>
+                            <View
+                                style={[
+                                    ...this.props.style,
+                                    styles.flex1,
+                                    paddingStyle,
+                                ]}
+                            >
+                                <KeyboardAvoidingView style={[styles.w100, styles.h100, {maxHeight: this.props.windowHeight}]} behavior={this.props.keyboardAvoidingViewBehavior}>
+                                    <HeaderGap />
+                                    {(this.props.environment === CONST.ENVIRONMENT.DEV) && <TestToolsModal />}
+                                    {// If props.children is a function, call it to provide the insets to the children.
+                                        _.isFunction(this.props.children)
+                                            ? this.props.children({
+                                                insets,
+                                                safeAreaPaddingBottomStyle,
+                                                didScreenTransitionEnd: this.state.didScreenTransitionEnd,
+                                            })
+                                            : this.props.children
+                                    }
+                                    {this.props.isSmallScreenWidth && (
+                                        <OfflineIndicator />
+                                    )}
+                                </KeyboardAvoidingView>
+                            </View>
+                        </GestureDetector>
                     );
                 }}
             </SafeAreaConsumer>
@@ -129,6 +155,10 @@ export default compose(
         modal: {
             key: ONYXKEYS.MODAL,
         },
+        isTestToolsModalOpen: {
+            key: ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN,
+        },
     }),
     withNetwork(),
+    withEnvironment,
 )(ScreenWrapper);

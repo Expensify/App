@@ -1,31 +1,30 @@
 import React from 'react';
 import {
-    Platform,
     TouchableOpacity, View,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import styles from '../../styles/styles';
-import Button from '../../components/Button';
-import Text from '../../components/Text';
-import themeColors from '../../styles/themes/default';
-import * as Session from '../../libs/actions/Session';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import TextInput from '../../components/TextInput';
-import * as ValidationUtils from '../../libs/ValidationUtils';
-import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
-import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
-import * as ErrorUtils from '../../libs/ErrorUtils';
-import {withNetwork} from '../../components/OnyxProvider';
-import networkPropTypes from '../../components/networkPropTypes';
-import OfflineIndicator from '../../components/OfflineIndicator';
-import DotIndicatorMessage from '../../components/DotIndicatorMessage';
-import FormHelpMessage from '../../components/FormHelpMessage';
+import styles from '../../../styles/styles';
+import Button from '../../../components/Button';
+import Text from '../../../components/Text';
+import themeColors from '../../../styles/themes/default';
+import * as Session from '../../../libs/actions/Session';
+import ONYXKEYS from '../../../ONYXKEYS';
+import CONST from '../../../CONST';
+import ChangeExpensifyLoginLink from '../ChangeExpensifyLoginLink';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import compose from '../../../libs/compose';
+import TextInput from '../../../components/TextInput';
+import * as ValidationUtils from '../../../libs/ValidationUtils';
+import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../../components/withToggleVisibilityView';
+import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
+import * as ErrorUtils from '../../../libs/ErrorUtils';
+import {withNetwork} from '../../../components/OnyxProvider';
+import networkPropTypes from '../../../components/networkPropTypes';
+import OfflineIndicator from '../../../components/OfflineIndicator';
+import * as User from '../../../libs/actions/User';
+import FormHelpMessage from '../../../components/FormHelpMessage';
 
 const propTypes = {
     /* Onyx Props */
@@ -48,6 +47,9 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** Specifies autocomplete hints for the system, so it can provide autofill */
+    autoComplete: PropTypes.oneOf(['sms-otp', 'one-time-code']).isRequired,
+
     ...withLocalizePropTypes,
     ...toggleVisibilityViewPropTypes,
 };
@@ -57,7 +59,7 @@ const defaultProps = {
     credentials: {},
 };
 
-class ValidateCodeForm extends React.Component {
+class BaseValidateCodeForm extends React.Component {
     constructor(props) {
         super(props);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
@@ -76,9 +78,6 @@ class ValidateCodeForm extends React.Component {
             return;
         }
         this.inputValidateCode.focus();
-
-        // Clears validation code message to let users re-request codes on refresh
-        Session.clearAccountMessages();
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -110,6 +109,10 @@ class ValidateCodeForm extends React.Component {
             [key]: text,
             formError: {[key]: ''},
         });
+
+        if (this.props.account.errors) {
+            Session.clearAccountMessages();
+        }
     }
 
     /**
@@ -127,7 +130,7 @@ class ValidateCodeForm extends React.Component {
             this.setState({twoFactorAuthCode: ''}, this.input2FA.clear);
         }
         this.setState({formError: {}});
-        Session.resendValidateCode(this.props.credentials.login);
+        User.resendValidateCode(this.props.credentials.login, true);
     }
 
     /**
@@ -172,7 +175,6 @@ class ValidateCodeForm extends React.Component {
     }
 
     render() {
-        const wasValidateCodeSentRecently = !_.isEmpty(this.props.account.message);
         return (
             <>
                 {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
@@ -195,7 +197,7 @@ class ValidateCodeForm extends React.Component {
                 ) : (
                     <View style={[styles.mv3]}>
                         <TextInput
-                            autoComplete={Platform.select({android: 'sms-otp', web: 'one-time-code', ios: 'one-time-code'})}
+                            autoComplete={this.props.autoComplete}
                             textContentType="oneTimeCode"
                             ref={el => this.inputValidateCode = el}
                             label={this.props.translate('common.magicCode')}
@@ -209,27 +211,20 @@ class ValidateCodeForm extends React.Component {
                             errorText={this.state.formError.validateCode ? this.props.translate(this.state.formError.validateCode) : ''}
                             autoFocus
                         />
-                        {!wasValidateCodeSentRecently && (
-                            <View style={[styles.changeExpensifyLoginLinkContainer]}>
-                                <TouchableOpacity
-                                    style={[styles.mt2]}
-                                    onPress={this.resendValidateCode}
-                                    underlayColor={themeColors.componentBG}
-                                >
-                                    <Text style={[styles.link]}>
-                                        {this.props.translate('validateCodeForm.magicCodeNotReceived')}
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
-                        )}
+                        <View style={[styles.changeExpensifyLoginLinkContainer]}>
+                            <TouchableOpacity
+                                style={[styles.mt2]}
+                                onPress={this.resendValidateCode}
+                                underlayColor={themeColors.componentBG}
+                            >
+                                <Text style={[styles.link]}>
+                                    {this.props.translate('validateCodeForm.magicCodeNotReceived')}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 )}
 
-                {wasValidateCodeSentRecently && (
-
-                    // DotIndicatorMessage mostly expects onyxData errors so we need to mock an object so that the messages looks similar to prop.account.errors
-                    <DotIndicatorMessage style={[styles.mb5, styles.mt2, styles.flex0]} type="success" messages={{0: this.props.account.message}} />
-                )}
                 {this.props.account && !_.isEmpty(this.props.account.errors) && (
                     <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(this.props.account)} />
                 )}
@@ -250,8 +245,8 @@ class ValidateCodeForm extends React.Component {
     }
 }
 
-ValidateCodeForm.propTypes = propTypes;
-ValidateCodeForm.defaultProps = defaultProps;
+BaseValidateCodeForm.propTypes = propTypes;
+BaseValidateCodeForm.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -261,4 +256,4 @@ export default compose(
     }),
     withToggleVisibilityView,
     withNetwork(),
-)(ValidateCodeForm);
+)(BaseValidateCodeForm);
