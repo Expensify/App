@@ -384,6 +384,7 @@ export default {
     },
     newContactMethodPage: {
         description: 'Introduzca su correo electrónico/número de teléfono seguido de su contraseña de Expensify para confirmar.',
+        loginPlaceholder: 'Correo electrónico/número de teléfono',
     },
     initialSettingsPage: {
         about: 'Acerca de',
