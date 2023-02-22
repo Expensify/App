@@ -51,6 +51,8 @@ const ContactMethodsPage = props => {
     let hasEmailLogin = false;
 
     const loginMenuItems = _.map(props.loginList, (login) => {
+        if (!login.partnerUserID) return null;
+
         let description = '';
         if (props.session.email === login.partnerUserID) {
             description = props.translate('contacts.getInTouch');
