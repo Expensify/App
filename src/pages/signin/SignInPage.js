@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
@@ -15,7 +16,6 @@ import ResendValidationForm from './ResendValidationForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Performance from '../../libs/Performance';
 import Permissions from '../../libs/Permissions';
-import Str from 'expensify-common/lib/str';
 
 const propTypes = {
     /* Onyx Props */
@@ -92,7 +92,7 @@ class SignInPage extends Component {
                 // We will only know this after a user signs in successfully, without their 2FA code
                 welcomeText = this.props.translate('validateCodeForm.enterAuthenticatorCode');
             } else {
-                let userLogin = Str.removeSMSDomain(this.props.credentials.login);
+                const userLogin = Str.removeSMSDomain(this.props.credentials.login);
                 welcomeText = this.props.account.validated
                     ? this.props.translate('welcomeText.welcomeBackEnterMagicCode', {login: userLogin})
                     : this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLogin});
