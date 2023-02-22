@@ -1,5 +1,5 @@
 import React from 'react';
-import {Pressable, ImageBackground, View} from 'react-native';
+import {Pressable, View, Image} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -52,12 +52,11 @@ const ReportActionItemCreated = (props) => {
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
-                <View pointerEvents="none" style={StyleUtils.getReportWelcomeBackgroundImageViewStyle(props.isSmallScreenWidth)}>
-                    <ImageBackground
-                        source={EmptyStateBackgroundImage}
-                        style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
-                    />
-                </View>
+                <Image
+                    source={EmptyStateBackgroundImage}
+                    style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
+                />
+                <View pointerEvents="none" style={StyleUtils.getReportWelcomeBackgroundImageViewStyle(props.isSmallScreenWidth)} />
                 <View
                     accessibilityLabel="Chat welcome message"
                     style={styles.p5}
