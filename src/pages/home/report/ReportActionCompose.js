@@ -615,6 +615,10 @@ class ReportActionCompose extends React.Component {
 
                                                                 // Drop focus to avoid blue focus ring.
                                                                 this.actionButton.blur();
+
+                                                                // we blur the input here to avoid an android specific issue where the keyboard
+                                                                // doesn't open when we re-focus the input due to it never losing focus
+                                                                this.textInput.blur();
                                                                 this.setMenuVisibility(true);
                                                             }}
                                                             style={styles.composerSizeButton}
