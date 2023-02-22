@@ -1,15 +1,18 @@
+import variables from '../variables';
+
 const codeWordWrapper = {
-    height: 20,
     justifyContent: 'center',
+    height: variables.fontSizeNormalHeight,
 };
 
 const codeWordStyle = {
-    height: 16,
-    top: 4,
+    position: 'relative',
+    top: 2.5,
 };
 
 const codeTextStyle = {
-    lineHeight: 15,
+    fontSize: variables.fontSizeCode,
+    lineHeight: variables.fontSizeCodeHeight,
 };
 
 export default {codeWordWrapper, codeWordStyle, codeTextStyle};

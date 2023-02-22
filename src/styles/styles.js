@@ -113,11 +113,11 @@ const webViewStyles = {
 
         code: {
             ...baseCodeTagStyles,
-            ...codeStyles.codeTextStyle,
             paddingLeft: 5,
             paddingRight: 5,
             fontFamily: fontFamily.MONOSPACE,
-            fontSize: 13,
+            fontSize: variables.fontSizeCode,
+            ...codeStyles.codeTextStyle,
         },
 
         img: {
@@ -2284,7 +2284,6 @@ const styles = {
         borderBottomRightRadius: 0,
         paddingLeft: 0,
         paddingRight: 0,
-        justifyContent: 'center',
         ...codeStyles.codeWordStyle,
     },
 
