@@ -15,6 +15,7 @@ import Permissions from '../../../../libs/Permissions';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from "../../../../ROUTES";
 import styles from '../../../../styles/styles';
+import * as User from '../../../../libs/actions/User';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -30,14 +31,18 @@ class NewContactMethodPage extends Component {
             password: '',
         };
         this.onLoginChange = this.onLoginChange.bind(this);
+        this.submitForm = this.submitForm.bind(this);
     }
 
     onLoginChange(login) {
         this.setState({login});
     }
 
-    onPasswordChange(password) {
-        this.setState({password});
+    submitForm() {
+        // const login = this.formType === CONST.LOGIN_TYPE.PHONE
+        //     ? LoginUtils.getPhoneNumberWithoutSpecialChars(this.state.login)
+        //     : this.state.login;
+        User.setSecondaryLoginAndNavigate(this.state.login, this.state.password);
     }
 
     render() {
@@ -74,7 +79,7 @@ class NewContactMethodPage extends Component {
                             <TextInput
                                 label={this.props.translate('common.password')}
                                 value={this.state.password}
-                                onChangeText={this.onPasswordChange}
+                                onChangeText={password => this.setState({password})}
                                 returnKeyType="done"
                             />
                         </View>
@@ -84,7 +89,7 @@ class NewContactMethodPage extends Component {
                     <Button
                         success
                         text={this.props.translate('common.add')}
-                        onPress={() => {}}
+                        onPress={this.submitForm}
                         pressOnEnter
                     />
                 </FixedFooter>
