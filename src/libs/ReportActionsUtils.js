@@ -75,31 +75,6 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
 }
 
 /**
- * Filter out any reportActions which should not be displayed.
- *
- * @param {Array} reportActions
- * @returns {Array}
- */
-function filterReportActionsForDisplay(reportActions) {
-    return _.filter(reportActions, (reportAction) => {
-        // Filter out any unsupported reportAction types
-        if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName)) {
-            return false;
-        }
-
-        // Ignore closed action here since we're already displaying a footer that explains why the report was closed
-        if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
-            return false;
-        }
-
-        // All other actions are displayed except deleted, non-pending actions
-        const isDeleted = isDeletedAction(reportAction);
-        const isPending = !_.isEmpty(reportAction.pendingAction);
-        return !isDeleted || isPending;
-    });
-}
-
-/**
  * Finds most recent IOU report action number.
  *
  * @param {Array} reportActions
@@ -206,12 +181,26 @@ function getSortedReportActionsForDisplay(reportActions) {
     });
 
     const sortedReportActions = getSortedReportActions(filteredReportActions, true);
-    return filterReportActionsForDisplay(sortedReportActions);
+    return _.filter(sortedReportActions, (reportAction) => {
+        // Filter out any unsupported reportAction types
+        if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName)) {
+            return false;
+        }
+
+        // Ignore closed action here since we're already displaying a footer that explains why the report was closed
+        if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+            return false;
+        }
+
+        // All other actions are displayed except deleted, non-pending actions
+        const isDeleted = isDeletedAction(reportAction);
+        const isPending = !_.isEmpty(reportAction.pendingAction);
+        return !isDeleted || isPending;
+    });
 }
 
 export {
     getSortedReportActions,
-    filterReportActionsForDisplay,
     getLastVisibleAction,
     getLastVisibleMessageText,
     getMostRecentIOUReportActionID,
