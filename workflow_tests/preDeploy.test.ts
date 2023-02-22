@@ -1,6 +1,7 @@
 import {MockGithub} from '@kie/mock-github';
 import {Act} from '@kie/act-js';
 import path from 'path';
+import {string} from 'prop-types';
 
 let mockGithub: MockGithub;
 const FILES_TO_COPY_INTO_TEST_REPO = [
@@ -66,10 +67,11 @@ const CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS = [
         name: 'Announce failed workflow in Slack',
         mockWith: 'echo [MOCK] [CONFIRM_PASSING_BUILD] Announcing failed workflow in slack',
     },
-    {
-        name: 'Exit failed workflow',
-        mockWith: 'echo [MOCK] [CONFIRM_PASSING_BUILD] Exiting with failed status',
-    },
+
+    // {
+    //     name: 'Exit failed workflow',
+    //     mockWith: 'echo [MOCK] [CONFIRM_PASSING_BUILD] Exiting with failed status',
+    // },
 ];
 
 const CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS = [
@@ -600,6 +602,28 @@ const assertUpdateStagingJobExecuted = (workflowResult: Array<Object>, didExecut
     }
 };
 
+const setUpActParams = (act: Act, event?: string, event_options?: any, secrets?: Array<Object>, github_token?: string) => {
+    let updated_act = act;
+
+    if (event && event_options) {
+        updated_act = updated_act.setEvent({
+            event: event_options,
+        });
+    }
+
+    if (secrets) {
+        for (const [key, value] of Object.entries(secrets)) {
+            updated_act = updated_act.setSecret(key, String(value));
+        }
+    }
+
+    if (github_token) {
+        updated_act = updated_act.setGithubToken(github_token);
+    }
+
+    return updated_act;
+};
+
 describe('test workflow preDeploy', () => {
     test('push to main', async () => {
         // get path to the local test repo
@@ -612,25 +636,23 @@ describe('test workflow preDeploy', () => {
         let act = new Act(repoPath, workflowPath);
 
         // set run parameters
-        act = act
-            .setEvent({
-                pull_request: {
-                    head: {
-                        ref: 'main',
-                    },
-                },
-            })
-            .setSecret('OS_BOTIFY_TOKEN', 'dummy_token')
-            .setGithubToken('dummy_github_token');
+        act = setUpActParams(
+            act,
+            'pull_request',
+            {head: {ref: 'main'}},
+            [{OS_BOTIFY_TOKEN: 'dummy_token'}],
+            'dummy_github_token',
+        );
+
+        // set up mocks
+        const mocks = MOCK_STEPS;
 
         // run an event and get the result
         const result = await act
             .runEvent('push', {
                 workflowFile: path.join(repoPath, '.github', 'workflows'),
-                mockSteps: MOCK_STEPS,
+                mockSteps: mocks,
             });
-
-        console.debug(`RunEvent result: ${JSON.stringify(result, null, '\t')}`);
 
         // assert results (some steps can run in parallel to each other so the order is not assured
         // therefore we can check which steps have been executed, but not the set job order
@@ -642,5 +664,137 @@ describe('test workflow preDeploy', () => {
         assertSkipDeployJobExecuted(result, false);
         assertCreateNewVersionJobExecuted(result);
         assertUpdateStagingJobExecuted(result);
-    }, 300000);
+    }, 60000);
+
+    test('lint job failed', async () => {
+        const repoPath = mockGithub.repo.getPath('testWorkflowsRepo') || '';
+        const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
+        let act = new Act(repoPath, workflowPath);
+        act = setUpActParams(
+            act,
+            'pull_request',
+            {head: {ref: 'main'}},
+            [{OS_BOTIFY_TOKEN: 'dummy_token'}],
+            'dummy_github_token',
+        );
+        const mocks = {
+            lint: [
+                {
+                    name: 'Run lint workflow',
+                    mockWith: 'echo [MOCK] [LINT] Running lint workflow\n'
+                        + 'echo [MOCK] [LINT] Lint workflow failed\n'
+                        + 'exit 1',
+                },
+            ],
+            test: TEST_JOB_MOCK_STEPS,
+            confirmPassingBuild: CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
+            chooseDeployActions: CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS,
+            skipDeploy: SKIP_DEPLOY_JOB_MOCK_STEPS,
+            createNewVersion: CREATE_NEW_VERSION_JOB_MOCK_STEPS,
+            updateStaging: UPDATE_STAGING_JOB_MOCK_STEPS,
+            isExpensifyEmployee: IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS,
+            newContributorWelcomeMessage: NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS,
+            'e2e-tests': E2E_TESTS_JOB_MOCK_STEPS,
+        };
+        const result = await act
+            .runEvent('push', {
+                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                mockSteps: mocks,
+            });
+        expect(result).toEqual(expect.arrayContaining(
+            [{
+                name: 'Main Run lint workflow',
+                status: 1,
+                output: '[MOCK] [LINT] Running lint workflow\n'
+                    + '[MOCK] [LINT] Lint workflow failed',
+            }],
+        ));
+        assertTestJobExecuted(result);
+        assertIsExpensifyEmployeeJobExecuted(result);
+        expect(result).toEqual(expect.arrayContaining(
+            [
+                {
+                    name: 'Main Announce failed workflow in Slack',
+                    status: 0,
+                    output: '[MOCK] [CONFIRM_PASSING_BUILD] Announcing failed workflow in slack',
+                },
+                {
+                    name: 'Main Exit failed workflow',
+                    status: 1,
+                    output: '',
+                },
+            ],
+        ));
+        assertE2ETestsJobExecuted(result, false); // Act does not support ubuntu-20.04-64core runner and omits the job
+        assertChooseDeployActionsJobExecuted(result, false);
+        assertSkipDeployJobExecuted(result, false);
+        assertCreateNewVersionJobExecuted(result, false);
+        assertUpdateStagingJobExecuted(result, false);
+    }, 60000);
+
+    test('test job failed', async () => {
+        const repoPath = mockGithub.repo.getPath('testWorkflowsRepo') || '';
+        const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
+        let act = new Act(repoPath, workflowPath);
+        act = setUpActParams(
+            act,
+            'pull_request',
+            {head: {ref: 'main'}},
+            [{OS_BOTIFY_TOKEN: 'dummy_token'}],
+            'dummy_github_token',
+        );
+        const mocks = {
+            lint: LINT_JOB_MOCK_STEPS,
+            test: [
+                {
+                    name: 'Run test workflow',
+                    mockWith: 'echo [MOCK] [TEST] Running test workflow\n'
+                        + 'echo [MOCK] [TEST] Test workflow failed\n'
+                        + 'exit 1',
+                },
+            ],
+            confirmPassingBuild: CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
+            chooseDeployActions: CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS,
+            skipDeploy: SKIP_DEPLOY_JOB_MOCK_STEPS,
+            createNewVersion: CREATE_NEW_VERSION_JOB_MOCK_STEPS,
+            updateStaging: UPDATE_STAGING_JOB_MOCK_STEPS,
+            isExpensifyEmployee: IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS,
+            newContributorWelcomeMessage: NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS,
+            'e2e-tests': E2E_TESTS_JOB_MOCK_STEPS,
+        };
+        const result = await act
+            .runEvent('push', {
+                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                mockSteps: mocks,
+            });
+        assertLintJobExecuted(result);
+        expect(result).toEqual(expect.arrayContaining(
+            [{
+                name: 'Main Run test workflow',
+                status: 1,
+                output: '[MOCK] [TEST] Running test workflow\n'
+                    + '[MOCK] [TEST] Test workflow failed',
+            }],
+        ));
+        assertIsExpensifyEmployeeJobExecuted(result);
+        expect(result).toEqual(expect.arrayContaining(
+            [
+                {
+                    name: 'Main Announce failed workflow in Slack',
+                    status: 0,
+                    output: '[MOCK] [CONFIRM_PASSING_BUILD] Announcing failed workflow in slack',
+                },
+                {
+                    name: 'Main Exit failed workflow',
+                    status: 1,
+                    output: '',
+                },
+            ],
+        ));
+        assertE2ETestsJobExecuted(result, false); // Act does not support ubuntu-20.04-64core runner and omits the job
+        assertChooseDeployActionsJobExecuted(result, false);
+        assertSkipDeployJobExecuted(result, false);
+        assertCreateNewVersionJobExecuted(result, false);
+        assertUpdateStagingJobExecuted(result, false);
+    }, 60000);
 });
