@@ -59,6 +59,8 @@ const SignInPageLayout = (props) => {
                     <ScrollView
                         style={containerHeight}
                         contentContainerStyle={scrollViewContentContainerStyles}
+                        keyboardShouldPersistTaps="handled"
+                        keyboardDismissMode="on-drag"
                     >
                         <SignInPageContent
                             welcomeText={props.welcomeText}
