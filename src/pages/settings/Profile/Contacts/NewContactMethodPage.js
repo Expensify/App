@@ -3,6 +3,8 @@ import { View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { withOnyx } from 'react-native-onyx';
 import { compose } from 'underscore';
+import Button from '../../../../components/Button';
+import FixedFooter from '../../../../components/FixedFooter';
 import HeaderWithCloseButton from "../../../../components/HeaderWithCloseButton";
 import ScreenWrapper from "../../../../components/ScreenWrapper";
 import Text from '../../../../components/Text';
@@ -78,6 +80,14 @@ class NewContactMethodPage extends Component {
                         </View>
                     }
                 </ScrollView>
+                <FixedFooter style={[styles.flexGrow0]}>
+                    <Button
+                        success
+                        text={this.props.translate('common.add')}
+                        onPress={() => {}}
+                        pressOnEnter
+                    />
+                </FixedFooter>
             </ScreenWrapper>
         );
     }
