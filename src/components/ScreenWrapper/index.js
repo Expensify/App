@@ -57,10 +57,14 @@ class ScreenWrapper extends React.Component {
             this.props.onEntryTransitionEnd();
         });
 
-        this.beforeRemoveSubscription = this.props.navigation.addListener('beforeRemove', () => {
-            if (!this.props.isKeyboardShown) { return; }
-            Keyboard.dismiss();
-        });
+        if (this.props.shouldDismissKeyboardBeforeClose) {
+            this.beforeRemoveSubscription = this.props.navigation.addListener('beforeRemove', () => {
+                if (!this.props.isKeyboardShown) {
+                    return;
+                }
+                Keyboard.dismiss();
+            });
+        }
     }
 
     /**

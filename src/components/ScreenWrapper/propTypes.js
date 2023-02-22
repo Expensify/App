@@ -33,12 +33,16 @@ const propTypes = {
         willAlertModalBecomeVisible: PropTypes.bool,
     }),
 
+    /** Whether to dismiss keyboard before leave a screen */
+    shouldDismissKeyboardBeforeClose: PropTypes.bool,
+
     ...environmentPropTypes,
 };
 
 const defaultProps = {
     style: [],
     includeSafeAreaPaddingBottom: true,
+    shouldDismissKeyboardBeforeClose: true,
     includePaddingTop: true,
     onEntryTransitionEnd: () => {},
     modal: {},
