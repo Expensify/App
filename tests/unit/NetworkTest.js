@@ -437,11 +437,22 @@ describe('NetworkTests', () => {
 
     // Given a retry response create a mock and run some expectations for retrying requests
     const retryExpectations = (retryResponse) => {
+        let successfulResponse = {
+            ok: true,
+            jsonCode: CONST.JSON_CODE.SUCCESS,
+        };
+
+        // We have to mock response.json() too
+        successfulResponse = {
+            ...successfulResponse,
+            json: () => Promise.resolve(successfulResponse),
+        };
+
         // Given a mock where a retry response is returned twice before a successful response
         global.fetch = jest.fn()
             .mockResolvedValueOnce(retryResponse)
             .mockResolvedValueOnce(retryResponse)
-            .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS});
+            .mockResolvedValueOnce(successfulResponse);
 
         // Given we have a request made while we're offline
         return Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
@@ -484,7 +495,7 @@ describe('NetworkTests', () => {
             })
             .then(() => {
                 // Then the request is retried again
-                expect(global.fetch).toHaveBeenCalledTimes(4);
+                expect(global.fetch).toHaveBeenCalledTimes(3);
 
                 // The request succeeds so the queue is empty
                 expect(_.size(PersistedRequests.getAll())).toEqual(0);
