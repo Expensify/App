@@ -36,18 +36,21 @@ function process() {
     isSequentialQueueRunning = true;
 
     // Get the first request in the queue and process it
-    currentRequest = Request.processWithMiddleware(persistedRequests.shift(), true).then(() => {
+    const requestToProcess = persistedRequests.shift();
+
+    // Set the current request to a promise awaiting its processing
+    currentRequest = Request.processWithMiddleware(requestToProcess, true).then(() => {
         // If the request is successful we want to:
         // - Remove it from the queue
         // - Clear any wait time we may have added if it failed before
         // - Call process again to process the other requests in the queue
-        PersistedRequests.remove(currentRequest);
+        PersistedRequests.remove(requestToProcess);
         RequestThrottle.clear();
         return process();
     }).catch((error) => {
         // If the request was cancelled we don't want to retry it, so remove it from the queue and move on to the next request
         if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
-            PersistedRequests.remove(currentRequest);
+            PersistedRequests.remove(requestToProcess);
             RequestThrottle.clear();
             return process();
         }
