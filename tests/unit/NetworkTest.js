@@ -683,14 +683,10 @@ describe('NetworkTests', () => {
 
                 // Third command should be the call to Authenticate
                 const [thirdCommand] = xhr.mock.calls[2];
-                expect(thirdCommand).toBe('Log');
+                expect(thirdCommand).toBe('Authenticate');
 
-                // Third command should be the call to Authenticate
                 const [fourthCommand] = xhr.mock.calls[3];
-                expect(fourthCommand).toBe('Authenticate');
-
-                const [fifthCommand] = xhr.mock.calls[4];
-                expect(fifthCommand).toBe('MockCommand');
+                expect(fourthCommand).toBe('MockCommand');
 
                 // We are using the new authToken
                 expect(NetworkStore.getAuthToken()).toBe('newToken');
