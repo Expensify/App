@@ -81,7 +81,7 @@ const CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS = [
     {
         name: 'Check if StagingDeployCash is locked',
         mockWith: 'echo [MOCK] [CHOOSE_DEPLOY_ACTIONS] Checking StagingDeployCash\n'
-            + 'echo "IS_LOCKED=false" >> "$GITHUB_OUTPUT"',
+            + 'echo "IS_LOCKED=true" >> "$GITHUB_OUTPUT"',
     },
     {
         name: 'Check if merged pull request was an automated PR',
@@ -91,7 +91,7 @@ const CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS = [
     {
         name: 'Check if merged pull request has `CP Staging` label',
         mockWith: 'echo [MOCK] [CHOOSE_DEPLOY_ACTIONS] Checking CP Staging\n'
-            + 'echo "HAS_CP_LABEL=false" >> "$GITHUB_OUTPUT"',
+            + 'echo "HAS_CP_LABEL=true" >> "$GITHUB_OUTPUT"',
     },
     {
         name: 'Check if merged pull request should trigger a deploy',
@@ -293,7 +293,7 @@ const E2E_TESTS_JOB_MOCK_STEPS = [
     },
 ];
 
-const WIP_MOCK_STEPS = {
+const MOCK_STEPS = {
     lint: LINT_JOB_MOCK_STEPS,
     test: TEST_JOB_MOCK_STEPS,
     confirmPassingBuild: CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
@@ -306,37 +306,341 @@ const WIP_MOCK_STEPS = {
     'e2e-tests': E2E_TESTS_JOB_MOCK_STEPS,
 };
 
-test('test workflow preDeploy push to main', async () => {
-    // get path to the local test repo
-    const repoPath = mockGithub.repo.getPath('testWorkflowsRepo') || '';
+const assertLintJobExecuted = (workflowResult: Array<Object>, didExecute: Boolean = true) => {
+    const steps = [{
+        name: 'Main Run lint workflow',
+        status: 0,
+        output: '[MOCK] [LINT] Running lint workflow',
+    }];
+    if (didExecute) {
+        expect(workflowResult).toEqual(expect.arrayContaining(steps));
+    } else {
+        expect(workflowResult).not.toEqual(steps);
+    }
+};
 
-    // get path to the workflow file under test
-    const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
+const assertTestJobExecuted = (workflowResult: Array<Object>, didExecute: Boolean = true) => {
+    const steps = [{
+        name: 'Main Run test workflow',
+        status: 0,
+        output: '[MOCK] [TEST] Running test workflow',
+    }];
+    if (didExecute) {
+        expect(workflowResult).toEqual(expect.arrayContaining(steps));
+    } else {
+        expect(workflowResult).not.toEqual(steps);
+    }
+};
 
-    // instantiate Act in the context of the test repo and given workflow file
-    let act = new Act(repoPath, workflowPath);
+const assertIsExpensifyEmployeeJobExecuted = (workflowResult: Array<Object>, didExecute: Boolean = true) => {
+    const steps = [{
+        name: 'Main Get merged pull request',
+        status: 0,
+        output: '[MOCK] [IS_EXPENSIFY_EMPLOYEE] Getting merged pull request',
+    },
+    {
+        name: 'Main Check whether the actor is member of Expensify/expensify team',
+        status: 0,
+        output: '[MOCK] [IS_EXPENSIFY_EMPLOYEE] Checking actors Expensify membership',
+    }];
+    if (didExecute) {
+        expect(workflowResult).toEqual(expect.arrayContaining(steps));
+    } else {
+        expect(workflowResult).not.toEqual(steps);
+    }
+};
 
-    // set run parameters
-    act = act
-        .setEvent({
-            pull_request: {
-                head: {
-                    ref: 'main',
+const assertE2ETestsJobExecuted = (workflowResult: Array<Object>, didExecute: Boolean = true) => {
+    const steps = [
+        {
+            name: 'Main Checkout',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Checking out',
+        },
+        {
+            name: 'Main Setup node',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Setting up node',
+        },
+        {
+            name: 'Main Setup ruby',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Setting up ruby',
+        },
+        {
+            name: 'Main Gradle cache',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Building with gradle',
+        },
+        {
+            name: 'Make zip directory for everything to send to AWS Device Farm',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Creating zip directory',
+        },
+        {
+            name: 'Checkout "Compare" commit',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Checking out compare commit',
+        },
+        {
+            name: 'Install node packages',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Installing node packages',
+        },
+        {
+            name: 'Build "Compare" APK',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Building compare apk',
+        },
+        {
+            name: 'Copy "Compare" APK',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Copying compare apk',
+        },
+        {
+            name: 'Checkout "Baseline" commit (last release)',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Checking out baseline commit',
+        },
+        {
+            name: 'Install node packages',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Installing node packages',
+        },
+        {
+            name: 'Build "Baseline" APK',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Building baseline apk',
+        },
+        {
+            name: 'Copy "Baseline" APK',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Copying baseline apk',
+        },
+        {
+            name: 'Checkout previous branch for source code to run on AWS Device farm',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Checking out previous branch',
+        },
+        {
+            name: 'Copy e2e code into zip folder',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Copying e2e tests',
+        },
+        {
+            name: 'Zip everything in the zip directory up',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Zipping everything',
+        },
+        {
+            name: 'Configure AWS Credentials',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Configuring AWS credentials',
+        },
+        {
+            name: 'Schedule AWS Device Farm test run',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Scheduling AWS test run',
+        },
+        {
+            name: 'Unzip AWS Device Farm results',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Unzipping test results',
+        },
+        {
+            name: 'Print AWS Device Farm run results',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Printing test results',
+        },
+        {
+            name: 'Set output of AWS Device Farm into GitHub ENV',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Setting AWS output',
+        },
+        {
+            name: 'Get merged pull request',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Getting merged pull request',
+        },
+        {
+            name: 'Leave output of AWS Device Farm as a PR comment',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Leaving comment with test results',
+        },
+        {
+            name: 'Check if test failed, if so leave a deploy blocker label',
+            status: 0,
+            output: '[MOCK] [E2E_TESTS] Checking if tests failed',
+        },
+    ];
+    if (didExecute) {
+        expect(workflowResult).toEqual(expect.arrayContaining(steps));
+    } else {
+        expect(workflowResult).not.toEqual(steps);
+    }
+};
+
+const assertChooseDeployActionsJobExecuted = (workflowResult: Array<Object>, didExecute: Boolean = true) => {
+    const steps = [
+        {
+            name: 'Main Get merged pull request',
+            status: 0,
+            output: '[MOCK] [CHOOSE_DEPLOY_ACTIONS] Getting merged pull request',
+        },
+        {
+            name: 'Main Check if StagingDeployCash is locked',
+            status: 0,
+            output: '[MOCK] [CHOOSE_DEPLOY_ACTIONS] Checking StagingDeployCash',
+        },
+        {
+            name: 'Main Check if merged pull request was an automated PR',
+            status: 0,
+            output: '[MOCK] [CHOOSE_DEPLOY_ACTIONS] Checking for automated PR',
+        },
+        {
+            name: 'Main Check if merged pull request has `CP Staging` label',
+            status: 0,
+            output: '[MOCK] [CHOOSE_DEPLOY_ACTIONS] Checking CP Staging',
+        },
+        {
+            name: 'Main Check if merged pull request should trigger a deploy',
+            status: 0,
+            output: '[MOCK] [CHOOSE_DEPLOY_ACTIONS] Checking deploy trigger',
+        },
+    ];
+    if (didExecute) {
+        expect(workflowResult).toEqual(expect.arrayContaining(steps));
+    } else {
+        expect(workflowResult).not.toEqual(steps);
+    }
+};
+
+const assertSkipDeployJobExecuted = (workflowResult: Array<Object>, didExecute: Boolean = true) => {
+    const steps = [
+        {
+            name: 'Main Comment on deferred PR',
+            status: 0,
+            output: '[MOCK] [SKIP_DEPLOY] Skipping deploy',
+        },
+    ];
+    if (didExecute) {
+        expect(workflowResult).toEqual(expect.arrayContaining(steps));
+    } else {
+        expect(workflowResult).not.toEqual(steps);
+    }
+};
+
+const assertCreateNewVersionJobExecuted = (workflowResult: Array<Object>, didExecute: Boolean = true) => {
+    const steps = [
+        {
+            name: 'Main Create new version',
+            status: 0,
+            output: '[MOCK] [CREATE_NEW_VERSION] Creating new version',
+        },
+    ];
+    if (didExecute) {
+        expect(workflowResult).toEqual(expect.arrayContaining(steps));
+    } else {
+        expect(workflowResult).not.toEqual(steps);
+    }
+};
+
+const assertUpdateStagingJobExecuted = (workflowResult: Array<Object>, didExecute: Boolean = true) => {
+    const steps = [
+        {
+            name: 'Main Run turnstyle',
+            status: 0,
+            output: '[MOCK] [UPDATE_STAGING] Running turnstyle',
+        },
+        {
+            name: 'Main Cherry-pick PR to staging',
+            status: 0,
+            output: '[MOCK] [UPDATE_STAGING] Cherry picking',
+        },
+        {
+            name: 'Main Checkout staging',
+            status: 0,
+            output: '[MOCK] [UPDATE_STAGING] Checking out staging',
+        },
+        {
+            name: 'Main Tag staging',
+            status: 0,
+            output: '[MOCK] [UPDATE_STAGING] Tagging staging',
+        },
+        {
+            name: 'Main Update StagingDeployCash',
+            status: 0,
+            output: '[MOCK] [UPDATE_STAGING] Updating StagingDeployCash',
+        },
+        {
+            name: 'Main Find open StagingDeployCash',
+            status: 0,
+            output: '[MOCK] [UPDATE_STAGING] Finding open StagingDeployCash',
+        },
+        {
+            name: 'Main Comment in StagingDeployCash to alert Applause that a new pull request has been cherry-picked',
+            status: 0,
+            output: '[MOCK] [UPDATE_STAGING] Commenting in StagingDeployCash',
+        },
+        {
+            name: 'Main Wait for staging deploys to finish',
+            status: 0,
+            output: '[MOCK] [UPDATE_STAGING] Waiting for staging deploy to finish',
+        },
+        {
+            name: 'Main Comment in StagingDeployCash to alert Applause that cherry-picked pull request has been deployed.',
+            status: 0,
+            output: '[MOCK] [UPDATE_STAGING] Commenting in StagingDeployCash',
+        },
+    ];
+    if (didExecute) {
+        expect(workflowResult).toEqual(expect.arrayContaining(steps));
+    } else {
+        expect(workflowResult).not.toEqual(steps);
+    }
+};
+
+describe('test workflow preDeploy', () => {
+    test('push to main', async () => {
+        // get path to the local test repo
+        const repoPath = mockGithub.repo.getPath('testWorkflowsRepo') || '';
+
+        // get path to the workflow file under test
+        const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
+
+        // instantiate Act in the context of the test repo and given workflow file
+        let act = new Act(repoPath, workflowPath);
+
+        // set run parameters
+        act = act
+            .setEvent({
+                pull_request: {
+                    head: {
+                        ref: 'main',
+                    },
                 },
-            },
-        })
-        .setSecret('OS_BOTIFY_TOKEN', 'dummy_token')
-        .setGithubToken('dummy_github_token');
+            })
+            .setSecret('OS_BOTIFY_TOKEN', 'dummy_token')
+            .setGithubToken('dummy_github_token');
 
-    // run an event and get the result
-    const result = await act
-        .runEvent('push', {
-            workflowFile: path.join(repoPath, '.github', 'workflows'),
-            mockSteps: WIP_MOCK_STEPS,
-        });
+        // run an event and get the result
+        const result = await act
+            .runEvent('push', {
+                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                mockSteps: MOCK_STEPS,
+            });
 
-    console.debug(`RunEvent result: ${JSON.stringify(result, null, '\t')}`);
+        console.debug(`RunEvent result: ${JSON.stringify(result, null, '\t')}`);
 
-    // assert results
-    // expect(result)...;
-}, 300000);
+        // assert results (some steps can run in parallel to each other so the order is not assured
+        // therefore we can check which steps have been executed, but not the set job order
+        assertLintJobExecuted(result);
+        assertTestJobExecuted(result);
+        assertIsExpensifyEmployeeJobExecuted(result);
+        assertE2ETestsJobExecuted(result, false); // Act does not support ubuntu-20.04-64core runner and omits the job
+        assertChooseDeployActionsJobExecuted(result);
+        assertSkipDeployJobExecuted(result, false);
+        assertCreateNewVersionJobExecuted(result);
+        assertUpdateStagingJobExecuted(result);
+    }, 300000);
+});
