@@ -6,7 +6,7 @@ import {
     View,
     StyleSheet,
 } from 'react-native';
-import * as localStyles from './styles';
+import * as localStyles from '../../styles/getOptionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import Icon from '../Icon';
