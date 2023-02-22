@@ -23,6 +23,7 @@ import TextInput from '../../../../components/TextInput';
 import CONST from '../../../../CONST';
 import Icon from '../../../../components/Icon';
 import colors from '../../../../styles/colors';
+import Button from '../../../../components/Button';
 
 const propTypes = {
     /* Onyx Props */
@@ -67,6 +68,7 @@ class ContactMethodDetailsPage extends Component {
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
         this.resendValidateCode = this.resendValidateCode.bind(this);
         this.getContactMethod = this.getContactMethod.bind(this);
+        this.validateContactMethod = this.validateContactMethod.bind(this); 
 
         this.state = {
             isDeleteModalOpen: false,
@@ -103,6 +105,13 @@ class ContactMethodDetailsPage extends Component {
         User.requestContactMethodValidateCode(this.getContactMethod());
     }
 
+    /**
+     * Attempt to validate this contact method
+     */
+    validateContactMethod() {
+        User.validateSecondaryLogin(this.getContactMethod(), this.state.validateCode);
+    }
+
     render() {
         const contactMethod = this.getContactMethod();
         const loginData = this.props.loginList[contactMethod];
@@ -132,48 +141,38 @@ class ContactMethodDetailsPage extends Component {
                         danger
                     />
                     {!loginData.validatedDate && (
-                        <>
-                            {/* <MenuItem
-                                title="Resend verification"
-                                icon={Expensicons.Mail}
-                                iconRight={Expensicons.Checkmark}
-                                onPress={() => console.log('hi')}
-                                shouldShowRightIcon
-                                success
-                            /> */}
-                            {/* <DotIndicatorMessage style={[styles.ph8, styles.mt2]} messages={{0: this.props.translate('contacts.enterMagicCode', {contactMethod})}} type="success" /> */}
-                            
-
-                            <View style={[styles.mh8, styles.mb2]}>
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb1, styles.mt3]}>
-                                    <Icon src={Expensicons.DotIndicator} fill={colors.green} />
-                                    <View style={[styles.flex1, styles.ml2]}>
-                                        <Text style={[styles.mb0]}>
-                                            {this.props.translate('contacts.enterMagicCode', {contactMethod})}
-                                        </Text>
-                                    </View>
-                                </View>
-                                <TextInput
-                                    label={this.props.translate('common.magicCode')}
-                                    name="validateCode"
-                                    value={this.state.validateCode}
-                                    onChangeText={text => this.setState({validateCode: text})}
-                                    // onSubmitEditing={this.validateAndSubmitForm}
-                                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                    errorText=""
-                                    blurOnSubmit={false}
-                                />
-                                <TouchableOpacity
-                                    style={[styles.mt2]}
-                                    onPress={this.resendValidateCode}
-                                    // underlayColor={themeColors.componentBG}
-                                >
-                                    <Text style={[styles.link]}>
-                                        {this.props.translate('contacts.resendMagicCode')}
+                        <View style={[styles.mh8, styles.mb2]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb1, styles.mt3]}>
+                                <Icon src={Expensicons.DotIndicator} fill={colors.green} />
+                                <View style={[styles.flex1, styles.ml4]}>
+                                    <Text>
+                                        {this.props.translate('contacts.enterMagicCode', {contactMethod})}
                                     </Text>
-                                </TouchableOpacity>
+                                </View>
                             </View>
-                        </>
+                            <TextInput
+                                label={this.props.translate('common.magicCode')}
+                                name="validateCode"
+                                value={this.state.validateCode}
+                                onChangeText={text => this.setState({validateCode: text})}
+                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                                blurOnSubmit={false}
+                            />
+                            <TouchableOpacity
+                                style={[styles.mt2]}
+                                onPress={this.resendValidateCode}
+                            >
+                                <Text style={[styles.link]}>
+                                    {this.props.translate('contacts.resendMagicCode')}
+                                </Text>
+                            </TouchableOpacity>
+                            <Button
+                                text={this.props.translate('common.verify')}
+                                onPress={() => console.log('hi')}
+                                style={[styles.mt4]}
+                                success
+                            />
+                        </View>
                     )}
                     <OfflineWithFeedback
                         pendingAction={lodashGet(loginData, 'pendingFields.deletedLogin', null)}
@@ -184,7 +183,7 @@ class ContactMethodDetailsPage extends Component {
                         <MenuItem
                             title={this.props.translate('common.remove')}
                             icon={Expensicons.Trashcan}
-                            onPress={() => this.toggleDeleteModal(true)}
+                            onPress={this.validateContactMethod}
                             disabled={isDefaultContactMethod}
                         />
                     </OfflineWithFeedback>
