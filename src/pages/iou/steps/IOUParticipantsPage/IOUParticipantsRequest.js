@@ -27,7 +27,17 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes).isRequired,
 
+    /** padding bottom style of safe area */
+    safeAreaPaddingBottomStyle: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    safeAreaPaddingBottomStyle: {},
 };
 
 class IOUParticipantsRequest extends Component {
@@ -141,12 +151,14 @@ class IOUParticipantsRequest extends Component {
                 headerMessage={headerMessage}
                 placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                 boldStyle
+                safeAreaPaddingBottomStyle={this.props.safeAreaPaddingBottomStyle}
             />
         );
     }
 }
 
 IOUParticipantsRequest.propTypes = propTypes;
+IOUParticipantsRequest.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,

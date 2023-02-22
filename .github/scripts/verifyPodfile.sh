@@ -10,6 +10,15 @@ title "Verifying that Podfile.lock is synced with the project"
 
 declare EXIT_CODE=0
 
+# Check Provisioning Style. If automatic signing is enabled, iOS builds will fail, so ensure we always have the proper profile specified
+info "Verifying that automatic signing is not enabled"
+if grep -q 'PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore' ios/NewExpensify.xcodeproj/project.pbxproj; then
+    success "Automatic signing not enabled"
+else
+    error "Error: Automatic provisioning style is not allowed!"
+    EXIT_CODE=1
+fi
+
 PODFILE_SHA=$(openssl sha1 ios/Podfile | awk '{print $2}')
 PODFILE_LOCK_SHA=$(awk '/PODFILE CHECKSUM: /{print $3}' ios/Podfile.lock)
 
