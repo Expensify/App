@@ -698,7 +698,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         value: {
             ...chatReport,
             lastReadTime: DateUtils.getDBTime(),
-            lastActionCreated: optimisticIOUReportAction.created,
+            lastVisibleActionCreated: optimisticIOUReportAction.created,
             lastMessageText: optimisticIOUReportAction.message[0].text,
             lastMessageHtml: optimisticIOUReportAction.message[0].html,
         },
@@ -814,7 +814,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             value: {
                 ...chatReport,
                 lastReadTime: DateUtils.getDBTime(),
-                lastActionCreated: optimisticIOUReportAction.created,
+                lastVisibleActionCreated: optimisticIOUReportAction.created,
                 lastMessageText: optimisticIOUReportAction.message[0].text,
                 lastMessageHtml: optimisticIOUReportAction.message[0].html,
                 hasOutstandingIOU: false,

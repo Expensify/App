@@ -92,4 +92,9 @@ export default {
     checkboxLabelActiveOpacity: 0.7,
     avatarChatSpacing: 12,
     chatInputSpacing: 52, // 40 + avatarChatSpacing
+    modalTopIconWidth: 200,
+    modalTopIconHeight: 164,
+    modalTopBigIconHeight: 244,
+    modalWordmarkWidth: 154,
+    modalWordmarkHeight: 34,
 };

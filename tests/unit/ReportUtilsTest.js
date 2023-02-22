@@ -1,9 +1,13 @@
 import Onyx from 'react-native-onyx';
+import _ from 'underscore';
 import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+
+// Be sure to include the mocked permissions library or else the beta tests won't work
+jest.mock('../../src/libs/Permissions');
 
 const currentUserEmail = 'bjorn@vikings.net';
 const participantsPersonalDetails = {
@@ -301,6 +305,90 @@ describe('ReportUtils', () => {
                 },
             };
             expect(ReportUtils.hasOutstandingIOU(report, 'b@b.com', iouReports)).toBe(false);
+        });
+    });
+
+    describe('getIOUOptions', () => {
+        const participants = _.keys(participantsPersonalDetails);
+
+        beforeAll(() => {
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
+                [currentUserEmail]: {
+                    login: currentUserEmail,
+                },
+            });
+        });
+
+        afterAll(() => Onyx.clear());
+
+        describe('return empty iou options if', () => {
+            it('participants contains excluded iou emails', () => {
+                const allEmpty = _.every(CONST.EXPENSIFY_EMAILS, (email) => {
+                    const iouOptions = ReportUtils.getIOUOptions({}, [currentUserEmail, email], [CONST.BETAS.IOU]);
+                    return iouOptions.length === 0;
+                });
+                expect(allEmpty).toBe(true);
+            });
+
+            it('no participants except self', () => {
+                const iouOptions = ReportUtils.getIOUOptions({}, [currentUserEmail], [CONST.BETAS.IOU]);
+                expect(iouOptions.length).toBe(0);
+            });
+
+            it('no iou permission', () => {
+                const iouOptions = ReportUtils.getIOUOptions({}, [currentUserEmail, participants], []);
+                expect(iouOptions.length).toBe(0);
+            });
+        });
+
+        describe('return only iou split option if', () => {
+            it('a chat room', () => {
+                const onlyHaveSplitOption = _.every([
+                    CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                    CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+                    CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
+                    CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                ], (chatType) => {
+                    const report = {
+                        ...LHNTestUtils.getFakeReport(),
+                        chatType,
+                    };
+                    const iouOptions = ReportUtils.getIOUOptions(report, [currentUserEmail, participants[0]], [CONST.BETAS.IOU]);
+                    return iouOptions.length === 1 && iouOptions.includes(CONST.IOU.IOU_TYPE.SPLIT);
+                });
+                expect(onlyHaveSplitOption).toBe(true);
+            });
+
+            it('has multiple participants exclude self', () => {
+                const iouOptions = ReportUtils.getIOUOptions({}, [currentUserEmail, ...participants], [CONST.BETAS.IOU]);
+                expect(iouOptions.length).toBe(1);
+                expect(iouOptions.includes(CONST.IOU.IOU_TYPE.SPLIT)).toBe(true);
+            });
+        });
+
+        describe('return only iou request option if', () => {
+            it(' does not have iou send permission', () => {
+                const iouOptions = ReportUtils.getIOUOptions({}, [currentUserEmail, participants], [CONST.BETAS.IOU]);
+                expect(iouOptions.length).toBe(1);
+                expect(iouOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)).toBe(true);
+            });
+
+            it('a policy expense chat', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                };
+                const iouOptions = ReportUtils.getIOUOptions(report, [currentUserEmail, participants], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND]);
+                expect(iouOptions.length).toBe(1);
+                expect(iouOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)).toBe(true);
+            });
+        });
+
+        it('return both iou send and request money', () => {
+            const iouOptions = ReportUtils.getIOUOptions({}, [currentUserEmail, participants], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND]);
+            expect(iouOptions.length).toBe(2);
+            expect(iouOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)).toBe(true);
+            expect(iouOptions.includes(CONST.IOU.IOU_TYPE.SEND)).toBe(true);
         });
     });
 });

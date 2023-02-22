@@ -36,7 +36,9 @@ class CopySelectionHelper extends React.Component {
             Clipboard.setString(parser.htmlToMarkdown(selection));
             return;
         }
-        Clipboard.setHtml(selection, Str.htmlDecode(parser.htmlToText(selection)));
+
+        // Replace doubled newlines with the single ones because selection from SelectionScraper html contains doubled <br/> marks
+        Clipboard.setHtml(selection, Str.htmlDecode(parser.htmlToText(selection).replace(/\n\n/g, '\n')));
     }
 
     render() {

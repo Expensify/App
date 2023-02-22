@@ -15,6 +15,9 @@ export default {
     // which tab is the leader, and which ones are the followers
     ACTIVE_CLIENTS: 'activeClients',
 
+    // A unique ID for the device
+    DEVICE_ID: 'deviceID',
+
     // Boolean flag set whenever the sidebar has loaded
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
@@ -80,6 +83,9 @@ export default {
     NVP_BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
 
     NVP_PRIVATE_PUSH_NOTIFICATION_ID: 'private_pushNotificationID',
+
+    // Does this user have push notifications enabled for this device?
+    PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
 
     // Plaid data (access tokens, bank accounts ...)
     PLAID_DATA: 'plaidData',
@@ -162,6 +168,9 @@ export default {
 
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
+
+    // Is the test tools modal open?
+    IS_TEST_TOOLS_MODAL_OPEN: 'isTestToolsModalOpen',
 
     // Stores information about active wallet transfer amount, selectedAccountID, status, etc
     WALLET_TRANSFER: 'walletTransfer',
