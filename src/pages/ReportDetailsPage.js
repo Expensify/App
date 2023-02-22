@@ -15,6 +15,7 @@ import styles from '../styles/styles';
 import DisplayNames from '../components/DisplayNames';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/ReportUtils';
+import * as Policy from '../libs/actions/Policy';
 import participantPropTypes from '../components/participantPropTypes';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
@@ -91,7 +92,7 @@ class ReportDetailsPage extends Component {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: 'common.leaveRoom',
                 icon: Expensicons.Exit,
-                action: () => { /* Placeholder for when leaving rooms is built in */ },
+                action: () => Policy.leaveRoom(this.props.report),
             });
         }
         return menuItems;
