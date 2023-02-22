@@ -59,7 +59,7 @@ const MenuItem = (props) => {
         styles.ml3,
         (props.shouldShowBasicTitle ? undefined : styles.textStrong),
         (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
-        EmojiUtils.hasEmojis(props.title) ? styles.displayNameText: undefined,
+        EmojiUtils.hasEmojis(props.title) ? styles.displayNameText : undefined,
     ], props.style);
     const descriptionTextStyle = StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml3, styles.breakAll, styles.lineHeightNormal], props.style);
 

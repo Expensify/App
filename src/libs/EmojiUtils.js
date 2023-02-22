@@ -257,11 +257,11 @@ function hasEmojis(message) {
 }
 
 /**
- * Validates that this message contains emojis
+ * Get all the emojis in the message
  * @param {String} text
  * @returns {Array}
  */
-function containsEmoji(text) {
+function getAllEmojiFromText(text) {
     const result = [];
 
     if (!hasEmojis(text)) {
@@ -313,6 +313,6 @@ export {
     replaceEmojis,
     suggestEmojis,
     trimEmojiUnicode,
-    containsEmoji,
+    getAllEmojiFromText,
     hasEmojis,
 };

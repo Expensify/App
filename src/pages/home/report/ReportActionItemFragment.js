@@ -124,13 +124,13 @@ const ReportActionItemFragment = (props) => {
                     selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
                     style={[
                         styles.ltr, ...props.style, styles.inboxMessageText,
-                        EmojiUtils.hasEmojis(text) ? styles.inboxEmojiMessageText: undefined, 
-                        EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined
+                        EmojiUtils.hasEmojis(text) ? styles.inboxEmojiMessageText : undefined,
+                        EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined,
                     ]}
                 >
                     <TextEmoji style={[
                         styles.emojiMessageText, styles.ltr, ...props.style,
-                        EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined
+                        EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined,
                     ]}
                     >
                         {StyleUtils.convertToLTR(Str.htmlDecode(text))}

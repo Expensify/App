@@ -21,7 +21,7 @@ const defaultProps = {
 };
 
 const TextEmoji = (props) => {
-    const words = EmojiUtils.containsEmoji(props.children);
+    const words = EmojiUtils.getAllEmojiFromText(props.children);
     const propsStyle = StyleUtils.parseStyleAsArray(props.style);
 
     return _.map(words, ({text, isEmoji}, index) => (isEmoji ? (
