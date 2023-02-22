@@ -64,7 +64,6 @@ class ScreenWrapper extends React.Component {
                 Keyboard.dismiss();
             });
         }
-)
     }
 
     /**
