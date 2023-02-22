@@ -48,7 +48,7 @@ const propTypes = {
     network: networkPropTypes.isRequired,
 
     /** Specifies autocomplete hints for the system, so it can provide autofill */
-    autoComplete: PropTypes.oneOf(['sms-otp', 'one-time-code']),
+    autoComplete: PropTypes.oneOf(['sms-otp', 'one-time-code']).isRequired,
 
     ...withLocalizePropTypes,
     ...toggleVisibilityViewPropTypes,
