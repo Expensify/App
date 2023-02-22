@@ -169,7 +169,7 @@ class LoginForm extends React.Component {
         const serverErrorText = ErrorUtils.getLatestErrorMessage(this.props.account);
         return (
             <>
-                <View accessibilityLabel="Login form" style={[styles.mt3]}>
+                <View accessibilityLabel={this.props.translate('accessibilityLabel.loginForm')} style={[styles.mt3]}>
                     <TextInput
                         ref={el => this.input = el}
                         label={this.props.translate('loginForm.phoneOrEmail')}

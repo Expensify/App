@@ -1181,4 +1181,7 @@ export default {
     report: {
         genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
     },
+    accessibilityLabel: {
+        loginForm: 'Login form',
+    },
 };

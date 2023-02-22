@@ -1183,4 +1183,7 @@ export default {
     report: {
         genericAddCommentFailureMessage: 'Error inesperado al agregar el comentario, por favor inténtalo más tarde',
     },
+    accessibilityLabel: {
+        loginForm: 'Login form IN SPANISH',
+    },
 };
