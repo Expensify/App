@@ -1000,6 +1000,38 @@ function openWorkspaceInvitePage(policyID, clientMemberEmails) {
     });
 }
 
+/**
+ *
+ * @param {String} reportID
+ */
+function leaveRoom(reportID) {
+    API.write('LeaveRoom', {
+        reportID,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS.CLOSED,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS.OPEN,
+                },
+            },
+        ],
+    });
+    Navigation.dismissModal();
+}
+
 export {
     removeMembers,
     addMembersToWorkspace,
@@ -1027,4 +1059,5 @@ export {
     openWorkspaceMembersPage,
     openWorkspaceInvitePage,
     removeWorkspace,
+    leaveRoom,
 };
