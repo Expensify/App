@@ -159,8 +159,8 @@ function navigate(route = ROUTES.HOME) {
         return;
     }
 
-    // Pressing a button that does navigation will stay focused, keeping its tooltip visible even if it's supposed to be out of view.
-    // To prevent that we blur the button manually (especially for Safari, where the mouse leave event is also missing).
+    // A pressed navigation button will remain focused, keeping its tooltip visible, even if it's supposed to be out of view.
+    // To prevent that we blur the button manually (especially for Safari, where the mouse leave event is missing).
     // More info: https://github.com/Expensify/App/issues/13146
     DomUtils.blurActiveElement();
 
