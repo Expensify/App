@@ -338,6 +338,10 @@ export default {
         pronouns: 'Pronouns',
         isShownOnProfile: 'Your pronouns are shown on your profile.',
     },
+    contacts: {
+        contactMethod: 'Contact method',
+        contactMethods: 'Contact methods',
+    },
     pronouns: {
         coCos: 'Co / Cos',
         eEyEmEir: 'E / Ey / Em / Eir',
