@@ -299,7 +299,7 @@ class BasePaymentsPage extends React.Component {
         LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
     }
 
-    makeDefaultPaymentMethod(password) {
+    makeDefaultPaymentMethod(password = '') {
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
         const paymentMethods = PaymentUtils.formatPaymentMethods(
             this.props.bankAccountList,
