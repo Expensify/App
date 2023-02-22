@@ -6,7 +6,6 @@ import {ScrollView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '../../../../components/Button';
-import FixedFooter from '../../../../components/FixedFooter';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../../components/withCurrentUserPersonalDetails';
@@ -122,10 +121,8 @@ class ContactMethodsPage extends Component {
                         login={this.state.logins.phone}
                         defaultValue={this.state.logins.phone}
                     />
-                </ScrollView>
-                <FixedFooter style={[styles.flexGrow0]}>
                     <Button
-                        style={[styles.buttonCTA]}
+                        style={[styles.buttonCTA, styles.mt6]}
                         iconStyles={[styles.buttonCTAIcon]}
                         success
                         icon={Expensicons.Plus}
@@ -133,7 +130,7 @@ class ContactMethodsPage extends Component {
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD)}
                         pressOnEnter
                     />
-                </FixedFooter>
+                </ScrollView>
             </ScreenWrapper>
         );
     }
