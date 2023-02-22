@@ -13,11 +13,11 @@ import * as Report from '../../libs/actions/Report';
 import AttachmentView from '../AttachmentView';
 import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import Config from '../../CONFIG';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import reportPropTypes from '../../pages/reportPropTypes';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
+import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
 
 const propTypes = {
     /** source is used to determine the starting index in the array of attachments */
@@ -50,15 +50,8 @@ class AttachmentCarousel extends React.Component {
         this.canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
 
-        // This is used to match the initial image URL from props in a config environment.
-        // Eg: while using Ngrok the image path is from an Ngrok URL and not an Expensify URL.
-        const source = this.props.source.replace(
-            Config.EXPENSIFY.EXPENSIFY_URL,
-            Config.EXPENSIFY.URL_API_ROOT,
-        );
-
         this.state = {
-            source,
+            source: this.props.source,
             shouldShowArrow: this.canUseTouchScreen,
             isForwardDisabled: true,
             isBackDisabled: true,
@@ -126,27 +119,12 @@ class AttachmentCarousel extends React.Component {
 
                 // Update the image URL so the images can be accessed depending on the config environment.
                 // Eg: while using Ngrok the image path is from an Ngrok URL and not an Expensify URL.
-                const source = originalSource.replace(
-                    Config.EXPENSIFY.EXPENSIFY_URL,
-                    Config.EXPENSIFY.URL_API_ROOT,
-                );
+                const source = tryResolveUrlFromApiRoot(originalSource);
+                if (source === this.state.source) {
+                    page = attachments.length;
+                }
 
                 attachments.push({source, file: {name}});
-
-                if (page >= 0) { return; }
-
-                const pageNumber = attachments.length - 1;
-
-                // Determine attachment index by matching source url with one that's used in state currently
-                if (Config.EXPENSIFY.URL_API_ROOT !== '/') {
-                    const sourcePath = new URL(source).pathname;
-                    const currentPath = new URL(this.state.source).pathname;
-                    if (sourcePath === currentPath) {
-                        page = pageNumber;
-                    }
-                } else if (source === this.state.source) {
-                    page = pageNumber;
-                }
             }
         });
 
