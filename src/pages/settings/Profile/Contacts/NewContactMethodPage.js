@@ -1,12 +1,16 @@
 import React, { Component } from 'react';
 import { View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
+import { withOnyx } from 'react-native-onyx';
+import { compose } from 'underscore';
 import HeaderWithCloseButton from "../../../../components/HeaderWithCloseButton";
 import ScreenWrapper from "../../../../components/ScreenWrapper";
 import Text from '../../../../components/Text';
 import TextInput from '../../../../components/TextInput';
 import withLocalize, {withLocalizePropTypes} from "../../../../components/withLocalize";
 import Navigation from "../../../../libs/Navigation/Navigation";
+import Permissions from '../../../../libs/Permissions';
+import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from "../../../../ROUTES";
 import styles from '../../../../styles/styles';
 
@@ -21,12 +25,17 @@ class NewContactMethodPage extends Component {
 
         this.state = {
             login: '',
+            password: '',
         };
         this.onLoginChange = this.onLoginChange.bind(this);
     }
 
     onLoginChange(login) {
         this.setState({login});
+    }
+
+    onPasswordChange(password) {
+        this.setState({password});
     }
 
     render() {
@@ -55,9 +64,19 @@ class NewContactMethodPage extends Component {
                             ref={el => this.loginInputRef = el}
                             value={this.state.login}
                             onChangeText={this.onLoginChange}
-                            returnKeyType="done"
+                            returnKeyType={Permissions.canUsePasswordlessLogins(this.props.betas) ? 'done' : 'next'}
                         />
                     </View>
+                    {!Permissions.canUsePasswordlessLogins(this.props.betas) &&
+                        <View style={[styles.ph5, styles.mb6]}>
+                            <TextInput
+                                label={this.props.translate('common.password')}
+                                value={this.state.password}
+                                onChangeText={this.onPasswordChange}
+                                returnKeyType="done"
+                            />
+                        </View>
+                    }
                 </ScrollView>
             </ScreenWrapper>
         );
@@ -67,4 +86,9 @@ class NewContactMethodPage extends Component {
 NewContactMethodPage.displayName = 'NewContactMethodPage';
 NewContactMethodPage.propTypes = propTypes;
 
-export default withLocalize(NewContactMethodPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        betas: {key: ONYXKEYS.BETAS},
+    }),
+)(NewContactMethodPage);
