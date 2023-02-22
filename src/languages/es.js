@@ -155,6 +155,14 @@ export default {
         youCanAlso: 'También puedes',
         openLinkInBrowser: 'abrir este enlace en tu navegador',
     },
+    validateCodeModal: {
+        successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
+        successfulSignInDescription: 'Vuelve a la pestaña original para continuar.',
+        title: 'Aquí está tu código mágico',
+        or: ', ¡o',
+        description: 'Por favor, introduzca el código utilizando el dispositivo\nen el que se solicitó originalmente',
+        signInHere: 'simplemente inicia sesión aquí',
+    },
     iOUConfirmationList: {
         whoPaid: '¿Quién pago?',
         whoWasThere: '¿Quién asistió?',
@@ -320,7 +328,6 @@ export default {
         emailAddress: 'Dirección de email',
         setMyTimezoneAutomatically: 'Configura mi zona horaria automáticamente',
         timezone: 'Zona horaria',
-        growlMessageOnSave: 'Tu perfil se ha guardado correctamente',
         invalidFileMessage: 'Archivo inválido. Pruebe con una imagen diferente.',
         avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
         online: 'En línea',
@@ -330,6 +337,10 @@ export default {
     pronounsPage: {
         pronouns: 'Pronombres',
         isShownOnProfile: 'Tus pronombres se muestran en tu perfil.',
+    },
+    contacts: {
+        contactMethod: 'Método de contacto',
+        contactMethods: 'Métodos de contacto',
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -592,9 +603,8 @@ export default {
     },
     personalDetails: {
         error: {
-            firstNameLength: 'El nombre no debe tener más de 50 caracteres',
-            lastNameLength: 'Los apellidos no pueden tener más de 50 caracteres',
-            hasInvalidCharacter: ({invalidCharacter}) => `Por favor elimina ${invalidCharacter} del campo nombre.`,
+            containsReservedWord: 'El nombre no puede contener las palabras Expensify o Concierge',
+            hasInvalidCharacter: 'El nombre no puede contener una coma o un punto y coma',
         },
     },
     privatePersonalDetails: {
@@ -605,7 +615,6 @@ export default {
         legalLastName: 'Apellidos legales',
         homeAddress: 'Domicilio',
         error: {
-            hasInvalidCharacter: ({invalidCharacter}) => `Por favor elimina ${invalidCharacter}`,
             dateShouldBeBefore: ({dateString}) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `La fecha debe ser posterior a ${dateString}.`,
         },
@@ -1061,8 +1070,6 @@ export default {
             phoneNumberExtension: 'Por favor, introduce una extensión telefónica válida',
             firstName: 'Por favor, ingresa tu nombre',
             lastName: 'Por favor, ingresa tus apellidos',
-            firstNameLength: 'El nombre no debe tener más de 50 caracteres',
-            lastNameLength: 'Los apellidos no deben tener más de 50 caracteres',
         },
     },
     requestCallConfirmationScreen: {
