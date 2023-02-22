@@ -16,6 +16,8 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from "../../../../ROUTES";
 import styles from '../../../../styles/styles';
 import * as User from '../../../../libs/actions/User';
+import * as LoginUtils from '../../../../libs/LoginUtils';
+import Str from 'expensify-common/lib/str';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -31,6 +33,7 @@ class NewContactMethodPage extends Component {
             password: '',
         };
         this.onLoginChange = this.onLoginChange.bind(this);
+        this.validateForm = this.validateForm.bind(this);
         this.submitForm = this.submitForm.bind(this);
     }
 
@@ -38,10 +41,19 @@ class NewContactMethodPage extends Component {
         this.setState({login});
     }
 
+     /**
+     * Determine whether the form is valid
+     *
+     * @returns {Boolean}
+     */
+     validateForm() {
+        const login = this.state.login.trim();
+        const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login);
+
+        return !this.state.password || !Str.isValidEmail(login) && !Str.isValidPhone(phoneLogin);
+    }
+
     submitForm() {
-        // const login = this.formType === CONST.LOGIN_TYPE.PHONE
-        //     ? LoginUtils.getPhoneNumberWithoutSpecialChars(this.state.login)
-        //     : this.state.login;
         User.setSecondaryLoginAndNavigate(this.state.login, this.state.password);
     }
 
@@ -88,6 +100,7 @@ class NewContactMethodPage extends Component {
                 <FixedFooter style={[styles.flexGrow0]}>
                     <Button
                         success
+                        isDisabled={this.validateForm()}
                         text={this.props.translate('common.add')}
                         onPress={this.submitForm}
                         pressOnEnter
