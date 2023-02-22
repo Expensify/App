@@ -1257,15 +1257,14 @@ function getIOUTotal(report, iouReports = {}) {
 /**
  * @param {Object} report
  * @param {String} report.iouReportID
- * @param {Object} currentUserLogin
  * @param {Object} iouReports
  * @returns {Boolean}
  */
-function isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports = {}) {
+function isIOUOwnedByCurrentUser(report, iouReports = {}) {
     if (report.hasOutstandingIOU) {
         const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
         if (iouReport) {
-            return iouReport.ownerEmail === currentUserLogin.email;
+            return iouReport.ownerEmail === currentUserEmail;
         }
     }
     return false;

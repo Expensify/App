@@ -361,7 +361,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         result.alternateText = Str.removeSMSDomain(personalDetail.login);
     }
 
-    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, currentUserLogin, iouReports);
+    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);
     result.iouReportAmount = ReportUtils.getIOUTotal(result, iouReports);
 
     if (!hasMultipleParticipants) {
