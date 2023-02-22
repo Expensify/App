@@ -101,6 +101,59 @@ function resendValidateCode(login, isPasswordless = false) {
 }
 
 /**
+ * @param {String} contactMethod - the new contact method that the user is trying to verify
+ */
+function requestContactMethodValidateCode(contactMethod) {
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                validateCodeSent: true,
+                errorFields: {
+                    validateCodeSent: null,
+                },
+                pendingFields: {
+                    validateCodeSent: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                pendingFields: {
+                    validateCodeSent: null,
+                },
+            },
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                validateCodeSent: false,
+                errorFields: {
+                    validateCodeSent: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.requestContactMethodValidateCode'),
+                    },
+                },
+                pendingFields: {
+                    validateCodeSent: null,
+                },
+            },
+        },
+    }];
+
+    API.write('RequestContactMethodValidateCode', {
+        email: contactMethod,
+    }, {optimisticData, successData, failureData});
+}
+
+/**
  * Sets whether or not the user is subscribed to Expensify news
  *
  * @param {Boolean} isSubscribed
@@ -539,6 +592,7 @@ export {
     updatePassword,
     closeAccount,
     resendValidateCode,
+    requestContactMethodValidateCode,
     updateNewsletterSubscription,
     setSecondaryLoginAndNavigate,
     deleteContactMethod,
