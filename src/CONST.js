@@ -375,6 +375,7 @@ const CONST = {
             CONFIRM: 'confirm',
             CENTERED: 'centered',
             CENTERED_UNSWIPEABLE: 'centered_unswipeable',
+            CENTERED_SMALL: 'centered_small',
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
@@ -400,6 +401,7 @@ const CONST = {
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
+        TEST_TOOLS_MODAL_THROTTLE_TIME: 800,
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
     },
@@ -1177,6 +1179,15 @@ const CONST = {
         'Zambia',
         'Zimbabwe',
     ],
+
+    // Values for checking if polyfill is required on a platform
+    POLYFILL_TEST: {
+        STYLE: 'currency',
+        CURRENCY: 'XAF',
+        FORMAT: 'symbol',
+        SAMPLE_INPUT: '123456.789',
+        EXPECTED_OUTPUT: 'FCFA 123,457',
+    },
 };
 
 export default CONST;
