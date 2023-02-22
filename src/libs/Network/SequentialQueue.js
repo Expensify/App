@@ -36,8 +36,7 @@ function process() {
     isSequentialQueueRunning = true;
 
     // Get the first request in the queue and process it
-    currentRequest = persistedRequests.shift();
-    return Request.processWithMiddleware(currentRequest, true).then(() => {
+    currentRequest = Request.processWithMiddleware(persistedRequests.shift(), true).then(() => {
         // If the request is successful we want to:
         // - Remove it from the queue
         // - Clear any wait time we may have added if it failed before
@@ -58,6 +57,7 @@ function process() {
         // - Call process again. This will retry the same request since we have not removed it from the queue
         return RequestThrottle.sleep().then(process);
     });
+    return currentRequest;
 }
 
 function flush() {
