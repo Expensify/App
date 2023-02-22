@@ -49,12 +49,21 @@ class AttachmentPicker extends React.Component {
 
                     // We are stopping the event propagation because triggering the `click()` on the hidden input
                     // causes the event to unexpectedly bubble up to anything wrapping this component e.g. Pressable
-                    onClick={e => e.stopPropagation()}
+                    onClick={(e) => {
+                        e.stopPropagation();
+
+                        // We add this focus event listener to call the onClose callback when user does not select any files
+                        // i.e. clicks cancel in the native file picker modal - this is when the app gets the focus back
+                        window.addEventListener('focus', this.onClose, {
+                            once: true, // this removes the listener after running once
+                        });
+                    }}
                     accept={getAcceptableFileTypes(this.props.type)}
                 />
                 {this.props.children({
-                    openPicker: ({onPicked}) => {
+                    openPicker: ({onPicked, onClose}) => {
                         this.onPicked = onPicked;
+                        this.onClose = onClose;
                         this.fileInput.click();
                     },
                 })}

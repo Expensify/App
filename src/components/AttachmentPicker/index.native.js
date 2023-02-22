@@ -98,6 +98,7 @@ class AttachmentPicker extends Component {
 
         this.state = {
             isVisible: false,
+            onClose: () => {},
         };
 
         this.menuItemData = [
@@ -187,6 +188,8 @@ class AttachmentPicker extends Component {
         return new Promise((resolve, reject) => {
             imagePickerFunc(getImagePickerOptions(this.props.type), (response) => {
                 if (response.didCancel) {
+                    this.state.onClose();
+
                     // When the user cancelled resolve with no attachment
                     return resolve();
                 }
@@ -237,6 +240,7 @@ class AttachmentPicker extends Component {
     showDocumentPicker() {
         return RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
             if (RNDocumentPicker.isCancel(error)) {
+                this.state.onClose();
                 return;
             }
 
@@ -299,7 +303,12 @@ class AttachmentPicker extends Component {
       */
     renderChildren() {
         return this.props.children({
-            openPicker: ({onPicked}) => this.open(onPicked),
+            openPicker: ({onPicked, onClose}) => {
+                this.open(onPicked);
+                if (onClose) {
+                    this.setState({onClose});
+                }
+            },
         });
     }
 
@@ -307,7 +316,10 @@ class AttachmentPicker extends Component {
         return (
             <>
                 <Popover
-                    onClose={this.close}
+                    onClose={() => {
+                        this.close();
+                        this.state.onClose();
+                    }}
                     isVisible={this.state.isVisible}
                     anchorPosition={styles.createMenuPosition}
                     onModalHide={this.onModalHide}

@@ -132,6 +132,7 @@ class ReportActionCompose extends React.Component {
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
         this.getIOUOptions = this.getIOUOptions.bind(this);
         this.addAttachment = this.addAttachment.bind(this);
+        this.finishAddAttachmentFlow = this.finishAddAttachmentFlow.bind(this);
         this.comment = props.comment;
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
@@ -139,6 +140,7 @@ class ReportActionCompose extends React.Component {
         this.willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutside();
 
         this.state = {
+            isInAddAttachmentFlow: false,
             isFocused: this.willBlurTextInputOnTapOutside && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible,
             isFullComposerAvailable: props.isComposerFullSize,
             textInputShouldClear: false,
@@ -179,7 +181,7 @@ class ReportActionCompose extends React.Component {
         // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (this.willBlurTextInputOnTapOutside && this.props.isFocused
+        if (this.willBlurTextInputOnTapOutside && this.props.isFocused && !this.state.isInAddAttachmentFlow
             && prevProps.modal.isVisible && !this.props.modal.isVisible) {
             this.focus();
         }
@@ -474,6 +476,16 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Set the focus back to the composer
+     *
+     * @param {SyntheticEvent} [e]
+     */
+    finishAddAttachmentFlow() {
+        this.setState({isInAddAttachmentFlow: false});
+        this.focus(true);
+    }
+
+    /**
      * Add a new comment to this chat
      *
      * @param {SyntheticEvent} [e]
@@ -535,6 +547,7 @@ class ReportActionCompose extends React.Component {
                 ]}
                 >
                     <AttachmentModal
+                        onModalHide={this.finishAddAttachmentFlow}
                         headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
                         onConfirm={this.addAttachment}
                     >
@@ -613,8 +626,10 @@ class ReportActionCompose extends React.Component {
                                                         icon: Expensicons.Paperclip,
                                                         text: this.props.translate('reportActionCompose.addAttachment'),
                                                         onSelected: () => {
+                                                            this.setState({isInAddAttachmentFlow: true});
                                                             openPicker({
                                                                 onPicked: displayFileInModal,
+                                                                onClose: this.finishAddAttachmentFlow,
                                                             });
                                                         },
                                                     },
