@@ -57,6 +57,9 @@ class ScreenWrapper extends React.Component {
             this.props.onEntryTransitionEnd();
         });
 
+        // We need to have this prop to remove keyboard before going away from the screen, to avoid previous screen look weird for a brief moment,
+        // also we need to have generic control in future - to prevent closing keyboard for some rare cases in which beforeRemove has limitations
+        // described here https://reactnavigation.org/docs/preventing-going-back/#limitations
         if (this.props.shouldDismissKeyboardBeforeClose) {
             this.beforeRemoveSubscription = this.props.navigation.addListener('beforeRemove', () => {
                 if (!this.props.isKeyboardShown) {
