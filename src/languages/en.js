@@ -382,6 +382,9 @@ export default {
         enterPreferredEmailToSendValidationLink: 'Enter your preferred email address and password to send a validation link.',
         sendValidation: 'Send validation',
     },
+    newContactMethodPage: {
+        description: 'Enter your email/phone number followed by your Expensify password to confirm.',
+    },
     initialSettingsPage: {
         about: 'About',
         aboutPage: {
