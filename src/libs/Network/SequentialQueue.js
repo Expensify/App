@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashCloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 import * as PersistedRequests from '../actions/PersistedRequests';
 import * as NetworkStore from './NetworkStore';
@@ -25,7 +26,7 @@ let currentRequest = null;
  * @returns {Promise}
  */
 function process() {
-    const persistedRequests = [...PersistedRequests.getAll()];
+    const persistedRequests = PersistedRequests.getAll();
 
     // If we have no persisted requests or we are offline we don't want to make any requests so we return early
     if (_.isEmpty(persistedRequests) || NetworkStore.isOffline()) {
@@ -36,7 +37,8 @@ function process() {
     isSequentialQueueRunning = true;
 
     // Get the first request in the queue and process it
-    const requestToProcess = persistedRequests.shift();
+    // Make a copy of the first request in the queue and process it. We make a copy so that the middlewares can't modify the persisted request which could cause problems with retries.
+    const requestToProcess = lodashCloneDeep(persistedRequests[0]);
 
     // Set the current request to a promise awaiting its processing
     currentRequest = Request.processWithMiddleware(requestToProcess, true).then(() => {
