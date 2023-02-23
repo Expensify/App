@@ -58,11 +58,11 @@ const SignInPageLayout = (props) => {
                 )
                 : (
                     <ScrollView
-                        contentContainerStyle={[styles.flex1]}
+                        contentContainerStyle={scrollViewContentContainerStyles}
                         keyboardShouldPersistTaps="handled"
                         keyboardDismissMode="on-drag"
                     >
-                        <View style={[styles.flex1]}>
+                        <View style={{flex: 1, minHeight: props.windowHeight}}>
                             <SignInPageContent
                                 welcomeText={props.welcomeText}
                                 shouldShowWelcomeText={props.shouldShowWelcomeText}
@@ -70,9 +70,7 @@ const SignInPageLayout = (props) => {
                                 {props.children}
                             </SignInPageContent>
                         </View>
-                        <View style={[styles.flex0]}>
-                            <Footer />
-                        </View>
+                        <Footer />
                     </ScrollView>
                 )}
         </View>
