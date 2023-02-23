@@ -71,7 +71,7 @@ function getLatestErrorFieldMessage(onyxData, fieldName) {
         .keys()
         .sortBy()
         .reverse()
-        .map(key => errorsForField[key])
+        .map(key => ({[key]: errorsForField[key]}))
         .first()
         .value();
 }

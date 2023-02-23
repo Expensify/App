@@ -140,7 +140,6 @@ class ContactMethodDetailsPage extends Component {
 
         const isDefaultContactMethod = (this.props.session.email === loginData.partnerUserID);
         const hasMagicCodeBeenSent = lodashGet(this.props.loginList, [contactMethod, 'validateCodeSent'], false);
-        const latestValidateCodeError = ErrorUtils.getLatestErrorFieldMessage(loginData, 'validateCodeSent');
 
         return (
             <ScreenWrapper>
@@ -178,31 +177,42 @@ class ContactMethodDetailsPage extends Component {
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                 blurOnSubmit={false}
                             />
-                            <TouchableOpacity
-                                style={[styles.mt2, styles.dFlex, styles.flexRow]}
-                                onPress={this.resendValidateCode}
+                            <OfflineWithFeedback
+                                pendingAction={lodashGet(loginData, 'pendingFields.validateCodeSent', null)}
+                                errors={ErrorUtils.getLatestErrorFieldMessage(loginData, 'validateCodeSent')}
+                                errorRowStyles={[styles.mt2]}
+                                onClose={() => User.clearContactMethodErrors(contactMethod, 'validateCodeSent')}
                             >
-                                <Text style={[styles.link, styles.mr4]}>
-                                    {this.props.translate('contacts.resendMagicCode')}
-                                </Text>
-                                {hasMagicCodeBeenSent && (
-                                    <Icon src={Expensicons.Checkmark} fill={colors.green} />
-                                )}
-                            </TouchableOpacity>
-                            {!_.isEmpty(latestValidateCodeError) && (
-                                <FormHelpMessage message={latestValidateCodeError} />
-                            )}
-                            <Button
-                                text={this.props.translate('common.verify')}
-                                onPress={this.validateContactMethod}
-                                style={[styles.mt4]}
-                                success
-                            />
+                                <TouchableOpacity
+                                    style={[styles.mt2, styles.dFlex, styles.flexRow]}
+                                    onPress={this.resendValidateCode}
+                                >
+                                    <Text style={[styles.link, styles.mr4]}>
+                                        {this.props.translate('contacts.resendMagicCode')}
+                                    </Text>
+                                    {hasMagicCodeBeenSent && (
+                                        <Icon src={Expensicons.Checkmark} fill={colors.green} />
+                                    )}
+                                </TouchableOpacity>
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback
+                                pendingAction={lodashGet(loginData, 'pendingFields.validateLogin', null)}
+                                errors={ErrorUtils.getLatestErrorFieldMessage(loginData, 'validateLogin')}
+                                errorRowStyles={[styles.mt2]}
+                                onClose={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}
+                            >
+                                <Button
+                                    text={this.props.translate('common.verify')}
+                                    onPress={this.validateContactMethod}
+                                    style={[styles.mt4]}
+                                    success
+                                />
+                            </OfflineWithFeedback>
                         </View>
                     )}
                     <OfflineWithFeedback
                         pendingAction={lodashGet(loginData, 'pendingFields.deletedLogin', null)}
-                        errors={lodashGet(loginData, 'errorFields.deletedLogin', null)}
+                        errors={ErrorUtils.getLatestErrorFieldMessage(loginData, 'deletedLogin')}
                         errorRowStyles={[styles.mt6]}
                         onClose={() => User.clearContactMethodErrors(contactMethod, 'deletedLogin')}
                     >
