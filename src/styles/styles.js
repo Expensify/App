@@ -1474,7 +1474,7 @@ const styles = {
     },
 
     emojiPickerList: {
-        height: 288,
+        height: 256,
         width: '100%',
         ...spacing.ph4,
     },

@@ -122,46 +122,52 @@ class BaseModal extends PureComponent {
                 statusBarTranslucent={this.props.statusBarTranslucent}
                 avoidKeyboard={this.props.avoidKeyboard}
             >
-                <KeyboardAvoidingView behavior="padding" style={styles.w100}>
-                    <SafeAreaInsetsContext.Consumer>
-                        {(insets) => {
-                            const {
-                                paddingTop: safeAreaPaddingTop,
-                                paddingBottom: safeAreaPaddingBottom,
-                                paddingLeft: safeAreaPaddingLeft,
-                                paddingRight: safeAreaPaddingRight,
-                            } = StyleUtils.getSafeAreaPadding(insets);
+                <SafeAreaInsetsContext.Consumer>
+                    {(insets) => {
+                        const {
+                            paddingTop: safeAreaPaddingTop,
+                            paddingBottom: safeAreaPaddingBottom,
+                            paddingLeft: safeAreaPaddingLeft,
+                            paddingRight: safeAreaPaddingRight,
+                        } = StyleUtils.getSafeAreaPadding(insets);
 
-                            const modalPaddingStyles = StyleUtils.getModalPaddingStyles({
-                                safeAreaPaddingTop,
-                                safeAreaPaddingBottom,
-                                safeAreaPaddingLeft,
-                                safeAreaPaddingRight,
-                                shouldAddBottomSafeAreaMargin,
-                                shouldAddTopSafeAreaMargin,
-                                shouldAddBottomSafeAreaPadding,
-                                shouldAddTopSafeAreaPadding,
-                                modalContainerStyleMarginTop: modalContainerStyle.marginTop,
-                                modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
-                                modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
-                                modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
-                            });
+                        const modalPaddingStyles = StyleUtils.getModalPaddingStyles({
+                            safeAreaPaddingTop,
+                            safeAreaPaddingBottom,
+                            safeAreaPaddingLeft,
+                            safeAreaPaddingRight,
+                            shouldAddBottomSafeAreaMargin,
+                            shouldAddTopSafeAreaMargin,
+                            shouldAddBottomSafeAreaPadding,
+                            shouldAddTopSafeAreaPadding,
+                            modalContainerStyleMarginTop: modalContainerStyle.marginTop,
+                            modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
+                            modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
+                            modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
+                        });
+                        const content = (
+                            <View
+                                style={{
+                                    ...styles.defaultModalContainer,
+                                    ...modalContainerStyle,
+                                    ...modalPaddingStyles,
+                                }}
+                                ref={this.props.forwardedRef}
+                            >
+                                {this.props.children}
+                            </View>
+                        );
 
-                            return (
-                                <View
-                                    style={{
-                                        ...styles.defaultModalContainer,
-                                        ...modalContainerStyle,
-                                        ...modalPaddingStyles,
-                                    }}
-                                    ref={this.props.forwardedRef}
-                                >
-                                    {this.props.children}
-                                </View>
-                            );
-                        }}
-                    </SafeAreaInsetsContext.Consumer>
-                </KeyboardAvoidingView>
+                        return (
+                            <KeyboardAvoidingView
+                                behavior="padding"
+                                style={styles.w100}
+                            >
+                                {content}
+                            </KeyboardAvoidingView>
+                        );
+                    }}
+                </SafeAreaInsetsContext.Consumer>
             </ReactNativeModal>
         );
     }
