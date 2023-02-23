@@ -389,7 +389,7 @@ class ReportActionCompose extends React.Component {
     insertSelectedEmoji(highlightedEmojiIndex) {
         const commentBeforeColon = this.state.value.slice(0, this.state.colonIndex);
         const emojiObject = this.state.suggestedEmojis[highlightedEmojiIndex];
-        const emojiCode = emojiObject.code;
+        const emojiCode = emojiObject.types && emojiObject.types[this.props.preferredSkinTone] ? emojiObject.types[this.props.preferredSkinTone] : emojiObject.code;
         const commentAfterColonWithEmojiNameRemoved = this.state.value.slice(this.state.selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
 
         this.updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, false);
@@ -833,6 +833,7 @@ class ReportActionCompose extends React.Component {
                     <ArrowKeyFocusManager
                         focusedIndex={this.state.highlightedEmojiIndex}
                         maxIndex={getEmojiRowCount(this.state.suggestedEmojis.length, this.state.isEmojiPickerLarge)}
+                        isExcludedTextAreaNodes={false}
                         onFocusedIndexChanged={index => this.setState({highlightedEmojiIndex: index})}
                     >
                         <EmojiSuggestions
