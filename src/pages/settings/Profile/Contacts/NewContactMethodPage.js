@@ -54,7 +54,11 @@ class NewContactMethodPage extends Component {
     }
 
     submitForm() {
-        User.setSecondaryLoginAndNavigate(this.state.login, this.state.password);
+        if (Permissions.canUsePasswordlessLogins(this.props.betas)) {
+
+        } else {
+            User.setSecondaryLoginAndNavigate(this.state.login, this.state.password);
+        }
     }
 
     render() {
