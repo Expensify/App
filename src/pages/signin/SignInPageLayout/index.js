@@ -62,7 +62,7 @@ const SignInPageLayout = (props) => {
                         keyboardShouldPersistTaps="handled"
                         keyboardDismissMode="on-drag"
                     >
-                        <View style={{flex: 1, minHeight: props.windowHeight}}>
+                        <View style={{minHeight: props.windowHeight}}>
                             <SignInPageContent
                                 welcomeText={props.welcomeText}
                                 shouldShowWelcomeText={props.shouldShowWelcomeText}
