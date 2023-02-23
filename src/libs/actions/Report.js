@@ -805,7 +805,7 @@ const removeLinks = (comment, links) => {
  */
 const handleUserDeletedLinks = (newCommentText, originalHtml) => {
     const parser = new ExpensiMark();
-    if (newCommentText.length >= 10000) {
+    if (newCommentText.length >= CONST.MAX_MARKUP_LENGTH) {
         return newCommentText;
     }
     const htmlWithAutoLinks = parser.replace(newCommentText);
@@ -837,7 +837,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     let htmlForNewComment = markdownForNewComment;
     let parsedOriginalCommentHTML = originalCommentHTML;
-    if (markdownForNewComment.length < 10000) {
+    if (markdownForNewComment.length < CONST.MAX_MARKUP_LENGTH) {
         htmlForNewComment = parser.replace(markdownForNewComment, autolinkFilter);
         parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML), autolinkFilter);
     }
