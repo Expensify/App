@@ -252,7 +252,7 @@ function deleteContactMethod(contactMethod, oldLoginData) {
                 ...oldLoginData,
                 errorFields: {
                     deletedLogin: {
-                        [DateUtils.getMicroseconds()]: 'Generic failure message',
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessage.deleteContactMethod'),
                     },
                 },
                 pendingFields: {

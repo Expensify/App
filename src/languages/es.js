@@ -356,6 +356,7 @@ export default {
         genericFailureMessages: {
             requestContactMethodValidateCode: '',
             validateSecondaryLogin: '',
+            deleteContactMethod: '',
         },
     },
     pronouns: {
