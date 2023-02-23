@@ -113,6 +113,7 @@ const EnableStep = (props) => {
                             icon={Expensicons.Close}
                             onPress={BankAccounts.requestResetFreePlanBankAccount}
                             wrapperStyle={[styles.cardMenuItem, styles.mv3]}
+                            disabled={Boolean(pendingAction)}
                         />
                     </OfflineWithFeedback>
                 </Section>
