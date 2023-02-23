@@ -31,13 +31,10 @@ class PronounsPage extends Component {
     constructor(props) {
         super(props);
         const currentPronouns = lodashGet(props.currentUserPersonalDetails, 'pronouns', '');
-        let currentValue = '';
+
         this.pronounsList = _.map(props.translate('pronouns'), (value, key) => {
             const fullPronounKey = `${CONST.PRONOUNS.PREFIX}${key}`;
             const isCurrentPronouns = fullPronounKey === currentPronouns;
-            if (isCurrentPronouns) {
-                currentValue = value;
-            }
 
             return {
                 text: value,
@@ -56,7 +53,7 @@ class PronounsPage extends Component {
         this.getFilteredPronouns = this.getFilteredPronouns.bind(this);
 
         this.state = {
-            searchValue: currentValue,
+            searchValue: '',
         };
     }
 
