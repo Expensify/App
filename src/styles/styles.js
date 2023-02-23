@@ -1802,7 +1802,7 @@ const styles = {
     },
 
     borderTop: {
-        borderTopWidth: 1,
+        borderTopWidth: variables.borderTopWidth,
         borderColor: themeColors.border,
     },
 
