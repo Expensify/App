@@ -131,41 +131,83 @@ const GET_MERGED_PULL_REQUEST_MOCK_STEP__IS_EXPENSIFY_EMPLOYEE = {
     mockWith: 'echo [MOCK] [IS_EXPENSIFY_EMPLOYEE] Getting merged pull request, GITHUB_TOKEN=${{ inputs.github_token }}\n'
         + 'echo "author=Dummy Author" >> "$GITHUB_OUTPUT"',
 };
-const CHECK_TEAM_MEMBERSHIP_MOCK_STEP = {
+const CHECK_TEAM_MEMBERSHIP_MOCK_STEP__TRUE = {
     name: 'Check whether the actor is member of Expensify/expensify team',
     mockWith: 'echo [MOCK] [IS_EXPENSIFY_EMPLOYEE] Checking actors Expensify membership, GITHUB_TOKEN=${{ inputs.GITHUB_TOKEN }}, USERNAME=${{ inputs.username }}, TEAM=${{ inputs.team }}\n'
         + 'echo "isTeamMember=true" >> "$GITHUB_OUTPUT"',
 };
-export const IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS = [
+export const IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE = [
     GET_MERGED_PULL_REQUEST_MOCK_STEP__IS_EXPENSIFY_EMPLOYEE,
-    CHECK_TEAM_MEMBERSHIP_MOCK_STEP,
+    CHECK_TEAM_MEMBERSHIP_MOCK_STEP__TRUE,
+];
+const CHECK_TEAM_MEMBERSHIP_MOCK_STEP__FALSE = {
+    name: 'Check whether the actor is member of Expensify/expensify team',
+    mockWith: 'echo [MOCK] [IS_EXPENSIFY_EMPLOYEE] Checking actors Expensify membership, GITHUB_TOKEN=${{ inputs.GITHUB_TOKEN }}, USERNAME=${{ inputs.username }}, TEAM=${{ inputs.team }}\n'
+        + 'echo "isTeamMember=false" >> "$GITHUB_OUTPUT"',
+};
+export const IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__FALSE = [
+    GET_MERGED_PULL_REQUEST_MOCK_STEP__IS_EXPENSIFY_EMPLOYEE,
+    CHECK_TEAM_MEMBERSHIP_MOCK_STEP__FALSE,
 ];
 
 // new_contributor_welcome_message
 const CHECKOUT_MOCK_STEP = {
     name: 'Checkout',
-    mockWith: 'echo [MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Checking out, TOKEN=${{ inputs.token }}',
+    mockWith: 'echo [MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Checking out, TOKEN=${{ inputs.token }}\n'
+        + 'echo "author=Dummy Author" >> "$GITHUB_OUTPUT"',
+};
+const CHECKOUT_MOCK_STEP__OSBOTIFY = {
+    name: 'Checkout',
+    mockWith: 'echo [MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Checking out, TOKEN=${{ inputs.token }}\n'
+        + 'echo "author=OSBotify" >> "$GITHUB_OUTPUT"',
 };
 const GET_MERGED_PULL_REQUEST_MOCK_STEP__WELCOME_MESSAGE = {
     name: 'Get merged pull request',
-    mockWith: 'echo [MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Getting merged pull request, GITHUB_TOKEN=${{ inputs.github_token }}',
+    mockWith: 'echo [MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Getting merged pull request, GITHUB_TOKEN=${{ inputs.github_token }}\n'
+        + 'echo "number=12345" >> "$GITHUB_OUTPUT"\n'
+        + 'echo "author=Dummy Author" >> "$GITHUB_OUTPUT"',
 };
-const GET_PR_COUNT_MOCK_STEP = {
+const GET_MERGED_PULL_REQUEST_MOCK_STEP__WELCOME_MESSAGE__OSBOTIFY = {
+    name: 'Get merged pull request',
+    mockWith: 'echo [MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Getting merged pull request, GITHUB_TOKEN=${{ inputs.github_token }}\n'
+        + 'echo "number=12345" >> "$GITHUB_OUTPUT"\n'
+        + 'echo "author=OSBotify" >> "$GITHUB_OUTPUT"',
+};
+const GET_PR_COUNT_MOCK_STEP__1 = {
     name: 'Get PR count for ${{ steps.getMergedPullRequest.outputs.author }}',
-    mockWith: 'echo [MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Getting PR count, GITHUB_TOKEN=${{ env.GITHUB_TOKEN }}',
+    mockWith: 'echo [MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Getting PR count, GITHUB_TOKEN=${{ env.GITHUB_TOKEN }}\n'
+        + 'echo "PR_COUNT=1" >> "$GITHUB_ENV"',
+};
+const GET_PR_COUNT_MOCK_STEP__10 = {
+    name: 'Get PR count for ${{ steps.getMergedPullRequest.outputs.author }}',
+    mockWith: 'echo [MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Getting PR count, GITHUB_TOKEN=${{ env.GITHUB_TOKEN }}\n'
+        + 'echo "PR_COUNT=10" >> "$GITHUB_ENV"',
 };
 const COMMENT_ON_FIRST_PULL_REQUEST_MOCK_STEP = {
     name: 'Comment on ${{ steps.getMergedPullRequest.outputs.author }}\\\'s first pull request!',
-    mockWith: 'echo [MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Creating comment, GITHUB_TOKEN=${{ inputs.github_token }}, NUMBER=${{ inputs.number }}, BODY=${{ inputs.body }}',
+    mockWith: 'echo [MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Creating comment, GITHUB_TOKEN=${{ inputs.github_token }}, NUMBER=${{ inputs.number }}, BODY="${{ inputs.body }}"',
 };
-export const NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS = [
+export const NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS = [
     CHECKOUT_MOCK_STEP,
     GET_MERGED_PULL_REQUEST_MOCK_STEP__WELCOME_MESSAGE,
-    GET_PR_COUNT_MOCK_STEP,
+    GET_PR_COUNT_MOCK_STEP__10,
+    COMMENT_ON_FIRST_PULL_REQUEST_MOCK_STEP,
+];
+export const NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__ONE_PR = [
+    CHECKOUT_MOCK_STEP,
+    GET_MERGED_PULL_REQUEST_MOCK_STEP__WELCOME_MESSAGE,
+    GET_PR_COUNT_MOCK_STEP__1,
+    COMMENT_ON_FIRST_PULL_REQUEST_MOCK_STEP,
+];
+export const NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__OSBOTIFY = [
+    CHECKOUT_MOCK_STEP__OSBOTIFY,
+    GET_MERGED_PULL_REQUEST_MOCK_STEP__WELCOME_MESSAGE__OSBOTIFY,
+    GET_PR_COUNT_MOCK_STEP__10,
     COMMENT_ON_FIRST_PULL_REQUEST_MOCK_STEP,
 ];
 
 // e2e_tests
+// these steps are not getting executed anyway, since Act does not support the selected runner
 const CHECKOUT_MOCK_STEP__E2E_TESTS = {
     name: 'Checkout',
     mockWith: 'echo [MOCK] [E2E_TESTS] Checking out',
