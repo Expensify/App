@@ -64,7 +64,6 @@ function getLatestErrorMessage(onyxData) {
 function getLatestErrorFieldMessage(onyxData, fieldName) {
     const errorsForField = lodashGet(onyxData, ['errorFields', fieldName], {});
 
-    debugger;
     if (_.isEmpty(errorsForField)) {
         return '';
     }
