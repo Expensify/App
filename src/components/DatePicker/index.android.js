@@ -50,6 +50,7 @@ class DatePicker extends React.Component {
                 <TextInput
                     label={this.props.label}
                     value={dateAsText}
+                    forceActiveLabel
                     placeholder={this.props.placeholder}
                     errorText={this.props.errorText}
                     containerStyles={this.props.containerStyles}
