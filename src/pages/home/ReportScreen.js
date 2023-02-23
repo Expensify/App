@@ -113,7 +113,7 @@ class ReportScreen extends React.Component {
         this.dismissBanner = this.dismissBanner.bind(this);
 
         // We need this.sortedAndFilteredReportActions to be set before this.state is initialized because the function to calculate the newMarkerReportActionID uses the sorted report actions
-        this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(props.reportActions);
+        this.sortedAndFilteredReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(props.reportActions);
 
         this.state = {
             skeletonViewContainerHeight: reportActionsListViewHeight,
@@ -129,7 +129,7 @@ class ReportScreen extends React.Component {
 
     shouldComponentUpdate(nextProps) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(nextProps.reportActions);
+            this.sortedAndFilteredReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(nextProps.reportActions);
 
             return true;
         }
@@ -199,29 +199,6 @@ class ReportScreen extends React.Component {
      */
     onSubmitComment(text) {
         Report.addComment(getReportID(this.props.route), text);
-    }
-
-    /**
-     * @param {Object} reportActions
-     * @returns {Array}
-     */
-    getSortedReportActionsForDisplay(reportActions) {
-        // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
-        // to prevent bugs during the migration from sequenceNumber -> reportActionID
-        const filteredReportActions = _.filter(reportActions, (reportAction, key) => {
-            if (!reportAction) {
-                return false;
-            }
-
-            if (String(reportAction.sequenceNumber) === key) {
-                return false;
-            }
-
-            return true;
-        });
-
-        const sortedReportActions = ReportActionsUtils.getSortedReportActions(filteredReportActions, true);
-        return ReportActionsUtils.filterReportActionsForDisplay(sortedReportActions);
     }
 
     /**
