@@ -180,10 +180,15 @@ const styles = {
         alignItems: 'center',
     },
 
+    emojiSuggestionsEmoji: {
+        fontFamily: fontFamily.EMOJI_TEXT_FONT,
+        fontSize: variables.fontSizeMedium,
+        width: 51,
+        textAlign: 'center',
+    },
     emojiSuggestionsText: {
         fontFamily: fontFamily.EMOJI_TEXT_FONT,
         fontSize: variables.fontSizeMedium,
-        marginRight: 20,
     },
 
     unitCol: {

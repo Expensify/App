@@ -752,7 +752,6 @@ function getEmojiSuggestionItemStyle(
         {
             height: rowHeight,
             justifyContent: 'center',
-            paddingHorizontal: 14,
         },
         (currentEmojiIndex === highlightedEmojiIndex && !hovered) || hovered
             ? {

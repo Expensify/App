@@ -137,8 +137,8 @@ const EmojiSuggestions = (props) => {
                 onPress={() => props.onSelect(index)}
             >
                 <View style={styles.emojiSuggestionContainer}>
-                    <Text style={[styles.emojiSuggestionsText]}>{emojiCode(item, props.preferredSkinToneIndex)}</Text>
-                    <Text style={[styles.emojiSuggestionsText]}>
+                    <Text style={styles.emojiSuggestionsEmoji}>{emojiCode(item, props.preferredSkinToneIndex)}</Text>
+                    <Text style={styles.emojiSuggestionsText}>
                         :
                         {_.map(styledTextArray, ({text, isColored}, i) => (
                             <Text key={i} style={colorOfText(isColored)}>
