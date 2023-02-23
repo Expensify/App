@@ -1,15 +1,10 @@
 import lodashGet from 'lodash/get';
-import lodashMerge from 'lodash/merge';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as API from '../API';
-import * as DeprecatedAPI from '../deprecatedAPI';
-import NameValuePair from './NameValuePair';
 import * as ReportUtils from '../ReportUtils';
-import Growl from '../Growl';
-import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 
@@ -87,51 +82,6 @@ function extractFirstAndLastNameFromAvailableDetails({
 }
 
 /**
- * Merges partial details object into the local store.
- *
- * @param {Object} details
- * @private
- */
-function mergeLocalPersonalDetails(details) {
-    // We are merging the partial details provided to this method with the existing details we have for the user so
-    // that we don't overwrite any values that may exist in storage.
-    const mergedDetails = lodashMerge(personalDetails[currentUserEmail], details);
-
-    // displayName is a generated field so we'll use the firstName and lastName + login to update it.
-    mergedDetails.displayName = getDisplayName(currentUserEmail, mergedDetails);
-
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[currentUserEmail]: mergedDetails});
-}
-
-/**
- * Sets the personal details object for the current user
- *
- * @param {Object} details
- * @param {boolean} shouldGrowl
- */
-function setPersonalDetails(details, shouldGrowl) {
-    DeprecatedAPI.PersonalDetails_Update({details: JSON.stringify(details)})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                if (details.timezone) {
-                    NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
-                }
-                mergeLocalPersonalDetails(details);
-
-                if (shouldGrowl) {
-                    Growl.show(Localize.translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
-                }
-            } else if (response.jsonCode === 400) {
-                Growl.error(Localize.translateLocal('personalDetails.error.firstNameLength'), 3000);
-            } else if (response.jsonCode === 401) {
-                Growl.error(Localize.translateLocal('personalDetails.error.lastNameLength'), 3000);
-            } else {
-                console.debug('Error while setting personal details', response);
-            }
-        });
-}
-
-/**
  * @param {String} pronouns
  */
 function updatePronouns(pronouns) {
@@ -171,6 +121,74 @@ function updateDisplayName(firstName, lastName) {
         }],
     });
     Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+}
+
+/**
+ * @param {String} legalFirstName
+ * @param {String} legalLastName
+ */
+function updateLegalName(legalFirstName, legalLastName) {
+    API.write('UpdateLegalName', {legalFirstName, legalLastName}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            value: {
+                legalFirstName,
+                legalLastName,
+            },
+        }],
+    });
+    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+}
+
+/**
+ * @param {String} dob - date of birth
+ */
+function updateDateOfBirth(dob) {
+    API.write('UpdateDateOfBirth', {dob}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            value: {
+                dob,
+            },
+        }],
+    });
+    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+}
+
+/**
+ * @param {String} street
+ * @param {String} street2
+ * @param {String} city
+ * @param {String} state
+ * @param {String} zip
+ * @param {String} country
+ */
+function updateAddress(street, street2, city, state, zip, country) {
+    API.write('UpdateHomeAddress', {
+        addressStreet: street,
+        addressStreet2: street2,
+        addressCity: city,
+        addressState: state,
+        addressZipCode: zip,
+        addressCountry: country,
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            value: {
+                address: {
+                    street: `${street}\n${street2}`,
+                    city,
+                    state,
+                    zip,
+                    country,
+                },
+            },
+        }],
+    });
+    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -231,6 +249,13 @@ function openIOUModalPage() {
 }
 
 /**
+ * Fetches additional personal data like legal name, date of birth, address
+ */
+function openPersonalDetailsPage() {
+    API.read('OpenPersonalDetailsPage');
+}
+
+/**
  * Updates the user's avatar image
  *
  * @param {File|Object} file
@@ -284,7 +309,8 @@ function updateAvatar(file) {
  * Replaces the user's avatar image with a default avatar
  */
 function deleteAvatar() {
-    const defaultAvatar = ReportUtils.getDefaultAvatar(currentUserEmail);
+    // We want to use the old dot avatar here as this affects both platforms.
+    const defaultAvatar = ReportUtils.getOldDotDefaultAvatar(currentUserEmail);
 
     API.write('DeleteUserAvatar', {}, {
         optimisticData: [{
@@ -326,12 +352,15 @@ function clearAvatarErrors() {
 
 export {
     getDisplayName,
-    setPersonalDetails,
     updateAvatar,
     deleteAvatar,
     openIOUModalPage,
+    openPersonalDetailsPage,
     extractFirstAndLastNameFromAvailableDetails,
     updateDisplayName,
+    updateLegalName,
+    updateDateOfBirth,
+    updateAddress,
     updatePronouns,
     clearAvatarErrors,
     updateAutomaticTimezone,

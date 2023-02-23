@@ -79,7 +79,7 @@ class KeyboardShortcutsModal extends React.Component {
             <Modal
                 isVisible={this.props.isShortcutsModalOpen}
                 type={modalType}
-                containerStyle={{...styles.keyboardShortcutModalContainer, ...StyleUtils.getKeyboardShortcutsModalWidth(this.props.isSmallScreenWidth)}}
+                innerContainerStyle={{...styles.keyboardShortcutModalContainer, ...StyleUtils.getKeyboardShortcutsModalWidth(this.props.isSmallScreenWidth)}}
                 onClose={KeyboardShortcutsActions.hideKeyboardShortcutModal}
             >
                 <HeaderWithCloseButton title={this.props.translate('keyboardShortcutModal.title')} onCloseButtonPress={KeyboardShortcutsActions.hideKeyboardShortcutModal} />

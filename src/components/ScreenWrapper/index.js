@@ -2,11 +2,11 @@ import {View} from 'react-native';
 import React from 'react';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import CONST from '../../CONST';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import Navigation from '../../libs/Navigation/Navigation';
-import onScreenTransitionEnd from '../../libs/onScreenTransitionEnd';
 import styles from '../../styles/styles';
 import HeaderGap from '../HeaderGap';
 import OfflineIndicator from '../OfflineIndicator';
@@ -37,9 +37,19 @@ class ScreenWrapper extends React.Component {
             Navigation.dismissModal();
         }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
 
-        this.unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
+        this.unsubscribeTransitionStart = this.props.navigation.addListener('transitionStart', () => {
+            Navigation.setIsNavigating(true);
+        });
+
+        this.unsubscribeTransitionEnd = this.props.navigation.addListener('transitionEnd', (event) => {
+            Navigation.setIsNavigating(false);
+
+            // Prevent firing the prop callback when user is exiting the page.
+            if (lodashGet(event, 'data.closing')) {
+                return;
+            }
             this.setState({didScreenTransitionEnd: true});
-            this.props.onTransitionEnd();
+            this.props.onEntryTransitionEnd();
         });
     }
 
@@ -61,6 +71,9 @@ class ScreenWrapper extends React.Component {
         }
         if (this.unsubscribeTransitionEnd) {
             this.unsubscribeTransitionEnd();
+        }
+        if (this.unsubscribeTransitionStart) {
+            this.unsubscribeTransitionStart();
         }
     }
 
@@ -89,7 +102,7 @@ class ScreenWrapper extends React.Component {
                                 paddingStyle,
                             ]}
                         >
-                            <KeyboardAvoidingView style={[styles.w100, styles.h100]} behavior={this.props.keyboardAvoidingViewBehavior}>
+                            <KeyboardAvoidingView style={[styles.w100, styles.h100, {maxHeight: this.props.windowHeight}]} behavior={this.props.keyboardAvoidingViewBehavior}>
                                 <HeaderGap />
                                 {// If props.children is a function, call it to provide the insets to the children.
                                     _.isFunction(this.props.children)

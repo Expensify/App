@@ -93,9 +93,10 @@ function closeAccount(message) {
  * Resends a validation link to a given login
  *
  * @param {String} login
+ * @param {Boolean} isPasswordless - temporary param to trigger passwordless flow in backend
  */
-function resendValidateCode(login) {
-    DeprecatedAPI.ResendValidateCode({email: login});
+function resendValidateCode(login, isPasswordless = false) {
+    DeprecatedAPI.ResendValidateCode({email: login, isPasswordless});
 }
 
 /**
@@ -140,7 +141,7 @@ function setSecondaryLoginAndNavigate(login, password) {
     }).then((response) => {
         if (response.jsonCode === 200) {
             Onyx.set(ONYXKEYS.LOGIN_LIST, response.loginList);
-            Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
             return;
         }
 
@@ -401,6 +402,7 @@ function updateChatPriorityMode(mode) {
     API.write('UpdateChatPriorityMode', {
         value: mode,
     }, {optimisticData});
+    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
 }
 
 /**

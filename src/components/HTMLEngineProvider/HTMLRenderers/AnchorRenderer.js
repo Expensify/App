@@ -34,7 +34,8 @@ const AnchorRenderer = (props) => {
       || (attrHref.startsWith(CONST.NEW_EXPENSIFY_URL)
         && attrHref.replace(CONST.NEW_EXPENSIFY_URL, ''));
 
-    const internalExpensifyPath = Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.EXPENSIFY_URL)
+    const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.STAGING_EXPENSIFY_URL);
+    const internalExpensifyPath = hasExpensifyOrigin
                                     && !attrPath.startsWith(CONFIG.EXPENSIFY.CONCIERGE_URL_PATHNAME)
                                     && attrPath;
     const navigateToLink = () => {
@@ -43,7 +44,7 @@ const AnchorRenderer = (props) => {
         // clicking on the link will open the chat in NewDot. However, when a user is in NewDot and clicks on the concierge link, the link needs to be handled differently.
         // Normally, the link would be sent to Link.openOldDotLink() and opened in a new tab, and that's jarring to the user. Since the intention is to link to a specific NewDot chat,
         // the reportID is extracted from the URL and then opened as an internal link, taking the user straight to the chat in the same tab.
-        if (Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.EXPENSIFY_URL) && attrHref.indexOf('newdotreport?reportID=') > -1) {
+        if (hasExpensifyOrigin && attrHref.indexOf('newdotreport?reportID=') > -1) {
             const reportID = attrHref.split('newdotreport?reportID=').pop();
             const reportRoute = ROUTES.getReportRoute(reportID);
             Navigation.navigate(reportRoute);
@@ -53,7 +54,6 @@ const AnchorRenderer = (props) => {
         // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
         // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
         if (internalNewExpensifyPath) {
-            console.log('Navigate.1,internalNewExpensifyPath', internalNewExpensifyPath);
             Navigation.navigate(internalNewExpensifyPath);
             return;
         }

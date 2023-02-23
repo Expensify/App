@@ -20,12 +20,19 @@ const propTypes = {
     /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
     shouldDelayFocus: PropTypes.bool,
 
+    /** padding bottom style of safe area */
+    safeAreaPaddingBottomStyle: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
+
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     shouldDelayFocus: false,
+    safeAreaPaddingBottomStyle: {},
     ...optionsSelectorDefaultProps,
 };
 
@@ -39,6 +46,7 @@ class BaseOptionsSelector extends Component {
         this.relatedTarget = null;
 
         const allOptions = this.flattenSections();
+
         this.state = {
             allOptions,
             focusedIndex: this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0,
@@ -203,26 +211,30 @@ class BaseOptionsSelector extends Component {
      *
      * @param {Object} option
      * @param {Object} ref
+     * @returns {Promise}
      */
     selectRow(option, ref) {
-        if (this.props.shouldFocusOnSelectRow) {
-            if (this.relatedTarget && ref === this.relatedTarget) {
-                this.textInput.focus();
-                this.relatedTarget = null;
+        return new Promise((resolve) => {
+            if (this.props.shouldFocusOnSelectRow) {
+                if (this.relatedTarget && ref === this.relatedTarget) {
+                    this.textInput.focus();
+                    this.relatedTarget = null;
+                }
+                if (this.textInput.isFocused()) {
+                    setSelection(this.textInput, 0, this.props.value.length);
+                }
             }
-            if (this.textInput.isFocused()) {
-                setSelection(this.textInput, 0, this.props.value.length);
+            const selectedOption = this.props.onSelectRow(option);
+            resolve(selectedOption);
+
+            if (!this.props.canSelectMultipleOptions) {
+                return;
             }
-        }
-        this.props.onSelectRow(option);
 
-        if (!this.props.canSelectMultipleOptions) {
-            return;
-        }
-
-        // Focus the first unselected item from the list (i.e: the best result according to the current search term)
-        this.setState({
-            focusedIndex: this.props.selectedOptions.length,
+            // Focus the first unselected item from the list (i.e: the best result according to the current search term)
+            this.setState({
+                focusedIndex: this.props.selectedOptions.length,
+            });
         });
     }
 
@@ -266,6 +278,7 @@ class BaseOptionsSelector extends Component {
                 isDisabled={this.props.isDisabled}
                 shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
                 onLayout={this.props.onLayout}
+                contentContainerStyles={shouldShowFooter ? undefined : [this.props.safeAreaPaddingBottomStyle]}
             />
         ) : <FullScreenLoadingIndicator />;
         return (

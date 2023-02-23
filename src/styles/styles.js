@@ -279,6 +279,11 @@ const styles = {
         fontSize: variables.fontSizeXXXLarge,
     },
 
+    textHero: {
+        fontSize: variables.fontSizeHero,
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+    },
+
     textStrong: {
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
@@ -345,14 +350,6 @@ const styles = {
 
     opacity1: {
         opacity: 1,
-    },
-
-    pr0: {
-        paddingRight: 0,
-    },
-
-    pl0: {
-        paddingLeft: 0,
     },
 
     textDanger: {
@@ -562,7 +559,7 @@ const styles = {
         height: 140,
     },
 
-    pickerSmall: {
+    pickerSmall: (backgroundColor = themeColors.highlightBG) => ({
         inputIOS: {
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
@@ -576,6 +573,16 @@ const styles = {
             height: 26,
             opacity: 1,
             backgroundColor: 'transparent',
+        },
+        done: {
+            color: themeColors.text,
+        },
+        modalViewMiddle: {
+            backgroundColor: themeColors.border,
+            borderTopWidth: 0,
+        },
+        modalViewBottom: {
+            backgroundColor: themeColors.highlightBG,
         },
         inputWeb: {
             fontFamily: fontFamily.EXP_NEUE,
@@ -591,7 +598,7 @@ const styles = {
             height: 26,
             opacity: 1,
             cursor: 'pointer',
-            backgroundColor: 'transparent',
+            backgroundColor,
         },
         inputAndroid: {
             fontFamily: fontFamily.EXP_NEUE,
@@ -605,6 +612,7 @@ const styles = {
             color: themeColors.text,
             height: 26,
             opacity: 1,
+            backgroundColor: 'transparent',
         },
         iconContainer: {
             top: 7,
@@ -614,7 +622,7 @@ const styles = {
             width: variables.iconSizeExtraSmall,
             height: variables.iconSizeExtraSmall,
         },
-    },
+    }),
 
     badge: {
         backgroundColor: themeColors.border,
@@ -815,13 +823,19 @@ const styles = {
         textAlignVertical: 'center',
     },
 
-    textInputPrefix: {
+    textInputPrefixWrapper: {
         position: 'absolute',
         left: 0,
         top: 0,
-        height: '100%',
+        height: variables.inputHeight,
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
         paddingTop: 23,
         paddingBottom: 8,
+    },
+
+    textInputPrefix: {
         color: themeColors.text,
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
@@ -836,6 +850,7 @@ const styles = {
         justifyContent: 'center',
         backgroundColor: 'transparent',
         height: variables.inputHeight,
+        overflow: 'hidden',
     },
 
     pickerContainerSmall: {
@@ -846,23 +861,35 @@ const styles = {
         position: 'absolute',
         left: 0,
         top: 6,
+        zIndex: 1,
     },
 
-    picker: (disabled = false) => ({
+    picker: (disabled = false, backgroundColor = themeColors.appBG) => ({
         iconContainer: {
             top: Math.round(variables.inputHeight * 0.5) - 11,
             right: 0,
-            zIndex: -1,
+            ...pointerEventsNone,
         },
 
         inputWeb: {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...picker,
+            backgroundColor,
         },
 
         inputIOS: {
             ...picker,
+        },
+        done: {
+            color: themeColors.text,
+        },
+        modalViewMiddle: {
+            backgroundColor: themeColors.border,
+            borderTopWidth: 0,
+        },
+        modalViewBottom: {
+            backgroundColor: themeColors.highlightBG,
         },
 
         inputAndroid: {
@@ -1320,7 +1347,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         lineHeight: variables.lineHeightXLarge,
-        paddingBottom: 4,
         ...wordBreak.breakWord,
     },
 
@@ -1328,8 +1354,7 @@ const styles = {
         flexShrink: 0,
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeSmall,
-        height: 24,
-        lineHeight: variables.lineHeightXLarge,
+        paddingTop: 2,
     },
 
     chatItemMessage: {
@@ -1337,8 +1362,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.EXP_NEUE,
         lineHeight: variables.lineHeightXLarge,
-        marginTop: -2,
-        marginBottom: -2,
         maxWidth: '100%',
         cursor: 'auto',
         ...whiteSpace.preWrap,
@@ -1467,13 +1490,6 @@ const styles = {
         width: '100%',
     },
 
-    emojiHeaderStyle: {
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
-        color: themeColors.heading,
-        fontSize: variables.fontSizeSmall,
-    },
-
     emojiSkinToneTitle: {
         backgroundColor: themeColors.componentBG,
         width: '100%',
@@ -1513,6 +1529,15 @@ const styles = {
         borderWidth: 1,
         borderColor: themeColors.link,
         borderRadius: variables.buttonBorderRadius,
+    },
+
+    categoryShortcutButton: {
+        flex: 1,
+        borderRadius: 8,
+        paddingTop: 2,
+        paddingBottom: 2,
+        height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+        justifyContent: 'center',
     },
 
     chatItemEmojiButton: {
@@ -1673,6 +1698,7 @@ const styles = {
         borderWidth: 3,
         borderRadius: 18,
         borderColor: themeColors.cardBorder,
+        backgroundColor: themeColors.appBG,
     },
 
     avatarLarge: {
@@ -1912,6 +1938,7 @@ const styles = {
         fontSize: variables.fontSizeXLarge,
         marginTop: 20,
         marginBottom: 8,
+        textAlign: 'center',
     },
 
     notFoundTextBody: {
@@ -1996,10 +2023,17 @@ const styles = {
         width: '100%',
     },
 
+    roomHeaderAvatarSize: {
+        height: variables.componentSizeLarge,
+        width: variables.componentSizeLarge,
+    },
+
     roomHeaderAvatar: {
+        backgroundColor: themeColors.appBG,
+        marginLeft: -16,
+        borderRadius: 100,
         borderColor: themeColors.componentBG,
         borderWidth: 4,
-        marginLeft: -16,
     },
 
     roomHeaderAvatarOverlay: {
@@ -2022,6 +2056,18 @@ const styles = {
         position: 'absolute',
         width: 88,
         left: -16,
+    },
+
+    svgAvatarBorder: {
+        borderRadius: 100,
+        overflow: 'hidden',
+    },
+
+    displayName: {
+        fontSize: variables.fontSizeLarge,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
     },
 
     pageWrapper: {
@@ -2211,6 +2257,7 @@ const styles = {
 
     iouPreviewBoxAvatarHover: {
         borderColor: themeColors.border,
+        backgroundColor: themeColors.border,
     },
 
     iouPreviewBoxCheckmark: {
@@ -2774,12 +2821,6 @@ const styles = {
         marginLeft: 6,
     },
 
-    addWorkspaceRoomErrorRow: {
-        paddingHorizontal: 20,
-        maxWidth: 450,
-        alignSelf: 'center',
-    },
-
     fullScreenTransparentOverlay: {
         position: 'absolute',
         width: '100%',
@@ -2868,6 +2909,13 @@ const styles = {
     deeplinkWrapperFooter: {
         paddingTop: 80,
         paddingBottom: 45,
+    },
+
+    magicCodeDigits: {
+        color: themeColors.text,
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeXXLarge,
+        letterSpacing: 4,
     },
 };
 

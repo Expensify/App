@@ -2,6 +2,7 @@ import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import deeplinkRoutes from './deeplinkRoutes';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import TextLink from '../TextLink';
@@ -9,12 +10,14 @@ import * as Illustrations from '../Icon/Illustrations';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Text from '../Text';
 import styles from '../../styles/styles';
+import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import colors from '../../styles/colors';
 import * as Browser from '../../libs/Browser';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     /** Children to render. */
@@ -28,12 +31,13 @@ class DeeplinkWrapper extends PureComponent {
         super(props);
 
         this.state = {
-            appInstallationCheckStatus: this.isMacOSWeb() ? CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING : CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
+            appInstallationCheckStatus: (this.isMacOSWeb() && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV)
+                ? CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING : CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
         };
     }
 
     componentDidMount() {
-        if (!this.isMacOSWeb()) {
+        if (!this.isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
             return;
         }
 
@@ -53,6 +57,9 @@ class DeeplinkWrapper extends PureComponent {
 
         // check if pathname matches with deeplink routes
         const matchedRoute = _.find(deeplinkRoutes, (route) => {
+            if (route.isDisabled && route.isDisabled(this.props.betas)) {
+                return false;
+            }
             const routeRegex = new RegExp(route.pattern);
             return routeRegex.test(window.location.pathname);
         });
@@ -155,4 +162,9 @@ class DeeplinkWrapper extends PureComponent {
 }
 
 DeeplinkWrapper.propTypes = propTypes;
-export default withLocalize(DeeplinkWrapper);
+export default compose(
+    withLocalize,
+    withOnyx({
+        betas: {key: ONYXKEYS.BETAS},
+    }),
+)(DeeplinkWrapper);
