@@ -89,6 +89,7 @@ class ReportDetailsPage extends Component {
                 action: () => { /* Placeholder for when inviting other users is built in */ },
             });
 
+            // Only show the leave room option if the user can leave the room
             const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
             const isPolicyMember = policy && _.find(policy.employeeList.emails, email => email === this.props.session.email);
             if (ReportUtils.canLeaveRoom(this.props.report.visibility, isPolicyMember)) {
