@@ -137,6 +137,7 @@ class ContactMethodDetailsPage extends Component {
         }
 
         const isDefaultContactMethod = (this.props.session.email === loginData.partnerUserID);
+        const hasMagicCodeBeenSent = lodashGet(this.props.loginList, [contactMethod, 'validateCodeSent'], false);
 
         return (
             <ScreenWrapper>
@@ -181,6 +182,9 @@ class ContactMethodDetailsPage extends Component {
                                 <Text style={[styles.link, styles.mr4]}>
                                     {this.props.translate('contacts.resendMagicCode')}
                                 </Text>
+                                {hasMagicCodeBeenSent && (
+                                    <Icon src={Expensicons.Checkmark} fill={colors.green} />
+                                )}
                             </TouchableOpacity>
                             <Button
                                 text={this.props.translate('common.verify')}
