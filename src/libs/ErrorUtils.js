@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import CONST from '../CONST';
+import lodashGet from 'lodash/get';
 
 /**
  * @param {Object} response
@@ -54,8 +55,31 @@ function getLatestErrorMessage(onyxData) {
         .value();
 }
 
+/**
+ * @param {Object} onyxData
+ * @param {Object} onyxData.errorFields
+ * @param {String} fieldName
+ * @returns {String}
+ */
+function getLatestErrorFieldMessage(onyxData, fieldName) {
+    const errorsForField = lodashGet(onyxData, ['errorFields', fieldName], {});
+
+    debugger;
+    if (_.isEmpty(errorsForField)) {
+        return '';
+    }
+    return _.chain(errorsForField)
+        .keys()
+        .sortBy()
+        .reverse()
+        .map(key => errorsForField[key])
+        .first()
+        .value();
+}
+
 export {
     // eslint-disable-next-line import/prefer-default-export
     getAuthenticateErrorMessage,
     getLatestErrorMessage,
+    getLatestErrorFieldMessage,
 };

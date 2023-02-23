@@ -24,6 +24,8 @@ import CONST from '../../../../CONST';
 import Icon from '../../../../components/Icon';
 import colors from '../../../../styles/colors';
 import Button from '../../../../components/Button';
+import FormHelpMessage from '../../../../components/FormHelpMessage';
+import * as ErrorUtils from '../../../../libs/ErrorUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -138,6 +140,7 @@ class ContactMethodDetailsPage extends Component {
 
         const isDefaultContactMethod = (this.props.session.email === loginData.partnerUserID);
         const hasMagicCodeBeenSent = lodashGet(this.props.loginList, [contactMethod, 'validateCodeSent'], false);
+        const latestValidateCodeError = ErrorUtils.getLatestErrorFieldMessage(loginData, 'validateCodeSent');
 
         return (
             <ScreenWrapper>
@@ -186,6 +189,9 @@ class ContactMethodDetailsPage extends Component {
                                     <Icon src={Expensicons.Checkmark} fill={colors.green} />
                                 )}
                             </TouchableOpacity>
+                            {!_.isEmpty(latestValidateCodeError) && (
+                                <FormHelpMessage message={latestValidateCodeError} />
+                            )}
                             <Button
                                 text={this.props.translate('common.verify')}
                                 onPress={this.validateContactMethod}
