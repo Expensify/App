@@ -72,7 +72,7 @@ function applyStrikeThrough(children) {
         if (!React.isValidElement(child)) {
             return child;
         }
-        const props = {style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted)};
+        const props = {style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted, styles.userSelectNone)};
         if (child.props.children) {
             props.children = applyStrikeThrough(child.props.children);
         }

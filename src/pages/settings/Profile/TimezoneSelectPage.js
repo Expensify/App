@@ -136,9 +136,10 @@ class TimezoneSelectPage extends Component {
                             onChangeText={this.filterShownTimezones}
                             onSelectRow={this.saveSelectedTimezone}
                             optionHoveredStyle={styles.hoveredComponentBG}
-                            sections={[{data: this.state.timezoneOptions, isDisabled: this.timezone.automatic}]}
+                            sections={[{data: this.state.timezoneOptions, indexOffset: 0, isDisabled: this.timezone.automatic}]}
                             shouldHaveOptionSeparator
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            initiallyFocusedOptionKey={this.currentSelectedTimezone}
                         />
                     </>
                 )}
