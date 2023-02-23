@@ -47,8 +47,8 @@ class BankAccountManualStep extends React.Component {
         if (!routingNumber || !CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber)) {
             errorFields.routingNumber = this.props.translate('bankAccount.error.routingNumber');
         }
-        if (!values.acceptedTerms) {
-            errorFields.acceptedTerms = this.props.translate('common.error.acceptedTerms');
+        if (!values.acceptTerms) {
+            errorFields.acceptTerms = this.props.translate('common.error.acceptTerms');
         }
 
         return errorFields;
@@ -113,7 +113,7 @@ class BankAccountManualStep extends React.Component {
                     />
                     <CheckboxWithLabel
                         style={styles.mt4}
-                        inputID="acceptedTerms"
+                        inputID="acceptTerms"
                         LabelComponent={() => (
                             <Text>
                                 {this.props.translate('common.iAcceptThe')}
