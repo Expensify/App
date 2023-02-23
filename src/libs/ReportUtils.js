@@ -1518,12 +1518,37 @@ function getIOUOptions(report, reportParticipants, betas) {
     ];
 }
 
+/**
+ *
+ * @param {String} visibility
+ * @param {Boolean} isPolicyMember
+ * @returns {Boolean}
+ */
+function canLeaveRoom(visibility, isPolicyMember) {
+    if (!_.find(CONST.REPORT.VISIBILITY, value => value === visibility)) {
+        return false;
+    }
+    if (visibility === CONST.REPORT.VISIBILITY.PUBLIC
+        || visibility === CONST.REPORT.VISIBILITY.PRIVATE
+        || visibility === CONST.REPORT.VISIBILITY.POLICY) {
+        return true;
+    }
+    if (visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE) {
+        // Only non-policy members can leave
+        if (!isPolicyMember) {
+            return true;
+        }
+    }
+    return false;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,
     canDeleteReportAction,
+    canLeaveRoom,
     sortReportsByLastRead,
     isDefaultRoom,
     isAdminRoom,
