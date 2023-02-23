@@ -27,6 +27,7 @@ const PriorityModePage = (props) => {
                 value: key,
                 text: mode.label,
                 alternateText: mode.description,
+                alternateTextMaxLines: 0,
                 keyForList: key,
 
                 // Include the green checkmark icon to indicate the currently selected value
