@@ -1,18 +1,18 @@
 PODS:
-  - Airship (16.8.0):
-    - Airship/Automation (= 16.8.0)
-    - Airship/Basement (= 16.8.0)
-    - Airship/Core (= 16.8.0)
-    - Airship/ExtendedActions (= 16.8.0)
-    - Airship/MessageCenter (= 16.8.0)
-  - Airship/Automation (16.8.0):
+  - Airship (16.10.7):
+    - Airship/Automation (= 16.10.7)
+    - Airship/Basement (= 16.10.7)
+    - Airship/Core (= 16.10.7)
+    - Airship/ExtendedActions (= 16.10.7)
+    - Airship/MessageCenter (= 16.10.7)
+  - Airship/Automation (16.10.7):
     - Airship/Core
-  - Airship/Basement (16.8.0)
-  - Airship/Core (16.8.0):
+  - Airship/Basement (16.10.7)
+  - Airship/Core (16.10.7):
     - Airship/Basement
-  - Airship/ExtendedActions (16.8.0):
+  - Airship/ExtendedActions (16.10.7):
     - Airship/Core
-  - Airship/MessageCenter (16.8.0):
+  - Airship/MessageCenter (16.10.7):
     - Airship/Core
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
@@ -575,6 +575,8 @@ PODS:
     - React-Core
   - RNDateTimePicker (3.5.2):
     - React-Core
+  - RNDeviceInfo (10.3.0):
+    - React-Core
   - RNFastImage (8.6.3):
     - React-Core
     - SDWebImage (~> 5.11.1)
@@ -639,8 +641,8 @@ PODS:
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.10)
   - SocketRocket (0.6.0)
-  - urbanairship-react-native (14.4.1):
-    - Airship (= 16.8.0)
+  - urbanairship-react-native (14.6.1):
+    - Airship (= 16.10.7)
     - React-Core
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
@@ -730,6 +732,7 @@ DEPENDENCIES:
   - "RNCClipboard (from `../node_modules/@react-native-community/clipboard`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
+  - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - RNFastImage (from `../node_modules/react-native-fast-image`)
   - "RNFBAnalytics (from `../node_modules/@react-native-firebase/analytics`)"
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
@@ -901,6 +904,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-picker/picker"
   RNDateTimePicker:
     :path: "../node_modules/@react-native-community/datetimepicker"
+  RNDeviceInfo:
+    :path: "../node_modules/react-native-device-info"
   RNFastImage:
     :path: "../node_modules/react-native-fast-image"
   RNFBAnalytics:
@@ -929,7 +934,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Airship: 4657c3d5118441240e04674d9445cbd6e363c956
+  Airship: fbff646723323c58e3871cd30488612ca373f597
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
@@ -1019,6 +1024,7 @@ SPEC CHECKSUMS:
   RNCClipboard: 41d8d918092ae8e676f18adada19104fa3e68495
   RNCPicker: 0b65be85fe7954fbb2062ef079e3d1cde252d888
   RNDateTimePicker: 7658208086d86d09e1627b5c34ba0cf237c60140
+  RNDeviceInfo: 4701f0bf2a06b34654745053db0ce4cb0c53ada7
   RNFastImage: 5c9c9fed9c076e521b3f509fe79e790418a544e8
   RNFBAnalytics: f76bfa164ac235b00505deb9fc1776634056898c
   RNFBApp: 729c0666395b1953198dc4a1ec6deb8fbe1c302e
@@ -1033,7 +1039,7 @@ SPEC CHECKSUMS:
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
-  urbanairship-react-native: 7e2e9a84c541b1d04798e51f7f390a2d5806eac0
+  urbanairship-react-native: fe4d169332546a0efd348a009aa490dc36ff815e
   Yoga: f77f6497bccebdcbc8efb03dbf83eadfdec6d104
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 

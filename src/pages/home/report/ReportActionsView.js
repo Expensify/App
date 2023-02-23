@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import Log from '../../../libs/Log';
 import * as Report from '../../../libs/actions/Report';
 import reportActionPropTypes from './reportActionPropTypes';
 import Visibility from '../../../libs/Visibility';
@@ -203,30 +202,6 @@ class ReportActionsView extends React.Component {
         }
 
         Report.unsubscribeFromReportChannel(this.props.report.reportID);
-    }
-
-    /**
-     * @param {Object} reportActions
-     * @returns {Array}
-     */
-    getSortedReportActionsForDisplay(reportActions) {
-        // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
-        // to prevent bugs during the migration from sequenceNumber -> reportActionID
-        const filteredReportActions = _.filter(reportActions, (reportAction, key) => {
-            if (!reportAction) {
-                return false;
-            }
-
-            if (String(reportAction.sequenceNumber) === key) {
-                Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
-                return false;
-            }
-
-            return true;
-        });
-
-        const sortedReportActions = ReportActionsUtils.getSortedReportActions(filteredReportActions, true);
-        return ReportActionsUtils.filterReportActionsForDisplay(sortedReportActions);
     }
 
     /**

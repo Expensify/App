@@ -21,16 +21,12 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import AddressSearch from '../../../components/AddressSearch';
 import * as ComponentUtils from '../../../libs/ComponentUtils';
 import Form from '../../../components/Form';
-import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
     /* Onyx Props */
     formData: PropTypes.shape({
         setupComplete: PropTypes.bool,
     }),
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     ...withLocalizePropTypes,
 };
@@ -39,7 +35,6 @@ const defaultProps = {
     formData: {
         setupComplete: false,
     },
-    betas: [],
 };
 
 class DebitCardPage extends Component {
@@ -100,12 +95,12 @@ class DebitCardPage extends Component {
             errors.addressState = this.props.translate('addDebitCardPage.error.addressState');
         }
 
-        if (!Permissions.canUsePasswordlessLogins(this.props.betas) && (!values.password || _.isEmpty(values.password.trim()))) {
+        if (!values.password || _.isEmpty(values.password.trim())) {
             errors.password = this.props.translate('addDebitCardPage.error.password');
         }
 
-        if (!values.acceptedTerms) {
-            errors.acceptedTerms = this.props.translate('common.error.acceptedTerms');
+        if (!values.acceptTerms) {
+            errors.acceptTerms = this.props.translate('common.error.acceptTerms');
         }
 
         return errors;
@@ -181,19 +176,17 @@ class DebitCardPage extends Component {
                             />
                         </View>
                     </View>
-                    {!Permissions.canUsePasswordlessLogins(this.props.betas) && (
-                        <View style={[styles.mt4]}>
-                            <TextInput
-                                inputID="password"
-                                label={this.props.translate('addDebitCardPage.expensifyPassword')}
-                                textContentType="password"
-                                autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
-                                secureTextEntry
-                            />
-                        </View>
-                    )}
+                    <View style={[styles.mt4]}>
+                        <TextInput
+                            inputID="password"
+                            label={this.props.translate('addDebitCardPage.expensifyPassword')}
+                            textContentType="password"
+                            autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
+                            secureTextEntry
+                        />
+                    </View>
                     <CheckboxWithLabel
-                        inputID="acceptedTerms"
+                        inputID="acceptTerms"
                         LabelComponent={() => (
                             <Text>
                                 {`${this.props.translate('common.iAcceptThe')}`}
@@ -218,9 +211,6 @@ export default compose(
     withOnyx({
         formData: {
             key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
 )(DebitCardPage);

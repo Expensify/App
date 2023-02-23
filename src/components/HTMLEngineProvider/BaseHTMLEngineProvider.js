@@ -14,12 +14,17 @@ import fontFamily from '../../styles/fontFamily';
 const propTypes = {
     /** Whether text elements should be selectable */
     textSelectable: PropTypes.bool,
+
+    /** Handle line breaks according to the HTML standard (default on web)  */
+    enableExperimentalBRCollapsing: PropTypes.bool,
+
     children: PropTypes.node,
 };
 
 const defaultProps = {
     textSelectable: false,
     children: null,
+    enableExperimentalBRCollapsing: false,
 };
 
 // Declare nonstandard tags and their content model here
@@ -70,6 +75,7 @@ const BaseHTMLEngineProvider = (props) => {
                 defaultViewProps={defaultViewProps}
                 renderers={htmlRenderers}
                 computeEmbeddedMaxWidth={HTMLEngineUtils.computeEmbeddedMaxWidth}
+                enableExperimentalBRCollapsing={props.enableExperimentalBRCollapsing}
             >
                 {props.children}
             </RenderHTMLConfigProvider>

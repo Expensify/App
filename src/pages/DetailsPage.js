@@ -125,7 +125,7 @@ class DetailsPage extends React.PureComponent {
                             <View style={styles.avatarSectionWrapper}>
                                 <AttachmentModal
                                     headerTitle={isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
-                                    source={ReportUtils.getAvatar(details.avatar, details.login)}
+                                    source={ReportUtils.getFullSizeAvatar(details.avatar, details.login)}
                                     isAuthTokenRequired
                                 >
                                     {({show}) => (
