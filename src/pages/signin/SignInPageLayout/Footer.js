@@ -144,7 +144,7 @@ const Footer = (props) => {
     const footerColumn = isVertical ? [styles.p4] : [styles.p4, props.isMediumScreenWidth ? styles.w50 : styles.w25];
 
     return (
-        <View style={styles.flex1}>
+        <View style={[styles.flex1]}>
             <View style={styles.footer}>
                 <View style={pageFooterWrapper}>
                     <View style={footerColumns}>

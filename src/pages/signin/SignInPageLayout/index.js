@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React from 'react';
 import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
@@ -47,8 +48,8 @@ const SignInPageLayout = (props) => {
                             {props.children}
                         </SignInPageContent>
                         <ScrollView
-                            style={[styles.flex1, containerHeight]}
-                            contentContainerStyle={[scrollViewContentContainerStyles]}
+                            style={[styles.flex1]}
+                            contentContainerStyle={[styles.flex1]}
                         >
                             <SignInPageGraphics />
                             <Footer />
@@ -57,18 +58,21 @@ const SignInPageLayout = (props) => {
                 )
                 : (
                     <ScrollView
-                        style={containerHeight}
-                        contentContainerStyle={scrollViewContentContainerStyles}
+                        contentContainerStyle={[styles.flex1]}
                         keyboardShouldPersistTaps="handled"
                         keyboardDismissMode="on-drag"
                     >
-                        <SignInPageContent
-                            welcomeText={props.welcomeText}
-                            shouldShowWelcomeText={props.shouldShowWelcomeText}
-                        >
-                            {props.children}
-                        </SignInPageContent>
-                        <Footer />
+                        <View style={[styles.flex1]}>
+                            <SignInPageContent
+                                welcomeText={props.welcomeText}
+                                shouldShowWelcomeText={props.shouldShowWelcomeText}
+                            >
+                                {props.children}
+                            </SignInPageContent>
+                        </View>
+                        <View style={[styles.flex0]}>
+                            <Footer />
+                        </View>
                     </ScrollView>
                 )}
         </View>
