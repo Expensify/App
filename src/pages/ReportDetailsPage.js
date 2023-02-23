@@ -87,13 +87,18 @@ class ReportDetailsPage extends Component {
                 translationKey: 'common.invite',
                 icon: Expensicons.Plus,
                 action: () => { /* Placeholder for when inviting other users is built in */ },
-            },
-            {
-                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
-                translationKey: 'common.leaveRoom',
-                icon: Expensicons.Exit,
-                action: () => Policy.leaveRoom(this.props.report),
             });
+
+            const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
+            const isPolicyMember = policy && _.find(policy.employeeList.emails, email => email === this.props.session.email);
+            if (ReportUtils.canLeaveRoom(this.props.report.visibility, isPolicyMember)) {
+                menuItems.push({
+                    key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
+                    translationKey: 'common.leaveRoom',
+                    icon: Expensicons.Exit,
+                    action: () => Policy.leaveRoom(this.props.report),
+                });
+            }
         }
         return menuItems;
     }
