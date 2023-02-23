@@ -252,7 +252,7 @@ function deleteContactMethod(contactMethod, oldLoginData) {
                 ...oldLoginData,
                 errorFields: {
                     deletedLogin: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessage.deleteContactMethod'),
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.deleteContactMethod'),
                     },
                 },
                 pendingFields: {
@@ -354,7 +354,11 @@ function validateSecondaryLogin(contactMethod, validateCode) {
         },
     }];
 
-    API.write('ValidateSecondaryLogin', {validateCode}, {optimisticData, successData, failureData});
+    API.write('ValidateSecondaryLogin', {
+        partnerUserID: contactMethod,
+        validateCode,
+    }, {optimisticData, successData, failureData});
+    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**
