@@ -32,7 +32,9 @@ class BaseModal extends PureComponent {
 
     componentDidMount() {
         if (!this.props.isVisible) { return; }
-        Modal.setModalClose(this.props.onClose);
+
+        // to handle case of modal already visible when mounted, i.e. PopoverReportActionContextMenu
+        Modal.setCloseModal(this.props.onClose);
     }
 
     componentDidUpdate(prevProps) {
@@ -41,15 +43,15 @@ class BaseModal extends PureComponent {
         }
 
         Modal.willAlertModalBecomeVisible(this.props.isVisible);
-        Modal.setModalClose(this.props.isVisible ? this.props.onClose : null);
+        Modal.setCloseModal(this.props.isVisible ? this.props.onClose : null);
     }
 
     componentWillUnmount() {
         // we don't want to call the onModalHide on unmount
         this.hideModal(this.props.isVisible);
 
-        // we don't want to call the onClose on unmount
-        Modal.setModalClose(null);
+        // to handle case of modal unmounted with visible state
+        Modal.setCloseModal(null);
     }
 
     /**

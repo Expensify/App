@@ -8,7 +8,7 @@ let closeModal;
  *
  * @param {Function} [onClose]
  */
-function setModalClose(onClose) {
+function setCloseModal(onClose) {
     closeModal = onClose;
 }
 
@@ -37,7 +37,7 @@ function willAlertModalBecomeVisible(isVisible) {
 }
 
 export {
-    setModalClose,
+    setCloseModal,
     close,
     setModalVisibility,
     willAlertModalBecomeVisible,
