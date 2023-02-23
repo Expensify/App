@@ -472,12 +472,6 @@ class EmojiPickerMenu extends Component {
                 style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
-                {!isFiltered && (
-                    <CategoryShortcutBar
-                        headerIndices={this.headerIndices}
-                        onPress={this.scrollToHeader}
-                    />
-                )}
                 {!this.props.isSmallScreenWidth && (
                     <View style={[styles.ph4, styles.pb1]}>
                         <TextInput
@@ -492,6 +486,12 @@ class EmojiPickerMenu extends Component {
                             onBlur={() => this.setState({isFocused: false})}
                         />
                     </View>
+                )}
+                {!isFiltered && (
+                    <CategoryShortcutBar
+                        headerIndices={this.headerIndices}
+                        onPress={this.scrollToHeader}
+                    />
                 )}
                 {this.state.filteredEmojis.length === 0
                     ? (
