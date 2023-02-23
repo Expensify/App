@@ -20,7 +20,6 @@ function getRequestWaitTime() {
 }
 
 /**
- * @param {Number} time
  * @returns {Promise}
  */
 function sleep() {
