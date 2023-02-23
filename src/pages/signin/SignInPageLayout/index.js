@@ -1,14 +1,17 @@
 /* eslint-disable no-unused-vars */
 import React from 'react';
 import {View, ScrollView} from 'react-native';
+import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
+import compose from '../../../libs/compose';
 import SignInPageContent from './SignInPageContent';
 import Footer from './Footer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import styles from '../../../styles/styles';
 import SignInPageGraphics from './SignInPageGraphics';
 import * as StyleUtils from '../../../styles/StyleUtils';
-import scrollViewContentContainerStyles from './signInPageStyles';
+// eslint-disable-next-line rulesdir/prefer-import-module-contents
+import {scrollViewContentContainerStyles, useSignInHeightFlex} from './signInPageStyles';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -58,11 +61,11 @@ const SignInPageLayout = (props) => {
                 )
                 : (
                     <ScrollView
-                        contentContainerStyle={[styles.flex1]}
+                        contentContainerStyle={scrollViewContentContainerStyles}
                         keyboardShouldPersistTaps="handled"
                         keyboardDismissMode="on-drag"
                     >
-                        <View style={[styles.flex1]}>
+                        <View style={[useSignInHeightFlex && styles.flex1, {minHeight: props.windowHeight - props.insets.bottom - props.insets.top}]}>
                             <SignInPageContent
                                 welcomeText={props.welcomeText}
                                 shouldShowWelcomeText={props.shouldShowWelcomeText}
@@ -82,4 +85,7 @@ const SignInPageLayout = (props) => {
 SignInPageLayout.propTypes = propTypes;
 SignInPageLayout.displayName = 'SignInPageLayout';
 
-export default withWindowDimensions(SignInPageLayout);
+export default compose(
+    withWindowDimensions,
+    withSafeAreaInsets,
+)(SignInPageLayout);

@@ -1,5 +1,10 @@
 import styles from '../../../../styles/styles';
 
-const scrollViewContentContainerStyles = styles.mnh100;
+const scrollViewContentContainerStyles = styles.flexGrow1;
 
-export default scrollViewContentContainerStyles;
+const useSignInHeightFlex = false;
+
+export {
+    scrollViewContentContainerStyles,
+    useSignInHeightFlex,
+};
