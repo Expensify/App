@@ -466,15 +466,18 @@ class EmojiPickerMenu extends Component {
     }
 
     render() {
+        const isFiltered = this.emojis.length !== this.state.filteredEmojis.length;
         return (
             <View
                 style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
-                <CategoryShortcutBar
-                    headerIndices={this.headerIndices}
-                    onPress={this.scrollToHeader}
-                />
+                {!isFiltered && (
+                    <CategoryShortcutBar
+                        headerIndices={this.headerIndices}
+                        onPress={this.scrollToHeader}
+                    />
+                )}
                 {!this.props.isSmallScreenWidth && (
                     <View style={[styles.ph4, styles.pb1]}>
                         <TextInput
