@@ -24,6 +24,26 @@ function resetFreePlanBankAccount(bankAccountID) {
         },
         {
             optimisticData: [
+                // This bank account is present in ONYXKEYS.BANK_ACCOUNT_LIST
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                    value: {[bankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+                },
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    value: {shouldShowResetModal: false},
+                },
+
+                // TODO: What is this loading state? doesn't seem to be used
+                // {
+                //     onyxMethod: CONST.ONYX.METHOD.MERGE,
+                //     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                //     value: {isLoading: true},
+                // },
+            ],
+            successData: [
                 {
                     onyxMethod: CONST.ONYX.METHOD.SET,
                     key: ONYXKEYS.ONFIDO_TOKEN,
@@ -45,29 +65,25 @@ function resetFreePlanBankAccount(bankAccountID) {
                     value: ReimbursementAccountProps.reimbursementAccountDefaultProps,
                 },
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                    value: {isLoading: true},
-                },
-                {
                     onyxMethod: CONST.ONYX.METHOD.SET,
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
                     value: {},
                 },
-            ],
-            successData: [
-                {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                    value: {isLoading: false},
-                },
+
+                // TODO: What is this loading state? doesn't seem to be used
+                // {
+                //     onyxMethod: CONST.ONYX.METHOD.MERGE,
+                //     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                //     value: {isLoading: false},
+                // },
             ],
             failureData: [
-                {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                    value: {isLoading: false},
-                },
+                // TODO: What is this loading state? doesn't seem to be used
+                // {
+                //     onyxMethod: CONST.ONYX.METHOD.MERGE,
+                //     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                //     value: {isLoading: false},
+                // },
             ],
         });
 }
