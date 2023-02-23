@@ -18,13 +18,13 @@ const propTypes = {
     forwardedRef: PropTypes.func,
 
     /** Ensure that callback and trap deactivation are in the same loop on the web platform */
-    useOnDismiss: PropTypes.bool,
+    shouldUseOnDismiss: PropTypes.bool,
 };
 
 const defaultProps = {
     ...modalDefaultProps,
     forwardedRef: () => {},
-    useOnDismiss: false,
+    shouldUseOnDismiss: false,
 };
 
 class BaseModal extends PureComponent {
@@ -102,8 +102,8 @@ class BaseModal extends PureComponent {
                     this.props.onModalShow();
                 }}
                 propagateSwipe={this.props.propagateSwipe}
-                onDismiss={this.props.useOnDismiss ? this.hideModal : () => {}}
-                onModalHide={!this.props.useOnDismiss ? this.hideModal : () => {}}
+                onDismiss={this.props.shouldUseOnDismiss ? this.hideModal : () => {}}
+                onModalHide={!this.props.shouldUseOnDismiss ? this.hideModal : () => {}}
                 onSwipeComplete={this.props.onClose}
                 swipeDirection={swipeDirection}
                 isVisible={this.props.isVisible}
