@@ -3,12 +3,12 @@ import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {View, ScrollView, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import compose from '../../../../libs/compose';
-import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import MenuItem from '../../../../components/MenuItem';
@@ -58,6 +58,11 @@ const propTypes = {
 
 const defaultProps = {
     loginList: {},
+    route: {
+        params: {
+            contactMethod: '',
+        },
+    },
 };
 
 class ContactMethodDetailsPage extends Component {
@@ -68,12 +73,27 @@ class ContactMethodDetailsPage extends Component {
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
         this.resendValidateCode = this.resendValidateCode.bind(this);
         this.getContactMethod = this.getContactMethod.bind(this);
-        this.validateContactMethod = this.validateContactMethod.bind(this); 
+        this.validateContactMethod = this.validateContactMethod.bind(this);
 
         this.state = {
             isDeleteModalOpen: false,
             validateCode: '',
         };
+    }
+
+    /**
+     * Gets the current contact method from the route params
+     *
+     * @returns {string}
+     */
+    getContactMethod() {
+        return decodeURIComponent(lodashGet(this.props.route, 'params.contactMethod'));
+    }
+
+    componentDidMount() {
+        if (!this.getContactMethod()) {
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+        }
     }
 
     /**
@@ -84,16 +104,12 @@ class ContactMethodDetailsPage extends Component {
         this.setState({isDeleteModalOpen: shouldOpen});
     }
 
-    getContactMethod() {
-        return decodeURIComponent(lodashGet(this.props.route, 'params.contactMethod'));
-    }
-
     /**
      * Delete the contact method and hide the modal
      */
     confirmDeleteAndHideModal() {
         const contactMethod = this.getContactMethod();
-        User.deleteContactMethod(contactMethod)
+        User.deleteContactMethod(contactMethod);
         this.toggleDeleteModal(false);
         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
     }
@@ -159,16 +175,16 @@ class ContactMethodDetailsPage extends Component {
                                 blurOnSubmit={false}
                             />
                             <TouchableOpacity
-                                style={[styles.mt2]}
+                                style={[styles.mt2, styles.dFlex, styles.flexRow]}
                                 onPress={this.resendValidateCode}
                             >
-                                <Text style={[styles.link]}>
+                                <Text style={[styles.link, styles.mr4]}>
                                     {this.props.translate('contacts.resendMagicCode')}
                                 </Text>
                             </TouchableOpacity>
                             <Button
                                 text={this.props.translate('common.verify')}
-                                onPress={() => console.log('hi')}
+                                onPress={this.validateContactMethod}
                                 style={[styles.mt4]}
                                 success
                             />
@@ -183,7 +199,7 @@ class ContactMethodDetailsPage extends Component {
                         <MenuItem
                             title={this.props.translate('common.remove')}
                             icon={Expensicons.Trashcan}
-                            onPress={this.validateContactMethod}
+                            onPress={() => this.toggleDeleteModal(true)}
                             disabled={isDefaultContactMethod}
                         />
                     </OfflineWithFeedback>
