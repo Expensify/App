@@ -770,8 +770,14 @@ PODS:
     - React-Codegen
     - React-RCTFabric
     - ReactCommon/turbomodule/core
-  - react-native-netinfo (8.3.1):
-    - React-Core
+  - react-native-netinfo (9.3.7):
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
+    - React
+    - React-Codegen
+    - React-RCTFabric
+    - ReactCommon/turbomodule/core
   - react-native-pdf (6.6.2):
     - RCT-Folly
     - RCTRequired
@@ -1360,7 +1366,7 @@ SPEC CHECKSUMS:
   react-native-document-picker: f68191637788994baed5f57d12994aa32cf8bf88
   react-native-image-manipulator: 39f7fded66a1170ccb5055095beafa657d0cb36a
   react-native-image-picker: 128a741b5314a15091bdb4b9800cf4b2dd686afa
-  react-native-netinfo: 1a6035d3b9780221d407c277ebfb5722ace00658
+  react-native-netinfo: 20ae59b6777f1114a7bdad5010b1230959daf9cf
   react-native-pdf: 98810171111685a679dfb6beaf638090ba3a9eb9
   react-native-performance: 426cc34043381602a59f059755a04452315effb4
   react-native-plaid-link-sdk: 77052f329310ff5a36ddda276793f40d27c02bc4

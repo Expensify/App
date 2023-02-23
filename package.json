@@ -53,7 +53,7 @@
     "@react-native-cameraroll/cameraroll": "github:WoLewicki/react-native-cameraroll#@wolewicki/add-fabric",
     "@react-native-clipboard/clipboard": "git+https://github.com/j-piasecki/react-native-clipboard.git#6377e106140124a24b0648c42d91d976dbbbdf26",
     "@react-native-community/datetimepicker": "^3.5.2",
-    "@react-native-community/netinfo": "^8.3.0",
+    "@react-native-community/netinfo": "git+https://github.com/j-piasecki/react-native-netinfo.git#4da71a6fb7fbba87c120641fce057fe3818f9750",
     "@react-native-community/progress-bar-android": "^1.0.4",
     "@react-native-community/progress-view": "^1.2.3",
     "@react-native-firebase/analytics": "^12.3.0",
