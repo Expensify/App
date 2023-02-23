@@ -352,6 +352,12 @@ const CONST = {
             ALWAYS: 'always',
         },
         VISIBILITY: {
+            PUBLIC: 'public',
+            POLICY_ANNOUNCE: 'policy_announce',
+            POLICY_ADMINS: 'policy_admins',
+            POLICY: 'policy',
+            DOMAIN: 'domain',
+            DM: 'dm',
             RESTRICTED: 'restricted',
             PRIVATE: 'private',
         },
