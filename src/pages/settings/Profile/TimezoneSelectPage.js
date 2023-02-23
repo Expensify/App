@@ -69,7 +69,7 @@ class TimezoneSelectPage extends Component {
     filterShownTimezones(searchText) {
         this.setState({
             timezoneInputText: searchText,
-            timezoneOptions: _.filter(this.allTimezones, (tz => tz.text.toLowerCase().includes(searchText.toLowerCase()))),
+            timezoneOptions: _.filter(this.allTimezones, (tz => tz.text.toLowerCase().includes(searchText.trim().toLowerCase()))),
         });
     }
 
