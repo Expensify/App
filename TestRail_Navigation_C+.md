@@ -1,7 +1,7 @@
 # TestRail Navigation and Process for C+
 
 ## Context
-C+ are now responsible for finding the appropriate location for a new or updated regression test case once the proposed test steps have been posted by the Contributor who fixed the bug. This document is intended to give a short overview on how to navigate TestRail and best practices on choosing the correct location for the proposed steps. 
+C+ are now responsible for finding the appropriate location for a new or updated regression test case before the proposed test steps are posted by the Contributor who fixed the bug. This document is intended to give a short overview on how to navigate TestRail and best practices on choosing the correct location for the proposed steps. 
 As a C+ member, you will have view-only access to Expensify's TestRail account in order to complete this task.     
 
 ## Navigating TestRail
