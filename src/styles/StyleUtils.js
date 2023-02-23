@@ -752,8 +752,8 @@ function getEmojiSuggestionItemStyle(
         {
             height: rowHeight,
             justifyContent: 'center',
+            paddingHorizontal: 14,
         },
-        styles.ph3,
         (currentEmojiIndex === highlightedEmojiIndex && !hovered) || hovered
             ? {
                 backgroundColor: themeColors.highlightBG,
@@ -779,6 +779,7 @@ function getEmojiSuggestionContainerStyle(
     // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
     // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
     return {
+        overflow: 'hidden',
         top: -(itemsHeight + padding),
     };
 }

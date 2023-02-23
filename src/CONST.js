@@ -552,6 +552,8 @@ const CONST = {
         SUGGESTER_PADDING: 6,
         ITEM_HEIGHT: 36,
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
+        MIN_AMOUNT_OF_ITEM: 3,
+        MAX_AMOUNT_OF_ITEM: 5,
     },
     COMPOSER_MAX_HEIGHT: 125,
     CHAT_FOOTER_MIN_HEIGHT: 65,
@@ -1185,6 +1187,8 @@ const CONST = {
         'Zambia',
         'Zimbabwe',
     ],
+    SPACE_LENGTH: 1,
+    SPACE: 1,
 };
 
 export default CONST;

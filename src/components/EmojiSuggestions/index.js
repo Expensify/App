@@ -32,6 +32,9 @@ const propTypes = {
 
     /** Show that we should include ReportRecipientLocalTime view height */
     shouldIncludeReportRecipientLocalTimeHeight: PropTypes.bool.isRequired,
+
+    /** Stores user's preferred skin tone */
+    preferredSkinToneIndex: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
 };
 
 const defaultProps = {
@@ -43,14 +46,7 @@ const defaultProps = {
  * @param {Boolean} isColored
  * @returns {String | null}
  */
-const colorOfText = isColored => ({backgroundColor: isColored ? colors.yellow : null});
-
-/**
- * Select name as key.
- * @param {Object} item
- * @returns {String}
- */
-const keyExtractor = item => item.name;
+const colorOfText = isColored => ({backgroundColor: isColored ? colors.blueLink : null});
 
 /**
  * @param {Number} numRows
@@ -103,6 +99,22 @@ const getStyledTextArray = (name, prefix) => {
     return texts;
 };
 
+/**
+     * Given an emoji item object, return an emoji code based on its type.
+     *
+     * @param {Object} item
+     * @param {Number} preferredSkinToneIndex
+     * @returns {String}
+     */
+const emojiCode = (item, preferredSkinToneIndex) => {
+    const {code, types} = item;
+    if (types && types[preferredSkinToneIndex]) {
+        return types[preferredSkinToneIndex];
+    }
+
+    return code;
+};
+
 const EmojiSuggestions = (props) => {
     /**
      * Render a suggestion menu item component.
@@ -125,7 +137,7 @@ const EmojiSuggestions = (props) => {
                 onPress={() => props.onSelect(index)}
             >
                 <View style={styles.emojiSuggestionContainer}>
-                    <Text style={[styles.emojiSuggestionsText]}>{item.code}</Text>
+                    <Text style={[styles.emojiSuggestionsText]}>{emojiCode(item, props.preferredSkinToneIndex)}</Text>
                     <Text style={[styles.emojiSuggestionsText]}>
                         :
                         {_.map(styledTextArray, ({text, isColored}, i) => (
@@ -159,7 +171,7 @@ const EmojiSuggestions = (props) => {
                 keyboardShouldPersistTaps="handled"
                 data={props.emojis}
                 renderItem={renderSuggestionMenuItem}
-                keyExtractor={keyExtractor}
+                keyExtractor={item => item.name}
                 style={{height: rowHeight}}
             />
         </View>

@@ -125,7 +125,9 @@ const defaultProps = {
  * @param {Boolean} isEmojiPickerLarge
  * @returns {Number}
  */
-const getEmojiRowCount = (numRows, isEmojiPickerLarge) => (isEmojiPickerLarge ? Math.max(numRows, 5) : Math.max(numRows, 3));
+const getEmojiRowCount = (numRows, isEmojiPickerLarge) => (isEmojiPickerLarge
+    ? Math.max(numRows, CONST.EMOJI_SUGGESTER.MAX_AMOUNT_OF_ITEM)
+    : Math.max(numRows, CONST.EMOJI_SUGGESTER.MIN_AMOUNT_OF_ITEM));
 
 class ReportActionCompose extends React.Component {
     constructor(props) {
@@ -137,7 +139,7 @@ class ReportActionCompose extends React.Component {
         this.triggerHotkeyActions = this.triggerHotkeyActions.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
-        this.onCloseEmojiSuggestions = this.onCloseEmojiSuggestions.bind(this);
+        this.resetSuggestedEmojis = this.resetSuggestedEmojis.bind(this);
         this.setIsFullComposerAvailable = this.setIsFullComposerAvailable.bind(this);
         this.focus = this.focus.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
@@ -227,18 +229,6 @@ class ReportActionCompose extends React.Component {
     onSelectionChange(e) {
         this.setState({selection: e.nativeEvent.selection});
         this.calculateEmojiSuggestion();
-    }
-
-    /**
-     * Clean data related to EmojiSuggestions
-     *
-     * @param {Boolean} shouldHighlight
-     */
-    onCloseEmojiSuggestions() {
-        this.setState({
-            suggestedEmojis: [],
-            shouldShowSuggestionMenu: false,
-        });
     }
 
     /**
@@ -359,6 +349,18 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Clean data related to EmojiSuggestions
+     *
+     * @param {Boolean} shouldHighlight
+     */
+    resetSuggestedEmojis() {
+        this.setState({
+            suggestedEmojis: [],
+            shouldShowSuggestionMenu: false,
+        });
+    }
+
+    /**
      * Calculates and cares about the content of an Emoji Suggester
      */
     calculateEmojiSuggestion() {
@@ -408,17 +410,19 @@ class ReportActionCompose extends React.Component {
      */
     insertSelectedEmoji(highlightedEmojiIndex) {
         const commentBeforeColon = this.state.value.slice(0, this.state.colonIndex);
-        const emojiCode = this.state.suggestedEmojis[highlightedEmojiIndex].code;
-        const commentAfterColonWithEmojiNameRemoved = this.state.value.slice(this.state.selection.end).replace(CONST.REGEX.EMOJI_REPLACER, ' ');
+        const emojiObject = this.state.suggestedEmojis[highlightedEmojiIndex];
+        const emojiCode = emojiObject.code;
+        const commentAfterColonWithEmojiNameRemoved = this.state.value.slice(this.state.selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
 
         this.updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, false);
         this.setState(prevState => ({
             selection: {
-                start: prevState.colonIndex + emojiCode.length,
-                end: prevState.colonIndex + emojiCode.length,
+                start: prevState.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
+                end: prevState.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
             },
             suggestedEmojis: [],
         }));
+        EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
     }
 
     isEmptyChat() {
@@ -545,7 +549,7 @@ class ReportActionCompose extends React.Component {
         }
         if (e.key === 'Escape' && this.state.suggestedEmojis.length) {
             e.preventDefault();
-            this.onCloseEmojiSuggestions();
+            this.resetSuggestedEmojis();
             return;
         }
 
@@ -788,7 +792,7 @@ class ReportActionCompose extends React.Component {
                                             onFocus={() => this.setIsFocused(true)}
                                             onBlur={() => {
                                                 this.setIsFocused(false);
-                                                this.onCloseEmojiSuggestions();
+                                                this.resetSuggestedEmojis();
                                             }}
                                             onPasteFile={displayFileInModal}
                                             shouldClear={this.state.textInputShouldClear}
@@ -864,6 +868,7 @@ class ReportActionCompose extends React.Component {
                             prefix={this.state.value.slice(this.state.colonIndex + 1).split(' ')[0]}
                             onSelect={this.insertSelectedEmoji}
                             isComposerFullSize={this.props.isComposerFullSize}
+                            preferredSkinToneIndex={this.props.preferredSkinTone}
                             isEmojiPickerLarge={this.state.isEmojiPickerLarge}
                             composerHeight={this.state.composerHeight}
                             shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
@@ -899,6 +904,12 @@ export default compose(
         },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
+        },
+        frequentlyUsedEmojis: {
+            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
+        },
+        preferredSkinTone: {
+            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },
     }),
 )(ReportActionCompose);
