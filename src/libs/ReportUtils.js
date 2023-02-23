@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
+import lodashIntersection from 'lodash/intersection';
 import Onyx from 'react-native-onyx';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {InteractionManager} from 'react-native';
@@ -19,6 +20,7 @@ import Permissions from './Permissions';
 import DateUtils from './DateUtils';
 import linkingConfig from './Navigation/linkingConfig';
 import * as defaultAvatars from '../components/Icon/DefaultAvatars';
+import isReportMessageAttachment from './isReportMessageAttachment';
 
 let sessionEmail;
 Onyx.connect({
@@ -57,7 +59,7 @@ let currentUserPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
     callback: (val) => {
-        currentUserPersonalDetails = lodashGet(val, currentUserEmail);
+        currentUserPersonalDetails = lodashGet(val, currentUserEmail, {});
         allPersonalDetails = val;
     },
 });
@@ -97,17 +99,6 @@ function getReportParticipantsTitle(logins) {
  */
 function isIOUReport(report) {
     return report && _.has(report, 'total');
-}
-
-/**
- * Check whether a report action is Attachment or not.
- * Ignore messages containing [Attachment] as the main content. Attachments are actions with only text as [Attachment].
- *
- * @param {Object} reportActionMessage report action's message as text and html
- * @returns {Boolean}
- */
-function isReportMessageAttachment({text, html}) {
-    return text === '[Attachment]' && html !== '[Attachment]';
 }
 
 /**
@@ -506,13 +497,29 @@ function isDefaultAvatar(avatarURL) {
  *
  * @param {String} [avatarURL] - the avatar source from user's personalDetails
  * @param {String} [login] - the email of the user
- * @returns {String | Function}
+ * @returns {String|Function}
  */
 function getAvatar(avatarURL, login) {
     if (isDefaultAvatar(avatarURL)) {
         return getDefaultAvatar(login);
     }
     return avatarURL;
+}
+
+/**
+ * Avatars uploaded by users will have a _128 appended so that the asset server returns a small version.
+ * This removes that part of the URL so the full version of the image can load.
+ *
+ * @param {String} [avatarURL]
+ * @param {String} [login]
+ * @returns {String|Function}
+ */
+function getFullSizeAvatar(avatarURL, login) {
+    const source = getAvatar(avatarURL, login);
+    if (!_.isString(source)) {
+        return source;
+    }
+    return source.replace('_128', '');
 }
 
 /**
@@ -782,7 +789,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
     const htmlForNewComment = isAttachment ? 'Uploading Attachment...' : commentText;
 
     // Remove HTML from text when applying optimistic offline comment
-    const textForNewComment = isAttachment ? '[Attachment]'
+    const textForNewComment = isAttachment ? CONST.ATTACHMENT_MESSAGE_TEXT
         : parser.htmlToText(htmlForNewComment);
 
     return {
@@ -1010,12 +1017,12 @@ function buildOptimisticChatReport(
         chatType,
         hasOutstandingIOU: false,
         isOwnPolicyExpenseChat,
-        isPinned: false,
+        isPinned: reportName === CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
         lastActorEmail: '',
         lastMessageHtml: '',
         lastMessageText: null,
         lastReadTime: currentTime,
-        lastActionCreated: currentTime,
+        lastVisibleActionCreated: currentTime,
         notificationPreference,
         oldPolicyName,
         ownerEmail: ownerEmail || CONST.REPORT.OWNER_EMAIL_FAKE,
@@ -1190,10 +1197,10 @@ function isUnread(report) {
         return false;
     }
 
-    // lastActionCreated and lastReadTime are both datetime strings and can be compared directly
-    const lastActionCreated = report.lastActionCreated || '';
+    // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
+    const lastVisibleActionCreated = report.lastVisibleActionCreated || '';
     const lastReadTime = report.lastReadTime || '';
-    return lastReadTime < lastActionCreated;
+    return lastReadTime < lastVisibleActionCreated;
 }
 
 /**
@@ -1372,7 +1379,9 @@ function getChatByParticipants(newParticipantList) {
         if (!report || !report.participants) {
             return false;
         }
-        return _.isEqual(newParticipantList, report.participants.sort());
+
+        // Only return the room if it has all the participants and is not a policy room
+        return !isUserCreatedPolicyRoom(report) && _.isEqual(newParticipantList, report.participants.sort());
     });
 }
 
@@ -1456,7 +1465,11 @@ function getReportIDFromDeepLink(url) {
             route = route.replace('/', '');
         }
     });
-    const {reportID} = ROUTES.parseReportRouteParams(route);
+    const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(route);
+    if (isSubReportPageRoute) {
+        // We allow the Sub-Report deep link routes (settings, details, etc.) to be handled by their respective component pages
+        return '';
+    }
     return reportID;
 }
 
@@ -1473,6 +1486,36 @@ function openReportFromDeepLink(url) {
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         });
     });
+}
+
+/**
+ * @param {Object} report
+ * @param {Array} reportParticipants
+ * @param {Array} betas
+ * @returns {Array}
+ */
+function getIOUOptions(report, reportParticipants, betas) {
+    const participants = _.filter(reportParticipants, email => currentUserPersonalDetails.login !== email);
+    const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
+    const hasMultipleParticipants = participants.length > 1;
+
+    if (hasExcludedIOUEmails || participants.length === 0 || !Permissions.canUseIOU(betas)) {
+        return [];
+    }
+
+    // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
+    // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
+    // DM chats and workspace chats will have the Split Bill option only when there are at least 3 people in the chat.
+    if (isChatRoom(report) || hasMultipleParticipants) {
+        return [CONST.IOU.IOU_TYPE.SPLIT];
+    }
+
+    // DM chats that only have 2 people will see the Send / Request money options.
+    // Workspace chats should only see the Request money option, as "easy overages" is not available.
+    return [
+        CONST.IOU.IOU_TYPE.REQUEST,
+        ...(Permissions.canUseIOUSend(betas) && !isPolicyExpenseChat(report) ? [CONST.IOU.IOU_TYPE.SEND] : []),
+    ];
 }
 
 export {
@@ -1532,4 +1575,6 @@ export {
     canSeeDefaultRoom,
     getCommentLength,
     openReportFromDeepLink,
+    getFullSizeAvatar,
+    getIOUOptions,
 };

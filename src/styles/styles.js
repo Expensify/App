@@ -559,7 +559,7 @@ const styles = {
         height: 140,
     },
 
-    pickerSmall: {
+    pickerSmall: (backgroundColor = themeColors.highlightBG) => ({
         inputIOS: {
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
@@ -573,6 +573,16 @@ const styles = {
             height: 26,
             opacity: 1,
             backgroundColor: 'transparent',
+        },
+        done: {
+            color: themeColors.text,
+        },
+        modalViewMiddle: {
+            backgroundColor: themeColors.border,
+            borderTopWidth: 0,
+        },
+        modalViewBottom: {
+            backgroundColor: themeColors.highlightBG,
         },
         inputWeb: {
             fontFamily: fontFamily.EXP_NEUE,
@@ -588,7 +598,7 @@ const styles = {
             height: 26,
             opacity: 1,
             cursor: 'pointer',
-            backgroundColor: 'transparent',
+            backgroundColor,
         },
         inputAndroid: {
             fontFamily: fontFamily.EXP_NEUE,
@@ -602,6 +612,7 @@ const styles = {
             color: themeColors.text,
             height: 26,
             opacity: 1,
+            backgroundColor: 'transparent',
         },
         iconContainer: {
             top: 7,
@@ -611,7 +622,7 @@ const styles = {
             width: variables.iconSizeExtraSmall,
             height: variables.iconSizeExtraSmall,
         },
-    },
+    }),
 
     badge: {
         backgroundColor: themeColors.border,
@@ -741,7 +752,7 @@ const styles = {
         position: 'absolute',
         top: 0,
         width: '100%',
-        height: 25,
+        height: 23,
         backgroundColor: themeColors.componentBG,
     },
 
@@ -760,7 +771,7 @@ const styles = {
     baseTextInput: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
-        lineHeight: variables.lineHeightNormal,
+        lineHeight: variables.lineHeightXLarge,
         color: themeColors.text,
         paddingTop: 23,
         paddingBottom: 8,
@@ -839,6 +850,7 @@ const styles = {
         justifyContent: 'center',
         backgroundColor: 'transparent',
         height: variables.inputHeight,
+        overflow: 'hidden',
     },
 
     pickerContainerSmall: {
@@ -849,23 +861,35 @@ const styles = {
         position: 'absolute',
         left: 0,
         top: 6,
+        zIndex: 1,
     },
 
-    picker: (disabled = false) => ({
+    picker: (disabled = false, backgroundColor = themeColors.appBG) => ({
         iconContainer: {
             top: Math.round(variables.inputHeight * 0.5) - 11,
             right: 0,
-            zIndex: -1,
+            ...pointerEventsNone,
         },
 
         inputWeb: {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...picker,
+            backgroundColor,
         },
 
         inputIOS: {
             ...picker,
+        },
+        done: {
+            color: themeColors.text,
+        },
+        modalViewMiddle: {
+            backgroundColor: themeColors.border,
+            borderTopWidth: 0,
+        },
+        modalViewBottom: {
+            backgroundColor: themeColors.highlightBG,
         },
 
         inputAndroid: {
@@ -1466,13 +1490,6 @@ const styles = {
         width: '100%',
     },
 
-    emojiHeaderStyle: {
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
-        color: themeColors.heading,
-        fontSize: variables.fontSizeSmall,
-    },
-
     emojiSkinToneTitle: {
         backgroundColor: themeColors.componentBG,
         width: '100%',
@@ -1512,6 +1529,15 @@ const styles = {
         borderWidth: 1,
         borderColor: themeColors.link,
         borderRadius: variables.buttonBorderRadius,
+    },
+
+    categoryShortcutButton: {
+        flex: 1,
+        borderRadius: 8,
+        paddingTop: 2,
+        paddingBottom: 2,
+        height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+        justifyContent: 'center',
     },
 
     chatItemEmojiButton: {
@@ -1776,7 +1802,7 @@ const styles = {
     },
 
     borderTop: {
-        borderTopWidth: 1,
+        borderTopWidth: variables.borderTopWidth,
         borderColor: themeColors.border,
     },
 
@@ -2883,6 +2909,13 @@ const styles = {
     deeplinkWrapperFooter: {
         paddingTop: 80,
         paddingBottom: 45,
+    },
+
+    magicCodeDigits: {
+        color: themeColors.text,
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeXXLarge,
+        letterSpacing: 4,
     },
 };
 

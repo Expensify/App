@@ -33,7 +33,11 @@ const getHTMLOfSelection = () => {
     // We traverse all ranges, and get closest node with data-testid and replace its contents with contents of
     // range.
     for (let i = 0; i < selection.rangeCount; i++) {
-        const range = selection.getRangeAt(i);
+        const range = selection.getRangeAt(i).cloneRange();
+
+        while (range.endOffset === 0) {
+            range.setEndBefore(range.endContainer);
+        }
 
         const clonedSelection = range.cloneContents();
 

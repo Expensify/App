@@ -74,6 +74,7 @@ class AttachmentModal extends PureComponent {
 
         this.state = {
             isModalOpen: false,
+            shouldLoadAttachment: false,
             isAttachmentInvalid: false,
             attachmentInvalidReasonTitle: null,
             attachmentInvalidReason: null,
@@ -241,7 +242,11 @@ class AttachmentModal extends PureComponent {
                     onClose={() => this.setState({isModalOpen: false})}
                     isVisible={this.state.isModalOpen}
                     backgroundColor={themeColors.componentBG}
-                    onModalHide={this.props.onModalHide}
+                    onModalShow={() => this.setState({shouldLoadAttachment: true})}
+                    onModalHide={(e) => {
+                        this.props.onModalHide(e);
+                        this.setState({shouldLoadAttachment: false});
+                    }}
                     propagateSwipe
                 >
                     {this.props.isSmallScreenWidth && <HeaderGap />}
@@ -252,8 +257,9 @@ class AttachmentModal extends PureComponent {
                         onDownloadButtonPress={() => this.downloadAttachment(source)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                     />
+
                     <View style={styles.imageModalImageCenterContainer}>
-                        {this.state.source && (
+                        {this.state.source && this.state.shouldLoadAttachment && (
                             <AttachmentView
                                 source={source}
                                 isAuthTokenRequired={this.props.isAuthTokenRequired}

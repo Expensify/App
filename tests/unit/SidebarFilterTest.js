@@ -340,7 +340,7 @@ describe('Sidebar', () => {
                 // When report3 becomes unread
                 .then(() => {
                     jest.advanceTimersByTime(10);
-                    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`, {lastActionCreated: DateUtils.getDBTime()});
+                    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`, {lastVisibleActionCreated: DateUtils.getDBTime()});
                 })
 
                 // Then all three chats are showing
@@ -442,14 +442,14 @@ describe('Sidebar', () => {
                 .then(() => {
                     jest.advanceTimersByTime(10);
                     return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`, {
-                        lastActionCreated: DateUtils.getDBTime(),
+                        lastVisibleActionCreated: DateUtils.getDBTime(),
                     });
                 })
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${archivedPolicyRoomReport.reportID}`, {
-                    lastActionCreated: DateUtils.getDBTime(),
+                    lastVisibleActionCreated: DateUtils.getDBTime(),
                 }))
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${archivedUserCreatedPolicyRoomReport.reportID}`, {
-                    lastActionCreated: DateUtils.getDBTime(),
+                    lastVisibleActionCreated: DateUtils.getDBTime(),
                 }))
 
                 // Then they are all visible
@@ -491,11 +491,11 @@ describe('Sidebar', () => {
                 .then(() => {
                     jest.advanceTimersByTime(10);
                     return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyRoomReport.reportID}`, {
-                        lastActionCreated: DateUtils.getDBTime(),
+                        lastVisibleActionCreated: DateUtils.getDBTime(),
                     });
                 })
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${userCreatedPolicyRoomReport.reportID}`, {
-                    lastActionCreated: DateUtils.getDBTime(),
+                    lastVisibleActionCreated: DateUtils.getDBTime(),
                 }))
 
                 // Then both rooms are visible
@@ -602,7 +602,7 @@ describe('Sidebar', () => {
                 // Given an archived report with no comments
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
-                    lastActionCreated: '2022-11-22 03:48:27.267',
+                    lastVisibleActionCreated: '2022-11-22 03:48:27.267',
                     statusNum: CONST.REPORT.STATUS.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 };
@@ -632,7 +632,7 @@ describe('Sidebar', () => {
 
                     // When the report has comments
                     .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {
-                        lastActionCreated: DateUtils.getDBTime(),
+                        lastVisibleActionCreated: DateUtils.getDBTime(),
                     }))
 
                     // Then the report is rendered in the LHN
@@ -680,7 +680,7 @@ describe('Sidebar', () => {
                     // When the report has a new comment and is now unread
                     .then(() => {
                         jest.advanceTimersByTime(10);
-                        return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {lastActionCreated: DateUtils.getDBTime()});
+                        return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {lastVisibleActionCreated: DateUtils.getDBTime()});
                     })
 
                     // Then the report is rendered in the LHN
