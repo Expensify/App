@@ -227,7 +227,6 @@ function deleteContactMethod(contactMethod, oldLoginData) {
         key: ONYXKEYS.LOGIN_LIST,
         value: {
             [contactMethod]: {
-                partnerUserID: null,
                 errorFields: {
                     deletedLogin: null,
                 },
