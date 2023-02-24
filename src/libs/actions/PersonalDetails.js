@@ -1,15 +1,10 @@
 import lodashGet from 'lodash/get';
-import lodashMerge from 'lodash/merge';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as API from '../API';
-import * as DeprecatedAPI from '../deprecatedAPI';
-import NameValuePair from './NameValuePair';
 import * as ReportUtils from '../ReportUtils';
-import Growl from '../Growl';
-import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 
@@ -84,51 +79,6 @@ function extractFirstAndLastNameFromAvailableDetails({
         firstName: displayName.substring(0, firstSpaceIndex).trim(),
         lastName: displayName.substring(lastSpaceIndex).trim(),
     };
-}
-
-/**
- * Merges partial details object into the local store.
- *
- * @param {Object} details
- * @private
- */
-function mergeLocalPersonalDetails(details) {
-    // We are merging the partial details provided to this method with the existing details we have for the user so
-    // that we don't overwrite any values that may exist in storage.
-    const mergedDetails = lodashMerge(personalDetails[currentUserEmail], details);
-
-    // displayName is a generated field so we'll use the firstName and lastName + login to update it.
-    mergedDetails.displayName = getDisplayName(currentUserEmail, mergedDetails);
-
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[currentUserEmail]: mergedDetails});
-}
-
-/**
- * Sets the personal details object for the current user
- *
- * @param {Object} details
- * @param {boolean} shouldGrowl
- */
-function setPersonalDetails(details, shouldGrowl) {
-    DeprecatedAPI.PersonalDetails_Update({details: JSON.stringify(details)})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                if (details.timezone) {
-                    NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
-                }
-                mergeLocalPersonalDetails(details);
-
-                if (shouldGrowl) {
-                    Growl.show(Localize.translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
-                }
-            } else if (response.jsonCode === 400) {
-                Growl.error(Localize.translateLocal('personalDetails.error.firstNameLength'), 3000);
-            } else if (response.jsonCode === 401) {
-                Growl.error(Localize.translateLocal('personalDetails.error.lastNameLength'), 3000);
-            } else {
-                console.debug('Error while setting personal details', response);
-            }
-        });
 }
 
 /**
@@ -402,7 +352,6 @@ function clearAvatarErrors() {
 
 export {
     getDisplayName,
-    setPersonalDetails,
     updateAvatar,
     deleteAvatar,
     openIOUModalPage,
