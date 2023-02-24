@@ -117,12 +117,16 @@ describe('test workflow preDeploy', () => {
             );
             const testMockSteps = {
                 lint: [
-                    {
-                        name: 'Run lint workflow',
-                        mockWith: 'echo [MOCK] [LINT] Running lint workflow\n'
-                            + 'echo [MOCK] [LINT] Lint workflow failed\n'
-                            + 'exit 1',
-                    },
+                    utils.getMockStep(
+                        'Run lint workflow',
+                        'Running lint workflow - Lint workflow failed',
+                        'LINT',
+                        null,
+                        null,
+                        null,
+                        null,
+                        false,
+                    ),
                 ],
                 test: mocks.TEST_JOB_MOCK_STEPS,
                 confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
@@ -140,27 +144,33 @@ describe('test workflow preDeploy', () => {
                     mockSteps: testMockSteps,
                 });
             expect(result).toEqual(expect.arrayContaining(
-                [{
-                    name: 'Main Run lint workflow',
-                    status: 1,
-                    output: '[MOCK] [LINT] Running lint workflow\n'
-                        + '[MOCK] [LINT] Lint workflow failed',
-                }],
+                [
+                    utils.getStepAssertion(
+                        'Run lint workflow',
+                        false,
+                        null,
+                        'LINT',
+                        'Running lint workflow - Lint workflow failed',
+                    ),
+                ],
             ));
             assertions.assertTestJobExecuted(result);
             assertions.assertIsExpensifyEmployeeJobExecuted(result);
             expect(result).toEqual(expect.arrayContaining(
                 [
-                    {
-                        name: 'Main Announce failed workflow in Slack',
-                        status: 0,
-                        output: '[MOCK] [CONFIRM_PASSING_BUILD] Announcing failed workflow in slack, SLACK_WEBHOOK=***', // no access to secrets
-                    },
-                    {
-                        name: 'Main Exit failed workflow',
-                        status: 1,
-                        output: '',
-                    },
+                    utils.getStepAssertion(
+                        'Announce failed workflow in Slack',
+                        true,
+                        null,
+                        'CONFIRM_PASSING_BUILD',
+                        'Announcing failed workflow in slack',
+                        [{key: 'SLACK_WEBHOOK', value: '***'}],
+                    ),
+                    utils.getStepAssertion(
+                        'Exit failed workflow',
+                        false,
+                        '',
+                    ),
                 ],
             ));
             assertions.assertE2ETestsJobExecuted(result, false); // Act does not support ubuntu-20.04-64core runner and omits the job
@@ -184,12 +194,16 @@ describe('test workflow preDeploy', () => {
             const testMockSteps = {
                 lint: mocks.LINT_JOB_MOCK_STEPS,
                 test: [
-                    {
-                        name: 'Run test workflow',
-                        mockWith: 'echo [MOCK] [TEST] Running test workflow\n'
-                            + 'echo [MOCK] [TEST] Test workflow failed\n'
-                            + 'exit 1',
-                    },
+                    utils.getMockStep(
+                        'Run test workflow',
+                        'Running test workflow - Test workflow failed',
+                        'TEST',
+                        null,
+                        null,
+                        null,
+                        null,
+                        false,
+                    ),
                 ],
                 confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
                 chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS,
@@ -207,26 +221,32 @@ describe('test workflow preDeploy', () => {
                 });
             assertions.assertLintJobExecuted(result);
             expect(result).toEqual(expect.arrayContaining(
-                [{
-                    name: 'Main Run test workflow',
-                    status: 1,
-                    output: '[MOCK] [TEST] Running test workflow\n'
-                        + '[MOCK] [TEST] Test workflow failed',
-                }],
+                [
+                    utils.getStepAssertion(
+                        'Run test workflow',
+                        false,
+                        null,
+                        'TEST',
+                        'Running test workflow - Test workflow failed',
+                    ),
+                ],
             ));
             assertions.assertIsExpensifyEmployeeJobExecuted(result);
             expect(result).toEqual(expect.arrayContaining(
                 [
-                    {
-                        name: 'Main Announce failed workflow in Slack',
-                        status: 0,
-                        output: '[MOCK] [CONFIRM_PASSING_BUILD] Announcing failed workflow in slack, SLACK_WEBHOOK=***', // no access to secrets
-                    },
-                    {
-                        name: 'Main Exit failed workflow',
-                        status: 1,
-                        output: '',
-                    },
+                    utils.getStepAssertion(
+                        'Announce failed workflow in Slack',
+                        true,
+                        null,
+                        'CONFIRM_PASSING_BUILD',
+                        'Announcing failed workflow in slack',
+                        [{key: 'SLACK_WEBHOOK', value: '***'}],
+                    ),
+                    utils.getStepAssertion(
+                        'Exit failed workflow',
+                        false,
+                        '',
+                    ),
                 ],
             ));
             assertions.assertE2ETestsJobExecuted(result, false); // Act does not support ubuntu-20.04-64core runner and omits the job
