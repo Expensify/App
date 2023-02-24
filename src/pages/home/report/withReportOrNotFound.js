@@ -22,7 +22,7 @@ export default function (WrappedComponent) {
         report: {},
     };
 
-    class WithReportOrNavigateHome extends Component {
+    class WithReportOrNotFound extends Component {
         render() {
             if (_.isEmpty(this.props.report) || !this.props.report.reportID) {
                 return <NotFoundPage />;
@@ -40,17 +40,18 @@ export default function (WrappedComponent) {
         }
     }
 
-    WithReportOrNavigateHome.propTypes = propTypes;
-    WithReportOrNavigateHome.defaultProps = defaultProps;
-    WithReportOrNavigateHome.displayName = `withReportOrNavigateHome(${getComponentDisplayName(WrappedComponent)})`;
-    const withReportOrNavigateHome = React.forwardRef((props, ref) => (
+    WithReportOrNotFound.propTypes = propTypes;
+    WithReportOrNotFound.defaultProps = defaultProps;
+    WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const withReportOrNotFound = React.forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <WithReportOrNavigateHome {...props} forwardedRef={ref} />
+        <WithReportOrNotFound {...props} forwardedRef={ref} />
     ));
 
     return withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
         },
-    })(withReportOrNavigateHome);
+    })(withReportOrNotFound);
 }
