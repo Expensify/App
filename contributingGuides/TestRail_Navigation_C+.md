@@ -6,7 +6,8 @@ C+ are responsible for finding the appropriate location for new or updated regre
 As a C+ member, you will have view-only access to Expensify's TestRail account in order to complete this task.     
 
 ## Navigating TestRail
-- Expensify's TestRail account is broken down into four projects. For the purpose of this task, we will use the project titled `NewDot - New Expensify (New Format)`. Click on this project.  
+- Expensify's TestRail account is broken down into four projects. For the purpose of this document, we will focus on the project titled `NewDot - New Expensify (New Format)`. Click on this project.
+    - <img width="542" alt="Screenshot 2023-02-24 at 12 02 28 PM" src="https://user-images.githubusercontent.com/3885503/221150420-a23a2be4-bffd-4ad7-8559-ad22377a6eaf.png">
 - Within the project, you will find six headers that showcase the sub-categories of this project. Here, click on `Test Suites and Cases`.
     - <img width="772" alt="Screenshot 2023-02-24 at 12 04 30 PM" src="https://user-images.githubusercontent.com/3885503/221150806-5010996c-a813-489e-859c-66cf4a53b39d.png">
 - You will then be showed the various Test Suites and Cases available. Click on `New Expensify`.
