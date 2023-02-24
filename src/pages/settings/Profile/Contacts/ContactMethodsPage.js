@@ -1,4 +1,5 @@
 import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
@@ -18,6 +19,7 @@ import MenuItem from '../../../../components/MenuItem';
 import Text from '../../../../components/Text';
 import styles from '../../../../styles/styles';
 import CopyTextToClipboard from '../../../../components/CopyTextToClipboard';
+import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 
 const propTypes = {
     /* Onyx Props */
@@ -73,16 +75,22 @@ const ContactMethodsPage = props => {
         } else if (Str.isValidEmail(login.partnerUserID)) {
             hasEmailLogin = true;
         }
+        const pendingAction = lodashGet(login, 'pendingFields.deletedLogin', null);
         return (
-            <MenuItem
-                title={Str.removeSMSDomain(login.partnerUserID)}
-                description={description}
-                onPress={() => Navigation.navigate(ROUTES.getEditContactMethodRoute(login.partnerUserID))}
-                brickRoadIndicator={indicator}
-                shouldShowBasicTitle
-                shouldShowRightIcon
-                key={login.partnerUserID}
-            />
+            <OfflineWithFeedback
+                pendingAction={pendingAction}
+            >
+                <MenuItem
+                    title={Str.removeSMSDomain(login.partnerUserID)}
+                    description={description}
+                    onPress={() => Navigation.navigate(ROUTES.getEditContactMethodRoute(login.partnerUserID))}
+                    brickRoadIndicator={indicator}
+                    shouldShowBasicTitle
+                    shouldShowRightIcon
+                    disabled={!_.isEmpty(pendingAction)}
+                    key={login.partnerUserID}
+                />
+            </OfflineWithFeedback>
         )
     });
 
