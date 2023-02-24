@@ -93,7 +93,7 @@ const ContactMethodsPage = (props) => {
                     key={login.partnerUserID}
                 />
             </OfflineWithFeedback>
-        )
+        );
     });
 
     return (
