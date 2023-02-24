@@ -8,6 +8,7 @@ As a C+ member, you will have view-only access to Expensify's TestRail account i
 ## Navigating TestRail
 - Expensify's TestRail account is broken down into four projects. For the purpose of this task, we will use the project titled `NewDot - New Expensify (New Format)`. Click on this project.  
 - Within the project, you will find six headers that showcase the sub-categories of this project. Here, click on `Test Suites and Cases`.
+    - <img width="772" alt="Screenshot 2023-02-24 at 12 04 30 PM" src="https://user-images.githubusercontent.com/3885503/221150806-5010996c-a813-489e-859c-66cf4a53b39d.png">
 - You will then be showed the various Test Suites and Cases available. Click on `New Expensify`.
 - You now will have the overview of our various test cases that our outsourced QA team, Applause, run every day. On the right hand side, you will see a list of folders that detail different scenarios we house tests under. Clicking on one of these folders will then bring you to the list of specific test cases we currently have for the scenario in question. 
 - Clicking on one of the test cases will then take you to the overview of the steps taken by Applause to ensure everything works as expected for that specific test. You will notice the expected behaviors are identified by the action word `Verify`. 
