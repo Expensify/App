@@ -3,7 +3,7 @@ import React, {Component} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import getComponentDisplayName from '../../../libs/getComponentDisplayName';
-import Navigation from '../../../libs/Navigation/Navigation';
+import NotFoundPage from '../../ErrorPage/NotFoundPage';
 import ONYXKEYS from '../../../ONYXKEYS';
 import reportPropTypes from '../../reportPropTypes';
 
@@ -23,14 +23,11 @@ export default function (WrappedComponent) {
     };
 
     class WithReportOrNavigateHome extends Component {
-        componentDidMount() {
-            if (!_.isEmpty(this.props.report)) {
-                return;
-            }
-            Navigation.dismissModal();
-        }
-
         render() {
+            if (_.isEmpty(this.props.report) || !this.props.report.reportID) {
+                return <NotFoundPage />;
+            }
+
             const rest = _.omit(this.props, ['forwardedRef']);
 
             return (
