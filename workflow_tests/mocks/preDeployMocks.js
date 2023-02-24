@@ -3,7 +3,7 @@ const LINT_WORKFLOW_MOCK_STEP = {
     name: 'Run lint workflow',
     mockWith: 'echo [MOCK] [LINT] Running lint workflow',
 };
-export const LINT_JOB_MOCK_STEPS = [
+const LINT_JOB_MOCK_STEPS = [
     LINT_WORKFLOW_MOCK_STEP,
 ];
 
@@ -12,7 +12,7 @@ const TEST_WORKFLOW_MOCK_STEP = {
     name: 'Run test workflow',
     mockWith: 'echo [MOCK] [TEST] Running test workflow',
 };
-export const TEST_JOB_MOCK_STEPS = [
+const TEST_JOB_MOCK_STEPS = [
     TEST_WORKFLOW_MOCK_STEP,
 ];
 
@@ -21,7 +21,7 @@ const ANNOUNCE_IN_SLACK_MOCK_STEP = {
     name: 'Announce failed workflow in Slack',
     mockWith: 'echo [MOCK] [CONFIRM_PASSING_BUILD] Announcing failed workflow in slack, SLACK_WEBHOOK=${{ inputs.SLACK_WEBHOOK }}',
 };
-export const CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS = [
+const CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS = [
     ANNOUNCE_IN_SLACK_MOCK_STEP,
 
     // 2nd step runs normally
@@ -40,7 +40,7 @@ const CHECK_IF_STAGINGDEPLOYCASH_IS_LOCKED_MOCK_STEP = {
     mockWith: 'echo [MOCK] [CHOOSE_DEPLOY_ACTIONS] Checking StagingDeployCash, GITHUB_TOKEN=${{ inputs.GITHUB_TOKEN }}\n'
         + 'echo "IS_LOCKED=true" >> "$GITHUB_OUTPUT"',
 };
-export const CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS = [
+const CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS = [
     GET_MERGED_PULL_REQUEST_MOCK_STEP__CHOOSE_DEPLOY,
     CHECK_IF_STAGINGDEPLOYCASH_IS_LOCKED_MOCK_STEP,
 
@@ -52,7 +52,7 @@ const COMMENT_ON_DEFERRED_PR_MOCK_STEP = {
     name: 'Comment on deferred PR',
     mockWith: 'echo [MOCK] [SKIP_DEPLOY] Skipping deploy, GITHUB_TOKEN=${{ inputs.github_token }}, NUMBER=${{ inputs.number }}, BODY=${{ inputs.body }}',
 };
-export const SKIP_DEPLOY_JOB_MOCK_STEPS = [
+const SKIP_DEPLOY_JOB_MOCK_STEPS = [
     COMMENT_ON_DEFERRED_PR_MOCK_STEP,
 ];
 
@@ -61,7 +61,7 @@ const CREATE_NEW_VERSION_MOCK_STEP = {
     name: 'Create new version',
     mockWith: 'echo [MOCK] [CREATE_NEW_VERSION] Creating new version',
 };
-export const CREATE_NEW_VERSION_JOB_MOCK_STEPS = [
+const CREATE_NEW_VERSION_JOB_MOCK_STEPS = [
     CREATE_NEW_VERSION_MOCK_STEP,
 ];
 
@@ -111,7 +111,7 @@ const ANNOUNCE_FAILED_WORKFLOW_IN_SLACK_MOCK_STEP = {
     name: 'Announce failed workflow in Slack',
     mockWith: 'echo [MOCK] [UPDATE_STAGING] Announcing failed workflow in slack',
 };
-export const UPDATE_STAGING_JOB_MOCK_STEPS = [
+const UPDATE_STAGING_JOB_MOCK_STEPS = [
     RUN_TURNSTYLE_MOCK_STEP,
     UPDATE_STAGING_BRANCH_MOCK_STEP,
     CHERRYPICK_PR_MOCK_STEP,
@@ -136,7 +136,7 @@ const CHECK_TEAM_MEMBERSHIP_MOCK_STEP__TRUE = {
     mockWith: 'echo [MOCK] [IS_EXPENSIFY_EMPLOYEE] Checking actors Expensify membership, GITHUB_TOKEN=${{ inputs.GITHUB_TOKEN }}, USERNAME=${{ inputs.username }}, TEAM=${{ inputs.team }}\n'
         + 'echo "isTeamMember=true" >> "$GITHUB_OUTPUT"',
 };
-export const IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE = [
+const IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE = [
     GET_MERGED_PULL_REQUEST_MOCK_STEP__IS_EXPENSIFY_EMPLOYEE,
     CHECK_TEAM_MEMBERSHIP_MOCK_STEP__TRUE,
 ];
@@ -145,7 +145,7 @@ const CHECK_TEAM_MEMBERSHIP_MOCK_STEP__FALSE = {
     mockWith: 'echo [MOCK] [IS_EXPENSIFY_EMPLOYEE] Checking actors Expensify membership, GITHUB_TOKEN=${{ inputs.GITHUB_TOKEN }}, USERNAME=${{ inputs.username }}, TEAM=${{ inputs.team }}\n'
         + 'echo "isTeamMember=false" >> "$GITHUB_OUTPUT"',
 };
-export const IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__FALSE = [
+const IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__FALSE = [
     GET_MERGED_PULL_REQUEST_MOCK_STEP__IS_EXPENSIFY_EMPLOYEE,
     CHECK_TEAM_MEMBERSHIP_MOCK_STEP__FALSE,
 ];
@@ -187,19 +187,19 @@ const COMMENT_ON_FIRST_PULL_REQUEST_MOCK_STEP = {
     name: 'Comment on ${{ steps.getMergedPullRequest.outputs.author }}\\\'s first pull request!',
     mockWith: 'echo [MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Creating comment, GITHUB_TOKEN=${{ inputs.github_token }}, NUMBER=${{ inputs.number }}, BODY="${{ inputs.body }}"',
 };
-export const NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS = [
+const NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS = [
     CHECKOUT_MOCK_STEP,
     GET_MERGED_PULL_REQUEST_MOCK_STEP__WELCOME_MESSAGE,
     GET_PR_COUNT_MOCK_STEP__10,
     COMMENT_ON_FIRST_PULL_REQUEST_MOCK_STEP,
 ];
-export const NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__ONE_PR = [
+const NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__ONE_PR = [
     CHECKOUT_MOCK_STEP,
     GET_MERGED_PULL_REQUEST_MOCK_STEP__WELCOME_MESSAGE,
     GET_PR_COUNT_MOCK_STEP__1,
     COMMENT_ON_FIRST_PULL_REQUEST_MOCK_STEP,
 ];
-export const NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__OSBOTIFY = [
+const NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__OSBOTIFY = [
     CHECKOUT_MOCK_STEP__OSBOTIFY,
     GET_MERGED_PULL_REQUEST_MOCK_STEP__WELCOME_MESSAGE__OSBOTIFY,
     GET_PR_COUNT_MOCK_STEP__10,
@@ -300,7 +300,7 @@ const CHECK_IF_TESTS_FAILED_MOCK_STEP = {
     name: 'Check if test failed, if so leave a deploy blocker label',
     mockWith: 'echo [MOCK] [E2E_TESTS] Checking if tests failed',
 };
-export const E2E_TESTS_JOB_MOCK_STEPS = [
+const E2E_TESTS_JOB_MOCK_STEPS = [
     CHECKOUT_MOCK_STEP__E2E_TESTS,
     SETUP_NODE_MOCK_STEP,
     SETUP_RUBY_MOCK_STEP,
@@ -326,3 +326,19 @@ export const E2E_TESTS_JOB_MOCK_STEPS = [
     LEAVE_COMMENT_WITH_AWS_DEVICE_FARM_OUTPUT_MOCK_STEP,
     CHECK_IF_TESTS_FAILED_MOCK_STEP,
 ];
+
+module.exports = {
+    LINT_JOB_MOCK_STEPS,
+    TEST_JOB_MOCK_STEPS,
+    CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
+    CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS,
+    SKIP_DEPLOY_JOB_MOCK_STEPS,
+    CREATE_NEW_VERSION_JOB_MOCK_STEPS,
+    UPDATE_STAGING_JOB_MOCK_STEPS,
+    IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
+    IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__FALSE,
+    NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
+    NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__ONE_PR,
+    NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__OSBOTIFY,
+    E2E_TESTS_JOB_MOCK_STEPS,
+};
