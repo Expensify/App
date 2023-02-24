@@ -26,9 +26,6 @@ const propTypes = {
     /** Is inline icon */
     inline: PropTypes.bool,
 
-    /** Is workspace icon */
-    isWorkspaceAvatar: PropTypes.bool,
-
     // eslint-disable-next-line react/forbid-prop-types
     additionalStyles: PropTypes.arrayOf(PropTypes.object),
 };
@@ -39,7 +36,6 @@ const defaultProps = {
     fill: themeColors.icon,
     small: false,
     inline: false,
-    isWorkspaceAvatar: false,
     additionalStyles: [],
 };
 
@@ -52,7 +48,6 @@ class Icon extends PureComponent {
         const iconStyles = [StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute,
             ...this.props.additionalStyles,
         ];
-        const iconFill = this.props.isWorkspaceAvatar ? this.props.fill : this.props.fill;
 
         if (this.props.inline) {
             return (
@@ -64,7 +59,7 @@ class Icon extends PureComponent {
                         <this.props.src
                             width={width}
                             height={height}
-                            fill={iconFill}
+                            fill={this.props.fill}
                         />
                     </View>
                 </View>
@@ -79,7 +74,7 @@ class Icon extends PureComponent {
                 <this.props.src
                     width={width}
                     height={height}
-                    fill={iconFill}
+                    fill={this.props.fill}
                 />
             </View>
         );

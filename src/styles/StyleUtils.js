@@ -66,7 +66,9 @@ function getAvatarBorderRadius(size, type) {
         [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.componentBorderRadiusRounded,
     };
 
+    // Default to rounded border
     let borderRadius = variables.buttonBorderRadius;
+
     if (type === CONST.ICON_TYPE_WORKSPACE) {
         borderRadius = AVATAR_BORDERS[size];
         return {borderRadius};

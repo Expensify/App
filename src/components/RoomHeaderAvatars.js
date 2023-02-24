@@ -48,7 +48,7 @@ const RoomHeaderAvatars = (props) => {
         <View pointerEvents="none">
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
                 {_.map(iconsToDisplay, (icon, index) => (
-                    <View key={`${icon}${index}`} style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <View key={`${icon.source}${index}`} style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <Avatar
                             source={icon.source}
                             fill={themeColors.iconSuccessFill}
