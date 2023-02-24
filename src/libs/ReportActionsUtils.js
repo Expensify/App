@@ -9,6 +9,7 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
 import isReportMessageAttachment from './isReportMessageAttachment';
+import lodashFindLast from 'lodash/findLast';
 
 const allReportActions = {};
 Onyx.connect({
@@ -217,8 +218,8 @@ function getSortedReportActionsForDisplay(reportActions) {
  */
 function getLastClosedReportAction(reportActions) {
     const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
-    const sortedReportActions = getSortedReportActions(filteredReportActions, true);
-    return _.filter(sortedReportActions, reportAction => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)[0];
+    const sortedReportActions = getSortedReportActions(filteredReportActions);
+    return lodashFindLast(sortedReportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
 }
 
 export {
