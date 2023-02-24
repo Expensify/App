@@ -211,7 +211,6 @@ class ReportActionItem extends Component {
                 onPressOut={() => ControlSelection.unblock()}
                 onSecondaryInteraction={this.showPopover}
                 preventDefaultContentMenu={!this.props.draftMessage}
-                withoutFocusOnSecondaryInteraction
             >
                 <Hoverable>
                     {hovered => (

@@ -1,4 +1,4 @@
-import {Keyboard, View} from 'react-native';
+import {View} from 'react-native';
 import React from 'react';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -17,7 +17,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import {withNetwork} from '../OnyxProvider';
 import {propTypes, defaultProps} from './propTypes';
 import SafeAreaConsumer from '../SafeAreaConsumer';
-import withKeyboardState from '../withKeyboardState';
 
 class ScreenWrapper extends React.Component {
     constructor(props) {
@@ -52,18 +51,6 @@ class ScreenWrapper extends React.Component {
             this.setState({didScreenTransitionEnd: true});
             this.props.onEntryTransitionEnd();
         });
-
-        // We need to have this prop to remove keyboard before going away from the screen, to avoid previous screen look weird for a brief moment,
-        // also we need to have generic control in future - to prevent closing keyboard for some rare cases in which beforeRemove has limitations
-        // described here https://reactnavigation.org/docs/preventing-going-back/#limitations
-        if (this.props.shouldDismissKeyboardBeforeClose) {
-            this.beforeRemoveSubscription = this.props.navigation.addListener('beforeRemove', () => {
-                if (!this.props.isKeyboardShown) {
-                    return;
-                }
-                Keyboard.dismiss();
-            });
-        }
     }
 
     /**
@@ -87,9 +74,6 @@ class ScreenWrapper extends React.Component {
         }
         if (this.unsubscribeTransitionStart) {
             this.unsubscribeTransitionStart();
-        }
-        if (this.beforeRemoveSubscription) {
-            this.beforeRemoveSubscription();
         }
     }
 
@@ -147,7 +131,6 @@ ScreenWrapper.defaultProps = defaultProps;
 export default compose(
     withNavigation,
     withWindowDimensions,
-    withKeyboardState,
     withOnyx({
         modal: {
             key: ONYXKEYS.MODAL,

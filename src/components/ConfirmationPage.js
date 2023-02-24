@@ -1,16 +1,15 @@
 import React from 'react';
-import {View} from 'react-native';
+import {Image, View} from 'react-native';
 import PropTypes from 'prop-types';
-import Lottie from 'lottie-react-native';
-import FireworksAnimation from '../../assets/animations/Fireworks.json';
 import Text from './Text';
 import styles from '../styles/styles';
 import Button from './Button';
 import FixedFooter from './FixedFooter';
+import CONST from '../CONST';
 
 const propTypes = {
     /** The asset to render */
-    animation: PropTypes.string,
+    illustration: PropTypes.string,
 
     /** Heading of the confirmation page */
     heading: PropTypes.string,
@@ -29,7 +28,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    animation: FireworksAnimation,
+    illustration: `${CONST.CLOUDFRONT_URL}/images/animations/animation__fireworks.gif`,
     heading: '',
     description: '',
     buttonText: '',
@@ -40,10 +39,8 @@ const defaultProps = {
 const ConfirmationPage = props => (
     <>
         <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
-            <Lottie
-                source={props.animation}
-                autoPlay
-                loop
+            <Image
+                source={{uri: props.illustration}}
                 style={styles.confirmationAnimation}
             />
             <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>

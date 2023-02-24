@@ -208,7 +208,6 @@ function transferWalletBalance(paymentMethod) {
                 value: {
                     loading: true,
                     error: null,
-                    errors: null,
                 },
             },
         ],

@@ -99,8 +99,8 @@ class DebitCardPage extends Component {
             errors.password = this.props.translate('addDebitCardPage.error.password');
         }
 
-        if (!values.acceptTerms) {
-            errors.acceptTerms = this.props.translate('common.error.acceptTerms');
+        if (!values.acceptedTerms) {
+            errors.acceptedTerms = this.props.translate('common.error.acceptedTerms');
         }
 
         return errors;
@@ -186,7 +186,7 @@ class DebitCardPage extends Component {
                         />
                     </View>
                     <CheckboxWithLabel
-                        inputID="acceptTerms"
+                        inputID="acceptedTerms"
                         LabelComponent={() => (
                             <Text>
                                 {`${this.props.translate('common.iAcceptThe')}`}

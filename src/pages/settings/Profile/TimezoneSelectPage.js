@@ -69,7 +69,7 @@ class TimezoneSelectPage extends Component {
     filterShownTimezones(searchText) {
         this.setState({
             timezoneInputText: searchText,
-            timezoneOptions: _.filter(this.allTimezones, (tz => tz.text.toLowerCase().includes(searchText.trim().toLowerCase()))),
+            timezoneOptions: _.filter(this.allTimezones, (tz => tz.text.toLowerCase().includes(searchText.toLowerCase()))),
         });
     }
 
@@ -90,10 +90,9 @@ class TimezoneSelectPage extends Component {
                             onChangeText={this.filterShownTimezones}
                             onSelectRow={this.saveSelectedTimezone}
                             optionHoveredStyle={styles.hoveredComponentBG}
-                            sections={[{data: this.state.timezoneOptions, indexOffset: 0}]}
+                            sections={[{data: this.state.timezoneOptions}]}
                             shouldHaveOptionSeparator
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                            initiallyFocusedOptionKey={this.currentSelectedTimezone}
                         />
                     </>
                 )}

@@ -6,7 +6,6 @@ import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import reportActionPropTypes from '../home/report/reportActionPropTypes';
 import ReportTransaction from '../../components/ReportTransaction';
 import CONST from '../../CONST';
@@ -71,10 +70,9 @@ class IOUTransactions extends Component {
     }
 
     render() {
-        const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(this.props.reportActions);
         return (
             <View style={[styles.mt3]}>
-                {_.map(sortedReportActions, (reportAction) => {
+                {_.map(this.props.reportActions, (reportAction) => {
                     // iouReportIDs should be strings, but we still have places that send them as ints so we convert them both to Numbers for comparison
                     if (!reportAction.originalMessage || Number(reportAction.originalMessage.IOUReportID) !== Number(this.props.iouReportID)) {
                         return;
@@ -88,7 +86,7 @@ class IOUTransactions extends Component {
                         <ReportTransaction
                             chatReportID={this.props.chatReportID}
                             iouReportID={this.props.iouReportID}
-                            reportActions={sortedReportActions}
+                            reportActions={this.props.reportActions}
                             action={reportAction}
                             key={reportAction.reportActionID}
                             canBeRejected={canBeRejected}

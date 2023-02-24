@@ -1,3 +1,4 @@
+
 /* eslint-disable no-unused-vars */
 function toggleHeaderMenu() {
     const lhn = document.getElementById('lhn');
@@ -21,37 +22,13 @@ function toggleHeaderMenu() {
     }
 }
 
-/**
- * Clamp a number in a range.
- *
- * @param {Number} num
- * @param {Number} min
- * @param {Number} max
- * @returns {Number}
- */
-function clamp(num, min, max) {
-    return Math.min(Math.max(num, min), max);
-}
-
-/**
- * Check if a number is in a range.
- *
- * @param {Number} num
- * @param {Number} min
- * @param {Number} max
- * @returns {Boolean}
- */
-function isInRange(num, min, max) {
-    return num >= min && num <= max;
-}
-
 function navigateBack() {
-    const hubs = JSON.parse(document.getElementById('hubs-data').value);
-    const hubToNavigate = hubs.find(hub => window.location.pathname.includes(hub)); // eslint-disable-line rulesdir/prefer-underscore-method
-    if (hubToNavigate) {
-        window.location.href = `/hubs/${hubToNavigate}`;
+    if (window.location.pathname.includes('/request-money/')) {
+        window.location.href = '/hubs/request-money';
+    } else if (window.location.pathname.includes('/send-money/')) {
+        window.location.href = '/hubs/send-money';
     } else {
-        window.location.href = '/';
+        window.location.href = '/hubs/other';
     }
 
     // Add a little delay to avoid showing the previous content in a fraction of a time
@@ -105,23 +82,4 @@ window.addEventListener('DOMContentLoaded', () => {
     if (backButton) {
         backButton.addEventListener('click', navigateBack);
     }
-
-    const articleContent = document.getElementById('article-content');
-    const lhnContent = document.getElementById('lhn-content');
-    lhnContent.addEventListener('wheel', (e) => {
-        const scrollTop = lhnContent.scrollTop;
-        const isScrollingPastLHNTop = e.deltaY < 0 && scrollTop === 0;
-        const isScrollingPastLHNBottom = (
-            e.deltaY > 0
-            && isInRange(lhnContent.scrollHeight - lhnContent.offsetHeight, scrollTop - 1, scrollTop + 1)
-        );
-        if (isScrollingPastLHNTop || isScrollingPastLHNBottom) {
-            e.preventDefault();
-        }
-    });
-    window.addEventListener('scroll', (e) => {
-        const scrollingElement = e.target.scrollingElement;
-        const scrollPercentageInArticleContent = clamp(scrollingElement.scrollTop - articleContent.offsetTop, 0, articleContent.scrollHeight) / articleContent.scrollHeight;
-        lhnContent.scrollTop = scrollPercentageInArticleContent * lhnContent.scrollHeight;
-    });
 });

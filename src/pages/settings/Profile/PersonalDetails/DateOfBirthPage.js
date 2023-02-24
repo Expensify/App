@@ -93,7 +93,6 @@ class DateOfBirthPage extends Component {
                 >
                     <View>
                         <DatePicker
-                            placeholder="yyyy-mm-dd"
                             inputID="dob"
                             label={this.props.translate('common.date')}
                             defaultValue={privateDetails.dob || ''}
