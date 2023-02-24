@@ -20,7 +20,7 @@ const setUpActParams = (act, event = null, event_options = null, secrets = null,
     return updated_act;
 };
 
-const getMockStep = (name, message, job_id = null, inputs = null, in_envs = null, outputs = null, out_envs = null) => {
+const getMockStep = (name, message, job_id = null, inputs = null, in_envs = null, outputs = null, out_envs = null, isSuccessful = true) => {
     const mockStepName = name;
     let mockWithCommand = 'echo [MOCK]';
     if (job_id) {
@@ -47,13 +47,49 @@ const getMockStep = (name, message, job_id = null, inputs = null, in_envs = null
             mockWithCommand += `\necho "${key}=${value}" >> "$GITHUB_ENV"`;
         }
     }
+    if (!isSuccessful) {
+        mockWithCommand += '\nexit 1';
+    }
     return {
         name: mockStepName,
         mockWith: mockWithCommand,
     };
 };
 
+const getStepAssertion = (name, isSuccessful = true, expectedOutput = null, jobId = null, message = null, inputs = null, envs = null) => {
+    const stepName = `Main ${name}`;
+    const stepStatus = isSuccessful ? 0 : 1;
+    let stepOutput;
+    if (expectedOutput !== undefined && expectedOutput !== null) {
+        stepOutput = expectedOutput;
+    } else {
+        stepOutput = '[MOCK]';
+        if (jobId) {
+            stepOutput += ` [${jobId}]`;
+        }
+        if (message) {
+            stepOutput += ` ${message}`;
+        }
+        if (inputs) {
+            for (const input of inputs) {
+                stepOutput += `, ${input.key}=${input.value}`;
+            }
+        }
+        if (envs) {
+            for (const env of envs) {
+                stepOutput += `, ${env.key}=${env.value}`;
+            }
+        }
+    }
+    return {
+        name: stepName,
+        status: stepStatus,
+        output: stepOutput,
+    };
+};
+
 module.exports = {
     setUpActParams,
     getMockStep,
+    getStepAssertion,
 };
