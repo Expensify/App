@@ -477,7 +477,8 @@ function getDefaultWorkspaceAvatar(workspaceName) {
     }
 
     // Remove all chars not A-Z or 0-9 including underscore
-    const alphaNumeric = workspaceName.replace(/[^0-9a-z]/gi, '').toUpperCase();
+    const withoutAccents = workspaceName.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const alphaNumeric = withoutAccents.replace(/[^0-9a-z]/gi, '').toUpperCase();
 
     return !alphaNumeric ? defaultWorkspaceAvatars.WorkspaceBuilding : defaultWorkspaceAvatars[`Workspace${alphaNumeric[0]}`];
 }
