@@ -73,8 +73,6 @@ class ReportFooter extends React.Component {
         if (isArchivedRoom) {
             reportClosedAction = ReportActionsUtils.getLastClosedReportAction(this.props.reportActions);
         }
-        console.log("reportActions: ", ReportActionsUtils.getLastClosedReportAction(this.props.reportActions));
-        console.log("reportClosedAction: ", reportClosedAction);
         const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors);
         return (
             <>
