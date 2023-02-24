@@ -2840,7 +2840,7 @@ const styles = {
         overflow: 'hidden',
         paddingVertical: 2,
         flexShrink: 0,
-        maxWidth: 180,
+        maxWidth: variables.badgeMaxWidth,
         fontSize: variables.fontSizeSmall,
         ...spacing.ph2,
     },
