@@ -50,7 +50,7 @@ class BaseModal extends PureComponent {
         // we don't want to call the onModalHide on unmount
         this.hideModal(this.props.isVisible);
 
-        // to handle case of modal unmounted with visible state
+        // To prevent closing any modal already unmounted when this modal still remains as visible state
         Modal.setCloseModal(null);
     }
 
