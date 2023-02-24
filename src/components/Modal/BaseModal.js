@@ -33,7 +33,7 @@ class BaseModal extends PureComponent {
     componentDidMount() {
         if (!this.props.isVisible) { return; }
 
-        // to handle case of modal already visible when mounted, i.e. PopoverReportActionContextMenu
+        // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
         Modal.setCloseModal(this.props.onClose);
     }
 
