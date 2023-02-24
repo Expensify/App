@@ -28,11 +28,15 @@ const propTypes = {
         /** Indicates when an Alert modal is about to be visible */
         willAlertModalBecomeVisible: PropTypes.bool,
     }),
+
+    /** Whether to dismiss keyboard before leaving a screen */
+    shouldDismissKeyboardBeforeClose: PropTypes.bool,
 };
 
 const defaultProps = {
     style: [],
     includeSafeAreaPaddingBottom: true,
+    shouldDismissKeyboardBeforeClose: true,
     includePaddingTop: true,
     onEntryTransitionEnd: () => {},
     modal: {},
