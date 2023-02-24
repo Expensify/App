@@ -165,21 +165,7 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
  * @returns {Array}
  */
 function getSortedReportActionsForDisplay(reportActions) {
-    // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
-    // to prevent bugs during the migration from sequenceNumber -> reportActionID
-    const filteredReportActions = _.filter(reportActions, (reportAction, key) => {
-        if (!reportAction) {
-            return false;
-        }
-
-        if (String(reportAction.sequenceNumber) === key) {
-            Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
-            return false;
-        }
-
-        return true;
-    });
-
+    const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
     const sortedReportActions = getSortedReportActions(filteredReportActions, true);
     return _.filter(sortedReportActions, (reportAction) => {
         // Filter out any unsupported reportAction types
@@ -199,6 +185,42 @@ function getSortedReportActionsForDisplay(reportActions) {
     });
 }
 
+/**
+ * In some cases, there can be multiple closed report actions in a chat report.
+ * This method returns the last closed report action so we can always show the correct archived report reason.
+ *
+ * @param {Object} reportActions
+ * @returns {Object}
+ */
+function getLastClosedReportAction(reportActions) {
+    const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
+    const sortedReportActions = getSortedReportActions(filteredReportActions, true);
+    return _.filter(sortedReportActions, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)[0];
+}
+
+/**
+ * A helper method to filter out report actions keyed by sequenceNumbers.
+ *
+ * @param {Object} reportActions
+ * @returns {Array}
+ */
+function filterOutDeprecatedReportActions(reportActions) {
+    // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
+    // to prevent bugs during the migration from sequenceNumber -> reportActionID
+    return _.filter(reportActions, (reportAction, key) => {
+        if (!reportAction) {
+            return false;
+        }
+
+        if (String(reportAction.sequenceNumber) === key) {
+            Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
+            return false;
+        }
+
+        return true;
+    });
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -207,4 +229,5 @@ export {
     isDeletedAction,
     isConsecutiveActionMadeByPreviousActor,
     getSortedReportActionsForDisplay,
+    getLastClosedReportAction,
 };

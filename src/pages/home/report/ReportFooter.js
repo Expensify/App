@@ -18,6 +18,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import styles from '../../../styles/styles';
 import reportActionPropTypes from './reportActionPropTypes';
 import reportPropTypes from '../../reportPropTypes';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** Report object for the current report */
@@ -70,8 +71,10 @@ class ReportFooter extends React.Component {
         const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
         let reportClosedAction;
         if (isArchivedRoom) {
-            reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+            reportClosedAction = ReportActionsUtils.getLastClosedReportAction(this.props.reportActions);
         }
+        console.log("reportActions: ", ReportActionsUtils.getLastClosedReportAction(this.props.reportActions));
+        console.log("reportClosedAction: ", reportClosedAction);
         const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors);
         return (
             <>
