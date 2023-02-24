@@ -18,6 +18,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import reportPropTypes from '../../pages/reportPropTypes';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
+import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 
 const propTypes = {
     /** source is used to determine the starting index in the array of attachments */
@@ -55,6 +56,7 @@ class AttachmentCarousel extends React.Component {
             shouldShowArrow: this.canUseTouchScreen,
             isForwardDisabled: true,
             isBackDisabled: true,
+            isLoading: true,
         };
     }
 
@@ -133,6 +135,7 @@ class AttachmentCarousel extends React.Component {
             page,
             attachments,
             file,
+            isLoading: false,
             isForwardDisabled: page === 0,
             isBackDisabled: page === attachments.length - 1,
         });
@@ -164,7 +167,7 @@ class AttachmentCarousel extends React.Component {
                 if (oldestReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
                     // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
                     Report.readOldestAction(this.props.report.reportID, oldestReportAction.reportActionID);
-                    return;
+                    return {isLoading: true};
                 }
             }
             const {source, file} = this.getAttachment(attachments[nextIndex]);
@@ -189,7 +192,7 @@ class AttachmentCarousel extends React.Component {
                 onMouseEnter={() => this.toggleArrowsVisibility(true)}
                 onMouseLeave={() => this.toggleArrowsVisibility(false)}
             >
-                {this.state.shouldShowArrow && (
+                {(this.state.shouldShowArrow && !this.state.isLoading) && (
                     <>
                         {!this.state.isBackDisabled && (
                             <Button
@@ -211,24 +214,29 @@ class AttachmentCarousel extends React.Component {
                                 iconFill={themeColors.text}
                                 iconStyles={[styles.mr0]}
                                 onPress={() => this.cycleThroughAttachments(-1)}
-                                isDisabled={this.state.isForwardDisabled}
                             />
                         )}
                     </>
                 )}
-                <CarouselActions
-                    styles={[styles.attachmentModalArrowsContainer]}
-                    canSwipeLeft={!this.state.isBackDisabled}
-                    canSwipeRight={!this.state.isForwardDisabled}
-                    onPress={() => this.canUseTouchScreen && this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
-                    onCycleThroughAttachments={this.cycleThroughAttachments}
-                >
-                    <AttachmentView
-                        onPress={() => this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
-                        source={authSource}
-                        file={this.state.file}
+                {this.state.isLoading ? (
+                    <FullScreenLoadingIndicator
+                        style={[styles.opacity1, styles.bgTransparent]}
                     />
-                </CarouselActions>
+                ) : (
+                    <CarouselActions
+                        styles={[styles.attachmentModalArrowsContainer]}
+                        canSwipeLeft={!this.state.isBackDisabled}
+                        canSwipeRight={!this.state.isForwardDisabled}
+                        onPress={() => this.canUseTouchScreen && this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
+                        onCycleThroughAttachments={this.cycleThroughAttachments}
+                    >
+                        <AttachmentView
+                            onPress={() => this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
+                            source={authSource}
+                            file={this.state.file}
+                        />
+                    </CarouselActions>
+                )}
             </View>
         );
     }
