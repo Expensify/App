@@ -1,4 +1,4 @@
-# TestRail Navigation and Process for C+
+# TestRail Navigation and Process for Contributor Plus (C+)
 
 ## Context
 C+ are responsible for finding the appropriate location for a new or updated regression test case before the proposed test steps are posted by the Contributor who fixed the bug. This document is intended to give a short overview on how to navigate TestRail and best practices on choosing the correct location for the proposed steps. 
