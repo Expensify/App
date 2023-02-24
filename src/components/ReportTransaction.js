@@ -11,6 +11,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import Text from './Text';
 import Button from './Button';
+import Str from 'expensify-common/lib/str';
 
 const propTypes = {
     /** The chatReport which the transaction is associated with */
@@ -76,7 +77,7 @@ class ReportTransaction extends Component {
                         wrapperStyles={[styles.reportTransactionWrapper]}
                     >
                         <Text style={[styles.chatItemMessage]}>
-                            {this.props.action.message[0].text}
+                            {Str.htmlDecode(this.props.action.message[0].text)}
                         </Text>
                     </ReportActionItemSingle>
                     {this.props.canBeRejected && (

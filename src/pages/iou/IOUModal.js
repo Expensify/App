@@ -286,7 +286,7 @@ class IOUModal extends Component {
     sendMoney(paymentMethodType) {
         const amount = Math.round(this.state.amount * 100);
         const currency = this.props.iou.selectedCurrencyCode;
-        const comment = this.state.comment.trim();
+        const comment = Str.safeEscape(this.state.comment.trim());
         const participant = this.state.participants[0];
 
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -330,7 +330,7 @@ class IOUModal extends Component {
      */
     createTransaction(selectedParticipants) {
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
-        const comment = this.state.comment.trim();
+        const comment = Str.safeEscape(this.state.comment.trim());
 
         // IOUs created from a group report will have a reportID param in the route.
         // Since the user is already viewing the report, we don't need to navigate them to the report
