@@ -1,7 +1,7 @@
 # TestRail Navigation and Process for Contributor Plus (C+)
 
 ## Context
-C+ are responsible for finding the appropriate location for a new or updated regression test case before the proposed test steps are posted by the Contributor who fixed the bug. This document is intended to give a short overview on how to navigate TestRail and best practices on choosing the correct location for the proposed steps. 
+C+ are responsible for finding the appropriate location for new or updated regression test cases when NewDot bugs are fixed. Contributors working on fixing these bugs will then propose test steps to be added to [TestRail](https://expensify.testrail.io/index.php?/dashboard). This document is intended to give a short overview on how to navigate TestRail and best practices on choosing the correct location for the proposed steps. 
 As a C+ member, you will have view-only access to Expensify's TestRail account in order to complete this task.     
 
 ## Navigating TestRail
