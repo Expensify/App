@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
 import CONST from '../CONST';
 import * as IOU from '../libs/actions/IOU';
@@ -11,7 +12,6 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import Text from './Text';
 import Button from './Button';
-import Str from 'expensify-common/lib/str';
 
 const propTypes = {
     /** The chatReport which the transaction is associated with */
