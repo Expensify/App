@@ -382,6 +382,7 @@ class EmojiPickerMenu extends Component {
      */
     filterEmojis(searchTerm) {
         const normalizedSearchTerm = searchTerm.toLowerCase().trim();
+        this.emojiList.scrollToOffset({offset: 0, animated: false});
         if (normalizedSearchTerm === '') {
             // There are no headers when searching, so we need to re-make them sticky when there is no search term
             this.setState({
