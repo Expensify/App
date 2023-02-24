@@ -473,7 +473,7 @@ class EmojiPickerMenu extends Component {
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
                 {!this.props.isSmallScreenWidth && (
-                    <View style={[styles.ph4, styles.pb1]}>
+                    <View style={[styles.ph4, styles.pb1, styles.pt2]}>
                         <TextInput
                             label={this.props.translate('common.search')}
                             onChangeText={this.filterEmojis}
