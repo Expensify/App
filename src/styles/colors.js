@@ -4,6 +4,7 @@
 export default {
 
     // Universal Theme Colors
+    white: '#FFFFFF',
     black: '#000000',
     green: '#03D47C',
     greenHover: '#00C271',
@@ -16,7 +17,7 @@ export default {
     transparent: 'transparent',
 
     // Dark Mode Theme Colors
-    white: '#E7ECE9',
+    whiteDarkMode: '#E7ECE9',
     greenAppBackground: '#061B09',
     greenHighlightBackground: '#07271F',
     greenBorders: '#1A3D32',
