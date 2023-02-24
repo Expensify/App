@@ -97,12 +97,10 @@ class WorkspaceMembersPage extends React.Component {
      */
     getWorkspaceMembers() {
         /**
-         * clientMemberEmails should be filtered to only pass valid members, failure to do so
-         * will remove all non-existing members that should be displayed (e.g. non-existing members that should display an error).
-         * This is due to how calling `Onyx::merge` on array fields overwrites the array.
-         * see https://github.com/Expensify/App/issues/12265#issuecomment-1307889721 for more context
+         * We filter clientMemberEmails to only pass members without errors
+         * Otherwise, the members with errors would immediately be removed before the user has a chance to read the error
          */
-        const clientMemberEmails = _.keys(_.pick(this.props.policyMemberList, member => member.role));
+        const clientMemberEmails = _.keys(_.pick(this.props.policyMemberList, member => _.isEmpty(member.errors)));
         Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
     }
 
