@@ -3,7 +3,6 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {View, Keyboard} from 'react-native';
-import lodashFindLast from 'lodash/findLast';
 
 import CONST from '../../../CONST';
 import ReportActionCompose from './ReportActionCompose';

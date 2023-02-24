@@ -156,6 +156,29 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
 }
 
 /**
+ * A helper method to filter out report actions keyed by sequenceNumbers.
+ *
+ * @param {Object} reportActions
+ * @returns {Array}
+ */
+function filterOutDeprecatedReportActions(reportActions) {
+    // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
+    // to prevent bugs during the migration from sequenceNumber -> reportActionID
+    return _.filter(reportActions, (reportAction, key) => {
+        if (!reportAction) {
+            return false;
+        }
+
+        if (String(reportAction.sequenceNumber) === key) {
+            Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
+            return false;
+        }
+
+        return true;
+    });
+}
+
+/**
  * This method returns the report actions that are ready for display in the ReportActionsView.
  * The report actions need to be sorted by created timestamp first, and reportActionID second
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
@@ -195,30 +218,7 @@ function getSortedReportActionsForDisplay(reportActions) {
 function getLastClosedReportAction(reportActions) {
     const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
     const sortedReportActions = getSortedReportActions(filteredReportActions, true);
-    return _.filter(sortedReportActions, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)[0];
-}
-
-/**
- * A helper method to filter out report actions keyed by sequenceNumbers.
- *
- * @param {Object} reportActions
- * @returns {Array}
- */
-function filterOutDeprecatedReportActions(reportActions) {
-    // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
-    // to prevent bugs during the migration from sequenceNumber -> reportActionID
-    return _.filter(reportActions, (reportAction, key) => {
-        if (!reportAction) {
-            return false;
-        }
-
-        if (String(reportAction.sequenceNumber) === key) {
-            Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
-            return false;
-        }
-
-        return true;
-    });
+    return _.filter(sortedReportActions, reportAction => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)[0];
 }
 
 export {
