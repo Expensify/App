@@ -634,11 +634,11 @@ class ReportActionCompose extends React.Component {
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => {
                                                     this.setMenuVisibility(false);
-                                                    this.finishAddAttachmentFlow();
                                                 }}
-                                                onItemSelected={() => {
+                                                onModalHide={this.finishAddAttachmentFlow}
+                                                onItemSelected={(item) => {
                                                     this.setMenuVisibility(false);
-                                                    this.setIsInAddAttachmentFlow(false);
+                                                    this.setIsInAddAttachmentFlow(item.text === this.props.translate('reportActionCompose.addAttachment'));
                                                 }}
                                                 anchorPosition={styles.createMenuPositionReportActionCompose}
                                                 menuItems={[...this.getIOUOptions(reportParticipants),
@@ -646,10 +646,9 @@ class ReportActionCompose extends React.Component {
                                                         icon: Expensicons.Paperclip,
                                                         text: this.props.translate('reportActionCompose.addAttachment'),
                                                         onSelected: () => {
-                                                            this.setIsInAddAttachmentFlow(true);
                                                             openPicker({
                                                                 onPicked: displayFileInModal,
-                                                                onClose: this.finishAddAttachmentFlow,
+                                                                onModalHide: this.finishAddAttachmentFlow,
                                                             });
                                                         },
                                                     },

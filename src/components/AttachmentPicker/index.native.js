@@ -98,7 +98,7 @@ class AttachmentPicker extends Component {
 
         this.state = {
             isVisible: false,
-            onClose: () => {},
+            onModalHide: () => {},
         };
 
         this.menuItemData = [
@@ -188,7 +188,7 @@ class AttachmentPicker extends Component {
         return new Promise((resolve, reject) => {
             imagePickerFunc(getImagePickerOptions(this.props.type), (response) => {
                 if (response.didCancel) {
-                    this.state.onClose();
+                    this.state.onModalHide();
 
                     // When the user cancelled resolve with no attachment
                     return resolve();
@@ -240,7 +240,7 @@ class AttachmentPicker extends Component {
     showDocumentPicker() {
         return RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
             if (RNDocumentPicker.isCancel(error)) {
-                this.state.onClose();
+                this.state.onModalHide();
                 return;
             }
 
@@ -289,7 +289,10 @@ class AttachmentPicker extends Component {
             () => item.pickAttachment()
                 .then(this.pickAttachment)
                 .catch(console.error)
-                .finally(() => delete this.onModalHide),
+                .finally(() => {
+                    delete this.onModalHide;
+                    this.state.onModalHide();
+                }),
             200,
         );
 
@@ -303,10 +306,10 @@ class AttachmentPicker extends Component {
       */
     renderChildren() {
         return this.props.children({
-            openPicker: ({onPicked, onClose}) => {
+            openPicker: ({onPicked, onModalHide}) => {
                 this.open(onPicked);
-                if (onClose) {
-                    this.setState({onClose});
+                if (onModalHide) {
+                    this.setState({onModalHide});
                 }
             },
         });
@@ -316,13 +319,18 @@ class AttachmentPicker extends Component {
         return (
             <>
                 <Popover
-                    onClose={() => {
-                        this.close();
-                        this.state.onClose();
-                    }}
+                    onClose={this.close}
                     isVisible={this.state.isVisible}
                     anchorPosition={styles.createMenuPosition}
-                    onModalHide={this.onModalHide}
+                    onModalHide={() => {
+                        // this.modalHide is triggered when the modal is closed by selecting an item and
+                        // this.state.onModalHide is triggered when the modal is closed by touching outside or back button
+                        if (this.onModalHide) {
+                            this.onModalHide();
+                        } else {
+                            this.state.onModalHide();
+                        }
+                    }}
                 >
                     <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                         {

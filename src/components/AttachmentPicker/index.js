@@ -52,18 +52,18 @@ class AttachmentPicker extends React.Component {
                     onClick={(e) => {
                         e.stopPropagation();
 
-                        // We add this focus event listener to call the onClose callback when user does not select any files
+                        // We add this focus event listener to call the onModalHide callback when user does not select any files
                         // i.e. clicks cancel in the native file picker modal - this is when the app gets the focus back
-                        window.addEventListener('focus', this.onClose, {
+                        window.addEventListener('focus', this.onModalHide, {
                             once: true, // this removes the listener after running once
                         });
                     }}
                     accept={getAcceptableFileTypes(this.props.type)}
                 />
                 {this.props.children({
-                    openPicker: ({onPicked, onClose}) => {
+                    openPicker: ({onPicked, onModalHide}) => {
                         this.onPicked = onPicked;
-                        this.onClose = onClose;
+                        this.onModalHide = onModalHide;
                         this.fileInput.click();
                     },
                 })}

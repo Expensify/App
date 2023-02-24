@@ -26,12 +26,12 @@ const propTypes = {
     type: PropTypes.oneOf([CONST.ATTACHMENT_PICKER_TYPE.FILE, CONST.ATTACHMENT_PICKER_TYPE.IMAGE]),
 
     /** Optional callback to fire when we want to do something on close. */
-    onClose: PropTypes.func,
+    onModalHide: PropTypes.func,
 };
 
 const defaultProps = {
     type: CONST.ATTACHMENT_PICKER_TYPE.FILE,
-    onClose: () => {},
+    onModalHide: () => {},
 };
 
 export {

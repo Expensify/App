@@ -80,6 +80,9 @@ class PopoverMenu extends PureComponent {
         if (this.selectedItem) {
             this.selectedItem.onSelected();
             this.selectedItem = null;
+        } else if (this.props.onModalHide) {
+            // trigger the onModalHide callback only when modal is closed by clicking outside or back button
+            this.props.onModalHide();
         }
     }
 
