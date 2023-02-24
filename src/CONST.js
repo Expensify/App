@@ -480,6 +480,9 @@ const CONST = {
     // 6 numeric digits
     VALIDATE_CODE_REGEX_STRING: /^\d{6}$/,
 
+    // Look for any html/xml tags that would be filtered out by WAF inputrules
+    VALIDATE_FOR_HTML_TAG_REGEX: /<(.|\n)*?>/g,
+
     PASSWORD_PAGE: {
         ERROR: {
             ALREADY_VALIDATED: 'Account already validated',

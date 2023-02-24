@@ -9,6 +9,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as FormActions from '../libs/actions/FormActions';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import styles from '../styles/styles';
+import CONST from '../CONST';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 import FormSubmit from './FormSubmit';
 import SafeAreaConsumer from './SafeAreaConsumer';
@@ -178,11 +179,11 @@ class Form extends React.Component {
 
         // Validate the input for html tags. It should superseed any other error
         _.every(values, (inputValue, inputID) => {
-            if (!inputValue || inputValue.search(/<(.|\n)*?>/g) === -1) {
+            if (!inputValue || inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX) === -1) {
                 return;
             }
 
-            validationErrors[inputID] = this.props.translate('common.error.inputHasHtml');
+            validationErrors[inputID] = this.props.translate('common.error.invalidCharacter');
         });
 
         if (!_.isObject(validationErrors)) {
