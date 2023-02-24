@@ -1325,7 +1325,6 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         return false;
     }
 
-    // Exclude user created policy rooms if the user isn't on the policy rooms beta
     if (isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
         return false;
     }

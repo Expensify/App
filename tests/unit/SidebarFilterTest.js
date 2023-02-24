@@ -478,7 +478,6 @@ describe('Sidebar', () => {
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            // Given the user is in all betas
             const betas = [
                 CONST.BETAS.DEFAULT_ROOMS,
                 CONST.BETAS.POLICY_ROOMS,
