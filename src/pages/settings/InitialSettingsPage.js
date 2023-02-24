@@ -141,11 +141,11 @@ class InitialSettingsPage extends React.Component {
             .sortBy(policy => policy.name)
             .pluck('avatar')
             .value();
-        const policyBrickRoadIndicator = !_.isEmpty(this.props.reimbursementAccount.errors)
+        const policyBrickRoadIndicator = (!_.isEmpty(this.props.reimbursementAccount.errors)
             || _.chain(this.props.policies)
                 .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
                 .some(policy => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers))
-                .value() ? 'error' : null;
+                .value()) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : null;
 
         return ([
             {
