@@ -15,7 +15,6 @@ import Button from '../../components/Button';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import MenuItem from '../../components/MenuItem';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import getBankIcon from '../../components/Icon/BankIcons';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
@@ -26,14 +25,10 @@ import * as User from '../../libs/actions/User';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import * as BankAccounts from '../../libs/actions/ReimbursementAccount';
 import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
-import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 
 const propTypes = {
     /** Bank account currently in setup */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
-
-    /** List of bank accounts */
-    bankAccountList: PropTypes.objectOf(bankAccountPropTypes).isRequired,
 
     /* Onyx Props */
     user: userPropTypes.isRequired,
@@ -52,8 +47,8 @@ const EnableStep = (props) => {
         : '';
     const bankName = achData.addressName;
 
-    const errors = lodashGet(props.bankAccountList, [achData.bankAccountID, 'errors'], {});
-    const pendingAction = lodashGet(props.bankAccountList, [achData.bankAccountID, 'pendingAction'], {});
+    const errors = lodashGet(props.reimbursementAccount, 'errors', {});
+    const pendingAction = lodashGet(props.reimbursementAccount, 'pendingAction', null);
     return (
         <ScreenWrapper style={[styles.flex1, styles.justifyContentBetween]} includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
@@ -74,9 +69,7 @@ const EnableStep = (props) => {
                         pendingAction={pendingAction}
                         errors={errors}
                         shouldShowErrorMessage
-                        onClose={() => {
-                            PaymentMethods.clearDeletePaymentMethodError(ONYXKEYS.BANK_ACCOUNT_LIST, achData.bankAccountID);
-                        }}
+                        onClose={BankAccounts.resetReimbursementAccount}
                     >
                         <MenuItem
                             title={bankName}
@@ -140,9 +133,6 @@ export default compose(
     withOnyx({
         user: {
             key: ONYXKEYS.USER,
-        },
-        bankAccountList: {
-            key: ONYXKEYS.BANK_ACCOUNT_LIST,
         },
     }),
 )(EnableStep);

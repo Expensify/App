@@ -24,24 +24,15 @@ function resetFreePlanBankAccount(bankAccountID) {
         },
         {
             optimisticData: [
-                // This bank account is present in ONYXKEYS.BANK_ACCOUNT_LIST
-                {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: ONYXKEYS.BANK_ACCOUNT_LIST,
-                    value: {[bankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
-                },
                 {
                     onyxMethod: CONST.ONYX.METHOD.MERGE,
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                    value: {shouldShowResetModal: false},
+                    value: {
+                        shouldShowResetModal: false,
+                        isLoading: true,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+                    },
                 },
-
-                // TODO: What is this loading state? doesn't seem to be used
-                // {
-                //     onyxMethod: CONST.ONYX.METHOD.MERGE,
-                //     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                //     value: {isLoading: true},
-                // },
             ],
             successData: [
                 {
@@ -69,21 +60,13 @@ function resetFreePlanBankAccount(bankAccountID) {
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
                     value: {},
                 },
-
-                // TODO: What is this loading state? doesn't seem to be used
-                // {
-                //     onyxMethod: CONST.ONYX.METHOD.MERGE,
-                //     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                //     value: {isLoading: false},
-                // },
             ],
             failureData: [
-                // TODO: What is this loading state? doesn't seem to be used
-                // {
-                //     onyxMethod: CONST.ONYX.METHOD.MERGE,
-                //     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                //     value: {isLoading: false},
-                // },
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    value: {isLoading: false},
+                },
             ],
         });
 }
