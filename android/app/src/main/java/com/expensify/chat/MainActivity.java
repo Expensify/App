@@ -2,6 +2,8 @@ package com.expensify.chat;
 
 import android.os.Bundle;
 import android.content.pm.ActivityInfo;
+import android.view.Window;
+import android.view.WindowManager;
 import com.expensify.chat.bootsplash.BootSplash;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
@@ -52,6 +54,10 @@ public class MainActivity extends ReactActivity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(null);
+
+    Window w = getWindow();
+    w.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+
     if (getResources().getBoolean(R.bool.portrait_only)) {
       setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     }
