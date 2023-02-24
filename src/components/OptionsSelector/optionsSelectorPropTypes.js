@@ -89,6 +89,9 @@ const propTypes = {
 
     /** Whether to show a line separating options in list */
     shouldHaveOptionSeparator: PropTypes.bool,
+
+    /** Key of the option that we should focus on when first opening the options list */
+    initiallyFocusedOptionKey: PropTypes.string,
 };
 
 const defaultProps = {
@@ -113,6 +116,7 @@ const defaultProps = {
     disableArrowKeysActions: false,
     isDisabled: false,
     shouldHaveOptionSeparator: false,
+    initiallyFocusedOptionKey: undefined,
 };
 
 export {propTypes, defaultProps};

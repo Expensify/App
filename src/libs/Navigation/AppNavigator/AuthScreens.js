@@ -45,21 +45,22 @@ Onyx.connect({
     },
 });
 
+let timezone;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
     callback: (val) => {
-        if (!val) {
+        if (!val || timezone) {
             return;
         }
 
-        const timezone = lodashGet(val, [currentUserEmail, 'timezone'], {});
+        timezone = lodashGet(val, [currentUserEmail, 'timezone'], {});
         const currentTimezone = moment.tz.guess(true);
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
         // then update their timezone.
         if (_.isObject(timezone) && timezone.automatic && timezone.selected !== currentTimezone) {
             timezone.selected = currentTimezone;
-            PersonalDetails.setPersonalDetails({timezone});
+            PersonalDetails.updateAutomaticTimezone(timezone);
         }
     },
 });
