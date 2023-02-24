@@ -28,12 +28,12 @@ const assertIsExpensifyEmployeeJobExecuted = (workflowResult, didExecute = true)
     const steps = [{
         name: 'Main Get merged pull request',
         status: 0,
-        output: '[MOCK] [IS_EXPENSIFY_EMPLOYEE] Getting merged pull request, GITHUB_TOKEN=***',
+        output: '[MOCK] [IS_EXPENSIFY_EMPLOYEE] Getting merged pull request, github_token=***',
     },
     {
         name: 'Main Check whether the actor is member of Expensify/expensify team',
         status: 0,
-        output: '[MOCK] [IS_EXPENSIFY_EMPLOYEE] Checking actors Expensify membership, GITHUB_TOKEN=***, USERNAME=Dummy Author, TEAM=Expensify/expensify',
+        output: '[MOCK] [IS_EXPENSIFY_EMPLOYEE] Checking actors Expensify membership, GITHUB_TOKEN=***, username=Dummy Author, team=Expensify/expensify',
     }];
     if (didExecute) {
         expect(workflowResult).toEqual(expect.arrayContaining(steps));
@@ -47,12 +47,12 @@ const assertNewContributorWelcomeMessageJobExecuted = (workflowResult, didExecut
         {
             name: 'Main Checkout',
             status: 0,
-            output: '[MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Checking out, TOKEN=***',
+            output: '[MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Checking out, token=***',
         },
         {
             name: 'Main Get merged pull request',
             status: 0,
-            output: '[MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Getting merged pull request, GITHUB_TOKEN=***',
+            output: '[MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Getting merged pull request, github_token=***',
         },
         {
             name: isOsBotify ? 'Main Get PR count for OSBotify' : 'Main Get PR count for Dummy Author',
@@ -65,7 +65,7 @@ const assertNewContributorWelcomeMessageJobExecuted = (workflowResult, didExecut
             {
                 name: isOsBotify ? 'Main Comment on OSBotify\\\'s first pull request!' : 'Main Comment on Dummy Author\\\'s first pull request!',
                 status: 0,
-                output: isOsBotify ? '[MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Creating comment, GITHUB_TOKEN=***, NUMBER=12345, BODY=@OSBotify, Great job getting your first Expensify/App pull request over the finish line! :tada:\n\nI know there\'s a lot of information in our [contributing guidelines](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md), so here are some points to take note of :memo::\n\n1. Now that your first PR has been merged, you can be hired for another issue. Once you\'ve completed a few issues, you may be eligible to work on more than one job at a time.\n2. Once your PR is deployed to our staging servers, it will undergo quality assurance (QA) testing. If we find that it doesn\'t work as expected or causes a regression, you\'ll be responsible for fixing it. Typically, we would revert this PR and give you another chance to create a similar PR without causing a regression.\n3. Once your PR is deployed to _production_, we start a 7-day timer :alarm_clock:. After it has been on production for 7 days without causing any regressions, then we pay out the Upwork job. :moneybag:\n\nSo it might take a while before you\'re paid for your work, but we typically post multiple new jobs every day, so there\'s plenty of opportunity. I hope you\'ve had a positive experience contributing to this repo! :blush:' : '[MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Creating comment, GITHUB_TOKEN=***, NUMBER=12345, BODY=@Dummy Author, Great job getting your first Expensify/App pull request over the finish line! :tada:\n\nI know there\'s a lot of information in our [contributing guidelines](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md), so here are some points to take note of :memo::\n\n1. Now that your first PR has been merged, you can be hired for another issue. Once you\'ve completed a few issues, you may be eligible to work on more than one job at a time.\n2. Once your PR is deployed to our staging servers, it will undergo quality assurance (QA) testing. If we find that it doesn\'t work as expected or causes a regression, you\'ll be responsible for fixing it. Typically, we would revert this PR and give you another chance to create a similar PR without causing a regression.\n3. Once your PR is deployed to _production_, we start a 7-day timer :alarm_clock:. After it has been on production for 7 days without causing any regressions, then we pay out the Upwork job. :moneybag:\n\nSo it might take a while before you\'re paid for your work, but we typically post multiple new jobs every day, so there\'s plenty of opportunity. I hope you\'ve had a positive experience contributing to this repo! :blush:',
+                output: isOsBotify ? '[MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Creating comment, github_token=***, number=12345, body=@OSBotify, Great job getting your first Expensify/App pull request over the finish line! :tada:\n\nI know there\'s a lot of information in our [contributing guidelines](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md), so here are some points to take note of :memo::\n\n1. Now that your first PR has been merged, you can be hired for another issue. Once you\'ve completed a few issues, you may be eligible to work on more than one job at a time.\n2. Once your PR is deployed to our staging servers, it will undergo quality assurance (QA) testing. If we find that it doesn\'t work as expected or causes a regression, you\'ll be responsible for fixing it. Typically, we would revert this PR and give you another chance to create a similar PR without causing a regression.\n3. Once your PR is deployed to _production_, we start a 7-day timer :alarm_clock:. After it has been on production for 7 days without causing any regressions, then we pay out the Upwork job. :moneybag:\n\nSo it might take a while before you\'re paid for your work, but we typically post multiple new jobs every day, so there\'s plenty of opportunity. I hope you\'ve had a positive experience contributing to this repo! :blush:' : '[MOCK] [NEW_CONTRIBUTOR_WELCOME_MESSAGE] Creating comment, github_token=***, number=12345, body=@Dummy Author, Great job getting your first Expensify/App pull request over the finish line! :tada:\n\nI know there\'s a lot of information in our [contributing guidelines](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md), so here are some points to take note of :memo::\n\n1. Now that your first PR has been merged, you can be hired for another issue. Once you\'ve completed a few issues, you may be eligible to work on more than one job at a time.\n2. Once your PR is deployed to our staging servers, it will undergo quality assurance (QA) testing. If we find that it doesn\'t work as expected or causes a regression, you\'ll be responsible for fixing it. Typically, we would revert this PR and give you another chance to create a similar PR without causing a regression.\n3. Once your PR is deployed to _production_, we start a 7-day timer :alarm_clock:. After it has been on production for 7 days without causing any regressions, then we pay out the Upwork job. :moneybag:\n\nSo it might take a while before you\'re paid for your work, but we typically post multiple new jobs every day, so there\'s plenty of opportunity. I hope you\'ve had a positive experience contributing to this repo! :blush:',
             },
         );
     }
@@ -211,7 +211,7 @@ const assertChooseDeployActionsJobExecuted = (workflowResult, didExecute = true)
         {
             name: 'Main Get merged pull request',
             status: 0,
-            output: '[MOCK] [CHOOSE_DEPLOY_ACTIONS] Getting merged pull request, GITHUB_TOKEN=***', // no access to secrets
+            output: '[MOCK] [CHOOSE_DEPLOY_ACTIONS] Getting merged pull request, github_token=***', // no access to secrets
         },
         {
             name: 'Main Check if StagingDeployCash is locked',
@@ -247,7 +247,7 @@ const assertSkipDeployJobExecuted = (workflowResult, didExecute = true) => {
         {
             name: 'Main Comment on deferred PR',
             status: 0,
-            output: '[MOCK] [SKIP_DEPLOY] Skipping deploy, GITHUB_TOKEN=***, NUMBER=123, BODY=:hand: This PR was not deployed to staging yet because QA is ongoing. It will be automatically deployed to staging after the next production release.',
+            output: '[MOCK] [SKIP_DEPLOY] Skipping deploy, github_token=***, number=123, body=:hand: This PR was not deployed to staging yet because QA is ongoing. It will be automatically deployed to staging after the next production release.',
         },
     ];
     if (didExecute) {
@@ -277,7 +277,7 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true) => {
         {
             name: 'Main Run turnstyle',
             status: 0,
-            output: '[MOCK] [UPDATE_STAGING] Running turnstyle, POLL_INTERVAL_SECONDS=10, GITHUB_TOKEN=***',
+            output: '[MOCK] [UPDATE_STAGING] Running turnstyle, poll-interval-seconds=10, GITHUB_TOKEN=***',
         },
         {
             name: 'Main Cherry-pick PR to staging',

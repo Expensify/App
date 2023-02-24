@@ -1,6 +1,4 @@
-module.exports = {
-    setUpActParams:
-(act, event = null, event_options = null, secrets = null, github_token = null) => {
+const setUpActParams = (act, event = null, event_options = null, secrets = null, github_token = null) => {
     let updated_act = act;
 
     if (event && event_options) {
@@ -20,5 +18,42 @@ module.exports = {
     }
 
     return updated_act;
-},
+};
+
+const getMockStep = (name, message, job_id = null, inputs = null, in_envs = null, outputs = null, out_envs = null) => {
+    const mockStepName = name;
+    let mockWithCommand = 'echo [MOCK]';
+    if (job_id) {
+        mockWithCommand += ` [${job_id}]`;
+    }
+    mockWithCommand += ` ${message}`;
+    if (inputs) {
+        for (const input of inputs) {
+            mockWithCommand += `, ${input}="\${{ inputs.${input} }}"`;
+        }
+    }
+    if (in_envs) {
+        for (const env of in_envs) {
+            mockWithCommand += `, ${env}="\${{ env.${env} }}"`;
+        }
+    }
+    if (outputs) {
+        for (const [key, value] of Object.entries(outputs)) {
+            mockWithCommand += `\necho "${key}=${value}" >> "$GITHUB_OUTPUT"`;
+        }
+    }
+    if (out_envs) {
+        for (const [key, value] of Object.entries(out_envs)) {
+            mockWithCommand += `\necho "${key}=${value}" >> "$GITHUB_ENV"`;
+        }
+    }
+    return {
+        name: mockStepName,
+        mockWith: mockWithCommand,
+    };
+};
+
+module.exports = {
+    setUpActParams,
+    getMockStep,
 };
