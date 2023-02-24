@@ -48,12 +48,14 @@ const defaultProps = {
     loginList: {},
 };
 
-const ContactMethodsPage = props => {
+const ContactMethodsPage = (props) => {
     let hasPhoneNumberLogin = false;
     let hasEmailLogin = false;
 
     const loginMenuItems = _.map(props.loginList, (login) => {
-        if (!login.partnerUserID) return null;
+        if (!login.partnerUserID) {
+            return null;
+        }
 
         let description = '';
         if (props.session.email === login.partnerUserID) {

@@ -81,6 +81,13 @@ class ContactMethodDetailsPage extends Component {
         };
     }
 
+    componentDidMount() {
+        if (this.getContactMethod()) {
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+    }
+
     /**
      * Gets the current contact method from the route params
      *
@@ -88,12 +95,6 @@ class ContactMethodDetailsPage extends Component {
      */
     getContactMethod() {
         return decodeURIComponent(lodashGet(this.props.route, 'params.contactMethod'));
-    }
-
-    componentDidMount() {
-        if (!this.getContactMethod()) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
-        }
     }
 
     /**
@@ -223,7 +224,7 @@ class ContactMethodDetailsPage extends Component {
             </ScreenWrapper>
         );
     }
-};
+}
 
 ContactMethodDetailsPage.propTypes = propTypes;
 ContactMethodDetailsPage.defaultProps = defaultProps;

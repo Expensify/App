@@ -1,6 +1,6 @@
 import _ from 'underscore';
-import CONST from '../CONST';
 import lodashGet from 'lodash/get';
+import CONST from '../CONST';
 
 /**
  * @param {Object} response
