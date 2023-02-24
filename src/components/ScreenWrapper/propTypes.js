@@ -29,7 +29,7 @@ const propTypes = {
         willAlertModalBecomeVisible: PropTypes.bool,
     }),
 
-    /** Whether to dismiss keyboard before leave a screen */
+    /** Whether to dismiss keyboard before leaving a screen */
     shouldDismissKeyboardBeforeClose: PropTypes.bool,
 };
 
