@@ -12,7 +12,6 @@ import compose from '../../../../libs/compose';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import MenuItem from '../../../../components/MenuItem';
-import DotIndicatorMessage from '../../../../components/DotIndicatorMessage';
 import styles from '../../../../styles/styles';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import Text from '../../../../components/Text';
@@ -24,7 +23,6 @@ import CONST from '../../../../CONST';
 import Icon from '../../../../components/Icon';
 import colors from '../../../../styles/colors';
 import Button from '../../../../components/Button';
-import FormHelpMessage from '../../../../components/FormHelpMessage';
 import * as ErrorUtils from '../../../../libs/ErrorUtils';
 
 const propTypes = {
@@ -195,19 +193,12 @@ class ContactMethodDetailsPage extends Component {
                                     )}
                                 </TouchableOpacity>
                             </OfflineWithFeedback>
-                            <OfflineWithFeedback
-                                pendingAction={lodashGet(loginData, 'pendingFields.validateLogin', null)}
-                                errors={ErrorUtils.getLatestErrorFieldMessage(loginData, 'validateLogin')}
-                                errorRowStyles={[styles.mt2]}
-                                onClose={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}
-                            >
-                                <Button
-                                    text={this.props.translate('common.verify')}
-                                    onPress={this.validateContactMethod}
-                                    style={[styles.mt4]}
-                                    success
-                                />
-                            </OfflineWithFeedback>
+                            <Button
+                                text={this.props.translate('common.verify')}
+                                onPress={this.validateContactMethod}
+                                style={[styles.mt4]}
+                                success
+                            />
                         </View>
                     )}
                     <OfflineWithFeedback
