@@ -20,6 +20,7 @@ import PusherUtils from '../PusherUtils';
 import * as Report from './Report';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import DateUtils from '../DateUtils';
+import * as Session from './Session';
 
 let currentUserAccountID = '';
 Onyx.connect({
@@ -96,8 +97,8 @@ function closeAccount(message) {
  * @param {String} login
  * @param {Boolean} isPasswordless - temporary param to trigger passwordless flow in backend
  */
-function resendValidateCode(login, isPasswordless = false) {
-    DeprecatedAPI.ResendValidateCode({email: login, isPasswordless});
+function resendValidateCode(login) {
+    Session.resendValidateCode(login);
 }
 
 /**

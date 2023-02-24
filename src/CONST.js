@@ -375,7 +375,6 @@ const CONST = {
             CONFIRM: 'confirm',
             CENTERED: 'centered',
             CENTERED_UNSWIPEABLE: 'centered_unswipeable',
-            CENTERED_SMALL: 'centered_small',
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
@@ -401,7 +400,6 @@ const CONST = {
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
-        TEST_TOOLS_MODAL_THROTTLE_TIME: 800,
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
     },
@@ -855,6 +853,9 @@ const CONST = {
 
     // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
     MAX_COMMENT_LENGTH: 15000,
+
+    // Furthermore, applying markup is very resource-consuming, so let's set a slightly lower limit for that
+    MAX_MARKUP_LENGTH: 10000,
 
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
