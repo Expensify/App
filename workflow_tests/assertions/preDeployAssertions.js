@@ -1,4 +1,4 @@
-export const assertLintJobExecuted = (workflowResult: Array<Object>, didExecute: Boolean = true) => {
+const assertLintJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [{
         name: 'Main Run lint workflow',
         status: 0,
@@ -11,7 +11,7 @@ export const assertLintJobExecuted = (workflowResult: Array<Object>, didExecute:
     }
 };
 
-export const assertTestJobExecuted = (workflowResult: Array<Object>, didExecute: Boolean = true) => {
+const assertTestJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [{
         name: 'Main Run test workflow',
         status: 0,
@@ -24,7 +24,7 @@ export const assertTestJobExecuted = (workflowResult: Array<Object>, didExecute:
     }
 };
 
-export const assertIsExpensifyEmployeeJobExecuted = (workflowResult: Array<Object>, didExecute: Boolean = true) => {
+const assertIsExpensifyEmployeeJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [{
         name: 'Main Get merged pull request',
         status: 0,
@@ -42,7 +42,7 @@ export const assertIsExpensifyEmployeeJobExecuted = (workflowResult: Array<Objec
     }
 };
 
-export const assertNewContributorWelcomeMessageJobExecuted = (workflowResult: Array<Object>, didExecute: Boolean = true, isOsBotify: Boolean = false, isFirstPr: Boolean = false) => {
+const assertNewContributorWelcomeMessageJobExecuted = (workflowResult, didExecute = true, isOsBotify = false, isFirstPr = false) => {
     const steps = [
         {
             name: 'Main Checkout',
@@ -76,7 +76,7 @@ export const assertNewContributorWelcomeMessageJobExecuted = (workflowResult: Ar
     }
 };
 
-export const assertE2ETestsJobExecuted = (workflowResult: Array<Object>, didExecute: Boolean = true) => {
+const assertE2ETestsJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
         {
             name: 'Main Checkout',
@@ -206,7 +206,7 @@ export const assertE2ETestsJobExecuted = (workflowResult: Array<Object>, didExec
     }
 };
 
-export const assertChooseDeployActionsJobExecuted = (workflowResult: Array<Object>, didExecute: Boolean = true) => {
+const assertChooseDeployActionsJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
         {
             name: 'Main Get merged pull request',
@@ -242,7 +242,7 @@ export const assertChooseDeployActionsJobExecuted = (workflowResult: Array<Objec
     }
 };
 
-export const assertSkipDeployJobExecuted = (workflowResult: Array<Object>, didExecute: Boolean = true) => {
+const assertSkipDeployJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
         {
             name: 'Main Comment on deferred PR',
@@ -257,7 +257,7 @@ export const assertSkipDeployJobExecuted = (workflowResult: Array<Object>, didEx
     }
 };
 
-export const assertCreateNewVersionJobExecuted = (workflowResult: Array<Object>, didExecute: Boolean = true) => {
+const assertCreateNewVersionJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
         {
             name: 'Main Create new version',
@@ -272,7 +272,7 @@ export const assertCreateNewVersionJobExecuted = (workflowResult: Array<Object>,
     }
 };
 
-export const assertUpdateStagingJobExecuted = (workflowResult: Array<Object>, didExecute: Boolean = true) => {
+const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
         {
             name: 'Main Run turnstyle',
@@ -325,4 +325,16 @@ export const assertUpdateStagingJobExecuted = (workflowResult: Array<Object>, di
     } else {
         expect(workflowResult).not.toEqual(steps);
     }
+};
+
+module.exports = {
+    assertLintJobExecuted,
+    assertTestJobExecuted,
+    assertIsExpensifyEmployeeJobExecuted,
+    assertNewContributorWelcomeMessageJobExecuted,
+    assertE2ETestsJobExecuted,
+    assertChooseDeployActionsJobExecuted,
+    assertSkipDeployJobExecuted,
+    assertCreateNewVersionJobExecuted,
+    assertUpdateStagingJobExecuted,
 };

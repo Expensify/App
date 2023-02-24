@@ -1,6 +1,6 @@
-import {Act} from '@kie/act-js';
-
-export const setUpActParams = (act: Act, event?: string, event_options?: any, secrets?: Object, github_token?: string) => {
+module.exports = {
+    setUpActParams:
+(act, event = null, event_options = null, secrets = null, github_token = null) => {
     let updated_act = act;
 
     if (event && event_options) {
@@ -20,4 +20,5 @@ export const setUpActParams = (act: Act, event?: string, event_options?: any, se
     }
 
     return updated_act;
+},
 };

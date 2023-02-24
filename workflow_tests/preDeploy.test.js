@@ -1,11 +1,11 @@
-import {MockGithub} from '@kie/mock-github';
-import {Act} from '@kie/act-js';
-import path from 'path';
-import * as mocks from './mocks/preDeployMocks';
-import * as assertions from './assertions/preDeployAssertions';
-import * as utils from './utils';
+const path = require('path');
+const kieActJs = require('@kie/act-js');
+const kieMockGithub = require('@kie/mock-github');
+const utils = require('./utils');
+const assertions = require('./assertions/preDeployAssertions');
+const mocks = require('./mocks/preDeployMocks');
 
-let mockGithub: MockGithub;
+let mockGithub;
 const FILES_TO_COPY_INTO_TEST_REPO = [
     {
         src: path.resolve(__dirname, '..', '.github', 'actions'),
@@ -35,7 +35,7 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
 
 beforeEach(async () => {
     // create a local repository and copy required files
-    mockGithub = new MockGithub({
+    mockGithub = new kieMockGithub.MockGithub({
         repo: {
             testWorkflowsRepo: {
                 files: FILES_TO_COPY_INTO_TEST_REPO,
@@ -59,7 +59,7 @@ describe('test workflow preDeploy', () => {
         const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
 
         // instantiate Act in the context of the test repo and given workflow file
-        let act = new Act(repoPath, workflowPath);
+        let act = new kieActJs.Act(repoPath, workflowPath);
 
         // set run parameters
         act = utils.setUpActParams(
@@ -107,7 +107,7 @@ describe('test workflow preDeploy', () => {
         test('lint job failed - workflow exits', async () => {
             const repoPath = mockGithub.repo.getPath('testWorkflowsRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-            let act = new Act(repoPath, workflowPath);
+            let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'pull_request',
@@ -173,7 +173,7 @@ describe('test workflow preDeploy', () => {
         test('test job failed - workflow exits', async () => {
             const repoPath = mockGithub.repo.getPath('testWorkflowsRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-            let act = new Act(repoPath, workflowPath);
+            let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'pull_request',
@@ -239,7 +239,7 @@ describe('test workflow preDeploy', () => {
         test('lint and test job succeed - workflow continues', async () => {
             const repoPath = mockGithub.repo.getPath('testWorkflowsRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-            let act = new Act(repoPath, workflowPath);
+            let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'pull_request',
@@ -279,7 +279,7 @@ describe('test workflow preDeploy', () => {
         test('actor is OSBotify - no comment left', async () => {
             const repoPath = mockGithub.repo.getPath('testWorkflowsRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-            let act = new Act(repoPath, workflowPath);
+            let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'pull_request',
@@ -315,7 +315,7 @@ describe('test workflow preDeploy', () => {
         test('actor is Expensify employee - no comment left', async () => {
             const repoPath = mockGithub.repo.getPath('testWorkflowsRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-            let act = new Act(repoPath, workflowPath);
+            let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'pull_request',
@@ -351,7 +351,7 @@ describe('test workflow preDeploy', () => {
         test('actor is not Expensify employee, its not their first PR - job triggers, but no comment left', async () => {
             const repoPath = mockGithub.repo.getPath('testWorkflowsRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-            let act = new Act(repoPath, workflowPath);
+            let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'pull_request',
@@ -387,7 +387,7 @@ describe('test workflow preDeploy', () => {
         test('actor is not Expensify employee, and its their first PR - job triggers and comment left', async () => {
             const repoPath = mockGithub.repo.getPath('testWorkflowsRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-            let act = new Act(repoPath, workflowPath);
+            let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'pull_request',
