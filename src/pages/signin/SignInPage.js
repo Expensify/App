@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {
     SafeAreaView,
-} from 'react-native';
+} from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
