@@ -16,8 +16,6 @@
     <!-- Themes unique to the boot splash page -->
     <style name="BootTheme" parent="AppTheme">
         <item name="android:background">@drawable/bootsplash</item>
-        <item name="android:windowTranslucentStatus">false</item>
-        <item name="android:fitsSystemWindows">true</item>
     </style>
 
 </resources>
