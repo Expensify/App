@@ -286,22 +286,6 @@ function openProfile() {
     Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
-let isTestToolsModalOpen = false;
-Onyx.connect({
-    key: ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN,
-    callback: val => isTestToolsModalOpen = val || false,
-});
-
-/**
- * Toggle the test tools modal open or closed. Throttle the toggle to fix Android Chrome where there seems to be an extra tap which closes the modal.
- * Throttling also makes the modal stay open if you accidentally tap an extra time, which is easy to do.
- */
-function toggleTestToolsModal() {
-    const toggle = () => Onyx.set(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN, !isTestToolsModalOpen);
-    const throttledToggle = _.throttle(toggle, CONST.TIMING.TEST_TOOLS_MODAL_THROTTLE_TIME);
-    throttledToggle();
-}
-
 export {
     setLocale,
     setLocaleAndNavigate,
@@ -310,5 +294,4 @@ export {
     openProfile,
     openApp,
     reconnectApp,
-    toggleTestToolsModal,
 };

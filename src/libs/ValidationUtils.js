@@ -215,8 +215,8 @@ function meetsAgeRequirements(date) {
  * @returns {String}
  */
 function getAgeRequirementError(date, minimumAge, maximumAge) {
-    const recentDate = moment().subtract(minimumAge, 'years');
-    const longAgoDate = moment().subtract(maximumAge, 'years');
+    const recentDate = moment().startOf('day').subtract(minimumAge, 'years');
+    const longAgoDate = moment().startOf('day').subtract(maximumAge, 'years');
     const testDate = moment(date);
     if (!testDate.isValid()) {
         return Localize.translateLocal('common.error.dateInvalid');
@@ -224,7 +224,7 @@ function getAgeRequirementError(date, minimumAge, maximumAge) {
     if (testDate.isBetween(longAgoDate, recentDate)) {
         return '';
     }
-    if (testDate.isAfter(recentDate)) {
+    if (testDate.isSameOrAfter(recentDate)) {
         return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: recentDate.format(CONST.DATE.MOMENT_FORMAT_STRING)});
     }
     return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: longAgoDate.format(CONST.DATE.MOMENT_FORMAT_STRING)});

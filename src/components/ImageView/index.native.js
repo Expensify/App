@@ -33,7 +33,7 @@ class ImageView extends PureComponent {
         super(props);
 
         this.state = {
-            isLoading: false,
+            isLoading: true,
             imageWidth: 0,
             imageHeight: 0,
             interactionPromise: undefined,
@@ -52,7 +52,6 @@ class ImageView extends PureComponent {
             onStartShouldSetPanResponder: this.updatePanResponderTouches.bind(this),
         });
 
-        this.imageLoadStart = this.imageLoadStart.bind(this);
         this.configureImageZoom = this.configureImageZoom.bind(this);
     }
 
@@ -77,10 +76,6 @@ class ImageView extends PureComponent {
 
         // We don't need to set the panResponder since all we care about is checking the gestureState, so return false
         return false;
-    }
-
-    imageLoadStart() {
-        this.setState({isLoading: true});
     }
 
     /**
@@ -137,71 +132,72 @@ class ImageView extends PureComponent {
                     });
                 }}
             >
-                <ImageZoom
-                    ref={el => this.zoom = el}
-                    cropWidth={this.props.windowWidth}
-                    cropHeight={windowHeight}
-                    imageWidth={this.state.imageWidth}
-                    imageHeight={this.state.imageHeight}
-                    onStartShouldSetPanResponder={() => {
-                        const isDoubleClick = new Date().getTime() - this.lastClickTime <= this.doubleClickInterval;
-                        this.lastClickTime = new Date().getTime();
+                {this.state.containerHeight && (
+                    <ImageZoom
+                        ref={el => this.zoom = el}
+                        cropWidth={this.props.windowWidth}
+                        cropHeight={windowHeight}
+                        imageWidth={this.state.imageWidth}
+                        imageHeight={this.state.imageHeight}
+                        onStartShouldSetPanResponder={() => {
+                            const isDoubleClick = new Date().getTime() - this.lastClickTime <= this.doubleClickInterval;
+                            this.lastClickTime = new Date().getTime();
 
-                        // Let ImageZoom handle the event if the tap is more than one touchPoint or if we are zoomed in
-                        if (this.amountOfTouches === 2 || this.imageZoomScale !== 1) {
-                            return true;
-                        }
+                            // Let ImageZoom handle the event if the tap is more than one touchPoint or if we are zoomed in
+                            if (this.amountOfTouches === 2 || this.imageZoomScale !== 1) {
+                                return true;
+                            }
 
-                        // When we have a double click and the zoom scale is 1 then programmatically zoom the image
-                        // but let the tap fall through to the parent so we can register a swipe down to dismiss
-                        if (isDoubleClick) {
-                            this.zoom.centerOn({
-                                x: 0,
-                                y: 0,
-                                scale: 2,
-                                duration: 100,
-                            });
-                        }
+                            // When we have a double click and the zoom scale is 1 then programmatically zoom the image
+                            // but let the tap fall through to the parent so we can register a swipe down to dismiss
+                            if (isDoubleClick) {
+                                this.zoom.centerOn({
+                                    x: 0,
+                                    y: 0,
+                                    scale: 2,
+                                    duration: 100,
+                                });
+                            }
 
-                        // We must be either swiping down or double tapping since we are at zoom scale 1
-                        return false;
-                    }}
-                    onMove={({scale}) => {
-                        this.imageZoomScale = scale;
-                    }}
-                >
-                    <Image
-                        style={[
-                            styles.w100,
-                            styles.h100,
-                            this.props.style,
+                            // We must be either swiping down or double tapping since we are at zoom scale 1
+                            return false;
+                        }}
+                        onMove={({scale}) => {
+                            this.imageZoomScale = scale;
+                        }}
+                    >
+                        <Image
+                            style={[
+                                styles.w100,
+                                styles.h100,
+                                this.props.style,
 
-                            // Hide image while loading so ImageZoom can get the image
-                            // size before presenting - preventing visual glitches or shift
-                            // due to ImageZoom
-                            shouldShowLoadingIndicator ? styles.opacity0 : styles.opacity1,
-                        ]}
-                        source={{uri: this.props.url}}
-                        isAuthTokenRequired={this.props.isAuthTokenRequired}
-                        resizeMode={Image.resizeMode.contain}
-                        onLoadStart={this.imageLoadStart}
-                        onLoad={this.configureImageZoom}
-                    />
-                    {/**
-                     Create an invisible view on top of the image so we can capture and set the amount of touches before
-                     the ImageZoom's PanResponder does. Children will be triggered first, so this needs to be inside the
-                     ImageZoom to work
-                     */}
-                    <View
-                        /* eslint-disable-next-line react/jsx-props-no-spreading */
-                        {...this.panResponder.panHandlers}
-                        style={[
-                            styles.w100,
-                            styles.h100,
-                            styles.invisible,
-                        ]}
-                    />
-                </ImageZoom>
+                                // Hide image while loading so ImageZoom can get the image
+                                // size before presenting - preventing visual glitches or shift
+                                // due to ImageZoom
+                                shouldShowLoadingIndicator ? styles.opacity0 : styles.opacity1,
+                            ]}
+                            source={{uri: this.props.url}}
+                            isAuthTokenRequired={this.props.isAuthTokenRequired}
+                            resizeMode={Image.resizeMode.contain}
+                            onLoad={this.configureImageZoom}
+                        />
+                        {/**
+                         Create an invisible view on top of the image so we can capture and set the amount of touches before
+                        the ImageZoom's PanResponder does. Children will be triggered first, so this needs to be inside the
+                        ImageZoom to work
+                        */}
+                        <View
+                            /* eslint-disable-next-line react/jsx-props-no-spreading */
+                            {...this.panResponder.panHandlers}
+                            style={[
+                                styles.w100,
+                                styles.h100,
+                                styles.invisible,
+                            ]}
+                        />
+                    </ImageZoom>
+                )}
                 {shouldShowLoadingIndicator && (
                     <FullscreenLoadingIndicator
                         style={[styles.opacity1, styles.bgTransparent]}

@@ -1233,7 +1233,7 @@ const styles = {
     },
 
     optionAlternateText: {
-        height: variables.alternateTextHeight,
+        minHeight: variables.alternateTextHeight,
         lineHeight: variables.lineHeightXLarge,
     },
 
@@ -1245,7 +1245,7 @@ const styles = {
     },
 
     optionRow: {
-        height: variables.optionRowHeight,
+        minHeight: variables.optionRowHeight,
         paddingTop: 12,
         paddingBottom: 12,
     },
