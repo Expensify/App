@@ -13,9 +13,6 @@ import SignInPageForm from '../../../components/SignInPageForm';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import scrollViewContentContainerStyles from './signInPageStyles';
-import Footer from './Footer';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -70,10 +67,10 @@ const SignInPageContent = props => (
                     {props.children}
                 </SignInPageForm>
             </View>
-            <View style={styles.mb8}>
-                <Terms />
-            </View>
         </KeyboardAvoidingView>
+        <View style={[styles.mb8, styles.signInPageWelcomeTextContainer, styles.alignSelfCenter]}>
+            <Terms />
+        </View>
     </ScrollView>
 );
 

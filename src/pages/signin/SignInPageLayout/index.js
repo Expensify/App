@@ -11,7 +11,7 @@ import styles from '../../../styles/styles';
 import SignInPageGraphics from './SignInPageGraphics';
 import * as StyleUtils from '../../../styles/StyleUtils';
 // eslint-disable-next-line rulesdir/prefer-import-module-contents
-import {scrollViewContentContainerStyles, useSignInHeightFlex} from './signInPageStyles';
+import {scrollViewContentContainerStyles, useSignInHeightFlex, keyboardDismissProp} from './signInPageStyles';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -63,9 +63,9 @@ const SignInPageLayout = (props) => {
                     <ScrollView
                         contentContainerStyle={scrollViewContentContainerStyles}
                         keyboardShouldPersistTaps="handled"
-                        keyboardDismissMode="on-drag"
+                        keyboardDismissMode={keyboardDismissProp}
                     >
-                        <View style={[useSignInHeightFlex && styles.flex1, {minHeight: props.windowHeight - props.insets.bottom - props.insets.top}]}>
+                        <View style={[useSignInHeightFlex ? styles.flex1 : {}, {minHeight: props.windowHeight - props.insets.bottom - props.insets.top}]}>
                             <SignInPageContent
                                 welcomeText={props.welcomeText}
                                 shouldShowWelcomeText={props.shouldShowWelcomeText}
