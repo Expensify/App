@@ -11,13 +11,13 @@ import * as API from '../API';
  * @param {Object[]} events
  */
 const removeEvent = (reportID, eventID, reportAction, events) => {
-    const sequenceNumber = reportAction.sequenceNumber;
+    const reportActionID = reportAction.reportActionID;
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [sequenceNumber]: {
+                [reportActionID]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     originalMessage: {
                         events: _.filter(events, event => event.id !== eventID),
@@ -32,7 +32,7 @@ const removeEvent = (reportID, eventID, reportAction, events) => {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [sequenceNumber]: {
+                [reportActionID]: {
                     ...reportAction,
                     pendingAction: null,
                 },
@@ -45,7 +45,7 @@ const removeEvent = (reportID, eventID, reportAction, events) => {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [sequenceNumber]: {
+                [reportActionID]: {
                     pendingAction: null,
                 },
             },
@@ -54,8 +54,7 @@ const removeEvent = (reportID, eventID, reportAction, events) => {
 
     API.write('Chronos_RemoveOOOEvent', {
         googleEventID: eventID,
-        reportActionID: reportAction.reportActionID,
-        sequenceNumber,
+        reportActionID,
     }, {optimisticData, successData, failureData});
 };
 
