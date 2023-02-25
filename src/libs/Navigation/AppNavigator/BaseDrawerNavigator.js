@@ -66,6 +66,12 @@ class BaseDrawerNavigator extends Component {
         });
     }
 
+    componentWillUnmount() {
+        // We need to reset the isDrawerReady promise so that the delay remains in effect when this component is remounted.
+        // For example, navigate from OldDot to NewDot with a different account.
+        Navigation.resetDrawerIsReadyPromise();
+    }
+
     render() {
         const content = (
             <Drawer.Navigator
