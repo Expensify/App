@@ -9,7 +9,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import styles from '../../../styles/styles';
 import SignInPageGraphics from './SignInPageGraphics';
 import * as StyleUtils from '../../../styles/StyleUtils';
-import * as signInStyles from './signInPageStyles';
+import scrollViewContentContainerStyles from './signInPageStyles';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -59,9 +59,8 @@ const SignInPageLayout = (props) => {
                 )
                 : (
                     <ScrollView
-                        contentContainerStyle={signInStyles.scrollViewContentContainerStyles}
+                        contentContainerStyle={scrollViewContentContainerStyles}
                         keyboardShouldPersistTaps="handled"
-                        keyboardDismissMode={signInStyles.keyboardDismissProp}
                     >
                         <View style={[styles.flex1, StyleUtils.getMinHeight(containerHeight)]}>
                             <SignInPageContent
