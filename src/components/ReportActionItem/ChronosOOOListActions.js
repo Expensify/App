@@ -23,8 +23,6 @@ const propTypes = {
 
 const ChronosOOOListActions = (props) => {
     const events = lodashGet(props.action, 'originalMessage.events', []);
-    console.log('!!! render props', props);
-    console.log('!!! render events', events);
 
     if (!events.length) {
         return (
