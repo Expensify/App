@@ -20,6 +20,7 @@ import compose from '../libs/compose';
 import * as ReportUtils from '../libs/ReportUtils';
 import reportPropTypes from './reportPropTypes';
 import withReportOrNavigateHome from './home/report/withReportOrNavigateHome';
+import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     /* Onyx Props */
@@ -58,7 +59,7 @@ const getAllParticipants = (report, personalDetails) => {
         return ({
             alternateText: userLogin,
             displayName: userPersonalDetail.displayName,
-            icons: userPersonalDetail.avatar ? [userPersonalDetail.avatar] : [ReportUtils.getDefaultAvatar()],
+            icons: [ReportUtils.getAvatar(userPersonalDetail.avatar, login)],
             keyForList: userLogin,
             login,
             text: userPersonalDetail.displayName,
@@ -72,38 +73,42 @@ const ReportParticipantsPage = (props) => {
     const participants = getAllParticipants(props.report, props.personalDetails);
 
     return (
-        <ScreenWrapper>
-            <HeaderWithCloseButton
-                title={props.translate((ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report)) ? 'common.members' : 'common.details')}
-                onCloseButtonPress={Navigation.dismissModal}
-                onBackButtonPress={Navigation.goBack}
-                shouldShowBackButton={ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report)}
-            />
-            <View
-                pointerEvents="box-none"
-                style={[
-                    styles.containerWithSpaceBetween,
-                ]}
-            >
-                {Boolean(participants.length)
-                    && (
-                    <OptionsList
-                        sections={[{
-                            title: '', data: participants, shouldShow: true, indexOffset: 0,
-                        }]}
-                        onSelectRow={(option) => {
-                            Navigation.navigate(ROUTES.getReportParticipantRoute(
-                                props.route.params.reportID, option.login,
-                            ));
-                        }}
-                        hideSectionHeaders
-                        showTitleTooltip
-                        disableFocusOptions
-                        boldStyle
-                        optionHoveredStyle={styles.hoveredComponentBG}
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            {({safeAreaPaddingBottomStyle}) => (
+                <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
+                    <HeaderWithCloseButton
+                        title={props.translate((ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report)) ? 'common.members' : 'common.details')}
+                        onCloseButtonPress={Navigation.dismissModal}
+                        onBackButtonPress={Navigation.goBack}
+                        shouldShowBackButton={ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report)}
                     />
-                    )}
-            </View>
+                    <View
+                        pointerEvents="box-none"
+                        style={[
+                            styles.containerWithSpaceBetween,
+                        ]}
+                    >
+                        {Boolean(participants.length) && (
+                            <OptionsList
+                                sections={[{
+                                    title: '', data: participants, shouldShow: true, indexOffset: 0,
+                                }]}
+                                onSelectRow={(option) => {
+                                    Navigation.navigate(ROUTES.getReportParticipantRoute(
+                                        props.route.params.reportID, option.login,
+                                    ));
+                                }}
+                                hideSectionHeaders
+                                showTitleTooltip
+                                disableFocusOptions
+                                boldStyle
+                                optionHoveredStyle={styles.hoveredComponentBG}
+                                contentContainerStyles={[safeAreaPaddingBottomStyle]}
+                            />
+                        )}
+                    </View>
+                </FullPageNotFoundView>
+            )}
         </ScreenWrapper>
     );
 };

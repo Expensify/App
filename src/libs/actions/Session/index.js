@@ -15,7 +15,10 @@ import * as Authentication from '../../Authentication';
 import * as Welcome from '../Welcome';
 import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
+import * as Report from '../Report';
 import DateUtils from '../../DateUtils';
+import Navigation from '../../Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 let credentials = {};
 Onyx.connect({
@@ -29,23 +32,19 @@ Onyx.connect({
  * On Android, AuthScreens unmounts when the app is closed with the back button so we manage the
  * push subscription when the session changes here.
  */
-let previousAccountID;
 Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (session) => {
-        const accountID = lodashGet(session, 'accountID');
-        if (previousAccountID === accountID) {
-            return;
-        }
+    key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
+    callback: (notificationID) => {
+        if (notificationID) {
+            PushNotification.register(notificationID);
 
-        if (accountID) {
-            PushNotification.register(accountID);
+            // Prevent issue where report linking fails after users switch accounts without closing the app
+            PushNotification.init();
+            Report.subscribeToReportCommentPushNotifications();
         } else {
             PushNotification.deregister();
             PushNotification.clearNotifications();
         }
-
-        previousAccountID = accountID;
     },
 });
 
@@ -109,6 +108,40 @@ function resendValidationLink(login = credentials.login) {
 }
 
 /**
+ * Request a new validate / magic code for user to sign in via passwordless flow
+ *
+ * @param {String} [login]
+ */
+function resendValidateCode(login = credentials.login) {
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: true,
+            errors: null,
+            message: null,
+        },
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: Localize.translateLocal('validateCodeForm.codeSent'),
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: null,
+        },
+    }];
+    API.write('RequestNewValidateCode', {email: login}, {optimisticData, successData, failureData});
+}
+
+/**
  * Checks the API to see if an account exists for the given login
  *
  * @param {String} login
@@ -131,6 +164,13 @@ function beginSignIn(login) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.CREDENTIALS,
+            value: {
+                validateCode: null,
             },
         },
     ];
@@ -201,10 +241,11 @@ function signInWithShortLivedAuthToken(email, authToken) {
  * then it will create a temporary login for them which is used when re-authenticating
  * after an authToken expires.
  *
- * @param {String} password
+ * @param {String} password This will be removed after passwordless beta ends
+ * @param {String} [validateCode] Code for passwordless login
  * @param {String} [twoFactorAuthCode]
  */
-function signIn(password, twoFactorAuthCode) {
+function signIn(password, validateCode, twoFactorAuthCode) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -236,7 +277,75 @@ function signIn(password, twoFactorAuthCode) {
         },
     ];
 
-    API.write('SigninUser', {email: credentials.login, password, twoFactorAuthCode}, {optimisticData, successData, failureData});
+    const params = {twoFactorAuthCode};
+    if (credentials.login) {
+        // The user initiated the sign in operation on the current device, sign in with the email
+        params.email = credentials.login;
+    } else {
+        // The user is signing in with the accountID and validateCode from the magic link
+        params.accountID = credentials.accountID;
+    }
+
+    // Conditionally pass a password or validateCode to command since we temporarily allow both flows
+    if (validateCode) {
+        params.validateCode = validateCode;
+    } else {
+        params.password = password;
+    }
+
+    API.write('SigninUser', params, {optimisticData, successData, failureData});
+}
+
+function signInWithValidateCode(accountID, validateCode) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                ...CONST.DEFAULT_ACCOUNT_DATA,
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.CREDENTIALS,
+            value: {
+                accountID,
+                validateCode,
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    // This is temporary for now. Server should login with the accountID and validateCode
+    API.write('SigninUser', {
+        validateCode,
+        accountID,
+    }, {optimisticData, successData, failureData});
+}
+
+function signInWithValidateCodeAndNavigate(accountID, validateCode) {
+    signInWithValidateCode(accountID, validateCode);
+    Navigation.navigate(ROUTES.HOME);
 }
 
 /**
@@ -457,11 +566,14 @@ export {
     beginSignIn,
     updatePasswordAndSignin,
     signIn,
+    signInWithValidateCode,
+    signInWithValidateCodeAndNavigate,
     signInWithShortLivedAuthToken,
     cleanupSession,
     signOut,
     signOutAndRedirectToSignIn,
     resendValidationLink,
+    resendValidateCode,
     resetPassword,
     resendResetPassword,
     clearSignInData,

@@ -15,6 +15,9 @@ export default {
     // which tab is the leader, and which ones are the followers
     ACTIVE_CLIENTS: 'activeClients',
 
+    // A unique ID for the device
+    DEVICE_ID: 'deviceID',
+
     // Boolean flag set whenever the sidebar has loaded
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
@@ -38,6 +41,9 @@ export default {
 
     // Contains all the personalDetails the user has access to
     PERSONAL_DETAILS: 'personalDetails',
+
+    // Contains all the private personal details of the user
+    PRIVATE_PERSONAL_DETAILS: 'private_personalDetails',
 
     // Contains a list of all currencies available to the user - user can
     // select a currency based on the list
@@ -76,6 +82,12 @@ export default {
     // Contains the users's block expiration (if they have one)
     NVP_BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
 
+    // A unique identifier that each user has that's used to send notifications
+    NVP_PRIVATE_PUSH_NOTIFICATION_ID: 'private_pushNotificationID',
+
+    // Does this user have push notifications enabled for this device?
+    PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
+
     // Plaid data (access tokens, bank accounts ...)
     PLAID_DATA: 'plaidData',
 
@@ -98,6 +110,7 @@ export default {
         POLICY: 'policy_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         POLICY_MEMBER_LIST: 'policyMemberList_',
+        DOWNLOAD: 'download_',
     },
 
     // Indicates which locale should be used
@@ -172,10 +185,16 @@ export default {
         CLOSE_ACCOUNT_FORM: 'closeAccount',
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
         DISPLAY_NAME_FORM: 'displayNameForm',
+        LEGAL_NAME_FORM: 'legalNameForm',
+        DATE_OF_BIRTH_FORM: 'dateOfBirthForm',
+        HOME_ADDRESS_FORM: 'homeAddressForm',
         NEW_ROOM_FORM: 'newRoomForm',
         ROOM_SETTINGS_FORM: 'roomSettingsForm',
     },
 
     // Whether we should show the compose input or not
     SHOULD_SHOW_COMPOSE_INPUT: 'shouldShowComposeInput',
+
+    // Is app in beta version
+    IS_BETA: 'isBeta',
 };

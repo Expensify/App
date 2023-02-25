@@ -69,28 +69,34 @@ class TimezoneSelectPage extends Component {
     filterShownTimezones(searchText) {
         this.setState({
             timezoneInputText: searchText,
-            timezoneOptions: _.filter(this.allTimezones, (tz => tz.text.toLowerCase().includes(searchText.toLowerCase()))),
+            timezoneOptions: _.filter(this.allTimezones, (tz => tz.text.toLowerCase().includes(searchText.trim().toLowerCase()))),
         });
     }
 
     render() {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <HeaderWithCloseButton
-                    title={this.props.translate('timezonePage.timezone')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <OptionsSelector
-                    textInputLabel={this.props.translate('timezonePage.timezone')}
-                    value={this.state.timezoneInputText}
-                    onChangeText={this.filterShownTimezones}
-                    onSelectRow={this.saveSelectedTimezone}
-                    optionHoveredStyle={styles.hoveredComponentBG}
-                    sections={[{data: this.state.timezoneOptions}]}
-                    shouldHaveOptionSeparator
-                />
+                {({safeAreaPaddingBottomStyle}) => (
+                    <>
+                        <HeaderWithCloseButton
+                            title={this.props.translate('timezonePage.timezone')}
+                            shouldShowBackButton
+                            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE)}
+                            onCloseButtonPress={() => Navigation.dismissModal(true)}
+                        />
+                        <OptionsSelector
+                            textInputLabel={this.props.translate('timezonePage.timezone')}
+                            value={this.state.timezoneInputText}
+                            onChangeText={this.filterShownTimezones}
+                            onSelectRow={this.saveSelectedTimezone}
+                            optionHoveredStyle={styles.hoveredComponentBG}
+                            sections={[{data: this.state.timezoneOptions, indexOffset: 0}]}
+                            shouldHaveOptionSeparator
+                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            initiallyFocusedOptionKey={this.currentSelectedTimezone}
+                        />
+                    </>
+                )}
             </ScreenWrapper>
         );
     }

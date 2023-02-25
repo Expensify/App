@@ -99,8 +99,8 @@ class DebitCardPage extends Component {
             errors.password = this.props.translate('addDebitCardPage.error.password');
         }
 
-        if (!values.acceptedTerms) {
-            errors.acceptedTerms = this.props.translate('common.error.acceptedTerms');
+        if (!values.acceptTerms) {
+            errors.acceptTerms = this.props.translate('common.error.acceptTerms');
         }
 
         return errors;
@@ -186,14 +186,14 @@ class DebitCardPage extends Component {
                         />
                     </View>
                     <CheckboxWithLabel
-                        inputID="acceptedTerms"
+                        inputID="acceptTerms"
                         LabelComponent={() => (
-                            <>
-                                <Text>{`${this.props.translate('common.iAcceptThe')}`}</Text>
+                            <Text>
+                                {`${this.props.translate('common.iAcceptThe')}`}
                                 <TextLink href="https://use.expensify.com/terms">
                                     {`${this.props.translate('addDebitCardPage.expensifyTermsOfService')}`}
                                 </TextLink>
-                            </>
+                            </Text>
                         )}
                         style={[styles.mt4]}
                     />

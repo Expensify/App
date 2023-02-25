@@ -1,5 +1,5 @@
 import React from 'react';
-import {Image, View} from 'react-native';
+import {Image} from 'react-native';
 import lodashGet from 'lodash/get';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
@@ -47,8 +47,8 @@ class BankAccountManualStep extends React.Component {
         if (!routingNumber || !CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber)) {
             errorFields.routingNumber = this.props.translate('bankAccount.error.routingNumber');
         }
-        if (!values.acceptedTerms) {
-            errorFields.acceptedTerms = this.props.translate('common.error.acceptedTerms');
+        if (!values.acceptTerms) {
+            errorFields.acceptTerms = this.props.translate('common.error.acceptTerms');
         }
 
         return errorFields;
@@ -113,12 +113,10 @@ class BankAccountManualStep extends React.Component {
                     />
                     <CheckboxWithLabel
                         style={styles.mt4}
-                        inputID="acceptedTerms"
+                        inputID="acceptTerms"
                         LabelComponent={() => (
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                <Text>
-                                    {this.props.translate('common.iAcceptThe')}
-                                </Text>
+                            <Text>
+                                {this.props.translate('common.iAcceptThe')}
                                 <TextLink
                                     href="https://use.expensify.com/terms"
 
@@ -127,7 +125,7 @@ class BankAccountManualStep extends React.Component {
                                 >
                                     {`Expensify ${this.props.translate('common.termsOfService')}`}
                                 </TextLink>
-                            </View>
+                            </Text>
                         )}
                         defaultValue={this.props.getDefaultStateForField('acceptTerms', false)}
                         shouldSaveDraft

@@ -3,7 +3,6 @@ import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
-import moment from 'moment';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
@@ -103,7 +102,7 @@ class CompanyStep extends React.Component {
         }
 
         if (!values.incorporationDate || !ValidationUtils.isValidDate(values.incorporationDate)) {
-            errors.incorporationDate = this.props.translate('bankAccount.error.incorporationDate');
+            errors.incorporationDate = this.props.translate('common.error.dateInvalid');
         } else if (!values.incorporationDate || !ValidationUtils.isValidPastDate(values.incorporationDate)) {
             errors.incorporationDate = this.props.translate('bankAccount.error.incorporationDateFuture');
         }
@@ -128,7 +127,6 @@ class CompanyStep extends React.Component {
 
             // Fields from Company step
             ...values,
-            incorporationDate: moment(values.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING),
             companyTaxID: values.companyTaxID.replace(CONST.REGEX.NON_NUMERIC, ''),
             companyPhone: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(values.companyPhone),
         };
@@ -137,9 +135,9 @@ class CompanyStep extends React.Component {
     }
 
     render() {
-        const bankAccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0;
-        const shouldDisableCompanyName = bankAccountID && this.props.getDefaultStateForField('companyName');
-        const shouldDisableCompanyTaxID = bankAccountID && this.props.getDefaultStateForField('companyTaxID');
+        const bankAccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID', 0);
+        const shouldDisableCompanyName = Boolean(bankAccountID && this.props.getDefaultStateForField('companyName'));
+        const shouldDisableCompanyTaxID = Boolean(bankAccountID && this.props.getDefaultStateForField('companyTaxID'));
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -200,6 +198,7 @@ class CompanyStep extends React.Component {
                         defaultValue={this.props.getDefaultStateForField('website', this.defaultWebsite)}
                         shouldSaveDraft
                         hint={this.props.translate('common.websiteExample')}
+                        keyboardType={CONST.KEYBOARD_TYPE.URL}
                     />
                     <TextInput
                         inputID="companyTaxID"
@@ -242,15 +241,15 @@ class CompanyStep extends React.Component {
                         inputID="hasNoConnectionToCannabis"
                         defaultValue={this.props.getDefaultStateForField('hasNoConnectionToCannabis', false)}
                         LabelComponent={() => (
-                            <>
-                                <Text>{`${this.props.translate('companyStep.confirmCompanyIsNot')} `}</Text>
+                            <Text>
+                                {`${this.props.translate('companyStep.confirmCompanyIsNot')} `}
                                 <TextLink
                                     // eslint-disable-next-line max-len
                                     href="https://community.expensify.com/discussion/6191/list-of-restricted-businesses"
                                 >
                                     {`${this.props.translate('companyStep.listOfRestrictedBusinesses')}.`}
                                 </TextLink>
-                            </>
+                            </Text>
                         )}
                         style={[styles.mt4]}
                         shouldSaveDraft

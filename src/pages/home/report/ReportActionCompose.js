@@ -8,7 +8,6 @@ import {
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import lodashIntersection from 'lodash/intersection';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import Composer from '../../../components/Composer';
@@ -21,9 +20,8 @@ import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
 import PopoverMenu from '../../../components/PopoverMenu';
+import willBlurTextInputOnTapOutside from '../../../libs/willBlurTextInputOnTapOutside';
 import CONST from '../../../CONST';
-import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
-import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -134,12 +132,14 @@ class ReportActionCompose extends React.Component {
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
         this.getIOUOptions = this.getIOUOptions.bind(this);
         this.addAttachment = this.addAttachment.bind(this);
-
         this.comment = props.comment;
-        this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+
+        // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
+        // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
+        this.willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutside();
 
         this.state = {
-            isFocused: this.shouldFocusInputOnScreenFocus && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible,
+            isFocused: this.willBlurTextInputOnTapOutside && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible,
             isFullComposerAvailable: props.isComposerFullSize,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
@@ -157,8 +157,10 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidMount() {
+        // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
+        // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
         ReportActionComposeFocusManager.onComposerFocus(() => {
-            if (!this.shouldFocusInputOnScreenFocus || !this.props.isFocused) {
+            if (!this.willBlurTextInputOnTapOutside || !this.props.isFocused) {
                 return;
             }
 
@@ -177,7 +179,7 @@ class ReportActionCompose extends React.Component {
         // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (this.shouldFocusInputOnScreenFocus && this.props.isFocused
+        if (this.willBlurTextInputOnTapOutside && this.props.isFocused
             && prevProps.modal.isVisible && !this.props.modal.isVisible) {
             this.focus();
         }
@@ -269,43 +271,24 @@ class ReportActionCompose extends React.Component {
      * @returns {Array<object>}
      */
     getIOUOptions(reportParticipants) {
-        const participants = _.filter(reportParticipants, email => this.props.currentUserPersonalDetails.login !== email);
-        const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
-        const hasMultipleParticipants = participants.length > 1;
-
-        if (hasExcludedIOUEmails || participants.length === 0 || !Permissions.canUseIOU(this.props.betas)) {
-            return [];
-        }
-
-        // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
-        // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
-        // DM chats and workspace chats will have the Split Bill option only when there are at least 3 people in the chat.
-        if (ReportUtils.isChatRoom(this.props.report) || hasMultipleParticipants) {
-            return [
-                {
-                    icon: Expensicons.Receipt,
-                    text: this.props.translate('iou.splitBill'),
-                    onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
-                },
-            ];
-        }
-
-        // DM chats and workspace chats that only have 2 people will see the Send / Request money options.
-        return [
-            {
+        const options = {
+            [CONST.IOU.IOU_TYPE.SPLIT]: {
+                icon: Expensicons.Receipt,
+                text: this.props.translate('iou.splitBill'),
+                onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
+            },
+            [CONST.IOU.IOU_TYPE.REQUEST]: {
                 icon: Expensicons.MoneyCircle,
                 text: this.props.translate('iou.requestMoney'),
                 onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
             },
-            ...(Permissions.canUseIOUSend(this.props.betas)
-                ? [
-                    {
-                        icon: Expensicons.Send,
-                        text: this.props.translate('iou.sendMoney'),
-                        onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
-                    }]
-                : []),
-        ];
+            [CONST.IOU.IOU_TYPE.SEND]: {
+                icon: Expensicons.Send,
+                text: this.props.translate('iou.sendMoney'),
+                onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
+            },
+        };
+        return _.map(ReportUtils.getIOUOptions(this.props.report, reportParticipants, this.props.betas), option => options[option]);
     }
 
     /**
@@ -467,7 +450,7 @@ class ReportActionCompose extends React.Component {
         const trimmedComment = this.comment.trim();
 
         // Don't submit empty comments or comments that exceed the character limit
-        if (this.state.isCommentEmpty || trimmedComment.length > CONST.MAX_COMMENT_LENGTH) {
+        if (this.state.isCommentEmpty || ReportUtils.getCommentLength(trimmedComment) > CONST.MAX_COMMENT_LENGTH) {
             return '';
         }
 
@@ -530,7 +513,8 @@ class ReportActionCompose extends React.Component {
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
-        const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
+        const encodedCommentLength = ReportUtils.getCommentLength(this.comment);
+        const hasExceededMaxCommentLength = encodedCommentLength > CONST.MAX_COMMENT_LENGTH;
 
         return (
             <View style={[
@@ -661,7 +645,7 @@ class ReportActionCompose extends React.Component {
                                         disabled={this.props.disabled}
                                     >
                                         <Composer
-                                            autoFocus={!this.props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat())}
+                                            autoFocus={!this.props.modal.isVisible && (this.willBlurTextInputOnTapOutside || this.isEmptyChat())}
                                             multiline
                                             ref={this.setTextInputRef}
                                             textAlignVertical="top"
@@ -725,7 +709,7 @@ class ReportActionCompose extends React.Component {
                 >
                     {!this.props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                     <ReportTypingIndicator reportID={this.props.reportID} />
-                    <ExceededCommentLength commentLength={this.comment.length} />
+                    <ExceededCommentLength commentLength={encodedCommentLength} />
                 </View>
                 {this.state.isDraggingOver && <ReportDropUI />}
             </View>

@@ -4,6 +4,7 @@ import {Keyboard} from 'react-native';
 import {DrawerActions, getPathFromState, StackActions} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
+import DomUtils from '../DomUtils';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
 import DeprecatedCustomActions from './DeprecatedCustomActions';
@@ -21,8 +22,14 @@ const drawerIsReadyPromise = new Promise((resolve) => {
     resolveDrawerIsReadyPromise = resolve;
 });
 
+let resolveReportScreenIsReadyPromise;
+const reportScreenIsReadyPromise = new Promise((resolve) => {
+    resolveReportScreenIsReadyPromise = resolve;
+});
+
 let isLoggedIn = false;
 let pendingRoute = null;
+let isNavigating = false;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -48,12 +55,25 @@ function setDidTapNotification() {
  * @returns {Boolean}
  */
 function canNavigate(methodName, params = {}) {
-    if (navigationRef.isReady()) {
+    if (navigationRef.isReady() && !isNavigating) {
         return true;
+    }
+
+    if (isNavigating) {
+        Log.hmmm(`[Navigation] ${methodName} failed because navigation is progress`, params);
+        return false;
     }
 
     Log.hmmm(`[Navigation] ${methodName} failed because navigation ref was not yet ready`, params);
     return false;
+}
+
+/**
+ * Sets Navigation State
+ * @param {Boolean} isNavigatingValue
+ */
+function setIsNavigating(isNavigatingValue) {
+    isNavigating = isNavigatingValue;
 }
 
 /**
@@ -122,8 +142,8 @@ function goBack(shouldOpenDrawer = true) {
  * @returns {Boolean}
  */
 function isDrawerRoute(route) {
-    const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
-    return reportID && !isParticipantsRoute;
+    const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(route);
+    return reportID && !isSubReportPageRoute;
 }
 
 /**
@@ -138,6 +158,11 @@ function navigate(route = ROUTES.HOME) {
         pendingRoute = route;
         return;
     }
+
+    // A pressed navigation button will remain focused, keeping its tooltip visible, even if it's supposed to be out of view.
+    // To prevent that we blur the button manually (especially for Safari, where the mouse leave event is missing).
+    // More info: https://github.com/Expensify/App/issues/13146
+    DomUtils.blurActiveElement();
 
     if (route === ROUTES.HOME) {
         if (isLoggedIn && pendingRoute === null) {
@@ -253,6 +278,14 @@ function setIsDrawerReady() {
     resolveDrawerIsReadyPromise();
 }
 
+function isReportScreenReady() {
+    return reportScreenIsReadyPromise;
+}
+
+function setIsReportScreenIsReady() {
+    resolveReportScreenIsReadyPromise();
+}
+
 export default {
     canNavigate,
     navigate,
@@ -269,6 +302,9 @@ export default {
     isDrawerReady,
     setIsDrawerReady,
     isDrawerRoute,
+    setIsNavigating,
+    isReportScreenReady,
+    setIsReportScreenIsReady,
 };
 
 export {

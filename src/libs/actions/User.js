@@ -19,6 +19,7 @@ import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
 import * as Report from './Report';
 import * as ReportActionsUtils from '../ReportActionsUtils';
+import * as Session from './Session';
 
 let currentUserAccountID = '';
 Onyx.connect({
@@ -93,9 +94,10 @@ function closeAccount(message) {
  * Resends a validation link to a given login
  *
  * @param {String} login
+ * @param {Boolean} isPasswordless - temporary param to trigger passwordless flow in backend
  */
 function resendValidateCode(login) {
-    DeprecatedAPI.ResendValidateCode({email: login});
+    Session.resendValidateCode(login);
 }
 
 /**
@@ -140,7 +142,7 @@ function setSecondaryLoginAndNavigate(login, password) {
     }).then((response) => {
         if (response.jsonCode === 200) {
             Onyx.set(ONYXKEYS.LOGIN_LIST, response.loginList);
-            Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
             return;
         }
 
@@ -401,6 +403,7 @@ function updateChatPriorityMode(mode) {
     API.write('UpdateChatPriorityMode', {
         value: mode,
     }, {optimisticData});
+    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
 }
 
 /**

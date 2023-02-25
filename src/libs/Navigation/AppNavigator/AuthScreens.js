@@ -22,12 +22,14 @@ import * as Modal from '../../actions/Modal';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
+import getCurrentUrl from '../currentUrl';
 
 // Modal Stack Navigators
 import * as ModalStackNavigators from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
+import * as Download from '../../actions/Download';
 import * as Session from '../../actions/Session';
 
 let currentUserEmail;
@@ -43,21 +45,22 @@ Onyx.connect({
     },
 });
 
+let timezone;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
     callback: (val) => {
-        if (!val) {
+        if (!val || timezone) {
             return;
         }
 
-        const timezone = lodashGet(val, [currentUserEmail, 'timezone'], {});
+        timezone = lodashGet(val, [currentUserEmail, 'timezone'], {});
         const currentTimezone = moment.tz.guess(true);
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
         // then update their timezone.
         if (_.isObject(timezone) && timezone.automatic && timezone.selected !== currentTimezone) {
             timezone.selected = currentTimezone;
-            PersonalDetails.setPersonalDetails({timezone});
+            PersonalDetails.updateAutomaticTimezone(timezone);
         }
     },
 });
@@ -102,6 +105,7 @@ class AuthScreens extends React.Component {
 
         App.openApp();
         App.setUpPoliciesAndNavigate(this.props.session);
+        Download.clearDownloads();
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
@@ -111,9 +115,11 @@ class AuthScreens extends React.Component {
         // the chat switcher, or new group chat
         // based on the key modifiers pressed and the operating system
         this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe(searchShortcutConfig.shortcutKey, () => {
+            Modal.close();
             Navigation.navigate(ROUTES.SEARCH);
         }, searchShortcutConfig.descriptionKey, searchShortcutConfig.modifiers, true);
         this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe(groupShortcutConfig.shortcutKey, () => {
+            Modal.close();
             Navigation.navigate(ROUTES.NEW_GROUP);
         }, groupShortcutConfig.descriptionKey, groupShortcutConfig.modifiers, true);
     }
@@ -154,6 +160,8 @@ class AuthScreens extends React.Component {
             // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
             isModal: true,
         };
+        const url = getCurrentUrl();
+        const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : '';
 
         return (
             <RootStack.Navigator
@@ -182,6 +190,7 @@ class AuthScreens extends React.Component {
                         const MainDrawerNavigator = require('./MainDrawerNavigator').default;
                         return MainDrawerNavigator;
                     }}
+                    initialParams={{openOnAdminRoom: openOnAdminRoom === 'true'}}
                 />
                 <RootStack.Screen
                     name="ValidateLogin"

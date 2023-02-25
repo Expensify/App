@@ -7,7 +7,8 @@ import moment from 'moment';
 import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
-import * as ReportUtils from './ReportUtils';
+import Log from './Log';
+import isReportMessageAttachment from './isReportMessageAttachment';
 
 const allReportActions = {};
 Onyx.connect({
@@ -71,31 +72,6 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
             return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
         })
         .value();
-}
-
-/**
- * Filter out any reportActions which should not be displayed.
- *
- * @param {Array} reportActions
- * @returns {Array}
- */
-function filterReportActionsForDisplay(reportActions) {
-    return _.filter(reportActions, (reportAction) => {
-        // Filter out any unsupported reportAction types
-        if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName)) {
-            return false;
-        }
-
-        // Ignore closed action here since we're already displaying a footer that explains why the report was closed
-        if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
-            return false;
-        }
-
-        // All other actions are displayed except deleted, non-pending actions
-        const isDeleted = isDeletedAction(reportAction);
-        const isPending = !_.isEmpty(reportAction.pendingAction);
-        return !isDeleted || isPending;
-    });
 }
 
 /**
@@ -166,19 +142,69 @@ function getLastVisibleAction(reportID, actionsToMerge = {}) {
  */
 function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
     const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
-    const htmlText = lodashGet(lastVisibleAction, 'message[0].html', '');
+    const message = lodashGet(lastVisibleAction, ['message', 0]);
+    if (isReportMessageAttachment(message)) {
+        return CONST.ATTACHMENT_MESSAGE_TEXT;
+    }
 
+    const htmlText = lodashGet(lastVisibleAction, 'message[0].html', '');
     const parser = new ExpensiMark();
     const messageText = parser.htmlToText(htmlText);
-    return ReportUtils.formatReportLastMessageText(messageText);
+    return String(messageText)
+        .replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '')
+        .substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
+}
+
+/**
+ * This method returns the report actions that are ready for display in the ReportActionsView.
+ * The report actions need to be sorted by created timestamp first, and reportActionID second
+ * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
+ * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
+ *
+ * @param {Object} reportActions
+ * @returns {Array}
+ */
+function getSortedReportActionsForDisplay(reportActions) {
+    // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
+    // to prevent bugs during the migration from sequenceNumber -> reportActionID
+    const filteredReportActions = _.filter(reportActions, (reportAction, key) => {
+        if (!reportAction) {
+            return false;
+        }
+
+        if (String(reportAction.sequenceNumber) === key) {
+            Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
+            return false;
+        }
+
+        return true;
+    });
+
+    const sortedReportActions = getSortedReportActions(filteredReportActions, true);
+    return _.filter(sortedReportActions, (reportAction) => {
+        // Filter out any unsupported reportAction types
+        if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName)) {
+            return false;
+        }
+
+        // Ignore closed action here since we're already displaying a footer that explains why the report was closed
+        if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+            return false;
+        }
+
+        // All other actions are displayed except deleted, non-pending actions
+        const isDeleted = isDeletedAction(reportAction);
+        const isPending = !_.isEmpty(reportAction.pendingAction);
+        return !isDeleted || isPending;
+    });
 }
 
 export {
     getSortedReportActions,
-    filterReportActionsForDisplay,
     getLastVisibleAction,
     getLastVisibleMessageText,
     getMostRecentIOUReportActionID,
     isDeletedAction,
     isConsecutiveActionMadeByPreviousActor,
+    getSortedReportActionsForDisplay,
 };

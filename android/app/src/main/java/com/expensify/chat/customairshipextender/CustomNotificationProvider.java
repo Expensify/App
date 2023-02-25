@@ -1,5 +1,6 @@
 package com.expensify.chat.customairshipextender;
 
+import static androidx.core.app.NotificationCompat.CATEGORY_MESSAGE;
 import static androidx.core.app.NotificationCompat.PRIORITY_MAX;
 
 import android.app.NotificationChannel;
@@ -44,7 +45,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class CustomNotificationProvider extends ReactNotificationProvider {
-
     // Resize icons to 100 dp x 100 dp
     private static final int MAX_ICON_SIZE_DPS = 100;
 
@@ -81,6 +81,9 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
     protected NotificationCompat.Builder onExtendBuilder(@NonNull Context context, @NonNull NotificationCompat.Builder builder, @NonNull NotificationArguments arguments) {
         super.onExtendBuilder(context, builder, arguments);
         PushMessage message = arguments.getMessage();
+
+        // Improve notification delivery by categorising as a time-critical message
+        builder.setCategory(CATEGORY_MESSAGE);
 
         // Configure the notification channel or priority to ensure it shows in foreground
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -167,10 +170,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         String message = reportAction.get("message").getList().get(0).getMap().get("text").getString();
         long time = Timestamp.valueOf(reportAction.get("created").getString(Instant.now().toString())).getTime();
         String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
-        String conversationTitle = "Chat with " + name;
-        if (!roomName.isEmpty()) {
-            conversationTitle = "#" + roomName;
-        }
+        String conversationTitle = roomName.isEmpty() ? "Chat with " + name : roomName;
 
         // Retrieve or create the Person object who sent the latest report comment
         Person person = notificationCache.people.get(accountID);
