@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import React from 'react';
 import {View, ScrollView} from 'react-native';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
@@ -10,8 +9,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import styles from '../../../styles/styles';
 import SignInPageGraphics from './SignInPageGraphics';
 import * as StyleUtils from '../../../styles/StyleUtils';
-// eslint-disable-next-line rulesdir/prefer-import-module-contents
-import {scrollViewContentContainerStyles, useSignInHeightFlex, keyboardDismissProp} from './signInPageStyles';
+import * as signInStyles from './signInPageStyles';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -32,7 +30,7 @@ const SignInPageLayout = (props) => {
     let contentContainerStyles = [styles.flex1, styles.flexRow];
 
     // To scroll on both mobile and web, we need to set the container height manually
-    const containerHeight = StyleUtils.getHeight(props.windowHeight);
+    const containerHeight = props.windowHeight - props.insets.bottom - props.insets.top;
 
     if (props.isSmallScreenWidth) {
         containerStyles = [styles.flex1];
@@ -61,11 +59,11 @@ const SignInPageLayout = (props) => {
                 )
                 : (
                     <ScrollView
-                        contentContainerStyle={scrollViewContentContainerStyles}
+                        contentContainerStyle={signInStyles.scrollViewContentContainerStyles}
                         keyboardShouldPersistTaps="handled"
-                        keyboardDismissMode={keyboardDismissProp}
+                        keyboardDismissMode={signInStyles.keyboardDismissProp}
                     >
-                        <View style={[useSignInHeightFlex ? styles.flex1 : {}, {minHeight: props.windowHeight - props.insets.bottom - props.insets.top}]}>
+                        <View style={[styles.flex1, StyleUtils.getMinHeight(containerHeight)]}>
                             <SignInPageContent
                                 welcomeText={props.welcomeText}
                                 shouldShowWelcomeText={props.shouldShowWelcomeText}

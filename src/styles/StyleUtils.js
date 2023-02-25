@@ -616,6 +616,17 @@ function getHeight(height) {
 }
 
 /**
+ * Get height as style
+ * @param {Number} minHeight
+ * @returns {Object}
+ */
+function getMinHeight(minHeight) {
+    return {
+        minHeight,
+    };
+}
+
+/**
  * Return style for opacity animation.
  *
  * @param {Animated.Value} fadeAnimation
@@ -768,6 +779,7 @@ export {
     convertToLTR,
     hasSafeAreas,
     getHeight,
+    getMinHeight,
     fade,
     getHorizontalStackedAvatarBorderStyle,
     getReportWelcomeBackgroundImageStyle,
