@@ -25,7 +25,7 @@ const propTypes = {
     /** The types of files that can be selected with this picker. */
     type: PropTypes.oneOf([CONST.ATTACHMENT_PICKER_TYPE.FILE, CONST.ATTACHMENT_PICKER_TYPE.IMAGE]),
 
-    /** Optional callback to fire when we want to do something on close. */
+    /** Optional callback to fire when we want to do something once the modal is hidden. */
     onModalHide: PropTypes.func,
 };
 
