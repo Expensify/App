@@ -10,6 +10,7 @@ import Button from '../Button';
 import * as Chronos from '../../libs/actions/Chronos';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import DateUtils from '../../libs/DateUtils';
+import OfflineWithFeedback from '../OfflineWithFeedback';
 
 const propTypes = {
     /** The ID of the report */
@@ -33,46 +34,50 @@ const ChronosOOOListActions = (props) => {
     }
 
     return (
-        <View>
-            {_.map(events, (event) => {
-                const start = DateUtils.getLocalMomentFromDatetime(props.preferredLocale, event.start.date);
-                const end = DateUtils.getLocalMomentFromDatetime(props.preferredLocale, event.end.date);
-                return (
-                    <View key={event.id} style={[styles.flexRow, styles.alignItemsCenter, styles.pt, styles.ml18]}>
-                        {event.lengthInDays > 0 ? (
-                            <Text>
-                                {event.summary}
-                                {' for '}
-                                {event.lengthInDays}
-                                {event.lengthInDays === 1 ? ' day' : 'days'}
-                                {' until '}
-                                {end.format('dddd MMM Do, YYYY')}
-                            </Text>
-                        ) : (
-                            <Text>
-                                {event.summary}
-                                {' from '}
-                                {start.format('h:mma')}
-                                {' - '}
-                                {end.format('h:mma')}
-                                {' on '}
-                                {start.format('dddd MMM Do, YYYY')}
-                            </Text>
-                        )}
-                        <Button
-                            small
-                            style={[styles.pl2]}
-                            onPress={() => Chronos.removeEvent(props.reportID, event.id, props.action, events)}
-                            ContentComponent={() => (
-                                <Text style={styles.buttonSmallText}>
-                                    {props.translate('common.remove')}
+        <OfflineWithFeedback
+            pendingAction={lodashGet(props.action, 'pendingAction', null)}
+        >
+            <View>
+                {_.map(events, (event) => {
+                    const start = DateUtils.getLocalMomentFromDatetime(props.preferredLocale, event.start.date);
+                    const end = DateUtils.getLocalMomentFromDatetime(props.preferredLocale, event.end.date);
+                    return (
+                        <View key={event.id} style={[styles.flexRow, styles.alignItemsCenter, styles.pt, styles.ml18]}>
+                            {event.lengthInDays > 0 ? (
+                                <Text>
+                                    {event.summary}
+                                    {' for '}
+                                    {event.lengthInDays}
+                                    {event.lengthInDays === 1 ? ' day' : 'days'}
+                                    {' until '}
+                                    {end.format('dddd MMM Do, YYYY')}
+                                </Text>
+                            ) : (
+                                <Text>
+                                    {event.summary}
+                                    {' from '}
+                                    {start.format('h:mma')}
+                                    {' - '}
+                                    {end.format('h:mma')}
+                                    {' on '}
+                                    {start.format('dddd MMM Do, YYYY')}
                                 </Text>
                             )}
-                        />
-                    </View>
-                );
-            })}
-        </View>
+                            <Button
+                                small
+                                style={[styles.pl2]}
+                                onPress={() => Chronos.removeEvent(props.reportID, event.id, props.action, events)}
+                                ContentComponent={() => (
+                                    <Text style={styles.buttonSmallText}>
+                                        {props.translate('common.remove')}
+                                    </Text>
+                                )}
+                            />
+                        </View>
+                    );
+                })}
+            </View>
+        </OfflineWithFeedback>
     );
 };
 
