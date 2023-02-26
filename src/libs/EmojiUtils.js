@@ -252,6 +252,9 @@ function suggestEmojis(text, limit = 5) {
  * @returns {Boolean}
  */
 function hasEmojis(message) {
+    if (!message) {
+        return false;
+    }
     const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
     return Boolean(trimmedMessage.match(CONST.REGEX.EMOJIS));
 }
