@@ -12,6 +12,9 @@ export default PropTypes.shape({
     // Alternate text to display
     alternateText: PropTypes.string,
 
+    // Alternate text number of lines
+    alternateTextMaxLines: PropTypes.number,
+
     // Array of URLs or icons
     icons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])),
 
