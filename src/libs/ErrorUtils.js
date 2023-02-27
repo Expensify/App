@@ -59,9 +59,9 @@ function getLatestErrorMessage(onyxData) {
  * @param {Object} onyxData
  * @param {Object} onyxData.errorFields
  * @param {String} fieldName
- * @returns {String}
+ * @returns {Object}
  */
-function getLatestErrorFieldMessage(onyxData, fieldName) {
+function getLatestErrorField(onyxData, fieldName) {
     const errorsForField = lodashGet(onyxData, ['errorFields', fieldName], {});
 
     if (_.isEmpty(errorsForField)) {
@@ -80,5 +80,5 @@ export {
     // eslint-disable-next-line import/prefer-default-export
     getAuthenticateErrorMessage,
     getLatestErrorMessage,
-    getLatestErrorFieldMessage,
+    getLatestErrorField,
 };

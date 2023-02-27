@@ -178,7 +178,7 @@ class ContactMethodDetailsPage extends Component {
                             />
                             <OfflineWithFeedback
                                 pendingAction={lodashGet(loginData, 'pendingFields.validateCodeSent', null)}
-                                errors={ErrorUtils.getLatestErrorFieldMessage(loginData, 'validateCodeSent')}
+                                errors={ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
                                 errorRowStyles={[styles.mt2]}
                                 onClose={() => User.clearContactMethodErrors(contactMethod, 'validateCodeSent')}
                             >
@@ -204,7 +204,7 @@ class ContactMethodDetailsPage extends Component {
                     )}
                     <OfflineWithFeedback
                         pendingAction={lodashGet(loginData, 'pendingFields.deletedLogin', null)}
-                        errors={ErrorUtils.getLatestErrorFieldMessage(loginData, 'deletedLogin')}
+                        errors={ErrorUtils.getLatestErrorField(loginData, 'deletedLogin')}
                         errorRowStyles={[styles.mt6]}
                         onClose={() => User.clearContactMethodErrors(contactMethod, 'deletedLogin')}
                     >
