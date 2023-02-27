@@ -34,6 +34,7 @@ import ConfirmModal from '../../components/ConfirmModal';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as Link from '../../libs/actions/Link';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import * as UserUtils from '../../libs/UserUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -79,6 +80,17 @@ const propTypes = {
 
     /** Information about the user accepting the terms for payments */
     walletTerms: walletTermsPropTypes,
+
+    /** Login list for the user that is signed in */
+    loginList: PropTypes.shape({
+        validatedDate: PropTypes.string,
+
+        errorFields: PropTypes.shape({
+            deletedLogin: PropTypes.shape({
+                // unknown key name, but it's a number and value is string
+            }),
+        }),
+    }),
 
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -140,6 +152,7 @@ class InitialSettingsPage extends React.Component {
             .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
             .find(policy => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers))
             .value() ? 'error' : null;
+        const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(this.props.loginList);
 
         return ([
             {
@@ -154,6 +167,7 @@ class InitialSettingsPage extends React.Component {
                 translationKey: 'common.profile',
                 icon: Expensicons.Profile,
                 action: () => { App.openProfile(); },
+                brickRoadIndicator: profileBrickRoadIndicator,
             },
             {
                 translationKey: 'common.preferences',
@@ -334,6 +348,9 @@ export default compose(
         },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,
+        },
+        loginList: {
+            key: ONYXKEYS.LOGIN_LIST,
         },
     }),
     withNetwork(),
