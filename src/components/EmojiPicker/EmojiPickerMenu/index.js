@@ -490,7 +490,7 @@ class EmojiPickerMenu extends Component {
                 )}
                 {!isFiltered && (
                     <CategoryShortcutBar
-                        headerIndices={this.headerIndices}
+                        headerEmojis={this.headerEmojis}
                         onPress={this.scrollToHeader}
                     />
                 )}

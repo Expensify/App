@@ -2,6 +2,8 @@ import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {Pressable, View} from 'react-native';
 import Icon from '../Icon';
+import Tooltip from '../Tooltip';
+import withLocalize, { withLocalizePropTypes } from '../withLocalize';
 import variables from '../../styles/variables';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -9,11 +11,16 @@ import getButtonState from '../../libs/getButtonState';
 import themeColors from '../../styles/themes/default';
 
 const propTypes = {
+    /** The emoji code of the category header */
+    code: PropTypes.string.isRequired,
+
     /** The icon representation of the category that this button links to */
     icon: PropTypes.func.isRequired,
 
     /** The function to call when an emoji is selected */
     onPress: PropTypes.func.isRequired,
+
+    ...withLocalizePropTypes
 };
 
 class CategoryShortcutButton extends PureComponent {
@@ -26,6 +33,7 @@ class CategoryShortcutButton extends PureComponent {
 
     render() {
         return (
+            
             <Pressable
                 onPress={this.props.onPress}
                 onHoverIn={() => this.setState({isHighlighted: true})}
@@ -36,18 +44,20 @@ class CategoryShortcutButton extends PureComponent {
                     this.state.isHighlighted && styles.emojiItemHighlighted,
                 ])}
             >
-                <View style={styles.alignSelfCenter}>
-                    <Icon
-                        fill={themeColors.icon}
-                        src={this.props.icon}
-                        height={variables.iconSizeNormal}
-                        width={variables.iconSizeNormal}
-                    />
-                </View>
+                <Tooltip text={this.props.translate(`emojiPicker.headers.${code}`)}>
+                    <View style={styles.alignSelfCenter}>
+                        <Icon
+                            fill={themeColors.icon}
+                            src={this.props.icon}
+                            height={variables.iconSizeNormal}
+                            width={variables.iconSizeNormal}
+                        />
+                    </View>
+                </Tooltip>
             </Pressable>
         );
     }
 }
 CategoryShortcutButton.propTypes = propTypes;
 
-export default CategoryShortcutButton;
+export default withLocalize(CategoryShortcutButton);

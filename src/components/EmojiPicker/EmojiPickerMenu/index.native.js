@@ -153,7 +153,7 @@ class EmojiPickerMenu extends Component {
             <View style={styles.emojiPickerContainer}>
                 <View>
                     <CategoryShortcutBar
-                        headerIndices={this.headerIndices}
+                        headerEmojis={this.headerEmojis}
                         onPress={this.scrollToHeader}
                     />
                 </View>

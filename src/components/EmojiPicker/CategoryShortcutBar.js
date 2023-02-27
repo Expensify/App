@@ -20,8 +20,8 @@ const propTypes = {
     /** The function to call when an emoji is selected */
     onPress: PropTypes.func.isRequired,
 
-    /** The indices that the icons should link to */
-    headerIndices: PropTypes.arrayOf(PropTypes.number).isRequired,
+    /** The emojis consisting emoji code and indices that the icons should link to */
+    headerEmojis: PropTypes.arrayOf(PropTypes.number).isRequired,
 };
 
 const CategoryShortcutBar = (props) => {
@@ -29,17 +29,18 @@ const CategoryShortcutBar = (props) => {
 
     // If the user has frequently used emojis, there will be 9 headers, otherwise there will be 8
     // Or for Windows OS there will be 8 headers, otherwise there will be 7
-    if (props.headerIndices.length === 9 || (getOperatingSystem() === CONST.OS.WINDOWS && props.headerIndices.length === 8)) {
+    if (props.headerEmojis.length === 9 || (getOperatingSystem() === CONST.OS.WINDOWS && props.headerEmojis.length === 8)) {
         icons.unshift(FrequentlyUsed);
     }
 
     return (
         <View style={[styles.pt2, styles.ph4, styles.flexRow]}>
-            {_.map(props.headerIndices, (headerIndex, i) => (
+            {_.map(props.headerEmojis, (headerEmoji, i) => (
                 <CategoryShortcutButton
                     icon={icons[i]}
-                    onPress={() => props.onPress(headerIndex)}
+                    onPress={() => props.onPress(headerEmoji.index)}
                     key={`categoryShortcut${i}`}
+                    code={headerEmoji.code}
                 />
             ))}
         </View>
