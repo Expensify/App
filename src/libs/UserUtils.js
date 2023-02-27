@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import CONST from '../CONST';
 
 /**
  * Searches through given loginList for any contact method / login with an error.
@@ -45,7 +46,24 @@ function hasLoginListInfo(loginList) {
     });
 }
 
+/**
+ * Gets the appropriate brick road indicator status for a given loginList.
+ * Error status is higher priority, so we check for that first.
+ *
+ * @param {Object} loginList
+ * @returns {String}
+ */
+function getLoginListBrickRoadIndicator(loginList) {
+    if (hasLoginListError(loginList)) {
+        return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    } else if (hasLoginListInfo(loginList)) {
+        return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+    }
+    return '';
+}
+
 export {
     hasLoginListError,
     hasLoginListInfo,
+    getLoginListBrickRoadIndicator,
 };
