@@ -38,9 +38,9 @@ jobs:
     needs: confirmPassingBuild
     outputs:
       MERGED_PR: ${{ steps.getMergedPullRequest.outputs.number }}
-      IS_AUTOMATED_PR: ${{ steps.isAutomatedPullRequest.outputs.IS_AUTOMATED_PR }}
-      SHOULD_DEPLOY: ${{ steps.shouldDeploy.outputs.SHOULD_DEPLOY }}
-      SHOULD_CP: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED && steps.hasCherryPickLabel.outputs.HAS_CP_LABEL }}
+      IS_AUTOMATED_PR: ${{ fromJSON(steps.isAutomatedPullRequest.outputs.IS_AUTOMATED_PR) }}
+      SHOULD_DEPLOY: ${{ fromJSON(steps.shouldDeploy.outputs.SHOULD_DEPLOY) }}
+      SHOULD_CP: ${{ fromJSON(steps.isStagingDeployLocked.outputs.IS_LOCKED) && fromJSON(steps.hasCherryPickLabel.outputs.HAS_CP_LABEL) }}
 
     steps:
       - name: Get merged pull request
@@ -85,8 +85,11 @@ jobs:
     needs: chooseDeployActions
     if: ${{ fromJSON(needs.chooseDeployActions.outputs.SHOULD_DEPLOY) }}
     secrets: inherit
+    outputs:
+      NEW_VERSION: ${{ steps.createNewVersion.outputs.NEW_VERSION }}
     steps:
       - name: Create new version
+        id: createNewVersion
         uses: Expensify/App/.github/workflows/createNewVersion.yml@main
 
   updateStaging:

@@ -360,7 +360,7 @@ const assertCreateNewVersionJobExecuted = (workflowResult, didExecute = true) =>
     }
 };
 
-const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true) => {
+const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true, shouldCp = false) => {
     const steps = [
         utils.getStepAssertion(
             'Run turnstyle',
@@ -370,19 +370,38 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true) => {
             'Running turnstyle',
             [{key: 'poll-interval-seconds', value: '10'}, {key: 'GITHUB_TOKEN', value: '***'}],
         ),
-        utils.getStepAssertion(
-            'Cherry-pick PR to staging',
-            true,
-            null,
-            'UPDATE_STAGING',
-            'Cherry picking',
-        ),
+    ];
+    if (shouldCp) {
+        steps.push(
+            utils.getStepAssertion(
+                'Cherry-pick PR to staging',
+                true,
+                null,
+                'UPDATE_STAGING',
+                'Cherry picking',
+                [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'WORKFLOW', value: 'cherryPick.yml'}, {key: 'INPUTS', value: '{ PULL_REQUEST_NUMBER: 123, NEW_VERSION: 1.2.3 }'}],
+            ),
+        );
+    } else {
+        steps.push(
+            utils.getStepAssertion(
+                'Update staging branch from main',
+                true,
+                null,
+                'UPDATE_STAGING',
+                'Updating staging branch',
+                [{key: 'TARGET_BRANCH', value: 'staging'}, {key: 'OS_BOTIFY_TOKEN', value: '***'}, {key: 'GPG_PASSPHRASE', value: '***'}],
+            ),
+        );
+    }
+    steps.push(
         utils.getStepAssertion(
             'Checkout staging',
             true,
             null,
             'UPDATE_STAGING',
             'Checking out staging',
+            [{key: 'ref', value: 'staging'}, {key: 'fetch-depth', value: '0'}],
         ),
         utils.getStepAssertion(
             'Tag staging',
@@ -397,6 +416,7 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true) => {
             null,
             'UPDATE_STAGING',
             'Updating StagingDeployCash',
+            [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'NPM_VERSION', value: '1.2.3'}],
         ),
         utils.getStepAssertion(
             'Find open StagingDeployCash',
@@ -404,29 +424,40 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true) => {
             null,
             'UPDATE_STAGING',
             'Finding open StagingDeployCash',
-        ),
-        utils.getStepAssertion(
-            'Comment in StagingDeployCash to alert Applause that a new pull request has been cherry-picked',
-            true,
             null,
-            'UPDATE_STAGING',
-            'Commenting in StagingDeployCash',
+            [{key: 'GITHUB_TOKEN', value: '***'}],
         ),
-        utils.getStepAssertion(
-            'Wait for staging deploys to finish',
-            true,
-            null,
-            'UPDATE_STAGING',
-            'Waiting for staging deploy to finish',
-        ),
-        utils.getStepAssertion(
-            'Comment in StagingDeployCash to alert Applause that cherry-picked pull request has been deployed.',
-            true,
-            null,
-            'UPDATE_STAGING',
-            'Commenting in StagingDeployCash',
-        ),
-    ];
+    );
+    if (shouldCp) {
+        steps.push(
+            utils.getStepAssertion(
+                'Comment in StagingDeployCash to alert Applause that a new pull request has been cherry-picked',
+                true,
+                null,
+                'UPDATE_STAGING',
+                'Commenting in StagingDeployCash',
+                null,
+                [{key: 'GITHUB_TOKEN', value: '***'}],
+            ),
+            utils.getStepAssertion(
+                'Wait for staging deploys to finish',
+                true,
+                null,
+                'UPDATE_STAGING',
+                'Waiting for staging deploy to finish',
+                [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'TAG', value: '1.2.3'}],
+            ),
+            utils.getStepAssertion(
+                'Comment in StagingDeployCash to alert Applause that cherry-picked pull request has been deployed.',
+                true,
+                null,
+                'UPDATE_STAGING',
+                'Commenting in StagingDeployCash',
+                null,
+                [{key: 'GITHUB_TOKEN', value: '***'}],
+            ),
+        );
+    }
     if (didExecute) {
         expect(workflowResult).toEqual(expect.arrayContaining(steps));
     } else {

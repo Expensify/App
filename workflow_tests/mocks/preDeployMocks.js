@@ -34,7 +34,7 @@ const CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS = [
 ];
 
 // choose_deploy_actions
-const GET_MERGED_PULL_REQUEST_MOCK_STEP__CHOOSE_DEPLOY = utils.getMockStep(
+const GET_MERGED_PULL_REQUEST_MOCK_STEP__CHOOSE_DEPLOY__CP_LABEL = utils.getMockStep(
     'Get merged pull request',
     'Getting merged pull request',
     'CHOOSE_DEPLOY_ACTIONS',
@@ -42,17 +42,51 @@ const GET_MERGED_PULL_REQUEST_MOCK_STEP__CHOOSE_DEPLOY = utils.getMockStep(
     null,
     {number: '123', labels: '[\'CP Staging\']'},
 );
-const CHECK_IF_STAGINGDEPLOYCASH_IS_LOCKED_MOCK_STEP = utils.getMockStep(
+const GET_MERGED_PULL_REQUEST_MOCK_STEP__CHOOSE_DEPLOY = utils.getMockStep(
+    'Get merged pull request',
+    'Getting merged pull request',
+    'CHOOSE_DEPLOY_ACTIONS',
+    ['github_token'],
+    null,
+    {number: '123', labels: '[]'},
+);
+const CHECK_IF_STAGINGDEPLOYCASH_IS_LOCKED_MOCK_STEP__LOCKED = utils.getMockStep(
     'Check if StagingDeployCash is locked',
     'Checking StagingDeployCash',
     'CHOOSE_DEPLOY_ACTIONS',
     ['GITHUB_TOKEN'],
     null,
-    {IS_LOCKED: 'true'},
+    {IS_LOCKED: true},
 );
-const CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS = [
+const CHECK_IF_STAGINGDEPLOYCASH_IS_LOCKED_MOCK_STEP__UNLOCKED = utils.getMockStep(
+    'Check if StagingDeployCash is locked',
+    'Checking StagingDeployCash',
+    'CHOOSE_DEPLOY_ACTIONS',
+    ['GITHUB_TOKEN'],
+    null,
+    {IS_LOCKED: false},
+);
+const CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_LOCKED = [
     GET_MERGED_PULL_REQUEST_MOCK_STEP__CHOOSE_DEPLOY,
-    CHECK_IF_STAGINGDEPLOYCASH_IS_LOCKED_MOCK_STEP,
+    CHECK_IF_STAGINGDEPLOYCASH_IS_LOCKED_MOCK_STEP__LOCKED,
+
+    // steps 3-5 run normally
+];
+const CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__CP_LABEL__STAGING_LOCKED = [
+    GET_MERGED_PULL_REQUEST_MOCK_STEP__CHOOSE_DEPLOY__CP_LABEL,
+    CHECK_IF_STAGINGDEPLOYCASH_IS_LOCKED_MOCK_STEP__LOCKED,
+
+    // steps 3-5 run normally
+];
+const CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED = [
+    GET_MERGED_PULL_REQUEST_MOCK_STEP__CHOOSE_DEPLOY,
+    CHECK_IF_STAGINGDEPLOYCASH_IS_LOCKED_MOCK_STEP__UNLOCKED,
+
+    // steps 3-5 run normally
+];
+const CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__CP_LABEL__STAGING_UNLOCKED = [
+    GET_MERGED_PULL_REQUEST_MOCK_STEP__CHOOSE_DEPLOY__CP_LABEL,
+    CHECK_IF_STAGINGDEPLOYCASH_IS_LOCKED_MOCK_STEP__UNLOCKED,
 
     // steps 3-5 run normally
 ];
@@ -73,6 +107,9 @@ const CREATE_NEW_VERSION_MOCK_STEP = utils.getMockStep(
     'Create new version',
     'Creating new version',
     'CREATE_NEW_VERSION',
+    null,
+    null,
+    {NEW_VERSION: '1.2.3'},
 );
 const CREATE_NEW_VERSION_JOB_MOCK_STEPS = [
     CREATE_NEW_VERSION_MOCK_STEP,
@@ -90,16 +127,19 @@ const UPDATE_STAGING_BRANCH_MOCK_STEP = utils.getMockStep(
     'Update staging branch from main',
     'Updating staging branch',
     'UPDATE_STAGING',
+    ['TARGET_BRANCH', 'OS_BOTIFY_TOKEN', 'GPG_PASSPHRASE'],
 );
 const CHERRYPICK_PR_MOCK_STEP = utils.getMockStep(
     'Cherry-pick PR to staging',
     'Cherry picking',
     'UPDATE_STAGING',
+    ['GITHUB_TOKEN', 'WORKFLOW', 'INPUTS'],
 );
 const CHECKOUT_STAGING_MOCK_STEP = utils.getMockStep(
     'Checkout staging',
     'Checking out staging',
     'UPDATE_STAGING',
+    ['ref', 'fetch-depth'],
 );
 const TAG_STAGING_MOCK_STEP = utils.getMockStep(
     'Tag staging',
@@ -110,29 +150,35 @@ const UPDATE_STAGINGDEPLOYCASH_MOCK_STEP = utils.getMockStep(
     'Update StagingDeployCash',
     'Updating StagingDeployCash',
     'UPDATE_STAGING',
+    ['GITHUB_TOKEN', 'NPM_VERSION'],
 );
 const FIND_OPEN_STAGINGDEPLOYCASH_MOCK_STEP = utils.getMockStep(
     'Find open StagingDeployCash',
     'Finding open StagingDeployCash',
     'UPDATE_STAGING',
     null,
-    null,
+    ['GITHUB_TOKEN'],
     {STAGING_DEPLOY_CASH: '1234'},
 );
 const COMMENT_TO_ALERT_APPLAUSE_CHERRYPICK_MOCK_STEP = utils.getMockStep(
     'Comment in StagingDeployCash to alert Applause that a new pull request has been cherry-picked',
     'Commenting in StagingDeployCash',
     'UPDATE_STAGING',
+    null,
+    ['GITHUB_TOKEN'],
 );
 const WAIT_FOR_STAGING_DEPLOYS_MOCK_STEP = utils.getMockStep(
     'Wait for staging deploys to finish',
     'Waiting for staging deploy to finish',
     'UPDATE_STAGING',
+    ['GITHUB_TOKEN', 'TAG'],
 );
 const COMMENT_TO_ALERT_APPLAUSE_DEPLOY_MOCK_STEP = utils.getMockStep(
     'Comment in StagingDeployCash to alert Applause that cherry-picked pull request has been deployed.',
     'Commenting in StagingDeployCash',
     'UPDATE_STAGING',
+    null,
+    ['GITHUB_TOKEN'],
 );
 const ANNOUNCE_FAILED_WORKFLOW_IN_SLACK_MOCK_STEP = utils.getMockStep(
     'Announce failed workflow in Slack',
@@ -168,7 +214,7 @@ const CHECK_TEAM_MEMBERSHIP_MOCK_STEP__TRUE = utils.getMockStep(
     'IS_EXPENSIFY_EMPLOYEE',
     ['GITHUB_TOKEN', 'username', 'team'],
     null,
-    {isTeamMember: 'true'},
+    {isTeamMember: true},
 );
 const IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE = [
     GET_MERGED_PULL_REQUEST_MOCK_STEP__IS_EXPENSIFY_EMPLOYEE,
@@ -180,7 +226,7 @@ const CHECK_TEAM_MEMBERSHIP_MOCK_STEP__FALSE = utils.getMockStep(
     'IS_EXPENSIFY_EMPLOYEE',
     ['GITHUB_TOKEN', 'username', 'team'],
     null,
-    {isTeamMember: 'false'},
+    {isTeamMember: false},
 );
 const IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__FALSE = [
     GET_MERGED_PULL_REQUEST_MOCK_STEP__IS_EXPENSIFY_EMPLOYEE,
@@ -411,7 +457,10 @@ module.exports = {
     LINT_JOB_MOCK_STEPS,
     TEST_JOB_MOCK_STEPS,
     CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-    CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS,
+    CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_LOCKED,
+    CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__CP_LABEL__STAGING_LOCKED,
+    CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
+    CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__CP_LABEL__STAGING_UNLOCKED,
     SKIP_DEPLOY_JOB_MOCK_STEPS,
     CREATE_NEW_VERSION_JOB_MOCK_STEPS,
     UPDATE_STAGING_JOB_MOCK_STEPS,
