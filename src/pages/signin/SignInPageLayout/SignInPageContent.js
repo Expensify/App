@@ -6,12 +6,12 @@ import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
-import Terms from '../Terms';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import SignInPageForm from '../../../components/SignInPageForm';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
+import OfflineIndicator from '../../../components/OfflineIndicator';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -67,9 +67,11 @@ const SignInPageContent = props => (
                 </SignInPageForm>
             </View>
         </KeyboardAvoidingView>
-        <View style={[styles.mb8, styles.signInPageWelcomeTextContainer, styles.alignSelfCenter]}>
-            <Terms />
-        </View>
+        {true && (
+            <View style={[styles.mb5, styles.signInPageWelcomeTextContainer, styles.alignSelfCenter]}>
+                <OfflineIndicator style={[styles.m0, styles.pl0, styles.alignItemsStart]} />
+            </View>
+        )}
     </ScrollView>
 );
 

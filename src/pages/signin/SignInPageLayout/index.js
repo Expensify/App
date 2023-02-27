@@ -30,7 +30,7 @@ const SignInPageLayout = (props) => {
     let contentContainerStyles = [styles.flex1, styles.flexRow];
 
     // To scroll on both mobile and web, we need to set the container height manually
-    const containerHeight = props.windowHeight - props.insets.bottom - props.insets.top;
+    const containerHeight = props.windowHeight - props.insets.top - props.insets.bottom;
 
     if (props.isSmallScreenWidth) {
         containerStyles = [styles.flex1];

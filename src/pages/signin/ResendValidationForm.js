@@ -14,7 +14,6 @@ import compose from '../../libs/compose';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import Avatar from '../../components/Avatar';
 import * as ReportUtils from '../../libs/ReportUtils';
-import OfflineIndicator from '../../components/OfflineIndicator';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
@@ -93,7 +92,6 @@ const ResendValidationForm = (props) => {
                     isDisabled={props.network.isOffline}
                 />
             </View>
-            <OfflineIndicator containerStyles={[styles.mv1]} />
         </>
     );
 };
