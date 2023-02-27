@@ -34,6 +34,7 @@ import ConfirmModal from '../../components/ConfirmModal';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as Link from '../../libs/actions/Link';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import TextEmoji from '../../components/TextEmoji';
 
 const propTypes = {
     /* Onyx Props */
@@ -270,7 +271,7 @@ class InitialSettingsPage extends React.Component {
                                     <Pressable style={[styles.mt1, styles.mw100]} onPress={this.openProfileSettings}>
                                         <Text style={[styles.textHeadline]} numberOfLines={1}>
                                             {this.props.currentUserPersonalDetails.displayName
-                                                ? this.props.currentUserPersonalDetails.displayName
+                                                ? <TextEmoji text={this.props.currentUserPersonalDetails.displayName} style={[styles.emojiMessageText, styles.profileEmojiText]} />
                                                 : Str.removeSMSDomain(this.props.session.email)}
                                         </Text>
                                     </Pressable>
