@@ -36,7 +36,7 @@ class ExpiredValidateCodeModal extends PureComponent {
                         <Icon
                             width={variables.modalTopIconWidth}
                             height={variables.modalTopIconHeight}
-                            src={Illustrations.MagicCode}
+                            src={Illustrations.ToddBehindCloud}
                         />
                     </View>
                     <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
