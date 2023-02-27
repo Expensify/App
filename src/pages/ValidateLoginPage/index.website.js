@@ -9,7 +9,7 @@ import {
 import * as User from '../../libs/actions/User';
 import compose from '../../libs/compose';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import ValidateCodeModal from '../../components/ValidateCodeModal';
+import ValidateCodeModal from '../../components/ValidateCode/ValidateCodeModal';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
 import Permissions from '../../libs/Permissions';

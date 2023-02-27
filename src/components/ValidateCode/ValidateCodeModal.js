@@ -1,15 +1,15 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import colors from '../styles/colors';
-import styles from '../styles/styles';
-import Icon from './Icon';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import Text from './Text';
-import * as Expensicons from './Icon/Expensicons';
-import * as Illustrations from './Icon/Illustrations';
-import variables from '../styles/variables';
-import TextLink from './TextLink';
+import colors from '../../styles/colors';
+import styles from '../../styles/styles';
+import Icon from '../Icon';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import Text from '../Text';
+import * as Expensicons from '../Icon/Expensicons';
+import * as Illustrations from '../Icon/Illustrations';
+import variables from '../../styles/variables';
+import TextLink from '../TextLink';
 
 const propTypes = {
 
