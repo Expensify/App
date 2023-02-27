@@ -96,7 +96,7 @@ class AddressPage extends Component {
      * @returns {Object} - An object containing the errors for each inputID
      */
     validate(values) {
-        const errors = {};
+        const errors = [];
 
         const requiredFields = [
             'addressLine1',
@@ -108,7 +108,7 @@ class AddressPage extends Component {
 
         // Check "State" dropdown is a valid state if selected Country is USA.
         if (this.state.isUsaForm && !COMMON_CONST.STATES[values.state]) {
-            errors.state = this.props.translate('common.error.fieldRequired');
+            errors.push({state: this.props.translate('common.error.fieldRequired')});
         }
 
         // Add "Field required" errors if any required field is empty
@@ -116,7 +116,7 @@ class AddressPage extends Component {
             if (!_.isEmpty(values[fieldKey])) {
                 return;
             }
-            errors[fieldKey] = this.props.translate('common.error.fieldRequired');
+            errors.push({[fieldKey]: this.props.translate('common.error.fieldRequired')});
         });
 
         return errors;

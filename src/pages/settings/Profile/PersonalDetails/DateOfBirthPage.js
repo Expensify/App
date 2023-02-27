@@ -57,16 +57,18 @@ class DateOfBirthPage extends Component {
      * @returns {Object} - An object containing the errors for each inputID
      */
     validate(values) {
-        const errors = {};
+        const errors = [];
         const minimumAge = 5;
         const maximumAge = 150;
 
         if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
-            errors.dob = this.props.translate('common.error.fieldRequired');
+            errors.push({dob: this.props.translate('common.error.fieldRequired')});
         }
+
         const dateError = ValidationUtils.getAgeRequirementError(values.dob, minimumAge, maximumAge);
+
         if (dateError) {
-            errors.dob = dateError;
+            errors.push({dob: dateError});
         }
 
         return errors;

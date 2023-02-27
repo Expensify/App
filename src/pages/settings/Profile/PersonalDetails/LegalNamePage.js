@@ -64,18 +64,22 @@ class LegalNamePage extends Component {
      * @returns {Object} - An object containing the errors for each inputID
      */
     validate(values) {
-        const errors = {};
+        const errors = [];
 
         if (!ValidationUtils.isValidDisplayName(values.legalFirstName)) {
-            errors.legalFirstName = this.props.translate('personalDetails.error.hasInvalidCharacter');
-        } else if (_.isEmpty(values.legalFirstName)) {
-            errors.legalFirstName = this.props.translate('common.error.fieldRequired');
+            errors.push({legalFirstName: this.props.translate('personalDetails.error.hasInvalidCharacter')});
+        }
+
+        if (_.isEmpty(values.legalFirstName)) {
+            errors.push({legalFirstName: this.props.translate('common.error.fieldRequired')});
         }
 
         if (!ValidationUtils.isValidDisplayName(values.legalLastName)) {
-            errors.legalLastName = this.props.translate('personalDetails.error.hasInvalidCharacter');
-        } else if (_.isEmpty(values.legalLastName)) {
-            errors.legalLastName = this.props.translate('common.error.fieldRequired');
+            errors.push({legalLastName: this.props.translate('personalDetails.error.hasInvalidCharacter')});
+        }
+
+        if (_.isEmpty(values.legalLastName)) {
+            errors.push({legalLastName: this.props.translate('common.error.fieldRequired')});
         }
 
         return errors;
