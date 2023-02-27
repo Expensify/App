@@ -276,7 +276,6 @@ class ReimbursementAccountPage extends React.Component {
                 <ContinueBankAccountSetup
                     reimbursementAccount={this.props.reimbursementAccount}
                     continue={this.continue}
-                    startOver={() => this.setState({shouldHideContinueSetupButton: true})}
                 />
             );
         }
