@@ -64,7 +64,7 @@ describe('test workflow preDeploy', () => {
         // set run parameters
         act = utils.setUpActParams(
             act,
-            'pull_request',
+            'push',
             {head: {ref: 'main'}},
             {
                 OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_s3cr3t_p455word',
@@ -111,7 +111,7 @@ describe('test workflow preDeploy', () => {
         let act = new kieActJs.Act(repoPath, workflowPath);
         act = utils.setUpActParams(
             act,
-            'pull_request',
+            'push',
             {head: {ref: 'not_main'}},
             {
                 OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_s3cr3t_p455word',
@@ -145,6 +145,71 @@ describe('test workflow preDeploy', () => {
         assertions.assertUpdateStagingJobExecuted(result, false);
     }, 60000);
 
+    test('different event than push - workflow does not execute', async () => {
+        const repoPath = mockGithub.repo.getPath('testWorkflowsRepo') || '';
+        const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
+        let act = new kieActJs.Act(repoPath, workflowPath);
+        const testMockSteps = {
+            lint: mocks.LINT_JOB_MOCK_STEPS,
+            test: mocks.TEST_JOB_MOCK_STEPS,
+            confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
+            chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__CP_LABEL__STAGING_UNLOCKED,
+            skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
+            createNewVersion: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
+            updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
+            isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
+            newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
+            'e2e-tests': mocks.E2E_TESTS_JOB_MOCK_STEPS,
+        };
+
+        // pull_request
+        act = utils.setUpActParams(
+            act,
+            'pull_request',
+            {head: {ref: 'main'}},
+            {
+                OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_s3cr3t_p455word',
+            },
+            'dummy_github_token',
+        );
+        let result = await act
+            .runEvent('pull_request', {
+                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                mockSteps: testMockSteps,
+            });
+        assertions.assertLintJobExecuted(result, false);
+        assertions.assertTestJobExecuted(result, false);
+        assertions.assertIsExpensifyEmployeeJobExecuted(result, false);
+        assertions.assertE2ETestsJobExecuted(result, false); // Act does not support ubuntu-20.04-64core runner and omits the job
+        assertions.assertChooseDeployActionsJobExecuted(result, false);
+        assertions.assertSkipDeployJobExecuted(result, false);
+        assertions.assertCreateNewVersionJobExecuted(result, false);
+        assertions.assertUpdateStagingJobExecuted(result, false);
+
+        // workflow_dispatch
+        act = utils.setUpActParams(
+            act,
+            'workflow_dispatch',
+            {
+                OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_s3cr3t_p455word',
+            },
+            'dummy_github_token',
+        );
+        result = await act
+            .runEvent('workflow_dispatch', {
+                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                mockSteps: testMockSteps,
+            });
+        assertions.assertLintJobExecuted(result, false);
+        assertions.assertTestJobExecuted(result, false);
+        assertions.assertIsExpensifyEmployeeJobExecuted(result, false);
+        assertions.assertE2ETestsJobExecuted(result, false); // Act does not support ubuntu-20.04-64core runner and omits the job
+        assertions.assertChooseDeployActionsJobExecuted(result, false);
+        assertions.assertSkipDeployJobExecuted(result, false);
+        assertions.assertCreateNewVersionJobExecuted(result, false);
+        assertions.assertUpdateStagingJobExecuted(result, false);
+    }, 60000);
+
     describe('confirm passing build', () => {
         test('lint job failed - workflow exits', async () => {
             const repoPath = mockGithub.repo.getPath('testWorkflowsRepo') || '';
@@ -152,7 +217,7 @@ describe('test workflow preDeploy', () => {
             let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
-                'pull_request',
+                'push',
                 {head: {ref: 'main'}},
                 {
                     OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_s3cr3t_p455word',
@@ -230,7 +295,7 @@ describe('test workflow preDeploy', () => {
             let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
-                'pull_request',
+                'push',
                 {head: {ref: 'main'}},
                 {
                     OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_s3cr3t_p455word',
@@ -308,7 +373,7 @@ describe('test workflow preDeploy', () => {
             let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
-                'pull_request',
+                'push',
                 {head: {ref: 'main'}},
                 {
                     OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_s3cr3t_p455word',
@@ -350,7 +415,7 @@ describe('test workflow preDeploy', () => {
             let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
-                'pull_request',
+                'push',
                 {head: {ref: 'main'}},
                 {
                     OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'OSBotify', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_s3cr3t_p455word',
@@ -388,7 +453,7 @@ describe('test workflow preDeploy', () => {
             let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
-                'pull_request',
+                'push',
                 {head: {ref: 'main'}},
                 {
                     OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_s3cr3t_p455word',
@@ -426,7 +491,7 @@ describe('test workflow preDeploy', () => {
             let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
-                'pull_request',
+                'push',
                 {head: {ref: 'main'}},
                 {
                     OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_s3cr3t_p455word',
@@ -464,7 +529,7 @@ describe('test workflow preDeploy', () => {
             let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
-                'pull_request',
+                'push',
                 {head: {ref: 'main'}},
                 {
                     OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_s3cr3t_p455word',
@@ -504,7 +569,7 @@ describe('test workflow preDeploy', () => {
             let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
-                'pull_request',
+                'push',
                 {head: {ref: 'main'}},
                 {OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook'},
                 'dummy_github_token',
@@ -542,7 +607,7 @@ describe('test workflow preDeploy', () => {
             let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
-                'pull_request',
+                'push',
                 {head: {ref: 'main'}},
                 {OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'OSBotify', SLACK_WEBHOOK: 'dummy_slack_webhook'},
                 'dummy_github_token',
@@ -580,7 +645,7 @@ describe('test workflow preDeploy', () => {
             let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
-                'pull_request',
+                'push',
                 {head: {ref: 'main'}},
                 {
                     OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_s3cr3t_p455word',
@@ -620,7 +685,7 @@ describe('test workflow preDeploy', () => {
             let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
-                'pull_request',
+                'push',
                 {head: {ref: 'main'}},
                 {OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'OSBotify', SLACK_WEBHOOK: 'dummy_slack_webhook'},
                 'dummy_github_token',
@@ -658,7 +723,7 @@ describe('test workflow preDeploy', () => {
             let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
-                'pull_request',
+                'push',
                 {head: {ref: 'main'}},
                 {
                     OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_s3cr3t_p455word',
@@ -698,7 +763,7 @@ describe('test workflow preDeploy', () => {
             let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
-                'pull_request',
+                'push',
                 {head: {ref: 'main'}},
                 {
                     OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'OSBotify', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_s3cr3t_p455word',
@@ -738,7 +803,7 @@ describe('test workflow preDeploy', () => {
             let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
-                'pull_request',
+                'push',
                 {head: {ref: 'main'}},
                 {
                     OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_s3cr3t_p455word',
@@ -778,7 +843,7 @@ describe('test workflow preDeploy', () => {
             let act = new kieActJs.Act(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
-                'pull_request',
+                'push',
                 {head: {ref: 'main'}},
                 {
                     OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'OSBotify', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_s3cr3t_p455word',
