@@ -377,8 +377,8 @@ export default {
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add phone number',
         addEmailAddress: 'Add email address',
-        enterPreferredPhoneNumberToSendValidationLink: 'Enter your preferred phone number and password to send a validation link.',
-        enterPreferredEmailToSendValidationLink: 'Enter your preferred email address and password to send a validation link.',
+        enterPreferredPhoneNumberToSendValidationLink: 'Enter your preferred phone number to send a validation link.',
+        enterPreferredEmailToSendValidationLink: 'Enter your preferred email address to send a validation link.',
         sendValidation: 'Send validation',
     },
     initialSettingsPage: {
