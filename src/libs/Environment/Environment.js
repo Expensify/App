@@ -40,13 +40,11 @@ function getEnvironmentURL() {
 /**
  * Get the corresponding oldDot URL based on the environment we are in
  *
- * @returns {Promise}
+ * @returns {Promise <string>}
  */
 function getOldDotEnvironmentURL() {
-    return new Promise((resolve) => {
-        getEnvironment()
-            .then(environment => resolve(OLDDOT_ENVIRONMENT_URLS[environment]));
-    });
+    return getEnvironment()
+        .then(environment => OLDDOT_ENVIRONMENT_URLS[environment]);
 }
 
 export {
