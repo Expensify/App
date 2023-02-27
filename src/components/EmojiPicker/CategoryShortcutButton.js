@@ -33,7 +33,6 @@ class CategoryShortcutButton extends PureComponent {
 
     render() {
         return (
-            
             <Pressable
                 onPress={this.props.onPress}
                 onHoverIn={() => this.setState({isHighlighted: true})}
@@ -44,7 +43,7 @@ class CategoryShortcutButton extends PureComponent {
                     this.state.isHighlighted && styles.emojiItemHighlighted,
                 ])}
             >
-                <Tooltip text={this.props.translate(`emojiPicker.headers.${this.props.code}`)}>
+                <Tooltip text={this.props.translate(`emojiPicker.headers.${this.props.code}`)} shiftVertical={-8}>
                     <View style={styles.alignSelfCenter}>
                         <Icon
                             fill={themeColors.icon}
