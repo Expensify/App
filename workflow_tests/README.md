@@ -147,3 +147,199 @@ results in
         + ', SECRET_ENV_VAR=***',
 }
 ```
+
+## Typical test file
+The following is the typical test file content, which will be followed by a detailed breakdown
+```javascript
+const path = require('path');
+const kieActJs = require('@kie/act-js');
+const kieMockGithub = require('@kie/mock-github');
+const utils = require('./utils');
+const assertions = require('./assertions/<workflow>Assertions');
+const mocks = require('./mocks/<workflow>Mocks');
+
+let mockGithub;
+const FILES_TO_COPY_INTO_TEST_REPO = [
+    {
+        src: path.resolve(__dirname, '..', '.github', 'actions'),
+        dest: '.github/actions',
+    },
+    {
+        src: path.resolve(__dirname, '..', '.github', 'libs'),
+        dest: '.github/libs',
+    },
+    {
+        src: path.resolve(__dirname, '..', '.github', 'scripts'),
+        dest: '.github/scripts',
+    },
+    {
+        src: path.resolve(__dirname, '..', '.github', 'workflows', '<workflow>.yml'),
+        dest: '.github/workflows/<workflow>.yml',
+    },
+];
+
+beforeEach(async () => {
+    mockGithub = new kieMockGithub.MockGithub({
+        repo: {
+            testWorkflowsRepo: {
+                files: FILES_TO_COPY_INTO_TEST_REPO,
+            },
+        },
+    });
+
+    await mockGithub.setup();
+});
+
+afterEach(async () => {
+    await mockGithub.teardown();
+});
+
+describe('test some general behaviour', () => {
+    test('something happens - test if expected happened next', async () => {
+        // get path to the local test repo
+        const repoPath = mockGithub.repo.getPath('testWorkflowsRepo') || '';
+
+        // get path to the workflow file under test
+        const workflowPath = path.join(repoPath, '.github', 'workflows', '<workflow>.yml');
+
+        // instantiate Act in the context of the test repo and given workflow file
+        let act = new kieActJs.Act(repoPath, workflowPath);
+
+        // set run parameters
+        act = utils.setUpActParams(
+            act,
+            '<event>',
+            {head: {ref: '<branch_name>'}},
+            {'<SECRET_NAME>': '<secret_value'},
+            '<github_token>',
+        );
+
+        // set up mocks
+        const testMockSteps = {
+            '<job_1_name>': [
+                {
+                    name: '<step_1_1_name>',
+                    mockWith: '<mock_command>',
+                },
+                {
+                    name: '<step_1_2_name>',
+                    mockWith: '<mock_command>',
+                },
+            ],
+            '<job_2_name>': [
+                utils.getMockStep('<step_2_1_name>', '<message>'),
+                utils.getMockStep('<step_2_2_name>', '<message>'),
+            ],
+        };
+
+        // run an event and get the result
+        const result = await act
+            .runEvent('<event>', {
+                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                mockSteps: testMockSteps,
+            });
+
+        // assert results (some steps can run in parallel to each other so the order is not assured
+        // therefore we can check which steps have been executed, but not the set job order
+        assertions.assertSomethingHappend(result);
+        assertions.assertSomethingDidNotHappen(result, false);
+    }, timeout);
+);
+```
+
+### Breakdown
+Define which files should be copied into the test repo. In this case we copy `actions`, `libs`, `scripts` folders in their entirety and just the one workflow file we want to test
+```javascript
+const FILES_TO_COPY_INTO_TEST_REPO = [
+    {
+        src: path.resolve(__dirname, '..', '.github', 'actions'),
+        dest: '.github/actions',
+    },
+    {
+        src: path.resolve(__dirname, '..', '.github', 'libs'),
+        dest: '.github/libs',
+    },
+    {
+        src: path.resolve(__dirname, '..', '.github', 'scripts'),
+        dest: '.github/scripts',
+    },
+    {
+        src: path.resolve(__dirname, '..', '.github', 'workflows', '<workflow>.yml'),
+        dest: '.github/workflows/<workflow>.yml',
+    },
+];
+```
+`beforeEach` gets executed before each test. Here we create the local test repository with the files defined in the `FILES_TO_COPY_INTO_TEST_REPO` variable. `testWorkflowRepo` is the name of the test repo and can be changed to whichever name you choose, just remember to use it later when accessing this repo. _Note that we can't use `beforeAll()` method, because while mocking steps `Act-js` modifies the workflow file copied into the test repo and thus mocking could persist between tests_
+```javascript
+beforeEach(async () => {
+    mockGithub = new kieMockGithub.MockGithub({
+        repo: {
+            testWorkflowsRepo: {
+                files: FILES_TO_COPY_INTO_TEST_REPO,
+            },
+        },
+    });
+
+    await mockGithub.setup();
+});
+```
+Similarly, `afterEach` gets executed after each test. In this case we remove the test repo after the test finishes
+```javascript
+afterEach(async () => {
+    await mockGithub.teardown();
+});
+```
+Get path to the local test repo, useful to have it in a variable
+```javascript
+const repoPath = mockGithub.repo.getPath('testWorkflowsRepo') || '';
+```
+Get path to the workflow under test. Note that it's the path **in the test repo**
+```javascript
+const workflowPath = path.join(repoPath, '.github', 'workflows', '<workflow>.yml');
+```
+Instantiate `Act` object instance. Here we provide the constructor with the path to the test repo (so that `Act` can execute in its context) and the path the workflow file under test (so just the workflow we want to test would be executed)
+```javascript
+let act = new kieActJs.Act(repoPath, workflowPath);
+```
+Set up initial parameters for `Act`. This is where we can set secrets, GitHub token and options for the events (like the name of the branch to which the push has been made, etc.)
+```javascript
+act = utils.setUpActParams(
+    act,
+    '<event>',
+    {head: {ref: '<branch_name>'}},
+    {'<SECRET_NAME>': '<secret_value'},
+    '<github_token>',
+);
+```
+Set up step mocks. Here we configure which steps in the workflow should be mocked, and with what behaviour. This takes form of an object with keys corresponding to the names of the jobs in the workflow, and values being mock definitions for specific steps. The steps can be identified either by `id`, `name`, `uses` or `run`. Step mock can be defined either by hand (`<job_1_name>`) or with the helper method `utils.getMockStep()` (`<job_2_name>`). Not mocked steps will be executed normally - **make sure this will not have unexpected consequences**
+```javascript
+const testMockSteps = {
+    '<job_1_name>': [
+        {
+            name: '<step_1_1_name>',
+            mockWith: '<mock_command>',
+        },
+        {
+            name: '<step_1_2_name>',
+            mockWith: '<mock_command>',
+        },
+    ],
+    '<job_2_name>': [
+        utils.getMockStep('<step_2_1_name>', '<message>'),
+        utils.getMockStep('<step_2_2_name>', '<message>'),
+    ],
+};
+```
+Most important part - actually running the event with `Act`. This executes the specified `<event>` in the context of the local test repo created before and with the workflow under test set up. `result` stores the output of `Act` execution, which can then be compared to what was expected. Note that the `workflowFile` is actually path to _workflow folder_ and not the file itself - `Act-js` determines the name of the workflow by itself, and tries to find it in the specified `workflowFile` path, so _providing the full path to the file will fail_
+```javascript
+const result = await act
+    .runEvent('<event>', {
+        workflowFile: path.join(repoPath, '.github', 'workflows'),
+        mockSteps: testMockSteps,
+    });
+```
+Assert results are as expected. Here it's usually done with the helper assertion methods defined in the assertions file. Step assertions can be created manually or with `getStepAssertion()` helper method
+```javascript
+assertions.assertSomethingHappend(result);
+assertions.assertSomethingDidNotHappen(result, false);
+```
