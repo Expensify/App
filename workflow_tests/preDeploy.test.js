@@ -190,6 +190,7 @@ describe('test workflow preDeploy', () => {
         act = utils.setUpActParams(
             act,
             'workflow_dispatch',
+            {},
             {
                 OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_s3cr3t_p455word',
             },
