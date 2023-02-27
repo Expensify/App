@@ -338,7 +338,7 @@ const result = await act
         mockSteps: testMockSteps,
     });
 ```
-Assert results are as expected. Here it's usually done with the helper assertion methods defined in the assertions file. Step assertions can be created manually or with `getStepAssertion()` helper method
+Assert results are as expected. This can, for example, include using `expect()` to check if the steps that should be executed have indeed been executed, steps that shouldn't run have not been executed, compare statuses (which steps succeeded, which failed) and step outputs. Outputs can include additional information, like input values, environmental variables, secrets (although these are usually not accessible and represented by `***`, this can still be useful to check if the value exists or not). Here it's usually done with the helper assertion methods defined in the assertions file. Step assertions can be created manually or with `getStepAssertion()` helper method
 ```javascript
 assertions.assertSomethingHappend(result);
 assertions.assertSomethingDidNotHappen(result, false);
