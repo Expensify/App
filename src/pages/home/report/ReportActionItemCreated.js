@@ -56,10 +56,9 @@ const ReportActionItemCreated = (props) => {
                     source={EmptyStateBackgroundImage}
                     style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
                 />
-                <View pointerEvents="none" style={StyleUtils.getReportWelcomeBackgroundImageViewStyle(props.isSmallScreenWidth)} />
                 <View
                     accessibilityLabel="Chat welcome message"
-                    style={styles.p5}
+                    style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}
                 >
                     <Pressable
                         onPress={() => ReportUtils.navigateToDetailsPage(props.report)}

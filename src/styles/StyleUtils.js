@@ -701,15 +701,15 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth) {
  * @param {Boolean} isSmallScreenWidth
  * @returns {Object}
  */
-function getReportWelcomeBackgroundImageViewStyle(isSmallScreenWidth) {
+function getReportWelcomeTopMarginStyle(isSmallScreenWidth) {
     if (isSmallScreenWidth) {
         return {
-            height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.VIEW_HEIGHT,
+            marginTop: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.VIEW_HEIGHT,
         };
     }
 
     return {
-        height: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.VIEW_HEIGHT,
+        marginTop: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.VIEW_HEIGHT,
     };
 }
 
@@ -773,6 +773,6 @@ export {
     fade,
     getHorizontalStackedAvatarBorderStyle,
     getReportWelcomeBackgroundImageStyle,
-    getReportWelcomeBackgroundImageViewStyle,
+    getReportWelcomeTopMarginStyle,
     getReportWelcomeContainerStyle,
 };
