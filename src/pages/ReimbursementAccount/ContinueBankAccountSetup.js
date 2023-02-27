@@ -30,9 +30,6 @@ const propTypes = {
     /** Callback to continue to the next step of the setup */
     continue: PropTypes.func.isRequired,
 
-    /** Callback to reset the bank account */
-    startOver: PropTypes.func.isRequired,
-
     /** Policy values needed in the component */
     policy: PropTypes.shape({
         name: PropTypes.string,
@@ -97,7 +94,6 @@ const ContinueBankAccountSetup = (props) => {
             {props.reimbursementAccount.shouldShowResetModal && (
                 <WorkspaceResetBankAccountModal
                     reimbursementAccount={props.reimbursementAccount}
-                    onConfirm={props.startOver}
                 />
             )}
         </ScreenWrapper>
