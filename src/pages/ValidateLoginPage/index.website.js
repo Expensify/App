@@ -14,6 +14,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
 import Permissions from '../../libs/Permissions';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import AbracadabraModal from '../../components/ValidateCode/AbracadabraModal';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
@@ -91,8 +92,8 @@ class ValidateLoginPage extends Component {
         return (
             this.isOnPasswordlessBeta() && !this.isSignInInitiated() && !lodashGet(this.props, 'account.isLoading', true)
                 ? (
-                    <ValidateCodeModal
-                        isSuccessfullySignedIn={this.state.justSignedIn}
+                    this.state.justSignedIn ? <AbracadabraModal />
+                    : <ValidateCodeModal
                         code={this.validateCode()}
                         shouldShowSignInHere={!this.isAuthenticated() && !this.isSignInInitiated()}
                         onSignInHereClick={() => Session.signInWithValidateCodeAndNavigate(this.accountID(), this.validateCode())}
