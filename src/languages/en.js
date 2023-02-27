@@ -1214,1025 +1214,260 @@ export default {
     },
     allStates: COMMON_CONST.STATES,
     allCountries: {
-        AC: {
-            countryISO: 'AC',
-            countryName: 'Ascension Island',
-        },
-        AD: {
-            countryISO: 'AD',
-            countryName: 'Andorra',
-        },
-        AE: {
-            countryISO: 'AE',
-            countryName: 'United Arab Emirates',
-        },
-        AF: {
-            countryISO: 'AF',
-            countryName: 'Afghanistan',
-        },
-        AG: {
-            countryISO: 'AG',
-            countryName: 'Antigua & Barbuda',
-        },
-        AI: {
-            countryISO: 'AI',
-            countryName: 'Anguilla',
-        },
-        AL: {
-            countryISO: 'AL',
-            countryName: 'Albania',
-        },
-        AM: {
-            countryISO: 'AM',
-            countryName: 'Armenia',
-        },
-        AO: {
-            countryISO: 'AO',
-            countryName: 'Angola',
-        },
-        AQ: {
-            countryISO: 'AQ',
-            countryName: 'Antarctica',
-        },
-        AR: {
-            countryISO: 'AR',
-            countryName: 'Argentina',
-        },
-        AS: {
-            countryISO: 'AS',
-            countryName: 'American Samoa',
-        },
-        AT: {
-            countryISO: 'AT',
-            countryName: 'Austria',
-        },
-        AU: {
-            countryISO: 'AU',
-            countryName: 'Australia',
-        },
-        AW: {
-            countryISO: 'AW',
-            countryName: 'Aruba',
-        },
-        AX: {
-            countryISO: 'AX',
-            countryName: 'Åland Islands',
-        },
-        AZ: {
-            countryISO: 'AZ',
-            countryName: 'Azerbaijan',
-        },
-        BA: {
-            countryISO: 'BA',
-            countryName: 'Bosnia & Herzegovina',
-        },
-        BB: {
-            countryISO: 'BB',
-            countryName: 'Barbados',
-        },
-        BD: {
-            countryISO: 'BD',
-            countryName: 'Bangladesh',
-        },
-        BE: {
-            countryISO: 'BE',
-            countryName: 'Belgium',
-        },
-        BF: {
-            countryISO: 'BF',
-            countryName: 'Burkina Faso',
-        },
-        BG: {
-            countryISO: 'BG',
-            countryName: 'Bulgaria',
-        },
-        BH: {
-            countryISO: 'BH',
-            countryName: 'Bahrain',
-        },
-        BI: {
-            countryISO: 'BI',
-            countryName: 'Burundi',
-        },
-        BJ: {
-            countryISO: 'BJ',
-            countryName: 'Benin',
-        },
-        BL: {
-            countryISO: 'BL',
-            countryName: 'St. Barthélemy',
-        },
-        BM: {
-            countryISO: 'BM',
-            countryName: 'Bermuda',
-        },
-        BN: {
-            countryISO: 'BN',
-            countryName: 'Brunei',
-        },
-        BO: {
-            countryISO: 'BO',
-            countryName: 'Bolivia',
-        },
-        BQ: {
-            countryISO: 'BQ',
-            countryName: 'Caribbean Netherlands',
-        },
-        BR: {
-            countryISO: 'BR',
-            countryName: 'Brazil',
-        },
-        BS: {
-            countryISO: 'BS',
-            countryName: 'Bahamas',
-        },
-        BT: {
-            countryISO: 'BT',
-            countryName: 'Bhutan',
-        },
-        BW: {
-            countryISO: 'BW',
-            countryName: 'Botswana',
-        },
-        BY: {
-            countryISO: 'BY',
-            countryName: 'Belarus',
-        },
-        BZ: {
-            countryISO: 'BZ',
-            countryName: 'Belize',
-        },
-        CA: {
-            countryISO: 'CA',
-            countryName: 'Canada',
-        },
-        CC: {
-            countryISO: 'CC',
-            countryName: 'Cocos (Keeling) Islands',
-        },
-        CD: {
-            countryISO: 'CD',
-            countryName: 'Congo - Kinshasa',
-        },
-        CF: {
-            countryISO: 'CF',
-            countryName: 'Central African Republic',
-        },
-        CG: {
-            countryISO: 'CG',
-            countryName: 'Congo - Brazzaville',
-        },
-        CH: {
-            countryISO: 'CH',
-            countryName: 'Switzerland',
-        },
-        CI: {
-            countryISO: 'CI',
-            countryName: 'Côte d’Ivoire',
-        },
-        CK: {
-            countryISO: 'CK',
-            countryName: 'Cook Islands',
-        },
-        CL: {
-            countryISO: 'CL',
-            countryName: 'Chile',
-        },
-        CM: {
-            countryISO: 'CM',
-            countryName: 'Cameroon',
-        },
-        CN: {
-            countryISO: 'CN',
-            countryName: 'China',
-        },
-        CO: {
-            countryISO: 'CO',
-            countryName: 'Colombia',
-        },
-        CR: {
-            countryISO: 'CR',
-            countryName: 'Costa Rica',
-        },
-        CU: {
-            countryISO: 'CU',
-            countryName: 'Cuba',
-        },
-        CV: {
-            countryISO: 'CV',
-            countryName: 'Cape Verde',
-        },
-        CW: {
-            countryISO: 'CW',
-            countryName: 'Curaçao',
-        },
-        CX: {
-            countryISO: 'CX',
-            countryName: 'Christmas Island',
-        },
-        CY: {
-            countryISO: 'CY',
-            countryName: 'Cyprus',
-        },
-        CZ: {
-            countryISO: 'CZ',
-            countryName: 'Czechia',
-        },
-        DE: {
-            countryISO: 'DE',
-            countryName: 'Germany',
-        },
-        DG: {
-            countryISO: 'DG',
-            countryName: 'Diego Garcia',
-        },
-        DJ: {
-            countryISO: 'DJ',
-            countryName: 'Djibouti',
-        },
-        DK: {
-            countryISO: 'DK',
-            countryName: 'Denmark',
-        },
-        DM: {
-            countryISO: 'DM',
-            countryName: 'Dominica',
-        },
-        DO: {
-            countryISO: 'DO',
-            countryName: 'Dominican Republic',
-        },
-        DZ: {
-            countryISO: 'DZ',
-            countryName: 'Algeria',
-        },
-        EA: {
-            countryISO: 'EA',
-            countryName: 'Ceuta & Melilla',
-        },
-        EC: {
-            countryISO: 'EC',
-            countryName: 'Ecuador',
-        },
-        EE: {
-            countryISO: 'EE',
-            countryName: 'Estonia',
-        },
-        EG: {
-            countryISO: 'EG',
-            countryName: 'Egypt',
-        },
-        EH: {
-            countryISO: 'EH',
-            countryName: 'Western Sahara',
-        },
-        ER: {
-            countryISO: 'ER',
-            countryName: 'Eritrea',
-        },
-        ES: {
-            countryISO: 'ES',
-            countryName: 'Spain',
-        },
-        ET: {
-            countryISO: 'ET',
-            countryName: 'Ethiopia',
-        },
-        EZ: {
-            countryISO: 'EZ',
-            countryName: 'Eurozone',
-        },
-        FI: {
-            countryISO: 'FI',
-            countryName: 'Finland',
-        },
-        FJ: {
-            countryISO: 'FJ',
-            countryName: 'Fiji',
-        },
-        FK: {
-            countryISO: 'FK',
-            countryName: 'Falkland Islands',
-        },
-        FM: {
-            countryISO: 'FM',
-            countryName: 'Micronesia',
-        },
-        FO: {
-            countryISO: 'FO',
-            countryName: 'Faroe Islands',
-        },
-        FR: {
-            countryISO: 'FR',
-            countryName: 'France',
-        },
-        GA: {
-            countryISO: 'GA',
-            countryName: 'Gabon',
-        },
-        GB: {
-            countryISO: 'GB',
-            countryName: 'United Kingdom',
-        },
-        GD: {
-            countryISO: 'GD',
-            countryName: 'Grenada',
-        },
-        GE: {
-            countryISO: 'GE',
-            countryName: 'Georgia',
-        },
-        GF: {
-            countryISO: 'GF',
-            countryName: 'French Guiana',
-        },
-        GG: {
-            countryISO: 'GG',
-            countryName: 'Guernsey',
-        },
-        GH: {
-            countryISO: 'GH',
-            countryName: 'Ghana',
-        },
-        GI: {
-            countryISO: 'GI',
-            countryName: 'Gibraltar',
-        },
-        GL: {
-            countryISO: 'GL',
-            countryName: 'Greenland',
-        },
-        GM: {
-            countryISO: 'GM',
-            countryName: 'Gambia',
-        },
-        GN: {
-            countryISO: 'GN',
-            countryName: 'Guinea',
-        },
-        GP: {
-            countryISO: 'GP',
-            countryName: 'Guadeloupe',
-        },
-        GQ: {
-            countryISO: 'GQ',
-            countryName: 'Equatorial Guinea',
-        },
-        GR: {
-            countryISO: 'GR',
-            countryName: 'Greece',
-        },
-        GS: {
-            countryISO: 'GS',
-            countryName: 'South Georgia & South Sandwich Islands',
-        },
-        GT: {
-            countryISO: 'GT',
-            countryName: 'Guatemala',
-        },
-        GU: {
-            countryISO: 'GU',
-            countryName: 'Guam',
-        },
-        GW: {
-            countryISO: 'GW',
-            countryName: 'Guinea-Bissau',
-        },
-        GY: {
-            countryISO: 'GY',
-            countryName: 'Guyana',
-        },
-        HK: {
-            countryISO: 'HK',
-            countryName: 'Hong Kong SAR China',
-        },
-        HN: {
-            countryISO: 'HN',
-            countryName: 'Honduras',
-        },
-        HR: {
-            countryISO: 'HR',
-            countryName: 'Croatia',
-        },
-        HT: {
-            countryISO: 'HT',
-            countryName: 'Haiti',
-        },
-        HU: {
-            countryISO: 'HU',
-            countryName: 'Hungary',
-        },
-        IC: {
-            countryISO: 'IC',
-            countryName: 'Canary Islands',
-        },
-        ID: {
-            countryISO: 'ID',
-            countryName: 'Indonesia',
-        },
-        IE: {
-            countryISO: 'IE',
-            countryName: 'Ireland',
-        },
-        IL: {
-            countryISO: 'IL',
-            countryName: 'Israel',
-        },
-        IM: {
-            countryISO: 'IM',
-            countryName: 'Isle of Man',
-        },
-        IN: {
-            countryISO: 'IN',
-            countryName: 'India',
-        },
-        IO: {
-            countryISO: 'IO',
-            countryName: 'British Indian Ocean Territory',
-        },
-        IQ: {
-            countryISO: 'IQ',
-            countryName: 'Iraq',
-        },
-        IR: {
-            countryISO: 'IR',
-            countryName: 'Iran',
-        },
-        IS: {
-            countryISO: 'IS',
-            countryName: 'Iceland',
-        },
-        IT: {
-            countryISO: 'IT',
-            countryName: 'Italy',
-        },
-        JE: {
-            countryISO: 'JE',
-            countryName: 'Jersey',
-        },
-        JM: {
-            countryISO: 'JM',
-            countryName: 'Jamaica',
-        },
-        JO: {
-            countryISO: 'JO',
-            countryName: 'Jordan',
-        },
-        JP: {
-            countryISO: 'JP',
-            countryName: 'Japan',
-        },
-        KE: {
-            countryISO: 'KE',
-            countryName: 'Kenya',
-        },
-        KG: {
-            countryISO: 'KG',
-            countryName: 'Kyrgyzstan',
-        },
-        KH: {
-            countryISO: 'KH',
-            countryName: 'Cambodia',
-        },
-        KI: {
-            countryISO: 'KI',
-            countryName: 'Kiribati',
-        },
-        KM: {
-            countryISO: 'KM',
-            countryName: 'Comoros',
-        },
-        KN: {
-            countryISO: 'KN',
-            countryName: 'St. Kitts & Nevis',
-        },
-        KP: {
-            countryISO: 'KP',
-            countryName: 'North Korea',
-        },
-        KR: {
-            countryISO: 'KR',
-            countryName: 'South Korea',
-        },
-        KW: {
-            countryISO: 'KW',
-            countryName: 'Kuwait',
-        },
-        KY: {
-            countryISO: 'KY',
-            countryName: 'Cayman Islands',
-        },
-        KZ: {
-            countryISO: 'KZ',
-            countryName: 'Kazakhstan',
-        },
-        LA: {
-            countryISO: 'LA',
-            countryName: 'Laos',
-        },
-        LB: {
-            countryISO: 'LB',
-            countryName: 'Lebanon',
-        },
-        LC: {
-            countryISO: 'LC',
-            countryName: 'St. Lucia',
-        },
-        LI: {
-            countryISO: 'LI',
-            countryName: 'Liechtenstein',
-        },
-        LK: {
-            countryISO: 'LK',
-            countryName: 'Sri Lanka',
-        },
-        LR: {
-            countryISO: 'LR',
-            countryName: 'Liberia',
-        },
-        LS: {
-            countryISO: 'LS',
-            countryName: 'Lesotho',
-        },
-        LT: {
-            countryISO: 'LT',
-            countryName: 'Lithuania',
-        },
-        LU: {
-            countryISO: 'LU',
-            countryName: 'Luxembourg',
-        },
-        LV: {
-            countryISO: 'LV',
-            countryName: 'Latvia',
-        },
-        LY: {
-            countryISO: 'LY',
-            countryName: 'Libya',
-        },
-        MA: {
-            countryISO: 'MA',
-            countryName: 'Morocco',
-        },
-        MC: {
-            countryISO: 'MC',
-            countryName: 'Monaco',
-        },
-        MD: {
-            countryISO: 'MD',
-            countryName: 'Moldova',
-        },
-        ME: {
-            countryISO: 'ME',
-            countryName: 'Montenegro',
-        },
-        MF: {
-            countryISO: 'MF',
-            countryName: 'St. Martin',
-        },
-        MG: {
-            countryISO: 'MG',
-            countryName: 'Madagascar',
-        },
-        MH: {
-            countryISO: 'MH',
-            countryName: 'Marshall Islands',
-        },
-        MK: {
-            countryISO: 'MK',
-            countryName: 'Macedonia',
-        },
-        ML: {
-            countryISO: 'ML',
-            countryName: 'Mali',
-        },
-        MM: {
-            countryISO: 'MM',
-            countryName: 'Myanmar (Burma)',
-        },
-        MN: {
-            countryISO: 'MN',
-            countryName: 'Mongolia',
-        },
-        MO: {
-            countryISO: 'MO',
-            countryName: 'Macau SAR China',
-        },
-        MP: {
-            countryISO: 'MP',
-            countryName: 'Northern Mariana Islands',
-        },
-        MQ: {
-            countryISO: 'MQ',
-            countryName: 'Martinique',
-        },
-        MR: {
-            countryISO: 'MR',
-            countryName: 'Mauritania',
-        },
-        MS: {
-            countryISO: 'MS',
-            countryName: 'Montserrat',
-        },
-        MT: {
-            countryISO: 'MT',
-            countryName: 'Malta',
-        },
-        MU: {
-            countryISO: 'MU',
-            countryName: 'Mauritius',
-        },
-        MV: {
-            countryISO: 'MV',
-            countryName: 'Maldives',
-        },
-        MW: {
-            countryISO: 'MW',
-            countryName: 'Malawi',
-        },
-        MX: {
-            countryISO: 'MX',
-            countryName: 'Mexico',
-        },
-        MY: {
-            countryISO: 'MY',
-            countryName: 'Malaysia',
-        },
-        MZ: {
-            countryISO: 'MZ',
-            countryName: 'Mozambique',
-        },
-        NA: {
-            countryISO: 'NA',
-            countryName: 'Namibia',
-        },
-        NC: {
-            countryISO: 'NC',
-            countryName: 'New Caledonia',
-        },
-        NE: {
-            countryISO: 'NE',
-            countryName: 'Niger',
-        },
-        NF: {
-            countryISO: 'NF',
-            countryName: 'Norfolk Island',
-        },
-        NG: {
-            countryISO: 'NG',
-            countryName: 'Nigeria',
-        },
-        NI: {
-            countryISO: 'NI',
-            countryName: 'Nicaragua',
-        },
-        NL: {
-            countryISO: 'NL',
-            countryName: 'Netherlands',
-        },
-        NO: {
-            countryISO: 'NO',
-            countryName: 'Norway',
-        },
-        NP: {
-            countryISO: 'NP',
-            countryName: 'Nepal',
-        },
-        NR: {
-            countryISO: 'NR',
-            countryName: 'Nauru',
-        },
-        NU: {
-            countryISO: 'NU',
-            countryName: 'Niue',
-        },
-        NZ: {
-            countryISO: 'NZ',
-            countryName: 'New Zealand',
-        },
-        OM: {
-            countryISO: 'OM',
-            countryName: 'Oman',
-        },
-        PA: {
-            countryISO: 'PA',
-            countryName: 'Panama',
-        },
-        PE: {
-            countryISO: 'PE',
-            countryName: 'Peru',
-        },
-        PF: {
-            countryISO: 'PF',
-            countryName: 'French Polynesia',
-        },
-        PG: {
-            countryISO: 'PG',
-            countryName: 'Papua New Guinea',
-        },
-        PH: {
-            countryISO: 'PH',
-            countryName: 'Philippines',
-        },
-        PK: {
-            countryISO: 'PK',
-            countryName: 'Pakistan',
-        },
-        PL: {
-            countryISO: 'PL',
-            countryName: 'Poland',
-        },
-        PM: {
-            countryISO: 'PM',
-            countryName: 'St. Pierre & Miquelon',
-        },
-        PN: {
-            countryISO: 'PN',
-            countryName: 'Pitcairn Islands',
-        },
-        PR: {
-            countryISO: 'PR',
-            countryName: 'Puerto Rico',
-        },
-        PS: {
-            countryISO: 'PS',
-            countryName: 'Palestinian Territories',
-        },
-        PT: {
-            countryISO: 'PT',
-            countryName: 'Portugal',
-        },
-        PW: {
-            countryISO: 'PW',
-            countryName: 'Palau',
-        },
-        PY: {
-            countryISO: 'PY',
-            countryName: 'Paraguay',
-        },
-        QA: {
-            countryISO: 'QA',
-            countryName: 'Qatar',
-        },
-        RE: {
-            countryISO: 'RE',
-            countryName: 'Réunion',
-        },
-        RO: {
-            countryISO: 'RO',
-            countryName: 'Romania',
-        },
-        RS: {
-            countryISO: 'RS',
-            countryName: 'Serbia',
-        },
-        RU: {
-            countryISO: 'RU',
-            countryName: 'Russia',
-        },
-        RW: {
-            countryISO: 'RW',
-            countryName: 'Rwanda',
-        },
-        SA: {
-            countryISO: 'SA',
-            countryName: 'Saudi Arabia',
-        },
-        SB: {
-            countryISO: 'SB',
-            countryName: 'Solomon Islands',
-        },
-        SC: {
-            countryISO: 'SC',
-            countryName: 'Seychelles',
-        },
-        SD: {
-            countryISO: 'SD',
-            countryName: 'Sudan',
-        },
-        SE: {
-            countryISO: 'SE',
-            countryName: 'Sweden',
-        },
-        SG: {
-            countryISO: 'SG',
-            countryName: 'Singapore',
-        },
-        SH: {
-            countryISO: 'SH',
-            countryName: 'St. Helena',
-        },
-        SI: {
-            countryISO: 'SI',
-            countryName: 'Slovenia',
-        },
-        SJ: {
-            countryISO: 'SJ',
-            countryName: 'Svalbard & Jan Mayen',
-        },
-        SK: {
-            countryISO: 'SK',
-            countryName: 'Slovakia',
-        },
-        SL: {
-            countryISO: 'SL',
-            countryName: 'Sierra Leone',
-        },
-        SM: {
-            countryISO: 'SM',
-            countryName: 'San Marino',
-        },
-        SN: {
-            countryISO: 'SN',
-            countryName: 'Senegal',
-        },
-        SO: {
-            countryISO: 'SO',
-            countryName: 'Somalia',
-        },
-        SR: {
-            countryISO: 'SR',
-            countryName: 'Suriname',
-        },
-        SS: {
-            countryISO: 'SS',
-            countryName: 'South Sudan',
-        },
-        ST: {
-            countryISO: 'ST',
-            countryName: 'São Tomé & Príncipe',
-        },
-        SV: {
-            countryISO: 'SV',
-            countryName: 'El Salvador',
-        },
-        SX: {
-            countryISO: 'SX',
-            countryName: 'Sint Maarten',
-        },
-        SY: {
-            countryISO: 'SY',
-            countryName: 'Syria',
-        },
-        SZ: {
-            countryISO: 'SZ',
-            countryName: 'Swaziland',
-        },
-        TA: {
-            countryISO: 'TA',
-            countryName: 'Tristan da Cunha',
-        },
-        TC: {
-            countryISO: 'TC',
-            countryName: 'Turks & Caicos Islands',
-        },
-        TD: {
-            countryISO: 'TD',
-            countryName: 'Chad',
-        },
-        TF: {
-            countryISO: 'TF',
-            countryName: 'French Southern Territories',
-        },
-        TG: {
-            countryISO: 'TG',
-            countryName: 'Togo',
-        },
-        TH: {
-            countryISO: 'TH',
-            countryName: 'Thailand',
-        },
-        TJ: {
-            countryISO: 'TJ',
-            countryName: 'Tajikistan',
-        },
-        TK: {
-            countryISO: 'TK',
-            countryName: 'Tokelau',
-        },
-        TL: {
-            countryISO: 'TL',
-            countryName: 'Timor-Leste',
-        },
-        TM: {
-            countryISO: 'TM',
-            countryName: 'Turkmenistan',
-        },
-        TN: {
-            countryISO: 'TN',
-            countryName: 'Tunisia',
-        },
-        TO: {
-            countryISO: 'TO',
-            countryName: 'Tonga',
-        },
-        TR: {
-            countryISO: 'TR',
-            countryName: 'Turkey',
-        },
-        TT: {
-            countryISO: 'TT',
-            countryName: 'Trinidad & Tobago',
-        },
-        TV: {
-            countryISO: 'TV',
-            countryName: 'Tuvalu',
-        },
-        TW: {
-            countryISO: 'TW',
-            countryName: 'Taiwan',
-        },
-        TZ: {
-            countryISO: 'TZ',
-            countryName: 'Tanzania',
-        },
-        UA: {
-            countryISO: 'UA',
-            countryName: 'Ukraine',
-        },
-        UG: {
-            countryISO: 'UG',
-            countryName: 'Uganda',
-        },
-        UM: {
-            countryISO: 'UM',
-            countryName: 'U.S. Outlying Islands',
-        },
-        UN: {
-            countryISO: 'UN',
-            countryName: 'United Nations',
-        },
-        US: {
-            countryISO: 'US',
-            countryName: 'United States',
-        },
-        UY: {
-            countryISO: 'UY',
-            countryName: 'Uruguay',
-        },
-        UZ: {
-            countryISO: 'UZ',
-            countryName: 'Uzbekistan',
-        },
-        VA: {
-            countryISO: 'VA',
-            countryName: 'Vatican City',
-        },
-        VC: {
-            countryISO: 'VC',
-            countryName: 'St. Vincent & Grenadines',
-        },
-        VE: {
-            countryISO: 'VE',
-            countryName: 'Venezuela',
-        },
-        VG: {
-            countryISO: 'VG',
-            countryName: 'British Virgin Islands',
-        },
-        VI: {
-            countryISO: 'VI',
-            countryName: 'U.S. Virgin Islands',
-        },
-        VN: {
-            countryISO: 'VN',
-            countryName: 'Vietnam',
-        },
-        VU: {
-            countryISO: 'VU',
-            countryName: 'Vanuatu',
-        },
-        WF: {
-            countryISO: 'WF',
-            countryName: 'Wallis & Futuna',
-        },
-        WS: {
-            countryISO: 'WS',
-            countryName: 'Samoa',
-        },
-        XK: {
-            countryISO: 'XK',
-            countryName: 'Kosovo',
-        },
-        YE: {
-            countryISO: 'YE',
-            countryName: 'Yemen',
-        },
-        YT: {
-            countryISO: 'YT',
-            countryName: 'Mayotte',
-        },
-        ZA: {
-            countryISO: 'ZA',
-            countryName: 'South Africa',
-        },
-        ZM: {
-            countryISO: 'ZM',
-            countryName: 'Zambia',
-        },
-        ZW: {
-            countryISO: 'ZW',
-            countryName: 'Zimbabwe',
-        },
+        AC: 'Ascension Island',
+        AD: 'Andorra',
+        AE: 'United Arab Emirates',
+        AF: 'Afghanistan',
+        AG: 'Antigua & Barbuda',
+        AI: 'Anguilla',
+        AL: 'Albania',
+        AM: 'Armenia',
+        AO: 'Angola',
+        AQ: 'Antarctica',
+        AR: 'Argentina',
+        AS: 'American Samoa',
+        AT: 'Austria',
+        AU: 'Australia',
+        AW: 'Aruba',
+        AX: 'Åland Islands',
+        AZ: 'Azerbaijan',
+        BA: 'Bosnia & Herzegovina',
+        BB: 'Barbados',
+        BD: 'Bangladesh',
+        BE: 'Belgium',
+        BF: 'Burkina Faso',
+        BG: 'Bulgaria',
+        BH: 'Bahrain',
+        BI: 'Burundi',
+        BJ: 'Benin',
+        BL: 'St. Barthélemy',
+        BM: 'Bermuda',
+        BN: 'Brunei',
+        BO: 'Bolivia',
+        BQ: 'Caribbean Netherlands',
+        BR: 'Brazil',
+        BS: 'Bahamas',
+        BT: 'Bhutan',
+        BW: 'Botswana',
+        BY: 'Belarus',
+        BZ: 'Belize',
+        CA: 'Canada',
+        CC: 'Cocos (Keeling) Islands',
+        CD: 'Congo - Kinshasa',
+        CF: 'Central African Republic',
+        CG: 'Congo - Brazzaville',
+        CH: 'Switzerland',
+        CI: 'Côte d’Ivoire',
+        CK: 'Cook Islands',
+        CL: 'Chile',
+        CM: 'Cameroon',
+        CN: 'China',
+        CO: 'Colombia',
+        CR: 'Costa Rica',
+        CU: 'Cuba',
+        CV: 'Cape Verde',
+        CW: 'Curaçao',
+        CX: 'Christmas Island',
+        CY: 'Cyprus',
+        CZ: 'Czechia',
+        DE: 'Germany',
+        DG: 'Diego Garcia',
+        DJ: 'Djibouti',
+        DK: 'Denmark',
+        DM: 'Dominica',
+        DO: 'Dominican Republic',
+        DZ: 'Algeria',
+        EA: 'Ceuta & Melilla',
+        EC: 'Ecuador',
+        EE: 'Estonia',
+        EG: 'Egypt',
+        EH: 'Western Sahara',
+        ER: 'Eritrea',
+        ES: 'Spain',
+        ET: 'Ethiopia',
+        EZ: 'Eurozone',
+        FI: 'Finland',
+        FJ: 'Fiji',
+        FK: 'Falkland Islands',
+        FM: 'Micronesia',
+        FO: 'Faroe Islands',
+        FR: 'France',
+        GA: 'Gabon',
+        GB: 'United Kingdom',
+        GD: 'Grenada',
+        GE: 'Georgia',
+        GF: 'French Guiana',
+        GG: 'Guernsey',
+        GH: 'Ghana',
+        GI: 'Gibraltar',
+        GL: 'Greenland',
+        GM: 'Gambia',
+        GN: 'Guinea',
+        GP: 'Guadeloupe',
+        GQ: 'Equatorial Guinea',
+        GR: 'Greece',
+        GS: 'South Georgia & South Sandwich Islands',
+        GT: 'Guatemala',
+        GU: 'Guam',
+        GW: 'Guinea-Bissau',
+        GY: 'Guyana',
+        HK: 'Hong Kong SAR China',
+        HN: 'Honduras',
+        HR: 'Croatia',
+        HT: 'Haiti',
+        HU: 'Hungary',
+        IC: 'Canary Islands',
+        ID: 'Indonesia',
+        IE: 'Ireland',
+        IL: 'Israel',
+        IM: 'Isle of Man',
+        IN: 'India',
+        IO: 'British Indian Ocean Territory',
+        IQ: 'Iraq',
+        IR: 'Iran',
+        IS: 'Iceland',
+        IT: 'Italy',
+        JE: 'Jersey',
+        JM: 'Jamaica',
+        JO: 'Jordan',
+        JP: 'Japan',
+        KE: 'Kenya',
+        KG: 'Kyrgyzstan',
+        KH: 'Cambodia',
+        KI: 'Kiribati',
+        KM: 'Comoros',
+        KN: 'St. Kitts & Nevis',
+        KP: 'North Korea',
+        KR: 'South Korea',
+        KW: 'Kuwait',
+        KY: 'Cayman Islands',
+        KZ: 'Kazakhstan',
+        LA: 'Laos',
+        LB: 'Lebanon',
+        LC: 'St. Lucia',
+        LI: 'Liechtenstein',
+        LK: 'Sri Lanka',
+        LR: 'Liberia',
+        LS: 'Lesotho',
+        LT: 'Lithuania',
+        LU: 'Luxembourg',
+        LV: 'Latvia',
+        LY: 'Libya',
+        MA: 'Morocco',
+        MC: 'Monaco',
+        MD: 'Moldova',
+        ME: 'Montenegro',
+        MF: 'St. Martin',
+        MG: 'Madagascar',
+        MH: 'Marshall Islands',
+        MK: 'Macedonia',
+        ML: 'Mali',
+        MM: 'Myanmar (Burma)',
+        MN: 'Mongolia',
+        MO: 'Macau SAR China',
+        MP: 'Northern Mariana Islands',
+        MQ: 'Martinique',
+        MR: 'Mauritania',
+        MS: 'Montserrat',
+        MT: 'Malta',
+        MU: 'Mauritius',
+        MV: 'Maldives',
+        MW: 'Malawi',
+        MX: 'Mexico',
+        MY: 'Malaysia',
+        MZ: 'Mozambique',
+        NA: 'Namibia',
+        NC: 'New Caledonia',
+        NE: 'Niger',
+        NF: 'Norfolk Island',
+        NG: 'Nigeria',
+        NI: 'Nicaragua',
+        NL: 'Netherlands',
+        NO: 'Norway',
+        NP: 'Nepal',
+        NR: 'Nauru',
+        NU: 'Niue',
+        NZ: 'New Zealand',
+        OM: 'Oman',
+        PA: 'Panama',
+        PE: 'Peru',
+        PF: 'French Polynesia',
+        PG: 'Papua New Guinea',
+        PH: 'Philippines',
+        PK: 'Pakistan',
+        PL: 'Poland',
+        PM: 'St. Pierre & Miquelon',
+        PN: 'Pitcairn Islands',
+        PR: 'Puerto Rico',
+        PS: 'Palestinian Territories',
+        PT: 'Portugal',
+        PW: 'Palau',
+        PY: 'Paraguay',
+        QA: 'Qatar',
+        RE: 'Réunion',
+        RO: 'Romania',
+        RS: 'Serbia',
+        RU: 'Russia',
+        RW: 'Rwanda',
+        SA: 'Saudi Arabia',
+        SB: 'Solomon Islands',
+        SC: 'Seychelles',
+        SD: 'Sudan',
+        SE: 'Sweden',
+        SG: 'Singapore',
+        SH: 'St. Helena',
+        SI: 'Slovenia',
+        SJ: 'Svalbard & Jan Mayen',
+        SK: 'Slovakia',
+        SL: 'Sierra Leone',
+        SM: 'San Marino',
+        SN: 'Senegal',
+        SO: 'Somalia',
+        SR: 'Suriname',
+        SS: 'South Sudan',
+        ST: 'São Tomé & Príncipe',
+        SV: 'El Salvador',
+        SX: 'Sint Maarten',
+        SY: 'Syria',
+        SZ: 'Swaziland',
+        TA: 'Tristan da Cunha',
+        TC: 'Turks & Caicos Islands',
+        TD: 'Chad',
+        TF: 'French Southern Territories',
+        TG: 'Togo',
+        TH: 'Thailand',
+        TJ: 'Tajikistan',
+        TK: 'Tokelau',
+        TL: 'Timor-Leste',
+        TM: 'Turkmenistan',
+        TN: 'Tunisia',
+        TO: 'Tonga',
+        TR: 'Turkey',
+        TT: 'Trinidad & Tobago',
+        TV: 'Tuvalu',
+        TW: 'Taiwan',
+        TZ: 'Tanzania',
+        UA: 'Ukraine',
+        UG: 'Uganda',
+        UM: 'U.S. Outlying Islands',
+        UN: 'United Nations',
+        US: 'United States',
+        UY: 'Uruguay',
+        UZ: 'Uzbekistan',
+        VA: 'Vatican City',
+        VC: 'St. Vincent & Grenadines',
+        VE: 'Venezuela',
+        VG: 'British Virgin Islands',
+        VI: 'U.S. Virgin Islands',
+        VN: 'Vietnam',
+        VU: 'Vanuatu',
+        WF: 'Wallis & Futuna',
+        WS: 'Samoa',
+        XK: 'Kosovo',
+        YE: 'Yemen',
+        YT: 'Mayotte',
+        ZA: 'South Africa',
+        ZM: 'Zambia',
+        ZW: 'Zimbabwe',
     },
 };
