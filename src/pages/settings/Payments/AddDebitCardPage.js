@@ -70,42 +70,42 @@ class DebitCardPage extends Component {
      * @returns {Boolean}
      */
     validate(values) {
-        const errors = {};
+        const errors = [];
 
         if (!values.nameOnCard || !ValidationUtils.isValidCardName(values.nameOnCard)) {
-            errors.nameOnCard = this.props.translate('addDebitCardPage.error.invalidName');
+            errors.push({nameOnCard: this.props.translate('addDebitCardPage.error.invalidName')});
         }
 
         if (!values.cardNumber || !ValidationUtils.isValidDebitCard(values.cardNumber.replace(/ /g, ''))) {
-            errors.cardNumber = this.props.translate('addDebitCardPage.error.debitCardNumber');
+            errors.push({cardNumber: this.props.translate('addDebitCardPage.error.debitCardNumber')});
         }
 
         if (!values.expirationDate || !ValidationUtils.isValidExpirationDate(values.expirationDate)) {
-            errors.expirationDate = this.props.translate('addDebitCardPage.error.expirationDate');
+            errors.push({expirationDate: this.props.translate('addDebitCardPage.error.expirationDate')});
         }
 
         if (!values.securityCode || !ValidationUtils.isValidSecurityCode(values.securityCode)) {
-            errors.securityCode = this.props.translate('addDebitCardPage.error.securityCode');
+            errors.push({securityCode: this.props.translate('addDebitCardPage.error.securityCode')});
         }
 
         if (!values.addressStreet || !ValidationUtils.isValidAddress(values.addressStreet)) {
-            errors.addressStreet = this.props.translate('addDebitCardPage.error.addressStreet');
+            errors.push({addressStreet: this.props.translate('addDebitCardPage.error.addressStreet')});
         }
 
         if (!values.addressZipCode || !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-            errors.addressZipCode = this.props.translate('addDebitCardPage.error.addressZipCode');
+            errors.push({addressZipCode: this.props.translate('addDebitCardPage.error.addressZipCode')});
         }
 
         if (!values.addressState || !values.addressState) {
-            errors.addressState = this.props.translate('addDebitCardPage.error.addressState');
+            errors.push({addressState: this.props.translate('addDebitCardPage.error.addressState')});
         }
 
         if (!Permissions.canUsePasswordlessLogins(this.props.betas) && (!values.password || _.isEmpty(values.password.trim()))) {
-            errors.password = this.props.translate('addDebitCardPage.error.password');
+            errors.push({password: this.props.translate('addDebitCardPage.error.password')});
         }
 
         if (!values.acceptTerms) {
-            errors.acceptTerms = this.props.translate('common.error.acceptTerms');
+            errors.push({acceptTerms: this.props.translate('common.error.acceptTerms')});
         }
 
         return errors;
