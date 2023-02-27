@@ -164,7 +164,7 @@ export default {
         signInHere: 'simplemente inicia sesión aquí',
         expiredCodeTitle: 'Código mágico caducado',
         expiredCodeDescription: 'Vuelve al dispositivo original y solicita un nuevo código.',
-        requestNewCode: 'También puede',
+        requestNewCode: '¡También puedes',
         requestNewCodeLink: 'solicitar un nuevo código aquí',
     },
     iOUConfirmationList: {
