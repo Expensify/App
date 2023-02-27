@@ -21,7 +21,10 @@ const propTypes = {
     onPress: PropTypes.func.isRequired,
 
     /** The emojis consisting emoji code and indices that the icons should link to */
-    headerEmojis: PropTypes.arrayOf(PropTypes.number).isRequired,
+    headerEmojis: PropTypes.arrayOf(PropTypes.shape({
+        code: PropTypes.string.isRequired,
+        index: PropTypes.number.isRequired,
+    })).isRequired,
 };
 
 const CategoryShortcutBar = (props) => {

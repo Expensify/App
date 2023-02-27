@@ -44,7 +44,7 @@ class CategoryShortcutButton extends PureComponent {
                     this.state.isHighlighted && styles.emojiItemHighlighted,
                 ])}
             >
-                <Tooltip text={this.props.translate(`emojiPicker.headers.${code}`)}>
+                <Tooltip text={this.props.translate(`emojiPicker.headers.${this.props.code}`)}>
                     <View style={styles.alignSelfCenter}>
                         <Icon
                             fill={themeColors.icon}
