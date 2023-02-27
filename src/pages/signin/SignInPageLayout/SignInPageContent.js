@@ -67,11 +67,9 @@ const SignInPageContent = props => (
                 </SignInPageForm>
             </View>
         </KeyboardAvoidingView>
-        {true && (
-            <View style={[styles.mb5, styles.signInPageWelcomeTextContainer, styles.alignSelfCenter]}>
-                <OfflineIndicator style={[styles.m0, styles.pl0, styles.alignItemsStart]} />
-            </View>
-        )}
+        <View style={[styles.mb5, styles.signInPageWelcomeTextContainer, styles.alignSelfCenter]}>
+            <OfflineIndicator style={[styles.m0, styles.pl0, styles.alignItemsStart]} />
+        </View>
     </ScrollView>
 );
 
