@@ -1005,9 +1005,9 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
-    statusIndicator: {
+    statusIndicator: (backgroundColor = themeColors.danger) => ({
         borderColor: themeColors.sidebar,
-        backgroundColor: themeColors.danger,
+        backgroundColor,
         borderRadius: 6,
         borderWidth: 2,
         position: 'absolute',
@@ -1016,7 +1016,7 @@ const styles = {
         height: 12,
         width: 12,
         zIndex: 10,
-    },
+    }),
 
     avatarWithIndicator: {
         errorDot: {
