@@ -2926,7 +2926,7 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         paddingTop: 64,
         paddingHorizontal: 32,
-        maxWidth: 1100,
+        maxWidth: 1100, // Match footer across all Expensify platforms
     },
 
     footerColumnsContainer: {

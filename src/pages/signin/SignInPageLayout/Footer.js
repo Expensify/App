@@ -191,8 +191,7 @@ const Footer = (props) => {
                         {!isVertical
                             ? (
                                 <Expensicons.ExpensifyFooterLogo />
-                            )
-                            : (
+                            ) : (
                                 <Expensicons.ExpensifyFooterLogoVertical height={variables.verticalLogoHeight} width={variables.verticalLogoWidth} />
                             )}
                     </View>

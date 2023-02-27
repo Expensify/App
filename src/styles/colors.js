@@ -34,6 +34,8 @@ export default {
     greenDefaultButtonPressed: '#467164',
     greenDefaultButtonDisabled: '#8BA69E',
     midnight: '#002140',
+
+    // Brand Colors from Figma
     green700: '#23503B',
 
     // DEPRECATED COLORS. Do not reference these colors. Will be deleted in color switch PR.

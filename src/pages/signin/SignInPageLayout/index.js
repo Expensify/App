@@ -56,8 +56,7 @@ const SignInPageLayout = (props) => {
                             <Footer />
                         </ScrollView>
                     </View>
-                )
-                : (
+                ) : (
                     <ScrollView
                         contentContainerStyle={scrollViewContentContainerStyles}
                         keyboardShouldPersistTaps="handled"
