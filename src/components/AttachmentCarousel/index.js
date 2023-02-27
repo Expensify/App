@@ -50,10 +50,8 @@ class AttachmentCarousel extends React.Component {
 
         this.canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
-        this.fetchMoreActions = this.fetchMoreActions.bind(this);
 
         this.state = {
-            attachments: [],
             source: this.props.source,
             shouldShowArrow: this.canUseTouchScreen,
             isForwardDisabled: true,
@@ -132,12 +130,6 @@ class AttachmentCarousel extends React.Component {
             }
         });
 
-        // If there's no more attachments added from fetching older messages then call this again
-        if (attachments.length === this.state.attachments.length) {
-            this.fetchMoreActions();
-            return;
-        }
-
         const {file} = this.getAttachment(attachments[page]);
         this.setState({
             page,
@@ -162,10 +154,22 @@ class AttachmentCarousel extends React.Component {
             const nextIndex = page + deltaSlide;
 
             // Check if index is near the end of the list to fetch more reports
-            if (attachments.length === nextIndex - 1) {
-                this.fetchMoreReports();
-            }
+            if (attachments.length - nextIndex < 10) {
+                // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
+                if (this.props.report.isLoadingMoreReportActions) {
+                    return;
+                }
 
+                const sortedActions = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions), true);
+                const oldestReportAction = _.last(sortedActions);
+
+                // Load more chats if the last action is not a created type
+                if (oldestReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
+                    // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
+                    Report.readOldestAction(this.props.report.reportID, oldestReportAction.reportActionID);
+                    return {isLoading: true};
+                }
+            }
             const {source, file} = this.getAttachment(attachments[nextIndex]);
             return {
                 page: nextIndex,
@@ -175,26 +179,6 @@ class AttachmentCarousel extends React.Component {
                 isForwardDisabled: nextIndex === 0,
             };
         });
-    }
-
-    /**
-     * used to make an api call that fetches more actions
-     */
-    fetchMoreActions() {
-        // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (this.props.report.isLoadingMoreReportActions) {
-            return;
-        }
-
-        const sortedActions = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions), true);
-        const oldestReportAction = _.last(sortedActions);
-
-        // Load more chats if the last action is not a created type
-        if (oldestReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
-            // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
-            Report.readOldestAction(this.props.report.reportID, oldestReportAction.reportActionID);
-            this.setState({isLoading: true});
-        }
     }
 
     render() {
