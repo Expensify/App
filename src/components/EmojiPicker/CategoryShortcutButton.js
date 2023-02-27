@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {Pressable, View} from 'react-native';
 import Icon from '../Icon';
 import Tooltip from '../Tooltip';
-import withLocalize, { withLocalizePropTypes } from '../withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import variables from '../../styles/variables';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -20,7 +20,7 @@ const propTypes = {
     /** The function to call when an emoji is selected */
     onPress: PropTypes.func.isRequired,
 
-    ...withLocalizePropTypes
+    ...withLocalizePropTypes,
 };
 
 class CategoryShortcutButton extends PureComponent {
