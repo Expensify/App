@@ -974,7 +974,12 @@ PODS:
     - React-RCTFabric
     - ReactCommon/turbomodule/core
   - RNReactNativeHapticFeedback (1.14.0):
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
     - React-Core
+    - ReactCommon/turbomodule/core
   - RNReanimated (3.0.0-rc.7):
     - DoubleConversion
     - FBLazyVector
@@ -1408,7 +1413,7 @@ SPEC CHECKSUMS:
   RNFBPerf: 389914cda4000fe0d996a752532a591132cbf3f9
   RNGestureHandler: ceea17b82fea276bb0743a28b53a394a6edf5b18
   RNPermissions: 5c43d3f6c3ca216a0cffa79362827ff102a5fcd0
-  RNReactNativeHapticFeedback: 1e3efeca9628ff9876ee7cdd9edec1b336913f8c
+  RNReactNativeHapticFeedback: c6a6b38daf5f6f187de5f8319102f786170a43c7
   RNReanimated: 0e6700bdca5bc9b5cabd9defb551378cefca21cc
   RNScreens: 208223c783496e6d0aa92ffdf307f61d58756fc1
   RNSVG: 6b96501d7df80ed8b4fe55d903b4f1476a57e8a5
