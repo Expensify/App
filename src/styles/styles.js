@@ -958,7 +958,7 @@ const styles = {
 
     signInPageContentTopSpacer: {
         maxHeight: 132,
-        minHeight: 12,
+        minHeight: 24,
     },
 
     signInPageLeftContainer: {
@@ -2926,7 +2926,7 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         paddingTop: 64,
         paddingHorizontal: 32,
-        maxWidth: 1100,
+        maxWidth: 1100, // Match footer across all Expensify platforms
     },
 
     footerColumnsContainer: {

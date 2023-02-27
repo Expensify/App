@@ -43,7 +43,12 @@ const Socials = () => (
                 key={social.link}
             >
                 {({hovered}) => (
-                    <Icon src={social.iconURL} height={variables.iconSizeLarge} width={variables.iconSizeLarge} fill={hovered ? themeColors.link : themeColors.textLight} />
+                    <Icon
+                        src={social.iconURL}
+                        height={variables.iconSizeLarge}
+                        width={variables.iconSizeLarge}
+                        fill={hovered ? themeColors.link : themeColors.textLight}
+                    />
                 )}
             </Pressable>
         ))}

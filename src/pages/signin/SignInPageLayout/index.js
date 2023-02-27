@@ -1,6 +1,8 @@
 import React from 'react';
 import {View, ScrollView} from 'react-native';
+import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
+import compose from '../../../libs/compose';
 import SignInPageContent from './SignInPageContent';
 import Footer from './Footer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -28,7 +30,7 @@ const SignInPageLayout = (props) => {
     let contentContainerStyles = [styles.flex1, styles.flexRow];
 
     // To scroll on both mobile and web, we need to set the container height manually
-    const containerHeight = StyleUtils.getHeight(props.windowHeight);
+    const containerHeight = props.windowHeight - props.insets.top - props.insets.bottom;
 
     if (props.isSmallScreenWidth) {
         containerStyles = [styles.flex1];
@@ -47,28 +49,29 @@ const SignInPageLayout = (props) => {
                             {props.children}
                         </SignInPageContent>
                         <ScrollView
-                            style={[styles.flex1, containerHeight]}
-                            contentContainerStyle={[scrollViewContentContainerStyles]}
+                            style={[styles.flex1]}
+                            contentContainerStyle={[styles.flex1]}
                         >
                             <SignInPageGraphics />
                             <Footer />
                         </ScrollView>
                     </View>
-                )
-                : (
+                ) : (
                     <ScrollView
-                        style={containerHeight}
                         contentContainerStyle={scrollViewContentContainerStyles}
                         keyboardShouldPersistTaps="handled"
-                        keyboardDismissMode="on-drag"
                     >
-                        <SignInPageContent
-                            welcomeText={props.welcomeText}
-                            shouldShowWelcomeText={props.shouldShowWelcomeText}
-                        >
-                            {props.children}
-                        </SignInPageContent>
-                        <Footer />
+                        <View style={[styles.flex1, StyleUtils.getMinHeight(containerHeight)]}>
+                            <SignInPageContent
+                                welcomeText={props.welcomeText}
+                                shouldShowWelcomeText={props.shouldShowWelcomeText}
+                            >
+                                {props.children}
+                            </SignInPageContent>
+                        </View>
+                        <View style={[styles.flex0]}>
+                            <Footer />
+                        </View>
                     </ScrollView>
                 )}
         </View>
@@ -78,4 +81,7 @@ const SignInPageLayout = (props) => {
 SignInPageLayout.propTypes = propTypes;
 SignInPageLayout.displayName = 'SignInPageLayout';
 
-export default withWindowDimensions(SignInPageLayout);
+export default compose(
+    withWindowDimensions,
+    withSafeAreaInsets,
+)(SignInPageLayout);
