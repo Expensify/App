@@ -96,7 +96,7 @@ class PronounsPage extends Component {
                             onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
                             onCloseButtonPress={() => Navigation.dismissModal(true)}
                         />
-                        <Text style={[styles.ph5, styles.mb6]}>
+                        <Text style={styles.ph5}>
                             {this.props.translate('pronounsPage.isShownOnProfile')}
                         </Text>
                         <OptionsSelector
@@ -105,8 +105,10 @@ class PronounsPage extends Component {
                             value={this.state.searchValue}
                             onSelectRow={this.updatePronouns}
                             onChangeText={this.onChangeText}
+                            optionHoveredStyle={styles.hoveredComponentBG}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             shouldFocusOnSelectRow
+                            shouldHaveOptionSeparator
                         />
                     </>
                 )}
