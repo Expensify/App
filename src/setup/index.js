@@ -5,6 +5,7 @@ import CONST from '../CONST';
 import platformSetup from './platformSetup';
 import * as Metrics from '../libs/Metrics';
 import * as Device from '../libs/actions/Device';
+import intlPolyfill from '../libs/IntlPolyfill';
 
 export default function () {
     /*
@@ -46,6 +47,9 @@ export default function () {
     // Force app layout to work left to right because our design does not currently support devices using this mode
     I18nManager.allowRTL(false);
     I18nManager.forceRTL(false);
+
+    // Polyfill the Intl API if locale data is not as expected
+    intlPolyfill();
 
     // Perform any other platform-specific setup
     platformSetup();

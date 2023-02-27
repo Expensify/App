@@ -85,7 +85,7 @@ export default {
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se pudo completar. Por favor inténtalo más tarde.',
         error: {
             invalidAmount: 'Monto no válido',
-            acceptedTerms: 'Debes aceptar los Términos de servicio para continuar',
+            acceptTerms: 'Debes aceptar los Términos de servicio para continuar',
             phoneNumber: `Ingresa un teléfono válido, incluyendo el código de país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Este campo es obligatorio.',
             characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
@@ -338,6 +338,10 @@ export default {
         pronouns: 'Pronombres',
         isShownOnProfile: 'Tus pronombres se muestran en tu perfil.',
     },
+    contacts: {
+        contactMethod: 'Método de contacto',
+        contactMethods: 'Métodos de contacto',
+    },
     pronouns: {
         coCos: 'Co / Cos',
         eEyEmEir: 'E / Ey / Em / Eir',
@@ -564,6 +568,7 @@ export default {
         enterAuthenticatorCode: 'Por favor ingresa su código de autenticador',
         twoFactorCode: 'Autenticación de 2 factores',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
+        codeSent: '¡Código mágico enviado!',
         error: {
             pleaseFillMagicCode: 'Por favor, introduce el código mágico',
             incorrectMagicCode: 'Código mágico incorrecto.',

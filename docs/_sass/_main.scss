@@ -16,7 +16,7 @@ html {
     line-height: 1;
 
     @include maxBreakpoint($breakpoint-tablet) {
-        scroll-padding-top: 80px;        
+        scroll-padding-top: 80px;
     }
 }
 

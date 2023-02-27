@@ -36,6 +36,8 @@ hubs:
     articles:
       - href: Expensify-Playbook-for-US-based-VC-Backed-Startups
         title: Expensify Playbook for US-Based VC-Backed Startups
+      - href: Expensify-Playbook-for-US-Based-Bootstrapped-Startups
+        title: Expensify Playbook for US-Based Bootstrapped Startups
 
   - href: other
     title: Other

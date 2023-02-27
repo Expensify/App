@@ -210,6 +210,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             'react-native$': '@expensify/react-native-web',
             'react-native-web': '@expensify/react-native-web',
             'react-content-loader/native': 'react-content-loader',
+            'lottie-react-native': 'react-native-web-lottie',
         },
 
         // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`

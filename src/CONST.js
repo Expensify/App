@@ -854,6 +854,9 @@ const CONST = {
     // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
     MAX_COMMENT_LENGTH: 15000,
 
+    // Furthermore, applying markup is very resource-consuming, so let's set a slightly lower limit for that
+    MAX_MARKUP_LENGTH: 10000,
+
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
@@ -1177,6 +1180,15 @@ const CONST = {
         'Zambia',
         'Zimbabwe',
     ],
+
+    // Values for checking if polyfill is required on a platform
+    POLYFILL_TEST: {
+        STYLE: 'currency',
+        CURRENCY: 'XAF',
+        FORMAT: 'symbol',
+        SAMPLE_INPUT: '123456.789',
+        EXPECTED_OUTPUT: 'FCFA 123,457',
+    },
 };
 
 export default CONST;

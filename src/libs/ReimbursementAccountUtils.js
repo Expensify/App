@@ -11,8 +11,7 @@ import lodashGet from 'lodash/get';
  * @returns {*}
  */
 function getDefaultStateForField(reimbursementAccountDraft, reimbursementAccount, fieldName, defaultValue = '') {
-    return lodashGet(reimbursementAccountDraft, fieldName)
-        || lodashGet(reimbursementAccount, ['achData', fieldName], defaultValue);
+    return lodashGet(reimbursementAccountDraft, fieldName, lodashGet(reimbursementAccount, ['achData', fieldName], defaultValue));
 }
 
 export {
