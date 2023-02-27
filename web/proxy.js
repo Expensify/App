@@ -26,16 +26,27 @@ console.log(`Creating proxy with host: ${host} for production API and ${stagingH
  * environment that has no local API.
  */
 const server = http.createServer((request, response) => {
-    // regex not declared globally to reset internal regex pointer for each request
-    const apiRegex = /\/(.*api)/g;
-    const apiRoot = apiRegex.exec(request.url)[1];
-    const hostname = HOST_MAP[apiRoot] || host;
+    let hostname = host;
+    let requestPath = request.url;
+
+    // regex not declared globally to avoid internal regex pointer reset for each request
+    // We only match for staging related root since default host is prod
+    const apiRegex = /\/(staging.*api)/g;
+    const apiRootMatch = apiRegex.exec(request.url);
+
+    // Switch host only if API call, not on chat attachments
+    if (apiRootMatch) {
+        const apiRoot = apiRootMatch[1];
+        hostname = HOST_MAP[apiRoot];
+
+        // replace the mapping url with the actual path
+        requestPath = request.url.replace(apiRoot, 'api');
+    }
     const proxyRequest = https.request({
         hostname,
         method: 'POST',
 
-        // replace the mapping url with the actual path
-        path: request.url.replace(apiRoot, 'api'),
+        path: requestPath,
         headers: {
             ...request.headers,
             host: hostname,
