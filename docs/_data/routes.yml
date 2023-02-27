@@ -36,6 +36,8 @@ hubs:
     articles:
       - href: Expensify-Playbook-for-US-based-VC-Backed-Startups
         title: Expensify Playbook for US-Based VC-Backed Startups
+      - href: Expensify-Playbook-for-US-Based-Bootstrapped-Startups
+        title: Expensify Playbook for US-Based Bootstrapped Startups
 
   - href: other
     title: Other
@@ -44,5 +46,7 @@ hubs:
     articles:
       - href: Your-Expensify-Account-Manager
         title: Your Expensify Account Manager
+      - href: Your-Expensify-Partner-Manager
+        title: Your Expensify Partner Manager
       - href: Everything-About-Chat
         title: Everything About Chat
