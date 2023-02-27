@@ -13,9 +13,6 @@ import TextLink from '../TextLink';
 
 const propTypes = {
 
-    /** Whether the user has been signed in with the link. */
-    isSuccessfullySignedIn: PropTypes.bool,
-
     /** Code to display. */
     code: PropTypes.string.isRequired,
 
@@ -29,7 +26,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    isSuccessfullySignedIn: false,
     shouldShowSignInHere: false,
     onSignInHereClick: () => {},
 };
@@ -42,16 +38,16 @@ class ValidateCodeModal extends PureComponent {
                     <View style={styles.mb2}>
                         <Icon
                             width={variables.modalTopIconWidth}
-                            height={this.props.isSuccessfullySignedIn ? variables.modalTopBigIconHeight : variables.modalTopIconHeight}
-                            src={this.props.isSuccessfullySignedIn ? Illustrations.Abracadabra : Illustrations.MagicCode}
+                            height={variables.modalTopIconHeight}
+                            src={Illustrations.MagicCode}
                         />
                     </View>
                     <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
-                        {this.props.translate(this.props.isSuccessfullySignedIn ? 'validateCodeModal.successfulSignInTitle' : 'validateCodeModal.title')}
+                        {this.props.translate('validateCodeModal.title')}
                     </Text>
                     <View style={[styles.mt2, styles.mb2]}>
                         <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
-                            {this.props.translate(this.props.isSuccessfullySignedIn ? 'validateCodeModal.successfulSignInDescription' : 'validateCodeModal.description')}
+                            {this.props.translate('validateCodeModal.description')}
                             {this.props.shouldShowSignInHere
                                 && (
                                     <>
@@ -65,13 +61,11 @@ class ValidateCodeModal extends PureComponent {
                             {this.props.shouldShowSignInHere ? '!' : '.'}
                         </Text>
                     </View>
-                    {!this.props.isSuccessfullySignedIn && (
-                        <View style={styles.mt6}>
-                            <Text style={styles.magicCodeDigits}>
-                                {this.props.code}
-                            </Text>
-                        </View>
-                    )}
+                    <View style={styles.mt6}>
+                        <Text style={styles.magicCodeDigits}>
+                            {this.props.code}
+                        </Text>
+                    </View>
                 </View>
                 <View style={styles.deeplinkWrapperFooter}>
                     <Icon
