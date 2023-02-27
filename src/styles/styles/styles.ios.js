@@ -39,7 +39,7 @@ const styles = {
         flexShrink: 0,
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeSmall,
-        bottom: 1,
+        bottom: 2.5,
     },
 };
 

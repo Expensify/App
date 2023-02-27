@@ -14,6 +14,9 @@ const propTypes = {
 
     /** The message text additional style */
     style: stylePropTypes,
+
+    /** If TextEmoji was used in the menuItem component */
+    isMenuItem: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -32,7 +35,7 @@ const TextEmoji = (props) => {
         </View>
     )
         : (
-            <View key={`${text}_${index}`} style={styles.messageTextWithoutEmoji}>
+            <View key={`${text}_${index}`} style={[!props.isMenuItem ? styles.messageTextWithoutEmoji : undefined]}>
                 <Text>
                     {text}
                 </Text>
