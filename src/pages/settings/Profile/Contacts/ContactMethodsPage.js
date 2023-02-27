@@ -64,10 +64,10 @@ const ContactMethodsPage = (props) => {
             description = props.translate('contacts.pleaseVerify');
         }
         let indicator = null;
-        if (!_.isEmpty(login.errorFields)) {
+        if (_.some(lodashGet(login, 'errorFields', {}), errorField => !_.isEmpty(errorField))) {
             indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         } else if (!login.validatedDate) {
-            indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.GREEN;
+            indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
         }
 
         // Temporary checks to determine if we need to show specific LoginField
