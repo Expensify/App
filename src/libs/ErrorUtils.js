@@ -54,8 +54,28 @@ function getLatestErrorMessage(onyxData) {
         .value();
 }
 
+/**
+ * @param {Array} errorMessages
+ * @returns {Object}
+ */
+function getUniqueErrorMessages(errorMessages) {
+    const errors = _.reduce(errorMessages, (acc, error) => {
+        const [key] = _.keys(error);
+        if (acc[key]) {
+            acc[key] = `${acc[key]}. ${error[key]}`;
+        } else {
+            acc[key] = error[key];
+        }
+
+        return acc;
+    }, {});
+
+    return errors;
+}
+
 export {
     // eslint-disable-next-line import/prefer-default-export
     getAuthenticateErrorMessage,
     getLatestErrorMessage,
+    getUniqueErrorMessages,
 };
