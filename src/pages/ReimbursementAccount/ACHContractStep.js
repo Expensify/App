@@ -48,13 +48,14 @@ class ACHContractStep extends React.Component {
      * @returns {Object}
      */
     validate(values) {
-        const errors = {};
+        const errors = [];
 
         const errorKeys = {
             street: 'address',
             city: 'addressCity',
             state: 'addressState',
         };
+
         const requiredFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'street', 'city', 'zipCode', 'state'];
         if (values.hasOtherBeneficialOwners) {
             _.each(this.state.beneficialOwners, (ownerKey) => {
@@ -62,34 +63,34 @@ class ACHContractStep extends React.Component {
                 _.each(requiredFields, (inputKey) => {
                     if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner_${ownerKey}_${inputKey}`])) {
                         const errorKey = errorKeys[inputKey] || inputKey;
-                        errors[`beneficialOwner_${ownerKey}_${inputKey}`] = this.props.translate(`bankAccount.error.${errorKey}`);
+                        errors.push({[`beneficialOwner_${ownerKey}_${inputKey}`]: this.props.translate(`bankAccount.error.${errorKey}`)});
                     }
                 });
 
                 if (values[`beneficialOwner_${ownerKey}_dob`] && !ValidationUtils.meetsAgeRequirements(values[`beneficialOwner_${ownerKey}_dob`])) {
-                    errors[`beneficialOwner_${ownerKey}_dob`] = this.props.translate('bankAccount.error.age');
+                    errors.push({[`beneficialOwner_${ownerKey}_dob`]: this.props.translate('bankAccount.error.age')});
                 }
 
                 if (values[`beneficialOwner_${ownerKey}_ssnLast4`] && !ValidationUtils.isValidSSNLastFour(values[`beneficialOwner_${ownerKey}_ssnLast4`])) {
-                    errors[`beneficialOwner_${ownerKey}_ssnLast4`] = this.props.translate('bankAccount.error.ssnLast4');
+                    errors.push({[`beneficialOwner_${ownerKey}_ssnLast4`]: this.props.translate('bankAccount.error.ssnLast4')});
                 }
 
                 if (values[`beneficialOwner_${ownerKey}_street`] && !ValidationUtils.isValidAddress(values[`beneficialOwner_${ownerKey}_street`])) {
-                    errors[`beneficialOwner_${ownerKey}_street`] = this.props.translate('bankAccount.error.addressStreet');
+                    errors.push({[`beneficialOwner_${ownerKey}_street`]: this.props.translate('bankAccount.error.addressStreet')});
                 }
 
                 if (values[`beneficialOwner_${ownerKey}_zipCode`] && !ValidationUtils.isValidZipCode(values[`beneficialOwner_${ownerKey}_zipCode`])) {
-                    errors[`beneficialOwner_${ownerKey}_zipCode`] = this.props.translate('bankAccount.error.zipCode');
+                    errors.push({[`beneficialOwner_${ownerKey}_zipCode`]: this.props.translate('bankAccount.error.zipCode')});
                 }
             });
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.acceptTermsAndConditions)) {
-            errors.acceptTermsAndConditions = this.props.translate('common.error.acceptTerms');
+            errors.push({acceptTermsAndConditions: this.props.translate('common.error.acceptTerms')});
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.certifyTrueInformation)) {
-            errors.certifyTrueInformation = this.props.translate('beneficialOwnersStep.error.certify');
+            errors.push({certifyTrueInformation: this.props.translate('beneficialOwnersStep.error.certify')});
         }
 
         return errors;
