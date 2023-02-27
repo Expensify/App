@@ -173,6 +173,10 @@ class WorkspacesListPage extends Component {
 
     render() {
         const workspaces = this.getWorkspaces();
+        const isPendingAddAction = _.some(
+            workspaces,
+            workspace => workspace && workspace.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        );
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -197,6 +201,7 @@ class WorkspacesListPage extends Component {
                         success
                         text={this.props.translate('workspace.new.newWorkspace')}
                         onPress={() => Policy.createWorkspace()}
+                        isLoading={isPendingAddAction}
                     />
                 </FixedFooter>
             </ScreenWrapper>
