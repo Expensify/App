@@ -70,7 +70,7 @@ class AddPersonalBankAccountPage extends React.Component {
      * @returns {Object}
      */
     validate() {
-        return {};
+        return [];
     }
 
     submit() {

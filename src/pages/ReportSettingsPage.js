@@ -83,7 +83,7 @@ class ReportSettingsPage extends Component {
      * @returns {Boolean}
      */
     validate(values) {
-        const errors = {};
+        const errors = [];
 
         // We should skip validation hence we return an empty errors and we skip Form submission on the onSubmit method
         if (values.newRoomName === this.props.report.reportName) {
@@ -93,16 +93,16 @@ class ReportSettingsPage extends Component {
         // The following validations are ordered by precedence.
         // First priority: We error if the user doesn't enter a room name or left blank
         if (!values.newRoomName || values.newRoomName === CONST.POLICY.ROOM_PREFIX) {
-            errors.newRoomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
+            errors.push({newRoomName: this.props.translate('newRoomPage.pleaseEnterRoomName')});
         } else if (ValidationUtils.isReservedRoomName(values.newRoomName)) {
             // Second priority: Certain names are reserved for default rooms and should not be used for policy rooms.
-            errors.newRoomName = this.props.translate('newRoomPage.roomNameReservedError');
+            errors.push({newRoomName: this.props.translate('newRoomPage.roomNameReservedError')});
         } else if (ValidationUtils.isExistingRoomName(values.newRoomName, this.props.reports, this.props.report.policyID)) {
             // Third priority: Show error if the room name already exists
-            errors.newRoomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
+            errors.push({newRoomName: this.props.translate('newRoomPage.roomAlreadyExistsError')});
         } else if (!ValidationUtils.isValidRoomName(values.newRoomName)) {
             // Fourth priority: We error if the room name has invalid characters
-            errors.newRoomName = this.props.translate('newRoomPage.roomNameInvalidError');
+            errors.push({newRoomName: this.props.translate('newRoomPage.roomNameInvalidError')});
         }
 
         return errors;

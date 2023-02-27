@@ -209,23 +209,23 @@ class RequestCallPage extends Component {
      * @returns {Boolean}
      */
     validate(values) {
-        const errors = {};
+        const errors = [];
 
         if (_.isEmpty(values.firstName.trim())) {
-            errors.firstName = this.props.translate('requestCallPage.error.firstName');
+            errors.push({firstName: this.props.translate('requestCallPage.error.firstName')});
         }
 
         if (_.isEmpty(values.lastName.trim())) {
-            errors.lastName = this.props.translate('requestCallPage.error.lastName');
+            errors.push({lastName: this.props.translate('requestCallPage.error.lastName')});
         }
 
         const phoneNumber = LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneNumber);
         if (_.isEmpty(values.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
-            errors.phoneNumber = this.props.translate('common.error.phoneNumber');
+            errors.push({phoneNumber: this.props.translate('common.error.phoneNumber')});
         }
 
         if (!_.isEmpty(values.phoneNumberExtension) && !ValidationUtils.isPositiveInteger(values.phoneNumberExtension)) {
-            errors.phoneNumberExtension = this.props.translate('requestCallPage.error.phoneNumberExtension');
+            errors.push({phoneNumberExtension: this.props.translate('requestCallPage.error.phoneNumberExtension')});
         }
 
         return errors;

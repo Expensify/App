@@ -61,16 +61,16 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     validate(values) {
-        const errors = {};
+        const errors = [];
         const name = values.name.trim();
 
         // Searches for anything that looks like an html tag "< >""
         if (name.search(/<(.|\n)*?>/g) !== -1) {
-            errors.name = this.props.translate('workspace.editor.nameHasHtml');
+            errors.push({name: this.props.translate('workspace.editor.nameHasHtml')});
         }
 
         if (!name || !name.length) {
-            errors.name = this.props.translate('workspace.editor.nameIsRequiredError');
+            errors.push({name: this.props.translate('workspace.editor.nameIsRequiredError')});
         }
 
         return errors;
