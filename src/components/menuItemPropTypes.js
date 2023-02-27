@@ -80,7 +80,7 @@ const propTypes = {
     floatRightAvatars: PropTypes.arrayOf(PropTypes.string),
 
     /** The type of brick road indicator to show. */
-    brickRoadIndicator: PropTypes.oneOf([CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, CONST.BRICK_ROAD_INDICATOR_STATUS.INFO, CONST.BRICK_ROAD_INDICATOR_STATUS.GREEN, '']),
+    brickRoadIndicator: PropTypes.oneOf([CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, CONST.BRICK_ROAD_INDICATOR_STATUS.INFO, '']),
 
     /** Prop to identify if we should load avatars vertically instead of diagonally */
     shouldStackHorizontally: PropTypes.bool,
