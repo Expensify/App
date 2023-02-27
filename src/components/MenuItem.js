@@ -17,6 +17,7 @@ import SelectCircle from './SelectCircle';
 import colors from '../styles/colors';
 import variables from '../styles/variables';
 import MultipleAvatars from './MultipleAvatars';
+import TextEmoji from './TextEmoji';
 
 const propTypes = {
     ...menuItemPropTypes,
@@ -129,7 +130,7 @@ const MenuItem = (props) => {
                                     style={titleTextStyle}
                                     numberOfLines={1}
                                 >
-                                    {props.title}
+                                    <TextEmoji style={[styles.emojiMessageText, styles.profileEmojiText]}>{props.title}</TextEmoji>
                                 </Text>
                             )}
                             {Boolean(props.description) && !props.shouldShowDescriptionOnTop && (
