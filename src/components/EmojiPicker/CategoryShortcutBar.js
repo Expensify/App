@@ -17,7 +17,7 @@ const propTypes = {
     })).isRequired,
 };
 
-const CategoryShortcutBar = (props) => (
+const CategoryShortcutBar = props => (
     <View style={[styles.pt2, styles.ph4, styles.flexRow]}>
         {_.map(props.headerEmojis, (headerEmoji, i) => (
             <CategoryShortcutButton
