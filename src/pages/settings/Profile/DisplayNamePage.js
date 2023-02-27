@@ -59,8 +59,8 @@ class DisplayNamePage extends Component {
         // First we validate the first name field
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
             errors.push({firstName: this.props.translate('personalDetails.error.hasInvalidCharacter')});
-        } 
-        
+        }
+
         if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
             errors.push({firstName: this.props.translate('personalDetails.error.containsReservedWord')});
         }
