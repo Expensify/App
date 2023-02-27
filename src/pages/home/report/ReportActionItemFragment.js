@@ -15,6 +15,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import compose from '../../../libs/compose';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import TextEmoji from '../../../components/TextEmoji';
 
 const propTypes = {
     /** The message fragment needing to be displayed */
@@ -121,9 +122,19 @@ const ReportActionItemFragment = (props) => {
                 <Text
                     family="EMOJI_TEXT_FONT"
                     selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
-                    style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
+                    style={[
+                        styles.inboxMessageText, styles.ltr, ...props.style,
+                        EmojiUtils.hasEmojis(text) ? styles.inboxEmojiMessageText : undefined,
+                        EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined,
+                    ]}
                 >
-                    {StyleUtils.convertToLTR(Str.htmlDecode(text))}
+                    <TextEmoji style={[
+                        styles.emojiMessageText, styles.ltr, ...props.style,
+                        EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined,
+                    ]}
+                    >
+                        {StyleUtils.convertToLTR(Str.htmlDecode(text))}
+                    </TextEmoji>
                     {props.fragment.isEdited && (
                     <Text
                         fontSize={variables.fontSizeSmall}
@@ -142,7 +153,7 @@ const ReportActionItemFragment = (props) => {
                         numberOfLines={props.isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessageHeaderSender]}
                     >
-                        {Str.htmlDecode(props.fragment.text)}
+                        <TextEmoji style={styles.emojiMessageText}>{props.fragment.text}</TextEmoji>
                     </Text>
                 </Tooltip>
             );
