@@ -77,7 +77,7 @@ const emojis = [
     {
         code: 'smileysAndEmotion',
         header: true,
-        icon: Smiley
+        icon: Smiley,
     },
     {
         name: 'grinning',
@@ -6975,7 +6975,7 @@ const emojis = [
     {
         code: 'animalsAndNature',
         header: true,
-        icon: AnimalsAndNature
+        icon: AnimalsAndNature,
     },
     {
         name: 'monkey_face',
@@ -8149,7 +8149,7 @@ const emojis = [
     {
         code: 'foodAndDrink',
         header: true,
-        icon: FoodAndDrink
+        icon: FoodAndDrink,
     },
     {
         name: 'grapes',
@@ -9327,7 +9327,7 @@ const emojis = [
     {
         code: 'travelAndPlaces',
         header: true,
-        icon: TravelAndPlaces
+        icon: TravelAndPlaces,
     },
     {
         name: 'earth_africa',
@@ -11447,7 +11447,7 @@ const emojis = [
     {
         code: 'activities',
         header: true,
-        icon: Activities
+        icon: Activities,
     },
     {
         name: 'jack_o_lantern',
@@ -12285,7 +12285,7 @@ const emojis = [
     {
         code: 'objects',
         header: true,
-        icon: Objects
+        icon: Objects,
     },
     {
         name: 'eyeglasses',
@@ -14615,7 +14615,7 @@ const emojis = [
     {
         code: 'symbols',
         header: true,
-        icon: Symbols
+        icon: Symbols,
     },
     {
         name: 'atm',
@@ -16606,7 +16606,7 @@ const emojis = [
     {
         code: 'flags',
         header: true,
-        icon: Flags
+        icon: Flags,
     },
     {
         name: 'checkered_flag',

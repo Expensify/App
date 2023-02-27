@@ -4,8 +4,6 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import CategoryShortcutButton from './CategoryShortcutButton';
-import getOperatingSystem from '../../libs/getOperatingSystem';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** The function to call when an emoji is selected */
@@ -19,20 +17,19 @@ const propTypes = {
     })).isRequired,
 };
 
-const CategoryShortcutBar = (props) => {
-    return (
-        <View style={[styles.pt2, styles.ph4, styles.flexRow]}>
-            {_.map(props.headerEmojis, (headerEmoji, i) => (
-                <CategoryShortcutButton
-                    icon={headerEmoji.icon}
-                    onPress={() => props.onPress(headerEmoji.index)}
-                    key={`categoryShortcut${i}`}
-                    code={headerEmoji.code}
-                />
-            ))}
-        </View>
-    );
-};
+const CategoryShortcutBar = (props) => (
+    <View style={[styles.pt2, styles.ph4, styles.flexRow]}>
+        {_.map(props.headerEmojis, (headerEmoji, i) => (
+            <CategoryShortcutButton
+                icon={headerEmoji.icon}
+                onPress={() => props.onPress(headerEmoji.index)}
+                key={`categoryShortcut${i}`}
+                code={headerEmoji.code}
+            />
+        ))}
+    </View>
+);
+
 CategoryShortcutBar.propTypes = propTypes;
 CategoryShortcutBar.displayName = 'CategoryShortcutBar';
 
