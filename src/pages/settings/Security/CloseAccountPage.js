@@ -69,10 +69,10 @@ class CloseAccountPage extends Component {
 
     validate(values) {
         const userEmailOrPhone = Str.removeSMSDomain(this.props.session.email);
-        const errors = {};
+        const errors = [];
 
         if (_.isEmpty(values.phoneOrEmail) || userEmailOrPhone.toLowerCase() !== values.phoneOrEmail.toLowerCase()) {
-            errors.phoneOrEmail = this.props.translate('closeAccountPage.enterYourDefaultContactMethod');
+            errors.push({phoneOrEmail: this.props.translate('closeAccountPage.enterYourDefaultContactMethod')});
         }
         return errors;
     }
