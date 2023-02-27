@@ -35,20 +35,20 @@ class BankAccountManualStep extends React.Component {
      * @returns {Object}
      */
     validate(values) {
-        const errorFields = {};
+        const errorFields = [];
         const routingNumber = values.routingNumber && values.routingNumber.trim();
 
         if (
             !values.accountNumber
             || (!CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim()) && !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim()))
         ) {
-            errorFields.accountNumber = this.props.translate('bankAccount.error.accountNumber');
+            errorFields.push({accountNumber: this.props.translate('bankAccount.error.accountNumber')});
         }
         if (!routingNumber || !CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber)) {
-            errorFields.routingNumber = this.props.translate('bankAccount.error.routingNumber');
+            errorFields.push({routingNumber: this.props.translate('bankAccount.error.routingNumber')});
         }
         if (!values.acceptTerms) {
-            errorFields.acceptTerms = this.props.translate('common.error.acceptTerms');
+            errorFields.push({acceptTerms: this.props.translate('common.error.acceptTerms')});
         }
 
         return errorFields;

@@ -80,7 +80,7 @@ class BankAccountPlaidStep extends React.Component {
                 />
                 <Form
                     formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-                    validate={() => ({})}
+                    validate={() => []}
                     onSubmit={this.submit}
                     scrollContextEnabled
                     submitButtonText={this.props.translate('common.saveAndContinue')}

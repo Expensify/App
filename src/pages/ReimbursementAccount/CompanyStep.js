@@ -63,56 +63,58 @@ class CompanyStep extends React.Component {
      * @returns {Object} - Object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
     validate(values) {
-        const errors = {};
+        const errors = [];
 
         if (!values.companyName) {
-            errors.companyName = this.props.translate('bankAccount.error.companyName');
+            errors.push({companyName: this.props.translate('bankAccount.error.companyName')});
         }
 
         if (!values.addressStreet || !ValidationUtils.isValidAddress(values.addressStreet)) {
-            errors.addressStreet = this.props.translate('bankAccount.error.addressStreet');
+            errors.push({addressStreet: this.props.translate('bankAccount.error.addressStreet')});
         }
 
         if (!values.addressZipCode || !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-            errors.addressZipCode = this.props.translate('bankAccount.error.zipCode');
+            errors.push({addressZipCode: this.props.translate('bankAccount.error.zipCode')});
         }
 
         if (!values.addressCity) {
-            errors.addressCity = this.props.translate('bankAccount.error.addressCity');
+            errors.push({addressCity: this.props.translate('bankAccount.error.addressCity')});
         }
 
         if (!values.addressState) {
-            errors.addressState = this.props.translate('bankAccount.error.addressState');
+            errors.push({addressState: this.props.translate('bankAccount.error.addressState')});
         }
 
         if (!values.companyPhone || !ValidationUtils.isValidUSPhone(values.companyPhone, true)) {
-            errors.companyPhone = this.props.translate('bankAccount.error.phoneNumber');
+            errors.push({companyPhone: this.props.translate('bankAccount.error.phoneNumber')});
         }
 
         if (!values.website || !ValidationUtils.isValidWebsite(values.website)) {
-            errors.website = this.props.translate('bankAccount.error.website');
+            errors.push({website: this.props.translate('bankAccount.error.website')});
         }
 
         if (!values.companyTaxID || !ValidationUtils.isValidTaxID(values.companyTaxID)) {
-            errors.companyTaxID = this.props.translate('bankAccount.error.taxID');
+            errors.push({companyTaxID: this.props.translate('bankAccount.error.taxID')});
         }
 
         if (!values.incorporationType) {
-            errors.incorporationType = this.props.translate('bankAccount.error.companyType');
+            errors.push({incorporationType: this.props.translate('bankAccount.error.companyType')});
         }
 
         if (!values.incorporationDate || !ValidationUtils.isValidDate(values.incorporationDate)) {
-            errors.incorporationDate = this.props.translate('common.error.dateInvalid');
-        } else if (!values.incorporationDate || !ValidationUtils.isValidPastDate(values.incorporationDate)) {
-            errors.incorporationDate = this.props.translate('bankAccount.error.incorporationDateFuture');
+            errors.push({incorporationDate: this.props.translate('common.error.dateInvalid')});
+        }
+
+        if (!values.incorporationDate || !ValidationUtils.isValidPastDate(values.incorporationDate)) {
+            errors.push({incorporationDate: this.props.translate('bankAccount.error.incorporationDateFuture')});
         }
 
         if (!values.incorporationState) {
-            errors.incorporationState = this.props.translate('bankAccount.error.incorporationState');
+            errors.push({incorporationState: this.props.translate('bankAccount.error.incorporationState')});
         }
 
         if (!values.hasNoConnectionToCannabis) {
-            errors.hasNoConnectionToCannabis = this.props.translate('bankAccount.error.restrictedBusiness');
+            errors.push({hasNoConnectionToCannabis: this.props.translate('bankAccount.error.restrictedBusiness')});
         }
 
         return errors;

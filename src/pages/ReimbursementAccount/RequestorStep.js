@@ -39,50 +39,50 @@ class RequestorStep extends React.Component {
      * @returns {Object}
      */
     validate(values) {
-        const errors = {};
+        const errors = [];
 
         if (!ValidationUtils.isRequiredFulfilled(values.firstName)) {
-            errors.firstName = this.props.translate('bankAccount.error.firstName');
+            errors.push({firstName: this.props.translate('bankAccount.error.firstName')});
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.lastName)) {
-            errors.lastName = this.props.translate('bankAccount.error.lastName');
+            errors.push({lastName: this.props.translate('bankAccount.error.lastName')});
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.dob)) {
-            errors.dob = this.props.translate('bankAccount.error.dob');
+            errors.push({dob: this.props.translate('bankAccount.error.dob')});
         }
 
         if (values.dob && !ValidationUtils.meetsAgeRequirements(values.dob)) {
-            errors.dob = this.props.translate('bankAccount.error.age');
+            errors.push({dob: this.props.translate('bankAccount.error.age')});
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.ssnLast4) || !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
-            errors.ssnLast4 = this.props.translate('bankAccount.error.ssnLast4');
+            errors.push({ssnLast4: this.props.translate('bankAccount.error.ssnLast4')});
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressStreet)) {
-            errors.requestorAddressStreet = this.props.translate('bankAccount.error.address');
+            errors.push({requestorAddressStreet: this.props.translate('bankAccount.error.address')});
         }
 
         if (values.requestorAddressStreet && !ValidationUtils.isValidAddress(values.requestorAddressStreet)) {
-            errors.requestorAddressStreet = this.props.translate('bankAccount.error.addressStreet');
+            errors.push({requestorAddressStreet: this.props.translate('bankAccount.error.addressStreet')});
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressCity)) {
-            errors.requestorAddressCity = this.props.translate('bankAccount.error.addressCity');
+            errors.push({requestorAddressCity: this.props.translate('bankAccount.error.addressCity')});
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressState)) {
-            errors.requestorAddressState = this.props.translate('bankAccount.error.addressState');
+            errors.push({requestorAddressState: this.props.translate('bankAccount.error.addressState')});
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressZipCode) || !ValidationUtils.isValidZipCode(values.requestorAddressZipCode)) {
-            errors.requestorAddressZipCode = this.props.translate('bankAccount.error.zipCode');
+            errors.push({requestorAddressZipCode: this.props.translate('bankAccount.error.zipCode')});
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.isControllingOfficer)) {
-            errors.isControllingOfficer = this.props.translate('requestorStep.isControllingOfficerError');
+            errors.push({isControllingOfficer: this.props.translate('requestorStep.isControllingOfficerError')});
         }
 
         return errors;
