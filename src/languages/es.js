@@ -162,6 +162,10 @@ export default {
         or: ', ¡o',
         description: 'Por favor, introduzca el código utilizando el dispositivo\nen el que se solicitó originalmente',
         signInHere: 'simplemente inicia sesión aquí',
+        expiredCodeTitle: 'Código mágico caducado',
+        expiredCodeDescription: 'Vuelve al dispositivo original y solicita un nuevo código.',
+        requestNewCode: 'También puede',
+        requestNewCodeLink: 'solicitar un nuevo código aquí',
     },
     iOUConfirmationList: {
         whoPaid: '¿Quién pago?',
