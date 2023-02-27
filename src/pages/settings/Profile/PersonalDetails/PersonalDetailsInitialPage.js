@@ -104,21 +104,18 @@ const PersonalDetailsInitialPage = (props) => {
                         title={legalName}
                         description={props.translate('privatePersonalDetails.legalName')}
                         shouldShowRightIcon
-                        wrapperStyle={[styles.ph2]}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_LEGAL_NAME)}
                     />
                     <MenuItemWithTopDescription
                         title={privateDetails.dob || ''}
                         description={props.translate('common.dob')}
                         shouldShowRightIcon
-                        wrapperStyle={[styles.ph2]}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH)}
                     />
                     <MenuItemWithTopDescription
                         title={getFormattedAddress()}
                         description={props.translate('privatePersonalDetails.homeAddress')}
                         shouldShowRightIcon
-                        wrapperStyle={[styles.ph2]}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS)}
                     />
                 </View>
