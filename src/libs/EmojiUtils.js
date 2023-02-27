@@ -245,6 +245,69 @@ function suggestEmojis(text, limit = 5) {
     return [];
 }
 
+/**
+ * Validates that this message contains emojis
+ *
+ * @param {String} message
+ * @returns {Boolean}
+ */
+function hasEmojis(message) {
+    if (!message) {
+        return false;
+    }
+    const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
+    return Boolean(trimmedMessage.match(CONST.REGEX.EMOJIS));
+}
+
+/**
+ * Get all the emojis in the message
+ * @param {String} text
+ * @returns {Array}
+ */
+function getAllEmojiFromText(text) {
+    const result = [];
+
+    if (!hasEmojis(text)) {
+        result.push({text, isEmoji: false});
+        return result;
+    }
+
+    const emptySpaceChecker = '\u200D';
+    const emojiCharacterSpaceReplacer = '~';
+    const splittedMessage = text.split('');
+    const convertedSplittedMessage = [];
+
+    for (let i = 0; i < splittedMessage.length; i++) {
+        const char = splittedMessage[i];
+        convertedSplittedMessage.push((char === emptySpaceChecker) ? emojiCharacterSpaceReplacer : char);
+    }
+
+    let wordHolder = '';
+    let emojiHolder = '';
+
+    const setWord = word => result.push({text: word, isEmoji: false});
+    const setEmoji = word => result.push({text: Str.replaceAll(word, emojiCharacterSpaceReplacer, emptySpaceChecker), isEmoji: true});
+
+    _.forEach(convertedSplittedMessage, (word, index) => {
+        if (CONST.REGEX.EMOJI_SURROGATE.test(word) || word === emojiCharacterSpaceReplacer) {
+            setWord(wordHolder);
+            wordHolder = '';
+            emojiHolder += word;
+        } else {
+            setEmoji(emojiHolder);
+            emojiHolder = '';
+            wordHolder += word;
+        }
+
+        if (index === convertedSplittedMessage.length - 1) {
+            setEmoji(emojiHolder);
+            setWord(wordHolder);
+        }
+    });
+
+    return _.filter(result, res => res.text);
+}
+
 export {
     getHeaderIndices,
     mergeEmojisWithFrequentlyUsedEmojis,
@@ -253,4 +316,6 @@ export {
     replaceEmojis,
     suggestEmojis,
     trimEmojiUnicode,
+    getAllEmojiFromText,
+    hasEmojis,
 };
