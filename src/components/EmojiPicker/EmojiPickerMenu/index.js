@@ -466,17 +466,14 @@ class EmojiPickerMenu extends Component {
     }
 
     render() {
+        const isFiltered = this.emojis.length !== this.state.filteredEmojis.length;
         return (
             <View
                 style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
-                <CategoryShortcutBar
-                    headerIndices={this.headerIndices}
-                    onPress={this.scrollToHeader}
-                />
                 {!this.props.isSmallScreenWidth && (
-                    <View style={[styles.ph4, styles.pb1]}>
+                    <View style={[styles.ph4, styles.pb1, styles.pt2]}>
                         <TextInput
                             label={this.props.translate('common.search')}
                             onChangeText={this.filterEmojis}
@@ -489,6 +486,12 @@ class EmojiPickerMenu extends Component {
                             onBlur={() => this.setState({isFocused: false})}
                         />
                     </View>
+                )}
+                {!isFiltered && (
+                    <CategoryShortcutBar
+                        headerIndices={this.headerIndices}
+                        onPress={this.scrollToHeader}
+                    />
                 )}
                 {this.state.filteredEmojis.length === 0
                     ? (
