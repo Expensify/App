@@ -27,6 +27,9 @@ const PriorityModePage = (props) => {
                 value: key,
                 text: mode.label,
                 alternateText: mode.description,
+
+                // Set max line to 0 to reset line restriction
+                alternateTextMaxLines: 0,
                 keyForList: key,
 
                 // Include the green checkmark icon to indicate the currently selected value

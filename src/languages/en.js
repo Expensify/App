@@ -85,7 +85,7 @@ export default {
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
         error: {
             invalidAmount: 'Invalid amount',
-            acceptedTerms: 'You must accept the Terms of Service to continue',
+            acceptTerms: 'You must accept the Terms of Service to continue',
             phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'This field is required.',
             characterLimit: ({limit}) => `Exceeds the maximum length of ${limit} characters`,
@@ -328,7 +328,6 @@ export default {
         emailAddress: 'Email address',
         setMyTimezoneAutomatically: 'Set my timezone automatically',
         timezone: 'Timezone',
-        growlMessageOnSave: 'Your profile was successfully saved',
         invalidFileMessage: 'Invalid file. Please try a different image.',
         avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
         online: 'Online',
@@ -338,6 +337,10 @@ export default {
     pronounsPage: {
         pronouns: 'Pronouns',
         isShownOnProfile: 'Your pronouns are shown on your profile.',
+    },
+    contacts: {
+        contactMethod: 'Contact method',
+        contactMethods: 'Contact methods',
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -565,6 +568,7 @@ export default {
         enterAuthenticatorCode: 'Please enter your authenticator code',
         twoFactorCode: 'Two factor code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
+        codeSent: 'Magic code sent!',
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
             incorrectMagicCode: 'Incorrect magic code.',
@@ -600,8 +604,6 @@ export default {
     },
     personalDetails: {
         error: {
-            firstNameLength: `First name cannot be longer than ${CONST.DISPLAY_NAME.MAX_LENGTH} characters`,
-            lastNameLength: `Last name cannot be longer than ${CONST.DISPLAY_NAME.MAX_LENGTH} characters`,
             containsReservedWord: 'First name cannot contain the words Expensify or Concierge',
             hasInvalidCharacter: 'Name cannot contain a comma or semicolon',
         },
