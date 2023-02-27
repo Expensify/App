@@ -162,6 +162,10 @@ class ReportScreen extends React.Component {
             return true;
         }
 
+        if (lodashGet(this.props.report, 'participants') !== lodashGet(nextProps.report, 'participants')) {
+            return true;
+        }
+
         if (this.props.isComposerFullSize !== nextProps.isComposerFullSize) {
             return true;
         }
