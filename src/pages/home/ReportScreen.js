@@ -127,75 +127,15 @@ class ReportScreen extends React.Component {
         Navigation.setIsReportScreenIsReady();
     }
 
-    shouldComponentUpdate(nextProps) {
-        if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            this.sortedAndFilteredReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(nextProps.reportActions);
-
-            return true;
-        }
-
-        if (nextProps.report.isLoadingMoreReportActions !== this.props.report.isLoadingMoreReportActions) {
-            return true;
-        }
-
-        if (nextProps.report.isLoadingReportActions !== this.props.report.isLoadingReportActions) {
-            return true;
-        }
-
-        if (nextProps.report.isPinned !== this.props.report.isPinned) {
-            return true;
-        }
-
-        if (nextProps.report.lastReadTime !== this.props.report.lastReadTime) {
-            return true;
-        }
-
-        if (this.props.isSmallScreenWidth !== nextProps.isSmallScreenWidth) {
-            return true;
-        }
-
-        if (this.props.isDrawerOpen !== nextProps.isDrawerOpen) {
-            return true;
-        }
-
-        if (lodashGet(this.props.report, 'hasOutstandingIOU') !== lodashGet(nextProps.report, 'hasOutstandingIOU')) {
-            return true;
-        }
-
-        if (lodashGet(this.props.report, 'participants') !== lodashGet(nextProps.report, 'participants')) {
-            return true;
-        }
-
-        if (this.props.isComposerFullSize !== nextProps.isComposerFullSize) {
-            return true;
-        }
-
-        if (this.props.isSidebarLoaded !== nextProps.isSidebarLoaded) {
-            return true;
-        }
-
-        if (this.props.personalDetails !== nextProps.personalDetails) {
-            return true;
-        }
-
-        if (this.props.policies !== nextProps.policies) {
-            return true;
-        }
-
-        if (this.props.betas !== nextProps.betas) {
-            return true;
-        }
-
-        return !_.isEqual(lodashGet(this.props.report, 'icons', []), lodashGet(nextProps.report, 'icons', []));
-    }
-
     componentDidUpdate(prevProps) {
-        if (this.props.route.params.reportID === prevProps.route.params.reportID) {
-            return;
+        if (this.props.route.params.reportID !== prevProps.route.params.reportID) {
+            this.fetchReportIfNeeded();
+            toggleReportActionComposeView(true);
         }
 
-        this.fetchReportIfNeeded();
-        toggleReportActionComposeView(true);
+        if (!_.isEqual(prevProps.reportActions, this.props.reportActions)) {
+            this.sortedAndFilteredReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(this.props.reportActions);
+        }
     }
 
     /**
