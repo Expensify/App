@@ -61,7 +61,7 @@ class AddressPage extends Component {
 
         const currentCountry = lodashGet(props.privatePersonalDetails, 'address.country') || '';
         this.state = {
-            isUsaForm: currentCountry === CONST.COUNTRY.US,
+            isUsaForm: (currentCountry === CONST.COUNTRY.US || currentCountry === CONST.USA_COUNTRY_NAME),
         };
     }
 
@@ -125,6 +125,7 @@ class AddressPage extends Component {
     render() {
         const address = lodashGet(this.props.privatePersonalDetails, 'address') || {};
         const [street1, street2] = (address.street || '').split('\n');
+        const countryISOcode = PersonalDetails.getCountryISO(address.country);
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -204,7 +205,7 @@ class AddressPage extends Component {
                         <CountryPicker
                             inputID="country"
                             onValueChange={this.onCountryUpdate}
-                            defaultValue={address.country || ''}
+                            defaultValue={countryISOcode || ''}
                         />
                     </View>
                 </Form>
