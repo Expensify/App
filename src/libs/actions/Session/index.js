@@ -17,8 +17,6 @@ import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
 import * as Report from '../Report';
 import DateUtils from '../../DateUtils';
-import Navigation from '../../Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 
 let credentials = {};
 Onyx.connect({
@@ -336,16 +334,10 @@ function signInWithValidateCode(accountID, validateCode) {
         },
     ];
 
-    // This is temporary for now. Server should login with the accountID and validateCode
     API.write('SigninUser', {
         validateCode,
         accountID,
     }, {optimisticData, successData, failureData});
-}
-
-function signInWithValidateCodeAndNavigate(accountID, validateCode) {
-    signInWithValidateCode(accountID, validateCode);
-    Navigation.navigate(ROUTES.HOME);
 }
 
 /**
@@ -567,7 +559,6 @@ export {
     updatePasswordAndSignin,
     signIn,
     signInWithValidateCode,
-    signInWithValidateCodeAndNavigate,
     signInWithShortLivedAuthToken,
     cleanupSession,
     signOut,
