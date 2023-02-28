@@ -428,13 +428,13 @@ function formatReportLastMessageText(lastMessageText) {
 }
 
 /**
- * Hashes provided string and returns a value between [1, range]
+ * Hashes provided string and returns a value between [0, range)
  * @param {String} login
  * @param {Number} range
  * @returns {Number}
  */
 function hashLogin(login, range) {
-    return (Math.abs(hashCode(login.toLowerCase())) % range) + 1;
+    return (Math.abs(hashCode(login.toLowerCase())) % range);
 }
 
 /**
@@ -451,8 +451,8 @@ function getDefaultAvatar(login = '') {
     }
 
     // There are 24 possible default avatars, so we choose which one this user has based
-    // on a simple hash of their login
-    const loginHashBucket = hashLogin(login, CONST.DEFAULT_AVATAR_COUNT);
+    // on a simple hash of their login. Note that Avatar count starts at 1.
+    const loginHashBucket = hashLogin(login, CONST.DEFAULT_AVATAR_COUNT) + 1;
 
     return defaultAvatars[`Avatar${loginHashBucket}`];
 }
@@ -486,8 +486,8 @@ function getOldDotDefaultAvatar(login = '') {
     }
 
     // There are 8 possible old dot default avatars, so we choose which one this user has based
-    // on a simple hash of their login
-    const loginHashBucket = hashLogin(login, CONST.OLD_DEFAULT_AVATAR_COUNT);
+    // on a simple hash of their login. Note that Avatar count starts at 1.
+    const loginHashBucket = hashLogin(login, CONST.OLD_DEFAULT_AVATAR_COUNT) + 1;
 
     return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
 }
