@@ -129,6 +129,7 @@ function canEditReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
         && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {}))
+        && !ReportActionsUtils.isDeletedAction(reportAction)
         && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
