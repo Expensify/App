@@ -2,6 +2,7 @@ import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import Str from 'expensify-common/lib/str';
 import Text from '../Text';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
@@ -69,14 +70,14 @@ const IOUQuote = props => (
                 <Text style={[styles.flex1, styles.mr2]}>
                     <Text style={props.shouldAllowViewDetails && styles.chatItemMessageLink}>
                         {/* Get first word of IOU message */}
-                        {fragment.text.split(' ')[0]}
+                        {Str.htmlDecode(fragment.text.split(' ')[0])}
                     </Text>
                     <Text style={[styles.chatItemMessage, props.shouldAllowViewDetails
                         ? styles.cursorPointer
                         : styles.cursorDefault]}
                     >
                         {/* Get remainder of IOU message */}
-                        {fragment.text.substring(fragment.text.indexOf(' '))}
+                        {Str.htmlDecode(fragment.text.substring(fragment.text.indexOf(' ')))}
                     </Text>
                 </Text>
                 <Icon src={Expensicons.ArrowRight} fill={props.shouldAllowViewDetails ? themeColors.icon : themeColors.transparent} />

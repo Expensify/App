@@ -883,7 +883,8 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
  */
 function getIOUReportActionMessage(type, total, participants, comment, currency, paymentType = '', isSettlingUp = false) {
     const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
-    const displayNames = _.map(participants, participant => getDisplayNameForParticipant(participant.login, true));
+    const parser = new ExpensiMark();
+    const displayNames = _.map(participants, participant => parser.replace(getDisplayNameForParticipant(participant.login, true)));
     const who = displayNames.length < 3
         ? displayNames.join(' and ')
         : `${displayNames.slice(0, -1).join(', ')}, and ${_.last(displayNames)}`;

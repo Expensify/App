@@ -246,7 +246,7 @@ function getOptionData(reportID) {
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
         lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
     } else {
-        lastMessageTextFromReport = report ? report.lastMessageText : '';
+        lastMessageTextFromReport = Str.htmlDecode(report ? report.lastMessageText : '');
     }
 
     const lastActorDetails = personalDetails[report.lastActorEmail] || null;
