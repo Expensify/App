@@ -34,12 +34,6 @@ export default {
         phoneNumber: 'Número de teléfono',
         phoneNumberPlaceholder: '(prefijo) + (número)',
         email: 'Email',
-        and: 'y',
-        on: 'en',
-        from: 'de',
-        until: 'hasta',
-        day: 'día',
-        days: 'días',
         details: 'Detalles',
         privacy: 'Privacidad',
         delete: 'Eliminar',
@@ -1188,5 +1182,9 @@ export default {
     },
     report: {
         genericAddCommentFailureMessage: 'Error inesperado al agregar el comentario, por favor inténtalo más tarde',
+    },
+    chronos: {
+        oooEventSummaryFullDay: ({summary, dayCount, date}) => `${summary} por ${dayCount} ${dayCount === 1 ? 'día' : 'días'} hasta el ${date}`,
+        oooEventSummaryPartialDay: ({summary, timePeriod, date}) => `${summary} de ${timePeriod} del ${date}`,
     },
 };

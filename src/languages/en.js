@@ -35,11 +35,6 @@ export default {
         phoneNumberPlaceholder: '(xxx)xxx-xxxx',
         email: 'Email',
         and: 'and',
-        on: 'on',
-        from: 'from',
-        until: 'until',
-        day: 'day',
-        days: 'days',
         details: 'Details',
         privacy: 'Privacy',
         delete: 'Delete',
@@ -1186,5 +1181,9 @@ export default {
     },
     report: {
         genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
+    },
+    chronos: {
+        oooEventSummaryFullDay: ({summary, dayCount, date}) => `${summary} for ${dayCount} ${dayCount === 1 ? 'day' : 'days'} until ${date}`,
+        oooEventSummaryPartialDay: ({summary, timePeriod, date}) => `${summary} from ${timePeriod} on ${date}`,
     },
 };

@@ -45,22 +45,19 @@ const ChronosOOOListActions = (props) => {
                         <View key={event.id} style={[styles.flexRow, styles.alignItemsCenter, styles.pt, styles.ml18]}>
                             {event.lengthInDays > 0 ? (
                                 <Text>
-                                    {event.summary}
-                                    {` ${props.translate('common.conjunctionFor')} `}
-                                    {event.lengthInDays}
-                                    {event.lengthInDays === 1 ? ` ${props.translate('common.day')}` : ` ${props.translate('common.days')}`}
-                                    {` ${props.translate('common.until')} `}
-                                    {end.format('dddd LL')}
+                                    {props.translate('chronos.oooEventSummaryFullDay', {
+                                        summary: event.summary,
+                                        dayCount: event.lengthInDays,
+                                        date: end.format('dddd LL'),
+                                    })}
                                 </Text>
                             ) : (
                                 <Text>
-                                    {event.summary}
-                                    {` ${props.translate('common.from')} `}
-                                    {start.format('LT')}
-                                    {' - '}
-                                    {end.format('LT')}
-                                    {` ${props.translate('common.on')} `}
-                                    {end.format('dddd LL')}
+                                    {props.translate('chronos.oooEventSummaryPartialDay', {
+                                        summary: event.summary,
+                                        timePeriod: start.format('LT')+' - '+end.format('LT'),
+                                        date: end.format('dddd LL'),
+                                    })}
                                 </Text>
                             )}
                             <Button
