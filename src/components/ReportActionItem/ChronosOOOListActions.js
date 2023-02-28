@@ -37,29 +37,27 @@ const ChronosOOOListActions = (props) => {
         <OfflineWithFeedback
             pendingAction={lodashGet(props.action, 'pendingAction', null)}
         >
-            <View>
+            <View style={[styles.chatItemMessage]}>
                 {_.map(events, (event) => {
                     const start = DateUtils.getLocalMomentFromDatetime(props.preferredLocale, lodashGet(event, 'start.date', ''));
                     const end = DateUtils.getLocalMomentFromDatetime(props.preferredLocale, lodashGet(event, 'end.date', ''));
                     return (
-                        <View key={event.id} style={[styles.flexRow, styles.alignItemsCenter, styles.pt, styles.ml18]}>
-                            {event.lengthInDays > 0 ? (
-                                <Text>
-                                    {props.translate('chronos.oooEventSummaryFullDay', {
+                        <View key={event.id} style={[styles.flexRow, styles.pt, styles.ml18, styles.pr4, styles.alignItemsCenter]}>
+                            <Text style={[styles.flexShrink1]}>
+                                {event.lengthInDays > 0 ? (
+                                    props.translate('chronos.oooEventSummaryFullDay', {
                                         summary: event.summary,
                                         dayCount: event.lengthInDays,
                                         date: end.format('dddd LL'),
-                                    })}
-                                </Text>
-                            ) : (
-                                <Text>
-                                    {props.translate('chronos.oooEventSummaryPartialDay', {
+                                    })
+                                ) : (
+                                    props.translate('chronos.oooEventSummaryPartialDay', {
                                         summary: event.summary,
                                         timePeriod: start.format('LT')+' - '+end.format('LT'),
                                         date: end.format('dddd LL'),
-                                    })}
-                                </Text>
-                            )}
+                                    })
+                                )}
+                            </Text>
                             <Button
                                 small
                                 style={[styles.pl2]}
