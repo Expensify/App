@@ -20,14 +20,10 @@ As a C+ member, you will have view-only access to Expensify's TestRail account i
 - Once determined, the C+ will post a comment in the original GH issue, mentioning which scenario the bug belongs under, why they think it belongs there, and if the new / updated test steps can fall under a current test case or if a new test case needs to be created. Please provide your reasoning for your decision in the comment and tag the BZ member to gut-check.
   - If the BZ member agrees with the C+'s recommendation, we can move forward. If not, a discussion will be held on where they think it might fit better and why.
   - There's a chance we will agree to not update/create a test case for the bug in question, depending on the bug. 
-- Once we know where the test will live, the C+ will tag the Contributor to propose test steps.
-  - If we're updating a current test case, the C+ will post what the current steps are in the GH for the Contributor to propose their test steps in relation to it.
-  - If we're creating a new test case, the C+ will note it for the Contributor.
-- Once the Contributor has provided proposed test steps, the C+ will review to ensure:
+- Once we know where the test will live, the C+ will then propose the appropriate test steps to either add to an existing case or for a new test case.
+- Once the C+ has provided proposed test steps, the BZ will review to ensure:
   - The language style matches the language style in TestRail (e.g. action items use the term `Verify`)
   - The steps are clear, logical, concise, and void of any assumed knowledge
   - (For updating a current test case) the steps are logically placed in the test case
-  - If changes are needed, the C+ and Contributor will discuss what changes should be done in order to make them appropriate
-- After confirming the above, the C+ will tag the BZ member and comment that the steps are ready to be reviewed
+  - If changes are needed, the BZ member and C+ will discuss what changes should be done in order to make them appropriate
 - The BZ member will then create a GH for Applause to update the TestRail steps, link it in the original bug GH, and move forward with payment.
- 
