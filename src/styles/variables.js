@@ -93,4 +93,10 @@ export default {
     avatarChatSpacing: 12,
     chatInputSpacing: 52, // 40 + avatarChatSpacing
     borderTopWidth: 1,
+    modalTopIconWidth: 200,
+    modalTopIconHeight: 164,
+    modalTopBigIconHeight: 244,
+    modalWordmarkWidth: 154,
+    modalWordmarkHeight: 34,
+    badgeMaxWidth: 180,
 };
