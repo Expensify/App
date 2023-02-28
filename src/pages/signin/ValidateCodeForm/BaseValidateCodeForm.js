@@ -239,7 +239,7 @@ class BaseValidateCodeForm extends React.Component {
                     />
                     <ChangeExpensifyLoginLink onPress={this.clearSignInData} />
                 </View>
-                <View style={[styles.mt5, styles.signInPageWelcomeTextContainer, styles.alignSelfCenter]}>
+                <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
                     <Terms />
                 </View>
             </>
