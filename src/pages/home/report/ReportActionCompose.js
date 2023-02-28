@@ -492,7 +492,8 @@ class ReportActionCompose extends React.Component {
 
         // Explicitly focus the composer from here as componentDidUpdate does not do that in native
         // because willBlurTextInputOnTapOutside is false on native which doesn't let it focus
-        this.focus(true);
+        // We use setTimeout here to avoid an inconsistent android bug where the keyboard doesn't open on focus
+        setTimeout(() => this.focus(true));
     }
 
     /**
