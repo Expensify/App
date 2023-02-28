@@ -15,6 +15,7 @@ import android.graphics.Bitmap.Config;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.PorterDuff.Mode;
 import android.os.Build;
+import android.text.Html;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
@@ -167,7 +168,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         String name = reportAction.get("person").getList().get(0).getMap().get("text").getString();
         String avatar = reportAction.get("avatar").getString();
         String accountID = Integer.toString(reportAction.get("actorAccountID").getInt(-1));
-        String message = reportAction.get("message").getList().get(0).getMap().get("text").getString();
+        String message = Html.fromHtml(reportAction.get("message").getList().get(0).getMap().get("text").getString()).toString();
         long time = Timestamp.valueOf(reportAction.get("created").getString(Instant.now().toString())).getTime();
         String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
         String conversationTitle = roomName.isEmpty() ? "Chat with " + name : roomName;
