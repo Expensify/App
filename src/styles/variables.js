@@ -100,4 +100,5 @@ export default {
     modalWordmarkHeight: 34,
     verticalLogoHeight: 634,
     verticalLogoWidth: 111,
+    badgeMaxWidth: 180,
 };

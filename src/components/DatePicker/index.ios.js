@@ -35,10 +35,7 @@ class DatePicker extends React.Component {
         this.updateLocalDate = this.updateLocalDate.bind(this);
     }
 
-    /**
-     * @param {Event} event
-     */
-    showPicker(event) {
+    showPicker() {
         this.initialValue = this.state.selectedDate;
 
         // Opens the popover only after the keyboard is hidden to avoid a "blinking" effect where the keyboard was on iOS
@@ -52,7 +49,6 @@ class DatePicker extends React.Component {
             listener.remove();
         });
         Keyboard.dismiss();
-        event.preventDefault();
     }
 
     /**
@@ -100,6 +96,13 @@ class DatePicker extends React.Component {
                         if (!_.isFunction(this.props.innerRef)) {
                             return;
                         }
+                        if (el && el.focus && typeof el.focus === 'function') {
+                            let inputRef = {...el};
+                            inputRef = {...inputRef, focus: this.showPicker};
+                            this.props.innerRef(inputRef);
+                            return;
+                        }
+
                         this.props.innerRef(el);
                     }}
                 />
