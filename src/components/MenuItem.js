@@ -17,6 +17,7 @@ import SelectCircle from './SelectCircle';
 import colors from '../styles/colors';
 import variables from '../styles/variables';
 import MultipleAvatars from './MultipleAvatars';
+import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 
 const propTypes = {
     ...menuItemPropTypes,
@@ -88,13 +89,13 @@ const MenuItem = (props) => {
             {({hovered, pressed}) => (
                 <>
                     <View style={[styles.flexRow, styles.pointerEventsAuto, styles.flex1, props.disabled && styles.cursorDisabled]}>
-                        {(props.icon && props.iconType === CONST.ICON_TYPE_ICON) && (
-                            <View
-                                style={[
-                                    styles.popoverMenuIcon,
-                                    ...props.iconStyles,
-                                ]}
-                            >
+                        <View
+                            style={[
+                                styles.popoverMenuIcon,
+                                ...props.iconStyles,
+                            ]}
+                        >
+                            {(props.icon && props.iconType === CONST.ICON_TYPE_ICON) && (
                                 <Icon
                                     src={props.icon}
                                     width={props.iconWidth}
@@ -104,15 +105,9 @@ const MenuItem = (props) => {
                                         true,
                                     )}
                                 />
-                            </View>
-                        )}
-                        {(props.icon && props.iconType === CONST.ICON_TYPE_WORKSPACE) && (
-                            <View
-                                style={[
-                                    styles.popoverMenuIcon,
-                                    ...props.iconStyles,
-                                ]}
-                            >
+                            )}
+                            {(props.icon && props.iconType === CONST.ICON_TYPE_WORKSPACE) && (
+
                                 <Avatar
                                     imageStyles={[styles.alignSelfCenter]}
                                     size={CONST.AVATAR_SIZE.DEFAULT}
@@ -121,22 +116,15 @@ const MenuItem = (props) => {
                                     name={props.title}
                                     type={CONST.ICON_TYPE_WORKSPACE}
                                 />
-                            </View>
-                        )}
-                        {(props.icon && props.iconType === CONST.ICON_TYPE_AVATAR) && (
-                            <View
-                                style={[
-                                    styles.popoverMenuIcon,
-                                    ...props.iconStyles,
-                                ]}
-                            >
+                            )}
+                            {(props.icon && props.iconType === CONST.ICON_TYPE_AVATAR) && (
                                 <Avatar
                                     imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
                                     source={props.icon}
                                     fallbackIcon={props.fallbackIcon}
                                 />
-                            </View>
-                        )}
+                            )}
+                        </View>
                         <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1, styles.gap1]}>
                             {Boolean(props.description) && props.shouldShowDescriptionOnTop && (
                                 <Text
@@ -190,7 +178,7 @@ const MenuItem = (props) => {
                                     isPressed={pressed}
                                     icons={props.floatRightAvatars}
                                     size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-                                    fallbackIcon={Expensicons.Workspace}
+                                    fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
                                     shouldStackHorizontally={props.shouldStackHorizontally}
                                 />
                             </View>

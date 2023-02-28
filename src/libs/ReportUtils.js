@@ -464,7 +464,7 @@ function getDefaultAvatar(login = '') {
  */
 function getDefaultWorkspaceAvatar(workspaceName) {
     if (!workspaceName) {
-        return Expensicons.FallbackWorkspaceAvatar;
+        return defaultWorkspaceAvatars.WorkspaceBuilding;
     }
 
     // Remove all chars not A-Z or 0-9 including underscore

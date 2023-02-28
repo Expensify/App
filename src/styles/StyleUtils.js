@@ -8,6 +8,51 @@ import positioning from './utilities/positioning';
 import styles from './styles';
 import * as ReportUtils from '../libs/ReportUtils';
 
+const workspaceColorOptions = [
+    [colors.blue200, colors.blue700],
+    [colors.blue400, colors.blue800],
+    [colors.blue700, colors.blue200],
+    [colors.green200, colors.green700],
+    [colors.green400, colors.green800],
+    [colors.green700, colors.green200],
+    [colors.yellow200, colors.yellow700],
+    [colors.yellow400, colors.yellow800],
+    [colors.yellow700, colors.yellow200],
+    [colors.tangerine200, colors.tangerine700],
+    [colors.tangerine400, colors.tangerine800],
+    [colors.tangerine700, colors.tangerine400],
+    [colors.pink200, colors.pink700],
+    [colors.pink400, colors.pink800],
+    [colors.pink700, colors.pink200],
+    [colors.ice200, colors.ice700],
+    [colors.ice400, colors.ice800],
+    [colors.ice700, colors.ice200],
+];
+
+const avatarBorderSizes = {
+    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.componentBorderRadiusSmall,
+    [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.componentBorderRadiusSmall,
+    [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.componentBorderRadiusSmall,
+    [CONST.AVATAR_SIZE.SMALLER]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.SMALL]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
+    [CONST.AVATAR_SIZE.MEDIUM]: variables.componentBorderRadiusLarge,
+    [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
+    [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.componentBorderRadiusRounded,
+};
+
+const avatarSizes = {
+    [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeNormal,
+    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.avatarSizeSmallSubscript,
+    [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.avatarSizeMidSubscript,
+    [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.avatarSizeSubscript,
+    [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
+    [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
+    [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
+    [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
+    [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
+};
+
 /**
  * Return the style size from an avatar size constant
  *
@@ -15,19 +60,7 @@ import * as ReportUtils from '../libs/ReportUtils';
  * @returns {Number}
  */
 function getAvatarSize(size) {
-    const AVATAR_SIZES = {
-        [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeNormal,
-        [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.avatarSizeSmallSubscript,
-        [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.avatarSizeMidSubscript,
-        [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.avatarSizeSubscript,
-        [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
-        [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
-        [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
-        [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
-        [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
-    };
-
-    return AVATAR_SIZES[size];
+    return avatarSizes[size];
 }
 
 /**
@@ -54,26 +87,12 @@ function getAvatarStyle(size) {
 * @returns {Object}
 */
 function getAvatarBorderRadius(size, type) {
-    const AVATAR_BORDERS = {
-        [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.componentBorderRadiusSmall,
-        [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.componentBorderRadiusSmall,
-        [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.componentBorderRadiusSmall,
-        [CONST.AVATAR_SIZE.SMALLER]: variables.componentBorderRadiusMedium,
-        [CONST.AVATAR_SIZE.SMALL]: variables.componentBorderRadiusMedium,
-        [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
-        [CONST.AVATAR_SIZE.MEDIUM]: variables.componentBorderRadiusLarge,
-        [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
-        [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.componentBorderRadiusRounded,
-    };
+    if (type === CONST.ICON_TYPE_WORKSPACE) {
+        return {borderRadius: avatarBorderSizes[size]};
+    }
 
     // Default to rounded border
-    let borderRadius = variables.buttonBorderRadius;
-
-    if (type === CONST.ICON_TYPE_WORKSPACE) {
-        borderRadius = AVATAR_BORDERS[size];
-        return {borderRadius};
-    }
-    return {borderRadius};
+    return {borderRadius: variables.buttonBorderRadius};
 }
 
 /**
@@ -97,30 +116,9 @@ function getAvatarBorderStyle(size, type) {
  * @returns {Object}
  */
 function getDefaultWorspaceAvatarColor(workspaceName) {
-    const colorOptions = [
-        [colors.blue200, colors.blue700],
-        [colors.blue400, colors.blue800],
-        [colors.blue700, colors.blue200],
-        [colors.green200, colors.green700],
-        [colors.green400, colors.green800],
-        [colors.green700, colors.green200],
-        [colors.yellow200, colors.yellow700],
-        [colors.yellow400, colors.yellow800],
-        [colors.yellow700, colors.yellow200],
-        [colors.tangerine200, colors.tangerine700],
-        [colors.tangerine400, colors.tangerine800],
-        [colors.tangerine700, colors.tangerine400],
-        [colors.pink200, colors.pink700],
-        [colors.pink400, colors.pink800],
-        [colors.pink700, colors.pink200],
-        [colors.ice200, colors.ice700],
-        [colors.ice400, colors.ice800],
-        [colors.ice700, colors.ice200],
-    ];
+    const colorHash = ReportUtils.hashLogin(workspaceName.trim(), workspaceColorOptions.length);
 
-    const colorHash = ReportUtils.hashLogin(workspaceName.trim(), colorOptions.length);
-
-    return {backgroundColor: colorOptions[colorHash][0], fill: colorOptions[colorHash][1]};
+    return {backgroundColor: workspaceColorOptions[colorHash][0], fill: workspaceColorOptions[colorHash][1]};
 }
 
 /**
