@@ -39,8 +39,8 @@ const ChronosOOOListActions = (props) => {
         >
             <View>
                 {_.map(events, (event) => {
-                    const start = DateUtils.getLocalMomentFromDatetime(props.preferredLocale, event.start.date);
-                    const end = DateUtils.getLocalMomentFromDatetime(props.preferredLocale, event.end.date);
+                    const start = DateUtils.getLocalMomentFromDatetime(props.preferredLocale, lodashGet(event, 'start.date', ''));
+                    const end = DateUtils.getLocalMomentFromDatetime(props.preferredLocale, lodashGet(event, 'end.date', ''));
                     return (
                         <View key={event.id} style={[styles.flexRow, styles.alignItemsCenter, styles.pt, styles.ml18]}>
                             {event.lengthInDays > 0 ? (
