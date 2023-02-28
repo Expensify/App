@@ -1258,17 +1258,14 @@ function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = pref
     // Optimistically update the reportAction with the reaction
     const optimisticData = getOptimisticDataForReportActionUpdate(originalReportAction, updatedMessage, reportID);
 
-    // TODO: only make the API call once its live
-    Onyx.update(optimisticData);
-
-    // const parameters = {
-    //     reportID,
-    //     skinTone,
-    //     reaction: emoji.name,
-    //     sequenceNumber: originalReportAction.sequenceNumber,
-    //     reportActionID: originalReportAction.reportActionID,
-    // };
-    // API.write('AddReaction', parameters, {optimisticData});
+    const parameters = {
+        reportID,
+        skinTone,
+        emojiCode: emoji.name,
+        sequenceNumber: originalReportAction.sequenceNumber,
+        reportActionID: originalReportAction.reportActionID,
+    };
+    API.write('AddEmojiReaction', parameters, {optimisticData});
 }
 
 /**
@@ -1308,16 +1305,13 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
     // Optimistically update the reportAction with the reaction
     const optimisticData = getOptimisticDataForReportActionUpdate(originalReportAction, updatedMessage, reportID);
 
-    // TODO: only make the API call once its live
-    Onyx.update(optimisticData);
-
-    // const parameters = {
-    //     reportID,
-    //     sequenceNumber: originalReportAction.sequenceNumber,
-    //     reportActionID: originalReportAction.reportActionID,
-    //     reaction: emojiCode,
-    // };
-    // API.write('RemoveReaction', parameters, {optimisticData});
+    const parameters = {
+        reportID,
+        sequenceNumber: originalReportAction.sequenceNumber,
+        reportActionID: originalReportAction.reportActionID,
+        emojiCode: emoji.name,
+    };
+    API.write('RemoveEmojiReaction', parameters, {optimisticData});
 }
 
 /**
