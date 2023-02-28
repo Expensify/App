@@ -42,13 +42,6 @@ const defaultProps = {
 };
 
 /**
- * Select the correct color for text.
- * @param {Boolean} isColored
- * @returns {String | null}
- */
-const colorOfText = isColored => ({backgroundColor: isColored ? colors.blueLink : null});
-
-/**
  * @param {Number} numRows
  * @param {Boolean} isEmojiPickerLarge
  * @returns {Number}
@@ -141,7 +134,7 @@ const EmojiSuggestions = (props) => {
                     <Text style={styles.emojiSuggestionsText}>
                         :
                         {_.map(styledTextArray, ({text, isColored}, i) => (
-                            <Text key={i} style={colorOfText(isColored)}>
+                            <Text key={i} style={StyleUtils.getColoredBackgroundStyle(isColored)}>
                                 {text}
                             </Text>
                         ))}

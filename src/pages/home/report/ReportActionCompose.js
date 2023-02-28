@@ -328,8 +328,6 @@ class ReportActionCompose extends React.Component {
 
     /**
      * Clean data related to EmojiSuggestions
-     *
-     * @param {Boolean} shouldHighlight
      */
     resetSuggestedEmojis() {
         this.setState({
@@ -347,8 +345,8 @@ class ReportActionCompose extends React.Component {
         const isCurrentlyShowingEmojiSuggestion = this.isLikeEmojiCode(this.state.value, this.state.selection.end);
 
         // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
-        const isEnoughSpaceForSuggestion = this.props.windowHeight / this.state.composerHeight >= 6.8;
-        const isEmojiPickerLarge = !this.props.isSmallScreenWidth || (this.props.isSmallScreenWidth && isEnoughSpaceForSuggestion);
+        const isEnoughSpaceForLargeSuggestion = this.props.windowHeight / this.state.composerHeight >= 6.8;
+        const isEmojiPickerLarge = !this.props.isSmallScreenWidth || (this.props.isSmallScreenWidth && isEnoughSpaceForLargeSuggestion);
 
         const nextState = {
             suggestedEmojis: [],
@@ -371,7 +369,7 @@ class ReportActionCompose extends React.Component {
 
     /**
      * Check if this piece of string looks like an emoji
-     * @param {Number} str
+     * @param {String} str
      * @param {Number} pos
      * @returns {Boolean}
      */

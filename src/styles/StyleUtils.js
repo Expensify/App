@@ -736,10 +736,10 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth) {
 /**
  * Gets styles for Emoji Suggestion row
  *
- * @param {number} highlightedEmojiIndex
- * @param {number} rowHeight
+ * @param {Number} highlightedEmojiIndex
+ * @param {Number} rowHeight
  * @param {Boolean} hovered
- * @param {number} currentEmojiIndex
+ * @param {Number} currentEmojiIndex
  * @returns {Object}
  */
 function getEmojiSuggestionItemStyle(
@@ -783,6 +783,13 @@ function getEmojiSuggestionContainerStyle(
     };
 }
 
+/**
+ * Select the correct color for text.
+ * @param {Boolean} isColored
+ * @returns {String | null}
+ */
+const getColoredBackgroundStyle = isColored => ({backgroundColor: isColored ? colors.blueLink : null});
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -825,4 +832,5 @@ export {
     getReportWelcomeContainerStyle,
     getEmojiSuggestionItemStyle,
     getEmojiSuggestionContainerStyle,
+    getColoredBackgroundStyle,
 };
