@@ -805,6 +805,9 @@ const removeLinks = (comment, links) => {
  */
 const handleUserDeletedLinks = (newCommentText, originalHtml) => {
     const parser = new ExpensiMark();
+    if (newCommentText.length >= CONST.MAX_MARKUP_LENGTH) {
+        return newCommentText;
+    }
     const htmlWithAutoLinks = parser.replace(newCommentText);
     const markdownWithAutoLinks = parser.htmlToMarkdown(htmlWithAutoLinks);
     const markdownOriginalComment = parser.htmlToMarkdown(originalHtml);
@@ -829,8 +832,15 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const markdownForNewComment = handleUserDeletedLinks(textForNewComment, originalCommentHTML);
 
     const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')};
-    const htmlForNewComment = parser.replace(markdownForNewComment, autolinkFilter);
-    const parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML), autolinkFilter);
+
+    // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
+    // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
+    let htmlForNewComment = markdownForNewComment;
+    let parsedOriginalCommentHTML = originalCommentHTML;
+    if (markdownForNewComment.length < CONST.MAX_MARKUP_LENGTH) {
+        htmlForNewComment = parser.replace(markdownForNewComment, autolinkFilter);
+        parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML), autolinkFilter);
+    }
 
     //  Delete the comment if it's empty
     if (_.isEmpty(htmlForNewComment)) {
