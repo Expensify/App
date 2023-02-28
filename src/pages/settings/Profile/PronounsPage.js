@@ -30,31 +30,24 @@ const defaultProps = {
 class PronounsPage extends Component {
     constructor(props) {
         super(props);
-        const currentPronouns = lodashGet(props.currentUserPersonalDetails, 'pronouns', '');
 
-        this.pronounsList = _.map(props.translate('pronouns'), (value, key) => {
-            const fullPronounKey = `${CONST.PRONOUNS.PREFIX}${key}`;
-            const isCurrentPronouns = fullPronounKey === currentPronouns;
-
-            return {
-                text: value,
-                value: fullPronounKey,
-                keyForList: key,
-
-                // Include the green checkmark icon to indicate the currently selected value
-                customIcon: isCurrentPronouns ? greenCheckmark : undefined,
-
-                // This property will make the currently selected value have bold text
-                boldStyle: isCurrentPronouns,
-            };
-        });
-
+        this.loadPronouns = this.loadPronouns.bind(this);
         this.onChangeText = this.onChangeText.bind(this);
         this.getFilteredPronouns = this.getFilteredPronouns.bind(this);
 
+        this.loadPronouns();
         this.state = {
             searchValue: '',
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.currentUserPersonalDetails.pronouns === this.props.currentUserPersonalDetails.pronouns) {
+            return;
+        }
+
+        this.onChangeText();
+        this.loadPronouns();
     }
 
     onChangeText(searchValue = '') {
@@ -74,6 +67,32 @@ class PronounsPage extends Component {
         }
         return _.filter(this.pronounsList,
             pronous => pronous.text.toLowerCase().indexOf(searchedValue.toLowerCase()) >= 0);
+    }
+
+    /**
+     * Loads the pronouns list from the translations and adds the green checkmark icon to the currently selected value.
+     *
+     * @returns {void}
+     */
+    loadPronouns() {
+        const currentPronouns = lodashGet(this.props.currentUserPersonalDetails, 'pronouns', '');
+
+        this.pronounsList = _.map(this.props.translate('pronouns'), (value, key) => {
+            const fullPronounKey = `${CONST.PRONOUNS.PREFIX}${key}`;
+            const isCurrentPronouns = fullPronounKey === currentPronouns;
+
+            return {
+                text: value,
+                value: fullPronounKey,
+                keyForList: key,
+
+                // Include the green checkmark icon to indicate the currently selected value
+                customIcon: isCurrentPronouns ? greenCheckmark : undefined,
+
+                // This property will make the currently selected value have bold text
+                boldStyle: isCurrentPronouns,
+            };
+        });
     }
 
     /**
