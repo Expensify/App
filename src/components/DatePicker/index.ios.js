@@ -35,10 +35,7 @@ class DatePicker extends React.Component {
         this.updateLocalDate = this.updateLocalDate.bind(this);
     }
 
-    /**
-     * @param {Event} event
-     */
-    showPicker(event) {
+    showPicker() {
         this.initialValue = this.state.selectedDate;
 
         // Opens the popover only after the keyboard is hidden to avoid a "blinking" effect where the keyboard was on iOS
@@ -52,7 +49,6 @@ class DatePicker extends React.Component {
             listener.remove();
         });
         Keyboard.dismiss();
-        event.preventDefault();
     }
 
     /**
@@ -68,7 +64,8 @@ class DatePicker extends React.Component {
      */
     selectDate() {
         this.setState({isPickerVisible: false});
-        this.props.onInputChange(this.state.selectedDate);
+        const asMoment = moment(this.state.selectedDate, true);
+        this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
     }
 
     /**
@@ -84,6 +81,7 @@ class DatePicker extends React.Component {
         return (
             <>
                 <TextInput
+                    forceActiveLabel
                     label={this.props.label}
                     value={dateAsText}
                     placeholder={this.props.placeholder}
@@ -98,6 +96,13 @@ class DatePicker extends React.Component {
                         if (!_.isFunction(this.props.innerRef)) {
                             return;
                         }
+                        if (el && el.focus && typeof el.focus === 'function') {
+                            let inputRef = {...el};
+                            inputRef = {...inputRef, focus: this.showPicker};
+                            this.props.innerRef(inputRef);
+                            return;
+                        }
+
                         this.props.innerRef(el);
                     }}
                 />
@@ -131,6 +136,8 @@ class DatePicker extends React.Component {
                         themeVariant="dark"
                         onChange={this.updateLocalDate}
                         locale={this.props.preferredLocale}
+                        maximumDate={new Date(CONST.DATE.MAX_DATE)}
+                        minimumDate={new Date(CONST.DATE.MIN_DATE)}
                     />
                 </Popover>
             </>
