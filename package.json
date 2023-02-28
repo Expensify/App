@@ -75,7 +75,7 @@
     "jest-when": "^3.5.2",
     "localforage": "^1.10.0",
     "lodash": "4.17.21",
-    "lottie-react-native": "^5.1.4",
+    "lottie-react-native": "^5.1.5",
     "metro-config": "^0.71.3",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.31",
