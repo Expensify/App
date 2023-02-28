@@ -42,6 +42,8 @@ class PronounsPage extends Component {
     }
 
     componentDidUpdate(prevProps) {
+        // If the pronouns have changed, we need to update the pronouns list because refreshing the page
+        // breaks the component lifecycle, so we need to "manually" reset the component.
         if (prevProps.currentUserPersonalDetails.pronouns === this.props.currentUserPersonalDetails.pronouns) {
             return;
         }
@@ -96,7 +98,7 @@ class PronounsPage extends Component {
     }
 
     /**
-     * @param {Obj} selectedPronouns
+     * @param {Object} selectedPronouns
      */
     updatePronouns(selectedPronouns) {
         PersonalDetails.updatePronouns(selectedPronouns.value);
