@@ -34,6 +34,7 @@ export default {
         phoneNumber: 'Número de teléfono',
         phoneNumberPlaceholder: '(prefijo) + (número)',
         email: 'Email',
+        and: 'y',
         details: 'Detalles',
         privacy: 'Privacidad',
         delete: 'Eliminar',
