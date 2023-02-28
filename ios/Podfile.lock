@@ -761,8 +761,13 @@ PODS:
     - React-Codegen
     - React-RCTFabric
     - ReactCommon/turbomodule/core
-  - react-native-document-picker (8.1.1):
+  - react-native-document-picker (8.1.2):
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
     - React-Core
+    - ReactCommon/turbomodule/core
   - react-native-image-manipulator (1.0.5):
     - RCT-Folly
     - RCTRequired
@@ -1395,7 +1400,7 @@ SPEC CHECKSUMS:
   react-native-blob-util: 14ee09f33abf13a1afdfbc777bbdca09c816022c
   react-native-cameraroll: 3ed0e9b71089d9e9936a35dd6d7b10afc258ac62
   react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
-  react-native-document-picker: f68191637788994baed5f57d12994aa32cf8bf88
+  react-native-document-picker: 2178704739867574667da2c325f25a81e52e17c4
   react-native-image-manipulator: 39f7fded66a1170ccb5055095beafa657d0cb36a
   react-native-image-picker: ee3960a0f1da5ecc6dba6686a784485dc8299a22
   react-native-netinfo: 20ae59b6777f1114a7bdad5010b1230959daf9cf

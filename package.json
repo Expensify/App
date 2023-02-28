@@ -92,7 +92,7 @@
     "react-native-collapsible": "^1.6.0",
     "react-native-config": "git+https://github.com/j-piasecki/react-native-config.git#dcb611cb282c99ce81d8f842801e9ebc957db32c",
     "react-native-device-info": "^10.3.0",
-    "react-native-document-picker": "^8.0.0",
+    "react-native-document-picker": "github:WoLewicki/react-native-document-picker#fc2f21d6e46ecf48b5028f720ce897d7e869bdc0",
     "react-native-fast-image": "github:WoLewicki/react-native-fast-image#e0cdcb5a75b050c4608a817081f226240d5678d0",
     "react-native-gesture-handler": "2.8.0",
     "react-native-google-places-autocomplete": "git+https://github.com/Expensify/react-native-google-places-autocomplete.git#e12768f1542e7982d90f6449798f0d6b7f18f192",
