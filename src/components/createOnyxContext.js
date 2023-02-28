@@ -38,7 +38,6 @@ export default (onyxKeyName, defaultValue) => {
 
                     if (propsToPass[propName] === undefined && defaultValue) {
                         propsToPass[propName] = defaultValue;
-                        //propsToPass[propName] = propsToPass[propName] || {};
                     }
                     return (
                         // eslint-disable-next-line react/jsx-props-no-spreading
