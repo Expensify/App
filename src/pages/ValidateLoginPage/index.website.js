@@ -61,8 +61,10 @@ class ValidateLoginPage extends Component {
     componentDidUpdate(prevProps) {
         if (prevProps.credentials && !prevProps.credentials.validateCode && this.props.credentials.validateCode) {
             if (!lodashGet(this.props, 'credentials.login', null) && lodashGet(this.props, 'credentials.accountID', null)) {
+                // The user clicked the option to sign in the current tab
                 Navigation.navigate(ROUTES.REPORT);
             } else {
+                // The sign in was initiated in another tab on the same browser
                 this.setState({justSignedIn: true});
             }
         }
