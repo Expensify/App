@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {
@@ -59,14 +60,15 @@ class ValidateLoginPage extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.credentials && !prevProps.credentials.validateCode && this.props.credentials.validateCode) {
-            if (!lodashGet(this.props, 'credentials.login', null) && lodashGet(this.props, 'credentials.accountID', null)) {
-                // The user clicked the option to sign in the current tab
-                Navigation.navigate(ROUTES.REPORT);
-            } else {
-                // The sign in was initiated in another tab on the same browser
-                this.setState({justSignedIn: true});
-            }
+        if (!(prevProps.credentials && !prevProps.credentials.validateCode && this.props.credentials.validateCode)) {
+            return;
+        }
+        if (!lodashGet(this.props, 'credentials.login', null) && lodashGet(this.props, 'credentials.accountID', null)) {
+            // The user clicked the option to sign in the current tab
+            Navigation.navigate(ROUTES.REPORT);
+        } else {
+            // The sign in was initiated in another tab on the same browser
+            this.setState({justSignedIn: true});
         }
     }
 
@@ -97,17 +99,17 @@ class ValidateLoginPage extends Component {
     isSignInInitiated = () => !this.isAuthenticated() && lodashGet(this.props, 'credentials.login', null);
 
     render() {
-        var showExpiredCodeModal = this.props.account && !_.isEmpty(this.props.account.errors);
-        var showAbracadabra = this.isOnPasswordlessBeta()
+        const showExpiredCodeModal = this.props.account && !_.isEmpty(this.props.account.errors);
+        const showAbracadabra = this.isOnPasswordlessBeta()
             && !this.isSignInInitiated()
             && !lodashGet(this.props, 'account.isLoading', true)
             && this.state.justSignedIn;
-        var showValidateCodeModal = this.isOnPasswordlessBeta()
+        const showValidateCodeModal = this.isOnPasswordlessBeta()
             && !this.isSignInInitiated()
             && !lodashGet(this.props, 'account.isLoading', true)
             && !this.state.justSignedIn
             && _.isEmpty(this.props.account.errors);
-        return <>
+        return (<>
             {showExpiredCodeModal && <ExpiredValidateCodeModal />}
             {showAbracadabra && <AbracadabraModal />}
             {showValidateCodeModal && <ValidateCodeModal
@@ -116,7 +118,7 @@ class ValidateLoginPage extends Component {
                 onSignInHereClick={() => Session.signInWithValidateCode(this.accountID(), this.validateCode())}
             />}
             {!showExpiredCodeModal && !showAbracadabra && !showValidateCodeModal && <FullScreenLoadingIndicator />}
-        </>;
+        </>);
     }
 }
 

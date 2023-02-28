@@ -54,7 +54,7 @@ class ExpiredValidateCodeModal extends PureComponent {
                                         <TextLink onPress={this.props.onRequestCodeClick}>
                                             {this.props.translate('validateCodeModal.requestNewCodeLink')}
                                         </TextLink>
-                                        {'!'}
+                                        !
                                     </>
                                 )}
                         </Text>
