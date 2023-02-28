@@ -17,7 +17,10 @@ const propTypes = {
     /** The height of the icon. */
     height: PropTypes.number,
 
-    /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue' */
+    /**
+     * The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'.
+     * If the icon is a default workspace avatar, this fill color will be overwritten by styles passed in additionalStyles.
+     */
     fill: PropTypes.string,
 
     /** Is small icon */

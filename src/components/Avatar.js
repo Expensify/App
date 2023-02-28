@@ -13,6 +13,7 @@ import Image from './Image';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
 import styles from '../styles/styles';
+import * as ReportUtils from '../libs/ReportUtils';
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
@@ -92,6 +93,7 @@ class Avatar extends PureComponent {
         ];
 
         const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorspaceAvatarColor(this.props.name).fill : this.props.fill;
+        const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(this.props.name) : this.props.fallbackIcon;
 
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
@@ -99,13 +101,14 @@ class Avatar extends PureComponent {
                     ? (
                         <View style={iconStyle}>
                             <Icon
-                                src={this.state.imageError ? this.props.fallbackIcon : this.props.source}
+                                src={this.state.imageError ? fallbackAvatar : this.props.source}
                                 height={iconSize}
                                 width={iconSize}
                                 fill={this.state.imageError ? themeColors.offline : iconFillColor}
                                 additionalStyles={[
                                     StyleUtils.getAvatarBorderStyle(this.props.size, this.props.type),
                                     isWorkspace ? StyleUtils.getDefaultWorspaceAvatarColor(this.props.name) : {},
+                                    this.state.imageError ? StyleUtils.getBackgroundColorStyle(themeColors.buttonDefaultBG) : {},
                                 ]}
                             />
                         </View>
