@@ -16,6 +16,8 @@ import Permissions from '../../libs/Permissions';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import AbracadabraModal from '../../components/ValidateCode/AbracadabraModal';
 import ExpiredValidateCodeModal from '../../components/ValidateCode/ExpiredValidateCodeModal';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
@@ -57,10 +59,13 @@ class ValidateLoginPage extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (!(prevProps.credentials && !prevProps.credentials.validateCode && this.props.credentials.validateCode)) {
-            return;
+        if (prevProps.credentials && !prevProps.credentials.validateCode && this.props.credentials.validateCode) {
+            if (!lodashGet(this.props, 'credentials.login', null) && lodashGet(this.props, 'credentials.accountID', null)) {
+                Navigation.navigate(ROUTES.REPORT);
+            } else {
+                this.setState({justSignedIn: true});
+            }
         }
-        this.setState({justSignedIn: true});
     }
 
     /**
@@ -98,14 +103,15 @@ class ValidateLoginPage extends Component {
         var showValidateCodeModal = this.isOnPasswordlessBeta()
             && !this.isSignInInitiated()
             && !lodashGet(this.props, 'account.isLoading', true)
-            && !this.state.justSignedIn;
+            && !this.state.justSignedIn
+            && _.isEmpty(this.props.account.errors);
         return <>
             {showExpiredCodeModal && <ExpiredValidateCodeModal />}
             {showAbracadabra && <AbracadabraModal />}
             {showValidateCodeModal && <ValidateCodeModal
                 code={this.validateCode()}
                 shouldShowSignInHere={!this.isAuthenticated() && !this.isSignInInitiated()}
-                onSignInHereClick={() => Session.signInWithValidateCodeAndNavigate(this.accountID(), this.validateCode())}
+                onSignInHereClick={() => Session.signInWithValidateCode(this.accountID(), this.validateCode())}
             />}
             {!showExpiredCodeModal && !showAbracadabra && !showValidateCodeModal && <FullScreenLoadingIndicator />}
         </>;
