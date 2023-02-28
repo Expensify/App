@@ -182,8 +182,9 @@ const COMMENT_TO_ALERT_APPLAUSE_DEPLOY_MOCK_STEP = utils.getMockStep(
 );
 const ANNOUNCE_FAILED_WORKFLOW_IN_SLACK_MOCK_STEP = utils.getMockStep(
     'Announce failed workflow in Slack',
-    'Announcing failed workflow in slack',
+    'Announcing failed workflow in Slack',
     'UPDATE_STAGING',
+    ['SLACK_WEBHOOK'],
 );
 const UPDATE_STAGING_JOB_MOCK_STEPS = [
     RUN_TURNSTYLE_MOCK_STEP,

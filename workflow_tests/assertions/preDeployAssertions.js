@@ -465,6 +465,24 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true, shoul
     }
 };
 
+const assertUpdateStagingJobFailed = (workflowResult, didFail = false) => {
+    const steps = [
+        utils.getStepAssertion(
+            'Announce failed workflow in Slack',
+            true,
+            null,
+            'UPDATE_STAGING',
+            'Announcing failed workflow in Slack',
+            [{key: 'SLACK_WEBHOOK', value: '***'}],
+        ),
+    ];
+    if (didFail) {
+        expect(workflowResult).toEqual(expect.arrayContaining(steps));
+    } else {
+        expect(workflowResult).not.toEqual(steps);
+    }
+};
+
 module.exports = {
     assertLintJobExecuted,
     assertTestJobExecuted,
@@ -475,4 +493,5 @@ module.exports = {
     assertSkipDeployJobExecuted,
     assertCreateNewVersionJobExecuted,
     assertUpdateStagingJobExecuted,
+    assertUpdateStagingJobFailed,
 };
