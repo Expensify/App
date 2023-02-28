@@ -3,7 +3,7 @@ const setUpActParams = (act, event = null, event_options = null, secrets = null,
 
     if (event && event_options) {
         updated_act = updated_act.setEvent({
-            event: event_options,
+            [event]: event_options,
         });
     }
 
