@@ -5,9 +5,8 @@ import * as API from '../API';
 
 /**
  @param {String} reportID
+ @param {String} reportActionID
  @param {String} eventID
- * @param {Object} reportAction
- * @param {String} reportAction.sequenceNumber
  * @param {Object[]} events
  */
 const removeEvent = (reportID, reportActionID, eventID, events) => {

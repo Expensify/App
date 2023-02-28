@@ -53,7 +53,7 @@ const ChronosOOOListActions = (props) => {
                                 ) : (
                                     props.translate('chronos.oooEventSummaryPartialDay', {
                                         summary: event.summary,
-                                        timePeriod: start.format('LT')+' - '+end.format('LT'),
+                                        timePeriod: `${start.format('LT')} - ${end.format('LT')}`,
                                         date: end.format('dddd LL'),
                                     })
                                 )}
