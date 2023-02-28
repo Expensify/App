@@ -85,7 +85,7 @@ export default {
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se pudo completar. Por favor inténtalo más tarde.',
         error: {
             invalidAmount: 'Monto no válido',
-            acceptedTerms: 'Debes aceptar los Términos de servicio para continuar',
+            acceptTerms: 'Debes aceptar los Términos de servicio para continuar',
             phoneNumber: `Ingresa un teléfono válido, incluyendo el código de país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Este campo es obligatorio.',
             characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
@@ -377,8 +377,8 @@ export default {
     addSecondaryLoginPage: {
         addPhoneNumber: 'Agregar número de teléfono',
         addEmailAddress: 'Agregar dirección de email',
-        enterPreferredPhoneNumberToSendValidationLink: 'Escribe tu número de teléfono y contraseña para recibir el enlace de validación.',
-        enterPreferredEmailToSendValidationLink: 'Escribe tu email y contraseña para recibir el enlace de validación.',
+        enterPreferredPhoneNumberToSendValidationLink: 'Escribe tu número de teléfono para recibir el enlace de validación.',
+        enterPreferredEmailToSendValidationLink: 'Escribe tu email para recibir el enlace de validación.',
         sendValidation: 'Enviar validación',
     },
     initialSettingsPage: {
@@ -568,6 +568,7 @@ export default {
         enterAuthenticatorCode: 'Por favor ingresa su código de autenticador',
         twoFactorCode: 'Autenticación de 2 factores',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
+        codeSent: '¡Código mágico enviado!',
         error: {
             pleaseFillMagicCode: 'Por favor, introduce el código mágico',
             incorrectMagicCode: 'Código mágico incorrecto.',

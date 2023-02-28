@@ -219,15 +219,6 @@ function isChatRoom(report) {
 }
 
 /**
- * Whether the provided report is a direct message
- * @param {Object} report
- * @returns {Boolean}
- */
-function isDirectMessage(report) {
-    return _.isEmpty(getChatType(report));
-}
-
-/**
  * Get the policy type from a given report
  * @param {Object} report
  * @param {String} report.policyID
@@ -792,7 +783,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
     // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     const parser = new ExpensiMark();
-    const commentText = text.length < 10000 ? parser.replace(text) : text;
+    const commentText = text.length < CONST.MAX_MARKUP_LENGTH ? parser.replace(text) : text;
     const isAttachment = _.isEmpty(text) && file !== undefined;
     const attachmentInfo = isAttachment ? file : {};
     const htmlForNewComment = isAttachment ? 'Uploading Attachment...' : commentText;
@@ -1027,7 +1018,7 @@ function buildOptimisticChatReport(
         chatType,
         hasOutstandingIOU: false,
         isOwnPolicyExpenseChat,
-        isPinned: false,
+        isPinned: reportName === CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
         lastActorEmail: '',
         lastMessageHtml: '',
         lastMessageText: null,
@@ -1331,6 +1322,14 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         return false;
     }
 
+    if (isDefaultRoom(report) && !canSeeDefaultRoom(report, policies, betas)) {
+        return false;
+    }
+
+    if (isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
+        return false;
+    }
+
     // Include the currently viewed report. If we excluded the currently viewed report, then there
     // would be no way to highlight it in the options list and it would be confusing to users because they lose
     // a sense of context.
@@ -1360,22 +1359,8 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         return true;
     }
 
-    if (isDefaultRoom(report) && !canSeeDefaultRoom(report, policies, betas)) {
-        return false;
-    }
-
-    // Include user created policy rooms if the user isn't on the policy rooms beta
-    if (isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
-        return false;
-    }
-
     // Include policy expense chats if the user isn't in the policy expense chat beta
     if (isPolicyExpenseChat(report) && !Permissions.canUsePolicyExpenseChat(betas)) {
-        return false;
-    }
-
-    // Exclude direct message chats that don't have any chat history
-    if (isDirectMessage(report) && report.maxSequenceNumber === 1) {
         return false;
     }
 
