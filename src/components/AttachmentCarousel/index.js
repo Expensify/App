@@ -9,13 +9,11 @@ import themeColors from '../../styles/themes/default';
 import CarouselActions from './CarouselActions';
 import Button from '../Button';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import * as Report from '../../libs/actions/Report';
 import AttachmentView from '../AttachmentView';
 import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
-import reportPropTypes from '../../pages/reportPropTypes';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
 
@@ -26,19 +24,12 @@ const propTypes = {
     /** Callback to update the parent modal's state with a source and name from the attachments array */
     onNavigate: PropTypes.func,
 
-    /** The report currently being looked at */
-    report: reportPropTypes,
-
     /** Object of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 };
 
 const defaultProps = {
     source: '',
-    report: {
-        isLoadingMoreReportActions: false,
-        reportID: '',
-    },
     reportActions: {},
     onNavigate: () => {},
 };
@@ -149,24 +140,6 @@ class AttachmentCarousel extends React.Component {
 
         this.setState(({attachments, page}) => {
             const nextIndex = page + deltaSlide;
-
-            // Check if index is near the end of the list to fetch more reports
-            if (attachments.length - nextIndex < 10) {
-                // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-                if (this.props.report.isLoadingMoreReportActions) {
-                    return;
-                }
-
-                const sortedActions = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions), true);
-                const oldestReportAction = _.last(sortedActions);
-
-                // Load more chats if the last action is not a created type
-                if (oldestReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
-                    // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
-                    Report.readOldestAction(this.props.report.reportID, oldestReportAction.reportActionID);
-                    return;
-                }
-            }
             const {source, file} = this.getAttachment(attachments[nextIndex]);
             return {
                 page: nextIndex,
@@ -179,9 +152,7 @@ class AttachmentCarousel extends React.Component {
     }
 
     render() {
-        if (!this.state.source) {
-            return null;
-        }
+        const isPageSet = Number.isInteger(this.state.page);
         const authSource = addEncryptedAuthTokenToURL(this.state.source);
         return (
             <View
@@ -189,7 +160,7 @@ class AttachmentCarousel extends React.Component {
                 onMouseEnter={() => this.toggleArrowsVisibility(true)}
                 onMouseLeave={() => this.toggleArrowsVisibility(false)}
             >
-                {this.state.shouldShowArrow && (
+                {(isPageSet && this.state.shouldShowArrow) && (
                     <>
                         {!this.state.isBackDisabled && (
                             <Button
@@ -211,7 +182,6 @@ class AttachmentCarousel extends React.Component {
                                 iconFill={themeColors.text}
                                 iconStyles={[styles.mr0]}
                                 onPress={() => this.cycleThroughAttachments(-1)}
-                                isDisabled={this.state.isForwardDisabled}
                             />
                         )}
                     </>
@@ -238,9 +208,6 @@ AttachmentCarousel.propTypes = propTypes;
 AttachmentCarousel.defaultProps = defaultProps;
 
 export default withOnyx({
-    report: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-    },
     reportActions: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         canEvict: false,
