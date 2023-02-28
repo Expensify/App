@@ -45,7 +45,6 @@ const server = http.createServer((request, response) => {
     const proxyRequest = https.request({
         hostname,
         method: 'POST',
-
         path: requestPath,
         headers: {
             ...request.headers,
