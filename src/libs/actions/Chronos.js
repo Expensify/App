@@ -10,8 +10,7 @@ import * as API from '../API';
  * @param {String} reportAction.sequenceNumber
  * @param {Object[]} events
  */
-const removeEvent = (reportID, eventID, reportAction, events) => {
-    const reportActionID = reportAction.reportActionID;
+const removeEvent = (reportID, reportActionID, eventID, events) => {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -27,25 +26,25 @@ const removeEvent = (reportID, eventID, reportAction, events) => {
         },
     ];
 
-    const failureData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [reportActionID]: {
-                    ...reportAction,
-                    pendingAction: null,
-                },
-            },
-        },
-    ];
-
     const successData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportActionID]: {
+                    originalMessage: {events},
                     pendingAction: null,
                 },
             },

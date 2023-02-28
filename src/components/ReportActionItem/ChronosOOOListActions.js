@@ -66,7 +66,7 @@ const ChronosOOOListActions = (props) => {
                             <Button
                                 small
                                 style={[styles.pl2]}
-                                onPress={() => Chronos.removeEvent(props.reportID, event.id, props.action, events)}
+                                onPress={() => Chronos.removeEvent(props.reportID, props.action.reportActionID, event.id, events)}
                                 ContentComponent={() => (
                                     <Text style={styles.buttonSmallText}>
                                         {props.translate('common.remove')}
