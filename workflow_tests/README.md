@@ -12,6 +12,12 @@ Not all workflows can always be tested this way, for example:
 - Testing more complex workflows in their entirety can be extremely time-consuming and cumbersome. It is often optimal to mock most of the steps with expressions printing the input and output conditions
 - Due to the way `Act` and `Act-js` handle workflow output, not much can be checked in the test. What is available, namely whether the job/step executed or not, whether it was successful or not and what its printed output was, should be enough in most scenarios
 
+## Setup
+- Install dependencies from `package.json` file with `npm install`
+- Install `Act` with `brew install act` and follow the documentation on [first Act run](https://github.com/nektos/act#first-act-run)
+- Set the environment variable `ACT_BINARY` to the path to your `Act` executable (`which act` if you're not sure what the path is)
+- You should be ready to run the tests now with `npm test -- --config=workflow_tests/jest.config.js`
+
 ## File structure
 The testing framework file structure within the repository is as follows:
 - `App/` - main application folder
