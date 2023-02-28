@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import {StatusBar, View, KeyboardAvoidingView} from 'react-native';
+import {StatusBar, View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
@@ -10,6 +10,7 @@ import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './
 import * as Modal from '../../libs/actions/Modal';
 import getModalStyles from '../../styles/getModalStyles';
 import variables from '../../styles/variables';
+import KeyboardAvoidingView from '../KeyboardAvoidingView';
 
 const propTypes = {
     ...modalPropTypes,
@@ -162,6 +163,7 @@ class BaseModal extends PureComponent {
                             <KeyboardAvoidingView
                                 behavior="padding"
                                 style={styles.w100}
+                                isApplyToAndroid
                             >
                                 {content}
                             </KeyboardAvoidingView>
