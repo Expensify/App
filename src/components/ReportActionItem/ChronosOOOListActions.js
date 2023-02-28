@@ -46,21 +46,21 @@ const ChronosOOOListActions = (props) => {
                             {event.lengthInDays > 0 ? (
                                 <Text>
                                     {event.summary}
-                                    {' for '}
+                                    {` ${props.translate('common.conjunctionFor')} `}
                                     {event.lengthInDays}
-                                    {event.lengthInDays === 1 ? ' day' : 'days'}
-                                    {' until '}
-                                    {end.format('dddd MMM Do, YYYY')}
+                                    {event.lengthInDays === 1 ? ` ${props.translate('common.day')}` : ` ${props.translate('common.days')}`}
+                                    {` ${props.translate('common.until')} `}
+                                    {end.format('dddd LL')}
                                 </Text>
                             ) : (
                                 <Text>
                                     {event.summary}
-                                    {' from '}
-                                    {start.format('h:mma')}
+                                    {` ${props.translate('common.from')} `}
+                                    {start.format('LT')}
                                     {' - '}
-                                    {end.format('h:mma')}
-                                    {' on '}
-                                    {start.format('dddd MMM Do, YYYY')}
+                                    {end.format('LT')}
+                                    {` ${props.translate('common.on')} `}
+                                    {end.format('dddd LL')}
                                 </Text>
                             )}
                             <Button
