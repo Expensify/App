@@ -691,7 +691,12 @@ class ReportActionCompose extends React.Component {
                             onEmojiSelected={this.addEmojiToTextBox}
                         />
                     )}
-                    <View style={[styles.justifyContentEnd]} onMouseDown={e => e.preventDefault()}>
+                    <View
+                        style={[styles.justifyContentEnd]}
+
+                        // Keep focus on the composer when Send message is clicked.
+                        onMouseDown={e => e.preventDefault()}
+                    >
                         <Tooltip text={this.props.translate('common.send')}>
                             <TouchableOpacity
                                 style={[styles.chatItemSubmitButton,
