@@ -616,7 +616,7 @@ function getHeight(height) {
 }
 
 /**
- * Get height as style
+ * Get minimum height as style
  * @param {Number} minHeight
  * @returns {Object}
  */
