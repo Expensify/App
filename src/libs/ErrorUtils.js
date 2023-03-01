@@ -65,7 +65,7 @@ function getLatestErrorField(onyxData, fieldName) {
     const errorsForField = lodashGet(onyxData, ['errorFields', fieldName], {});
 
     if (_.isEmpty(errorsForField)) {
-        return '';
+        return {};
     }
     return _.chain(errorsForField)
         .keys()

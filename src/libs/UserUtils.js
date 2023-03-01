@@ -24,6 +24,7 @@ import CONST from '../CONST';
  * }}
  *
  * @param {Object} loginList
+ * @param {Object} loginList.errorFields
  * @returns {Boolean}
  */
 function hasLoginListError(loginList) {
@@ -38,6 +39,7 @@ function hasLoginListError(loginList) {
  * has an unvalidated contact method.
  *
  * @param {Object} loginList
+ * @param {String} loginList.validatedDate
  * @returns {Boolean}
  */
 function hasLoginListInfo(loginList) {
