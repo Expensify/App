@@ -53,6 +53,7 @@ const ReportActionItemCreated = (props) => {
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
                 <Image
+                    pointerEvents="none"
                     source={EmptyStateBackgroundImage}
                     style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
                 />
