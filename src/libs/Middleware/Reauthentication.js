@@ -119,7 +119,9 @@ function Reauthentication(response, request, isFromSequentialQueue) {
             }
 
             // If we have caught a networking error from a deprecated api request, resolve it as unable to retry, otherwise the request will never resolve or reject.
-            request.resolve({jsonCode: CONST.JSON_CODE.UNABLE_TO_RETRY});
+            if (request.resolve) {
+                request.resolve({jsonCode: CONST.JSON_CODE.UNABLE_TO_RETRY});
+            }
         });
 }
 
