@@ -31,6 +31,7 @@ beforeEach(async () => {
         repo: {
             testPreDeployWorkflowRepo: {
                 files: FILES_TO_COPY_INTO_TEST_REPO,
+                pushedBranches: ['not_main'],
             },
         },
     });
@@ -57,7 +58,7 @@ describe('test workflow preDeploy', () => {
         act = utils.setUpActParams(
             act,
             'push',
-            {head: {ref: 'main'}},
+            {ref: 'refs/heads/main'},
             {
                 OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
             },
@@ -104,7 +105,7 @@ describe('test workflow preDeploy', () => {
         act = utils.setUpActParams(
             act,
             'push',
-            {head: {ref: 'not_main'}},
+            {ref: 'refs/heads/not_main'},
             {
                 OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
             },
@@ -211,7 +212,7 @@ describe('test workflow preDeploy', () => {
             act = utils.setUpActParams(
                 act,
                 'push',
-                {head: {ref: 'main'}},
+                {ref: 'refs/heads/main'},
                 {
                     OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
@@ -289,7 +290,7 @@ describe('test workflow preDeploy', () => {
             act = utils.setUpActParams(
                 act,
                 'push',
-                {head: {ref: 'main'}},
+                {ref: 'refs/heads/main'},
                 {
                     OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
@@ -367,7 +368,7 @@ describe('test workflow preDeploy', () => {
             act = utils.setUpActParams(
                 act,
                 'push',
-                {head: {ref: 'main'}},
+                {ref: 'refs/heads/main'},
                 {
                     OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
@@ -409,7 +410,7 @@ describe('test workflow preDeploy', () => {
             act = utils.setUpActParams(
                 act,
                 'push',
-                {head: {ref: 'main'}},
+                {ref: 'refs/heads/main'},
                 {
                     OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'OSBotify', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
@@ -447,7 +448,7 @@ describe('test workflow preDeploy', () => {
             act = utils.setUpActParams(
                 act,
                 'push',
-                {head: {ref: 'main'}},
+                {ref: 'refs/heads/main'},
                 {
                     OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
@@ -485,7 +486,7 @@ describe('test workflow preDeploy', () => {
             act = utils.setUpActParams(
                 act,
                 'push',
-                {head: {ref: 'main'}},
+                {ref: 'refs/heads/main'},
                 {
                     OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
@@ -523,7 +524,7 @@ describe('test workflow preDeploy', () => {
             act = utils.setUpActParams(
                 act,
                 'push',
-                {head: {ref: 'main'}},
+                {ref: 'refs/heads/main'},
                 {
                     OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
@@ -565,7 +566,7 @@ describe('test workflow preDeploy', () => {
                     act = utils.setUpActParams(
                         act,
                         'push',
-                        {head: {ref: 'main'}},
+                        {ref: 'refs/heads/main'},
                         {OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'Dummy Tester', SLACK_WEBHOOK: 'dummy_slack_webhook'},
                         'dummy_github_token',
                     );
@@ -604,7 +605,7 @@ describe('test workflow preDeploy', () => {
                     act = utils.setUpActParams(
                         act,
                         'push',
-                        {head: {ref: 'main'}},
+                        {ref: 'refs/heads/main'},
                         {OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'OSBotify', SLACK_WEBHOOK: 'dummy_slack_webhook'},
                         'dummy_github_token',
                     );
@@ -645,7 +646,7 @@ describe('test workflow preDeploy', () => {
                     act = utils.setUpActParams(
                         act,
                         'push',
-                        {head: {ref: 'main'}},
+                        {ref: 'refs/heads/main'},
                         {
                             OS_BOTIFY_TOKEN: 'dummy_token',
                             GITHUB_ACTOR: 'Dummy Tester',
@@ -689,7 +690,7 @@ describe('test workflow preDeploy', () => {
                     act = utils.setUpActParams(
                         act,
                         'push',
-                        {head: {ref: 'main'}},
+                        {ref: 'refs/heads/main'},
                         {
                             OS_BOTIFY_TOKEN: 'dummy_token',
                             GITHUB_ACTOR: 'OSBotify',
@@ -736,7 +737,7 @@ describe('test workflow preDeploy', () => {
                     act = utils.setUpActParams(
                         act,
                         'push',
-                        {head: {ref: 'main'}},
+                        {ref: 'refs/heads/main'},
                         {
                             OS_BOTIFY_TOKEN: 'dummy_token',
                             GITHUB_ACTOR: 'Dummy Tester',
@@ -780,7 +781,7 @@ describe('test workflow preDeploy', () => {
                     act = utils.setUpActParams(
                         act,
                         'push',
-                        {head: {ref: 'main'}},
+                        {ref: 'refs/heads/main'},
                         {
                             OS_BOTIFY_TOKEN: 'dummy_token',
                             GITHUB_ACTOR: 'OSBotify',
@@ -826,7 +827,7 @@ describe('test workflow preDeploy', () => {
                     act = utils.setUpActParams(
                         act,
                         'push',
-                        {head: {ref: 'main'}},
+                        {ref: 'refs/heads/main'},
                         {
                             OS_BOTIFY_TOKEN: 'dummy_token',
                             GITHUB_ACTOR: 'Dummy Tester',
@@ -870,7 +871,7 @@ describe('test workflow preDeploy', () => {
                     act = utils.setUpActParams(
                         act,
                         'push',
-                        {head: {ref: 'main'}},
+                        {ref: 'refs/heads/main'},
                         {
                             OS_BOTIFY_TOKEN: 'dummy_token',
                             GITHUB_ACTOR: 'OSBotify',
@@ -916,7 +917,7 @@ describe('test workflow preDeploy', () => {
             act = utils.setUpActParams(
                 act,
                 'push',
-                {head: {ref: 'main'}},
+                {ref: 'refs/heads/main'},
                 {
                     OS_BOTIFY_TOKEN: 'dummy_token', GITHUB_ACTOR: 'OSBotify', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
