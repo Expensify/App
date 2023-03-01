@@ -134,12 +134,12 @@ class AttachmentCarousel extends React.Component {
      * @param {Number} deltaSlide
     */
     cycleThroughAttachments(deltaSlide) {
-        if ((deltaSlide < 0 && this.state.isForwardDisabled) || (deltaSlide > 0 && this.state.isBackDisabled)) {
+        if ((deltaSlide > 0 && this.state.isForwardDisabled) || (deltaSlide < 0 && this.state.isBackDisabled)) {
             return;
         }
 
         this.setState(({attachments, page}) => {
-            const nextIndex = page + deltaSlide;
+            const nextIndex = page - deltaSlide;
             const {source, file} = this.getAttachment(attachments[nextIndex]);
             return {
                 page: nextIndex,
@@ -170,7 +170,7 @@ class AttachmentCarousel extends React.Component {
                                 icon={Expensicons.BackArrow}
                                 iconFill={themeColors.text}
                                 iconStyles={[styles.mr0]}
-                                onPress={() => this.cycleThroughAttachments(1)}
+                                onPress={() => this.cycleThroughAttachments(-1)}
                             />
                         )}
                         {!this.state.isForwardDisabled && (
@@ -181,7 +181,7 @@ class AttachmentCarousel extends React.Component {
                                 icon={Expensicons.ArrowRight}
                                 iconFill={themeColors.text}
                                 iconStyles={[styles.mr0]}
-                                onPress={() => this.cycleThroughAttachments(-1)}
+                                onPress={() => this.cycleThroughAttachments(1)}
                             />
                         )}
                     </>
