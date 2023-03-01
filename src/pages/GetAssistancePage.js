@@ -1,3 +1,4 @@
+// bruh
 import React from 'react';
 import {View, ScrollView, Linking} from 'react-native';
 import PropTypes from 'prop-types';
@@ -27,7 +28,19 @@ const propTypes = {
         }),
     }).isRequired,
 
+    /** The details about the account that the user is signing in with */
+    account: PropTypes.shape({
+        /** URL to the assigned guide's appointment booking calendar */
+        guideCalendarLink: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    account: {
+        guideCalendarLink: null,
+    },
 };
 
 const GetAssistancePage = (props) => {
@@ -84,6 +97,7 @@ const GetAssistancePage = (props) => {
 };
 
 GetAssistancePage.propTypes = propTypes;
+GetAssistancePage.defaultProps = defaultProps;
 GetAssistancePage.displayName = 'GetAssistancePage';
 
 export default compose(

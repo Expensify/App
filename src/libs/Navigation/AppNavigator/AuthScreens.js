@@ -1,5 +1,7 @@
+// bruh
 import React from 'react';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -81,7 +83,17 @@ const modalScreenListeners = {
 };
 
 const propTypes = {
+    /** Session of currently logged in user */
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }),
     ...windowDimensionsPropTypes,
+};
+
+const defaultProps = {
+    session: {
+        email: null,
+    },
 };
 
 class AuthScreens extends React.Component {
@@ -327,6 +339,7 @@ class AuthScreens extends React.Component {
 }
 
 AuthScreens.propTypes = propTypes;
+AuthScreens.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withOnyx({

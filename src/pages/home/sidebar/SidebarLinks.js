@@ -312,3 +312,5 @@ export default compose(
         },
     }),
 )(SidebarLinks);
+
+// adding this to comment in PR, will be removed after review

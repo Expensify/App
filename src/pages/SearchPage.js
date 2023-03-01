@@ -25,23 +25,32 @@ const propTypes = {
     /* Onyx Props */
 
     /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** All of the personal details for everyone */
-    personalDetails: personalDetailsPropType.isRequired,
+    personalDetails: personalDetailsPropType,
 
     /** All reports shared with the user */
-    reports: PropTypes.objectOf(reportPropTypes).isRequired,
+    reports: PropTypes.objectOf(reportPropTypes),
 
     /** Session of currently logged in user */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
-    }).isRequired,
+    }),
 
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    betas: [],
+    personalDetails: {},
+    reports: {},
+    session: {
+        email: null,
+    },
 };
 
 class SearchPage extends Component {
@@ -199,6 +208,7 @@ class SearchPage extends Component {
 }
 
 SearchPage.propTypes = propTypes;
+SearchPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,

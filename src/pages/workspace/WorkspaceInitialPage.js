@@ -38,6 +38,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    reports: {},
     ...policyDefaultProps,
 };
 

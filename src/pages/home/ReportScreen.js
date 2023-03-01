@@ -34,6 +34,7 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import personalDetailsPropType from '../personalDetailsPropType';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -72,6 +73,15 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** Session of currently logged in user */
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }),
+
+    accountManagerReportID: PropTypes.string,
+
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
+
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
     ...viewportOffsetTopPropTypes,
@@ -87,6 +97,9 @@ const defaultProps = {
     isComposerFullSize: false,
     betas: [],
     policies: {},
+    session: {},
+    accountManagerReportID: {},
+    personalDetails: {},
 };
 
 /**

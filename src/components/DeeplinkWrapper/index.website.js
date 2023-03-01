@@ -23,7 +23,14 @@ const propTypes = {
     /** Children to render. */
     children: PropTypes.node.isRequired,
 
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    betas: [],
 };
 
 class DeeplinkWrapper extends PureComponent {
@@ -162,6 +169,7 @@ class DeeplinkWrapper extends PureComponent {
 }
 
 DeeplinkWrapper.propTypes = propTypes;
+DeeplinkWrapper.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({

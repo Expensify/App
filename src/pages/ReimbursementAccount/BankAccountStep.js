@@ -44,12 +44,16 @@ const propTypes = {
         /** Is the user account validated? */
         validated: PropTypes.bool,
     }),
+
+    /** If the plaid button has been disabled */
+    isPlaidDisabled: PropTypes.bool,
 };
 
 const defaultProps = {
     receivedRedirectURI: null,
     plaidLinkOAuthToken: '',
     user: {},
+    isPlaidDisabled: false,
 };
 
 const BankAccountStep = (props) => {

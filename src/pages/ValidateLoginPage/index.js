@@ -19,11 +19,20 @@ const propTypes = {
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** Session of currently logged in user */
+    session: PropTypes.shape({
+        /** Email address */
+        email: PropTypes.string.isRequired,
+    }),
 };
 
 const defaultProps = {
     route: validateLinkDefaultProps,
     betas: [],
+    session: {
+        email: null,
+    },
 };
 
 class ValidateLoginPage extends Component {

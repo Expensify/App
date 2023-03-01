@@ -29,9 +29,13 @@ const propTypes = {
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
     /* Onyx Props */
-    user: userPropTypes.isRequired,
+    user: userPropTypes,
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    user: {},
 };
 
 const EnableStep = (props) => {
@@ -114,6 +118,7 @@ const EnableStep = (props) => {
 
 EnableStep.displayName = 'EnableStep';
 EnableStep.propTypes = propTypes;
+EnableStep.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,

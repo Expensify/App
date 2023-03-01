@@ -45,12 +45,20 @@ const propTypes = {
     /** Route params */
     route: matchType.isRequired,
 
+    /** Session of currently logged in user */
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     // When opening someone else's profile (via deep link) before login, this is empty
     personalDetails: {},
+    session: {
+        email: null,
+    },
 };
 
 /**

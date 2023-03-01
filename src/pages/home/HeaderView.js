@@ -46,6 +46,12 @@ const propTypes = {
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
+    /** The details about the account that the user is signing in with */
+    account: PropTypes.shape({
+        /** URL to the assigned guide's appointment booking calendar */
+        guideCalendarLink: PropTypes.string,
+    }),
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -54,6 +60,9 @@ const defaultProps = {
     personalDetails: {},
     policies: {},
     report: null,
+    account: {
+        guideCalendarLink: null,
+    },
 };
 
 const HeaderView = (props) => {

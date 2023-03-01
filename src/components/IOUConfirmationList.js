@@ -1,3 +1,4 @@
+// bruh
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -80,7 +81,7 @@ const propTypes = {
     /** Current user session */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
-    }).isRequired,
+    }),
 };
 
 const defaultProps = {
@@ -91,6 +92,9 @@ const defaultProps = {
     comment: '',
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
     canModifyParticipants: false,
+    session: {
+        email: null,
+    },
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -335,9 +339,6 @@ export default compose(
         iou: {key: ONYXKEYS.IOU},
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
 )(IOUConfirmationList);

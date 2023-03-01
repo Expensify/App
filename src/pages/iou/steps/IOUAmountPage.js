@@ -42,11 +42,17 @@ const propTypes = {
 
         /** Selected Currency Code of the current IOU */
         selectedCurrencyCode: PropTypes.string,
-    }).isRequired,
+    }),
 
     ...withLocalizePropTypes,
 };
 
+const defaultProps = {
+    iou: {
+        loading: false,
+        selectedCurrencyCode: null,
+    },
+};
 class IOUAmountPage extends React.Component {
     constructor(props) {
         super(props);
@@ -294,6 +300,7 @@ class IOUAmountPage extends React.Component {
 }
 
 IOUAmountPage.propTypes = propTypes;
+IOUAmountPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,

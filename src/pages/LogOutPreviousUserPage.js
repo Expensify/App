@@ -13,7 +13,13 @@ const propTypes = {
     session: PropTypes.shape({
         /** The user's email for the current session */
         email: PropTypes.string,
-    }).isRequired,
+    }),
+};
+
+const defaultProps = {
+    session: {
+        email: null,
+    },
 };
 
 class LogOutPreviousUserPage extends Component {
@@ -46,7 +52,7 @@ class LogOutPreviousUserPage extends Component {
 }
 
 LogOutPreviousUserPage.propTypes = propTypes;
-
+LogOutPreviousUserPage.defaultProps = defaultProps;
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
