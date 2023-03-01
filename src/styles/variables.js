@@ -98,5 +98,6 @@ export default {
     modalTopBigIconHeight: 244,
     modalWordmarkWidth: 154,
     modalWordmarkHeight: 37,
+    badgeMaxWidth: 180,
     modalContentMaxWidth: 360,
 };
