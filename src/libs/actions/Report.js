@@ -241,7 +241,6 @@ function addActions(reportID, text = '', file) {
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
         file,
-        shouldKeyReportActionsByID: true,
     };
 
     const optimisticData = [
@@ -362,7 +361,6 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
     const params = {
         reportID,
         emailList: participantList ? participantList.join(',') : '',
-        shouldKeyReportActionsByID: true,
     };
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
@@ -426,7 +424,6 @@ function reconnect(reportID) {
     API.write('ReconnectToReport',
         {
             reportID,
-            shouldKeyReportActionsByID: true,
         },
         {
             optimisticData: [{
@@ -502,7 +499,6 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
     API.read('OpenPaymentDetailsPage', {
         reportID: chatReportID,
         iouReportID,
-        shouldKeyReportActionsByID: true,
     }, {
         optimisticData: [
             {
@@ -745,7 +741,6 @@ function deleteReportComment(reportID, reportAction) {
     const parameters = {
         reportID,
         reportActionID: reportAction.reportActionID,
-        shouldKeyReportActionsByID: true,
     };
     API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
 }
@@ -904,7 +899,6 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         reportID,
         reportComment: htmlForNewComment,
         reportActionID,
-        shouldKeyReportActionsByID: true,
     };
     API.write('UpdateComment', parameters, {optimisticData, successData, failureData});
 }
