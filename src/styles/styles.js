@@ -1249,7 +1249,7 @@ const styles = {
         minWidth: 'auto',
         flexBasis: 'auto',
         flexGrow: 0,
-        flexShrink: 0,
+        flexShrink: 1,
     },
 
     displayNameTooltipEllipsis: {
@@ -2863,7 +2863,8 @@ const styles = {
         borderRadius: 10,
         overflow: 'hidden',
         paddingVertical: 2,
-        flexShrink: 1,
+        flexShrink: 0,
+        maxWidth: variables.badgeMaxWidth,
         fontSize: variables.fontSizeSmall,
         ...spacing.ph2,
     },
