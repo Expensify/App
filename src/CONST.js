@@ -910,7 +910,6 @@ const CONST = {
         EXPENSIFY_APPROVED_URL: `${USE_EXPENSIFY_URL}/accountants`,
         PRESS_KIT_URL: 'https://we.are.expensify.com/press-kit',
         SUPPORT_URL: `${USE_EXPENSIFY_URL}/support`,
-        HELP_URL: 'https://help.expensify.com/',
         COMMUNITY_URL: 'https://community.expensify.com/',
         PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
         ABOUT_URL: 'https://we.are.expensify.com/',
@@ -923,9 +922,9 @@ const CONST = {
     SOCIALS: {
         PODCAST: 'https://we.are.expensify.com/podcast',
         TWITTER: 'https://www.twitter.com/expensify',
-        INSTAGRAM: 'http://www.instagram.com/expensify',
+        INSTAGRAM: 'https://www.instagram.com/expensify',
         FACEBOOK: 'https://www.facebook.com/expensify',
-        LINKEDIN: 'http://www.linkedin.com/company/expensify',
+        LINKEDIN: 'https://www.linkedin.com/company/expensify',
     },
 
     // These split the maximum decimal value of a signed 64-bit number (9,223,372,036,854,775,807) into parts where none of them are too big to fit into a 32-bit number, so that we can

@@ -61,7 +61,7 @@ const SignInPageLayout = (props) => {
                         contentContainerStyle={scrollViewContentContainerStyles}
                         keyboardShouldPersistTaps="handled"
                     >
-                        <View style={[styles.flex1, StyleUtils.getMinHeight(containerHeight)]}>
+                        <View style={[styles.flex1, StyleUtils.getMinimumHeight(containerHeight)]}>
                             <SignInPageContent
                                 welcomeText={props.welcomeText}
                                 shouldShowWelcomeText={props.shouldShowWelcomeText}

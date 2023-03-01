@@ -620,7 +620,7 @@ function getHeight(height) {
  * @param {Number} minHeight
  * @returns {Object}
  */
-function getMinHeight(minHeight) {
+function getMinimumHeight(minHeight) {
     return {
         minHeight,
     };
@@ -779,7 +779,7 @@ export {
     convertToLTR,
     hasSafeAreas,
     getHeight,
-    getMinHeight,
+    getMinimumHeight,
     fade,
     getHorizontalStackedAvatarBorderStyle,
     getReportWelcomeBackgroundImageStyle,

@@ -81,7 +81,7 @@ const columns = [
                 translationPath: 'footer.support',
             },
             {
-                link: CONST.FOOTER.HELP_URL,
+                link: CONST.NEWHELP_URL,
                 translationPath: 'footer.expensifyHelp',
             },
             {
@@ -148,7 +148,6 @@ const Footer = (props) => {
             <View style={styles.footer}>
                 <View style={pageFooterWrapper}>
                     <View style={footerColumns}>
-                        { /** Columns * */ }
                         {_.map(columns, (column, i) => (
                             <View
                                 key={column.translationPath}
@@ -158,7 +157,6 @@ const Footer = (props) => {
                                     {props.translate(column.translationPath)}
                                 </Text>
                                 <View style={[styles.footerRow]}>
-                                    { /** Rows * */ }
                                     {_.map(column.rows, row => (
                                         <Hoverable
                                             key={row.translationPath}
