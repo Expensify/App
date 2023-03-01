@@ -67,6 +67,7 @@ const defaultProps = {
     cardList: {},
     userWallet: {},
     walletTerms: {},
+    loginList: {},
 };
 
 const AvatarWithIndicator = (props) => {

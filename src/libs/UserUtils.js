@@ -28,9 +28,7 @@ import CONST from '../CONST';
  * @returns {Boolean}
  */
 function hasLoginListError(loginList) {
-    return _.some(loginList, (login) =>
-        _.some(lodashGet(login, 'errorFields', {}), field => !_.isEmpty(field))
-    );
+    return _.some(loginList, login => _.some(lodashGet(login, 'errorFields', {}), field => !_.isEmpty(field)));
 }
 
 /**
@@ -43,9 +41,7 @@ function hasLoginListError(loginList) {
  * @returns {Boolean}
  */
 function hasLoginListInfo(loginList) {
-    return _.some(loginList, (login) => {
-        return _.isEmpty(login.validatedDate);
-    });
+    return _.some(loginList, login => _.isEmpty(login.validatedDate));
 }
 
 /**
@@ -58,7 +54,8 @@ function hasLoginListInfo(loginList) {
 function getLoginListBrickRoadIndicator(loginList) {
     if (hasLoginListError(loginList)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    } else if (hasLoginListInfo(loginList)) {
+    }
+    if (hasLoginListInfo(loginList)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
     return '';
