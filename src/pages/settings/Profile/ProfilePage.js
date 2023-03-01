@@ -137,6 +137,6 @@ export default compose(
     withOnyx({
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
-        },  
+        },
     }),
 )(ProfilePage);
