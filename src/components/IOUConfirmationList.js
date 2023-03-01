@@ -44,7 +44,7 @@ const propTypes = {
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
         hasDraftComment: PropTypes.bool,
-        icons: PropTypes.arrayOf(PropTypes.string),
+        icons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])),
         searchText: PropTypes.string,
         text: PropTypes.string,
         keyForList: PropTypes.string,

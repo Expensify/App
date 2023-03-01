@@ -77,7 +77,7 @@ class ReportTransaction extends Component {
                         wrapperStyles={[styles.reportTransactionWrapper]}
                     >
                         <Text style={[styles.chatItemMessage]}>
-                            {Str.htmlDecode(this.props.action.message[0].text)}
+                            {Str.htmlDecode(this.props.action.message[0].html)}
                         </Text>
                     </ReportActionItemSingle>
                     {this.props.canBeRejected && (
