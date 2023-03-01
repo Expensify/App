@@ -40,7 +40,7 @@ function showGrowlIfOffline() {
 function openOldDotLink(url) {
     /**
      * @param {String} [shortLivedAuthToken]
-     * @returns {Promise <string>}
+     * @returns {Promise<string>}
      */
     function buildOldDotURL(shortLivedAuthToken) {
         const hasHashParams = url.indexOf('#') !== -1;
@@ -53,7 +53,7 @@ function openOldDotLink(url) {
 
         return Environment.getOldDotEnvironmentURL()
             .then((environmentURL) => {
-                const oldDotDomain = Url.addTrailingForwardSlash(environmentURL || CONFIG.EXPENSIFY.EXPENSIFY_URL);
+                const oldDotDomain = Url.addTrailingForwardSlash(environmentURL);
 
                 // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
                 return `${oldDotDomain}${url}${hasHashParams || hasURLParams ? '&' : '?'}${params}`;

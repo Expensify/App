@@ -11,7 +11,7 @@ const ENVIRONMENT_URLS = {
 };
 
 const OLDDOT_ENVIRONMENT_URLS = {
-    [CONST.ENVIRONMENT.DEV]: CONST.DEV_EXPENSIFY_URL,
+    [CONST.ENVIRONMENT.DEV]: CONST.INTERNAL_DEV_EXPENSIFY_URL,
     [CONST.ENVIRONMENT.STAGING]: CONST.STAGING_EXPENSIFY_URL,
     [CONST.ENVIRONMENT.PRODUCTION]: CONST.EXPENSIFY_URL,
 };
@@ -40,7 +40,7 @@ function getEnvironmentURL() {
 /**
  * Get the corresponding oldDot URL based on the environment we are in
  *
- * @returns {Promise <string>}
+ * @returns {Promise<string>}
  */
 function getOldDotEnvironmentURL() {
     return getEnvironment()
