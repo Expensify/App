@@ -20,7 +20,7 @@ import Picker from '../components/Picker';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import reportPropTypes from './reportPropTypes';
-import withReportOrNavigateHome from './home/report/withReportOrNavigateHome';
+import withReportOrNotFound from './home/report/withReportOrNotFound';
 import Form from '../components/Form';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 
@@ -220,7 +220,7 @@ ReportSettingsPage.propTypes = propTypes;
 
 export default compose(
     withLocalize,
-    withReportOrNavigateHome,
+    withReportOrNotFound,
     withOnyx({
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
