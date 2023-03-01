@@ -215,23 +215,23 @@ class ContactMethodDetailsPage extends Component {
                             </OfflineWithFeedback>
                         </View>
                     )}
-                    <OfflineWithFeedback
-                        pendingAction={lodashGet(loginData, 'pendingFields.deletedLogin', null)}
-                        errors={ErrorUtils.getLatestErrorField(loginData, 'deletedLogin')}
-                        errorRowStyles={[styles.mt6]}
-                        onClose={() => User.clearContactMethodErrors(contactMethod, 'deletedLogin')}
-                    >
-                        <MenuItem
-                            title={this.props.translate('common.remove')}
-                            icon={Expensicons.Trashcan}
-                            onPress={() => this.toggleDeleteModal(true)}
-                            disabled={isDefaultContactMethod}
-                        />
-                    </OfflineWithFeedback>
-                    {isDefaultContactMethod && (
+                    {isDefaultContactMethod ? (
                         <Text style={[styles.ph5]}>
                             {this.props.translate('contacts.yourDefaultContactMethod')}
                         </Text>
+                    ) : (
+                        <OfflineWithFeedback
+                            pendingAction={lodashGet(loginData, 'pendingFields.deletedLogin', null)}
+                            errors={ErrorUtils.getLatestErrorField(loginData, 'deletedLogin')}
+                            errorRowStyles={[styles.mt6]}
+                            onClose={() => User.clearContactMethodErrors(contactMethod, 'deletedLogin')}
+                        >
+                            <MenuItem
+                                title={this.props.translate('common.remove')}
+                                icon={Expensicons.Trashcan}
+                                onPress={() => this.toggleDeleteModal(true)}
+                            />
+                        </OfflineWithFeedback>
                     )}
                 </ScrollView>
             </ScreenWrapper>
