@@ -83,21 +83,16 @@ function extractFirstAndLastNameFromAvailableDetails({
 }
 
 /**
- * Convert country names to their respective ISO codes obtained from the backend
+ * Convert country names obtained from the backend to their respective ISO codes
  * This is for backward compatibility of stored data before E/App#15507
  * @param {String} countryName
  * @returns {String}
  */
 function getCountryISO(countryName) {
-    if (countryName === '' || countryName.length === 2) {
+    if (_.isEmpty(countryName) || countryName.length === 2) {
         return countryName;
     }
-    const isoCodes = _.keys(CONST.ALL_COUNTRIES);
-    for (let i = 0; i < isoCodes.length; i++) {
-        if (CONST.ALL_COUNTRIES[isoCodes[i]] === countryName) {
-            return isoCodes[i];
-        }
-    }
+    return _.findKey(CONST.ALL_COUNTRIES, country => country === countryName);
 }
 
 /**
