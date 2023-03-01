@@ -165,7 +165,7 @@ class ContactMethodDetailsPage extends Component {
                         danger
                     />
                     {!loginData.validatedDate && (
-                        <View style={[styles.mh8, styles.mb2]}>
+                        <View style={[styles.mh5, styles.mb2]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb1, styles.mt3]}>
                                 <Icon src={Expensicons.DotIndicator} fill={colors.green} />
                                 <View style={[styles.flex1, styles.ml4]}>
@@ -229,7 +229,7 @@ class ContactMethodDetailsPage extends Component {
                         />
                     </OfflineWithFeedback>
                     {isDefaultContactMethod && (
-                        <Text style={[styles.ph8]}>
+                        <Text style={[styles.ph5]}>
                             {this.props.translate('contacts.yourDefaultContactMethod')}
                         </Text>
                     )}

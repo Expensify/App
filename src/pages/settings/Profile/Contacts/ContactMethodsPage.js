@@ -119,7 +119,7 @@ const ContactMethodsPage = (props) => {
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <ScrollView>
-                <View style={[styles.ph8, styles.mv3, styles.flexRow, styles.flexWrap]}>
+                <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>
                     <Text>
                         {props.translate('contacts.helpTextBeforeEmail')}
                         <CopyTextToClipboard
