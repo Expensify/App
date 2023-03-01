@@ -58,8 +58,9 @@ const ContactMethodsPage = (props) => {
     let hasPhoneNumberLogin = false;
     let hasEmailLogin = false;
 
-    const loginMenuItems = _.map(props.loginList, (login) => {
-        if (!login.partnerUserID) {
+    const loginMenuItems = _.map(props.loginList, (login, loginName) => {
+        const pendingAction = lodashGet(login, 'pendingFields.deletedLogin', null);
+        if (!login.partnerUserID && _.isEmpty(pendingAction)) {
             return null;
         }
 
@@ -78,26 +79,32 @@ const ContactMethodsPage = (props) => {
 
         // Temporary checks to determine if we need to show specific LoginField
         // components. This check will be removed soon.
+        // Also we still use login.partnerUserID here even though it could have been
+        // deleted optimistically because if the deletion is pending, do want to show
+        // the option to add a new phone or email login, so we don't want to find
+        // that login type in the list here.
         if (Str.isValidPhone(Str.removeSMSDomain(login.partnerUserID))) {
             hasPhoneNumberLogin = true;
         } else if (Str.isValidEmail(login.partnerUserID)) {
             hasEmailLogin = true;
         }
-        const pendingAction = lodashGet(login, 'pendingFields.deletedLogin', null);
+
+        // Default to using login key if we deleted login.partnerUserID optimistically
+        // but still need to show the pending login being deleted while offline.
+        const partnerUserID = login.partnerUserID || loginName;
         return (
             <OfflineWithFeedback
                 pendingAction={pendingAction}
-                key={login.partnerUserID}
+                key={partnerUserID}
             >
                 <MenuItem
-                    title={Str.removeSMSDomain(login.partnerUserID)}
+                    title={Str.removeSMSDomain(partnerUserID)}
                     description={description}
-                    onPress={() => Navigation.navigate(ROUTES.getEditContactMethodRoute(login.partnerUserID))}
+                    onPress={() => Navigation.navigate(ROUTES.getEditContactMethodRoute(partnerUserID))}
                     brickRoadIndicator={indicator}
                     shouldShowBasicTitle
                     shouldShowRightIcon
                     disabled={!_.isEmpty(pendingAction)}
-                    key={login.partnerUserID}
                 />
             </OfflineWithFeedback>
         );
