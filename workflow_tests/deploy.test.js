@@ -238,4 +238,57 @@ describe('test workflow deploy', () => {
             assertions.assertDeployProductionJobExecuted(result, false);
         }, 60000);
     });
+
+    test('different event than push - workflow does not execute', async () => {
+        const repoPath = mockGithub.repo.getPath('testdeployWorkflowRepo') || '';
+        const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
+        let act = new kieActJs.Act(repoPath, workflowPath);
+        const testMockSteps = {
+            validate: mocks.VALIDATE__OSBOTIFY__STEP_MOCKS,
+            deployStaging: mocks.DEPLOY_STAGING_STEP_MOCKS,
+            deployProduction: mocks.DEPLOY_PRODUCTION_STEP_MOCKS,
+        };
+
+        // pull_request
+        act = utils.setUpActParams(
+            act,
+            'pull_request',
+            {head: {ref: 'main'}},
+            {
+                GITHUB_ACTOR: 'Dummy Author',
+                OS_BOTIFY_TOKEN: 'dummy_token',
+                LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+            },
+            'dummy_github_token',
+        );
+        let result = await act
+            .runEvent('pull_request', {
+                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                mockSteps: testMockSteps,
+            });
+        assertions.assertValidateJobExecuted(result, false);
+        assertions.assertDeployStagingJobExecuted(result, false);
+        assertions.assertDeployProductionJobExecuted(result, false);
+
+        // workflow_dispatch
+        act = utils.setUpActParams(
+            act,
+            'workflow_dispatch',
+            {},
+            {
+                GITHUB_ACTOR: 'Dummy Author',
+                OS_BOTIFY_TOKEN: 'dummy_token',
+                LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+            },
+            'dummy_github_token',
+        );
+        result = await act
+            .runEvent('workflow_dispatch', {
+                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                mockSteps: testMockSteps,
+            });
+        assertions.assertValidateJobExecuted(result, false);
+        assertions.assertDeployStagingJobExecuted(result, false);
+        assertions.assertDeployProductionJobExecuted(result, false);
+    }, 60000);
 });
