@@ -160,16 +160,9 @@ class WorkspaceMembersPage extends React.Component {
     /**
      * Add or remove all users from the selectedEmployees list
      */
-    toggleAllUsers(data = {}) {
-        let policyMemberList = lodashGet(this.props, 'policyMemberList', {});
+    toggleAllUsers(memberList) {
+        let policyMemberList = memberList.length > 0 ? memberList : lodashGet(this.props, 'policyMemberList', {});
 
-        // If a list of members is provided, format it like the policyMemberList and use it
-        if (data.length > 0) {
-            policyMemberList = _.reduce(data, (list, member) => ({
-                ...list,
-                [member.login]: member,
-            }), {});
-        }
         policyMemberList = _.filter(_.keys(policyMemberList), policyMember => policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
         this.setState(prevState => ({
@@ -334,6 +327,12 @@ class WorkspaceMembersPage extends React.Component {
             || this.isKeywordMatch(member.phoneNumber, searchValue)
             || this.isKeywordMatch(member.firstName, searchValue)
             || this.isKeywordMatch(member.lastName, searchValue));
+
+        // Format the list of visible members so it is in the same shape as policyMemberList
+        const visibleMembersList = _.reduce(data, (list, member) => ({
+            ...list,
+            [member.login]: member,
+        }), {});
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
 
@@ -397,8 +396,8 @@ class WorkspaceMembersPage extends React.Component {
                                     <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
                                         <View style={[styles.peopleRowCell]}>
                                             <Checkbox
-                                                isChecked={data.length !== 0 && _.every(data, member => _.contains(this.state.selectedEmployees, member))}
-                                                onPress={() => this.toggleAllUsers(data)}
+                                                isChecked={visibleMembersList.length !== 0 && _.every(visibleMembersList, member => _.contains(this.state.selectedEmployees, member))}
+                                                onPress={() => this.toggleAllUsers(visibleMembersList)}
                                             />
                                         </View>
                                         <View style={[styles.peopleRowCell, styles.flex1]}>
