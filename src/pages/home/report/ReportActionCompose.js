@@ -633,9 +633,7 @@ class ReportActionCompose extends React.Component {
                                             <PopoverMenu
                                                 animationInTiming={CONST.ANIMATION_IN_TIMING}
                                                 isVisible={this.state.isMenuVisible}
-                                                onClose={() => {
-                                                    this.setMenuVisibility(false);
-                                                }}
+                                                onClose={() => this.setMenuVisibility(false)}
                                                 onModalHide={this.finishAddAttachmentFlow}
                                                 onItemSelected={(item) => {
                                                     this.setMenuVisibility(false);
