@@ -703,9 +703,11 @@ function getNewChatOptions(
     selectedOptions = [],
     excludeLogins = [],
 ) {
+    const isPhoneNumber = CONST.REGEX.PHONE_WITH_SPECIAL_CHARS.test(searchValue);
+
     return getOptions(reports, personalDetails, {
         betas,
-        searchValue: searchValue.trim(),
+        searchValue: isPhoneNumber ? searchValue.replace(CONST.REGEX.NON_NUMERIC_WITH_PLUS, '') : searchValue.trim(),
         selectedOptions,
         excludeChatRooms: true,
         includeRecentReports: true,
