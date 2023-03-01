@@ -13,6 +13,8 @@ import Objects from '../../../assets/images/emojiCategoryIcons/light-bulb.svg';
 import Symbols from '../../../assets/images/emojiCategoryIcons/peace-sign.svg';
 import Flags from '../../../assets/images/emojiCategoryIcons/flag.svg';
 import CategoryShortcutButton from './CategoryShortcutButton';
+import getOperatingSystem from '../../libs/getOperatingSystem';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** The function to call when an emoji is selected */
@@ -26,7 +28,8 @@ const CategoryShortcutBar = (props) => {
     const icons = [Smiley, AnimalsAndNature, FoodAndDrink, TravelAndPlaces, Activities, Objects, Symbols, Flags];
 
     // If the user has frequently used emojis, there will be 9 headers, otherwise there will be 8
-    if (props.headerIndices.length === 9) {
+    // Or for Windows OS there will be 8 headers, otherwise there will be 7
+    if (props.headerIndices.length === 9 || (getOperatingSystem() === CONST.OS.WINDOWS && props.headerIndices.length === 8)) {
         icons.unshift(FrequentlyUsed);
     }
 

@@ -54,11 +54,16 @@ const defaultProps = {
 const MenuItem = (props) => {
     const titleTextStyle = StyleUtils.combineStyles([
         styles.popoverMenuText,
-        styles.ml3,
+        (props.icon ? styles.ml3 : undefined),
         (props.shouldShowBasicTitle ? undefined : styles.textStrong),
         (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
     ], props.style);
-    const descriptionTextStyle = StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml3, styles.breakAll, styles.lineHeightNormal], props.style);
+    const descriptionTextStyle = StyleUtils.combineStyles([
+        styles.textLabelSupporting,
+        (props.icon ? styles.ml3 : undefined),
+        styles.breakAll,
+        styles.lineHeightNormal,
+    ], props.style);
 
     return (
         <Pressable
