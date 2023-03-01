@@ -166,6 +166,7 @@ export default {
         expiredCodeDescription: 'Vuelve al dispositivo original y solicita un nuevo código.',
         requestNewCode: '¡También puedes',
         requestNewCodeLink: 'solicitar un nuevo código aquí',
+        successfulNewCodeRequest: 'Código solicitado. Por favor, comprueba su dispositivo.',
     },
     iOUConfirmationList: {
         whoPaid: '¿Quién pago?',

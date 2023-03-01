@@ -39,6 +39,8 @@ class ValidateLoginPage extends Component {
     constructor(props) {
         super(props);
 
+        this.resendValidateCode = this.resendValidateCode.bind(this);
+
         this.state = {justSignedIn: false};
     }
 
@@ -98,6 +100,13 @@ class ValidateLoginPage extends Component {
      */
     isSignInInitiated = () => !this.isAuthenticated() && lodashGet(this.props, 'credentials.login', null);
 
+    /**
+     * Trigger the reset validate code flow
+     */
+    resendValidateCode() {
+        Session.resendLinkWithValidateCode();
+    }
+
     render() {
         const showExpiredCodeModal = this.props.account && !_.isEmpty(this.props.account.errors);
         const showAbracadabra = this.isOnPasswordlessBeta()
@@ -109,16 +118,25 @@ class ValidateLoginPage extends Component {
             && !lodashGet(this.props, 'account.isLoading', true)
             && !this.state.justSignedIn
             && _.isEmpty(this.props.account.errors);
-        return (<>
-            {showExpiredCodeModal && <ExpiredValidateCodeModal />}
-            {showAbracadabra && <AbracadabraModal />}
-            {showValidateCodeModal && <ValidateCodeModal
-                code={this.validateCode()}
-                shouldShowSignInHere={!this.isAuthenticated() && !this.isSignInInitiated()}
-                onSignInHereClick={() => Session.signInWithValidateCode(this.accountID(), this.validateCode())}
-            />}
-            {!showExpiredCodeModal && !showAbracadabra && !showValidateCodeModal && <FullScreenLoadingIndicator />}
-        </>);
+        return (
+            <>
+                {showExpiredCodeModal && (
+                    <ExpiredValidateCodeModal
+                        shouldShowRequestCodeLink={lodashGet(this.props, 'credentials.login', null) != null}
+                        onRequestCodeClick={this.resendValidateCode}
+                    />
+                )}
+                {showAbracadabra && <AbracadabraModal />}
+                {showValidateCodeModal && (
+                    <ValidateCodeModal
+                        code={this.validateCode()}
+                        shouldShowSignInHere={!this.isAuthenticated() && !this.isSignInInitiated()}
+                        onSignInHereClick={() => Session.signInWithValidateCode(this.accountID(), this.validateCode())}
+                    />
+                )}
+                {!showExpiredCodeModal && !showAbracadabra && !showValidateCodeModal && <FullScreenLoadingIndicator />}
+            </>
+        );
     }
 }
 
