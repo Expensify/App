@@ -547,7 +547,6 @@ const CONST = {
     },
     SMALL_EMOJI_PICKER_SIZE: {
         WIDTH: '100%',
-        HEIGHT: 362,
     },
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 256,
     EMOJI_PICKER_ITEM_HEIGHT: 32,

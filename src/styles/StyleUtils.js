@@ -394,7 +394,6 @@ function getEmojiPickerStyle(isSmallScreenWidth) {
     if (isSmallScreenWidth) {
         return {
             width: CONST.SMALL_EMOJI_PICKER_SIZE.WIDTH,
-            height: CONST.SMALL_EMOJI_PICKER_SIZE.HEIGHT,
         };
     }
     return {

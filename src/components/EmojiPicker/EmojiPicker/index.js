@@ -4,6 +4,14 @@ import _ from 'underscore';
 import EmojiPickerMenu from '../EmojiPickerMenu';
 import CONST from '../../../CONST';
 import PopoverWithMeasuredContent from '../../PopoverWithMeasuredContent';
+import compose from '../../../libs/compose';
+import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../withViewportOffsetTop';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
+
+const propTypes = {
+    ...viewportOffsetTopPropTypes,
+    ...windowDimensionsPropTypes,
+};
 
 class EmojiPicker extends React.Component {
     constructor(props) {
@@ -162,6 +170,7 @@ class EmojiPicker extends React.Component {
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
                 measureContent={this.measureContent}
+                outerStyle={{maxHeight: this.props.windowHeight, marginTop: this.props.viewportOffsetTop}}
             >
                 <EmojiPickerMenu
                     onEmojiSelected={this.selectEmoji}
@@ -172,4 +181,9 @@ class EmojiPicker extends React.Component {
     }
 }
 
-export default EmojiPicker;
+EmojiPicker.propTypes = propTypes;
+
+export default compose(
+    withViewportOffsetTop,
+    withWindowDimensions,
+)(EmojiPicker);

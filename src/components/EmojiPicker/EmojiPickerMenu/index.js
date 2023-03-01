@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, FlatList} from 'react-native';
+import {View, FlatList, KeyboardAvoidingView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -20,6 +20,7 @@ import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import CategoryShortcutBar from '../CategoryShortcutBar';
 import TextInput from '../../TextInput';
+import withViewportOffsetTop from '../../withViewportOffsetTop';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -483,6 +484,7 @@ class EmojiPickerMenu extends Component {
                         onSelectionChange={this.onSelectionChange}
                         onFocus={() => this.setState({isFocused: true, highlightedIndex: -1, isUsingKeyboardMovement: false})}
                         onBlur={() => this.setState({isFocused: false})}
+                        autoCorrect={false}
                     />
                 </View>
                 {this.state.filteredEmojis.length === 0
