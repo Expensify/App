@@ -60,7 +60,7 @@ class TermsStep extends React.Component {
     }
 
     render() {
-        const errorMessage = this.state.error ? this.props.translate('common.error.acceptedTerms') : (ErrorUtils.getLatestErrorMessage(this.props.walletTerms) || '');
+        const errorMessage = this.state.error ? this.props.translate('common.error.acceptTerms') : (ErrorUtils.getLatestErrorMessage(this.props.walletTerms) || '');
         return (
             <>
                 <HeaderWithCloseButton
