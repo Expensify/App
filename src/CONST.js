@@ -354,11 +354,6 @@ const CONST = {
         VISIBILITY: {
             PUBLIC: 'public',
             PUBLIC_ANNOUNCE: 'public_announce',
-            POLICY_ADMINS: 'policy_admins',
-            POLICY_ANNOUNCE: 'policy_announce',
-            POLICY: 'policy',
-            DOMAIN: 'domain',
-            DM: 'dm',
             PRIVATE: 'private',
             RESTRICTED: 'restricted',
         },
