@@ -23,7 +23,7 @@ import MenuItem from '../components/MenuItem';
 import Text from '../components/Text';
 import CONST from '../CONST';
 import reportPropTypes from './reportPropTypes';
-import withReportOrNavigateHome from './home/report/withReportOrNavigateHome';
+import withReportOrNotFound from './home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
@@ -188,7 +188,7 @@ ReportDetailsPage.propTypes = propTypes;
 
 export default compose(
     withLocalize,
-    withReportOrNavigateHome,
+    withReportOrNotFound,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
