@@ -442,7 +442,7 @@ function getOptions(reports, personalDetails, {
 
     // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
     sortByReportTypeInSearch = false,
-    searchValue = '',
+    searchInputValue = '',
     showChatPreviewLine = false,
     sortPersonalDetailsByAlphaAsc = true,
     forcePolicyNamePreview = false,
@@ -450,6 +450,8 @@ function getOptions(reports, personalDetails, {
     let recentReportOptions = [];
     let personalDetailsOptions = [];
     const reportMapForLogins = {};
+    const isPhoneNumber = CONST.REGEX.PHONE_WITH_SPECIAL_CHARS.test(searchInputValue);
+    const searchValue = isPhoneNumber ? searchInputValue.replace(CONST.REGEX.NON_NUMERIC_WITH_PLUS, '') : searchInputValue;
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(
@@ -641,7 +643,7 @@ function getSearchOptions(
 ) {
     return getOptions(reports, personalDetails, {
         betas,
-        searchValue: searchValue.trim(),
+        searchInputValue: searchValue.trim(),
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
@@ -703,11 +705,9 @@ function getNewChatOptions(
     selectedOptions = [],
     excludeLogins = [],
 ) {
-    const isPhoneNumber = CONST.REGEX.PHONE_WITH_SPECIAL_CHARS.test(searchValue);
-
     return getOptions(reports, personalDetails, {
         betas,
-        searchValue: isPhoneNumber ? searchValue.replace(CONST.REGEX.NON_NUMERIC_WITH_PLUS, '') : searchValue.trim(),
+        searchInputValue: searchValue.trim(),
         selectedOptions,
         excludeChatRooms: true,
         includeRecentReports: true,
@@ -734,7 +734,7 @@ function getMemberInviteOptions(
 ) {
     return getOptions([], personalDetails, {
         betas,
-        searchValue: searchValue.trim(),
+        searchInputValue: searchValue.trim(),
         excludeDefaultRooms: true,
         includePersonalDetails: true,
         excludeLogins,
