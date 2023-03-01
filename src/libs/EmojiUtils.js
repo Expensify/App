@@ -83,7 +83,7 @@ function containsOnlyEmojis(message) {
 }
 
 /**
- * Get the header indices based on the max emojis per row
+ * Get the header emojis with their code, icon and index
  * @param {Object[]} emojis
  * @returns {Object[]}
  */

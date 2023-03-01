@@ -51,7 +51,7 @@ class EmojiPickerMenu extends Component {
 
         this.emojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis, this.props.frequentlyUsedEmojis);
 
-        // Get the header emojis along with the code and index.
+        // Get the header emojis along with the code, index and icon.
         // index is the actual header index starting at the first emoji and counting each one
         this.headerEmojis = EmojiUtils.getHeaderEmojis(this.emojis);
 
