@@ -9,10 +9,10 @@ import getPlatform from './getPlatform';
 
 // Desktop and web use staging config too so we we should default to staging API endpoint if on those platforms
 const shouldDefaultToStaging = _.contains([CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP], getPlatform());
-let stagingServerToggleState = false;
+let shouldUseStagingServer = false;
 Onyx.connect({
     key: ONYXKEYS.USER,
-    callback: val => stagingServerToggleState = lodashGet(val, 'shouldUseStagingServer', shouldDefaultToStaging),
+    callback: val => shouldUseStagingServer = lodashGet(val, 'shouldUseStagingServer', shouldDefaultToStaging),
 });
 
 let shouldFailAllRequests = false;
@@ -108,9 +108,9 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
 
     let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
 
-    if (stagingServerToggleState) {
+    if (shouldUseStagingServer) {
         // If web proxy is used, URL will always be /
-        if (CONFIG.EXPENSIFY.URL_API_ROOT === '/') {
+        if (CONFIG.IS_USING_WEB_PROXY) {
             apiRoot += shouldUseSecure ? CONST.API_MAP.STAGING_SECURE : CONST.API_MAP.STAGING;
         } else {
             apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.STAGING_SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.STAGING_EXPENSIFY_URL;

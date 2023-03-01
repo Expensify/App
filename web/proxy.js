@@ -27,17 +27,30 @@ const server = http.createServer((request, response) => {
     let hostname = host;
     let requestPath = request.url;
 
-    // regex not declared globally to avoid internal regex pointer reset for each request
-    // We only match for staging related root since default host is prod
+    // Regex not declared globally to avoid internal regex pointer reset for each request.
     const apiRegex = /\/(staging.*api)/g;
+
+    /**
+     * We only match staging api root to redirect requests to the staging server if the request
+     * is an API call, instead of chat attachments. By default, requests are sent to the prod server.
+     * For example,
+     * /api?command=OpenReport => request sent to production server
+     * /staging-api?command=OpenReport => request sent to staging server
+     * /staging-secure-api?command=OpenReport => request sent to secure staging server
+     * /chat-attachments/46545... => request sent to production server
+     */
     const apiRootMatch = apiRegex.exec(request.url);
 
-    // Switch host only if API call, not on chat attachments
+    // Switch host only if API call, not on chat attachments.
     if (apiRootMatch) {
         const apiRoot = apiRootMatch[1];
         hostname = HOST_MAP[apiRoot];
 
-        // replace the mapping url with the actual path
+        /**
+         * Replace the mapping url with the actual path.
+         * This is done because the staging api root is only intended for the proxy,
+         * the actual server request must use the /api path.
+         */
         requestPath = request.url.replace(apiRoot, 'api');
     }
     const proxyRequest = https.request({
