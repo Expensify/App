@@ -8,7 +8,6 @@ import {FlatList} from 'react-native-gesture-handler';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import Text from '../Text';
-import colors from '../../styles/colors';
 import CONST from '../../CONST';
 
 const propTypes = {
