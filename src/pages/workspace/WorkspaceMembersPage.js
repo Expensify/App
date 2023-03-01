@@ -153,15 +153,19 @@ class WorkspaceMembersPage extends React.Component {
         this.setState({isRemoveMembersConfirmModalVisible: false});
     }
 
+    toggleVisibleUsers() {
+
+    }
+
     /**
      * Add or remove all users from the selectedEmployees list
      */
-    toggleAllUsers() {
-        let policyMemberList = lodashGet(this.props, 'policyMemberList', {});
+    toggleAllUsers(memberList = {}) {
+        let policyMemberList = memberList.length > 0 ? memberList : lodashGet(this.props, 'policyMemberList', {});
         policyMemberList = _.filter(_.keys(policyMemberList), policyMember => policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
         this.setState(prevState => ({
-            selectedEmployees: !_.every(removableMembers, member => _.contains(prevState.selectedEmployees, member))
+            selectedEmployees: !_.every(removableMembers, member => _.contains(prevState.r, member))
                 ? removableMembers
                 : [],
         }), () => this.validate());
@@ -385,8 +389,8 @@ class WorkspaceMembersPage extends React.Component {
                                     <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
                                         <View style={[styles.peopleRowCell]}>
                                             <Checkbox
-                                                isChecked={removableMembers.length !== 0 && _.every(removableMembers, member => _.contains(this.state.selectedEmployees, member))}
-                                                onPress={() => this.toggleAllUsers()}
+                                                isChecked={data.length !== 0 && _.every(data, member => _.contains(this.state.selectedEmployees, member))}
+                                                onPress={() => this.toggleAllUsers(data)}
                                             />
                                         </View>
                                         <View style={[styles.peopleRowCell, styles.flex1]}>
