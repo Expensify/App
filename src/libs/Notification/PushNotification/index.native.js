@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import {UrbanAirship, EventType, iOS} from 'urbanairship-react-native';
 import lodashGet from 'lodash/get';
@@ -83,13 +82,6 @@ function init() {
         // By default, refresh notification opt-in status to true if we receive a notification
         if (!isUserOptedInToPushNotifications) {
             PushNotification.setPushNotificationOptInStatus(true);
-        }
-
-        // If a push notification is received while the app is in foreground,
-        // we'll assume pusher is connected so we'll ignore it and not fetch the same data twice.
-        if (AppState.currentState === 'active') {
-            Log.info('[PUSH_NOTIFICATION] Push received while app is in foreground, not executing any callback.');
-            return;
         }
 
         pushNotificationEventCallback(EventType.PushReceived, notification);

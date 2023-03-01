@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, FlatList, KeyboardAvoidingView} from 'react-native';
+import {View, FlatList} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -20,7 +20,6 @@ import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import CategoryShortcutBar from '../CategoryShortcutBar';
 import TextInput from '../../TextInput';
-import withViewportOffsetTop from '../../withViewportOffsetTop';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -58,21 +57,20 @@ class EmojiPickerMenu extends Component {
         // Ref for emoji FlatList
         this.emojiList = undefined;
 
-        const allEmojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis, this.props.frequentlyUsedEmojis);
+        // If we're on Windows, don't display the flag emojis (the last category),
+        // since Windows doesn't support them
+        const flagHeaderIndex = _.findIndex(emojis, emoji => emoji.header && emoji.code === 'flags');
+        this.emojis = getOperatingSystem() === CONST.OS.WINDOWS
+            ? EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis.slice(0, flagHeaderIndex), this.props.frequentlyUsedEmojis)
+            : EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis, this.props.frequentlyUsedEmojis);
 
         // This is the actual header index starting at the first emoji and counting each one
-        this.headerIndices = EmojiUtils.getHeaderIndices(allEmojis);
+        this.headerIndices = EmojiUtils.getHeaderIndices(this.emojis);
 
         // This is the indices of each header's Row
         // The positions are static, and are calculated as index/numColumns (8 in our case)
         // This is because each row of 8 emojis counts as one index to the flatlist
         this.headerRowIndices = _.map(this.headerIndices, headerIndex => Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW));
-
-        // If we're on Windows, don't display the flag emojis (the last category),
-        // since Windows doesn't support them (and only displays country codes instead)
-        this.emojis = getOperatingSystem() === CONST.OS.WINDOWS
-            ? allEmojis.slice(0, this.headerRowIndices.pop() * CONST.EMOJI_NUM_PER_ROW)
-            : allEmojis;
 
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
         this.highlightAdjacentEmoji = this.highlightAdjacentEmoji.bind(this);
@@ -159,6 +157,9 @@ class EmojiPickerMenu extends Component {
             // Select the currently highlighted emoji if enter is pressed
             if (keyBoardEvent.key === 'Enter' && this.state.highlightedIndex !== -1) {
                 const item = this.state.filteredEmojis[this.state.highlightedIndex];
+                if (!item) {
+                    return;
+                }
                 const emoji = lodashGet(item, ['types', this.props.preferredSkinTone], item.code);
                 this.addToFrequentAndSelectEmoji(emoji, item);
                 return;
@@ -380,6 +381,9 @@ class EmojiPickerMenu extends Component {
      */
     filterEmojis(searchTerm) {
         const normalizedSearchTerm = searchTerm.toLowerCase().trim();
+        if (this.emojiList) {
+            this.emojiList.scrollToOffset({offset: 0, animated: false});
+        }
         if (normalizedSearchTerm === '') {
             // There are no headers when searching, so we need to re-make them sticky when there is no search term
             this.setState({
@@ -464,15 +468,12 @@ class EmojiPickerMenu extends Component {
     }
 
     render() {
+        const isFiltered = this.emojis.length !== this.state.filteredEmojis.length;
         return (
             <View
                 style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
-                <CategoryShortcutBar
-                    headerIndices={this.headerIndices}
-                    onPress={this.scrollToHeader}
-                />
                 <View style={[styles.ph4, styles.pb1]}>
                     <TextInput
                         label={this.props.translate('common.search')}
@@ -487,6 +488,12 @@ class EmojiPickerMenu extends Component {
                         autoCorrect={false}
                     />
                 </View>
+                {!isFiltered && (
+                    <CategoryShortcutBar
+                        headerIndices={this.headerIndices}
+                        onPress={this.scrollToHeader}
+                    />
+                )}
                 {this.state.filteredEmojis.length === 0
                     ? (
                         <Text

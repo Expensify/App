@@ -32,17 +32,11 @@ Onyx.connect({
  * On Android, AuthScreens unmounts when the app is closed with the back button so we manage the
  * push subscription when the session changes here.
  */
-let previousAccountID;
 Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (session) => {
-        const accountID = lodashGet(session, 'accountID');
-        if (previousAccountID === accountID) {
-            return;
-        }
-
-        if (accountID) {
-            PushNotification.register(accountID);
+    key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
+    callback: (notificationID) => {
+        if (notificationID) {
+            PushNotification.register(notificationID);
 
             // Prevent issue where report linking fails after users switch accounts without closing the app
             PushNotification.init();
@@ -51,8 +45,6 @@ Onyx.connect({
             PushNotification.deregister();
             PushNotification.clearNotifications();
         }
-
-        previousAccountID = accountID;
     },
 });
 
@@ -113,6 +105,40 @@ function resendValidationLink(login = credentials.login) {
     }];
 
     API.write('RequestAccountValidationLink', {email: login}, {optimisticData, successData, failureData});
+}
+
+/**
+ * Request a new validate / magic code for user to sign in via passwordless flow
+ *
+ * @param {String} [login]
+ */
+function resendValidateCode(login = credentials.login) {
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: true,
+            errors: null,
+            message: null,
+        },
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: Localize.translateLocal('validateCodeForm.codeSent'),
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: null,
+        },
+    }];
+    API.write('RequestNewValidateCode', {email: login}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -547,6 +573,7 @@ export {
     signOut,
     signOutAndRedirectToSignIn,
     resendValidationLink,
+    resendValidateCode,
     resetPassword,
     resendResetPassword,
     clearSignInData,

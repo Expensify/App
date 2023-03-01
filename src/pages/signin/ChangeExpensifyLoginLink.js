@@ -35,9 +35,7 @@ const ChangeExpensifyLoginLink = props => (
             <Text>
                 {props.translate('common.not')}
                 &nbsp;
-                {Str.isSMSLogin(props.credentials.login || '')
-                    ? props.toLocalPhone(Str.removeSMSDomain(props.credentials.login || ''))
-                    : Str.removeSMSDomain(props.credentials.login || '')}
+                {Str.removeSMSDomain(props.credentials.login)}
                 {'? '}
             </Text>
         )}
