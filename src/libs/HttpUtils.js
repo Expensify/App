@@ -6,6 +6,7 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import HttpsError from './Errors/HttpsError';
 import getPlatform from './getPlatform';
+import proxyConfig from '../../config/proxyConfig';
 
 // Desktop and web use staging config too so we we should default to staging API endpoint if on those platforms
 const shouldDefaultToStaging = _.contains([CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP], getPlatform());
@@ -110,7 +111,7 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
 
     if (shouldUseStagingServer) {
         if (CONFIG.IS_USING_WEB_PROXY) {
-            apiRoot += shouldUseSecure ? CONST.API_MAP.STAGING_SECURE : CONST.API_MAP.STAGING;
+            apiRoot = shouldUseSecure ? proxyConfig.STAGING_SECURE : proxyConfig.STAGING;
         } else {
             apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.STAGING_SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.STAGING_EXPENSIFY_URL;
         }

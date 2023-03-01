@@ -1,5 +1,6 @@
 const http = require('http');
 const https = require('https');
+const proxyConfig = require('../config/proxyConfig');
 require('dotenv').config();
 
 if (process.env.USE_WEB_PROXY === 'false') {
@@ -9,10 +10,6 @@ if (process.env.USE_WEB_PROXY === 'false') {
 const host = new URL(process.env.EXPENSIFY_URL || 'https://www.expensify.com').hostname;
 const stagingHost = new URL(process.env.STAGING_EXPENSIFY_URL || 'https://staging.expensify.com').hostname;
 const stagingSecureHost = new URL(process.env.STAGING_SECURE_EXPENSIFY_URL || 'https://staging-secure.expensify.com').hostname;
-const HOST_MAP = {
-    'staging-api': stagingHost,
-    'staging-secure-api': stagingSecureHost,
-};
 
 // eslint-disable-next-line no-console
 console.log(`Creating proxy with host: ${host} for production API and ${stagingHost} for staging API`);
@@ -28,30 +25,32 @@ const server = http.createServer((request, response) => {
     let requestPath = request.url;
 
     // Regex not declared globally to avoid internal regex pointer reset for each request.
-    const apiRegex = /\/(staging.*api)/g;
+    const apiRegex = /(\/staging.*)api/g;
 
     /**
      * We only match staging api root to redirect requests to the staging server if the request
-     * is an API call, instead of chat attachments. By default, requests are sent to the prod server.
+     * is an API call, except chat attachments. By default, requests are sent to the prod server.
      * For example,
      * /api?command=OpenReport => request sent to production server
      * /staging-api?command=OpenReport => request sent to staging server
      * /staging-secure-api?command=OpenReport => request sent to secure staging server
      * /chat-attachments/46545... => request sent to production server
      */
-    const apiRootMatch = apiRegex.exec(request.url);
+    const apiRootMatch = apiRegex.exec(requestPath);
 
     // Switch host only if API call, not on chat attachments.
     if (apiRootMatch) {
         const apiRoot = apiRootMatch[1];
-        hostname = HOST_MAP[apiRoot];
+
+        // apiRoot can only be staging or secure staging
+        hostname = apiRoot === proxyConfig.STAGING ? stagingHost : stagingSecureHost;
 
         /**
          * Replace the mapping url with the actual path.
          * This is done because the staging api root is only intended for the proxy,
          * the actual server request must use the /api path.
          */
-        requestPath = request.url.replace(apiRoot, 'api');
+        requestPath = request.url.replace(apiRoot, '/');
     }
     const proxyRequest = https.request({
         hostname,
