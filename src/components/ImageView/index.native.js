@@ -99,7 +99,7 @@ class ImageView extends PureComponent {
     configureImageZoom({nativeEvent}) {
         // Wait till animations are over to prevent stutter in navigation animation
         this.state.interactionPromise = InteractionManager.runAfterInteractions(() => {
-            this.setState({ imageHeight: 0, imageWidth: 0, isLoading: true });
+            this.setState({imageHeight: 0, imageWidth: 0, isLoading: true});
             if (this.imageZoomScale !== 1) {
                 this.imageZoomScale = 1;
             }
@@ -135,7 +135,7 @@ class ImageView extends PureComponent {
     }
 
     imageLoadingStart() {
-        this.setState({ isLoading: true });
+        this.setState({isLoading: true});
     }
 
     render() {
