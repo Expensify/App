@@ -831,7 +831,7 @@ class ReportActionCompose extends React.Component {
                     <ArrowKeyFocusManager
                         focusedIndex={this.state.highlightedEmojiIndex}
                         maxIndex={getEmojiRowCount(this.state.suggestedEmojis.length, this.state.isEmojiPickerLarge)}
-                        isExcludedTextAreaNodes={false}
+                        shouldExcludeTextAreaNodes={false}
                         onFocusedIndexChanged={index => this.setState({highlightedEmojiIndex: index})}
                     >
                         <EmojiSuggestions

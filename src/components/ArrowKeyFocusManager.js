@@ -23,12 +23,12 @@ const propTypes = {
     onFocusedIndexChanged: PropTypes.func.isRequired,
 
     /** if this value is true, then we exclude TextArea Node. */
-    isExcludedTextAreaNodes: PropTypes.bool,
+    shouldExcludeTextAreaNodes: PropTypes.bool,
 };
 
 const defaultProps = {
     disabledIndexes: [],
-    isExcludedTextAreaNodes: true,
+    shouldExcludeTextAreaNodes: true,
 };
 
 class ArrowKeyFocusManager extends Component {
@@ -52,7 +52,7 @@ class ArrowKeyFocusManager extends Component {
             }
 
             this.props.onFocusedIndexChanged(newFocusedIndex);
-        }, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true, false, 0, true, [this.props.isExcludedTextAreaNodes && 'TEXTAREA']);
+        }, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true, false, 0, true, [this.props.shouldExcludeTextAreaNodes && 'TEXTAREA']);
 
         this.unsubscribeArrowDownKey = KeyboardShortcut.subscribe(arrowDownConfig.shortcutKey, () => {
             if (this.props.maxIndex < 0) {
@@ -70,7 +70,7 @@ class ArrowKeyFocusManager extends Component {
             }
 
             this.props.onFocusedIndexChanged(newFocusedIndex);
-        }, arrowDownConfig.descriptionKey, arrowDownConfig.modifiers, true, false, 0, true, [this.props.isExcludedTextAreaNodes && 'TEXTAREA']);
+        }, arrowDownConfig.descriptionKey, arrowDownConfig.modifiers, true, false, 0, true, [this.props.shouldExcludeTextAreaNodes && 'TEXTAREA']);
     }
 
     componentWillUnmount() {
