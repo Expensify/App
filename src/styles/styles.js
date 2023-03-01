@@ -2911,11 +2911,15 @@ const styles = {
         paddingBottom: 45,
     },
 
-    magicCodeDigits: {
+    validateCodeDigits: {
         color: themeColors.text,
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeXXLarge,
         letterSpacing: 4,
+    },
+    validateCodeMessage: {
+        width: variables.modalContentMaxWidth,
+        textAlign: 'center',
     },
 };
 

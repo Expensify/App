@@ -97,5 +97,6 @@ export default {
     modalTopIconHeight: 164,
     modalTopBigIconHeight: 244,
     modalWordmarkWidth: 154,
-    modalWordmarkHeight: 34,
+    modalWordmarkHeight: 37,
+    modalContentMaxWidth: 360,
 };

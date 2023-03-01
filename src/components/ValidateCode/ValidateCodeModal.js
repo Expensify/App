@@ -62,7 +62,7 @@ class ValidateCodeModal extends PureComponent {
                         </Text>
                     </View>
                     <View style={styles.mt6}>
-                        <Text style={styles.magicCodeDigits}>
+                        <Text style={styles.validateCodeDigits}>
                             {this.props.code}
                         </Text>
                     </View>

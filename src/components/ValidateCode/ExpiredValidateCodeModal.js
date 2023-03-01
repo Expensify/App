@@ -33,12 +33,11 @@ const defaultProps = {
 };
 
 class ExpiredValidateCodeModal extends PureComponent {
-
     render() {
         const codeRequestedMessage = lodashGet(this.props, 'account.message', null);
         const accountErrors = lodashGet(this.props, 'account.errors', {});
         let codeRequestedErrors;
-        if (Object.keys(accountErrors).length > 1) {
+        if (_.keys(accountErrors).length > 1) {
             codeRequestedErrors = ErrorUtils.getLatestErrorMessage(this.props.account);
         }
         return (
@@ -69,27 +68,25 @@ class ExpiredValidateCodeModal extends PureComponent {
                                         !
                                     </>
                                 )}
-                            {this.props.shouldShowRequestCodeLink && codeRequestedErrors
-                                && (
-                                    <>
-                                        <br />
-                                        <br />
-                                        <Text style={[styles.textDanger, styles.textAlignCenter]}>
-                                            {codeRequestedErrors}
-                                        </Text>
-                                    </>
-                                )
-                            }
-                            {this.props.shouldShowRequestCodeLink && codeRequestedMessage
-                                && (
-                                    <>
-                                        <br />
-                                        <br />
-                                        {codeRequestedMessage}
-                                    </>
-                                )
-                            }
                         </Text>
+                        {this.props.shouldShowRequestCodeLink && codeRequestedErrors
+                            && (
+                                <Text style={[styles.textDanger, styles.validateCodeMessage]}>
+                                    <br />
+                                    <br />
+
+                                    {codeRequestedErrors}
+
+                                </Text>
+                            )}
+                        {this.props.shouldShowRequestCodeLink && codeRequestedMessage
+                            && (
+                                <Text style={styles.validateCodeMessage}>
+                                    <br />
+                                    <br />
+                                    {codeRequestedMessage}
+                                </Text>
+                            )}
                     </View>
                 </View>
                 <View style={styles.deeplinkWrapperFooter}>
