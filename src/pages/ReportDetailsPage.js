@@ -97,7 +97,7 @@ class ReportDetailsPage extends Component {
                     key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                     translationKey: 'common.leaveRoom',
                     icon: Expensicons.Exit,
-                    action: () => Policy.leaveRoom(this.props.report),
+                    action: () => Policy.leaveRoom(this.props.report.reportID),
                 });
             }
         }
