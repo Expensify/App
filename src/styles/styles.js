@@ -1499,20 +1499,6 @@ const styles = {
         width: '100%',
     },
 
-    emojiHeaderStyle: {
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
-        color: themeColors.heading,
-        fontSize: variables.fontSizeSmall,
-    },
-
-    emojiHeaderContainerStyle: {
-        backgroundColor: themeColors.componentBG,
-        display: 'flex',
-        alignItems: 'center',
-        textAlignVertical: 'center',
-    },
-
     emojiSkinToneTitle: {
         backgroundColor: themeColors.componentBG,
         width: '100%',
