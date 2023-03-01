@@ -73,16 +73,6 @@ class EmojiPickerMenu extends Component {
         };
     }
 
-    /**
-   * This function will be used with FlatList getItemLayout property for optimization purpose that allows skipping
-   * the measurement of dynamic content if we know the size (height or width) of items ahead of time.
-   * Generate and return an object with properties length(height of each individual row),
-   * offset(distance of the current row from the top of the FlatList), index(current row index)
-   *
-   * @param {*} data FlatList item
-   * @param {Number} index row index
-   * @returns {Object}
-   */
     getItemLayout(data, index) {
         return {length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index};
     }
@@ -235,23 +225,23 @@ class EmojiPickerMenu extends Component {
                     showsVerticalScrollIndicator
                 />
                 {!!this.state.value && (
-                <View style={styles.emojiPickerSearchListContainer}>
-                    <FlatList
-                        ref={el => this.emojiList = el}
-                        keyboardShouldPersistTaps="handled"
-                        data={this.state.filteredEmojis}
-                        renderItem={this.renderItem}
-                        keyExtractor={item => `emoji_picker_${item.code}`}
-                        numColumns={CONST.EMOJI_NUM_PER_ROW}
-                        style={[
-                            styles.emojiPickerList,
-                            this.isMobileLandscape() && styles.emojiPickerListLandscape,
-                        ]}
-                        getItemLayout={this.getItemLayout}
-                        ListEmptyComponent={this.listEmptyComponent()}
-                        showsVerticalScrollIndicator
-                    />
-                </View>
+                    <View style={styles.emojiPickerSearchListContainer}>
+                        <FlatList
+                            ref={el => this.emojiList = el}
+                            keyboardShouldPersistTaps="handled"
+                            data={this.state.filteredEmojis}
+                            renderItem={this.renderItem}
+                            keyExtractor={item => `emoji_picker_${item.code}`}
+                            numColumns={CONST.EMOJI_NUM_PER_ROW}
+                            style={[
+                                styles.emojiPickerList,
+                                this.isMobileLandscape() && styles.emojiPickerListLandscape,
+                            ]}
+                            getItemLayout={this.getItemLayout}
+                            ListEmptyComponent={this.listEmptyComponent()}
+                            showsVerticalScrollIndicator
+                        />
+                    </View>
                 )}
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}
