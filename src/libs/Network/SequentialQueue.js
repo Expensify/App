@@ -30,7 +30,6 @@ function process() {
 
     // If we have no persisted requests or we are offline we don't want to make any requests so we return early
     if (_.isEmpty(persistedRequests) || NetworkStore.isOffline()) {
-        isSequentialQueueRunning = false;
         return Promise.resolve();
     }
 
