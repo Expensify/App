@@ -31,7 +31,6 @@ class ImageView extends PureComponent {
         this.onContainerPress = this.onContainerPress.bind(this);
         this.imageLoad = this.imageLoad.bind(this);
         this.imageLoadingStart = this.imageLoadingStart.bind(this);
-        this.imageLoadingEnd = this.imageLoadingEnd.bind(this);
         this.trackMovement = this.trackMovement.bind(this);
         this.trackPointerPosition = this.trackPointerPosition.bind(this);
 
@@ -214,14 +213,11 @@ class ImageView extends PureComponent {
 
     imageLoad({nativeEvent}) {
         this.setImageRegion(nativeEvent.width, nativeEvent.height);
+        this.setState({isLoading: false, isZoomed: false});
     }
 
     imageLoadingStart() {
         this.setState({isLoading: true});
-    }
-
-    imageLoadingEnd() {
-        this.setState({isLoading: false, isZoomed: false});
     }
 
     render() {
@@ -235,8 +231,8 @@ class ImageView extends PureComponent {
                         source={{uri: this.props.url}}
                         isAuthTokenRequired={this.props.isAuthTokenRequired}
 
-                        // Hide image until zoomScale calculated to prevent showing preview with wrong dimensions.
-                        style={this.state.zoomScale === 0 ? undefined : [
+                        // Hide image until finished loading to prevent showing preview with wrong dimensions.
+                        style={this.state.isLoading ? undefined : [
                             styles.w100,
                             styles.h100,
                         ]}
@@ -245,7 +241,6 @@ class ImageView extends PureComponent {
                         // Both `center` and `contain` keeps the image centered on both x and y axis.
                         resizeMode={this.state.zoomScale > 1 ? Image.resizeMode.center : Image.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}
-                        onLoadEnd={this.imageLoadingEnd}
                         onLoad={this.imageLoad}
                     />
                     {this.state.isLoading && (
@@ -279,13 +274,12 @@ class ImageView extends PureComponent {
                 >
                     <Image
                         source={{uri: this.props.url}}
-                        style={this.state.isLoading === 0 ? undefined : [
+                        style={this.state.isLoading ? undefined : [
                             styles.h100,
                             styles.w100,
-                        ]} // Hide image until zoomScale calculated to prevent showing preview with wrong dimensions.
+                        ]} // Hide image until finished loading to prevent showing preview with wrong dimensions.
                         resizeMode={Image.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}
-                        onLoadEnd={this.imageLoadingEnd}
                         onLoad={this.imageLoad}
                     />
                 </Pressable>
