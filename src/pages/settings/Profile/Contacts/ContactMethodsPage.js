@@ -32,8 +32,14 @@ const propTypes = {
         /** Phone/Email associated with user */
         partnerUserID: PropTypes.string,
 
-        /** Date of when login was validated */
+        /** Date login was validated, used to show brickroad info status */
         validatedDate: PropTypes.string,
+
+        /** Field-specific server side errors keyed by microtime */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+
+        /** Field-specific pending states for offline UI status */
+        pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
     /** Current user session */
@@ -81,6 +87,7 @@ const ContactMethodsPage = (props) => {
         return (
             <OfflineWithFeedback
                 pendingAction={pendingAction}
+                key={login.partnerUserID}
             >
                 <MenuItem
                     title={Str.removeSMSDomain(login.partnerUserID)}

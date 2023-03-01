@@ -50,11 +50,11 @@ const propTypes = {
 
     /** Login list for the user that is signed in */
     loginList: PropTypes.shape({
-        errorFields: PropTypes.shape({
-            deletedLogin: PropTypes.shape({
-                // unknown key name, but it's a number and value is string
-            }),
-        }),
+        /** Date login was validated, used to show info indicator status */
+        validatedDate: PropTypes.string,
+
+        /** Field-specific server side errors keyed by microtime */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 };
 

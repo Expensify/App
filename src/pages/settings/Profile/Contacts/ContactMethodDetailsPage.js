@@ -36,8 +36,14 @@ const propTypes = {
         /** Phone/Email associated with user */
         partnerUserID: PropTypes.string,
 
-        /** Date of when login was validated */
+        /** Date when login was validated */
         validatedDate: PropTypes.string,
+
+        /** Field-specific server side errors keyed by microtime */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+
+        /** Field-specific pending states for offline UI status */
+        pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
     /** Current user session */
@@ -194,12 +200,19 @@ class ContactMethodDetailsPage extends Component {
                                     )}
                                 </TouchableOpacity>
                             </OfflineWithFeedback>
-                            <Button
-                                text={this.props.translate('common.verify')}
-                                onPress={this.validateContactMethod}
-                                style={[styles.mt4]}
-                                success
-                            />
+                            <OfflineWithFeedback
+                                pendingAction={lodashGet(loginData, 'pendingFields.validateLogin', null)}
+                                errors={ErrorUtils.getLatestErrorField(loginData, 'validateLogin')}
+                                errorRowStyles={[styles.mt2]}
+                                onClose={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}
+                            >
+                                <Button
+                                    text={this.props.translate('common.verify')}
+                                    onPress={this.validateContactMethod}
+                                    style={[styles.mt4]}
+                                    success
+                                />
+                            </OfflineWithFeedback>
                         </View>
                     )}
                     <OfflineWithFeedback

@@ -30,13 +30,11 @@ const propTypes = {
 
     /** Login list for the user that is signed in */
     loginList: PropTypes.shape({
+        /** Date login was validated, used to show brickroad info status */
         validatedDate: PropTypes.string,
 
-        errorFields: PropTypes.shape({
-            deletedLogin: PropTypes.shape({
-                // unknown key name, but it's a number and value is string
-            }),
-        }),
+        /** Field-specific server side errors keyed by microtime */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
     ...withLocalizePropTypes,
