@@ -6,7 +6,6 @@ import {View, Keyboard} from 'react-native';
 
 import CONST from '../../../CONST';
 import ReportActionCompose from './ReportActionCompose';
-import * as ReportUtils from '../../../libs/ReportUtils';
 import SwipeableView from '../../../components/SwipeableView';
 import OfflineIndicator from '../../../components/OfflineIndicator';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
@@ -17,7 +16,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import styles from '../../../styles/styles';
 import reportActionPropTypes from './reportActionPropTypes';
 import reportPropTypes from '../../reportPropTypes';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
+import archivedReportPropTypes from '../../archivedReportPropTypes';
 
 const propTypes = {
     /** Report object for the current report */
@@ -45,6 +44,12 @@ const propTypes = {
     /** Whether user interactions should be disabled */
     shouldDisableCompose: PropTypes.bool,
 
+    /** The report action that closed the report */
+    reportClosedAction: archivedReportPropTypes,
+
+    /** Whether the report is archived */
+    isArchivedRoom: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -56,6 +61,8 @@ const defaultProps = {
     pendingAction: null,
     shouldShowComposeInput: true,
     shouldDisableCompose: false,
+    reportClosedAction: null,
+    isArchivedRoom: false,
 };
 
 class ReportFooter extends React.Component {
@@ -67,19 +74,14 @@ class ReportFooter extends React.Component {
     }
 
     render() {
-        const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
-        let reportClosedAction;
-        if (isArchivedRoom) {
-            reportClosedAction = ReportActionsUtils.getLastClosedReportAction(this.props.reportActions);
-        }
-        const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors);
+        const hideComposer = this.props.isArchivedRoom || !_.isEmpty(this.props.errors);
         return (
             <>
-                {(isArchivedRoom || hideComposer) && (
+                {(this.props.isArchivedRoom || hideComposer) && (
                     <View style={[styles.chatFooter, this.props.isSmallScreenWidth ? styles.mb5 : null]}>
-                        {isArchivedRoom && (
+                        {this.props.isArchivedRoom && (
                             <ArchivedReportFooter
-                                reportClosedAction={reportClosedAction}
+                                reportClosedAction={this.props.reportClosedAction}
                                 report={this.props.report}
                             />
                         )}
