@@ -56,13 +56,13 @@ class ImageView extends PureComponent {
         });
 
         this.configureImageZoom = this.configureImageZoom.bind(this);
+        this.imageLoadingStart = this.imageLoadingStart.bind(this);
     }
 
     componentDidUpdate(prevProps) {
         if (this.props.url === prevProps.url || !this.interactionPromise) {
             return;
         }
-        this.imageLoadStart();
         this.state.interactionPromise.cancel();
     }
 
@@ -99,6 +99,7 @@ class ImageView extends PureComponent {
     configureImageZoom({nativeEvent}) {
         // Wait till animations are over to prevent stutter in navigation animation
         this.state.interactionPromise = InteractionManager.runAfterInteractions(() => {
+            this.setState({ imageHeight: 0, imageWidth: 0, isLoading: true });
             if (this.imageZoomScale !== 1) {
                 this.imageZoomScale = 1;
             }
@@ -131,6 +132,10 @@ class ImageView extends PureComponent {
             imageHeight = Math.min(imageHeight, (containerHeight * maxDimensionsScale));
             this.setState({imageHeight, imageWidth, isLoading: false});
         });
+    }
+
+    imageLoadingStart() {
+        this.setState({ isLoading: true });
     }
 
     render() {
@@ -205,6 +210,7 @@ class ImageView extends PureComponent {
                             source={{uri: this.props.url}}
                             isAuthTokenRequired={this.props.isAuthTokenRequired}
                             resizeMode={Image.resizeMode.contain}
+                            onLoadStart={this.imageLoadingStart}
                             onLoad={this.configureImageZoom}
                         />
                         {/**
