@@ -1,9 +1,10 @@
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Button, View} from 'react-native';
+import {Button, View, Keyboard} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
 import _ from 'underscore';
+import compose from '../../libs/compose';
 import TextInput from '../TextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Popover from '../Popover';
@@ -11,10 +12,12 @@ import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import {propTypes, defaultProps} from './datepickerPropTypes';
+import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 
 const datepickerPropTypes = {
     ...propTypes,
     ...withLocalizePropTypes,
+    ...keyboardStatePropTypes,
 };
 
 class DatePicker extends React.Component {
@@ -32,13 +35,20 @@ class DatePicker extends React.Component {
         this.updateLocalDate = this.updateLocalDate.bind(this);
     }
 
-    /**
-     * @param {Event} event
-     */
-    showPicker(event) {
+    showPicker() {
         this.initialValue = this.state.selectedDate;
-        this.setState({isPickerVisible: true});
-        event.preventDefault();
+
+        // Opens the popover only after the keyboard is hidden to avoid a "blinking" effect where the keyboard was on iOS
+        // See https://github.com/Expensify/App/issues/14084 for more context
+        if (!this.props.isKeyboardShown) {
+            this.setState({isPickerVisible: true});
+            return;
+        }
+        const listener = Keyboard.addListener('keyboardDidHide', () => {
+            this.setState({isPickerVisible: true});
+            listener.remove();
+        });
+        Keyboard.dismiss();
     }
 
     /**
@@ -54,7 +64,8 @@ class DatePicker extends React.Component {
      */
     selectDate() {
         this.setState({isPickerVisible: false});
-        this.props.onInputChange(this.state.selectedDate);
+        const asMoment = moment(this.state.selectedDate, true);
+        this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
     }
 
     /**
@@ -70,11 +81,13 @@ class DatePicker extends React.Component {
         return (
             <>
                 <TextInput
+                    forceActiveLabel
                     label={this.props.label}
                     value={dateAsText}
                     placeholder={this.props.placeholder}
                     errorText={this.props.errorText}
                     containerStyles={this.props.containerStyles}
+                    textInputContainerStyles={this.state.isPickerVisible ? [styles.borderColorFocus] : []}
                     onPress={this.showPicker}
                     editable={false}
                     disabled={this.props.disabled}
@@ -83,6 +96,13 @@ class DatePicker extends React.Component {
                         if (!_.isFunction(this.props.innerRef)) {
                             return;
                         }
+                        if (el && el.focus && typeof el.focus === 'function') {
+                            let inputRef = {...el};
+                            inputRef = {...inputRef, focus: this.showPicker};
+                            this.props.innerRef(inputRef);
+                            return;
+                        }
+
                         this.props.innerRef(el);
                     }}
                 />
@@ -116,7 +136,8 @@ class DatePicker extends React.Component {
                         themeVariant="dark"
                         onChange={this.updateLocalDate}
                         locale={this.props.preferredLocale}
-                        maximumDate={this.props.maximumDate}
+                        maximumDate={new Date(CONST.DATE.MAX_DATE)}
+                        minimumDate={new Date(CONST.DATE.MIN_DATE)}
                     />
                 </Popover>
             </>
@@ -133,7 +154,10 @@ DatePicker.defaultProps = defaultProps;
  * locale. Otherwise the spinner would be present in the system locale and it would be weird if it happens
  * that the modal buttons are in one locale (app) while the (spinner) month names are another (system)
  */
-export default withLocalize(React.forwardRef((props, ref) => (
+export default compose(
+    withLocalize,
+    withKeyboardState,
+)(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <DatePicker {...props} innerRef={ref} />
 )));

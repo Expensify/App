@@ -80,7 +80,7 @@ const ResendValidationForm = (props) => {
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <TouchableOpacity onPress={() => redirectToSignIn()}>
-                    <Text>
+                    <Text style={[styles.link]}>
                         {props.translate('common.back')}
                     </Text>
                 </TouchableOpacity>

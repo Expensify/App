@@ -1,13 +1,15 @@
-import lodashGet from 'lodash/get';
+import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as store from './store';
 import * as API from '../../API';
+import * as PlaidDataProps from '../../../pages/ReimbursementAccount/plaidDataPropTypes';
+import * as ReimbursementAccountProps from '../../../pages/ReimbursementAccount/reimbursementAccountPropTypes';
 
 /**
  * Reset user's reimbursement account. This will delete the bank account.
+ * @param {number} bankAccountID
  */
-function resetFreePlanBankAccount() {
-    const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
+function resetFreePlanBankAccount(bankAccountID) {
     if (!bankAccountID) {
         throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
     }
@@ -23,32 +25,48 @@ function resetFreePlanBankAccount() {
         {
             optimisticData: [
                 {
-                    onyxMethod: 'set',
+                    onyxMethod: CONST.ONYX.METHOD.SET,
                     key: ONYXKEYS.ONFIDO_TOKEN,
                     value: '',
                 },
                 {
-                    onyxMethod: 'set',
+                    onyxMethod: CONST.ONYX.METHOD.SET,
                     key: ONYXKEYS.PLAID_DATA,
-                    value: {},
+                    value: PlaidDataProps.plaidDataDefaultProps,
                 },
                 {
-                    onyxMethod: 'set',
+                    onyxMethod: CONST.ONYX.METHOD.SET,
                     key: ONYXKEYS.PLAID_LINK_TOKEN,
                     value: '',
                 },
                 {
-                    onyxMethod: 'set',
+                    onyxMethod: CONST.ONYX.METHOD.SET,
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                    value: {
-                        achData: {},
-                        shouldShowResetModal: false,
-                    },
+                    value: ReimbursementAccountProps.reimbursementAccountDefaultProps,
                 },
                 {
-                    onyxMethod: 'set',
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    value: {isLoading: true},
+                },
+                {
+                    onyxMethod: CONST.ONYX.METHOD.SET,
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
-                    value: null,
+                    value: {},
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    value: {isLoading: false},
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    value: {isLoading: false},
                 },
             ],
         });

@@ -5,7 +5,6 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes,
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as Localize from '../../../libs/Localize';
 import ROUTES from '../../../ROUTES';
 import Form from '../../../components/Form';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -57,17 +56,16 @@ class DisplayNamePage extends Component {
     validate(values) {
         const errors = {};
 
-        const [hasFirstNameError, hasLastNameError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
-            CONST.FORM_CHARACTER_LIMIT,
-            [values.firstName, values.lastName],
-        );
-
-        if (hasFirstNameError) {
-            errors.firstName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
+        // First we validate the first name field
+        if (!ValidationUtils.isValidDisplayName(values.firstName)) {
+            errors.firstName = this.props.translate('personalDetails.error.hasInvalidCharacter');
+        } else if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
+            errors.firstName = this.props.translate('personalDetails.error.containsReservedWord');
         }
 
-        if (hasLastNameError) {
-            errors.lastName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
+        // Then we validate the last name field
+        if (!ValidationUtils.isValidDisplayName(values.lastName)) {
+            errors.lastName = this.props.translate('personalDetails.error.hasInvalidCharacter');
         }
 
         return errors;
@@ -77,7 +75,7 @@ class DisplayNamePage extends Component {
         const currentUserDetails = this.props.currentUserPersonalDetails || {};
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('displayNamePage.headerTitle')}
                     shouldShowBackButton
@@ -102,6 +100,7 @@ class DisplayNamePage extends Component {
                             label={this.props.translate('common.firstName')}
                             defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
                             placeholder={this.props.translate('displayNamePage.john')}
+                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         />
                     </View>
                     <View>
@@ -111,6 +110,7 @@ class DisplayNamePage extends Component {
                             label={this.props.translate('common.lastName')}
                             defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
                             placeholder={this.props.translate('displayNamePage.doe')}
+                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         />
                     </View>
                 </Form>

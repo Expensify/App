@@ -17,6 +17,7 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import OfflineIndicator from '../../components/OfflineIndicator';
 import * as ErrorUtils from '../../libs/ErrorUtils';
+import FixedFooter from '../../components/FixedFooter';
 
 const MAX_SKIP = 1;
 const SKIP_QUESTION_TEXT = 'Skip Question';
@@ -164,7 +165,8 @@ class IdologyQuestions extends React.Component {
                             onPress={answer => this.chooseAnswer(questionIndex, answer)}
                         />
                     </View>
-
+                </FormScrollView>
+                <FixedFooter>
                     <FormAlertWithSubmitButton
                         isAlertVisible={Boolean(errorMessage)}
                         onSubmit={this.submitAnswers}
@@ -174,9 +176,10 @@ class IdologyQuestions extends React.Component {
                         message={errorMessage}
                         isLoading={this.props.walletAdditionalDetails.isLoading}
                         buttonText={this.props.translate('common.saveAndContinue')}
+                        containerStyles={[styles.mh0, styles.mv0, styles.mb0]}
                     />
                     <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
-                </FormScrollView>
+                </FixedFooter>
             </View>
         );
     }

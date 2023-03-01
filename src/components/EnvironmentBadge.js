@@ -2,6 +2,7 @@ import React from 'react';
 import CONST from '../CONST';
 import withEnvironment, {environmentPropTypes} from './withEnvironment';
 import Badge from './Badge';
+import styles from '../styles/styles';
 
 const ENVIRONMENT_SHORT_FORM = {
     [CONST.ENVIRONMENT.DEV]: 'DEV',
@@ -20,6 +21,7 @@ const EnvironmentBadge = (props) => {
             success={props.environment === CONST.ENVIRONMENT.STAGING}
             error={props.environment !== CONST.ENVIRONMENT.STAGING}
             text={ENVIRONMENT_SHORT_FORM[props.environment]}
+            badgeStyles={[styles.alignSelfCenter]}
         />
     );
 };

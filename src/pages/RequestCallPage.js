@@ -28,8 +28,8 @@ import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import * as User from '../libs/actions/User';
 import {withNetwork} from '../components/OnyxProvider';
 import networkPropTypes from '../components/networkPropTypes';
-import RequestCallConfirmationScreen from './RequestCallConfirmationScreen';
 import Form from '../components/Form';
+import ConfirmationPage from '../components/ConfirmationPage';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -219,16 +219,6 @@ class RequestCallPage extends Component {
             errors.lastName = this.props.translate('requestCallPage.error.lastName');
         }
 
-        const [firstNameLengthError, lastNameLengthError] = ValidationUtils.doesFailCharacterLimit(50, [values.firstName, values.lastName]);
-
-        if (firstNameLengthError) {
-            errors.firstName = this.props.translate('requestCallPage.error.firstNameLength');
-        }
-
-        if (lastNameLengthError) {
-            errors.lastName = this.props.translate('requestCallPage.error.lastNameLength');
-        }
-
         const phoneNumber = LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneNumber);
         if (_.isEmpty(values.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
             errors.phoneNumber = this.props.translate('common.error.phoneNumber');
@@ -245,7 +235,7 @@ class RequestCallPage extends Component {
         const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={this.props.requestCallForm.didRequestCallSucceed}>
                 <HeaderWithCloseButton
                     title={this.props.translate('requestCallPage.title')}
                     shouldShowBackButton
@@ -254,7 +244,13 @@ class RequestCallPage extends Component {
                 />
                 {this.props.requestCallForm.didRequestCallSucceed
                     ? (
-                        <RequestCallConfirmationScreen />
+                        <ConfirmationPage
+                            heading={this.props.translate('requestCallConfirmationScreen.callRequested')}
+                            description={this.props.translate('requestCallConfirmationScreen.allSet')}
+                            buttonText={this.props.translate('requestCallConfirmationScreen.gotIt')}
+                            shouldShowButton
+                            onButtonPress={Navigation.goBack}
+                        />
                     ) : (
                         <Form
                             formID={ONYXKEYS.FORMS.REQUEST_CALL_FORM}
@@ -279,6 +275,7 @@ class RequestCallPage extends Component {
                                 name="fname"
                                 placeholder={this.props.translate('profilePage.john')}
                                 containerStyles={[styles.mt4]}
+                                maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             />
                             <TextInput
                                 inputID="lastName"
@@ -287,6 +284,7 @@ class RequestCallPage extends Component {
                                 name="lname"
                                 placeholder={this.props.translate('profilePage.doe')}
                                 containerStyles={[styles.mt4]}
+                                maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             />
                             <TextInput
                                 inputID="phoneNumber"

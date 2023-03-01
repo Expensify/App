@@ -372,7 +372,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
 
     result.text = reportName;
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
-    result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
+    result.icons = ReportUtils.getIcons(report, personalDetails, policies, ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login));
     result.subtitle = subtitle;
 
     return result;
@@ -470,7 +470,7 @@ function getOptions(reports, personalDetails, {
             return CONST.DATE.UNIX_EPOCH;
         }
 
-        return report.lastActionCreated;
+        return report.lastVisibleActionCreated;
     });
     orderedReports.reverse();
 
@@ -575,22 +575,25 @@ function getOptions(reports, personalDetails, {
     let userToInvite = null;
     const noOptions = (recentReportOptions.length + personalDetailsOptions.length) === 0;
     const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), option => option.login === searchValue.toLowerCase());
-    if (searchValue && (noOptions || noOptionsMatchExactly)
-        && !isCurrentUser({login: searchValue})
-        && _.every(selectedOptions, option => option.login !== searchValue)
-        && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
-        && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()))
-        && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
+
+    // If the phone number doesn't have an international code then let's prefix it with the
+    // current user's international code based on their IP address.
+    const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
+        ? `+${countryCodeByIP}${searchValue}`
+        : searchValue;
+    if (login && (noOptions || noOptionsMatchExactly)
+        && !isCurrentUser({login})
+        && _.every(selectedOptions, option => option.login !== login)
+        && ((Str.isValidEmail(login) && !Str.isDomainEmail(login)) || Str.isValidPhone(login))
+        && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(login).toLowerCase()))
+        && (login !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
-        // If the phone number doesn't have an international code then let's prefix it with the
-        // current user's international code based on their IP address.
-        const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
-            ? `+${countryCodeByIP}${searchValue}`
-            : searchValue;
         userToInvite = createOption([login], personalDetails, null, reportActions, {
             showChatPreviewLine,
         });
-        userToInvite.icons = [ReportUtils.getDefaultAvatar(login)];
+
+        // If user doesn't exist, use a default avatar
+        userToInvite.icons = [ReportUtils.getAvatar('', login)];
     }
 
     // If we are prioritizing 1:1 chats in search, do it only once we started searching
@@ -660,7 +663,7 @@ function getIOUConfirmationOptionsFromMyPersonalDetail(myPersonalDetail, amountT
     return {
         text: myPersonalDetail.displayName,
         alternateText: myPersonalDetail.login,
-        icons: [myPersonalDetail.avatar],
+        icons: [ReportUtils.getAvatar(myPersonalDetail.avatar, myPersonalDetail.login)],
         descriptiveText: amountText,
         login: myPersonalDetail.login,
     };

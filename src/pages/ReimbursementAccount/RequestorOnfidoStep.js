@@ -2,35 +2,26 @@ import React from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize from '../../components/withLocalize';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Onfido from '../../components/Onfido';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import Growl from '../../libs/Growl';
-import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
-import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import CONST from '../../CONST';
 import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
+import StepPropTypes from './StepPropTypes';
+import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import Navigation from '../../libs/Navigation/Navigation';
+import ScreenWrapper from '../../components/ScreenWrapper';
 
 const propTypes = {
-    /** Bank account currently in setup */
-    /* eslint-disable-next-line react/no-unused-prop-types */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
-
-    /** The draft values of the bank account being setup */
-    /* eslint-disable-next-line react/no-unused-prop-types */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
+    ...StepPropTypes,
 
     /** The token required to initialize the Onfido SDK */
     onfidoToken: PropTypes.string.isRequired,
-
-    /** A callback to call once the user completes the Onfido flow */
-    onComplete: PropTypes.func.isRequired,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {};
@@ -43,34 +34,46 @@ class RequestorOnfidoStep extends React.Component {
 
     submit(onfidoData) {
         BankAccounts.verifyIdentityForBankAccount(
-            ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
+            lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0,
             onfidoData,
         );
-        this.props.onComplete();
+
+        BankAccounts.updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
     }
 
     render() {
         return (
-            <FullPageOfflineBlockingView>
-                <ScrollView contentContainerStyle={styles.flex1}>
-                    <Onfido
-                        sdkToken={this.props.onfidoToken}
-                        onUserExit={() => {
-                            BankAccounts.clearOnfidoToken();
-                            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
-                        }}
-                        onError={() => {
-                            // In case of any unexpected error we log it to the server, show a growl, and return the user back to the requestor step so they can try again.
-                            Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
-                            BankAccounts.clearOnfidoToken();
-                            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
-                        }}
-                        onSuccess={(onfidoData) => {
-                            this.submit(onfidoData);
-                        }}
-                    />
-                </ScrollView>
-            </FullPageOfflineBlockingView>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+                <HeaderWithCloseButton
+                    title={this.props.translate('requestorStep.headerTitle')}
+                    stepCounter={{step: 3, total: 5}}
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
+                    shouldShowBackButton
+                    onBackButtonPress={this.props.onBackButtonPress}
+                    onCloseButtonPress={Navigation.dismissModal}
+                />
+                <FullPageOfflineBlockingView>
+                    <ScrollView contentContainerStyle={styles.flex1}>
+                        <Onfido
+                            sdkToken={this.props.onfidoToken}
+                            onUserExit={() => {
+                                BankAccounts.clearOnfidoToken();
+                                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                            }}
+                            onError={() => {
+                                // In case of any unexpected error we log it to the server, show a growl, and return the user back to the requestor step so they can try again.
+                                Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
+                                BankAccounts.clearOnfidoToken();
+                                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                            }}
+                            onSuccess={(onfidoData) => {
+                                this.submit(onfidoData);
+                            }}
+                        />
+                    </ScrollView>
+                </FullPageOfflineBlockingView>
+            </ScreenWrapper>
         );
     }
 }
@@ -81,14 +84,8 @@ RequestorOnfidoStep.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
         onfidoToken: {
             key: ONYXKEYS.ONFIDO_TOKEN,
-        },
-        reimbursementAccountDraft: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },
     }),
 )(RequestorOnfidoStep);

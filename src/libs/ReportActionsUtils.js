@@ -1,13 +1,15 @@
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import lodashMerge from 'lodash/merge';
+import lodashFindLast from 'lodash/findLast';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
 import moment from 'moment';
 import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
-import * as ReportUtils from './ReportUtils';
+import Log from './Log';
+import isReportMessageAttachment from './isReportMessageAttachment';
 
 const allReportActions = {};
 Onyx.connect({
@@ -50,35 +52,27 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
     if (!_.isArray(reportActions)) {
         throw new Error(`ReportActionsUtils.getSortedReportActions requires an array, received ${typeof reportActions}`);
     }
+
     const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
-    reportActions.sort((first, second) => {
-        if (first.created !== second.created) {
-            return (first.created < second.created ? -1 : 1) * invertedMultiplier;
-        }
+    return _.chain(reportActions)
+        .compact()
+        .sort((first, second) => {
+            // First sort by timestamp
+            if (first.created !== second.created) {
+                return (first.created < second.created ? -1 : 1) * invertedMultiplier;
+            }
 
-        return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
-    });
-    return reportActions;
-}
+            // Then by action type, ensuring that `CREATED` actions always come first if they have the same timestamp as another action type
+            if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
+                return ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) ? -1 : 1) * invertedMultiplier;
+            }
 
-/**
- * Filter out any reportActions which should not be displayed.
- *
- * @param {Array} reportActions
- * @returns {Array}
- */
-function filterReportActionsForDisplay(reportActions) {
-    return _.filter(reportActions, (reportAction) => {
-        // Filter out any unsupported reportAction types
-        if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName)) {
-            return false;
-        }
-
-        // All other actions are displayed except deleted, non-pending actions
-        const isDeleted = isDeletedAction(reportAction);
-        const isPending = !_.isEmpty(reportAction.pendingAction);
-        return !isDeleted || isPending;
-    });
+            // Then fallback on reportActionID as the final sorting criteria. It is a random number,
+            // but using this will ensure that the order of reportActions with the same created time and action type
+            // will be consistent across all users and devices
+            return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
+        })
+        .value();
 }
 
 /**
@@ -132,61 +126,109 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
 }
 
 /**
- * Get the message text for the last action that was not deleted
  * @param {String} reportID
  * @param {Object} [actionsToMerge]
- * @return {String}
+ * @return {Object}
  */
-function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
-    const parser = new ExpensiMark();
+function getLastVisibleAction(reportID, actionsToMerge = {}) {
     const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const sortedActions = getSortedReportActions(actions);
-    const lastMessageIndex = _.findLastIndex(sortedActions, action => (
-        !isDeletedAction(action)
-    ));
-    if (lastMessageIndex < 0) {
-        return '';
-    }
-
-    const htmlText = lodashGet(sortedActions, [lastMessageIndex, 'message', 0, 'html'], '');
-    const messageText = parser.htmlToText(htmlText);
-    return ReportUtils.formatReportLastMessageText(messageText);
+    const visibleActions = _.filter(actions, action => (!isDeletedAction(action)));
+    return _.max(visibleActions, action => moment.utc(action.created).valueOf());
 }
 
 /**
  * @param {String} reportID
  * @param {Object} [actionsToMerge]
- * @param {Number} deletedSequenceNumber
- * @param {Number} lastReadSequenceNumber
- * @return {Number}
+ * @return {String}
  */
-function getOptimisticLastReadSequenceNumberForDeletedAction(reportID, actionsToMerge = {}, deletedSequenceNumber, lastReadSequenceNumber) {
-    // If the action we are deleting is unread then just return the current last read sequence number
-    if (deletedSequenceNumber > lastReadSequenceNumber) {
-        return lastReadSequenceNumber;
+function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
+    const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
+    const message = lodashGet(lastVisibleAction, ['message', 0]);
+    if (isReportMessageAttachment(message)) {
+        return CONST.ATTACHMENT_MESSAGE_TEXT;
     }
 
-    // Otherwise, we must find the first previous index of an action that is not deleted and less than the lastReadSequenceNumber
-    const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const sortedActions = getSortedReportActions(actions);
-    const lastMessageIndex = _.findLastIndex(sortedActions, action => (
-        !isDeletedAction(action) && action.sequenceNumber <= lastReadSequenceNumber
-    ));
+    const htmlText = lodashGet(lastVisibleAction, 'message[0].html', '');
+    const parser = new ExpensiMark();
+    const messageText = parser.htmlToText(htmlText);
+    return String(messageText)
+        .replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '')
+        .substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
+}
 
-    // It's possible we won't find any and in that case the last read should be reset
-    if (lastMessageIndex < 0) {
-        return 0;
-    }
+/**
+ * A helper method to filter out report actions keyed by sequenceNumbers.
+ *
+ * @param {Object} reportActions
+ * @returns {Array}
+ */
+function filterOutDeprecatedReportActions(reportActions) {
+    // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
+    // to prevent bugs during the migration from sequenceNumber -> reportActionID
+    return _.filter(reportActions, (reportAction, key) => {
+        if (!reportAction) {
+            return false;
+        }
 
-    return sortedActions[lastMessageIndex].sequenceNumber;
+        if (String(reportAction.sequenceNumber) === key) {
+            Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
+            return false;
+        }
+
+        return true;
+    });
+}
+
+/**
+ * This method returns the report actions that are ready for display in the ReportActionsView.
+ * The report actions need to be sorted by created timestamp first, and reportActionID second
+ * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
+ * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
+ *
+ * @param {Object} reportActions
+ * @returns {Array}
+ */
+function getSortedReportActionsForDisplay(reportActions) {
+    const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
+    const sortedReportActions = getSortedReportActions(filteredReportActions, true);
+    return _.filter(sortedReportActions, (reportAction) => {
+        // Filter out any unsupported reportAction types
+        if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName)) {
+            return false;
+        }
+
+        // Ignore closed action here since we're already displaying a footer that explains why the report was closed
+        if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+            return false;
+        }
+
+        // All other actions are displayed except deleted, non-pending actions
+        const isDeleted = isDeletedAction(reportAction);
+        const isPending = !_.isEmpty(reportAction.pendingAction);
+        return !isDeleted || isPending;
+    });
+}
+
+/**
+ * In some cases, there can be multiple closed report actions in a chat report.
+ * This method returns the last closed report action so we can always show the correct archived report reason.
+ *
+ * @param {Object} reportActions
+ * @returns {Object}
+ */
+function getLastClosedReportAction(reportActions) {
+    const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
+    const sortedReportActions = getSortedReportActions(filteredReportActions);
+    return lodashFindLast(sortedReportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
 }
 
 export {
     getSortedReportActions,
-    filterReportActionsForDisplay,
-    getOptimisticLastReadSequenceNumberForDeletedAction,
+    getLastVisibleAction,
     getLastVisibleMessageText,
     getMostRecentIOUReportActionID,
     isDeletedAction,
     isConsecutiveActionMadeByPreviousActor,
+    getSortedReportActionsForDisplay,
+    getLastClosedReportAction,
 };

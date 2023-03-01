@@ -1,5 +1,11 @@
 package com.expensify.chat.customairshipextender;
 
+import static androidx.core.app.NotificationCompat.CATEGORY_MESSAGE;
+import static androidx.core.app.NotificationCompat.PRIORITY_MAX;
+
+import android.app.NotificationChannel;
+import android.app.NotificationChannelGroup;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -8,11 +14,13 @@ import android.graphics.Rect;
 import android.graphics.Bitmap.Config;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.PorterDuff.Mode;
+import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.WindowManager;
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
@@ -37,7 +45,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class CustomNotificationProvider extends ReactNotificationProvider {
-
     // Resize icons to 100 dp x 100 dp
     private static final int MAX_ICON_SIZE_DPS = 100;
 
@@ -47,6 +54,12 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
     // Logging
     private static final String TAG = "NotificationProvider";
+
+    // Define notification channel
+    public static final String CHANNEL_MESSAGES_ID = "CHANNEL_MESSAGES";
+    public static final String CHANNEL_MESSAGES_NAME = "Message Notifications";
+    public static final String CHANNEL_GROUP_ID = "CHANNEL_GROUP_CHATS";
+    public static final String CHANNEL_GROUP_NAME = "Chats";
 
     // Conversation JSON keys
     private static final String PAYLOAD_KEY = "payload";
@@ -58,6 +71,9 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
     public CustomNotificationProvider(@NonNull Context context, @NonNull AirshipConfigOptions configOptions) {
         super(context, configOptions);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createAndRegisterNotificationChannel(context);
+        }
     }
 
     @NonNull
@@ -65,6 +81,16 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
     protected NotificationCompat.Builder onExtendBuilder(@NonNull Context context, @NonNull NotificationCompat.Builder builder, @NonNull NotificationArguments arguments) {
         super.onExtendBuilder(context, builder, arguments);
         PushMessage message = arguments.getMessage();
+
+        // Improve notification delivery by categorising as a time-critical message
+        builder.setCategory(CATEGORY_MESSAGE);
+
+        // Configure the notification channel or priority to ensure it shows in foreground
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            builder.setChannelId(CHANNEL_MESSAGES_ID);
+        } else {
+            builder.setPriority(PRIORITY_MAX);
+        }
 
         if (message.containsKey(PAYLOAD_KEY)) {
             try {
@@ -82,6 +108,17 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         return builder;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void createAndRegisterNotificationChannel(@NonNull Context context) {
+        NotificationChannelGroup channelGroup = new NotificationChannelGroup(CHANNEL_GROUP_ID, CHANNEL_GROUP_NAME);
+        NotificationChannel channel = new NotificationChannel(CHANNEL_MESSAGES_ID, CHANNEL_MESSAGES_NAME, NotificationManager.IMPORTANCE_HIGH);
+        channel.setGroup(CHANNEL_GROUP_ID);
+
+        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+        notificationManager.createNotificationChannelGroup(channelGroup);
+        notificationManager.createNotificationChannel(channel);
+    }
+
     /**
      * Creates a canvas to draw a circle and then draws the bitmap avatar within that circle
      * to clip off the area of the bitmap outside the circular path and returns a circular
@@ -90,6 +127,9 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
      * @param bitmap The bitmap image to modify.
      */
     public Bitmap getCroppedBitmap(Bitmap bitmap) {
+       // Convert hardware bitmap to software bitmap so it can be drawn on the canvas
+       bitmap = bitmap.copy(Config.ARGB_8888, true);
+
        Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
             bitmap.getHeight(), Config.ARGB_8888);
        Canvas canvas = new Canvas(output);
@@ -130,10 +170,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         String message = reportAction.get("message").getList().get(0).getMap().get("text").getString();
         long time = Timestamp.valueOf(reportAction.get("created").getString(Instant.now().toString())).getTime();
         String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
-        String conversationTitle = "Chat with " + name;
-        if (!roomName.isEmpty()) {
-            conversationTitle = "#" + roomName;
-        }
+        String conversationTitle = roomName.isEmpty() ? "Chat with " + name : roomName;
 
         // Retrieve or create the Person object who sent the latest report comment
         Person person = notificationCache.people.get(accountID);

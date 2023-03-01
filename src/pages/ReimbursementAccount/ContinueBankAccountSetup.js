@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView} from 'react-native';
 import _ from 'underscore';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -15,15 +14,23 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import MenuItem from '../../components/MenuItem';
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Section from '../../components/Section';
 import Text from '../../components/Text';
 import withPolicy from '../workspace/withPolicy';
+import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 
 const propTypes = {
+    /** Bank account currently in setup */
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
+
+    /** Callback to continue to the next step of the setup */
     continue: PropTypes.func.isRequired,
+
+    /** Callback to reset the bank account */
+    startOver: PropTypes.func.isRequired,
 
     /** Policy values needed in the component */
     policy: PropTypes.shape({
@@ -34,7 +41,7 @@ const propTypes = {
 };
 
 const ContinueBankAccountSetup = props => (
-    <ScreenWrapper>
+    <ScreenWrapper includeSafeAreaPaddingBottom={false}>
         <FullPageNotFoundView shouldShow={_.isEmpty(props.policy)}>
             <HeaderWithCloseButton
                 title={props.translate('workspace.common.bankAccount')}
@@ -66,15 +73,20 @@ const ContinueBankAccountSetup = props => (
                     <MenuItem
                         title={props.translate('workspace.bankAccount.startOver')}
                         icon={Expensicons.RotateLeft}
-                        onPress={BankAccounts.requestResetFreePlanBankAccount}
+                        onPress={() => BankAccounts.requestResetFreePlanBankAccount()}
                         shouldShowRightIcon
-                        iconFill={themeColors.success}
                         wrapperStyle={[styles.cardMenuItem]}
                     />
                 </Section>
             </ScrollView>
-            <WorkspaceResetBankAccountModal />
         </FullPageNotFoundView>
+
+        {props.reimbursementAccount.shouldShowResetModal && (
+            <WorkspaceResetBankAccountModal
+                reimbursementAccount={props.reimbursementAccount}
+                onConfirm={props.startOver}
+            />
+        )}
     </ScreenWrapper>
 );
 

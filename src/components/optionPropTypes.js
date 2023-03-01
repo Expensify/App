@@ -6,8 +6,14 @@ export default PropTypes.shape({
     // Text to display
     text: PropTypes.string,
 
+    /** Display the text of the option in bold font style */
+    boldStyle: PropTypes.bool,
+
     // Alternate text to display
     alternateText: PropTypes.string,
+
+    // Alternate text number of lines
+    alternateTextMaxLines: PropTypes.number,
 
     // Array of URLs or icons
     icons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])),

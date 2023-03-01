@@ -11,6 +11,10 @@ import themeColors from '../../styles/themes/default';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
 import getNumberOfLines from '../../libs/ComposerUtils/index';
 import * as Browser from '../../libs/Browser';
+import Clipboard from '../../libs/Clipboard';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import compose from '../../libs/compose';
+import styles from '../../styles/styles';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -64,6 +68,8 @@ const propTypes = {
     isComposerFullSize: PropTypes.bool,
 
     ...withLocalizePropTypes,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -116,11 +122,12 @@ class Composer extends React.Component {
                 end: initialValue.length,
             },
         };
-        this.paste = this.paste.bind(this);
 
+        this.paste = this.paste.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
+        this.putSelectionInClipboard = this.putSelectionInClipboard.bind(this);
         this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
     }
 
@@ -140,6 +147,7 @@ class Composer extends React.Component {
         if (this.textInput) {
             this.textInput.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
+            this.textInput.addEventListener('keydown', this.putSelectionInClipboard);
         }
     }
 
@@ -153,7 +161,8 @@ class Composer extends React.Component {
 
         if (prevProps.value !== this.props.value
             || prevProps.defaultValue !== this.props.defaultValue
-            || prevProps.isComposerFullSize !== this.props.isComposerFullSize) {
+            || prevProps.isComposerFullSize !== this.props.isComposerFullSize
+            || prevProps.windowWidth !== this.props.windowWidth) {
             this.updateNumberOfLines();
         }
 
@@ -240,7 +249,7 @@ class Composer extends React.Component {
                     .then((x) => {
                         const extension = IMAGE_EXTENSIONS[x.type];
                         if (!extension) {
-                            throw new Error(this.props.translate('composer.noExtentionFoundForMimeType'));
+                            throw new Error(this.props.translate('composer.noExtensionFoundForMimeType'));
                         }
 
                         return new File([x], `pasted_image.${extension}`, {});
@@ -266,6 +275,7 @@ class Composer extends React.Component {
         }
 
         const plainText = event.clipboardData.getData('text/plain');
+
         this.paste(Str.htmlDecode(plainText));
     }
 
@@ -281,6 +291,19 @@ class Composer extends React.Component {
         this.textInput.scrollTop += event.deltaY;
         event.preventDefault();
         event.stopPropagation();
+    }
+
+    putSelectionInClipboard(event) {
+        // If anything happens that isn't cmd+c or cmd+x, ignore the event because it's not a copy command
+        if (!event.metaKey || (event.key !== 'c' && event.key !== 'x')) {
+            return;
+        }
+
+        // The user might have only highlighted a portion of the message to copy, so using the selection will ensure that
+        // the only stuff put into the clipboard is what the user selected.
+        const selectedText = event.target.value.substring(this.state.selection.start, this.state.selection.end);
+
+        Clipboard.setHtml(selectedText, selectedText);
     }
 
     /**
@@ -335,7 +358,13 @@ class Composer extends React.Component {
                 onChange={this.shouldCallUpdateNumberOfLines}
                 onSelectionChange={this.onSelectionChange}
                 numberOfLines={this.state.numberOfLines}
-                style={propStyles}
+                style={[
+                    propStyles,
+
+                    // We are hiding the scrollbar to prevent it from reducing the text input width,
+                    // so we can get the correct scroll height while calculating the number of lines.
+                    this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
+                ]}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsWithoutStyles}
                 disabled={this.props.isDisabled}
@@ -347,7 +376,10 @@ class Composer extends React.Component {
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
-export default withLocalize(React.forwardRef((props, ref) => (
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <Composer {...props} forwardedRef={ref} />
 )));

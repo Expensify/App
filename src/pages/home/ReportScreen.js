@@ -20,7 +20,6 @@ import CONST from '../../CONST';
 import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonView';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
-import addViewportResizeListener from '../../libs/VisualViewport';
 import {withNetwork} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
 import networkPropTypes from '../../components/networkPropTypes';
@@ -33,6 +32,7 @@ import withLocalize from '../../components/withLocalize';
 import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
+import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -73,13 +73,13 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
+    ...viewportOffsetTopPropTypes,
 };
 
 const defaultProps = {
     isSidebarLoaded: false,
     reportActions: {},
     report: {
-        maxSequenceNumber: 0,
         hasOutstandingIOU: false,
         isLoadingReportActions: false,
     },
@@ -108,14 +108,11 @@ class ReportScreen extends React.Component {
         super(props);
 
         this.onSubmitComment = this.onSubmitComment.bind(this);
-        this.updateViewportOffsetTop = this.updateViewportOffsetTop.bind(this);
         this.chatWithAccountManager = this.chatWithAccountManager.bind(this);
         this.dismissBanner = this.dismissBanner.bind(this);
-        this.removeViewportResizeListener = () => {};
 
         this.state = {
             skeletonViewContainerHeight: reportActionsListViewHeight,
-            viewportOffsetTop: 0,
             isBannerVisible: true,
         };
     }
@@ -123,7 +120,7 @@ class ReportScreen extends React.Component {
     componentDidMount() {
         this.fetchReportIfNeeded();
         toggleReportActionComposeView(true);
-        this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportOffsetTop);
+        Navigation.setIsReportScreenIsReady();
     }
 
     componentDidUpdate(prevProps) {
@@ -133,10 +130,6 @@ class ReportScreen extends React.Component {
 
         this.fetchReportIfNeeded();
         toggleReportActionComposeView(true);
-    }
-
-    componentWillUnmount() {
-        this.removeViewportResizeListener();
     }
 
     /**
@@ -172,14 +165,6 @@ class ReportScreen extends React.Component {
         Report.openReport(reportIDFromPath);
     }
 
-    /**
-     * @param {SyntheticEvent} e
-     */
-    updateViewportOffsetTop(e) {
-        const viewportOffsetTop = lodashGet(e, 'target.offsetTop', 0);
-        this.setState({viewportOffsetTop});
-    }
-
     dismissBanner() {
         this.setState({isBannerVisible: false});
     }
@@ -193,16 +178,7 @@ class ReportScreen extends React.Component {
             return null;
         }
 
-        // We create policy rooms for all policies, however we don't show them unless
-        // - It's a free plan workspace
-        // - The report includes guides participants (@team.expensify.com) for 1:1 Assigned
-        // - It's an archived room
-        if (!Permissions.canUseDefaultRooms(this.props.betas)
-            && ReportUtils.isDefaultRoom(this.props.report)
-            && ReportUtils.getPolicyType(this.props.report, this.props.policies) !== CONST.POLICY.TYPE.FREE
-            && !ReportUtils.hasExpensifyGuidesEmails(lodashGet(this.props.report, ['participants'], []))
-            && !ReportUtils.isArchivedRoom(this.props.report)
-        ) {
+        if (ReportUtils.isDefaultRoom(this.props.report) && !ReportUtils.canSeeDefaultRoom(this.props.report, this.props.policies, this.props.betas)) {
             return null;
         }
 
@@ -215,7 +191,7 @@ class ReportScreen extends React.Component {
         const reportID = getReportID(this.props.route);
         const addWorkspaceRoomOrChatPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(this.props.report, 'pendingFields.createChat');
         const addWorkspaceRoomOrChatErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom') || lodashGet(this.props.report, 'errorFields.createChat');
-        const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}];
+        const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: this.props.viewportOffsetTop}];
 
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
@@ -236,7 +212,10 @@ class ReportScreen extends React.Component {
                     placeholder={(
                         <>
                             <ReportHeaderSkeletonView animate={animatePlaceholder} />
-                            <ReportActionsSkeletonView animate={animatePlaceholder} containerHeight={this.state.skeletonViewContainerHeight} />
+                            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
+                                <ReportActionsSkeletonView animate={animatePlaceholder} containerHeight={this.state.skeletonViewContainerHeight} />
+                                <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
+                            </View>
                         </>
                     )}
                 >
@@ -312,9 +291,10 @@ class ReportScreen extends React.Component {
                             {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
                             we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
                             {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions) && (
-                                <ReportActionsSkeletonView
-                                    containerHeight={this.state.skeletonViewContainerHeight}
-                                />
+                                <>
+                                    <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
+                                    <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
+                                </>
                             )}
                             <PortalHost name={CONST.REPORT.DROP_HOST_NAME} />
                         </View>
@@ -329,6 +309,7 @@ ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
 export default compose(
+    withViewportOffsetTop,
     withLocalize,
     withWindowDimensions,
     withDrawerState,

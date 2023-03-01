@@ -22,11 +22,11 @@ export default {
 
     // Dark Mode Theme Colors
     greenAppBackground: '#061B09',
-    greenHighlightBackground: '#002E22',
-    greenBorders: '#1B5744',
+    greenHighlightBackground: '#07271F',
+    greenBorders: '#1A3D32',
     greenIcons: '#8B9C8F',
-    greenSupportingText: '#C9D3C5',
-    white: '#FFFFFF',
+    greenSupportingText: '#AFBBB0',
+    white: '#E7ECE9',
     blueLink: '#5AB0FF',
     blueLinkHover: '#B0D9FF',
     greenDefaultButton: '#184E3D',

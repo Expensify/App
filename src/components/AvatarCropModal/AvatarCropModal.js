@@ -82,7 +82,7 @@ const AvatarCropModal = (props) => {
     const initializeImageContainer = useCallback((event) => {
         setIsImageContainerInitialized(true);
         const {height, width} = event.nativeEvent.layout;
-        setImageContainerSize(Math.min(height - styles.imageCropRotateButton.height, width));
+        setImageContainerSize(Math.floor(Math.min(height - styles.imageCropRotateButton.height, width)));
     }, [props.isSmallScreenWidth]);
 
     // An onLayout callback, that initializes the slider container size, for proper render of a slider
@@ -270,10 +270,16 @@ const AvatarCropModal = (props) => {
             height: size, width: size, originX, originY,
         };
 
+        // Svg images are converted to a png blob to preserve transparency, so we need to update the
+        // image name and type accordingly.
+        const isSvg = props.imageType.includes('image/svg');
+        const imageName = isSvg ? 'fileName.png' : props.imageName;
+        const imageType = isSvg ? 'image/png' : props.imageType;
+
         cropOrRotateImage(
             props.imageUri,
             [{rotate: rotation.value % 360}, {crop}],
-            {compress: 1, name: props.imageName, type: props.imageType},
+            {compress: 1, name: imageName, type: imageType},
         )
             .then((newImage) => {
                 props.onClose();
@@ -293,8 +299,9 @@ const AvatarCropModal = (props) => {
         if (!isPressableEnabled.value) {
             return;
         }
-        const newScale = newScaleValue(locationX, sliderContainerSize);
-        translateSlider.value = locationX;
+        const newSliderValue = clamp(locationX, [0, sliderContainerSize]);
+        const newScale = newScaleValue(newSliderValue, sliderContainerSize);
+        translateSlider.value = newSliderValue;
         const differential = newScale / scale.value;
         scale.value = newScale;
         const newX = translateX.value * differential;

@@ -57,10 +57,13 @@ class ReportTransaction extends Component {
         return (
             <OfflineWithFeedback
                 onClose={() => {
+                    if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                        ReportActions.clearSendMoneyErrors(this.props.chatReportID, this.props.action.reportActionID);
+                    }
                     if (this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                        ReportActions.deleteOptimisticReportAction(this.props.chatReportID, this.props.action.sequenceNumber);
+                        ReportActions.deleteOptimisticReportAction(this.props.chatReportID, this.props.action.reportActionID);
                     } else {
-                        ReportActions.clearReportActionErrors(this.props.chatReportID, this.props.action.sequenceNumber);
+                        ReportActions.clearReportActionErrors(this.props.chatReportID, this.props.action.reportActionID);
                     }
                 }}
                 pendingAction={this.props.action.pendingAction}
