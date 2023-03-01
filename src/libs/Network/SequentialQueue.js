@@ -34,8 +34,6 @@ function process() {
         return Promise.resolve();
     }
 
-    isSequentialQueueRunning = true;
-
     // Get the first request in the queue and process it
     // Make a copy of the first request in the queue and process it. We make a copy so that the middlewares can't modify the persisted request which could cause problems with retries.
     const requestToProcess = lodashCloneDeep(persistedRequests[0]);
