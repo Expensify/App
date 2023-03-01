@@ -19,6 +19,7 @@ import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
+import emojiHeaderContainerPlatformStyles from './emojiHeaderContainerPlatformStyles';
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -1488,6 +1489,7 @@ const styles = {
         height: CONST.EMOJI_PICKER_HEADER_HEIGHT,
         justifyContent: 'center',
         width: '100%',
+        ...emojiHeaderContainerPlatformStyles,
     },
 
     emojiSkinToneTitle: {
