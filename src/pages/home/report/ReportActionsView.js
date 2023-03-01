@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import Log from '../../../libs/Log';
 import * as Report from '../../../libs/actions/Report';
 import reportActionPropTypes from './reportActionPropTypes';
 import Visibility from '../../../libs/Visibility';
@@ -64,7 +63,7 @@ class ReportActionsView extends React.Component {
         this.hasCachedActions = _.size(props.reportActions) > 0;
 
         // We need this.sortedAndFilteredReportActions to be set before this.state is initialized because the function to calculate the newMarkerReportActionID uses the sorted report actions
-        this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(props.reportActions);
+        this.sortedAndFilteredReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(props.reportActions);
 
         this.state = {
             isFloatingMessageCounterVisible: false,
@@ -90,7 +89,11 @@ class ReportActionsView extends React.Component {
             // If the app user becomes active and they have no unread actions we clear the new marker to sync their device
             // e.g. they could have read these messages on another device and only just become active here
             this.openReportIfNecessary();
-            this.setState({newMarkerReportActionID: ''});
+
+            const hasUnreadActions = ReportUtils.isUnread(this.props.report);
+            if (!hasUnreadActions) {
+                this.setState({newMarkerReportActionID: ''});
+            }
         });
 
         if (this.getIsReportFullyVisible()) {
@@ -129,7 +132,7 @@ class ReportActionsView extends React.Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(nextProps.reportActions);
+            this.sortedAndFilteredReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(nextProps.reportActions);
             this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(nextProps.reportActions);
             return true;
         }
@@ -206,10 +209,11 @@ class ReportActionsView extends React.Component {
             this.openReportIfNecessary();
         }
 
-        // If the report is unread, we want to check if the number of actions has decreased. If so, then it seems that one of them was deleted. In this case, if the deleted action was the
-        // one marking the unread point, we need to recalculate which action should be the unread marker.
-        if (ReportUtils.isUnread(this.props.report) && ReportActionsUtils.filterReportActionsForDisplay(prevProps.reportActions).length > this.sortedAndFilteredReportActions.length) {
-            this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions)});
+        // If the report action marking the unread point is deleted we need to recalculate which action should be the unread marker
+        if (this.state.newMarkerReportActionID && _.isEmpty(lodashGet(this.props.reportActions[this.state.newMarkerReportActionID], 'message[0].html'))) {
+            this.setState({
+                newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions),
+            });
         }
 
         // When the user navigates to the LHN the ReportActionsView doesn't unmount and just remains hidden.
@@ -250,30 +254,6 @@ class ReportActionsView extends React.Component {
         }
 
         Report.unsubscribeFromReportChannel(this.props.report.reportID);
-    }
-
-    /**
-     * @param {Object} reportActions
-     * @returns {Array}
-     */
-    getSortedReportActionsForDisplay(reportActions) {
-        // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
-        // to prevent bugs during the migration from sequenceNumber -> reportActionID
-        const filteredReportActions = _.filter(reportActions, (reportAction, key) => {
-            if (!reportAction) {
-                return false;
-            }
-
-            if (String(reportAction.sequenceNumber) === key) {
-                Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
-                return false;
-            }
-
-            return true;
-        });
-
-        const sortedReportActions = ReportActionsUtils.getSortedReportActions(filteredReportActions, true);
-        return ReportActionsUtils.filterReportActionsForDisplay(sortedReportActions);
     }
 
     /**
