@@ -315,7 +315,7 @@ class ReportActionCompose extends React.Component {
         this.setState({isInAddAttachmentFlow: value});
     }
 
-    /** 
+    /**
      * Updates the composer when the comment length is exceeded
      * Shows red borders and prevents the comment from being sent
      *
