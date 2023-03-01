@@ -58,7 +58,14 @@ function navigateBack() {
     setTimeout(toggleHeaderMenu, 250);
 }
 
+function injectFooterCopywrite() {
+    const footer = document.getElementById('footer-copywrite-date');
+    footer.innerHTML = `&copy;2008-${new Date().getFullYear()} Expensify, Inc.`;
+}
+
 window.addEventListener('DOMContentLoaded', () => {
+    injectFooterCopywrite();
+
     if (window.tocbot) {
         window.tocbot.init({
         // Where to render the table of contents.

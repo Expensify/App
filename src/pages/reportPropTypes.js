@@ -11,7 +11,7 @@ export default PropTypes.shape({
     hasOutstandingIOU: PropTypes.bool,
 
     /** List of icons for report participants */
-    icons: PropTypes.arrayOf(PropTypes.string),
+    icons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])),
 
     /** Are we loading more report actions? */
     isLoadingMoreReportActions: PropTypes.bool,
