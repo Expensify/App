@@ -764,7 +764,7 @@ function getEmojiSuggestionItemStyle(
 /**
  * Gets the correct position for emoji suggestion container
  *
- * @param {number} itemsHeight
+ * @param {Number} itemsHeight
  * @param {Boolean} shouldIncludeReportRecipientLocalTimeHeight
  * @returns {Object}
  */
