@@ -69,4 +69,16 @@ public class MainActivity extends ReactActivity {
     KeyCommandModule.getInstance().onKeyDownEvent(keyCode, event);
     return super.onKeyDown(keyCode, event);
   }
+
+  @Override
+  public boolean onKeyLongPress(int keyCode, KeyEvent event) {
+      KeyCommandModule.getInstance().onKeyDownEvent(keyCode, event);
+      return super.onKeyLongPress(keyCode, event);
+  }
+
+  @Override
+  public boolean onKeyUp(int keyCode, KeyEvent event) {
+      KeyCommandModule.getInstance().onKeyDownEvent(keyCode, event);
+      return super.onKeyUp(keyCode, event);
+  }
 }
