@@ -238,7 +238,7 @@ class OptionRow extends Component {
                                         {this.props.option.alternateText ? (
                                             <Text
                                                 style={alternateTextStyle}
-                                                numberOfLines={1}
+                                                numberOfLines={lodashGet(this.props.option, 'alternateTextMaxLines', 1)}
                                             >
                                                 {this.props.option.alternateText}
                                             </Text>

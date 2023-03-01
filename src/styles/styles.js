@@ -779,7 +779,7 @@ const styles = {
         position: 'absolute',
         top: 0,
         width: '100%',
-        height: 25,
+        height: 23,
         backgroundColor: themeColors.componentBG,
     },
 
@@ -798,7 +798,7 @@ const styles = {
     baseTextInput: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
-        lineHeight: variables.lineHeightNormal,
+        lineHeight: variables.lineHeightXLarge,
         color: themeColors.text,
         paddingTop: 23,
         paddingBottom: 8,
@@ -1260,7 +1260,7 @@ const styles = {
     },
 
     optionAlternateText: {
-        height: variables.alternateTextHeight,
+        minHeight: variables.alternateTextHeight,
         lineHeight: variables.lineHeightXLarge,
     },
 
@@ -1272,7 +1272,7 @@ const styles = {
     },
 
     optionRow: {
-        height: variables.optionRowHeight,
+        minHeight: variables.optionRowHeight,
         paddingTop: 12,
         paddingBottom: 12,
     },
@@ -1826,7 +1826,7 @@ const styles = {
     },
 
     borderTop: {
-        borderTopWidth: 1,
+        borderTopWidth: variables.borderTopWidth,
         borderColor: themeColors.border,
     },
 

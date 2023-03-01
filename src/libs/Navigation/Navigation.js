@@ -4,6 +4,7 @@ import {Keyboard} from 'react-native';
 import {DrawerActions, getPathFromState, StackActions} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
+import DomUtils from '../DomUtils';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
 import DeprecatedCustomActions from './DeprecatedCustomActions';
@@ -17,7 +18,7 @@ const navigationIsReadyPromise = new Promise((resolve) => {
 });
 
 let resolveDrawerIsReadyPromise;
-const drawerIsReadyPromise = new Promise((resolve) => {
+let drawerIsReadyPromise = new Promise((resolve) => {
     resolveDrawerIsReadyPromise = resolve;
 });
 
@@ -158,6 +159,11 @@ function navigate(route = ROUTES.HOME) {
         return;
     }
 
+    // A pressed navigation button will remain focused, keeping its tooltip visible, even if it's supposed to be out of view.
+    // To prevent that we blur the button manually (especially for Safari, where the mouse leave event is missing).
+    // More info: https://github.com/Expensify/App/issues/13146
+    DomUtils.blurActiveElement();
+
     if (route === ROUTES.HOME) {
         if (isLoggedIn && pendingRoute === null) {
             openDrawer();
@@ -272,6 +278,12 @@ function setIsDrawerReady() {
     resolveDrawerIsReadyPromise();
 }
 
+function resetDrawerIsReadyPromise() {
+    drawerIsReadyPromise = new Promise((resolve) => {
+        resolveDrawerIsReadyPromise = resolve;
+    });
+}
+
 function isReportScreenReady() {
     return reportScreenIsReadyPromise;
 }
@@ -295,6 +307,7 @@ export default {
     getReportIDFromRoute,
     isDrawerReady,
     setIsDrawerReady,
+    resetDrawerIsReadyPromise,
     isDrawerRoute,
     setIsNavigating,
     isReportScreenReady,

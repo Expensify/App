@@ -57,21 +57,20 @@ class EmojiPickerMenu extends Component {
         // Ref for emoji FlatList
         this.emojiList = undefined;
 
-        const allEmojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis, this.props.frequentlyUsedEmojis);
+        // If we're on Windows, don't display the flag emojis (the last category),
+        // since Windows doesn't support them
+        const flagHeaderIndex = _.findIndex(emojis, emoji => emoji.header && emoji.code === 'flags');
+        this.emojis = getOperatingSystem() === CONST.OS.WINDOWS
+            ? EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis.slice(0, flagHeaderIndex), this.props.frequentlyUsedEmojis)
+            : EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis, this.props.frequentlyUsedEmojis);
 
         // This is the actual header index starting at the first emoji and counting each one
-        this.headerIndices = EmojiUtils.getHeaderIndices(allEmojis);
+        this.headerIndices = EmojiUtils.getHeaderIndices(this.emojis);
 
         // This is the indices of each header's Row
         // The positions are static, and are calculated as index/numColumns (8 in our case)
         // This is because each row of 8 emojis counts as one index to the flatlist
         this.headerRowIndices = _.map(this.headerIndices, headerIndex => Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW));
-
-        // If we're on Windows, don't display the flag emojis (the last category),
-        // since Windows doesn't support them (and only displays country codes instead)
-        this.emojis = getOperatingSystem() === CONST.OS.WINDOWS
-            ? allEmojis.slice(0, this.headerRowIndices.pop() * CONST.EMOJI_NUM_PER_ROW)
-            : allEmojis;
 
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
         this.highlightAdjacentEmoji = this.highlightAdjacentEmoji.bind(this);
@@ -382,6 +381,9 @@ class EmojiPickerMenu extends Component {
      */
     filterEmojis(searchTerm) {
         const normalizedSearchTerm = searchTerm.toLowerCase().trim();
+        if (this.emojiList) {
+            this.emojiList.scrollToOffset({offset: 0, animated: false});
+        }
         if (normalizedSearchTerm === '') {
             // There are no headers when searching, so we need to re-make them sticky when there is no search term
             this.setState({
@@ -466,17 +468,14 @@ class EmojiPickerMenu extends Component {
     }
 
     render() {
+        const isFiltered = this.emojis.length !== this.state.filteredEmojis.length;
         return (
             <View
                 style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
-                <CategoryShortcutBar
-                    headerIndices={this.headerIndices}
-                    onPress={this.scrollToHeader}
-                />
                 {!this.props.isSmallScreenWidth && (
-                    <View style={[styles.ph4, styles.pb1]}>
+                    <View style={[styles.ph4, styles.pb1, styles.pt2]}>
                         <TextInput
                             label={this.props.translate('common.search')}
                             onChangeText={this.filterEmojis}
@@ -489,6 +488,12 @@ class EmojiPickerMenu extends Component {
                             onBlur={() => this.setState({isFocused: false})}
                         />
                     </View>
+                )}
+                {!isFiltered && (
+                    <CategoryShortcutBar
+                        headerIndices={this.headerIndices}
+                        onPress={this.scrollToHeader}
+                    />
                 )}
                 {this.state.filteredEmojis.length === 0
                     ? (
