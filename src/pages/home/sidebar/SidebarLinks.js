@@ -137,7 +137,7 @@ class SidebarLinks extends React.Component {
     }
 
     render() {
-        const isLoading = _.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.chatReports);
+        const isLoading = _.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.chatReports) || true;
         const freeze = this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded;
         const animatePlaceholder = !freeze;
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
