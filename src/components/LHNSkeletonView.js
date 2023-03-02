@@ -1,5 +1,4 @@
 import React from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {Rect, Circle} from 'react-native-svg';
 import SkeletonViewContentLoader from 'react-content-loader/native';
@@ -21,7 +20,7 @@ const defaultTypes = {
 
 const LHNSkeletonView = (props) => {
     const skeletonHeight = CONST.LHN_SKELETON_VIEW_HEIGHT;
-    const possibleVisibleContentItems = Math.ceil(props.containerHeight / skeletonHeight);
+    const possibleVisibleContentItems = Math.round(props.containerHeight / skeletonHeight);
     const skeletonViewLines = [];
 
     for (let index = 0; index < possibleVisibleContentItems; index++) {
@@ -52,7 +51,7 @@ const LHNSkeletonView = (props) => {
             </SkeletonViewContentLoader>,
         );
     }
-    return <View>{skeletonViewLines}</View>;
+    return <>{skeletonViewLines}</>;
 };
 
 LHNSkeletonView.displayName = 'LHNSkeletonView';
