@@ -5,10 +5,10 @@ import _ from 'underscore';
 
 // We take FlatList from this package to properly handle the scrolling of EmojiSuggestions in chats since one scroll is nested inside another
 import {FlatList} from 'react-native-gesture-handler';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
-import Text from '../Text';
-import CONST from '../../CONST';
+import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
+import Text from './Text';
+import CONST from '../CONST';
 
 const propTypes = {
     /** The index of the highlighted emoji */
