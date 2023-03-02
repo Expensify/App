@@ -155,6 +155,7 @@ class WorkspaceMembersPage extends React.Component {
 
     /**
      * Add or remove all users from the selectedEmployees list
+     * @param {Object} memberList
      */
     toggleAllUsers(memberList) {
         let policyMemberList = _.isEmpty(memberList) ? lodashGet(this.props, 'policyMemberList', {}) : memberList;
