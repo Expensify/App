@@ -948,8 +948,14 @@ PODS:
     - React-Core
     - React-RCTFabric
     - ReactCommon/turbomodule/core
-  - RNDateTimePicker (3.5.2):
-    - React-Core
+  - RNDateTimePicker (6.7.1):
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
+    - React
+    - React-Codegen
+    - React-RCTFabric
+    - ReactCommon/turbomodule/core
   - RNDeviceInfo (10.3.0):
     - React-Core
   - RNFastImage (8.6.3):
@@ -1430,7 +1436,7 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: 927a20d65fa373b82cdb26c28828e888d603798a
   RNCClipboard: 472660b493222f5b351439c03e1874caafc5471e
   RNCPicker: d7db5fb87007968ac14bd2266f96be30f8d738d6
-  RNDateTimePicker: 7658208086d86d09e1627b5c34ba0cf237c60140
+  RNDateTimePicker: cf5f81f92f817f4908cfa02ed7944baf94b97f68
   RNDeviceInfo: 4701f0bf2a06b34654745053db0ce4cb0c53ada7
   RNFastImage: fdf8c03d43026a4af81e15e483e457d8b60067c6
   RNFBAnalytics: f76bfa164ac235b00505deb9fc1776634056898c
