@@ -120,8 +120,13 @@ const AddressSearch = (props) => {
             country: 'short_name',
         });
 
+        /**
+         * The short_name needs to be utilised in the StatePicker but we also
+         * need the full name of the state when the country selected is not USA, that's why
+         * this is called twice.
+         */
         const {
-            administrative_area_level_1: stateName,
+            administrative_area_level_1: longStateName,
         } = GooglePlacesUtils.getAddressComponents(addressComponents, {
             administrative_area_level_1: 'long_name',
         });
@@ -134,8 +139,13 @@ const AddressSearch = (props) => {
             country: '',
         };
 
+        /**
+         * The short name for states in USA is the state's ISO code, which is needed in the StatePicker.
+         * If the country is outside USA, instead of showing the short code of the state, we want to show
+         * the full name of the state.
+         */
         if (country !== CONST.COUNTRY.US) {
-            values.state = stateName;
+            values.state = longStateName;
         }
 
         const street = `${streetNumber} ${streetName}`.trim();
