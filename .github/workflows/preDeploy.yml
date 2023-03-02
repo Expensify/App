@@ -224,7 +224,7 @@ jobs:
 
   e2ePerformanceTests:
     needs: [chooseDeployActions]
-    uses: Expensify/App/.github/workflows/e2ePerformanceTests.yml
+    uses: Expensify/App/.github/workflows/e2ePerformanceTests.yml@main
     secrets: inherit
     with:
       DELTA_REF: main
