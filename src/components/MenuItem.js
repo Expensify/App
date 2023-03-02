@@ -89,42 +89,44 @@ const MenuItem = (props) => {
             {({hovered, pressed}) => (
                 <>
                     <View style={[styles.flexRow, styles.pointerEventsAuto, styles.flex1, props.disabled && styles.cursorDisabled]}>
-                        <View
-                            style={[
-                                styles.popoverMenuIcon,
-                                ...props.iconStyles,
-                            ]}
-                        >
-                            {(props.icon && props.iconType === CONST.ICON_TYPE_ICON) && (
-                                <Icon
-                                    src={props.icon}
-                                    width={props.iconWidth}
-                                    height={props.iconHeight}
-                                    fill={props.iconFill || StyleUtils.getIconFillColor(
-                                        getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive),
-                                        true,
-                                    )}
-                                />
-                            )}
-                            {(props.icon && props.iconType === CONST.ICON_TYPE_WORKSPACE) && (
+                        {props.icon && (
+                            <View
+                                style={[
+                                    styles.popoverMenuIcon,
+                                    ...props.iconStyles,
+                                ]}
+                            >
+                                {(props.iconType === CONST.ICON_TYPE_ICON) && (
+                                    <Icon
+                                        src={props.icon}
+                                        width={props.iconWidth}
+                                        height={props.iconHeight}
+                                        fill={props.iconFill || StyleUtils.getIconFillColor(
+                                            getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive),
+                                            true,
+                                        )}
+                                    />
+                                )}
+                                {(props.iconType === CONST.ICON_TYPE_WORKSPACE) && (
 
-                                <Avatar
-                                    imageStyles={[styles.alignSelfCenter]}
-                                    size={CONST.AVATAR_SIZE.DEFAULT}
-                                    source={props.icon}
-                                    fallbackIcon={props.fallbackIcon}
-                                    name={props.title}
-                                    type={CONST.ICON_TYPE_WORKSPACE}
-                                />
-                            )}
-                            {(props.icon && props.iconType === CONST.ICON_TYPE_AVATAR) && (
-                                <Avatar
-                                    imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
-                                    source={props.icon}
-                                    fallbackIcon={props.fallbackIcon}
-                                />
-                            )}
-                        </View>
+                                    <Avatar
+                                        imageStyles={[styles.alignSelfCenter]}
+                                        size={CONST.AVATAR_SIZE.DEFAULT}
+                                        source={props.icon}
+                                        fallbackIcon={props.fallbackIcon}
+                                        name={props.title}
+                                        type={CONST.ICON_TYPE_WORKSPACE}
+                                    />
+                                )}
+                                {(props.iconType === CONST.ICON_TYPE_AVATAR) && (
+                                    <Avatar
+                                        imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
+                                        source={props.icon}
+                                        fallbackIcon={props.fallbackIcon}
+                                    />
+                                )}
+                            </View>
+                        )}
                         <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1, styles.gap1]}>
                             {Boolean(props.description) && props.shouldShowDescriptionOnTop && (
                                 <Text

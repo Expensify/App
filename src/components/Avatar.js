@@ -29,10 +29,15 @@ const propTypes = {
     /** Set the size of Avatar */
     size: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
 
-    /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue' */
+    /**
+     * The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'
+     * If the avatar is type === workspace, this fill color will be ignored and decided based on the name prop.
+    */
     fill: PropTypes.string,
 
-    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
+    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL.
+    * If the avatar is type === workspace, this fallback icon will be ignored and decided based on the name prop.
+    */
     fallbackIcon: PropTypes.func,
 
     /** Denotes whether it is an avatar or a workspace avatar */

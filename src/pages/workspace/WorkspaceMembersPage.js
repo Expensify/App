@@ -313,7 +313,7 @@ class WorkspaceMembersPage extends React.Component {
             if (email !== this.props.session.email && email !== this.props.policy.owner && policyMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 removableMembers.push(email);
             }
-            const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email, avatar: Expensicons.FallbackAvatar});
+            const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email, avatar: ''});
             data.push({
                 ...policyMember,
                 ...details,
