@@ -43,7 +43,7 @@ const server = http.createServer((request, response) => {
         const apiRoot = apiRootMatch[1];
 
         // apiRoot can only be staging or secure staging
-        hostname = apiRoot === proxyConfig.STAGING ? stagingHost : stagingSecureHost;
+        hostname = apiRoot === proxyConfig.STAGING_SECURE ? stagingSecureHost : stagingHost;
 
         /**
          * Replace the mapping url with the actual path.
