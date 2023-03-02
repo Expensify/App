@@ -1,4 +1,4 @@
-const setUpActParams = (act, event = null, event_options = null, secrets = null, github_token = null) => {
+const setUpActParams = (act, event = null, event_options = null, secrets = null, github_token = null, env_vars = null) => {
     let updated_act = act;
 
     if (event && event_options) {
@@ -15,6 +15,12 @@ const setUpActParams = (act, event = null, event_options = null, secrets = null,
 
     if (github_token) {
         updated_act = updated_act.setGithubToken(github_token);
+    }
+
+    if (env_vars) {
+        for (const [key, value] of Object.entries(env_vars)) {
+            updated_act = updated_act.setEnv(key, value);
+        }
     }
 
     return updated_act;

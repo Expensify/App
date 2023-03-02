@@ -18,7 +18,8 @@ jobs:
     outputs:
       IS_DEPLOYER: ${{ fromJSON(steps.isUserDeployer.outputs.isTeamMember) || github.actor == 'OSBotify' }}
     steps:
-      - id: isUserDeployer
+      - name: Check if user is deployer
+        id: isUserDeployer
         uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -32,13 +33,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # This action checks-out the repository, so the workflow can access it.
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - name: Checkout
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           fetch-depth: 0
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
         with:
           ruby-version: '2.7'
           bundler-cache: true
@@ -106,11 +110,13 @@ jobs:
     runs-on: macos-12
     steps:
       # This action checks-out the repository, so the workflow can access it.
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - name: Checkout
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           fetch-depth: 0
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Decrypt Developer ID Certificate
         run: cd desktop && gpg --quiet --batch --yes --decrypt --passphrase="$DEVELOPER_ID_SECRET_PASSPHRASE" --output developer_id.p12 developer_id.p12.gpg
@@ -146,13 +152,16 @@ jobs:
     runs-on: macos-12-xl
     steps:
       # This action checks-out the repository, so the workflow can access it.
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - name: Checkout
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           fetch-depth: 0
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
         with:
           ruby-version: '2.7'
           bundler-cache: true
@@ -235,11 +244,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # This action checks-out the repository, so the workflow can access it.
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - name: Checkout
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           fetch-depth: 0
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Setup Cloudflare CLI
         run: pip3 install cloudflare
@@ -288,7 +299,8 @@ jobs:
     if: ${{ failure() }}
     needs: [android, desktop, iOS, web]
     steps:
-      - uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+      - name: Post Slack message on failure
+        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
@@ -298,7 +310,8 @@ jobs:
     if: ${{ success() }}
     needs: [android, desktop, iOS, web]
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - name: Checkout
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
 
       - name: Set version
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
@@ -359,11 +372,13 @@ jobs:
     needs: [android, desktop, iOS, web]
     steps:
       # This action checks-out the repository, so the workflow can access it.
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - name: Checkout
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           fetch-depth: 0
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Set version
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
