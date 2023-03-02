@@ -1,6 +1,6 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {Pressable, View} from 'react-native';
+import {Pressable} from 'react-native';
 import Icon from '../Icon';
 import Tooltip from '../Tooltip';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
