@@ -29,7 +29,6 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
-import * as Expensicons from '../../components/Icon/Expensicons';
 import * as ReportUtils from '../../libs/ReportUtils';
 import FormHelpMessage from '../../components/FormHelpMessage';
 import TextInput from '../../components/TextInput';
@@ -97,12 +96,10 @@ class WorkspaceMembersPage extends React.Component {
      */
     getWorkspaceMembers() {
         /**
-         * clientMemberEmails should be filtered to only pass valid members, failure to do so
-         * will remove all non-existing members that should be displayed (e.g. non-existing members that should display an error).
-         * This is due to how calling `Onyx::merge` on array fields overwrites the array.
-         * see https://github.com/Expensify/App/issues/12265#issuecomment-1307889721 for more context
+         * We filter clientMemberEmails to only pass members without errors
+         * Otherwise, the members with errors would immediately be removed before the user has a chance to read the error
          */
-        const clientMemberEmails = _.keys(_.pick(this.props.policyMemberList, member => member.role));
+        const clientMemberEmails = _.keys(_.pick(this.props.policyMemberList, member => _.isEmpty(member.errors)));
         Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
     }
 
@@ -311,7 +308,7 @@ class WorkspaceMembersPage extends React.Component {
             if (email !== this.props.session.email && email !== this.props.policy.owner && policyMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 removableMembers.push(email);
             }
-            const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email, avatar: Expensicons.FallbackAvatar});
+            const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email});
             data.push({
                 ...policyMember,
                 ...details,
