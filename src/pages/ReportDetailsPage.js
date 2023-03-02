@@ -88,19 +88,19 @@ class ReportDetailsPage extends Component {
                 icon: Expensicons.Plus,
                 action: () => { /* Placeholder for when inviting other users is built in */ },
             });
-
-            // Only show the leave room option if the user can leave the room
-            const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
-            const isPolicyMember = policy && _.find(policy.employeeList.emails, email => email === this.props.session.email);
-            if (ReportUtils.canLeaveRoom(this.props.report.visibility, isPolicyMember)) {
-                menuItems.push({
-                    key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
-                    translationKey: 'common.leaveRoom',
-                    icon: Expensicons.Exit,
-                    action: () => Policy.leaveRoom(this.props.report.reportID),
-                });
-            }
         }
+
+        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
+        const isPolicyMember = policy && _.find(policy.employeeList.emails, email => email === this.props.session.email);
+        if (ReportUtils.isUserCreatedPolicyRoom(this.props.report) || ReportUtils.canLeaveRoom(this.props.report, isPolicyMember)) {
+            menuItems.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
+                translationKey: 'common.leaveRoom',
+                icon: Expensicons.Exit,
+                action: () => Policy.leaveRoom(this.props.report.reportID),
+            });
+        }
+
         return menuItems;
     }
 
