@@ -3,7 +3,6 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {View, Keyboard} from 'react-native';
-import lodashFindLast from 'lodash/findLast';
 
 import CONST from '../../../CONST';
 import ReportActionCompose from './ReportActionCompose';
@@ -18,19 +17,20 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import styles from '../../../styles/styles';
 import reportActionPropTypes from './reportActionPropTypes';
 import reportPropTypes from '../../reportPropTypes';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** Report object for the current report */
-    report: reportPropTypes.isRequired,
+    report: reportPropTypes,
 
     /** Report actions for the current report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)).isRequired,
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Offline status */
     isOffline: PropTypes.bool.isRequired,
 
     /** Callback fired when the comment is submitted */
-    onSubmitComment: PropTypes.func.isRequired,
+    onSubmitComment: PropTypes.func,
 
     /** Any errors associated with an attempt to create a chat */
     // eslint-disable-next-line react/forbid-prop-types
@@ -42,13 +42,20 @@ const propTypes = {
     /** Whether the composer input should be shown */
     shouldShowComposeInput: PropTypes.bool,
 
+    /** Whether user interactions should be disabled */
+    shouldDisableCompose: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
-    shouldShowComposeInput: true,
+    report: {reportID: '0'},
+    reportActions: {},
+    onSubmitComment: () => {},
     errors: {},
     pendingAction: null,
+    shouldShowComposeInput: true,
+    shouldDisableCompose: false,
 };
 
 class ReportFooter extends React.Component {
@@ -63,13 +70,13 @@ class ReportFooter extends React.Component {
         const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
         let reportClosedAction;
         if (isArchivedRoom) {
-            reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+            reportClosedAction = ReportActionsUtils.getLastClosedReportAction(this.props.reportActions);
         }
         const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors);
         return (
             <>
                 {(isArchivedRoom || hideComposer) && (
-                    <View style={[styles.chatFooter]}>
+                    <View style={[styles.chatFooter, this.props.isSmallScreenWidth ? styles.mb5 : null]}>
                         {isArchivedRoom && (
                             <ArchivedReportFooter
                                 reportClosedAction={reportClosedAction}
@@ -99,6 +106,7 @@ class ReportFooter extends React.Component {
                                     reportActions={this.props.reportActions}
                                     report={this.props.report}
                                     isComposerFullSize={this.props.isComposerFullSize}
+                                    disabled={this.props.shouldDisableCompose}
                                 />
                             </OfflineWithFeedback>
                         </SwipeableView>

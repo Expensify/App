@@ -1,7 +1,20 @@
+import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import ONYXKEYS from '../../ONYXKEYS';
 import Pusher from './library';
 import TYPE from './EventType';
 import Log from '../Log';
+
+let shouldForceOffline = false;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (network) => {
+        if (!network) {
+            return;
+        }
+        shouldForceOffline = Boolean(network.shouldForceOffline);
+    },
+});
 
 let socket;
 const socketEventCallbacks = [];
@@ -112,6 +125,11 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
 
     const chunkedDataEvents = {};
     const callback = (eventData) => {
+        if (shouldForceOffline) {
+            Log.info('[Pusher] Ignoring a Push event because shouldForceOffline = true');
+            return;
+        }
+
         let data;
         try {
             data = _.isObject(eventData) ? eventData : JSON.parse(eventData);

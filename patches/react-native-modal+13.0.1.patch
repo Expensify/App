@@ -1,0 +1,46 @@
+diff --git a/node_modules/react-native-modal/dist/modal.d.ts b/node_modules/react-native-modal/dist/modal.d.ts
+index b63bcfc..bd6419e 100644
+--- a/node_modules/react-native-modal/dist/modal.d.ts
++++ b/node_modules/react-native-modal/dist/modal.d.ts
+@@ -161,6 +161,7 @@ export declare class ReactNativeModal extends React.Component<ModalProps, State>
+     getDeviceHeight: () => number;
+     getDeviceWidth: () => number;
+     onBackButtonPress: () => boolean;
++    handleEscape: (e: KeyboardEvent) => void;
+     shouldPropagateSwipe: (evt: GestureResponderEvent, gestureState: PanResponderGestureState) => boolean;
+     buildPanResponder: () => void;
+     getAccDistancePerDirection: (gestureState: PanResponderGestureState) => number;
+diff --git a/node_modules/react-native-modal/dist/modal.js b/node_modules/react-native-modal/dist/modal.js
+index 80f4e75..fe028ab 100644
+--- a/node_modules/react-native-modal/dist/modal.js
++++ b/node_modules/react-native-modal/dist/modal.js
+@@ -75,6 +75,13 @@ export class ReactNativeModal extends React.Component {
+             }
+             return false;
+         };
++        this.handleEscape = (e) => {
++            if (e.key === 'Escape') {
++                if (this.onBackButtonPress() === true) {
++                    e.stopImmediatePropagation();
++                }
++            }
++        };
+         this.shouldPropagateSwipe = (evt, gestureState) => {
+             return typeof this.props.propagateSwipe === 'function'
+                 ? this.props.propagateSwipe(evt, gestureState)
+@@ -454,9 +461,15 @@ export class ReactNativeModal extends React.Component {
+             this.open();
+         }
+         BackHandler.addEventListener('hardwareBackPress', this.onBackButtonPress);
++        if (Platform.OS === 'web') {
++            document?.body?.addEventListener?.('keyup', this.handleEscape, true);
++        }
+     }
+     componentWillUnmount() {
+         BackHandler.removeEventListener('hardwareBackPress', this.onBackButtonPress);
++        if (Platform.OS === 'web') {
++            document?.body?.removeEventListener?.('keyup', this.handleEscape, true);
++        }
+         if (this.didUpdateDimensionsEmitter) {
+             this.didUpdateDimensionsEmitter.remove();
+         }

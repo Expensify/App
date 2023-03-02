@@ -59,7 +59,6 @@ class EmojiSkinToneList extends Component {
                                 () => this.setState(prev => ({isSkinToneListVisible: !prev.isSkinToneListVisible}))
                             }
                             style={[
-                                styles.pv1,
                                 styles.flex1,
                                 styles.flexRow,
                                 styles.alignSelfCenter,
@@ -67,9 +66,11 @@ class EmojiSkinToneList extends Component {
                                 styles.alignItemsCenter,
                             ]}
                         >
-                            <Text style={[styles.emojiText, styles.ph2, styles.emojiItem, styles.textNoWrap]}>
-                                {selectedEmoji.code}
-                            </Text>
+                            <View style={[styles.emojiItem, styles.justifyContentCenter]}>
+                                <Text style={[styles.emojiText, styles.ph2, styles.textNoWrap]}>
+                                    {selectedEmoji.code}
+                                </Text>
+                            </View>
                             <Text style={[styles.emojiSkinToneTitle]}>
                                 {this.props.translate('emojiPicker.skinTonePickerLabel')}
                             </Text>
@@ -88,7 +89,7 @@ class EmojiSkinToneList extends Component {
                                         onHoverOut={() => this.setState({highlightedIndex: -1})}
                                         key={skinToneEmoji.code}
                                         emoji={skinToneEmoji.code}
-                                        isHighlighted={skinToneEmoji.skinTone === this.state.highlightedIndex}
+                                        isHighlighted={skinToneEmoji.skinTone === this.state.highlightedIndex || skinToneEmoji.skinTone === selectedEmoji.skinTone}
                                     />
                                 ))
                                 }

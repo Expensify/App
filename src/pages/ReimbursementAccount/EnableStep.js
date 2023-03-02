@@ -1,8 +1,7 @@
-import _ from 'underscore';
 import React from 'react';
-import PropTypes from 'prop-types';
-import {View, Image} from 'react-native';
+import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -11,160 +10,116 @@ import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
+import Button from '../../components/Button';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import MenuItem from '../../components/MenuItem';
 import getBankIcon from '../../components/Icon/BankIcons';
-import * as PaymentMethods from '../../libs/actions/PaymentMethods';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import bankAccountPropTypes from '../../components/bankAccountPropTypes';
-import confettiPop from '../../../assets/images/confetti-pop.gif';
-import Icon from '../../components/Icon';
+import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
+import userPropTypes from '../settings/userPropTypes';
 import Section from '../../components/Section';
 import * as Illustrations from '../../components/Icon/Illustrations';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Link from '../../libs/actions/Link';
 import * as User from '../../libs/actions/User';
-import {withNetwork} from '../../components/OnyxProvider';
-import networkPropTypes from '../../components/networkPropTypes';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import * as BankAccounts from '../../libs/actions/ReimbursementAccount';
+import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
 
 const propTypes = {
-    /** Are we loading payment methods? */
-    isLoadingPaymentMethods: PropTypes.bool,
+    /** Bank account currently in setup */
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
-    /** List of bank accounts */
-    bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
+    /* Onyx Props */
+    user: userPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
 
-const defaultProps = {
-    isLoadingPaymentMethods: true,
-    bankAccountList: {},
+const EnableStep = (props) => {
+    const isUsingExpensifyCard = props.user.isUsingExpensifyCard;
+    const achData = lodashGet(props.reimbursementAccount, 'achData') || {};
+    const {icon, iconSize} = getBankIcon(achData.bankName);
+    const formattedBankAccountNumber = achData.accountNumber
+        ? `${props.translate('paymentMethodList.accountLastFour')} ${
+            achData.accountNumber.slice(-4)
+        }`
+        : '';
+    const bankName = achData.addressName;
+
+    return (
+        <ScreenWrapper style={[styles.flex1, styles.justifyContentBetween]} includeSafeAreaPaddingBottom={false}>
+            <HeaderWithCloseButton
+                title={props.translate('workspace.common.bankAccount')}
+                onCloseButtonPress={Navigation.dismissModal}
+                shouldShowGetAssistanceButton
+                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.goBack()}
+            />
+            <ScrollView style={[styles.flex1]}>
+                <Section
+                    title={!isUsingExpensifyCard ? props.translate('workspace.bankAccount.oneMoreThing') : props.translate('workspace.bankAccount.allSet')}
+                    icon={!isUsingExpensifyCard ? Illustrations.ConciergeNew : Illustrations.ThumbsUpStars}
+                >
+                    <MenuItem
+                        title={bankName}
+                        description={formattedBankAccountNumber}
+                        icon={icon}
+                        iconWidth={iconSize}
+                        iconHeight={iconSize}
+                        disabled
+                        interactive={false}
+                        wrapperStyle={[styles.cardMenuItem, styles.mv3]}
+                    />
+                    <Text style={[styles.mv3]}>
+                        {!isUsingExpensifyCard
+                            ? props.translate('workspace.bankAccount.accountDescriptionNoCards')
+                            : props.translate('workspace.bankAccount.accountDescriptionWithCards')}
+                    </Text>
+                    {!isUsingExpensifyCard && (
+                        <Button
+                            text={props.translate('workspace.bankAccount.addWorkEmail')}
+                            onPress={() => {
+                                Link.openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
+                                User.subscribeToExpensifyCardUpdates();
+                            }}
+                            icon={Expensicons.Mail}
+                            style={[styles.mt4]}
+                            iconStyles={[styles.buttonCTAIcon]}
+                            shouldShowRightIcon
+                            large
+                            success
+                        />
+                    )}
+                    <MenuItem
+                        title={props.translate('workspace.bankAccount.disconnectBankAccount')}
+                        icon={Expensicons.Close}
+                        onPress={BankAccounts.requestResetFreePlanBankAccount}
+                        wrapperStyle={[styles.cardMenuItem, styles.mv3]}
+                    />
+                </Section>
+                {props.user.isCheckingDomain && (
+                    <Text style={[styles.formError, styles.mh5]}>
+                        {props.translate('workspace.card.checkingDomain')}
+                    </Text>
+                )}
+            </ScrollView>
+            {props.reimbursementAccount.shouldShowResetModal && (
+                <WorkspaceResetBankAccountModal
+                    reimbursementAccount={props.reimbursementAccount}
+                />
+            )}
+        </ScreenWrapper>
+    );
 };
 
-class EnableStep extends React.Component {
-    componentDidMount() {
-        this.fetchData();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (!prevProps.network.isOffline || this.props.network.isOffline) {
-            return;
-        }
-
-        this.fetchData();
-    }
-
-    fetchData() {
-        PaymentMethods.getPaymentMethods();
-    }
-
-    render() {
-        if (this.props.isLoadingPaymentMethods || _.isEmpty(this.props.bankAccountList)) {
-            return (
-                <FullScreenLoadingIndicator />
-            );
-        }
-
-        const isUsingExpensifyCard = this.props.user.isUsingExpensifyCard;
-        const account = _.find(this.props.bankAccountList, bankAccount => bankAccount.bankAccountID === this.props.reimbursementAccount.achData.bankAccountID);
-        if (!account) {
-            // This shouldn't happen as we can only end up here if we have successfully added a bank account.
-            // But in case it does we'll throw here directly so it can be caught by the error boundary.
-            throw new Error('Account not found in EnableStep');
-        }
-
-        const {icon, iconSize} = getBankIcon(account.additionalData.bankName);
-        const formattedBankAccountNumber = account.accountNumber
-            ? `${this.props.translate('paymentMethodList.accountLastFour')} ${
-                account.accountNumber.slice(-4)
-            }`
-            : '';
-        const bankName = account.addressName;
-        const menuItems = [{
-            title: this.props.translate('workspace.bankAccount.disconnectBankAccount'),
-            icon: Expensicons.Close,
-            onPress: BankAccounts.requestResetFreePlanBankAccount,
-        }];
-        if (!isUsingExpensifyCard) {
-            menuItems.unshift({
-                title: this.props.translate('workspace.bankAccount.addWorkEmail'),
-                icon: Expensicons.Mail,
-                onPress: () => {
-                    Link.openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
-                    User.subscribeToExpensifyCardUpdates();
-                },
-                shouldShowRightIcon: true,
-            });
-        }
-
-        return (
-            <View style={[styles.flex1, styles.justifyContentBetween]}>
-                <HeaderWithCloseButton
-                    title={this.props.translate('workspace.common.bankAccount')}
-                    onCloseButtonPress={Navigation.dismissModal}
-                    shouldShowGetAssistanceButton
-                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
-                <View style={[styles.flex1]}>
-                    <Section
-                        title={!isUsingExpensifyCard ? this.props.translate('workspace.bankAccount.oneMoreThing') : this.props.translate('workspace.bankAccount.allSet')}
-                        // eslint-disable-next-line max-len
-                        IconComponent={() => (!isUsingExpensifyCard ? <Icon src={Illustrations.ConciergeBlue} width={80} height={80} /> : <Image source={confettiPop} style={styles.confettiIcon} />)}
-                        menuItems={menuItems}
-                    >
-                        <MenuItem
-                            title={bankName}
-                            description={formattedBankAccountNumber}
-                            icon={icon}
-                            iconWidth={iconSize}
-                            iconHeight={iconSize}
-                            disabled
-                            interactive={false}
-                            wrapperStyle={[styles.ph0, styles.mb3]}
-                        />
-                        <Text>
-                            {!isUsingExpensifyCard
-                                ? this.props.translate('workspace.bankAccount.accountDescriptionNoCards')
-                                : this.props.translate('workspace.bankAccount.accountDescriptionWithCards')}
-                        </Text>
-                    </Section>
-                    {this.props.user.isCheckingDomain && (
-                        <Text style={[styles.formError, styles.m5]}>
-                            {this.props.translate('workspace.card.checkingDomain')}
-                        </Text>
-                    )}
-                </View>
-            </View>
-        );
-    }
-}
-
+EnableStep.displayName = 'EnableStep';
 EnableStep.propTypes = propTypes;
-EnableStep.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withNetwork(),
     withOnyx({
-        isLoadingPaymentMethods: {
-            key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
-            initWithStoredValues: false,
-        },
         user: {
             key: ONYXKEYS.USER,
-        },
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        bankAccountList: {
-            key: ONYXKEYS.BANK_ACCOUNT_LIST,
-            initWithStoredValues: false,
         },
     }),
 )(EnableStep);

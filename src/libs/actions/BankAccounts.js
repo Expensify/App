@@ -4,10 +4,12 @@ import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
+import * as PlaidDataProps from '../../pages/ReimbursementAccount/plaidDataPropTypes';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
+import * as ReimbursementAccount from './ReimbursementAccount';
 
 export {
-    setupWithdrawalAccount,
-    fetchFreePlanVerifiedBankAccount,
     goToWithdrawalAccountSetupStep,
     setBankAccountFormValidationErrors,
     resetReimbursementAccount,
@@ -25,23 +27,28 @@ export {
 } from './Plaid';
 export {
     openOnfidoFlow,
-    activateWallet,
     answerQuestionsForWallet,
     verifyIdentity,
     acceptWalletTerms,
 } from './Wallet';
 
-function clearPersonalBankAccount() {
-    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
-}
-
 function clearPlaid() {
-    Onyx.set(ONYXKEYS.PLAID_DATA, {});
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
+
+    return Onyx.set(ONYXKEYS.PLAID_DATA, PlaidDataProps.plaidDataDefaultProps);
 }
 
-function updatePlaidData(plaidData) {
-    Onyx.merge(ONYXKEYS.PLAID_DATA, plaidData);
+function openPlaidView() {
+    clearPlaid().then(() => ReimbursementAccount.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
+}
+
+function openPersonalBankAccountSetupView() {
+    clearPlaid().then(() => Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
+}
+
+function clearPersonalBankAccount() {
+    clearPlaid();
+    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
 }
 
 function clearOnfidoToken() {
@@ -182,6 +189,16 @@ function deletePaymentBankAccount(bankAccountID) {
                 value: {[bankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
             },
         ],
+
+        // Sometimes pusher updates aren't received when we close the App while still offline,
+        // so we are setting the bankAccount to null here to ensure that it gets cleared out once we come back online.
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
+                value: {[bankAccountID]: null},
+            },
+        ],
     });
 }
 
@@ -242,6 +259,47 @@ function validateBankAccount(bankAccountID, validateCode) {
     });
 }
 
+function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
+    const onyxData = {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    errors: null,
+                    isLoading: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+    };
+
+    const param = {
+        stepToOpen,
+        subStep,
+        localCurrentStep,
+    };
+
+    return API.read('OpenReimbursementAccountPage', param, onyxData);
+}
+
 /**
  * Updates the bank account in the database with the company step data
  *
@@ -293,7 +351,7 @@ function updateBeneficialOwnersForBankAccount(params) {
 /**
  * Create the bank account with manually entered data.
  *
- * @param {String} [bankAccountID]
+ * @param {number} [bankAccountID]
  * @param {String} [accountNumber]
  * @param {String} [routingNumber]
  * @param {String} [plaidMask]
@@ -321,18 +379,35 @@ function verifyIdentityForBankAccount(bankAccountID, onfidoData) {
     }, getVBBADataForOnyx());
 }
 
+function openWorkspaceView() {
+    API.read('OpenWorkspaceView');
+}
+
+/**
+ * Set the reimbursement account loading so that it happens right away, instead of when the API command is processed.
+ *
+ * @param {Boolean} isLoading
+ */
+function setReimbursementAccountLoading(isLoading) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading});
+}
+
 export {
     addPersonalBankAccount,
-    connectBankAccountManually,
+    clearOnfidoToken,
     clearPersonalBankAccount,
     clearPlaid,
-    clearOnfidoToken,
+    openPlaidView,
+    connectBankAccountManually,
     connectBankAccountWithPlaid,
     deletePaymentBankAccount,
+    openPersonalBankAccountSetupView,
+    openReimbursementAccountPage,
     updateBeneficialOwnersForBankAccount,
     updateCompanyInformationForBankAccount,
     updatePersonalInformationForBankAccount,
-    updatePlaidData,
+    openWorkspaceView,
     validateBankAccount,
     verifyIdentityForBankAccount,
+    setReimbursementAccountLoading,
 };

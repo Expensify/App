@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView} from 'react-native';
 import _ from 'underscore';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -19,10 +18,19 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import Section from '../../components/Section';
 import Text from '../../components/Text';
 import withPolicy from '../workspace/withPolicy';
+import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 
 const propTypes = {
+    /** Bank account currently in setup */
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
+
+    /** Callback to continue to the next step of the setup */
     continue: PropTypes.func.isRequired,
+
+    /** Callback to reset the bank account */
+    startOver: PropTypes.func.isRequired,
 
     /** Policy values needed in the component */
     policy: PropTypes.shape({
@@ -33,7 +41,7 @@ const propTypes = {
 };
 
 const ContinueBankAccountSetup = props => (
-    <ScreenWrapper>
+    <ScreenWrapper includeSafeAreaPaddingBottom={false}>
         <FullPageNotFoundView shouldShow={_.isEmpty(props.policy)}>
             <HeaderWithCloseButton
                 title={props.translate('workspace.common.bankAccount')}
@@ -47,31 +55,38 @@ const ContinueBankAccountSetup = props => (
             <ScrollView style={styles.flex1}>
                 <Section
                     title={props.translate('workspace.bankAccount.almostDone')}
-                    icon={Illustrations.BankArrowPink}
+                    icon={Illustrations.BankArrow}
                 >
                     <Text>
                         {props.translate('workspace.bankAccount.youreAlmostDone')}
                     </Text>
+                    <Button
+                        text={props.translate('workspace.bankAccount.continueWithSetup')}
+                        onPress={props.continue}
+                        icon={Expensicons.Bank}
+                        style={[styles.mv4]}
+                        iconStyles={[styles.buttonCTAIcon]}
+                        shouldShowRightIcon
+                        large
+                        success
+                    />
+                    <MenuItem
+                        title={props.translate('workspace.bankAccount.startOver')}
+                        icon={Expensicons.RotateLeft}
+                        onPress={() => BankAccounts.requestResetFreePlanBankAccount()}
+                        shouldShowRightIcon
+                        wrapperStyle={[styles.cardMenuItem]}
+                    />
                 </Section>
-                <Button
-                    text={props.translate('workspace.bankAccount.continueWithSetup')}
-                    onPress={props.continue}
-                    icon={Expensicons.Bank}
-                    style={[styles.mt2, styles.buttonCTA]}
-                    iconStyles={[styles.buttonCTAIcon]}
-                    shouldShowRightIcon
-                    large
-                    success
-                />
-                <MenuItem
-                    title={props.translate('workspace.bankAccount.startOver')}
-                    icon={Expensicons.RotateLeft}
-                    onPress={BankAccounts.requestResetFreePlanBankAccount}
-                    shouldShowRightIcon
-                />
             </ScrollView>
-            <WorkspaceResetBankAccountModal />
         </FullPageNotFoundView>
+
+        {props.reimbursementAccount.shouldShowResetModal && (
+            <WorkspaceResetBankAccountModal
+                reimbursementAccount={props.reimbursementAccount}
+                onConfirm={props.startOver}
+            />
+        )}
     </ScreenWrapper>
 );
 

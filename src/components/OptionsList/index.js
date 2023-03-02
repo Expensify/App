@@ -3,8 +3,8 @@ import {Keyboard} from 'react-native';
 import _ from 'underscore';
 import BaseOptionsList from './BaseOptionsList';
 import withWindowDimensions from '../withWindowDimensions';
-import canUseTouchscreen from '../../libs/canUseTouchscreen';
 import {propTypes, defaultProps} from './optionsListPropTypes';
+import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
 class OptionsList extends Component {
     constructor(props) {
@@ -15,7 +15,7 @@ class OptionsList extends Component {
     }
 
     componentDidMount() {
-        if (!canUseTouchscreen()) {
+        if (!DeviceCapabilities.canUseTouchScreen()) {
             return;
         }
 
@@ -26,7 +26,7 @@ class OptionsList extends Component {
     }
 
     componentWillUnmount() {
-        if (!canUseTouchscreen()) {
+        if (!DeviceCapabilities.canUseTouchScreen()) {
             return;
         }
 

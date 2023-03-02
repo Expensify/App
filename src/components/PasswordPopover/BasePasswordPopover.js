@@ -1,4 +1,4 @@
-import {TouchableOpacity, View} from 'react-native';
+import {View} from 'react-native';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
@@ -10,6 +10,8 @@ import withWindowDimensions from '../withWindowDimensions';
 import TextInput from '../TextInput';
 import KeyboardSpacer from '../KeyboardSpacer';
 import {propTypes as passwordPopoverPropTypes, defaultProps as passwordPopoverDefaultProps} from './passwordPopoverPropTypes';
+import Button from '../Button';
+import withViewportOffsetTop from '../withViewportOffsetTop';
 
 const propTypes = {
     /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
@@ -54,6 +56,7 @@ class BasePasswordPopover extends Component {
                 onClose={this.props.onClose}
                 anchorPosition={this.props.anchorPosition}
                 onModalShow={this.focusInput}
+                outerStyle={{maxHeight: this.props.windowHeight, marginTop: this.props.viewportOffsetTop}}
             >
                 <View
                     style={[
@@ -82,18 +85,11 @@ class BasePasswordPopover extends Component {
                         autoFocus
                         shouldDelayFocus={this.props.shouldDelayFocus}
                     />
-                    <TouchableOpacity
+                    <Button
                         onPress={() => this.props.onSubmit(this.state.password)}
-                        style={[
-                            styles.button,
-                            styles.mt3,
-                            styles.w100,
-                        ]}
-                    >
-                        <Text style={[styles.buttonText]}>
-                            {this.props.submitButtonText}
-                        </Text>
-                    </TouchableOpacity>
+                        style={styles.mt3}
+                        text={this.props.submitButtonText}
+                    />
                 </View>
                 <KeyboardSpacer />
             </Popover>
@@ -104,6 +100,7 @@ class BasePasswordPopover extends Component {
 BasePasswordPopover.propTypes = propTypes;
 BasePasswordPopover.defaultProps = defaultProps;
 export default compose(
+    withViewportOffsetTop,
     withWindowDimensions,
     withLocalize,
 )(BasePasswordPopover);

@@ -5,6 +5,8 @@ export ELECTRON_ENV=${1:-development}
 
 if [[ "$ELECTRON_ENV" == "staging" ]]; then
   ENV_FILE=".env.staging"
+elif [[ "$ELECTRON_ENV" == "internal" ]]; then
+  ENV_FILE=".env.staging"
 elif [[ "$ELECTRON_ENV" == "production" ]]; then
   ENV_FILE=".env.production"
 else

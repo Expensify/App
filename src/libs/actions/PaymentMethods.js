@@ -1,9 +1,7 @@
 import _ from 'underscore';
 import {createRef} from 'react';
-import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Growl from '../Growl';
@@ -11,7 +9,6 @@ import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
 import * as User from './User';
-import * as store from './ReimbursementAccount/store';
 import ROUTES from '../../ROUTES';
 
 function deletePayPalMe() {
@@ -36,49 +33,6 @@ function continueSetup() {
     // Close the screen (Add Debit Card, Add Bank Account, or Enable Payments) on success and continue with setup
     Navigation.goBack();
     kycWallRef.current.continue();
-}
-
-/**
- * Clears local reimbursement account if it doesn't exist in bankAccounts
- * @param {Object[]} bankAccounts
- */
-function cleanLocalReimbursementData(bankAccounts) {
-    const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
-
-    // We check if the bank account list doesn't have the reimbursementAccount
-    if (!_.find(bankAccounts, bankAccount => bankAccount.bankAccountID === bankAccountID)) {
-        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: null, shouldShowResetModal: false});
-    }
-}
-
-/**
- * Calls the API to get the user's bankAccountList, cardList, wallet, and payPalMe
- *
- * @returns {Promise}
- */
-function getPaymentMethods() {
-    Onyx.set(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, true);
-    return DeprecatedAPI.Get({
-        returnValueList: 'bankAccountList, fundList, userWallet, nameValuePairs',
-        name: 'paypalMeAddress',
-        includeDeleted: false,
-        includeNotIssued: false,
-        excludeNotActivated: true,
-    })
-        .then((response) => {
-            // Convert bank accounts/cards from an array of objects, to a map with the bankAccountID as the key
-            const bankAccounts = _.object(_.map(lodashGet(response, 'bankAccountList', []), bankAccount => [bankAccount.bankAccountID, bankAccount]));
-            const debitCards = _.object(_.map(lodashGet(response, 'fundList', []), fund => [fund.fundID, fund]));
-            cleanLocalReimbursementData(bankAccounts);
-            Onyx.multiSet({
-                [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: false,
-                [ONYXKEYS.USER_WALLET]: lodashGet(response, 'userWallet', {}),
-                [ONYXKEYS.BANK_ACCOUNT_LIST]: bankAccounts,
-                [ONYXKEYS.CARD_LIST]: debitCards,
-                [ONYXKEYS.NVP_PAYPAL_ME_ADDRESS]:
-                    lodashGet(response, ['nameValuePairs', CONST.NVP.PAYPAL_ME_ADDRESS], ''),
-            });
-        });
 }
 
 function openPaymentsPage() {
@@ -120,20 +74,24 @@ function openPaymentsPage() {
  *
  */
 function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, isOptimisticData = true) {
-    const onxyData = [
+    const onyxData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.USER_WALLET,
             value: {
                 walletLinkedAccountID: bankAccountID || fundID,
                 walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
-                errors: null,
             },
         },
     ];
 
+    // Only clear the error if this is optimistic data. If this is failure data, we do not want to clear the error that came from the server.
+    if (isOptimisticData) {
+        onyxData[0].value.errors = null;
+    }
+
     if (previousPaymentMethod) {
-        onxyData.push({
+        onyxData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
             value: {
@@ -145,7 +103,7 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
     }
 
     if (currentPaymentMethod) {
-        onxyData.push({
+        onyxData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
             value: {
@@ -156,7 +114,7 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
         });
     }
 
-    return onxyData;
+    return onyxData;
 }
 
 /**
@@ -250,6 +208,7 @@ function transferWalletBalance(paymentMethod) {
                 value: {
                     loading: true,
                     error: null,
+                    errors: null,
                 },
             },
         ],
@@ -375,7 +334,6 @@ function deletePaymentCard(fundID) {
 export {
     deletePayPalMe,
     deletePaymentCard,
-    getPaymentMethods,
     addPaymentCard,
     openPaymentsPage,
     makeDefaultPaymentMethod,
@@ -387,7 +345,6 @@ export {
     resetWalletTransferData,
     saveWalletTransferAccountTypeAndID,
     saveWalletTransferMethodType,
-    cleanLocalReimbursementData,
     hasPaymentMethodError,
     clearDeletePaymentMethodError,
     clearAddPaymentMethodError,

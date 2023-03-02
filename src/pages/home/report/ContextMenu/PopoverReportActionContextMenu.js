@@ -3,6 +3,7 @@ import {
     Dimensions,
 } from 'react-native';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import * as Report from '../../../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
@@ -35,6 +36,8 @@ class PopoverReportActionContextMenu extends React.Component {
                 horizontal: 0,
                 vertical: 0,
             },
+            isArchivedRoom: false,
+            isChronosReport: false,
         };
         this.onPopoverShow = () => {};
         this.onPopoverHide = () => {};
@@ -60,9 +63,12 @@ class PopoverReportActionContextMenu extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
+        const previousLocale = lodashGet(this.props, 'preferredLocale', 'en');
+        const nextLocale = lodashGet(nextProps, 'preferredLocale', 'en');
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition
-            || this.state.isDeleteCommentConfirmModalVisible !== nextState.isDeleteCommentConfirmModalVisible;
+            || this.state.isDeleteCommentConfirmModalVisible !== nextState.isDeleteCommentConfirmModalVisible
+            || previousLocale !== nextLocale;
     }
 
     componentWillUnmount() {
@@ -110,6 +116,8 @@ class PopoverReportActionContextMenu extends React.Component {
      * @param {String} draftMessage - ReportAction Draftmessage
      * @param {Function} [onShow] - Run a callback when Menu is shown
      * @param {Function} [onHide] - Run a callback when Menu is hidden
+     * @param {Boolean} isArchivedRoom - Whether the provided report is an archived room
+     * @param {Boolean} isChronosReport - Flag to check if the chat participant is Chronos
      */
     showContextMenu(
         type,
@@ -121,6 +129,8 @@ class PopoverReportActionContextMenu extends React.Component {
         draftMessage,
         onShow = () => {},
         onHide = () => {},
+        isArchivedRoom,
+        isChronosReport,
     ) {
         const nativeEvent = event.nativeEvent || {};
         this.contextMenuAnchor = contextMenuAnchor;
@@ -151,6 +161,8 @@ class PopoverReportActionContextMenu extends React.Component {
                 selection,
                 isPopoverVisible: true,
                 reportActionDraftMessage: draftMessage,
+                isArchivedRoom,
+                isChronosReport,
             });
         });
     }
@@ -189,8 +201,10 @@ class PopoverReportActionContextMenu extends React.Component {
      * After Popover hides, call the registered onPopoverHide & onPopoverHideActionCallback callback and reset it
      */
     runAndResetOnPopoverHide() {
-        this.onPopoverHide = this.runAndResetCallback(this.onPopoverHide);
-        this.onPopoverHideActionCallback = this.runAndResetCallback(this.onPopoverHideActionCallback);
+        this.setState({reportID: '0', reportAction: {}}, () => {
+            this.onPopoverHide = this.runAndResetCallback(this.onPopoverHide);
+            this.onPopoverHideActionCallback = this.runAndResetCallback(this.onPopoverHideActionCallback);
+        });
     }
 
     /**
@@ -202,8 +216,6 @@ class PopoverReportActionContextMenu extends React.Component {
             this.onPopoverHideActionCallback = onHideActionCallback;
         }
         this.setState({
-            reportID: '0',
-            reportAction: {},
             selection: '',
             reportActionDraftMessage: '',
             isPopoverVisible: false,
@@ -223,7 +235,8 @@ class PopoverReportActionContextMenu extends React.Component {
                 selection={this.state.selection}
                 reportID={this.state.reportID}
                 reportAction={this.state.reportAction}
-                isArchivedRoom={this.props.isArchivedRoom}
+                isArchivedRoom={this.state.isArchivedRoom}
+                isChronosReport={this.state.isChronosReport}
                 anchor={this.contextMenuTargetNode}
             />
         );
@@ -252,6 +265,8 @@ class PopoverReportActionContextMenu extends React.Component {
             reportAction: {},
             isDeleteCommentConfirmModalVisible: false,
             shouldSetModalVisibilityForDeleteConfirmation: true,
+            isArchivedRoom: false,
+            isChronosReport: false,
         });
     }
 
@@ -296,7 +311,8 @@ class PopoverReportActionContextMenu extends React.Component {
                         reportID={this.state.reportID}
                         reportAction={this.state.reportAction}
                         draftMessage={this.state.reportActionDraftMessage}
-                        isArchivedRoom={this.props.isArchivedRoom}
+                        isArchivedRoom={this.state.isArchivedRoom}
+                        isChronosReport={this.state.isChronosReport}
                         anchor={this.contextMenuTargetNode}
                     />
                 </PopoverWithMeasuredContent>

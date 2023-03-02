@@ -28,26 +28,18 @@ import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import * as User from '../libs/actions/User';
 import {withNetwork} from '../components/OnyxProvider';
 import networkPropTypes from '../components/networkPropTypes';
-import RequestCallConfirmationScreen from './RequestCallConfirmationScreen';
 import Form from '../components/Form';
-
-const loginPropTypes = PropTypes.shape({
-    /** Phone/Emails associated with user */
-    partnerUserID: PropTypes.string,
-});
+import ConfirmationPage from '../components/ConfirmationPage';
 
 const propTypes = {
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 
     /** Login list for the user that is signed in */
-    loginList: PropTypes.oneOfType([
-        PropTypes.objectOf(loginPropTypes),
-
-        // TODO: remove this once this closes:
-        // https://github.com/Expensify/App/issues/10960
-        PropTypes.arrayOf(loginPropTypes),
-    ]),
+    loginList: PropTypes.shape({
+        /** Phone/Emails associated with user */
+        partnerUserID: PropTypes.string,
+    }),
 
     /** The policies which the user has access to */
     policies: PropTypes.shape({
@@ -162,14 +154,13 @@ class RequestCallPage extends Component {
     }
 
     /**
-     * Gets the user's phone number from their secondary login.
-     * Returns null if it doesn't exist.
+     * Gets the user's phone number from their secondary logins.
+     * Returns empty string if it doesn't exist.
      *
-     * @param {Array|Object} loginList
-     * @returns {String|null}
+     * @returns {String}
      */
-    getPhoneNumber(loginList) {
-        const secondaryLogin = _.find(_.values(LoginUtils.convertLoginListToObject(loginList)), login => Str.isSMSLogin(login.partnerUserID));
+    getPhoneNumber() {
+        const secondaryLogin = _.find(_.values(this.props.loginList), login => Str.isSMSLogin(login.partnerUserID));
         return secondaryLogin ? Str.removeSMSDomain(secondaryLogin.partnerUserID) : '';
     }
 
@@ -228,16 +219,6 @@ class RequestCallPage extends Component {
             errors.lastName = this.props.translate('requestCallPage.error.lastName');
         }
 
-        const [firstNameLengthError, lastNameLengthError] = ValidationUtils.doesFailCharacterLimit(50, [values.firstName, values.lastName]);
-
-        if (firstNameLengthError) {
-            errors.firstName = this.props.translate('requestCallPage.error.firstNameLength');
-        }
-
-        if (lastNameLengthError) {
-            errors.lastName = this.props.translate('requestCallPage.error.lastNameLength');
-        }
-
         const phoneNumber = LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneNumber);
         if (_.isEmpty(values.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
             errors.phoneNumber = this.props.translate('common.error.phoneNumber');
@@ -254,7 +235,7 @@ class RequestCallPage extends Component {
         const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={this.props.requestCallForm.didRequestCallSucceed}>
                 <HeaderWithCloseButton
                     title={this.props.translate('requestCallPage.title')}
                     shouldShowBackButton
@@ -263,7 +244,13 @@ class RequestCallPage extends Component {
                 />
                 {this.props.requestCallForm.didRequestCallSucceed
                     ? (
-                        <RequestCallConfirmationScreen />
+                        <ConfirmationPage
+                            heading={this.props.translate('requestCallConfirmationScreen.callRequested')}
+                            description={this.props.translate('requestCallConfirmationScreen.allSet')}
+                            buttonText={this.props.translate('requestCallConfirmationScreen.gotIt')}
+                            shouldShowButton
+                            onButtonPress={Navigation.goBack}
+                        />
                     ) : (
                         <Form
                             formID={ONYXKEYS.FORMS.REQUEST_CALL_FORM}
@@ -274,10 +261,10 @@ class RequestCallPage extends Component {
                         >
                             <Section
                                 title={this.props.translate('requestCallPage.subtitle')}
-                                icon={Illustrations.ConciergeExclamation}
-                                containerStyles={[styles.p0]}
+                                icon={Illustrations.ConciergeBubble}
+                                containerStyles={[styles.callRequestSection]}
                             >
-                                <Text>
+                                <Text style={[styles.mv3]}>
                                     {this.props.translate('requestCallPage.description')}
                                 </Text>
                             </Section>
@@ -288,6 +275,7 @@ class RequestCallPage extends Component {
                                 name="fname"
                                 placeholder={this.props.translate('profilePage.john')}
                                 containerStyles={[styles.mt4]}
+                                maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             />
                             <TextInput
                                 inputID="lastName"
@@ -296,10 +284,11 @@ class RequestCallPage extends Component {
                                 name="lname"
                                 placeholder={this.props.translate('profilePage.doe')}
                                 containerStyles={[styles.mt4]}
+                                maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             />
                             <TextInput
                                 inputID="phoneNumber"
-                                defaultValue={this.getPhoneNumber(this.props.loginList)}
+                                defaultValue={this.getPhoneNumber()}
                                 label={this.props.translate('common.phoneNumber')}
                                 name="phone"
                                 keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}

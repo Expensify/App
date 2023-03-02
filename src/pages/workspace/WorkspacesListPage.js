@@ -23,6 +23,7 @@ import Permissions from '../../libs/Permissions';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import BlockingView from '../../components/BlockingViews/BlockingView';
+import {withNetwork} from '../../components/OnyxProvider';
 
 const propTypes = {
     /* Onyx Props */
@@ -115,14 +116,14 @@ class WorkspacesListPage extends Component {
      */
     getWorkspaces() {
         return _.chain(this.props.policies)
-            .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
+            .filter(policy => PolicyUtils.shouldShowPolicy(policy, this.props.network.isOffline))
             .map(policy => ({
                 title: policy.name,
                 icon: policy.avatar ? policy.avatar : Expensicons.Building,
                 iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
                 iconStyles: policy.avatar ? [] : [styles.popoverMenuIconEmphasized],
-                iconFill: themeColors.iconReversed,
+                iconFill: themeColors.textLight,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                 brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
                 pendingAction: policy.pendingAction,
@@ -208,6 +209,7 @@ WorkspacesListPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,

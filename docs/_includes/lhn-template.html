@@ -5,7 +5,7 @@
         {% if page.url == "/" %}
             <div class="selected">Home</div>
         {% else %}
-            <a href="/">Home</a>
+            <a href="/" class="link">Home</a>
         {% endif %}
     </li>
 
@@ -20,7 +20,7 @@
                     <!-- First display sections with nested articles -->
                     {% for section in hub.sections %}
                         <li>
-                            <a href="#{{ section.href }}">{{ section.title }}</a>
+                            <a href="#{{ section.href }}" class="link">{{ section.title }}</a>
                             <ul>
                                 {% for article in section.articles %}
                                     {% include lhn-article-link.html hub=hub.href href=article.href title=article.title %}
@@ -37,7 +37,7 @@
             </li>
         {% else %}
             <li>
-                <a href="/hubs/{{ hub.href }}" class="icon-with-link">
+                <a href="/hubs/{{ hub.href }}" class="icon-with-link link">
                     <i class="fa-solid fa-angle-right icon"></i>
                     {{ hub.title }}
                 </a>

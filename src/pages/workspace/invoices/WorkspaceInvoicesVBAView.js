@@ -23,18 +23,19 @@ const WorkspaceInvoicesVBAView = props => (
 
         <Section
             title={props.translate('workspace.invoices.moneyBackInAFlash')}
-            icon={Illustrations.MoneyMousePink}
+            icon={Illustrations.MoneyBadge}
             menuItems={[
                 {
                     title: props.translate('workspace.invoices.viewUnpaidInvoices'),
                     onPress: () => Link.openOldDotLink(`reports?policyID=${props.policyID}&from=all&type=invoice&showStates=Processing&isAdvancedFilterMode=true`),
-                    icon: Expensicons.CircleHourglass,
+                    icon: Expensicons.Hourglass,
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
+                    wrapperStyle: [styles.cardMenuItem],
                 },
             ]}
         >
-            <View style={[styles.mv4]}>
+            <View style={[styles.mv3]}>
                 <Text>{props.translate('workspace.invoices.unlockVBACopy')}</Text>
             </View>
         </Section>

@@ -66,7 +66,7 @@ const OptionRowLHN = (props) => {
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
     const textUnreadStyle = optionItem.isUnread
-        ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
+        ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, ...textUnreadStyle], props.style);
     const textPillStyle = props.isFocused
         ? [styles.ml1, StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.icon, 0.5)]
@@ -138,6 +138,7 @@ const OptionRowLHN = (props) => {
                                 && (
                                     optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
+                                            backgroundColor={props.isFocused ? themeColors.activeComponentBG : themeColors.sidebar}
                                             mainAvatar={optionItem.icons[0]}
                                             secondaryAvatar={optionItem.icons[1]}
                                             mainTooltip={optionItem.ownerEmail}
@@ -147,6 +148,7 @@ const OptionRowLHN = (props) => {
                                     ) : (
                                         <MultipleAvatars
                                             icons={optionItem.icons}
+                                            isFocusMode={props.viewMode === CONST.OPTION_MODE.COMPACT}
                                             size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
                                                 StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),
@@ -215,23 +217,21 @@ const OptionRowLHN = (props) => {
                             accessible={false}
                         >
                             {optionItem.hasDraftComment && (
-                            <View
-                                style={styles.ml2}
-                                accessibilityLabel={props.translate('sidebarScreen.draftedMessage')}
-                            >
-                                <Icon src={Expensicons.Pencil} height={16} width={16} />
-                            </View>
+                                <View
+                                    style={styles.ml2}
+                                    accessibilityLabel={props.translate('sidebarScreen.draftedMessage')}
+                                >
+                                    <Icon src={Expensicons.Pencil} height={16} width={16} />
+                                </View>
                             )}
-                            {optionItem.hasOutstandingIOU && (
-                            <IOUBadge iouReportID={optionItem.iouReportID} />
-                            )}
+                            {optionItem.hasOutstandingIOU && <IOUBadge iouReportID={optionItem.iouReportID} />}
                             {optionItem.isPinned && (
-                            <View
-                                style={styles.ml2}
-                                accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
-                            >
-                                <Icon src={Expensicons.Pin} height={16} width={16} />
-                            </View>
+                                <View
+                                    style={styles.ml2}
+                                    accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
+                                >
+                                    <Icon src={Expensicons.Pin} height={16} width={16} />
+                                </View>
                             )}
                         </View>
                     </TouchableOpacity>

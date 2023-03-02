@@ -95,7 +95,7 @@ variables referenced here get updated since your local `.env` file is ignored.
 - `ONYX_METRICS` (optional) - Set this to `true` to capture even more performance metrics and see them in Flipper
    see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
 - `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing. 
-   This happens usually automatically, read [this](e2e/README.md) for more information
+   This happens usually automatically, read [this](tests/e2e/README.md) for more information
 
 ----
 
@@ -141,7 +141,7 @@ This is a persistent storage solution wrapped in a Pub/Sub library. In general t
 - Onyx allows other code to subscribe to changes in data, and then publishes change events whenever data is changed
 - Anything needing to read Onyx data needs to:
     1. Know what key the data is stored in (for web, you can find this by looking in the JS console > Application > IndexedDB > OnyxDB > keyvaluepairs)
-    2. Subscribe to changes of the data for a particular key or set of keys. React components use `withOnyx()` and non-React libs use `Onyx.connect()`.
+    2. Subscribe to changes of the data for a particular key or set of keys. React components use `withOnyx()` and non-React libs use `Onyx.connect()`
     3. Get initialized with the current value of that key from persistent storage (Onyx does this by calling `setState()` or triggering the `callback` with the values currently on disk as part of the connection process)
 - Subscribing to Onyx keys is done using a constant defined in `ONYXKEYS`. Each Onyx key represents either a collection of items or a specific entry in storage. For example, since all reports are stored as individual keys like `report_1234`, if code needs to know about all the reports (eg. display a list of them in the nav menu), then it would subscribe to the key `ONYXKEYS.COLLECTION.REPORT`.
 
@@ -293,7 +293,7 @@ export default withOnyx({
 This application is built with the following principles.
 1. **Data Flow** - Ideally, this is how data flows through the app:
     1. Server pushes data to the disk of any client (Server -> Pusher event -> Action listening to pusher event -> Onyx).
-    >**Note:** Currently the code only does this with report comments. Until we make more server changes, this steps is actually done by the client requesting data from the server via XHR and then storing the response in Onyx.
+    >**Note:** Currently the code only does this with report comments. Until we make more server changes, this step is actually done by the client requesting data from the server via XHR and then storing the response in Onyx.
     2. Disk pushes data to the UI (Onyx -> withOnyx() -> React component).
     3. UI pushes data to people's brains (React component -> device screen).
     4. Brain pushes data into UI inputs (Device input -> React component).
@@ -311,7 +311,7 @@ This application is built with the following principles.
     - The UI should never call any Onyx methods except for `Onyx.connect()`. That is the job of Actions (see next section).
     - The UI always triggers an Action when something needs to happen (eg. a person inputs data, the UI triggers an Action with this data).
     - The UI should be as flexible as possible when it comes to:
-        - Incomplete or missing data. Always assume data is incomplete or not there. For example, when a comment is pushed to the client from a pusher event, it's possible that Onyx does not have data for that report yet. That's OK. A partial report object is added to Onyx for the report key `report_1234 = {reportID: 1234, isUnread: true}`. Then there is code that monitors Onyx for reports with incomplete data, and calls `fetchChatReportsByIDs(1234)` to get the full data for that report. The UI should be able to gracefully handle the report object not being complete. In this example, the sidebar wouldn't display any report that does not have a report name.
+        - Incomplete or missing data. Always assume data is incomplete or not there. For example, when a comment is pushed to the client from a pusher event, it's possible that Onyx does not have data for that report yet. That's OK. A partial report object is added to Onyx for the report key `report_1234 = {reportID: 1234, isUnread: true}`. Then there is code that monitors Onyx for reports with incomplete data, and calls `openReport(1234)` to get the full data for that report. The UI should be able to gracefully handle the report object not being complete. In this example, the sidebar wouldn't display any report that does not have a report name.
         - The order that actions are done in. All actions should be done in parallel instead of sequence.
             - Parallel actions are asynchronous methods that don't return promises. Any number of these actions can be called at one time and it doesn't matter what order they happen in or when they complete.
             - In-Sequence actions are asynchronous methods that return promises. This is necessary when one asynchronous method depends on the results from a previous asynchronous method. Example: Making an XHR to `command=CreateChatReport` which returns a reportID which is used to call `command=Get&rvl=reportStuff`.

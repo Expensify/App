@@ -19,7 +19,7 @@ import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import * as MainQueue from '../../src/libs/Network/MainQueue';
 import * as Request from '../../src/libs/Request';
 
-jest.useFakeTimers();
+jest.mock('../../src/libs/Log');
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -36,7 +36,7 @@ beforeEach(() => {
     // Wait for any Log command to finish and Onyx to fully clear
     jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
     return waitForPromisesToResolve()
-        .then(Onyx.clear)
+        .then(() => Onyx.clear())
         .then(waitForPromisesToResolve);
 });
 
@@ -703,7 +703,7 @@ describe('NetworkTests', () => {
         // Given a simulated a condition where the credentials have not yet been read from storage and we are offline
         return Onyx.multiSet({
             [ONYXKEYS.NETWORK]: {isOffline: true},
-            [ONYXKEYS.CREDENTIALS]: null,
+            [ONYXKEYS.CREDENTIALS]: {},
             [ONYXKEYS.SESSION]: null,
         })
             .then(() => {

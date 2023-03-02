@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 
 const plaidLinkPropTypes = {
-    // Plaid Link SDK public token used to intialize the Plaid SDK
+    // Plaid Link SDK public token used to initialize the Plaid SDK
     token: PropTypes.string.isRequired,
 
     // Callback to execute once the user taps continue after successfully entering their account information

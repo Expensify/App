@@ -76,16 +76,41 @@ describe('EmojiTest', () => {
 
         // Given an input when we check only multiple emojis with additional whitespace, then it should return false
         expect(EmojiUtils.containsOnlyEmojis('😄  👋')).toBe(true);
+
+        // Given an emoji with an LTR unicode, when we check if it contains only emoji, then it should return true
+        expect(EmojiUtils.containsOnlyEmojis('\u2066😄')).toBe(true);
     });
 
-    it('replaces an emoji code with an emoji and a space', () => {
+    it('will not match for non emoji', () => {
+        // Given a non-emoji input, when we check if it contains only emoji, then it should return false
+        expect(EmojiUtils.containsOnlyEmojis('1')).toBe(false);
+        expect(EmojiUtils.containsOnlyEmojis('a')).toBe(false);
+        expect(EmojiUtils.containsOnlyEmojis('~')).toBe(false);
+        expect(EmojiUtils.containsOnlyEmojis('𝕥𝕖𝕤𝕥')).toBe(false);
+        expect(EmojiUtils.containsOnlyEmojis('𝓣𝓮𝓼𝓽')).toBe(false);
+        expect(EmojiUtils.containsOnlyEmojis('𝕿𝖊𝖘𝖙')).toBe(false);
+        expect(EmojiUtils.containsOnlyEmojis('🆃🅴🆂🆃')).toBe(false);
+        expect(EmojiUtils.containsOnlyEmojis('🅃🄴🅂🅃')).toBe(false);
+    });
+
+    it('replaces an emoji code with an emoji and a space on mobile', () => {
         const text = 'Hi :smile:';
-        expect(EmojiUtils.replaceEmojis(text)).toBe('Hi 😄 ');
+        expect(EmojiUtils.replaceEmojis(text, true)).toBe('Hi 😄 ');
     });
 
     it('will not add a space after the last emoji if there is text after it', () => {
         const text = 'Hi :smile::wave:no space after last emoji';
         expect(EmojiUtils.replaceEmojis(text)).toBe('Hi 😄👋no space after last emoji');
+    });
+
+    it('will not add a space after the last emoji when there is text after it on mobile', () => {
+        const text = 'Hi :smile::wave:no space after last emoji';
+        expect(EmojiUtils.replaceEmojis(text, true)).toBe('Hi 😄👋no space after last emoji');
+    });
+
+    it('will not add a space after the last emoji if we\'re not on mobile', () => {
+        const text = 'Hi :smile:';
+        expect(EmojiUtils.replaceEmojis(text)).toBe('Hi 😄');
     });
 
     it('suggests emojis when typing emojis prefix after colon', () => {
@@ -101,6 +126,25 @@ describe('EmojiTest', () => {
 
     it('correct suggests emojis accounting for keywords', () => {
         const text = ':thumb';
-        expect(EmojiUtils.suggestEmojis(text)).toEqual([{code: '👍', name: '+1'}, {code: '👎', name: '-1'}]);
+        expect(EmojiUtils.suggestEmojis(text)).toEqual([{
+            code: '👍',
+            name: '+1',
+            types: ['👍🏿',
+                '👍🏾',
+                '👍🏽',
+                '👍🏼',
+                '👍🏻',
+            ],
+        }, {
+            code: '👎',
+            name: '-1',
+            types: [
+                '👎🏿',
+                '👎🏾',
+                '👎🏽',
+                '👎🏼',
+                '👎🏻',
+            ],
+        }]);
     });
 });

@@ -35,6 +35,12 @@ const propTypes = {
 
     /** Should the button be enabled when offline */
     enabledWhenOffline: PropTypes.bool,
+
+    /** Disable press on enter for submit button */
+    disablePressOnEnter: PropTypes.bool,
+
+    /** Whether the form submit action is dangerous */
+    isSubmitActionDangerous: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -45,11 +51,13 @@ const defaultProps = {
     isLoading: false,
     onFixTheErrorsLinkPressed: () => {},
     enabledWhenOffline: false,
+    disablePressOnEnter: false,
+    isSubmitActionDangerous: false,
 };
 
 const FormAlertWithSubmitButton = props => (
     <FormAlertWrapper
-        containerStyles={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd, ...props.containerStyles]}
+        containerStyles={[styles.mh5, styles.mb5, styles.justifyContentEnd, ...props.containerStyles]}
         isAlertVisible={props.isAlertVisible}
         isMessageHtml={props.isMessageHtml}
         message={props.message}
@@ -61,15 +69,17 @@ const FormAlertWithSubmitButton = props => (
                 isDisabled
                 text={props.buttonText}
                 style={[styles.mb3]}
+                danger={props.isSubmitActionDangerous}
             />
         ) : (
             <Button
                 success
-                pressOnEnter
+                pressOnEnter={!props.disablePressOnEnter}
                 text={props.buttonText}
                 onPress={props.onSubmit}
                 isDisabled={props.isDisabled}
                 isLoading={props.isLoading}
+                danger={props.isSubmitActionDangerous}
             />
         ))}
     </FormAlertWrapper>

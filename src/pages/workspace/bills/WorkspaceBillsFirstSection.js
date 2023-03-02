@@ -38,7 +38,7 @@ const WorkspaceBillsFirstSection = (props) => {
     return (
         <Section
             title={props.translate('workspace.bills.manageYourBills')}
-            icon={Illustrations.InvoiceOrange}
+            icon={Illustrations.PinkBill}
             menuItems={[
                 {
                     title: props.translate('workspace.bills.viewAllBills'),
@@ -48,10 +48,12 @@ const WorkspaceBillsFirstSection = (props) => {
                     icon: Expensicons.Bill,
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
+                    wrapperStyle: [styles.cardMenuItem],
                 },
             ]}
+            containerStyles={[styles.cardSection]}
         >
-            <View style={[styles.mv4]}>
+            <View style={[styles.mv3]}>
                 <Text>
                     {props.translate('workspace.bills.askYourVendorsBeforeEmail')}
                     {props.user.isFromPublicDomain ? (
