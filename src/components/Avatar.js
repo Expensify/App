@@ -108,7 +108,7 @@ class Avatar extends PureComponent {
                                 additionalStyles={[
                                     StyleUtils.getAvatarBorderStyle(this.props.size, this.props.type),
                                     isWorkspace ? StyleUtils.getDefaultWorspaceAvatarColor(this.props.name) : {},
-                                    this.state.imageError ? StyleUtils.getBackgroundColorStyle(themeColors.buttonDefaultBG) : {},
+                                    this.state.imageError ? StyleUtils.getBackgroundColorStyle(themeColors.green700) : {},
                                 ]}
                             />
                         </View>
