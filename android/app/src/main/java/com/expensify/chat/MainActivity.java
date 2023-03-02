@@ -66,19 +66,25 @@ public class MainActivity extends ReactActivity {
    */
   @Override
   public boolean onKeyDown(int keyCode, KeyEvent event) {
+    // disabling hardware ESCAPE support which is handled by Android
+    if (keyCode == 111) { return false; }
     KeyCommandModule.getInstance().onKeyDownEvent(keyCode, event);
     return super.onKeyDown(keyCode, event);
   }
 
   @Override
-  public boolean onKeyLongPress(int keyCode, KeyEvent event) {
-      KeyCommandModule.getInstance().onKeyDownEvent(keyCode, event);
-      return super.onKeyLongPress(keyCode, event);
+  public boolean onKeyLongPress(int keyCode, KeyEvent event) {    
+    // disabling hardware ESCAPE support which is handled by Android
+    if (keyCode == 111) { return false; }
+    KeyCommandModule.getInstance().onKeyDownEvent(keyCode, event);
+    return super.onKeyLongPress(keyCode, event);
   }
 
   @Override
-  public boolean onKeyUp(int keyCode, KeyEvent event) {
-      KeyCommandModule.getInstance().onKeyDownEvent(keyCode, event);
-      return super.onKeyUp(keyCode, event);
+  public boolean onKeyUp(int keyCode, KeyEvent event) {    
+    // disabling hardware ESCAPE support which is handled by Android
+    if (keyCode == 111) { return false; }
+    KeyCommandModule.getInstance().onKeyDownEvent(keyCode, event);
+    return super.onKeyUp(keyCode, event);
   }
 }
