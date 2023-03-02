@@ -82,14 +82,14 @@ class ValidateLoginPage extends Component {
     isAuthenticated = () => Boolean(lodashGet(this.props, 'session.authToken', null));
 
     /**
-     * Where SignIn was initiated on the current browser.
+     * Whether SignIn was initiated on the current browser.
      * @returns {Boolean}
      */
-    isSignInInitiated = () => !this.isAuthenticated() && this.props.credentials && this.props.credentials.login;
+    isSignInInitiated = () => !this.isAuthenticated() && lodashGet(this.props, 'credentials.login', null);
 
     render() {
         return (
-            this.isOnPasswordlessBeta()
+            this.isOnPasswordlessBeta() && !this.isSignInInitiated() && !lodashGet(this.props, 'account.isLoading', true)
                 ? (
                     <ValidateCodeModal
                         isSuccessfullySignedIn={this.state.justSignedIn}
@@ -109,8 +109,9 @@ ValidateLoginPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
+        account: {key: ONYXKEYS.ACCOUNT},
         betas: {key: ONYXKEYS.BETAS},
-        session: {key: ONYXKEYS.SESSION},
         credentials: {key: ONYXKEYS.CREDENTIALS},
+        session: {key: ONYXKEYS.SESSION},
     }),
 )(ValidateLoginPage);
