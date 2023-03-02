@@ -281,26 +281,26 @@ class ReportActionItemMessageEdit extends React.Component {
                             onEmojiSelected={this.addEmojiToTextBox}
                             nativeID={this.emojiButtonID}
                         />
+                        <Button
+                            small
+                            style={[styles.mr2]}
+                            nativeID={this.cancelButtonID}
+                            onPress={this.deleteDraft}
+                            text={this.props.translate('common.cancel')}
+                        />
+                        <Button
+                            small
+                            success
+                            isDisabled={hasExceededMaxCommentLength}
+                            nativeID={this.saveButtonID}
+                            style={[styles.mr2]}
+                            onPress={this.publishDraft}
+                            text={this.props.translate('common.saveChanges')}
+                        />
                     </View>
 
                 </View>
                 <View style={[styles.flexRow, styles.mt1]}>
-                    <Button
-                        small
-                        style={[styles.mr2]}
-                        nativeID={this.cancelButtonID}
-                        onPress={this.deleteDraft}
-                        text={this.props.translate('common.cancel')}
-                    />
-                    <Button
-                        small
-                        success
-                        isDisabled={hasExceededMaxCommentLength}
-                        nativeID={this.saveButtonID}
-                        style={[styles.mr2]}
-                        onPress={this.publishDraft}
-                        text={this.props.translate('common.saveChanges')}
-                    />
                     <ExceededCommentLength comment={this.state.draft} onExceededMaxCommentLength={this.setExceededMaxCommentLength} />
                 </View>
             </View>
