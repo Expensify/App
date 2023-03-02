@@ -7,7 +7,6 @@ import * as App from '../libs/actions/App';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import * as Localize from '../libs/Localize';
 import Picker from './Picker';
 import styles from '../styles/styles';
 
@@ -26,33 +25,31 @@ const defaultProps = {
     size: 'normal',
 };
 
-const localesToLanguages = {
-    default: {
-        value: 'en',
-        label: Localize.translate('en', 'languagePage.languages.en.label'),
-    },
-    es: {
-        value: 'es',
-        label: Localize.translate('es', 'languagePage.languages.es.label'),
-    },
+const LocalePicker = (props) => {
+    const localesToLanguages = _.map(
+        props.translate('languagePage.languages'),
+        (language, key) => ({
+            value: key,
+            label: language.label,
+        }),
+    );
+    return (
+        <Picker
+            label={props.size === 'normal' ? props.translate('languagePage.language') : null}
+            onInputChange={(locale) => {
+                if (locale === props.preferredLocale) {
+                    return;
+                }
+
+                App.setLocale(locale);
+            }}
+            items={localesToLanguages}
+            size={props.size}
+            value={props.preferredLocale}
+            containerStyles={props.size === 'small' ? [styles.pickerContainerSmall] : []}
+        />
+    );
 };
-
-const LocalePicker = props => (
-    <Picker
-        label={props.size === 'normal' ? props.translate('languagePage.language') : null}
-        onInputChange={(locale) => {
-            if (locale === props.preferredLocale) {
-                return;
-            }
-
-            App.setLocale(locale);
-        }}
-        items={_.values(localesToLanguages)}
-        size={props.size}
-        value={props.preferredLocale}
-        containerStyles={props.size === 'small' ? [styles.pickerContainerSmall] : []}
-    />
-);
 
 LocalePicker.defaultProps = defaultProps;
 LocalePicker.propTypes = propTypes;
