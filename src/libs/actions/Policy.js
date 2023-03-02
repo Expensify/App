@@ -14,6 +14,7 @@ import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import * as ReportUtils from '../ReportUtils';
 import Log from '../Log';
+import * as Report from './Report';
 
 const allPolicies = {};
 Onyx.connect({
@@ -1029,7 +1030,7 @@ function leaveRoom(reportID) {
             },
         ],
     });
-    Navigation.dismissModal();
+    Report.navigateToConciergeChat();
 }
 
 export {

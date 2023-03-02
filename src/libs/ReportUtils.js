@@ -1554,7 +1554,7 @@ function canLeaveRoom(report, isPolicyMember) {
     } else if (report.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE && isPolicyMember) {
         return false;
     }
-    return false;
+    return true;
 }
 
 export {
