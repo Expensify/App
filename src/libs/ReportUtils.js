@@ -129,6 +129,7 @@ function canEditReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
         && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {}))
+        && !ReportActionsUtils.isDeletedAction(reportAction)
         && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
@@ -281,10 +282,17 @@ function isArchivedRoom(report) {
  * @param {Object} report
  * @param {String} report.policyID
  * @param {String} report.oldPolicyName
+ * @param {String} report.policyName
  * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
  * @returns {String}
  */
 function getPolicyName(report, policies) {
+    // Public rooms send back the policy name with the reportSummary,
+    // since they can also be accessed by people who aren't in the workspace
+    if (report.policyName) {
+        return report.policyName;
+    }
+
     if (_.isEmpty(policies)) {
         return Localize.translateLocal('workspace.common.unavailable');
     }
@@ -775,6 +783,15 @@ function hasReportNameError(report) {
 }
 
 /**
+ * @param {String} text
+ * @returns {String}
+ */
+function getParsedComment(text) {
+    const parser = new ExpensiMark();
+    return text.length < CONST.MAX_MARKUP_LENGTH ? parser.replace(text) : text;
+}
+
+/**
  * @param {String} [text]
  * @param {File} [file]
  * @returns {Object}
@@ -783,7 +800,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
     // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     const parser = new ExpensiMark();
-    const commentText = text.length < CONST.MAX_MARKUP_LENGTH ? parser.replace(text) : text;
+    const commentText = getParsedComment(text);
     const isAttachment = _.isEmpty(text) && file !== undefined;
     const attachmentInfo = isAttachment ? file : {};
     const htmlForNewComment = isAttachment ? 'Uploading Attachment...' : commentText;
@@ -1380,7 +1397,7 @@ function getChatByParticipants(newParticipantList) {
         }
 
         // Only return the room if it has all the participants and is not a policy room
-        return !isUserCreatedPolicyRoom(report) && _.isEqual(newParticipantList, report.participants.sort());
+        return !isUserCreatedPolicyRoom(report) && _.isEqual(newParticipantList, _.sortBy(report.participants));
     });
 }
 
@@ -1424,13 +1441,13 @@ function getNewMarkerReportActionID(report, sortedAndFilteredReportActions) {
 }
 
 /**
- * Replace code points > 127 with C escape sequences, and return the resulting string's overall length
- * Used for compatibility with the backend auth validator for AddComment
+ * Performs the markdown conversion, and replaces code points > 127 with C escape sequences
+ * Used for compatibility with the backend auth validator for AddComment, and to account for MD in comments
  * @param {String} textComment
- * @returns {Number}
+ * @returns {Number} The comment's total length as seen from the backend
  */
 function getCommentLength(textComment) {
-    return textComment.replace(/[^ -~]/g, '\\u????').length;
+    return getParsedComment(textComment).replace(/[^ -~]/g, '\\u????').trim().length;
 }
 
 /**
