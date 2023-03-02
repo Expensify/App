@@ -450,7 +450,7 @@ function getOptions(reports, personalDetails, {
     let recentReportOptions = [];
     let personalDetailsOptions = [];
     const reportMapForLogins = {};
-    const isPhoneNumber = CONST.REGEX.PHONE_WITH_ANY_CHARS.test(searchInputValue);
+    const isPhoneNumber = CONST.REGEX.PHONE_WITH_SPECIAL_CHARS.test(searchInputValue);
     const searchValue = isPhoneNumber ? searchInputValue.replace(CONST.REGEX.NON_NUMERIC_WITH_PLUS, '') : searchInputValue;
 
     // Filter out all the reports that shouldn't be displayed
