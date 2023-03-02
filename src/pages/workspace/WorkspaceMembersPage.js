@@ -323,9 +323,10 @@ class WorkspaceMembersPage extends React.Component {
             || this.isKeywordMatch(member.lastName, searchValue));
 
         _.each(data, (member) => {
-            if (member.login !== this.props.session.email && member.login !== this.props.policy.owner && member.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                removableMembers[member.login] = member;
+            if (member.login === this.props.session.email || member.login === this.props.policy.owner || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                return;
             }
+            removableMembers[member.login] = member;
         });
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
