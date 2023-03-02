@@ -14,6 +14,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 import * as KeyboardShortcutsActions from '../libs/actions/KeyboardShortcuts';
+import * as ModalActions from '../libs/actions/Modal';
 import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
@@ -35,6 +36,7 @@ class KeyboardShortcutsModal extends React.Component {
     componentDidMount() {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUT_MODAL;
         this.unsubscribeShortcutModal = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
+            ModalActions.close();
             KeyboardShortcutsActions.showKeyboardShortcutModal();
         }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
     }
