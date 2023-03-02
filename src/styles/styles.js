@@ -1009,13 +1009,13 @@ const styles = {
     statusIndicator: (backgroundColor = themeColors.danger) => ({
         borderColor: themeColors.sidebar,
         backgroundColor,
-        borderRadius: 6,
+        borderRadius: 8,
         borderWidth: 2,
         position: 'absolute',
-        right: -1,
-        bottom: -1,
-        height: 12,
-        width: 12,
+        right: -2,
+        top:-1,
+        height: 16,
+        width: 16,
         zIndex: 10,
     }),
 
