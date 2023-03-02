@@ -70,6 +70,7 @@ class BaseValidateCodeForm extends React.Component {
             formError: {},
             validateCode: props.credentials.validateCode || '',
             twoFactorAuthCode: '',
+            linkSent: false,
         };
     }
 
@@ -131,6 +132,9 @@ class BaseValidateCodeForm extends React.Component {
         }
         this.setState({formError: {}});
         User.resendValidateCode(this.props.credentials.login, true);
+
+        // Give feedback to the user to let them know the email was sent so they don't spam the button.
+        this.setState({linkSent: true});
     }
 
     /**
@@ -212,15 +216,21 @@ class BaseValidateCodeForm extends React.Component {
                             autoFocus
                         />
                         <View style={[styles.changeExpensifyLoginLinkContainer]}>
-                            <TouchableOpacity
-                                style={[styles.mt2]}
-                                onPress={this.resendValidateCode}
-                                underlayColor={themeColors.componentBG}
-                            >
-                                <Text style={[styles.link]}>
-                                    {this.props.translate('validateCodeForm.magicCodeNotReceived')}
+                            {this.state.linkSent ? (
+                                <Text style={[styles.mt2]}>
+                                    {this.props.account.message}
                                 </Text>
-                            </TouchableOpacity>
+                            ) : (
+                                <TouchableOpacity
+                                    style={[styles.mt2]}
+                                    onPress={this.resendValidateCode}
+                                    underlayColor={themeColors.componentBG}
+                                >
+                                    <Text style={[styles.link]}>
+                                        {this.props.translate('validateCodeForm.magicCodeNotReceived')}
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
                         </View>
                     </View>
                 )}

@@ -15,6 +15,7 @@ import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
 import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
+import emojiHeaderContainerPlatformStyles from './emojiHeaderContainerPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
@@ -1471,6 +1472,7 @@ const styles = {
         height: CONST.EMOJI_PICKER_HEADER_HEIGHT,
         justifyContent: 'center',
         width: '100%',
+        ...emojiHeaderContainerPlatformStyles,
     },
 
     emojiSkinToneTitle: {
