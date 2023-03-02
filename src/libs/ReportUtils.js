@@ -883,12 +883,11 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
  */
 function getIOUReportActionMessage(type, total, participants, comment, currency, paymentType = '', isSettlingUp = false) {
     const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
-    const parser = new ExpensiMark();
-    const displayNames = _.map(participants, participant => parser.replace(getDisplayNameForParticipant(participant.login, true)));
+    const displayNames = _.map(participants, participant => Str.htmlEncode(getDisplayNameForParticipant(participant.login, true)));
     const who = displayNames.length < 3
         ? displayNames.join(' and ')
         : `${displayNames.slice(0, -1).join(', ')}, and ${_.last(displayNames)}`;
-
+    const encodedComment = Str.htmlEncode(comment);
     let paymentMethodMessage;
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
@@ -907,21 +906,21 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
     let iouMessage;
     switch (type) {
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
-            iouMessage = `Requested ${amount} from ${who}${comment && ` for ${comment}`}`;
+            iouMessage = `Requested ${amount} from ${who}${comment && ` for ${encodedComment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
-            iouMessage = `Split ${amount} with ${who}${comment && ` for ${comment}`}`;
+            iouMessage = `Split ${amount} with ${who}${comment && ` for ${encodedComment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.CANCEL:
-            iouMessage = `Cancelled the ${amount} request${comment && ` for ${comment}`}`;
+            iouMessage = `Cancelled the ${amount} request${comment && ` for ${encodedComment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.DECLINE:
-            iouMessage = `Declined the ${amount} request${comment && ` for ${comment}`}`;
+            iouMessage = `Declined the ${amount} request${comment && ` for ${encodedComment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
             iouMessage = isSettlingUp
                 ? `Settled up${paymentMethodMessage}`
-                : `Sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
+                : `Sent ${amount}${comment && ` for ${encodedComment}`}${paymentMethodMessage}`;
             break;
         default:
             break;
