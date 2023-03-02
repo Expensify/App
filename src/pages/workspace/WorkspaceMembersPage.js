@@ -390,7 +390,8 @@ class WorkspaceMembersPage extends React.Component {
                                     <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
                                         <View style={[styles.peopleRowCell]}>
                                             <Checkbox
-                                                isChecked={!_.isEmpty(removableMembers) && _.every(_.values(removableMembers), member => _.contains(this.state.selectedEmployees, member.login))}
+                                                isChecked={!_.isEmpty(removableMembers)
+                                                    && _.every(_.values(removableMembers), member => _.contains(this.state.selectedEmployees, member.login))}
                                                 onPress={() => this.toggleAllUsers(removableMembers)}
                                             />
                                         </View>
