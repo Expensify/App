@@ -224,6 +224,7 @@ jobs:
 
   e2ePerformanceTests:
     needs: [chooseDeployActions]
+    if: ${{ needs.chooseDeployActions.outputs.SHOULD_DEPLOY }}
     uses: Expensify/App/.github/workflows/e2ePerformanceTests.yml@main
     secrets: inherit
     with:
