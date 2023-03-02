@@ -194,12 +194,35 @@ class BasePaymentsPage extends React.Component {
 
         // The delete/default menu
         if (accountType) {
+            let formattedSelectedPaymentMethod;
+            if (accountType === CONST.PAYMENT_METHODS.PAYPAL) {
+                formattedSelectedPaymentMethod = {
+                    title: 'PayPal.me',
+                    icon: account.icon,
+                    description: PaymentUtils.getPaymentMethodDescription(accountType, account),
+                    type: CONST.PAYMENT_METHODS.PAYPAL,
+                };
+            } else if (accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+                formattedSelectedPaymentMethod = {
+                    title: account.addressName,
+                    icon: account.icon,
+                    description: PaymentUtils.getPaymentMethodDescription(accountType, account),
+                    type: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
+                };
+            } else if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+                formattedSelectedPaymentMethod = {
+                    title: account.addressName,
+                    icon: account.icon,
+                    description: PaymentUtils.getPaymentMethodDescription(accountType, account),
+                    type: CONST.PAYMENT_METHODS.DEBIT_CARD,
+                };
+            }
             this.setState({
                 isSelectedPaymentMethodDefault: isDefault,
                 shouldShowDefaultDeleteMenu: true,
                 selectedPaymentMethod: account,
                 selectedPaymentMethodType: accountType,
-                formattedSelectedPaymentMethod: PaymentUtils.formatPaymentMethod(accountType, account),
+                formattedSelectedPaymentMethod,
                 methodID,
             });
             this.setPositionAddPaymentMenu(position);

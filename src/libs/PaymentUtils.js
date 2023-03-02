@@ -25,31 +25,23 @@ function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
     return validBankAccount || validDebitCard;
 }
 
-function formatPaymentMethod(accountType, account) {
-    let formattedPaymentMethod = {};
+/**
+ * Get the PaymentMethod description
+ * @param {String} accountType
+ * @param {Object} account
+ * @returns {String}
+ */
+function getPaymentMethodDescription(accountType, account) {
     if (accountType === CONST.PAYMENT_METHODS.PAYPAL) {
-        formattedPaymentMethod = {
-            title: 'PayPal.me',
-            icon: account.icon,
-            description: account.username,
-            type: CONST.PAYMENT_METHODS.PAYPAL,
-        };
-    } else if (accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-        formattedPaymentMethod = {
-            title: account.addressName,
-            icon: account.icon,
-            description: `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber.slice(-4)}`,
-            type: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
-        };
-    } else if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-        formattedPaymentMethod = {
-            title: account.addressName,
-            icon: account.icon,
-            description: `${Localize.translateLocal('paymentMethodList.cardLastFour')} ${account.cardNumber.slice(-4)}`,
-            type: CONST.PAYMENT_METHODS.DEBIT_CARD,
-        };
+        return account.username;
     }
-    return formattedPaymentMethod;
+    if (accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+        return `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber.slice(-4)}`;
+    }
+    if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+        return `${Localize.translateLocal('paymentMethodList.cardLastFour')} ${account.cardNumber.slice(-4)}`;
+    }
+    return '';
 }
 
 /**
@@ -71,7 +63,7 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null) {
         const {icon, iconSize} = getBankIcon(lodashGet(bankAccount, 'accountData.additionalData.bankName', ''));
         combinedPaymentMethods.push({
             ...bankAccount,
-            description: formatPaymentMethod(bankAccount.accountType, bankAccount.accountData).description,
+            description: getPaymentMethodDescription(bankAccount.accountType, bankAccount.accountData),
             icon,
             iconSize,
             errors: bankAccount.errors,
@@ -83,7 +75,7 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null) {
         const {icon, iconSize} = getBankIcon(lodashGet(card, 'accountData.bank', ''), true);
         combinedPaymentMethods.push({
             ...card,
-            description: formatPaymentMethod(card.accountType, card.accountData).description,
+            description: getPaymentMethodDescription(card.accountType, card.accountData),
             icon,
             iconSize,
             errors: card.errors,
@@ -94,7 +86,7 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null) {
     if (!_.isEmpty(payPalMeData)) {
         combinedPaymentMethods.push({
             ...payPalMeData,
-            description: formatPaymentMethod(payPalMeData.accountType, payPalMeData.accountData).description,
+            description: getPaymentMethodDescription(payPalMeData.accountType, payPalMeData.accountData),
             icon: Expensicons.PayPal,
         });
     }
@@ -117,7 +109,7 @@ function calculateWalletTransferBalanceFee(currentBalance, methodType) {
 
 export {
     hasExpensifyPaymentMethod,
-    formatPaymentMethod,
+    getPaymentMethodDescription,
     formatPaymentMethods,
     calculateWalletTransferBalanceFee,
 };
