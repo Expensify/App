@@ -1112,6 +1112,8 @@ export default {
         visibilityOptions: {
             restricted: 'Restringida',
             private: 'Privada',
+            public: 'Público',
+            public_announce: 'Anuncio Público',
         },
     },
     statementPage: {
