@@ -216,7 +216,6 @@ class InitialSettingsPage extends React.Component {
                 iconType={item.iconType}
                 onPress={item.action}
                 iconStyles={item.iconStyles}
-                iconFill={item.iconFill}
                 shouldShowRightIcon
                 iconRight={item.iconRight}
                 badgeText={this.getWalletBalance(isPaymentItem)}
