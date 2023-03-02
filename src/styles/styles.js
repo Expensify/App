@@ -1552,7 +1552,9 @@ const styles = {
     },
 
     editChatItemEmojiWrapper: {
-        marginRight: 3,
+        marginRight: 5,
+        alignItems: 'center',
+        flexDirection: 'row',
     },
 
     hoveredButton: {

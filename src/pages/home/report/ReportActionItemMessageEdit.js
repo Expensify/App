@@ -293,7 +293,6 @@ class ReportActionItemMessageEdit extends React.Component {
                             success
                             isDisabled={hasExceededMaxCommentLength}
                             nativeID={this.saveButtonID}
-                            style={[styles.mr2]}
                             onPress={this.publishDraft}
                             text={this.props.translate('common.saveChanges')}
                         />
