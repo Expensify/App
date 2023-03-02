@@ -153,20 +153,16 @@ class WorkspaceMembersPage extends React.Component {
         this.setState({isRemoveMembersConfirmModalVisible: false});
     }
 
-    toggleVisibleUsers() {
-
-    }
-
     /**
      * Add or remove all users from the selectedEmployees list
      */
     toggleAllUsers(memberList) {
-        let policyMemberList = memberList.length > 0 ? memberList : lodashGet(this.props, 'policyMemberList', {});
+        let policyMemberList = _.isEmpty(memberList) ? lodashGet(this.props, 'policyMemberList', {}) : memberList;
 
         policyMemberList = _.filter(_.keys(policyMemberList), policyMember => policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
         this.setState(prevState => ({
-            selectedEmployees: !_.every(removableMembers, member => _.contains(prevState.r, member))
+            selectedEmployees: !_.every(removableMembers, member => _.contains(prevState.selectedEmployees, member))
                 ? removableMembers
                 : [],
         }), () => this.validate());
@@ -308,12 +304,9 @@ class WorkspaceMembersPage extends React.Component {
 
     render() {
         const policyMemberList = lodashGet(this.props, 'policyMemberList', {});
-        const removableMembers = [];
+        const removableMembers = {};
         let data = [];
         _.each(policyMemberList, (policyMember, email) => {
-            if (email !== this.props.session.email && email !== this.props.policy.owner && policyMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                removableMembers.push(email);
-            }
             const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email, avatar: Expensicons.FallbackAvatar});
             data.push({
                 ...policyMember,
@@ -328,11 +321,11 @@ class WorkspaceMembersPage extends React.Component {
             || this.isKeywordMatch(member.firstName, searchValue)
             || this.isKeywordMatch(member.lastName, searchValue));
 
-        // Format the list of visible members so it is in the same shape as policyMemberList
-        const visibleMembersList = _.reduce(data, (list, member) => ({
-            ...list,
-            [member.login]: member,
-        }), {});
+        _.each(data, (member) => {
+            if (member.login !== this.props.session.email && member.login !== this.props.policy.owner && member.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                removableMembers[member.login] = member;
+            }
+        });
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
 
@@ -396,8 +389,8 @@ class WorkspaceMembersPage extends React.Component {
                                     <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
                                         <View style={[styles.peopleRowCell]}>
                                             <Checkbox
-                                                isChecked={visibleMembersList.length !== 0 && _.every(visibleMembersList, member => _.contains(this.state.selectedEmployees, member))}
-                                                onPress={() => this.toggleAllUsers(visibleMembersList)}
+                                                isChecked={!_.isEmpty(removableMembers) && _.every(_.values(removableMembers), member => _.contains(this.state.selectedEmployees, member.login))}
+                                                onPress={() => this.toggleAllUsers(removableMembers)}
                                             />
                                         </View>
                                         <View style={[styles.peopleRowCell, styles.flex1]}>
