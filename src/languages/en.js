@@ -1110,6 +1110,7 @@ export default {
         visibilityOptions: {
             restricted: 'Restricted',
             private: 'Private',
+            public: 'Public',
         },
     },
     statementPage: {
