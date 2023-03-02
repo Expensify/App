@@ -20,7 +20,6 @@ on:
         required: true
 
 jobs:
-  # TODO: Actor validation needed?
   getMostRecentRelease:
     runs-on: ubuntu-latest
     name: Get the most recent release version
