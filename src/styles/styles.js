@@ -1555,6 +1555,7 @@ const styles = {
         marginRight: 5,
         alignItems: 'center',
         flexDirection: 'row',
+        alignSelf: 'flex-end',
     },
 
     hoveredButton: {
