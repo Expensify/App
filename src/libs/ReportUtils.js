@@ -282,10 +282,17 @@ function isArchivedRoom(report) {
  * @param {Object} report
  * @param {String} report.policyID
  * @param {String} report.oldPolicyName
+ * @param {String} report.policyName
  * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
  * @returns {String}
  */
 function getPolicyName(report, policies) {
+    // Public rooms send back the policy name with the reportSummary,
+    // since they can also be accessed by people who aren't in the workspace
+    if (report.policyName) {
+        return report.policyName;
+    }
+
     if (_.isEmpty(policies)) {
         return Localize.translateLocal('workspace.common.unavailable');
     }
