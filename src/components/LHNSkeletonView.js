@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {Rect, Circle} from 'react-native-svg';
 import SkeletonViewContentLoader from 'react-content-loader/native';
@@ -51,7 +52,7 @@ const LHNSkeletonView = (props) => {
             </SkeletonViewContentLoader>,
         );
     }
-    return <>{skeletonViewLines}</>;
+    return <View>{skeletonViewLines}</View>;
 };
 
 LHNSkeletonView.displayName = 'LHNSkeletonView';
