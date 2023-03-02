@@ -3,38 +3,51 @@ name: E2E Performance Tests
 on:
   workflow_call:
     inputs:
-      DELTA_REF:
-        description: A branch or commit ref to build the test build on
-        type: string
-        required: true
       PR_NUMBER:
-        description: The number of a merged PR, if this workflow is being triggered by a PR merge
+        description: A PR to run performance tests against. If already merged, the merge commit will be used. If not, the test merge commit will be used.
         type: string
         required: true
 
   workflow_dispatch:
     inputs:
-      DELTA_REF:
-        description: A branch or commit ref to build the test build on
+      PR_NUMBER:
+        description: A PR to run performance tests against. If already merged, the merge commit will be used. If not, the test merge commit will be used.
         type: string
         required: true
 
 jobs:
-  getMostRecentRelease:
+  prepare:
     runs-on: ubuntu-latest
     name: Get the most recent release version
     outputs:
       VERSION: ${{ steps.getMostRecentRelease.outputs.VERSION }}
+      DELTA_REF: ${{ steps.getMergeCommitSha.outputs.MERGE_COMMIT_SHA }}
     steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+
       - name: Get most recent release version
         id: getMostRecentRelease
         run: echo "VERSION=$(gh release list --limit 1 | awk '{ print $1 }')" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
+      - name: Get pull request details
+        id: getPullRequestDetails
+        uses: Expensify/App/.github/actions/javascript/getPullRequestDetails@main
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          PULL_REQUEST_NUMBER: ${{ inputs.PR_NUMBER }}
+          user: ${{ github.actor }}
+
+      - name: Get merge commit sha for the pull request
+        id: getMergeCommitSha
+        run: echo "MERGE_COMMIT_SHA=${{ steps.getPullRequestDetails.outputs.MERGE_COMMIT_SHA }}" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
   buildBaseline:
     runs-on: ubuntu-20.04-64core
-    needs: [getMostRecentRelease]
+    needs: [prepare]
     name: Build apk from latest release as a baseline
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
@@ -45,24 +58,25 @@ jobs:
         id: checkForExistingArtifact
         uses: xSAVIKx/artifact-exists-action@3c5206b1411c0d2fc0840f56b7140646933d9d6a
         with:
-          name: baseline-apk-${{ needs.getMostRecentRelease.outputs.VERSION }}
+          name: baseline-apk-${{ needs.prepare.outputs.VERSION }}
 
       - name: Skip build if there's already an existing artifact for the baseline
         if: ${{ fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
-        run: echo 'APK for baseline ${{ needs.getMostRecentRelease.outputs.VERSION }} already exists, reusing existing build'
+        run: echo 'APK for baseline ${{ needs.prepare.outputs.VERSION }} already exists, reusing existing build'
 
       - name: Checkout "Baseline" commit (last release)
         if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
-        run: git checkout ${{ needs.getMostRecentRelease.outputs.VERSION }}
+        run: git checkout ${{ needs.prepare.outputs.VERSION }}
 
       - name: Build APK
         if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
         uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
         with:
-          ARTIFACT_NAME: baseline-apk-${{ needs.getMostRecentRelease.outputs.VERSION }}
+          ARTIFACT_NAME: baseline-apk-${{ needs.prepare.outputs.VERSION }}
 
   buildDelta:
     runs-on: ubuntu-20.04-64core
+    needs: [prepare]
     name: Build apk from delta ref
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
@@ -70,23 +84,23 @@ jobs:
           fetch-depth: 0
 
       - name: Checkout "delta ref"
-        run: git checkout ${{ inputs.DELTA_REF }}
+        run: git checkout ${{ needs.prepare.outputs.DELTA_REF }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Build APK
         uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
         with:
-          ARTIFACT_NAME: delta-apk-${{ inputs.DELTA_REF }}
+          ARTIFACT_NAME: delta-apk-${{ needs.prepare.outputs.DELTA_REF }}
 
   runTestsInAWS:
     runs-on: ubuntu-20.04-64core
-    needs: [getMostRecentRelease, buildBaseline, buildDelta]
+    needs: [prepare, buildBaseline, buildDelta]
     name: Run E2E tests in AWS device farm
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
-          ref: ${{ inputs.DELTA_REF }}
+          ref: ${{ needs.prepare.outputs.DELTA_REF }}
 
       - name: Make zip directory for everything to send to AWS Device Farm
         run: mkdir zip
@@ -94,13 +108,13 @@ jobs:
       - name: Download baseline APK
         uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b
         with:
-          name: baseline-apk-${{ needs.getMostRecentRelease.outputs.VERSION }}
+          name: baseline-apk-${{ needs.prepare.outputs.VERSION }}
           path: zip
 
       - name: Download delta APK
         uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b
         with:
-          name: delta-apk-${{ inputs.DELTA_REF }}
+          name: delta-apk-${{ needs.prepare.outputs.DELTA_REF }}
           path: zip
 
       - name: Copy e2e code into zip folder
