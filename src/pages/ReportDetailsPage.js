@@ -91,8 +91,7 @@ class ReportDetailsPage extends Component {
         }
 
         const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
-        const isPolicyMember = policy && _.find(policy.employeeList.emails, email => email === this.props.session.email);
-        if (ReportUtils.isUserCreatedPolicyRoom(this.props.report) || ReportUtils.canLeaveRoom(this.props.report, isPolicyMember)) {
+        if (ReportUtils.isUserCreatedPolicyRoom(this.props.report) || ReportUtils.canLeaveRoom(this.props.report, !_.isEmpty(policy))) {
             menuItems.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: 'common.leaveRoom',
