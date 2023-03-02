@@ -18,7 +18,7 @@ on:
 jobs:
   prepare:
     runs-on: ubuntu-latest
-    name: Get the most recent release version
+    name: Prepare to run builds
     outputs:
       VERSION: ${{ steps.getMostRecentRelease.outputs.VERSION }}
       DELTA_REF: ${{ steps.getMergeCommitSha.outputs.MERGE_COMMIT_SHA }}
