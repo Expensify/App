@@ -24,6 +24,7 @@ import Icon from '../../../../components/Icon';
 import colors from '../../../../styles/colors';
 import Button from '../../../../components/Button';
 import * as ErrorUtils from '../../../../libs/ErrorUtils';
+import themeColors from '../../../../styles/themes/default';
 
 const propTypes = {
     /* Onyx Props */
@@ -229,6 +230,7 @@ class ContactMethodDetailsPage extends Component {
                             <MenuItem
                                 title={this.props.translate('common.remove')}
                                 icon={Expensicons.Trashcan}
+                                iconFill={themeColors.danger}
                                 onPress={() => this.toggleDeleteModal(true)}
                             />
                         </OfflineWithFeedback>
