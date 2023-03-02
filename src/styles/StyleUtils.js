@@ -696,7 +696,7 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth) {
 }
 
 /**
- * Gets the correct size for the empty state background image view based on screen dimensions
+ * Gets the correct top margin size for the chat welcome message based on screen dimensions
  *
  * @param {Boolean} isSmallScreenWidth
  * @returns {Object}
