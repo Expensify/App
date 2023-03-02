@@ -25,6 +25,7 @@ import PressableWithoutFocus from '../components/PressableWithoutFocus';
 import * as Report from '../libs/actions/Report';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import AutoUpdateTime from '../components/AutoUpdateTime';
+import TextEmoji from '../components/TextEmoji';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -148,7 +149,9 @@ class DetailsPage extends React.PureComponent {
                                 </AttachmentModal>
                                 {details.displayName && (
                                     <Text style={[styles.textHeadline, styles.mb6]} numberOfLines={1}>
-                                        {isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
+                                        {isSMSLogin
+                                            ? this.props.toLocalPhone(details.displayName)
+                                            : <TextEmoji style={[styles.emojiMessageText]}>{details.displayName}</TextEmoji>}
                                     </Text>
                                 )}
                                 {details.login ? (
