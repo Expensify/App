@@ -1,25 +1,25 @@
-import fontFamily from './fontFamily';
-import addOutlineWidth from './addOutlineWidth';
-import themeColors from './themes/default';
-import fontWeightBold from './fontWeight/bold';
-import variables from './variables';
-import spacing from './utilities/spacing';
-import sizing from './utilities/sizing';
-import flex from './utilities/flex';
-import display from './utilities/display';
-import overflow from './utilities/overflow';
-import whiteSpace from './utilities/whiteSpace';
-import wordBreak from './utilities/wordBreak';
-import positioning from './utilities/positioning';
-import codeStyles from './codeStyles';
-import visibility from './utilities/visibility';
-import writingDirection from './utilities/writingDirection';
-import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
-import emojiHeaderContainerPlatformStyles from './emojiHeaderContainerPlatformStyles';
-import pointerEventsNone from './pointerEventsNone';
-import pointerEventsAuto from './pointerEventsAuto';
-import overflowXHidden from './overflowXHidden';
-import CONST from '../CONST';
+import fontFamily from '../fontFamily';
+import addOutlineWidth from '../addOutlineWidth';
+import themeColors from '../themes/default';
+import fontWeightBold from '../fontWeight/bold';
+import variables from '../variables';
+import spacing from '../utilities/spacing';
+import sizing from '../utilities/sizing';
+import flex from '../utilities/flex';
+import display from '../utilities/display';
+import overflow from '../utilities/overflow';
+import whiteSpace from '../utilities/whiteSpace';
+import wordBreak from '../utilities/wordBreak';
+import positioning from '../utilities/positioning';
+import codeStyles from '../codeStyles';
+import visibility from '../utilities/visibility';
+import writingDirection from '../utilities/writingDirection';
+import optionAlternateTextPlatformStyles from '../optionAlternateTextPlatformStyles';
+import emojiHeaderContainerPlatformStyles from '../emojiHeaderContainerPlatformStyles';
+import pointerEventsNone from '../pointerEventsNone';
+import pointerEventsAuto from '../pointerEventsAuto';
+import overflowXHidden from '../overflowXHidden';
+import CONST from '../../CONST';
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -304,6 +304,8 @@ const styles = {
     textDecorationNoLine: {
         textDecorationLine: 'none',
     },
+
+    displayNameText: {},
 
     textWhite: {
         color: themeColors.textLight,
@@ -1099,6 +1101,27 @@ const styles = {
     onlyEmojisText: {
         fontSize: variables.fontSizeOnlyEmojis,
         lineHeight: variables.fontSizeOnlyEmojisHeight,
+    },
+
+    inboxMessageText: {},
+
+    emojiMessageText: {
+        position: 'relative',
+        fontSize: variables.fontSizeEmoji,
+        lineHeight: variables.fontSizeEmojiHeight,
+        top: 2,
+    },
+
+    inboxEmojiMessageText: {},
+
+    messageTextWithoutEmoji: {
+        height: '100%',
+    },
+
+    profileEmojiText: {
+        fontSize: variables.fontSizeEmojiProfile,
+        lineHeight: variables.fontSizeEmojiProfileHeight,
+        top: 4,
     },
 
     createMenuPositionSidebar: {
