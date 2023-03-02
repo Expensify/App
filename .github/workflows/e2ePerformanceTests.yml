@@ -47,15 +47,16 @@ jobs:
         with:
           name: baseline-apk-${{ needs.getMostRecentRelease.outputs.VERSION }}
 
-      - if: fromJSON(steps.checkForExistingArtifact.outputs.exists)
+      - name: Skip build if there's already an existing artifact for the baseline
+        if: ${{ fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
         run: echo 'APK for baseline ${{ needs.getMostRecentRelease.outputs.VERSION }} already exists, reusing existing build'
 
       - name: Checkout "Baseline" commit (last release)
-        if: !fromJSON(steps.checkForExistingArtifact.outputs.exists)
+        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
         run: git checkout ${{ needs.getMostRecentRelease.outputs.VERSION }}
 
       - name: Build APK
-        if: !fromJSON(steps.checkForExistingArtifact.outputs.exists)
+        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
         uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
         with:
           ARTIFACT_NAME: baseline-apk-${{ needs.getMostRecentRelease.outputs.VERSION }}
@@ -145,7 +146,7 @@ jobs:
         run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/debug.log"
 
       - name: Check if test failed, if so post the results and add the DeployBlocker label
-        if: github.event_name == 'workflow_call'
+        if: ${{ github.event_name == 'workflow_call' }}
         run: |
           if grep -q '🔴' ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md; then
             gh pr edit ${{ inputs.PR_NUMBER }} --add-label DeployBlockerCash
