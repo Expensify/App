@@ -21,25 +21,45 @@ on:
 
 jobs:
   # TODO: Actor validation needed?
+  getMostRecentRelease:
+    runs-on: ubuntu-latest
+    name: Get the most recent release version
+    outputs:
+      VERSION: ${{ steps.getMostRecentRelease.outputs.VERSION }}
+    steps:
+      - name: Get most recent release version
+        id: getMostRecentRelease
+        run: echo "VERSION=$(gh release list --limit 1 | awk '{ print $1 }')" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
   buildBaseline:
     runs-on: ubuntu-20.04-64core
+    needs: [getMostRecentRelease]
     name: Build apk from latest release as a baseline
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           fetch-depth: 0
 
-      # TODO: If the baseline hasn't changed since the last time this job ran, we don't need to re-run the build and can reuse the old artifact
+      - name: Check if there's an existing artifact for this baseline
+        id: checkForExistingArtifact
+        uses: xSAVIKx/artifact-exists-action@3c5206b1411c0d2fc0840f56b7140646933d9d6a
+        with:
+          name: baseline-apk-${{ needs.getMostRecentRelease.outputs.VERSION }}
+
+      - if: fromJSON(steps.checkForExistingArtifact.outputs.exists)
+        run: echo 'APK for baseline ${{ needs.getMostRecentRelease.outputs.VERSION }} already exists, reusing existing build'
+
       - name: Checkout "Baseline" commit (last release)
-        run: git checkout "$(gh release list --limit 1 | awk '{ print $1 }')"
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+        if: !fromJSON(steps.checkForExistingArtifact.outputs.exists)
+        run: git checkout ${{ needs.getMostRecentRelease.outputs.VERSION }}
 
       - name: Build APK
+        if: !fromJSON(steps.checkForExistingArtifact.outputs.exists)
         uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
         with:
-          ARTIFACT_NAME: baseline-apk-${{ github.run_id }}
+          ARTIFACT_NAME: baseline-apk-${{ needs.getMostRecentRelease.outputs.VERSION }}
 
   buildDelta:
     runs-on: ubuntu-20.04-64core
@@ -61,7 +81,7 @@ jobs:
 
   runTestsInAWS:
     runs-on: ubuntu-20.04-64core
-    needs: [buildBaseline, buildDelta]
+    needs: [getMostRecentRelease, buildBaseline, buildDelta]
     name: Run E2E tests in AWS device farm
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
@@ -74,7 +94,7 @@ jobs:
       - name: Download baseline APK
         uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b
         with:
-          name: baseline-apk-${{ github.run_id }}
+          name: baseline-apk-${{ needs.getMostRecentRelease.outputs.VERSION }}
           path: zip
 
       - name: Download delta APK
