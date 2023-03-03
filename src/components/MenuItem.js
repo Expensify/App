@@ -43,7 +43,7 @@ const defaultProps = {
     disabled: false,
     isSelected: false,
     subtitle: undefined,
-    iconType: 'icon',
+    iconType: CONST.ICON_TYPE_ICON,
     onPress: () => {},
     interactive: true,
     fallbackIcon: Expensicons.FallbackAvatar,
