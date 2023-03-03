@@ -27,7 +27,7 @@ class LHNSkeletonView extends React.Component {
     /**
      * Generate the skeleton view items.
      *
-     * @param numItems
+     * @param {Number} numItems
      */
     generateSkeletonViewItems(numItems) {
         if (this.state.skeletonViewItems.length === numItems) {
