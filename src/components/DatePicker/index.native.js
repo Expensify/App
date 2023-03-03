@@ -28,7 +28,6 @@ class DatePicker extends React.Component {
         this.state = {
             isPickerVisible: false,
             selectedDate: props.value || props.defaultValue ? moment(props.value || props.defaultValue).toDate() : new Date(),
-            pickerLayout: {},
             spaceFromTop: null,
         };
 
@@ -36,8 +35,10 @@ class DatePicker extends React.Component {
         this.reset = this.reset.bind(this);
         this.hidePicker = this.hidePicker.bind(this);
         this.updateLocalDate = this.updateLocalDate.bind(this);
+        this.onClickedOutside = this.onC;
 
-        this.opacity = new Animated.Value(1);
+        this.opacity = new Animated.Value(0);
+        this.wrapperRef = React.createRef();
 
         this.minDate = props.minDate ? moment(props.minDate).toDate() : null;
         this.maxDate = props.maxDate ? moment(props.maxDate).toDate() : null;
@@ -49,18 +50,30 @@ class DatePicker extends React.Component {
         // Opens the popover only after the keyboard is hidden to avoid a "blinking" effect where the keyboard was on iOS
         // See https://github.com/Expensify/App/issues/14084 for more context
         if (!this.props.isKeyboardShown) {
-            this.setState({isPickerVisible: true});
+            Animated.timing(this.opacity, {
+                toValue: 1,
+                duration: 100,
+                useNativeDriver: true,
+            }).start();
             return;
         }
         const listener = Keyboard.addListener('keyboardDidHide', () => {
-            this.setState({isPickerVisible: true});
+            Animated.timing(this.opacity, {
+                toValue: 1,
+                duration: 100,
+                useNativeDriver: true,
+            }).start();
             listener.remove();
         });
         Keyboard.dismiss();
     }
 
     hidePicker() {
-        this.setState({isPickerVisible: false});
+        Animated.timing(this.opacity, {
+            toValue: 0,
+            duration: 100,
+            useNativeDriver: true,
+        }).start();
     }
 
     /**
@@ -83,17 +96,7 @@ class DatePicker extends React.Component {
     render() {
         const dateAsText = this.props.value || this.props.defaultValue ? moment(this.props.value || this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
         return (
-            <View
-                ref={(ref) => {
-                    if (!ref || this.state.spaceFromTop) { return; }
-
-                    ref.measureInWindow((x, y) => {
-                        this.setState({spaceFromTop: y});
-                    });
-                }}
-
-                onLayout={({nativeEvent}) => this.setState({pickerLayout: nativeEvent.layout})}
-            >
+            <View ref={ref => this.wrapperRef = ref} style={[styles.flex2]}>
                 <TextInput
                     forceActiveLabel
                     label={this.props.label}
@@ -120,16 +123,6 @@ class DatePicker extends React.Component {
                         this.props.innerRef(el);
                     }}
                 />
-                {/* <Popover
-                    isVisible={this.state.isPickerVisible}
-                    onClose={this.hidePicker}
-                    fromSidebarMediumScreen
-                    anchorPosition={{
-                        // The position of the popover needs to be calculated. 10px space is added to move it a little bit from the TextInput
-                        top: this.state.pickerLayout.height + this.state.spaceFromTop + StatusBar.currentHeight + 10,
-                        left: 20,
-                    }}
-                > */}
                 <Animated.View style={[styles.datePickerPopover, styles.border, {opacity: this.opacity}]}>
                     <CalendarPicker
                         minDate={this.minDate}
@@ -137,12 +130,11 @@ class DatePicker extends React.Component {
                         value={this.state.selectedDate}
                         onSelected={this.updateLocalDate}
                         onChanged={this.props.onDateChanged}
-                        onYearPressed={this.hidePicker}
                         defaultMonth={this.props.defaultMonth}
                         defaultYear={this.props.defaultYear}
+                        onClosePressed={this.hidePicker}
                     />
                 </Animated.View>
-                {/* </Popover> */}
             </View>
         );
     }

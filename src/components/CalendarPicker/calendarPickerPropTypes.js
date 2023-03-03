@@ -17,13 +17,16 @@ const propTypes = {
     maxDate: PropTypes.objectOf(Date),
 
     /** Callback function to call when year is pressed */
-    onYearPressed: PropTypes.func.isRequired,
+    onYearPressed: PropTypes.func,
 
     /** Default month to be set in the calendar picker */
     defaultMonth: PropTypes.string,
 
     /** Default year to be set in the calendar picker */
     defaultYear: PropTypes.string,
+
+    /** Callback function to run when pressing close button */
+    onClosePressed: PropTypes.func,
 };
 
 const defaultProps = {

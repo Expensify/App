@@ -2,6 +2,8 @@ import _ from 'underscore';
 import React from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import moment from 'moment';
+import * as Expensicons from '../Icon/Expensicons';
+import Icon from '../Icon';
 import Text from '../Text';
 import ArrowIcon from './ArrowIcon';
 import styles from '../../styles/styles';
@@ -41,19 +43,19 @@ class CalendarPicker extends React.Component {
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     componentDidMount() {
-        if (this.props.defaultYear && this.props.defaultMonth) {
-            this.setState(prev => ({...prev, currentDateView: moment(prev.currentDateView).set('year', this.props.defaultYear).set('month', this.props.defaultMonth).toDate()}));
-        } else if (this.props.defaultYear) {
-            this.setState(prev => ({...prev, currentDateView: moment(prev.currentDateView).set('year', this.props.defaultYear).toDate()}));
-        }
-
         if (this.props.minDate && this.props.maxDate && this.props.minDate > this.props.maxDate) {
             throw new Error('Minimum date cannot be greater than the maximum date.');
         }
     }
 
     // eslint-disable-next-line no-shadow, rulesdir/prefer-early-return
-    componentDidUpdate(_, prevState) {
+    componentDidUpdate(prevProps, prevState) {
+        if (this.props.defaultYear !== prevProps.defaultYear && this.props.defaultMonth !== prevProps.defaultMonth) {
+            this.setState(prev => ({...prev, currentDateView: moment(prev.currentDateView).set('year', this.props.defaultYear).set('month', this.props.defaultMonth).toDate()}));
+        } else if (this.props.defaultYear !== prevProps.defaultYear) {
+            this.setState(prev => ({...prev, currentDateView: moment(prev.currentDateView).set('year', this.props.defaultYear).toDate()}));
+        }
+
         if (prevState.currentDateView !== this.state.currentDateView && this.props.onChanged) {
             this.props.onChanged(this.state.currentDateView);
         }
@@ -117,11 +119,7 @@ class CalendarPicker extends React.Component {
         return (
             <View>
                 <View style={styles.calendarHeader}>
-                    <TouchableOpacity onPress={this.onYearPickerPress} style={[styles.alignItemsCenter, styles.flexRow, styles.flex1]}>
-                        <Text style={styles.sidebarLinkTextBold} accessibilityLabel="Current year">{currentYearView}</Text>
-                        <ArrowIcon />
-                    </TouchableOpacity>
-                    <View style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentEnd]}>
+                    <View style={[styles.alignItemsCenter, styles.flexRow, styles.flex1]}>
                         <Text style={styles.sidebarLinkTextBold} accessibilityLabel="Current month">{this.monthNames[currentMonthView]}</Text>
                         <TouchableOpacity testID="prev-month-arrow" disabled={!hasAvailableDatesPrevMonth} onPress={this.onPrevMonthPress}>
                             <ArrowIcon disabled={!hasAvailableDatesPrevMonth} direction="left" />
@@ -130,6 +128,22 @@ class CalendarPicker extends React.Component {
                             <ArrowIcon disabled={!hasAvailableDatesNextMonth} />
                         </TouchableOpacity>
                     </View>
+                    <TouchableOpacity
+                        onPress={this.onYearPickerPress}
+                        style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, !this.props.onClosePressed && styles.justifyContentEnd]}
+                    >
+                        <Text style={styles.sidebarLinkTextBold} accessibilityLabel="Current year">{currentYearView}</Text>
+                        <ArrowIcon />
+                    </TouchableOpacity>
+                    {this.props.onClosePressed && (
+                    <View style={[styles.justifyContentEnd]}>
+                        <TouchableOpacity onPress={this.props.onClosePressed} style={[styles.alignItemsCenter, styles.flexRow, styles.flex1]}>
+                            <View style={[styles.p1, styles.ph2]}>
+                                <Icon src={Expensicons.Close} />
+                            </View>
+                        </TouchableOpacity>
+                    </View>
+                    )}
                 </View>
                 <View style={styles.flexRow}>
                     {_.map(this.daysOfWeek, (dayOfWeek => (

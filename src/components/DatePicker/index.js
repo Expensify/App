@@ -26,19 +26,15 @@ class DatePicker extends React.Component {
         this.state = {
             selectedDate: null,
             isPickerVisible: false,
-            pickerLayout: {},
         };
 
         this.setDate = this.setDate.bind(this);
         this.togglePicker = this.togglePicker.bind(this);
-
-        // this.onWindowResize = this.onWindowResize.bind(this);
+        this.removeClickListener = this.removeClickListener.bind(this);
         this.onClickedOutside = this.onClickedOutside.bind(this);
 
         this.opacity = new Animated.Value(0);
         this.wrapperRef = React.createRef();
-
-        window.addEventListener('resize', this.onWindowResize);
 
         /* We're using uncontrolled input otherwise it wont be possible to
         * raise change events with a date value - each change will produce a date
@@ -52,48 +48,29 @@ class DatePicker extends React.Component {
     }
 
     componentDidMount() {
-        // this.props.navigation.addListener('transitionEnd', this.onWindowResize);
-        // document.addEventListener('mousedown', this.onClickedOutside);
+        document.addEventListener('mousedown', this.onClickedOutside);
+        // eslint-disable-next-line rulesdir/prefer-early-return
+        this.opacity.addListener(({value}) => {
+            if (value === 0 || value === 1) {
+                this.setState(prev => ({...prev, isPickerVisible: !!value}));
+            }
+        });
     }
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     componentDidUpdate(prevProps) {
-        if (prevProps.defaultYear !== this.props.defaultYear) {
-            this.togglePicker();
+        if (prevProps.maxDate !== this.props.maxDate) {
+            document.addEventListener('mousedown', this.onClickedOutside);
         }
     }
 
     componentWillUnmount() {
-        // window.removeEventListener('resize', this.onWindowResize);
-        // this.props.navigation.removeListener('transitionEnd', this.onWindowResize);
-        // document.removeEventListener('mousedown', this.onClickedOutside);
+        this.removeClickListener();
     }
-
-    /**
-     * Function called on window resize, to hide DatePicker and recalculate position of the calendar popover in the window
-     */
-    // onWindowResize() {
-    //     if (this.wrapperRef) {
-    //         const {
-    //             x, y, width, height, left, top,
-    //         } = this.wrapperRef.getBoundingClientRect();
-    //         this.setState({
-    //             pickerLayout: {
-    //                 x, y, width, height, left, top,
-    //             },
-    //         });
-    //     }
-
-    //     if (!this.state.isPickerVisible) {
-    //         return;
-    //     }
-
-    //     this.setState({isPickerVisible: false});
-    // }
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     onClickedOutside(event) {
-        if (this.wrapperRef && !this.wrapperRef.contains(event.target)) {
+        if (this.wrapperRef && !this.wrapperRef.contains(event.target) && this.wrapperRef !== event.target) {
             this.togglePicker();
         }
     }
@@ -117,19 +94,21 @@ class DatePicker extends React.Component {
         this.togglePicker();
     }
 
+    removeClickListener() {
+        document.removeEventListener('mousedown', this.onClickedOutside);
+    }
+
     togglePicker() {
         Animated.timing(this.opacity, {
-            toValue: Number(JSON.stringify(this.opacity)) === 0 ? 1 : 0,
+            toValue: this.state.isPickerVisible ? 0 : 1,
             duration: 100,
             useNativeDriver: true,
         }).start();
-
-        // this.setState(prevState => ({...prevState, isPickerVisible: !prevState.isPickerVisible}));
     }
 
     render() {
         return (
-            <View ref={ref => this.wrapperRef = ref} style={{flexGrow: 0}}>
+            <View ref={ref => this.wrapperRef = ref} style={[styles.flex1]}>
                 <TextInput
                     forceActiveLabel
                     ref={(el) => {
@@ -150,14 +129,15 @@ class DatePicker extends React.Component {
                     onBlur={this.props.onBlur}
                     readOnly
                 />
-                <Animated.View style={[styles.datePickerPopover, styles.border, {opacity: this.opacity}]}>
+                <Animated.View style={[styles.datePickerPopover, styles.border, {opacity: this.opacity}, this.state.isPickerVisible ? styles.pointerEventsAuto : styles.pointerEventsNone]}>
                     <CalendarPicker
                         minDate={this.minDate}
                         maxDate={this.maxDate}
                         value={this.state.selectedDate}
                         onSelected={this.setDate}
                         onChanged={this.props.onDateChanged}
-                        onYearPressed={this.togglePicker}
+
+                        onYearPressed={this.removeClickListener}
                         defaultMonth={this.props.defaultMonth}
                         defaultYear={this.props.defaultYear}
                     />
