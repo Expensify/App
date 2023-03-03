@@ -1,7 +1,7 @@
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {
-    View, Keyboard, StatusBar, InteractionManager,
+    View, Keyboard, StatusBar,
 } from 'react-native';
 import moment from 'moment';
 import _ from 'underscore';
@@ -15,7 +15,6 @@ import {propTypes, defaultProps} from './datepickerPropTypes';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 import CalendarPicker from '../CalendarPicker';
 import withNavigation from '../withNavigation';
-import Navigation from '../../libs/Navigation/Navigation';
 
 const datepickerPropTypes = {
     ...propTypes,
@@ -38,7 +37,6 @@ class DatePicker extends React.Component {
         this.reset = this.reset.bind(this);
         this.hidePicker = this.hidePicker.bind(this);
         this.updateLocalDate = this.updateLocalDate.bind(this);
-        this.onNavigationTransitionEnd = this.onNavigationTransitionEnd.bind(this);
 
         this.minDate = props.minDate ? moment(props.minDate).toDate() : null;
         this.maxDate = props.maxDate ? moment(props.maxDate).toDate() : null;

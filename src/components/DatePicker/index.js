@@ -48,6 +48,13 @@ class DatePicker extends React.Component {
         this.props.navigation.addListener('transitionEnd', this.onWindowResize);
     }
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    componentDidUpdate(prevProps) {
+        if (prevProps.defaultYear !== this.props.defaultYear) {
+            this.togglePicker();
+        }
+    }
+
     componentWillUnmount() {
         window.removeEventListener('resize', this.onWindowResize);
         this.props.navigation.removeListener('transitionEnd', this.onWindowResize);
@@ -126,6 +133,9 @@ class DatePicker extends React.Component {
                     onClose={this.togglePicker}
                     fullscreen
                     isSmallScreenWidth={false}
+                    disableAnimation={false}
+                    animationInTiming={200}
+                    animationOutTiming={200}
                     anchorPosition={{
                         // The position of the popover needs to be calculated. 10px space is added to move it a little bit from the TextInput
                         top: this.state.pickerLayout.height + this.state.pickerLayout.top + 10,
