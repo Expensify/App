@@ -1,5 +1,4 @@
 const path = require('path');
-const kieActJs = require('@kie/act-js');
 const kieMockGithub = require('@kie/mock-github');
 const utils = require('./utils');
 const assertions = require('./assertions/deployAssertions');
@@ -48,7 +47,7 @@ describe('test workflow deploy', () => {
         test('to main - nothing triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
-            let act = new kieActJs.Act(repoPath, workflowPath);
+            let act = new utils.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'push',
@@ -56,7 +55,6 @@ describe('test workflow deploy', () => {
                     ref: 'refs/heads/main',
                 },
                 {
-                    GITHUB_ACTOR: 'OSBotify',
                     OS_BOTIFY_TOKEN: 'dummy_token',
                     LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
@@ -71,6 +69,7 @@ describe('test workflow deploy', () => {
                 .runEvent('push', {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
+                    actor: 'OSBotify',
                 });
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
@@ -80,7 +79,7 @@ describe('test workflow deploy', () => {
         test('to staging - deployStaging triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
-            let act = new kieActJs.Act(repoPath, workflowPath);
+            let act = new utils.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'push',
@@ -88,7 +87,6 @@ describe('test workflow deploy', () => {
                     ref: 'refs/heads/staging',
                 },
                 {
-                    GITHUB_ACTOR: 'OSBotify',
                     OS_BOTIFY_TOKEN: 'dummy_token',
                     LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
@@ -103,6 +101,7 @@ describe('test workflow deploy', () => {
                 .runEvent('push', {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
+                    actor: 'OSBotify',
                 });
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result);
@@ -112,7 +111,7 @@ describe('test workflow deploy', () => {
         test('to production - deployProduction triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
-            let act = new kieActJs.Act(repoPath, workflowPath);
+            let act = new utils.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'push',
@@ -120,7 +119,6 @@ describe('test workflow deploy', () => {
                     ref: 'refs/heads/production',
                 },
                 {
-                    GITHUB_ACTOR: 'OSBotify',
                     OS_BOTIFY_TOKEN: 'dummy_token',
                     LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
@@ -135,6 +133,7 @@ describe('test workflow deploy', () => {
                 .runEvent('push', {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
+                    actor: 'OSBotify',
                 });
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
@@ -145,7 +144,7 @@ describe('test workflow deploy', () => {
         test('to main - nothing triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
-            let act = new kieActJs.Act(repoPath, workflowPath);
+            let act = new utils.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'push',
@@ -153,14 +152,13 @@ describe('test workflow deploy', () => {
                     ref: 'refs/heads/main',
                 },
                 {
-                    GITHUB_ACTOR: 'Dummy Author',
                     OS_BOTIFY_TOKEN: 'dummy_token',
                     LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
                 'dummy_github_token',
             );
             const testMockSteps = {
-                validate: mocks.VALIDATE__OSBOTIFY__STEP_MOCKS,
+                validate: mocks.VALIDATE_STEP_MOCKS,
                 deployStaging: mocks.DEPLOY_STAGING_STEP_MOCKS,
                 deployProduction: mocks.DEPLOY_PRODUCTION_STEP_MOCKS,
             };
@@ -168,6 +166,7 @@ describe('test workflow deploy', () => {
                 .runEvent('push', {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
+                    actor: 'Dummy Author',
                 });
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
@@ -177,7 +176,7 @@ describe('test workflow deploy', () => {
         test('to staging - nothing triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
-            let act = new kieActJs.Act(repoPath, workflowPath);
+            let act = new utils.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'push',
@@ -185,14 +184,13 @@ describe('test workflow deploy', () => {
                     ref: 'refs/heads/staging',
                 },
                 {
-                    GITHUB_ACTOR: 'Dummy Author',
                     OS_BOTIFY_TOKEN: 'dummy_token',
                     LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
                 'dummy_github_token',
             );
             const testMockSteps = {
-                validate: mocks.VALIDATE__OSBOTIFY__STEP_MOCKS,
+                validate: mocks.VALIDATE_STEP_MOCKS,
                 deployStaging: mocks.DEPLOY_STAGING_STEP_MOCKS,
                 deployProduction: mocks.DEPLOY_PRODUCTION_STEP_MOCKS,
             };
@@ -200,6 +198,7 @@ describe('test workflow deploy', () => {
                 .runEvent('push', {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
+                    actor: 'Dummy Author',
                 });
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
@@ -209,7 +208,7 @@ describe('test workflow deploy', () => {
         test('to production - nothing triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
-            let act = new kieActJs.Act(repoPath, workflowPath);
+            let act = new utils.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'push',
@@ -217,14 +216,13 @@ describe('test workflow deploy', () => {
                     ref: 'refs/heads/production',
                 },
                 {
-                    GITHUB_ACTOR: 'Dummy Author',
                     OS_BOTIFY_TOKEN: 'dummy_token',
                     LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
                 'dummy_github_token',
             );
             const testMockSteps = {
-                validate: mocks.VALIDATE__OSBOTIFY__STEP_MOCKS,
+                validate: mocks.VALIDATE_STEP_MOCKS,
                 deployStaging: mocks.DEPLOY_STAGING_STEP_MOCKS,
                 deployProduction: mocks.DEPLOY_PRODUCTION_STEP_MOCKS,
             };
@@ -232,6 +230,7 @@ describe('test workflow deploy', () => {
                 .runEvent('push', {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
+                    actor: 'Dummy Author',
                 });
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
@@ -242,7 +241,7 @@ describe('test workflow deploy', () => {
     test('different event than push - workflow does not execute', async () => {
         const repoPath = mockGithub.repo.getPath('testdeployWorkflowRepo') || '';
         const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
-        let act = new kieActJs.Act(repoPath, workflowPath);
+        let act = new utils.ExtendedAct(repoPath, workflowPath);
         const testMockSteps = {
             validate: mocks.VALIDATE__OSBOTIFY__STEP_MOCKS,
             deployStaging: mocks.DEPLOY_STAGING_STEP_MOCKS,
@@ -255,7 +254,6 @@ describe('test workflow deploy', () => {
             'pull_request',
             {head: {ref: 'main'}},
             {
-                GITHUB_ACTOR: 'Dummy Author',
                 OS_BOTIFY_TOKEN: 'dummy_token',
                 LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
             },
@@ -265,6 +263,7 @@ describe('test workflow deploy', () => {
             .runEvent('pull_request', {
                 workflowFile: path.join(repoPath, '.github', 'workflows'),
                 mockSteps: testMockSteps,
+                actor: 'Dummy Author',
             });
         assertions.assertValidateJobExecuted(result, false);
         assertions.assertDeployStagingJobExecuted(result, false);
@@ -276,7 +275,6 @@ describe('test workflow deploy', () => {
             'workflow_dispatch',
             {},
             {
-                GITHUB_ACTOR: 'Dummy Author',
                 OS_BOTIFY_TOKEN: 'dummy_token',
                 LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
             },
@@ -286,6 +284,7 @@ describe('test workflow deploy', () => {
             .runEvent('workflow_dispatch', {
                 workflowFile: path.join(repoPath, '.github', 'workflows'),
                 mockSteps: testMockSteps,
+                actor: 'Dummy Author',
             });
         assertions.assertValidateJobExecuted(result, false);
         assertions.assertDeployStagingJobExecuted(result, false);

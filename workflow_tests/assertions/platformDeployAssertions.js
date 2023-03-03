@@ -11,10 +11,13 @@ const assertVerifyActorJobExecuted = (workflowResult, didExecute = true) => {
             [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'team', value: 'mobile-deployers'}],
         ),
     ];
-    if (didExecute) {
-        expect(workflowResult).toEqual(expect.arrayContaining(steps));
-    } else {
-        expect(workflowResult).not.toEqual(expect.arrayContaining(steps));
+
+    for (const expectedStep of steps) {
+        if (didExecute) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
     }
 };
 
@@ -117,10 +120,13 @@ const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProductio
             ),
         );
     }
-    if (didExecute) {
-        expect(workflowResult).toEqual(expect.arrayContaining(steps));
-    } else {
-        expect(workflowResult).not.toEqual(expect.arrayContaining(steps));
+
+    for (const expectedStep of steps) {
+        if (didExecute) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
     }
 
     const failProdSteps = [
@@ -134,10 +140,13 @@ const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProductio
             [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'SLACK_WEBHOOK_URL', value: '***'}],
         ),
     ];
-    if (didExecute && isProduction && !isSuccessful) {
-        expect(workflowResult).toEqual(expect.arrayContaining(failProdSteps));
-    } else {
-        expect(workflowResult).not.toEqual(expect.arrayContaining(failProdSteps));
+
+    for (const expectedStep of failProdSteps) {
+        if (didExecute && isProduction && !isSuccessful) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
     }
 };
 
@@ -194,10 +203,12 @@ const assertDesktopJobExecuted = (workflowResult, didExecute = true, isProductio
         );
     }
 
-    if (didExecute) {
-        expect(workflowResult).toEqual(expect.arrayContaining(steps));
-    } else {
-        expect(workflowResult).not.toEqual(expect.arrayContaining(steps));
+    for (const expectedStep of steps) {
+        if (didExecute) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
     }
 };
 
@@ -317,10 +328,13 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
             ),
         );
     }
-    if (didExecute) {
-        expect(workflowResult).toEqual(expect.arrayContaining(steps));
-    } else {
-        expect(workflowResult).not.toEqual(expect.arrayContaining(steps));
+
+    for (const expectedStep of steps) {
+        if (didExecute) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
     }
 
     const failProdSteps = [
@@ -334,10 +348,13 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
             [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'SLACK_WEBHOOK_URL', value: '***'}],
         ),
     ];
-    if (didExecute && isProduction && !isSuccessful) {
-        expect(workflowResult).toEqual(expect.arrayContaining(failProdSteps));
-    } else {
-        expect(workflowResult).not.toEqual(expect.arrayContaining(failProdSteps));
+
+    for (const expectedStep of failProdSteps) {
+        if (didExecute && isProduction && !isSuccessful) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
     }
 };
 
@@ -444,10 +461,12 @@ const assertWebJobExecuted = (workflowResult, didExecute = true, isProduction = 
         );
     }
 
-    if (didExecute) {
-        expect(workflowResult).toEqual(expect.arrayContaining(steps));
-    } else {
-        expect(workflowResult).not.toEqual(expect.arrayContaining(steps));
+    for (const expectedStep of steps) {
+        if (didExecute) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
     }
 };
 
@@ -463,10 +482,12 @@ const assertPostSlackOnFailureJobExecuted = (workflowResult, didExecute = true) 
         ),
     ];
 
-    if (didExecute) {
-        expect(workflowResult).toEqual(expect.arrayContaining(steps));
-    } else {
-        expect(workflowResult).not.toEqual(expect.arrayContaining(steps));
+    for (const expectedStep of steps) {
+        if (didExecute) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
     }
 };
 
@@ -519,10 +540,12 @@ const assertPostSlackOnSuccessJobExecuted = (workflowResult, didExecute = true, 
         );
     }
 
-    if (didExecute) {
-        expect(workflowResult).toEqual(expect.arrayContaining(steps));
-    } else {
-        expect(workflowResult).not.toEqual(expect.arrayContaining(steps));
+    for (const expectedStep of steps) {
+        if (didExecute) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
     }
 };
 
@@ -568,10 +591,12 @@ const assertPostGithubCommentJobExecuted = (workflowResult, didExecute = true, i
         ),
     ];
 
-    if (didExecute) {
-        expect(workflowResult).toEqual(expect.arrayContaining(steps));
-    } else {
-        expect(workflowResult).not.toEqual(expect.arrayContaining(steps));
+    for (const expectedStep of steps) {
+        if (didExecute) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
     }
 };
 

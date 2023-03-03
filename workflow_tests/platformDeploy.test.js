@@ -1,5 +1,4 @@
 const path = require('path');
-const kieActJs = require('@kie/act-js');
 const kieMockGithub = require('@kie/mock-github');
 const utils = require('./utils');
 const assertions = require('./assertions/platformDeployAssertions');
@@ -47,7 +46,7 @@ describe('test workflow platformDeploy', () => {
     test('test', async () => {
         const repoPath = mockGithub.repo.getPath('testPlatformDeployWorkflowRepo') || '';
         const workflowPath = path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml');
-        let act = new kieActJs.Act(repoPath, workflowPath);
+        let act = new utils.ExtendedAct(repoPath, workflowPath);
         act = utils.setUpActParams(
             act,
             'push',
@@ -56,7 +55,6 @@ describe('test workflow platformDeploy', () => {
             },
             {
                 OS_BOTIFY_TOKEN: 'dummy_token',
-                GITHUB_ACTOR: 'Dummy Author',
                 LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 MYAPP_UPLOAD_STORE_PASSWORD: 'dummy_store_password',
                 MYAPP_UPLOAD_KEY_PASSWORD: 'dummy_key_password',
@@ -102,6 +100,7 @@ describe('test workflow platformDeploy', () => {
             .runEvent('push', {
                 workflowFile: path.join(repoPath, '.github', 'workflows'),
                 mockSteps: testMockSteps,
+                actor: 'Dummy Author',
             });
 
         assertions.assertVerifyActorJobExecuted(result);
@@ -112,5 +111,5 @@ describe('test workflow platformDeploy', () => {
         assertions.assertPostSlackOnFailureJobExecuted(result, false);
         assertions.assertPostSlackOnSuccessJobExecuted(result, true, false);
         assertions.assertPostGithubCommentJobExecuted(result, true, false);
-    }, 120000);
+    }, 60000);
 });
