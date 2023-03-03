@@ -2,7 +2,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import * as NetworkStore from './NetworkStore';
 import * as SequentialQueue from './SequentialQueue';
-import HttpUtils from '../HttpUtils';
 import * as Request from '../Request';
 
 // Queue for network requests so we don't lose actions done by the user while offline
