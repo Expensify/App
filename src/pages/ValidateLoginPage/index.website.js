@@ -62,16 +62,19 @@ class ValidateLoginPage extends Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (!lodashGet(this.props, 'credentials.login', null) && lodashGet(this.props, 'credentials.accountID', null)) {
+            // The user clicked the option to sign in the current tab
+            if (lodashGet(this.props, 'account.requiresTwoFactorAuth', false)) {
+                Navigation.navigate(ROUTES.HOME);
+            } else {
+                Navigation.navigate(ROUTES.REPORT);
+            }
+            return;
+        }
         if (!(prevProps.credentials && !prevProps.credentials.validateCode && this.props.credentials.validateCode)) {
             return;
         }
-        if (!lodashGet(this.props, 'credentials.login', null) && lodashGet(this.props, 'credentials.accountID', null)) {
-            // The user clicked the option to sign in the current tab
-            Navigation.navigate(ROUTES.REPORT);
-        } else {
-            // The sign in was initiated in another tab on the same browser
-            this.setState({justSignedIn: true});
-        }
+        this.setState({justSignedIn: true});
     }
 
     /**
@@ -110,7 +113,6 @@ class ValidateLoginPage extends Component {
     render() {
         const showExpiredCodeModal = this.props.account && !_.isEmpty(this.props.account.errors);
         const showAbracadabra = this.isOnPasswordlessBeta()
-            && !this.isSignInInitiated()
             && !lodashGet(this.props, 'account.isLoading', true)
             && this.state.justSignedIn;
         const showValidateCodeModal = this.isOnPasswordlessBeta()
