@@ -66,7 +66,7 @@ describe('test workflow platformDeploy', () => {
                 CSC_LINK: 'dummy_csc_link',
                 CSC_KEY_PASSWORD: 'dummy_csc_key_pass',
                 APPLE_ID: 'dummy_apple_id',
-                APPLE_ID_PASSWORD: 'dummy_apple_id_pass',
+                APPLE_ID_PASSWORD: 'dummy_apple_pass',
                 AWS_ACCESS_KEY_ID: 'dummy_aws_access_key_id',
                 AWS_SECRET_ACCESS_KEY: 'dummy_aws_secret_access_key',
                 APPLE_CONTACT_EMAIL: 'dummy@email.com',
@@ -79,6 +79,14 @@ describe('test workflow platformDeploy', () => {
             {
                 AS_REPO: 'App',
             },
+        );
+        act = utils.setJobRunners(
+            act,
+            {
+                desktop: 'ubuntu-latest',
+                iOS: 'ubuntu-latest',
+            },
+            workflowPath,
         );
         const testMockSteps = {
             validateActor: mocks.PLATFORM_DEPLOY__VALIDATE_ACTOR__TEAM_MEMBER__STEP_MOCKS,
@@ -98,11 +106,11 @@ describe('test workflow platformDeploy', () => {
 
         assertions.assertVerifyActorJobExecuted(result);
         assertions.assertAndroidJobExecuted(result, true, false, true);
-        assertions.assertDesktopJobExecuted(result, false); // act does not support macos-12 runner
-        assertions.assertIOSJobExecuted(result, false); // act does not support macos-12 runner
+        assertions.assertDesktopJobExecuted(result, true, false);
+        assertions.assertIOSJobExecuted(result, true, false, true);
         assertions.assertWebJobExecuted(result, true, false);
         assertions.assertPostSlackOnFailureJobExecuted(result, false);
-        assertions.assertPostSlackOnSuccessJobExecuted(result, false); // since desktop and iOS don't run - this one doesn't either
+        assertions.assertPostSlackOnSuccessJobExecuted(result, true, false);
         assertions.assertPostGithubCommentJobExecuted(result, true, false);
     }, 120000);
 });

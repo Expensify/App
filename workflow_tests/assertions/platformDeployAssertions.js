@@ -130,7 +130,7 @@ const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProductio
             null,
             'ANDROID',
             'Warning deployers of failed production deploy',
-            [{key: 'status', value: 'custom'}, {key: 'custom_payload', value: '{\n  channel: \'#deployer\',\n  attachments: [{\n    color: "#DB4545",\n    pretext: `<!subteam^S4TJJ3PSL>`,\n    text: `💥 Android production deploy failed. Please manually submit 1.2.3 in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4973041797096886180/releases/overview|Google Play Store>. 💥`,\n  }]\n}'}],
+            [{key: 'status', value: 'custom'}],
             [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'SLACK_WEBHOOK_URL', value: '***'}],
         ),
     ];
@@ -330,7 +330,7 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
             null,
             'IOS',
             'Warning developers of failed deploy',
-            [{key: 'status', value: 'custom'}, {key: 'custom_payload', value: '{\n  channel: \'#deployer\',\n  attachments: [{\n    color: "#DB4545",\n    pretext: `<!subteam^S4TJJ3PSL>`,\n    text: `💥 iOS production deploy failed. Please manually submit 1.2.3 in the <https://appstoreconnect.apple.com/apps/1530278510/appstore|App Store>. 💥`,\n  }]\n}'}],
+            [{key: 'status', value: 'custom'}],
             [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'SLACK_WEBHOOK_URL', value: '***'}],
         ),
     ];
@@ -492,7 +492,7 @@ const assertPostSlackOnSuccessJobExecuted = (workflowResult, didExecute = true, 
             null,
             'POST_SLACK_SUCCESS',
             'Posting message to #announce channel',
-            [{key: 'status', value: 'custom'}, {key: 'custom_payload', value: isProduction ? '{\n  channel: \'#announce\',\n  attachments: [{\n    color: \'good\',\n    text: `🎉️ Successfully deployed App <https://github.com/Expensify/App/releases/tag/1.2.3|1.2.3> to production 🎉️`,\n  }]\n}' : '{\n  channel: \'#announce\',\n  attachments: [{\n    color: \'good\',\n    text: `🎉️ Successfully deployed App <https://github.com/Expensify/App/releases/tag/1.2.3|1.2.3> to staging 🎉️`,\n  }]\n}'}],
+            [{key: 'status', value: 'custom'}],
             [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'SLACK_WEBHOOK_URL', value: '***'}],
         ),
         utils.getStepAssertion(
@@ -501,7 +501,7 @@ const assertPostSlackOnSuccessJobExecuted = (workflowResult, didExecute = true, 
             null,
             'POST_SLACK_SUCCESS',
             'Posting message to #deployer channel',
-            [{key: 'status', value: 'custom'}, {key: 'custom_payload', value: isProduction ? '{\n  channel: \'#announce\',\n  attachments: [{\n    color: \'good\',\n    text: `🎉️ Successfully deployed App <https://github.com/Expensify/App/releases/tag/1.2.3|1.2.3> to production 🎉️`,\n  }]\n}' : '{\n  channel: \'#announce\',\n  attachments: [{\n    color: \'good\',\n    text: `🎉️ Successfully deployed App <https://github.com/Expensify/App/releases/tag/1.2.3|1.2.3> to staging 🎉️`,\n  }]\n}'}],
+            [{key: 'status', value: 'custom'}],
             [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'SLACK_WEBHOOK_URL', value: '***'}],
         ),
     ];
@@ -513,10 +513,7 @@ const assertPostSlackOnSuccessJobExecuted = (workflowResult, didExecute = true, 
                 null,
                 'POST_SLACK_SUCCESS',
                 'Posting message to #expensify-open-source channel',
-                [{key: 'status', value: 'custom'}, {
-                    key: 'custom_payload',
-                    value: '{\n  channel: \'#announce\',\n  attachments: [{\n    color: \'good\',\n    text: `🎉️ Successfully deployed App <https://github.com/Expensify/App/releases/tag/1.2.3|1.2.3> to production 🎉️`,\n  }]\n}',
-                }],
+                [{key: 'status', value: 'custom'}],
                 [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'SLACK_WEBHOOK_URL', value: '***'}],
             ),
         );
@@ -567,7 +564,7 @@ const assertPostGithubCommentJobExecuted = (workflowResult, didExecute = true, i
             null,
             'POST_GITHUB_COMMENT',
             'Commenting on issues',
-            [{key: 'PR_LIST', value: '[1.2.1, 1.2.2]'}, {key: 'IS_PRODUCTION_DEPLOY', value: isProduction ? 'true' : 'false'}, {key: 'DEPLOY_VERSION', value: '1.2.3'}, {key: 'GITHUB_TOKEN', value: '***'}, {key: 'ANDROID', value: 'success'}, {key: 'DESKTOP', value: ''}, {key: 'IOS', value: ''}, {key: 'WEB', value: 'success'}], // unsupported runners for desktop and ios
+            [{key: 'PR_LIST', value: '[1.2.1, 1.2.2]'}, {key: 'IS_PRODUCTION_DEPLOY', value: isProduction ? 'true' : 'false'}, {key: 'DEPLOY_VERSION', value: '1.2.3'}, {key: 'GITHUB_TOKEN', value: '***'}, {key: 'ANDROID', value: 'success'}, {key: 'DESKTOP', value: 'success'}, {key: 'IOS', value: 'success'}, {key: 'WEB', value: 'success'}],
         ),
     ];
 
