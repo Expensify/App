@@ -38,6 +38,7 @@ class DateOfBirthPage extends Component {
 
         this.validate = this.validate.bind(this);
         this.updateDateOfBirth = this.updateDateOfBirth.bind(this);
+        this.readParams = this.readParams.bind(this);
         this.state = {
             defaultMonth: undefined,
             defaultYear: undefined,
@@ -47,12 +48,11 @@ class DateOfBirthPage extends Component {
     }
 
     componentDidMount() {
-        this.props.navigation.addListener('focus', () => {
-            const {params} = this.props.route;
-            if (params && params.year) {
-                this.setState(prev => ({...prev, defaultYear: params.year}));
-            }
-        });
+        this.props.navigation.addListener('focus', this.readParams);
+    }
+
+    componentWillUnmount() {
+        this.props.navigation.removeListener('focus', this.readParams);
     }
 
     /**
@@ -61,6 +61,13 @@ class DateOfBirthPage extends Component {
      */
     onDateChanged(date) {
         this.setState(prev => ({...prev, defaultYear: moment(date).year().toString(), defaultMonth: moment(date).month().toString()}));
+    }
+
+    readParams() {
+        const {params} = this.props.route;
+        if (params && params.year) {
+            this.setState(prev => ({...prev, defaultYear: params.year}));
+        }
     }
 
     /**

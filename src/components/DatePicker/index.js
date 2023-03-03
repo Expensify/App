@@ -108,7 +108,7 @@ class DatePicker extends React.Component {
 
     render() {
         return (
-            <View ref={ref => this.wrapperRef = ref} style={[styles.flex1]}>
+            <View ref={ref => this.wrapperRef = ref} style={[this.props.isSmallScreenWidth ? styles.flex2 : styles.flex1]}>
                 <TextInput
                     forceActiveLabel
                     ref={(el) => {
