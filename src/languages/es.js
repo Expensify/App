@@ -617,6 +617,10 @@ export default {
         legalFirstName: 'Nombre legal',
         legalLastName: 'Apellidos legales',
         homeAddress: 'Domicilio',
+        yearOfBirth: 'Año de nacimiento',
+        selectYearOfBirth: 'Seleccione año de nacimiento',
+        monthOfBirth: 'Mes de nacimiento',
+        selectMonthOfBirth: 'Seleccionar mes de Nacimiento',
         error: {
             dateShouldBeBefore: ({dateString}) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `La fecha debe ser posterior a ${dateString}.`,

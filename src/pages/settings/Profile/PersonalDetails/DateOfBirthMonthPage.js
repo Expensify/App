@@ -52,16 +52,13 @@ const DateOfBirthMonthPage = (props) => {
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
-
-                // TODO:  title={props.translate('pronounsPage.pronouns')}
-                title="Year of Birth"
+                title={props.translate('privatePersonalDetails.monthOfBirth')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <Text style={[styles.ph5, styles.mb6]}>
-                {/* TODO:  {props.translate('pronounsPage.isShownOnProfile')} */}
-                Select Month of birth
+                {props.translate('privatePersonalDetails.selectMonthOfBirth')}
             </Text>
             <OptionsList
                 sections={[{data: yearList}]}

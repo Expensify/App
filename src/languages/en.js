@@ -618,6 +618,10 @@ export default {
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
         homeAddress: 'Home address',
+        yearOfBirth: 'Year of birth',
+        selectYearOfBirth: 'Select year of birth',
+        monthOfBirth: 'Month of birth',
+        selectMonthOfBirth: 'Select month of birth',
         error: {
             dateShouldBeBefore: ({dateString}) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,

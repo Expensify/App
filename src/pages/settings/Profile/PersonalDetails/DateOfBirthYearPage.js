@@ -44,23 +44,19 @@ const DateOfBirthYearPage = (props) => {
      * @param {String} selectedYear
      */
     const updateYearOfBirth = (selectedYear) => {
-        // TODO:
         PersonalDetails.updateDateOfBirth(selectedYear);
     };
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
-
-                // TODO:  title={props.translate('pronounsPage.pronouns')}
-                title="Year of Birth"
+                title={props.translate('privatePersonalDetails.yearOfBirth')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <Text style={[styles.ph5, styles.mb6]}>
-                {/* TODO: {props.translate('pronounsPage.isShownOnProfile')} */}
-                Select Year of birth
+                {props.translate('privatePersonalDetails.selectYearOfBirth')}
             </Text>
             <OptionsList
                 sections={[{data: yearList}]}
