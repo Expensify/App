@@ -2,7 +2,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 
 import {
-    beforeEach, jest, describe, test, expect, afterEach,
+    beforeEach, describe, test, expect, afterEach,
 } from '@jest/globals';
 import * as DeprecatedAPI from '../../src/libs/deprecatedAPI';
 import * as TestHelper from '../utils/TestHelper';
@@ -20,6 +20,7 @@ import * as MainQueue from '../../src/libs/Network/MainQueue';
 import * as Request from '../../src/libs/Request';
 
 jest.mock('../../src/libs/Log');
+jest.useFakeTimers();
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -30,8 +31,9 @@ const originalXHR = HttpUtils.xhr;
 beforeEach(() => {
     global.fetch = TestHelper.getGlobalFetchMock();
     HttpUtils.xhr = originalXHR;
-    PersistedRequests.clear();
     MainQueue.clear();
+    HttpUtils.cancelPendingRequests();
+    PersistedRequests.clear();
 
     // Wait for any Log command to finish and Onyx to fully clear
     jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
@@ -420,6 +422,11 @@ describe('NetworkTests', () => {
                     expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})}),
                 ]);
 
+                // We need to advance past the request throttle back off timer because the request won't be retried until then
+                jest.advanceTimersByTime(CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS);
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
                 // Finally, after it succeeds the queue should be empty
                 xhrCalls[2].resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
                 return waitForPromisesToResolve();
@@ -429,10 +436,24 @@ describe('NetworkTests', () => {
             });
     });
 
-    test(`persisted request should be retried up to ${CONST.NETWORK.MAX_REQUEST_RETRIES} times`, () => {
-        // We're setting up xhr handler that always rejects with a fetch error
-        const xhr = jest.spyOn(HttpUtils, 'xhr')
-            .mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
+    // Given a retry response create a mock and run some expectations for retrying requests
+    const retryExpectations = (retryResponse) => {
+        let successfulResponse = {
+            ok: true,
+            jsonCode: CONST.JSON_CODE.SUCCESS,
+        };
+
+        // We have to mock response.json() too
+        successfulResponse = {
+            ...successfulResponse,
+            json: () => Promise.resolve(successfulResponse),
+        };
+
+        // Given a mock where a retry response is returned twice before a successful response
+        global.fetch = jest.fn()
+            .mockResolvedValueOnce(retryResponse)
+            .mockResolvedValueOnce(retryResponse)
+            .mockResolvedValueOnce(successfulResponse);
 
         // Given we have a request made while we're offline
         return Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
@@ -446,19 +467,78 @@ describe('NetworkTests', () => {
             .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
             .then(waitForPromisesToResolve)
             .then(() => {
-                // The request should be retried a number of times
-                expect(xhr).toHaveBeenCalledTimes(CONST.NETWORK.MAX_REQUEST_RETRIES);
-                _.each(xhr.mock.calls, (args) => {
-                    expect(args).toEqual(
-                        expect.arrayContaining(['mock command', expect.objectContaining({param1: 'value1', persist: true})]),
-                    );
-                });
+                // Then there has only been one request so far
+                expect(global.fetch).toHaveBeenCalledTimes(1);
+
+                // And we still have 1 persisted request since it failed
+                expect(_.size(PersistedRequests.getAll())).toEqual(1);
+                expect(PersistedRequests.getAll()).toEqual([
+                    expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})}),
+                ]);
+
+                // We let the SequentialQueue process again after its wait time
+                jest.runOnlyPendingTimers();
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                // Then we have retried the failing request
+                expect(global.fetch).toHaveBeenCalledTimes(2);
+
+                // And we still have 1 persisted request since it failed
+                expect(_.size(PersistedRequests.getAll())).toEqual(1);
+                expect(PersistedRequests.getAll()).toEqual([
+                    expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})}),
+                ]);
+
+                // We let the SequentialQueue process again after its wait time
+                jest.runOnlyPendingTimers();
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                // Then the request is retried again
+                expect(global.fetch).toHaveBeenCalledTimes(3);
+
+                // The request succeeds so the queue is empty
+                expect(_.size(PersistedRequests.getAll())).toEqual(0);
             });
+    };
+
+    test.each([
+        CONST.HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        CONST.HTTP_STATUS.BAD_GATEWAY,
+        CONST.HTTP_STATUS.GATEWAY_TIMEOUT,
+        CONST.HTTP_STATUS.UNKNOWN_ERROR,
+    ])(
+        'request with http status %d are retried',
+
+        // Given that a request resolves as not ok and with a particular http status
+        // When we make a persisted request and the http status represents a server error then it is retried with exponential back off
+        httpStatus => retryExpectations({ok: false, status: httpStatus}),
+    );
+
+    test('write requests are retried when Auth is down', () => {
+        // Given the response data returned when auth is down
+        const responseData = {
+            ok: true,
+            status: 200,
+            jsonCode: CONST.JSON_CODE.EXP_ERROR,
+            title: CONST.ERROR_TITLE.SOCKET,
+            type: CONST.ERROR_TYPE.SOCKET,
+        };
+
+        // We have to mock response.json() too
+        const authIsDownResponse = {
+            ...responseData,
+            json: () => Promise.resolve(responseData),
+        };
+
+        // When we make a request and auth is down then we retry until it's back
+        return retryExpectations(authIsDownResponse);
     });
 
     test('test Bad Gateway status will log hmmm', () => {
         global.fetch = jest.fn()
-            .mockResolvedValueOnce({ok: false, status: 502, statusText: 'Bad Gateway'});
+            .mockResolvedValueOnce({ok: false, status: CONST.HTTP_STATUS.BAD_GATEWAY, statusText: 'Bad Gateway'});
 
         const logHmmmSpy = jest.spyOn(Log, 'hmmm');
 
