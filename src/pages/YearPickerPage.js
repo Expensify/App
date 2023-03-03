@@ -5,7 +5,6 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ROUTES from '../ROUTES';
-import Text from '../components/Text';
 import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
 import OptionsSelector from '../components/OptionsSelector';
