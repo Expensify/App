@@ -140,6 +140,8 @@ class DatePicker extends React.Component {
                             onChange={this.setDate}
                             onMonthPressed={this.togglePicker}
                             onYearPressed={this.togglePicker}
+                            defaultMonth={this.props.defaultMonth}
+                            defaultYear={this.props.defaultYear}
                         />
                     </View>
                 </Popover>

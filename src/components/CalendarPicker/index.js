@@ -11,6 +11,8 @@ import generateMonthMatrix from './generateMonthMatrix';
 import withLocalize from '../withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import compose from '../../libs/compose';
+import withNavigation from '../withNavigation';
 
 class CalendarPicker extends React.Component {
     constructor(props) {
@@ -41,6 +43,11 @@ class CalendarPicker extends React.Component {
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     componentDidMount() {
+        if (this.props.defaultYear) {
+            this.setState(prev => ({...prev, currentDateView: moment(prev.currentDateView).set('year', this.props.defaultYear).toDate()}));
+        }
+
+        // this.props.navigation.addListener('focus', this.onFocus);
         if (this.props.minDate && this.props.maxDate && this.props.minDate > this.props.maxDate) {
             throw new Error('Minimum date cannot be greater than the maximum date.');
         }
@@ -77,6 +84,7 @@ class CalendarPicker extends React.Component {
      */
     onYearPickerPress() {
         Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH_YEAR);
+
         this.props.onYearPressed();
     }
 
@@ -192,4 +200,4 @@ class CalendarPicker extends React.Component {
 CalendarPicker.propTypes = propTypes;
 CalendarPicker.defaultProps = defaultProps;
 
-export default withLocalize(CalendarPicker);
+export default compose(withLocalize, withNavigation)(CalendarPicker);

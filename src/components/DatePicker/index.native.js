@@ -1,6 +1,8 @@
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {View, Keyboard, StatusBar} from 'react-native';
+import {
+    View, Keyboard, StatusBar, InteractionManager,
+} from 'react-native';
 import moment from 'moment';
 import _ from 'underscore';
 import compose from '../../libs/compose';
@@ -12,6 +14,8 @@ import styles from '../../styles/styles';
 import {propTypes, defaultProps} from './datepickerPropTypes';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 import CalendarPicker from '../CalendarPicker';
+import withNavigation from '../withNavigation';
+import Navigation from '../../libs/Navigation/Navigation';
 
 const datepickerPropTypes = {
     ...propTypes,
@@ -34,6 +38,7 @@ class DatePicker extends React.Component {
         this.reset = this.reset.bind(this);
         this.hidePicker = this.hidePicker.bind(this);
         this.updateLocalDate = this.updateLocalDate.bind(this);
+        this.onNavigationTransitionEnd = this.onNavigationTransitionEnd.bind(this);
 
         this.minDate = props.minDate ? moment(props.minDate).toDate() : null;
         this.maxDate = props.maxDate ? moment(props.maxDate).toDate() : null;
@@ -71,10 +76,7 @@ class DatePicker extends React.Component {
      */
     updateLocalDate(selectedDate) {
         this.setState({selectedDate});
-        const asMoment = moment(this.state.selectedDate, true);
-        if (asMoment.isValid()) {
-            this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
-        }
+        this.props.onInputChange(selectedDate);
 
         this.hidePicker();
     }
@@ -137,6 +139,8 @@ class DatePicker extends React.Component {
                             onChange={this.updateLocalDate}
                             onMonthPressed={this.hidePicker}
                             onYearPressed={this.hidePicker}
+                            defaultMonth={this.props.defaultMonth}
+                            defaultYear={this.props.defaultYear}
                         />
                     </View>
                 </Popover>
@@ -156,6 +160,7 @@ DatePicker.defaultProps = defaultProps;
  */
 export default compose(
     withLocalize,
+    withNavigation,
     withKeyboardState,
 )(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */

@@ -39,6 +39,20 @@ class DateOfBirthPage extends Component {
 
         this.validate = this.validate.bind(this);
         this.updateDateOfBirth = this.updateDateOfBirth.bind(this);
+        this.state = {
+            defaultMonth: undefined,
+            defaultYear: undefined,
+        };
+    }
+
+    componentDidMount() {
+        this.props.navigation.addListener('focus', () => {
+            const {params} = this.props.route;
+
+            if (params.year) {
+                this.setState(prev => ({...prev, defaultYear: params.year}));
+            }
+        });
     }
 
     /**
@@ -101,6 +115,7 @@ class DateOfBirthPage extends Component {
                             shouldSaveDraft
                             minDate={moment().subtract(150, 'years').toDate()}
                             maxDate={moment().subtract(5, 'years').toDate()}
+                            defaultYear={this.state.defaultYear}
                         />
                     </View>
                 </Form>

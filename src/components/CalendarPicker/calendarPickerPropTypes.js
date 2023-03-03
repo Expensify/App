@@ -18,6 +18,12 @@ const propTypes = {
 
     /** Callback function to call when year is pressed */
     onYearPressed: PropTypes.func.isRequired,
+
+    /** Default month to be set in the calendar picker */
+    defaultMonth: PropTypes.string,
+
+    /** Default year to be set in the calendar picker */
+    defaultYear: PropTypes.string,
 };
 
 const defaultProps = {

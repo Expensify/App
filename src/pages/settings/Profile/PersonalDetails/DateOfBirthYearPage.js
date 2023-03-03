@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
 import {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import * as FormActions from '../../../../libs/actions/FormActions';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import ROUTES from '../../../../ROUTES';
@@ -17,7 +16,6 @@ import OptionsList from '../../../../components/OptionsList';
 import themeColors from '../../../../styles/themes/default';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import CONST from '../../../../CONST';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -50,10 +48,7 @@ const DateOfBirthYearPage = (props) => {
      * @param {String} selectedYear
      */
     const updateYearOfBirth = (selectedYear) => {
-        momentDob.set('year', Number(selectedYear));
-        const dob = momentDob.format(CONST.DATE.MOMENT_FORMAT_STRING);
-        FormActions.setDraftValues(ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM, {dob});
-        Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH);
+        Navigation.navigate(ROUTES.setSettingsPersonalDetailsDateOfBirthYear(selectedYear));
     };
 
     return (
