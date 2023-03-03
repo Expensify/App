@@ -21,6 +21,7 @@ import * as ReportUtils from '../libs/ReportUtils';
 import reportPropTypes from './reportPropTypes';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
+import CONST from '../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -59,7 +60,11 @@ const getAllParticipants = (report, personalDetails) => {
         return ({
             alternateText: userLogin,
             displayName: userPersonalDetail.displayName,
-            icons: [ReportUtils.getAvatar(userPersonalDetail.avatar, login)],
+            icons: [{
+                source: ReportUtils.getAvatar(userPersonalDetail.avatar, login),
+                name: login,
+                type: CONST.ICON_TYPE_AVATAR,
+            }],
             keyForList: userLogin,
             login,
             text: userPersonalDetail.displayName,

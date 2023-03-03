@@ -1,6 +1,7 @@
 import React from 'react';
 import SubscriptAvatar from '../components/SubscriptAvatar';
-import * as Expensicons from '../components/Icon/Expensicons';
+import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
+import * as defaultAvatars from '../components/Icon/DefaultAvatars';
 import CONST from '../CONST';
 
 /**
@@ -12,8 +13,8 @@ export default {
     title: 'Components/SubscriptAvatar',
     component: SubscriptAvatar,
     args: {
-        mainAvatar: Expensicons.Profile,
-        secondaryAvatar: Expensicons.Workspace,
+        mainAvatar: {source: defaultAvatars.Avatar5, name: '', type: CONST.ICON_TYPE_AVATAR},
+        secondaryAvatar: {source: defaultWorkspaceAvatars.WorkspaceE, name: '', type: CONST.ICON_TYPE_WORKSPACE},
         size: CONST.AVATAR_SIZE.DEFAULT,
     },
     argTypes: {
@@ -32,8 +33,8 @@ const Default = Template.bind({});
 
 const AvatarURLStory = Template.bind({});
 AvatarURLStory.args = {
-    mainAvatar: `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_1.png`,
-    secondaryAvatar: `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_3.png`,
+    mainAvatar: {source: defaultAvatars.Avatar1, name: '', type: CONST.ICON_TYPE_AVATAR},
+    secondaryAvatar: {source: defaultAvatars.Avatar3, name: '', type: CONST.ICON_TYPE_AVATAR},
 };
 
 export {
