@@ -1,3 +1,6 @@
+const yaml = require('yaml');
+const fs = require('fs');
+
 const setUpActParams = (act, event = null, event_options = null, secrets = null, github_token = null, env_vars = null) => {
     let updated_act = act;
 
@@ -94,8 +97,23 @@ const getStepAssertion = (name, isSuccessful = true, expectedOutput = null, jobI
     };
 };
 
+const setJobRunners = (act, jobs, workflowPath) => {
+    if (!act || !jobs || !workflowPath) {
+        return act;
+    }
+
+    const workflow = yaml.parse(fs.readFileSync(workflowPath, 'utf8'));
+    for (const [jobId, runner] of Object.entries(jobs)) {
+        const job = workflow.jobs[jobId];
+        job['runs-on'] = runner;
+    }
+    fs.writeFileSync(workflowPath, yaml.stringify(workflow), 'utf8');
+    return act;
+};
+
 module.exports = {
     setUpActParams,
     getMockStep,
     getStepAssertion,
+    setJobRunners,
 };
