@@ -15,8 +15,19 @@ const propTypes = {
     highlightedEmojiIndex: PropTypes.number,
 
     /** Array of suggested emoji */
-    // eslint-disable-next-line react/forbid-prop-types
-    emojis: PropTypes.arrayOf(PropTypes.object).isRequired,
+    emojis: PropTypes.arrayOf(PropTypes.shape({
+        /** The emoji code */
+        code: PropTypes.string,
+
+        /** The name of the emoji */
+        name: PropTypes.string,
+
+        /** Optional types of the emoji skin tone variant */
+        types: PropTypes.oneOfType([
+            PropTypes.arrayOf(PropTypes.string),
+            PropTypes.undefined,
+        ]),
+    })).isRequired,
 
     /** Fired when the user selects an emoji */
     onSelect: PropTypes.func.isRequired,
@@ -33,7 +44,7 @@ const propTypes = {
     shouldIncludeReportRecipientLocalTimeHeight: PropTypes.bool.isRequired,
 
     /** Stores user's preferred skin tone */
-    preferredSkinToneIndex: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+    preferredSkinToneIndex: PropTypes.number.isRequired,
 };
 
 const defaultProps = {
@@ -110,8 +121,8 @@ const emojiCode = (item, preferredSkinToneIndex) => {
 const EmojiSuggestions = (props) => {
     /**
      * Render a suggestion menu item component.
-     * @param {Object} item
-     * @param {Number} index
+     * @param {Object} params.item
+     * @param {Number} params.index
      * @returns {JSX.Element}
      */
     const renderSuggestionMenuItem = ({item, index}) => {
