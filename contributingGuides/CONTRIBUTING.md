@@ -30,8 +30,8 @@ At this time, we are not hiring contractors in Crimea, North Korea, Russia, Iran
 ## Slack channels
 All contributors should be a member of **two** Slack channels:
 
-1. #expensify-open-source -- used to ask **general questions**, facilitate **discussions**, and make **feature requests**.
-2. #expensify-bugs -- used to discuss or report **bugs** specifically.
+1. [#expensify-open-source](https://expensify.slack.com/archives/C01GTK53T8Q) -- used to ask **general questions**, facilitate **discussions**, and make **feature requests**.
+2. [#expensify-bugs](https://expensify.slack.com/archives/C049HHMV9SM) -- used to discuss or report **bugs** specifically.
 
 Before requesting an invite to Slack please ensure your Upwork account is active, since we only pay via Upwork (see [below](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#payment-for-contributions)). To request an invite to these two Slack channels, email contributors@expensify.com with the subject `Slack Channel Invites`. We'll send you an invite! 
 
@@ -47,7 +47,7 @@ We hire and pay external contributors via Upwork.com. If you'd like to be paid f
 
 Payment for your contributions will be made no less than 7 days after the pull request is deployed to production to allow for regression testing. If a regression occurs, payment will be issued 7 days after all regressions are fixed. If you have not received payment after 8 days of the PR being deployed to production and there being no regressions, please email contributors@expensify.com referencing the GH issue and your GH handle. 
 
-New contributors are limited to working on one job at a time, however experienced contributors may work on numerous jobs simultaneously. 
+New contributors are limited to working on one job at a time, however experienced contributors may work on numerous jobs simultaneously.
 
 Please be aware that compensation for any support in solving an issue is provided **entirely at Expensify’s discretion**. Personal time or resources applied towards investigating a proposal **will not guarantee compensation**. Compensation is only guaranteed to those who **[propose a solution and get hired for that job](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#propose-a-solution-for-the-job)**. We understand there may be cases where a selected proposal may take inspiration from a previous proposal. Unfortunately, it’s not possible for us to evaluate every individual case and we have no process that can efficiently do so. Issues with higher rewards come with higher risk factors so try to keep things civil and make the best proposal you can. Once again, **any information provided may not necessarily lead to you getting hired for that issue or compensated in any way.**
 
