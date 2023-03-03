@@ -1,19 +1,19 @@
 import _ from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../../components/withCurrentUserPersonalDetails';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import ROUTES from '../../../../ROUTES';
-import Text from '../../../../components/Text';
-import styles from '../../../../styles/styles';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import compose from '../../../../libs/compose';
-import OptionsList from '../../../../components/OptionsList';
-import themeColors from '../../../../styles/themes/default';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import ONYXKEYS from '../../../../ONYXKEYS';
+import {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../components/withCurrentUserPersonalDetails';
+import ScreenWrapper from '../components/ScreenWrapper';
+import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import ROUTES from '../ROUTES';
+import Text from '../components/Text';
+import styles from '../styles/styles';
+import Navigation from '../libs/Navigation/Navigation';
+import compose from '../libs/compose';
+import OptionsList from '../components/OptionsList';
+import themeColors from '../styles/themes/default';
+import * as Expensicons from '../components/Icon/Expensicons';
+import ONYXKEYS from '../ONYXKEYS';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -26,11 +26,13 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const DateOfBirthYearPage = (props) => {
+const YearPickerPage = (props) => {
     const {params} = props.route;
+    console.log(props.route);
     const minYear = Number(params.min);
     const maxYear = Number(params.max);
     const currentYear = Number(params.year);
+    const backTo = params.backTo;
 
     const yearList = _.map(Array.from({length: (maxYear - minYear) + 1}, (k, v) => v + minYear), (value, index) => ({
         text: value.toString(),
@@ -48,19 +50,20 @@ const DateOfBirthYearPage = (props) => {
      * @param {String} selectedYear
      */
     const updateYearOfBirth = (selectedYear) => {
-        Navigation.navigate(ROUTES.setSettingsPersonalDetailsDateOfBirthYear(selectedYear));
+        // function shouldn't be passed as param to screen, so the only way to generate the path with the param is contatenate strings directly in here
+        Navigation.navigate(`${backTo}?year=${selectedYear}`);
     };
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
-                title={props.translate('privatePersonalDetails.yearOfBirth')}
+                title={props.translate('yearPickerPage.year')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH)}
+                onBackButtonPress={() => Navigation.navigate(backTo || ROUTES.HOME)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <Text style={[styles.ph5, styles.mb6]}>
-                {props.translate('privatePersonalDetails.selectYearOfBirth')}
+                {props.translate('yearPickerPage.selectYear')}
             </Text>
             <OptionsList
                 sections={[{data: yearList}]}
@@ -74,9 +77,9 @@ const DateOfBirthYearPage = (props) => {
     );
 };
 
-DateOfBirthYearPage.propTypes = propTypes;
-DateOfBirthYearPage.defaultProps = defaultProps;
-DateOfBirthYearPage.displayName = 'DateOfBirthYearPage';
+YearPickerPage.propTypes = propTypes;
+YearPickerPage.defaultProps = defaultProps;
+YearPickerPage.displayName = 'YearPickerPage';
 
 export default compose(
     withLocalize,
@@ -85,4 +88,4 @@ export default compose(
             key: `${ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM}Draft`,
         },
     }),
-)(DateOfBirthYearPage);
+)(YearPickerPage);

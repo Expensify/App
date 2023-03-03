@@ -619,8 +619,6 @@ export default {
         homeAddress: 'Domicilio',
         yearOfBirth: 'Año de nacimiento',
         selectYearOfBirth: 'Seleccione año de nacimiento',
-        monthOfBirth: 'Mes de nacimiento',
-        selectMonthOfBirth: 'Seleccionar mes de Nacimiento',
         error: {
             dateShouldBeBefore: ({dateString}) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `La fecha debe ser posterior a ${dateString}.`,
@@ -637,6 +635,10 @@ export default {
     },
     newChatPage: {
         createGroup: 'Crear grupo',
+    },
+    yearPickerPage: {
+        year: 'Año',
+        selectYear: 'Por favor seleccione un año',
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'El chat que estás buscando no se pudo encontrar.',

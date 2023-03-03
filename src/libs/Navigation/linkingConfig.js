@@ -139,14 +139,6 @@ export default {
                         path: ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH,
                         exact: true,
                     },
-                    Settings_PersonalDetails_DateOfBirth_Year: {
-                        path: ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH_YEAR,
-                        exact: true,
-                    },
-                    Settings_PersonalDetails_DateOfBirth_Month: {
-                        path: ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH_MONTH,
-                        exact: true,
-                    },
                     Settings_PersonalDetails_Address: {
                         path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
                         exact: true,
@@ -268,6 +260,11 @@ export default {
             Wallet_Statement: {
                 screens: {
                     WalletStatement_Root: ROUTES.WALLET_STATEMENT_WITH_DATE,
+                },
+            },
+            Select_Year: {
+                screens: {
+                    SelectYear_Root: ROUTES.SELECT_YEAR,
                 },
             },
             [SCREENS.NOT_FOUND]: '*',

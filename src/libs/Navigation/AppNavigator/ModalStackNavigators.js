@@ -266,20 +266,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         },
         name: 'Settings_PersonalDetails_DateOfBirth',
     },
-    {
-        getComponent: () => {
-            const SettingsDateOfBirthYearPage = require('../../../pages/settings/Profile/PersonalDetails/DateOfBirthYearPage').default;
-            return SettingsDateOfBirthYearPage;
-        },
-        name: 'Settings_PersonalDetails_DateOfBirth_Year',
-    },
-    {
-        getComponent: () => {
-            const SettingsDateOfBirthMonthPage = require('../../../pages/settings/Profile/PersonalDetails/DateOfBirthMonthPage').default;
-            return SettingsDateOfBirthMonthPage;
-        },
-        name: 'Settings_PersonalDetails_DateOfBirth_Month',
-    },
+
     {
         getComponent: () => {
             const SettingsAddressPage = require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default;
@@ -525,6 +512,14 @@ const WalletStatementStackNavigator = createModalStackNavigator([{
     name: 'WalletStatement_Root',
 }]);
 
+const YearPickerStackNavigator = createModalStackNavigator([{
+    getComponent: () => {
+        const YearPickerPage = require('../../../pages/YearPickerPage').default;
+        return YearPickerPage;
+    },
+    name: 'SelectYear_Root',
+}]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
@@ -542,4 +537,5 @@ export {
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
     WalletStatementStackNavigator,
+    YearPickerStackNavigator,
 };

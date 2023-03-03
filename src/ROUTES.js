@@ -50,16 +50,14 @@ export default {
     SETTINGS_PERSONAL_DETAILS_LEGAL_NAME: `${SETTINGS_PERSONAL_DETAILS}/legal-name`,
     SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH: `${SETTINGS_PERSONAL_DETAILS}/date-of-birth`,
     SETTINGS_PERSONAL_DETAILS_ADDRESS: `${SETTINGS_PERSONAL_DETAILS}/address`,
-    SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH_YEAR: `${SETTINGS_PERSONAL_DETAILS}/date-of-birth/year`,
-    getYearSelectionRoute: (minYear, maxYear, currYear) => `${SETTINGS_PERSONAL_DETAILS}/date-of-birth/year?min=${minYear}&max=${maxYear}&year=${currYear}`,
-    setSettingsPersonalDetailsDateOfBirthYear: year => `${SETTINGS_PERSONAL_DETAILS}/date-of-birth?year=${year}`,
-    SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH_MONTH: `${SETTINGS_PERSONAL_DETAILS}/date-of-birth/month`,
     SETTINGS_CONTACT_METHODS,
     NEW_GROUP: 'new/group',
     NEW_CHAT: 'new/chat',
     REPORT,
     REPORT_WITH_ID: 'r/:reportID',
     getReportRoute: reportID => `r/${reportID}`,
+    SELECT_YEAR: 'select-year',
+    getYearSelectionRoute: (minYear, maxYear, currYear, backTo) => `select-year?min=${minYear}&max=${maxYear}&year=${currYear}&backTo=${backTo}`,
 
     /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
     CONCIERGE: 'concierge',
