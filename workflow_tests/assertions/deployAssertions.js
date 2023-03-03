@@ -16,10 +16,13 @@ const assertValidateJobExecuted = (workflowResult, didExecute = true) => {
             output: '',
         },
     ];
-    if (didExecute) {
-        expect(workflowResult).toEqual(expect.arrayContaining(steps));
-    } else {
-        expect(workflowResult).not.toEqual(expect.arrayContaining(steps));
+
+    for (const expectedStep of steps) {
+        if (didExecute) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
     }
 };
 
@@ -34,11 +37,11 @@ const assertDeployStagingJobExecuted = (workflowResult, didExecute = true) => {
             [{key: 'ref', value: 'staging'}, {key: 'token', value: '***'}],
         ),
         utils.getStepAssertion(
-            'Setup git for ***',
+            'Setup git for OSBotify',
             true,
             null,
             'DEPLOY_STAGING',
-            'Setting up git for ***',
+            'Setting up git for OSBotify',
             [{key: 'GPG_PASSPHRASE', value: '***'}],
         ),
         utils.getStepAssertion(
@@ -56,10 +59,13 @@ const assertDeployStagingJobExecuted = (workflowResult, didExecute = true) => {
             'Pushing tag to trigger staging deploy',
         ),
     ];
-    if (didExecute) {
-        expect(workflowResult).toEqual(expect.arrayContaining(steps));
-    } else {
-        expect(workflowResult).not.toEqual(expect.arrayContaining(steps));
+
+    for (const expectedStep of steps) {
+        if (didExecute) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
     }
 };
 
@@ -74,11 +80,11 @@ const assertDeployProductionJobExecuted = (workflowResult, didExecute = true) =>
             [{key: 'fetch-depth', value: '0'}, {key: 'token', value: '***'}],
         ),
         utils.getStepAssertion(
-            'Setup git for ***',
+            'Setup git for OSBotify',
             true,
             null,
             'DEPLOY_PRODUCTION',
-            'Setting up git for ***',
+            'Setting up git for OSBotify',
             [{key: 'GPG_PASSPHRASE', value: '***'}],
         ),
         utils.getStepAssertion(
@@ -121,10 +127,13 @@ const assertDeployProductionJobExecuted = (workflowResult, didExecute = true) =>
             [{key: 'GITHUB_TOKEN', value: '***'}],
         ),
     ];
-    if (didExecute) {
-        expect(workflowResult).toEqual(expect.arrayContaining(steps));
-    } else {
-        expect(workflowResult).not.toEqual(expect.arrayContaining(steps));
+
+    for (const expectedStep of steps) {
+        if (didExecute) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
     }
 };
 
