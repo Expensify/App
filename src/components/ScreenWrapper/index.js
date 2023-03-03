@@ -13,6 +13,7 @@ import OfflineIndicator from '../OfflineIndicator';
 import compose from '../../libs/compose';
 import withNavigation from '../withNavigation';
 import withWindowDimensions from '../withWindowDimensions';
+import withEnvironment from '../withEnvironment';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withNetwork} from '../OnyxProvider';
 import {propTypes, defaultProps} from './propTypes';
@@ -157,6 +158,10 @@ export default compose(
         modal: {
             key: ONYXKEYS.MODAL,
         },
+        isTestToolsModalOpen: {
+            key: ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN,
+        },
     }),
     withNetwork(),
+    withEnvironment,
 )(ScreenWrapper);
