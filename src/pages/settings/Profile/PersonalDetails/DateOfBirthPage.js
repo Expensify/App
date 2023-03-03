@@ -49,7 +49,7 @@ class DateOfBirthPage extends Component {
         this.props.navigation.addListener('focus', () => {
             const {params} = this.props.route;
 
-            if (params.year) {
+            if (params && params.year) {
                 this.setState(prev => ({...prev, defaultYear: params.year}));
             }
         });
