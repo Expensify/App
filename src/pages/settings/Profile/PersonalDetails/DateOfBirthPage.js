@@ -63,6 +63,10 @@ class DateOfBirthPage extends Component {
         this.setState(prev => ({...prev, defaultYear: moment(date).year().toString(), defaultMonth: moment(date).month().toString()}));
     }
 
+    /**
+     * Function to be called to read year from params - necessary to read passed year from the Year picker which is a separate screen
+     * It allows to display selected year in calendar picker without overwriting this value in Onyx
+     */
     readParams() {
         const {params} = this.props.route;
         if (params && params.year) {

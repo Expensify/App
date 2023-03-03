@@ -1,5 +1,4 @@
 import React from 'react';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
 import DatePicker from '../components/NewDatePicker';
 
 /**
@@ -20,15 +19,10 @@ export default {
         errorText: '',
         hasError: false,
     },
-    parameters: {
-        viewport: {
-            defaultViewport: 'mobile1',
-        },
-    },
 };
 
 // eslint-disable-next-line react/jsx-props-no-spreading
-const Template = args => <SafeAreaProvider><DatePicker {...args} /></SafeAreaProvider>;
+const Template = args => <DatePicker {...args} />;
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args

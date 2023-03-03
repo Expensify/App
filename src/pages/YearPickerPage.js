@@ -30,8 +30,8 @@ class YearPickerPage extends React.Component {
     constructor(props) {
         super(props);
 
-        const { params } = props.route;
-        const { min, max, year } = params;
+        const {params} = props.route;
+        const {min, max, year} = params;
         const minYear = Number(min);
         const maxYear = Number(max);
         const currentYear = Number(year);
@@ -51,30 +51,37 @@ class YearPickerPage extends React.Component {
         this.updateYearOfBirth = this.updateYearOfBirth.bind(this);
         this.filterYearList = this.filterYearList.bind(this);
 
-
         this.state = {
             inputText: '',
             yearOptions: this.yearList,
         };
     }
 
+    /**
+     * Function called on selection of the year, to take user back to the previous screen
+     *
+     * @param {String} selectedYear
+     */
     updateYearOfBirth(selectedYear) {
-        const { params } = this.props.route;
-        const { backTo } = params;
+        const {params} = this.props.route;
+        const {backTo} = params;
         Navigation.navigate(`${backTo}?year=${selectedYear}`);
     }
 
-    filterYearList(text){
-        console.log({text, list: this.yearList})
+    /**
+     * Function filtering the list of the items when using search input
+     * @param {String} text
+     */
+    filterYearList(text) {
         this.setState({
             inputText: text,
-            yearOptions: _.filter(this.yearList, (year => year.text.includes(text.trim())))
-        })
+            yearOptions: _.filter(this.yearList, (year => year.text.includes(text.trim()))),
+        });
     }
 
     render() {
-        const { params } = this.props.route;
-        const { backTo } = params;
+        const {params} = this.props.route;
+        const {backTo} = params;
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -92,7 +99,7 @@ class YearPickerPage extends React.Component {
                     onChangeText={this.filterYearList}
                     value={this.state.inputText}
                     sections={[{data: this.state.yearOptions}]}
-                    onSelectRow={(option) => this.updateYearOfBirth(option.value)}
+                    onSelectRow={option => this.updateYearOfBirth(option.value)}
                     hideSectionHeaders
                     optionHoveredStyle={styles.hoveredComponentBG}
                     shouldHaveOptionSeparator
@@ -105,7 +112,6 @@ class YearPickerPage extends React.Component {
 
 YearPickerPage.propTypes = propTypes;
 YearPickerPage.defaultProps = defaultProps;
-YearPickerPage.displayName = 'YearPickerPage';
 
 export default compose(
     withLocalize,

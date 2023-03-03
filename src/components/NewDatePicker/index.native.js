@@ -42,6 +42,9 @@ class NewDatePicker extends React.Component {
         this.maxDate = props.maxDate ? moment(props.maxDate).toDate() : null;
     }
 
+    /**
+     * displays calendar picker on the screen
+     */
     showPicker() {
         this.initialValue = this.state.selectedDate;
 
@@ -58,6 +61,9 @@ class NewDatePicker extends React.Component {
         Keyboard.dismiss();
     }
 
+    /**
+     * hides the calendar picker from the screen
+     */
     hidePicker() {
         this.setState({isPickerVisible: false});
     }

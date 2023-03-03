@@ -22,10 +22,10 @@ const propTypes = {
     /** Default month to be set in the calendar picker */
     defaultMonth: PropTypes.string,
 
-    /** Default year to be set in the calendar picker */
+    /** Default year to be set in the calendar picker. Used with navigation to set the correct year after going back to the view with calendar */
     defaultYear: PropTypes.string,
 
-    /** Callback function to run when pressing close button */
+    /** Callback function to run when pressing close button. Used with navigation to set the correct year after going back to the view with calendar */
     onClosePressed: PropTypes.func,
 };
 

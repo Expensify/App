@@ -266,7 +266,6 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         },
         name: 'Settings_PersonalDetails_DateOfBirth',
     },
-
     {
         getComponent: () => {
             const SettingsAddressPage = require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default;

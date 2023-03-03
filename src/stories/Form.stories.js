@@ -4,8 +4,7 @@ import TextInput from '../components/TextInput';
 import Picker from '../components/Picker';
 import StatePicker from '../components/StatePicker';
 import AddressSearch from '../components/AddressSearch';
-
-// import DatePicker from '../components/DatePicker';
+import DatePicker from '../components/DatePicker';
 import Form from '../components/Form';
 import * as FormActions from '../libs/actions/FormActions';
 import styles from '../styles/styles';
@@ -60,11 +59,11 @@ const Template = (args) => {
                 containerStyles={[styles.mt4]}
                 hint="No PO box"
             />
-            {/* <DatePicker
+            <DatePicker
                 label="Date of birth"
                 inputID="dob"
                 containerStyles={[styles.mt4]}
-            /> */}
+            />
             <View>
                 <Picker
                     label="Fruit"

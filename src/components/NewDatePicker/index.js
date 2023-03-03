@@ -3,8 +3,6 @@ import {Animated, View} from 'react-native';
 import moment from 'moment';
 import _ from 'underscore';
 import TextInput from '../TextInput';
-
-// import Popover from '../Popover';
 import CalendarPicker from '../CalendarPicker';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
@@ -94,10 +92,16 @@ class NewDatePicker extends React.Component {
         this.togglePicker();
     }
 
+    /**
+     * Function to remove event listener on clicking outside, to prevent unexpected showing/hiding the datepicker
+     */
     removeClickListener() {
         document.removeEventListener('mousedown', this.onClickedOutside);
     }
 
+    /**
+     * Function to animate the value of opacity to display the picker component
+     */
     togglePicker() {
         Animated.timing(this.opacity, {
             toValue: this.state.isPickerVisible ? 0 : 1,
