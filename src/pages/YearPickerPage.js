@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
 import {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -9,11 +8,9 @@ import ROUTES from '../ROUTES';
 import Text from '../components/Text';
 import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
-import compose from '../libs/compose';
 import OptionsSelector from '../components/OptionsSelector';
 import themeColors from '../styles/themes/default';
 import * as Expensicons from '../components/Icon/Expensicons';
-import ONYXKEYS from '../ONYXKEYS';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -62,9 +59,8 @@ class YearPickerPage extends React.Component {
      * @param {String} selectedYear
      */
     updateYearOfBirth(selectedYear) {
-        const {params} = this.props.route;
-        const {backTo} = params;
-        Navigation.navigate(`${backTo}?year=${selectedYear}`);
+        // we have to navigate using concatenation here as it is not possible to pass function as route param
+        Navigation.navigate(`${this.props.route.params.backTo}?year=${selectedYear}`);
     }
 
     /**
@@ -87,11 +83,8 @@ class YearPickerPage extends React.Component {
                     onBackButtonPress={() => Navigation.navigate(this.props.route.params.backTo || ROUTES.HOME)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <Text style={[styles.ph5, styles.mb6]}>
-                    {this.props.translate('yearPickerPage.selectYear')}
-                </Text>
                 <OptionsSelector
-                    textInputLabel={this.props.translate('common.search')}
+                    textInputLabel={this.props.translate('yearPickerPage.selectYear')}
                     onChangeText={this.filterYearList}
                     value={this.state.inputText}
                     sections={[{data: this.state.yearOptions}]}
@@ -109,11 +102,4 @@ class YearPickerPage extends React.Component {
 YearPickerPage.propTypes = propTypes;
 YearPickerPage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        privatePersonalDetails: {
-            key: `${ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM}Draft`,
-        },
-    }),
-)(YearPickerPage);
+export default withLocalize(YearPickerPage);

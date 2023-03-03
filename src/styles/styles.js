@@ -728,11 +728,6 @@ const styles = {
 
     calendarHeader: {
         height: 50,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 15,
-        paddingRight: 5,
     },
 
     calendarDayRoot: {
@@ -746,9 +741,7 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
         width: 30,
         height: 30,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderRadius: 15,
+        borderRadius: variables.componentBorderRadiusRounded,
     },
     calendarButtonDisabled: {
         opacity: 0.5,

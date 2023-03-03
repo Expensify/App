@@ -33,10 +33,10 @@ class CalendarPicker extends React.Component {
             currentDateView,
         };
 
-        this.onPrevMonthPress = this.onPrevMonthPress.bind(this);
-        this.onNextMonthPress = this.onNextMonthPress.bind(this);
-        this.onYearPickerPress = this.onYearPickerPress.bind(this);
-        this.onDayPress = this.onDayPress.bind(this);
+        this.onPrevMonthPressed = this.onPrevMonthPressed.bind(this);
+        this.onNextMonthPressed = this.onNextMonthPressed.bind(this);
+        this.onYearPickerPressed = this.onYearPickerPressed.bind(this);
+        this.onDayPressed = this.onDayPressed.bind(this);
     }
 
     // eslint-disable-next-line rulesdir/prefer-early-return
@@ -63,7 +63,7 @@ class CalendarPicker extends React.Component {
      * Updates the currentDateView state by subtracting one month from it.
      * @returns {void}
      */
-    onPrevMonthPress() {
+    onPrevMonthPressed() {
         this.setState(prev => ({currentDateView: moment(prev.currentDateView).subtract(1, 'M').toDate()}));
     }
 
@@ -71,7 +71,7 @@ class CalendarPicker extends React.Component {
      * Updates the currentDateView state by adding one month to it.
      * @returns {void}
      */
-    onNextMonthPress() {
+    onNextMonthPressed() {
         this.setState(prev => ({currentDateView: moment(prev.currentDateView).add(1, 'M').toDate()}));
     }
 
@@ -79,7 +79,7 @@ class CalendarPicker extends React.Component {
      * Sets the yearPickerVisible state to true, displaying the year picker component.
      * @returns {void}
      */
-    onYearPickerPress() {
+    onYearPickerPressed() {
         const minYear = this.props.minDate ? Number(moment(this.props.minDate).year()) : 1970;
         const maxYear = this.props.maxDate ? Number(moment(this.props.maxDate).year()) : 1970 + 200;
         const currentYear = this.state.currentDateView.getFullYear();
@@ -95,7 +95,7 @@ class CalendarPicker extends React.Component {
      * @param {number} day - The day of the month that was selected.
      * @returns {void}
      */
-    onDayPress(day) {
+    onDayPressed(day) {
         if (!this.props.onSelected) {
             return;
         }
@@ -117,18 +117,18 @@ class CalendarPicker extends React.Component {
 
         return (
             <View>
-                <View style={styles.calendarHeader}>
+                <View style={[styles.calendarHeader, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph4, styles.pr1]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flex1]}>
                         <Text style={styles.sidebarLinkTextBold} accessibilityLabel="Current month">{this.monthNames[currentMonthView]}</Text>
-                        <TouchableOpacity testID="prev-month-arrow" disabled={!hasAvailableDatesPrevMonth} onPress={this.onPrevMonthPress}>
+                        <TouchableOpacity testID="prev-month-arrow" disabled={!hasAvailableDatesPrevMonth} onPress={this.onPrevMonthPressed}>
                             <ArrowIcon disabled={!hasAvailableDatesPrevMonth} direction="left" />
                         </TouchableOpacity>
-                        <TouchableOpacity testID="next-month-arrow" disabled={!hasAvailableDatesNextMonth} onPress={this.onNextMonthPress}>
+                        <TouchableOpacity testID="next-month-arrow" disabled={!hasAvailableDatesNextMonth} onPress={this.onNextMonthPressed}>
                             <ArrowIcon disabled={!hasAvailableDatesNextMonth} />
                         </TouchableOpacity>
                     </View>
                     <TouchableOpacity
-                        onPress={this.onYearPickerPress}
+                        onPress={this.onYearPickerPressed}
                         style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentEnd]}
                     >
                         <Text style={styles.sidebarLinkTextBold} accessibilityLabel="Current year">{currentYearView}</Text>
@@ -137,7 +137,7 @@ class CalendarPicker extends React.Component {
                 </View>
                 <View style={styles.flexRow}>
                     {_.map(this.daysOfWeek, (dayOfWeek => (
-                        <View key={dayOfWeek} style={styles.calendarDayRoot}>
+                        <View key={dayOfWeek} style={[styles.calendarDayRoot, styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <Text style={styles.sidebarLinkTextBold}>{dayOfWeek[0]}</Text>
                         </View>
                     )))}
@@ -154,11 +154,13 @@ class CalendarPicker extends React.Component {
                                 <TouchableOpacity
                                     key={`${index}_day-${day}`}
                                     disabled={isDisabled}
-                                    onPress={() => this.onDayPress(day)}
+                                    onPress={() => this.onDayPressed(day)}
                                     style={styles.calendarDayRoot}
                                     accessibilityLabel={day ? day.toString() : undefined}
                                 >
-                                    <View style={[moment(this.props.value).isSame(moment([currentYearView, currentMonthView, day]), 'day') && styles.calendarDayContainerSelected]}>
+                                    <View style={moment(this.props.value).isSame(moment([currentYearView, currentMonthView, day]), 'day') ? [
+                                        styles.calendarDayContainerSelected, styles.justifyContentCenter, styles.alignItemsCenter] : null}
+                                    >
                                         <Text style={isDisabled ? styles.calendarButtonDisabled : styles.dayText}>{day || ''}</Text>
                                     </View>
                                 </TouchableOpacity>

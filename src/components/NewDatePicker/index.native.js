@@ -1,5 +1,4 @@
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
 import {View, Keyboard} from 'react-native';
 import moment from 'moment';
 import _ from 'underscore';

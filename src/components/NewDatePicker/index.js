@@ -29,7 +29,7 @@ class NewDatePicker extends React.Component {
         this.setDate = this.setDate.bind(this);
         this.togglePicker = this.togglePicker.bind(this);
         this.removeClickListener = this.removeClickListener.bind(this);
-        this.onClickedOutside = this.onClickedOutside.bind(this);
+        this.handleOutsideClick = this.handleOutsideClick.bind(this);
 
         this.opacity = new Animated.Value(0);
         this.wrapperRef = React.createRef();
@@ -46,7 +46,7 @@ class NewDatePicker extends React.Component {
     }
 
     componentDidMount() {
-        document.addEventListener('mousedown', this.onClickedOutside);
+        document.addEventListener('mousedown', this.handleOutsideClick);
         // eslint-disable-next-line rulesdir/prefer-early-return
         this.opacity.addListener(({value}) => {
             if (value === 0 || value === 1) {
@@ -58,19 +58,12 @@ class NewDatePicker extends React.Component {
     // eslint-disable-next-line rulesdir/prefer-early-return
     componentDidUpdate(prevProps) {
         if (prevProps.maxDate !== this.props.maxDate) {
-            document.addEventListener('mousedown', this.onClickedOutside);
+            document.addEventListener('mousedown', this.handleOutsideClick);
         }
     }
 
     componentWillUnmount() {
         this.removeClickListener();
-    }
-
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    onClickedOutside(event) {
-        if (this.wrapperRef && !this.wrapperRef.contains(event.target) && this.wrapperRef !== event.target && this.state.isPickerVisible) {
-            this.togglePicker();
-        }
     }
 
     /**
@@ -90,10 +83,21 @@ class NewDatePicker extends React.Component {
     }
 
     /**
+     * Function called when clicked outside of the DatePicker component on the page
+     * @param {Object} event
+     */
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    handleOutsideClick(event) {
+        if (this.wrapperRef && !this.wrapperRef.contains(event.target) && this.wrapperRef !== event.target && this.state.isPickerVisible) {
+            this.togglePicker();
+        }
+    }
+
+    /**
      * Function to remove event listener on clicking outside, to prevent unexpected showing/hiding the datepicker
      */
     removeClickListener() {
-        document.removeEventListener('mousedown', this.onClickedOutside);
+        document.removeEventListener('mousedown', this.handleOutsideClick);
     }
 
     /**
@@ -128,7 +132,7 @@ class NewDatePicker extends React.Component {
                     containerStyles={this.props.containerStyles}
                     disabled={this.props.disabled}
                     onBlur={this.props.onBlur}
-                    readOnly
+                    editable={false}
                 />
                 <Animated.View style={[styles.datePickerPopover, styles.border, {opacity: this.opacity}, this.state.isPickerVisible ? styles.pointerEventsAuto : styles.pointerEventsNone]}>
                     <CalendarPicker
