@@ -36,20 +36,27 @@ class CalendarPicker extends React.Component {
 
         this.onPrevMonthPress = this.onPrevMonthPress.bind(this);
         this.onNextMonthPress = this.onNextMonthPress.bind(this);
-        this.onMonthPickerPress = this.onMonthPickerPress.bind(this);
         this.onYearPickerPress = this.onYearPickerPress.bind(this);
         this.onDayPress = this.onDayPress.bind(this);
     }
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     componentDidMount() {
-        if (this.props.defaultYear) {
+        if (this.props.defaultYear && this.props.defaultMonth) {
+            this.setState(prev => ({...prev, currentDateView: moment(prev.currentDateView).set('year', this.props.defaultYear).set('month', this.props.defaultMonth).toDate()}));
+        } else if (this.props.defaultYear) {
             this.setState(prev => ({...prev, currentDateView: moment(prev.currentDateView).set('year', this.props.defaultYear).toDate()}));
         }
 
-        // this.props.navigation.addListener('focus', this.onFocus);
         if (this.props.minDate && this.props.maxDate && this.props.minDate > this.props.maxDate) {
             throw new Error('Minimum date cannot be greater than the maximum date.');
+        }
+    }
+
+    // eslint-disable-next-line no-shadow, rulesdir/prefer-early-return
+    componentDidUpdate(_, prevState) {
+        if (prevState.currentDateView !== this.state.currentDateView && this.props.onChanged) {
+            this.props.onChanged(this.state.currentDateView);
         }
     }
 
@@ -70,33 +77,25 @@ class CalendarPicker extends React.Component {
     }
 
     /**
-     * Sets the monthPickerVisible state to true, displaying the month picker component.
-     * @returns {void}
-     */
-    onMonthPickerPress() {
-        Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH_MONTH);
-        this.props.onMonthPressed();
-    }
-
-    /**
      * Sets the yearPickerVisible state to true, displaying the year picker component.
      * @returns {void}
      */
     onYearPickerPress() {
         const minYear = this.props.minDate ? Number(moment(this.props.minDate).year()) : 1970;
         const maxYear = this.props.maxDate ? Number(moment(this.props.maxDate).year()) : 1970 + 200;
-        Navigation.navigate(ROUTES.settingsPersonalDetailsDateOfBirthYear(minYear, maxYear));
+        const currentYear = this.state.currentDateView.getFullYear();
+        Navigation.navigate(ROUTES.getYearSelectionRoute(minYear, maxYear, currentYear));
 
         this.props.onYearPressed();
     }
 
     /**
-     * Calls the onChange function with the selected date, if it is within the min/max range.
+     * Calls the onSelected function with the selected date, if it is within the min/max range.
      * @param {number} day - The day of the month that was selected.
      * @returns {void}
      */
     onDayPress(day) {
-        if (!this.props.onChange) {
+        if (!this.props.onSelected) {
             return;
         }
         const selectedDate = new Date(this.state.currentDateView.getFullYear(), this.state.currentDateView.getMonth(), day);
@@ -104,7 +103,7 @@ class CalendarPicker extends React.Component {
         || (this.props.maxDate && moment(selectedDate) > moment(this.props.maxDate).startOf('day'))) {
             return;
         }
-        this.props.onChange(selectedDate);
+        this.props.onSelected(selectedDate);
     }
 
     render() {
@@ -146,15 +145,12 @@ class CalendarPicker extends React.Component {
         return (
             <View>
                 <View style={styles.calendarHeader}>
-                    <TouchableOpacity onPress={this.onMonthPickerPress} style={[styles.alignItemsCenter, styles.flexRow, styles.flex1]}>
-                        <Text style={styles.sidebarLinkTextBold} accessibilityLabel="Current month">{this.monthNames[currentMonthView]}</Text>
-                        <ArrowIcon />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={this.onYearPickerPress} style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flex1]}>
+                    <TouchableOpacity onPress={this.onYearPickerPress} style={[styles.alignItemsCenter, styles.flexRow, styles.flex1]}>
                         <Text style={styles.sidebarLinkTextBold} accessibilityLabel="Current year">{currentYearView}</Text>
                         <ArrowIcon />
                     </TouchableOpacity>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentEnd]}>
+                        <Text style={styles.sidebarLinkTextBold} accessibilityLabel="Current month">{this.monthNames[currentMonthView]}</Text>
                         <TouchableOpacity testID="prev-month-arrow" disabled={!hasAvailableDatesPrevMonth} onPress={this.onPrevMonthPress}>
                             <ArrowIcon disabled={!hasAvailableDatesPrevMonth} direction="left" />
                         </TouchableOpacity>

@@ -43,6 +43,8 @@ class DateOfBirthPage extends Component {
             defaultMonth: undefined,
             defaultYear: undefined,
         };
+
+        this.onDateChanged = this.onDateChanged.bind(this);
     }
 
     componentDidMount() {
@@ -53,6 +55,10 @@ class DateOfBirthPage extends Component {
                 this.setState(prev => ({...prev, defaultYear: params.year}));
             }
         });
+    }
+
+    onDateChanged(date) {
+        this.setState(prev => ({...prev, defaultYear: moment(date).year().toString(), defaultMonth: moment(date).month().toString()}));
     }
 
     /**
@@ -115,7 +121,9 @@ class DateOfBirthPage extends Component {
                             shouldSaveDraft
                             minDate={moment().subtract(150, 'years').toDate()}
                             maxDate={moment().subtract(5, 'years').toDate()}
+                            defaultMonth={this.state.defaultMonth}
                             defaultYear={this.state.defaultYear}
+                            onDateChanged={this.onDateChanged}
                         />
                     </View>
                 </Form>

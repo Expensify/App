@@ -1,8 +1,11 @@
 import PropTypes from 'prop-types';
 
 const propTypes = {
-    /** A function that is called when the day is clicked */
-    onChange: PropTypes.func,
+    /** A function that is called when the date changed inside the calendar component */
+    onChanged: PropTypes.func,
+
+    /** A function called when the date is selected */
+    onSelected: PropTypes.func,
 
     /** A value initial of date */
     value: PropTypes.objectOf(Date),
@@ -12,9 +15,6 @@ const propTypes = {
 
     /** A maximum date of calendar to select */
     maxDate: PropTypes.objectOf(Date),
-
-    /** Callback function to call when month is pressed */
-    onMonthPressed: PropTypes.func.isRequired,
 
     /** Callback function to call when year is pressed */
     onYearPressed: PropTypes.func.isRequired,
@@ -30,8 +30,8 @@ const defaultProps = {
     value: new Date(),
     minDate: null,
     maxDate: null,
-    onChange: null,
-    onMonthPressed: null,
+    onChanged: null,
+    onSelected: null,
     onYearPressed: null,
 };
 

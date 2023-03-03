@@ -147,8 +147,8 @@ class DatePicker extends React.Component {
                             minDate={this.minDate}
                             maxDate={this.maxDate}
                             value={this.state.selectedDate}
-                            onChange={this.setDate}
-                            onMonthPressed={this.togglePicker}
+                            onSelected={this.setDate}
+                            onChanged={this.props.onDateChanged}
                             onYearPressed={this.togglePicker}
                             defaultMonth={this.props.defaultMonth}
                             defaultYear={this.props.defaultYear}

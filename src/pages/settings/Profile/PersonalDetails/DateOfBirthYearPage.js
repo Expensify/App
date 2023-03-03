@@ -1,8 +1,6 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import moment from 'moment';
 import {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
@@ -29,11 +27,10 @@ const defaultProps = {
 };
 
 const DateOfBirthYearPage = (props) => {
-    const momentDob = moment(lodashGet(props.privatePersonalDetails, 'dob', ''));
-    const currentYear = momentDob.year();
     const {params} = props.route;
     const minYear = Number(params.min);
     const maxYear = Number(params.max);
+    const currentYear = Number(params.year);
 
     const yearList = _.map(Array.from({length: (maxYear - minYear) + 1}, (k, v) => v + minYear), (value, index) => ({
         text: value.toString(),
