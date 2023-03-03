@@ -154,6 +154,45 @@ results in
 }
 ```
 
+### `setJobRunners`
+`setJobRunners` overwrites the runner types for given jobs, helpful when the runner type in the workflow is not supported by `Act`
+
+Parameters:
+- `act` - instance of previously created `Act` object
+- `jobs` - object with keys being the IDs of the workflow jobs to be modified and values being the names of runners that should be used for them in the test
+- `workflowPath` - path to the workflow file to be updated, **NOTE**: this will modify the file, use the one from the local test repo, not from `App/.github/workflows`!
+
+Returns an `Act` object instance
+
+Let's say you have a workflow with a job using `macos-12` runner, which is unsupported by `Act` - in this case that job will simply be skipped altogether, not allowing you to test it in any way.
+```yaml
+iOS:
+  name: Build and deploy iOS
+  needs: validateActor
+  if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
+  runs-on: macos-12
+  steps:
+```
+You can use this method to change the runner to something that is supported, like
+```javascript
+act = utils.setJobRunners(
+    act,
+    {
+        iOS: 'ubuntu-latest',
+    },
+    workflowPath,
+);
+```
+Now the test workflow will look as follows, which will allow you to run the job and do at least limited testing
+```yaml
+iOS:
+  name: Build and deploy iOS
+  needs: validateActor
+  if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
+  runs-on: ubuntu-latest
+  steps:
+```
+
 ## Typical test file
 The following is the typical test file content, which will be followed by a detailed breakdown
 ```javascript
