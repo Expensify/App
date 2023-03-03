@@ -31,8 +31,9 @@ const originalXHR = HttpUtils.xhr;
 beforeEach(() => {
     global.fetch = TestHelper.getGlobalFetchMock();
     HttpUtils.xhr = originalXHR;
-    PersistedRequests.clear();
     MainQueue.clear();
+    HttpUtils.cancelPendingRequests();
+    PersistedRequests.clear();
 
     // Wait for any Log command to finish and Onyx to fully clear
     jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);

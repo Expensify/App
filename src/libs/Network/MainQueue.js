@@ -86,7 +86,6 @@ function process() {
  */
 function clear() {
     networkRequestQueue = _.filter(networkRequestQueue, request => !request.data.canCancel);
-    HttpUtils.cancelPendingRequests();
 }
 
 /**
