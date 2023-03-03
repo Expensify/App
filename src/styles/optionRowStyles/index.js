@@ -1,10 +1,8 @@
 import styles from '../styles';
 
-const compactAlternateTextStyle = styles.alternateTextStyle;
-
 const compactContentContainerStyles = styles.alignItemsBaseline;
 
 export {
-    compactAlternateTextStyle,
+    // eslint-disable-next-line import/prefer-default-export
     compactContentContainerStyles,
 };

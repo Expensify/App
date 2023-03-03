@@ -73,7 +73,7 @@ const OptionRowLHN = (props) => {
         ? [styles.ml1, StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.icon, 0.5)]
         : [styles.ml1];
     const alternateTextStyle = StyleUtils.combineStyles(props.viewMode === CONST.OPTION_MODE.COMPACT
-        ? [textStyle, optionRowStyles.compactAlternateTextStyle, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
+        ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
         : [textStyle, styles.optionAlternateText, styles.textLabelSupporting], props.style);
     const contentContainerStyles = props.viewMode === CONST.OPTION_MODE.COMPACT
         ? [styles.flex1, styles.flexRow, styles.overflowHidden, optionRowStyles.compactContentContainerStyles]
