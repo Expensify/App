@@ -1,10 +1,15 @@
 import React from 'react';
+import {View} from 'react-native';
 import moment from 'moment';
 import _ from 'underscore';
 import TextInput from '../TextInput';
+import Popover from '../Popover';
+import CalendarPicker from '../CalendarPicker';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withNavigation from '../withNavigation';
+import compose from '../../libs/compose';
 import './styles.css';
 
 const datePickerPropTypes = {
@@ -16,8 +21,17 @@ class DatePicker extends React.Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            selectedDate: null,
+            isPickerVisible: false,
+            pickerLayout: {},
+        };
+
         this.setDate = this.setDate.bind(this);
-        this.showDatepicker = this.showDatepicker.bind(this);
+        this.togglePicker = this.togglePicker.bind(this);
+        this.onWindowResize = this.onWindowResize.bind(this);
+
+        window.addEventListener('resize', this.onWindowResize);
 
         /* We're using uncontrolled input otherwise it wont be possible to
         * raise change events with a date value - each change will produce a date
@@ -25,14 +39,40 @@ class DatePicker extends React.Component {
         this.defaultValue = props.defaultValue
             ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
             : '';
+
+        this.minDate = props.minDate ? moment(props.minDate).toDate() : null;
+        this.maxDate = props.maxDate ? moment(props.maxDate).toDate() : null;
     }
 
     componentDidMount() {
-        // Adds nice native datepicker on web/desktop. Not possible to set this through props
-        this.inputRef.setAttribute('type', 'date');
-        this.inputRef.setAttribute('max', CONST.DATE.MAX_DATE);
-        this.inputRef.setAttribute('min', CONST.DATE.MIN_DATE);
-        this.inputRef.classList.add('expensify-datepicker');
+        this.props.navigation.addListener('transitionEnd', this.onWindowResize);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('resize', this.onWindowResize);
+        this.props.navigation.removeListener('transitionEnd', this.onWindowResize);
+    }
+
+    /**
+     * Function called on window resize, to hide DatePicker and recalculate position of the calendar popover in the window
+     */
+    onWindowResize() {
+        if (this.wrapperRef) {
+            const {
+                x, y, width, height, left, top,
+            } = this.wrapperRef.getBoundingClientRect();
+            this.setState({
+                pickerLayout: {
+                    x, y, width, height, left, top,
+                },
+            });
+        }
+
+        if (!this.state.isPickerVisible) {
+            return;
+        }
+
+        this.setState({isPickerVisible: false});
     }
 
     /**
@@ -45,47 +85,58 @@ class DatePicker extends React.Component {
             return;
         }
 
+        this.setState({selectedDate: text});
         const asMoment = moment(text, true);
         if (asMoment.isValid()) {
             this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
         }
+
+        this.togglePicker();
     }
 
-    /**
-     * Pops the datepicker up when we focus this field. This only works on mWeb
-     * On mWeb the user needs to tap on the field again in order to bring the datepicker. But our current styles
-     * don't make this very obvious. To avoid confusion we open the datepicker when the user focuses the field
-     */
-    showDatepicker() {
-        if (!this.inputRef) {
-            return;
-        }
-
-        this.inputRef.click();
+    togglePicker() {
+        this.setState(prevState => ({...prevState, isPickerVisible: !prevState.isPickerVisible}));
     }
 
     render() {
         return (
-            <TextInput
-                forceActiveLabel
-                ref={(el) => {
-                    this.inputRef = el;
+            <View ref={ref => this.wrapperRef = ref}>
+                <TextInput
+                    forceActiveLabel
+                    ref={(el) => {
+                        this.inputRef = el;
 
-                    if (_.isFunction(this.props.innerRef)) {
-                        this.props.innerRef(el);
-                    }
-                }}
-                onFocus={this.showDatepicker}
-                label={this.props.label}
-                onInputChange={this.setDate}
-                value={this.props.value}
-                defaultValue={this.defaultValue}
-                placeholder={this.props.placeholder}
-                errorText={this.props.errorText}
-                containerStyles={this.props.containerStyles}
-                disabled={this.props.disabled}
-                onBlur={this.props.onBlur}
-            />
+                        if (_.isFunction(this.props.innerRef)) {
+                            this.props.innerRef(el);
+                        }
+                    }}
+                    onPress={this.togglePicker}
+                    label={this.props.label}
+                    value={this.props.value}
+                    defaultValue={this.defaultValue}
+                    placeholder={this.props.placeholder || CONST.DATE.MOMENT_FORMAT_STRING}
+                    errorText={this.props.errorText}
+                    containerStyles={this.props.containerStyles}
+                    disabled={this.props.disabled}
+                    onBlur={this.props.onBlur}
+                    readOnly
+                />
+                <Popover
+                    isVisible={this.state.isPickerVisible}
+                    onClose={this.togglePicker}
+                    fullscreen
+                    isSmallScreenWidth={false}
+                    anchorPosition={{
+                        // The position of the popover needs to be calculated. 10px space is added to move it a little bit from the TextInput
+                        top: this.state.pickerLayout.height + this.state.pickerLayout.top + 10,
+                        left: this.state.pickerLayout.left,
+                    }}
+                >
+                    <View style={{width: this.state.pickerLayout.width}}>
+                        <CalendarPicker minDate={this.minDate} maxDate={this.maxDate} value={this.state.selectedDate} onChange={this.setDate} />
+                    </View>
+                </Popover>
+            </View>
         );
     }
 }
@@ -93,7 +144,8 @@ class DatePicker extends React.Component {
 DatePicker.propTypes = datePickerPropTypes;
 DatePicker.defaultProps = defaultProps;
 
-export default withWindowDimensions(React.forwardRef((props, ref) => (
+export default compose(withNavigation,
+    withWindowDimensions)(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <DatePicker {...props} innerRef={ref} />
+        <DatePicker {...props} innerRef={ref} />
 )));

@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import moment from 'moment';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -98,6 +99,8 @@ class DateOfBirthPage extends Component {
                             label={this.props.translate('common.date')}
                             defaultValue={privateDetails.dob || ''}
                             shouldSaveDraft
+                            minDate={moment().subtract(150, 'years').toDate()}
+                            maxDate={moment().subtract(5, 'years').toDate()}
                         />
                     </View>
                 </Form>

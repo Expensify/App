@@ -18,6 +18,13 @@ const propTypes = {
      * `onInputChange` would always be called with a Date (or null)
      */
     defaultValue: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
+
+    /** A minimum date of calendar to select */
+    minDate: PropTypes.objectOf(Date),
+
+    /** A maximum date of calendar to select */
+    maxDate: PropTypes.objectOf(Date),
+
 };
 
 const defaultProps = {

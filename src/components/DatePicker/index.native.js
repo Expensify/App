@@ -1,7 +1,6 @@
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Button, View, Keyboard} from 'react-native';
-import RNDatePicker from '@react-native-community/datetimepicker';
+import {View, Keyboard, StatusBar} from 'react-native';
 import moment from 'moment';
 import _ from 'underscore';
 import compose from '../../libs/compose';
@@ -10,9 +9,9 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Popover from '../Popover';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import {propTypes, defaultProps} from './datepickerPropTypes';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
+import CalendarPicker from '../CalendarPicker';
 
 const datepickerPropTypes = {
     ...propTypes,
@@ -27,12 +26,17 @@ class DatePicker extends React.Component {
         this.state = {
             isPickerVisible: false,
             selectedDate: props.value || props.defaultValue ? moment(props.value || props.defaultValue).toDate() : new Date(),
+            pickerLayout: {},
+            spaceFromTop: null,
         };
 
         this.showPicker = this.showPicker.bind(this);
         this.reset = this.reset.bind(this);
-        this.selectDate = this.selectDate.bind(this);
+        this.hidePicker = this.hidePicker.bind(this);
         this.updateLocalDate = this.updateLocalDate.bind(this);
+
+        this.minDate = props.minDate ? moment(props.minDate).toDate() : null;
+        this.maxDate = props.maxDate ? moment(props.maxDate).toDate() : null;
     }
 
     showPicker() {
@@ -51,6 +55,10 @@ class DatePicker extends React.Component {
         Keyboard.dismiss();
     }
 
+    hidePicker() {
+        this.setState({isPickerVisible: false});
+    }
+
     /**
      * Reset the date spinner to the initial value
      */
@@ -59,27 +67,28 @@ class DatePicker extends React.Component {
     }
 
     /**
-     * Accept the current spinner changes, close the spinner and propagate the change
-     * to the parent component (props.onInputChange)
-     */
-    selectDate() {
-        this.setState({isPickerVisible: false});
-        const asMoment = moment(this.state.selectedDate, true);
-        this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
-    }
-
-    /**
-     * @param {Event} event
      * @param {Date} selectedDate
      */
-    updateLocalDate(event, selectedDate) {
+    updateLocalDate(selectedDate) {
         this.setState({selectedDate});
+        this.props.onInputChange(selectedDate);
+        this.hidePicker();
     }
 
     render() {
         const dateAsText = this.props.value || this.props.defaultValue ? moment(this.props.value || this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
         return (
-            <>
+            <View
+                ref={(ref) => {
+                    if (!ref || this.state.spaceFromTop) { return; }
+
+                    ref.measureInWindow((x, y) => {
+                        this.setState({spaceFromTop: y});
+                    });
+                }}
+
+                onLayout={({nativeEvent}) => this.setState({pickerLayout: nativeEvent.layout})}
+            >
                 <TextInput
                     forceActiveLabel
                     label={this.props.label}
@@ -108,39 +117,19 @@ class DatePicker extends React.Component {
                 />
                 <Popover
                     isVisible={this.state.isPickerVisible}
-                    onClose={this.selectDate}
+                    onClose={this.hidePicker}
+                    fromSidebarMediumScreen
+                    anchorPosition={{
+                        // The position of the popover needs to be calculated. 10px space is added to move it a little bit from the TextInput
+                        top: this.state.pickerLayout.height + this.state.spaceFromTop + StatusBar.currentHeight + 10,
+                        left: 20,
+                    }}
                 >
-                    <View style={[
-                        styles.flexRow,
-                        styles.justifyContentBetween,
-                        styles.borderBottom,
-                        styles.pb1,
-                        styles.ph4,
-                    ]}
-                    >
-                        <Button
-                            title={this.props.translate('common.reset')}
-                            color={themeColors.textError}
-                            onPress={this.reset}
-                        />
-                        <Button
-                            title={this.props.translate('common.done')}
-                            color={themeColors.link}
-                            onPress={this.selectDate}
-                        />
+                    <View style={{width: this.state.pickerLayout.width}}>
+                        <CalendarPicker minDate={this.minDate} maxDate={this.maxDate} value={this.state.selectedDate} onChange={this.updateLocalDate} />
                     </View>
-                    <RNDatePicker
-                        value={this.state.selectedDate}
-                        mode="date"
-                        display="spinner"
-                        themeVariant="dark"
-                        onChange={this.updateLocalDate}
-                        locale={this.props.preferredLocale}
-                        maximumDate={new Date(CONST.DATE.MAX_DATE)}
-                        minimumDate={new Date(CONST.DATE.MIN_DATE)}
-                    />
                 </Popover>
-            </>
+            </View>
         );
     }
 }
