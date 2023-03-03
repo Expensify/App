@@ -1,6 +1,5 @@
 import {View} from 'react-native';
 import React from 'react';
-import {GestureDetector, Gesture} from 'react-native-gesture-handler';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
@@ -17,9 +16,9 @@ import withEnvironment from '../withEnvironment';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withNetwork} from '../OnyxProvider';
 import {propTypes, defaultProps} from './propTypes';
-import * as App from '../../libs/actions/App';
 import SafeAreaConsumer from '../SafeAreaConsumer';
 import TestToolsModal from '../TestToolsModal';
+import TestToolsGestureDetector from '../TestToolsGestureDetector';
 
 class ScreenWrapper extends React.Component {
     constructor(props) {
@@ -76,19 +75,6 @@ class ScreenWrapper extends React.Component {
     }
 
     render() {
-        // Open the test tools menu on 5 taps in dev only
-        const isDevEnvironment = this.props.environment === CONST.ENVIRONMENT.DEV;
-        const quintupleTap = Gesture.Tap()
-            .numberOfTaps(5)
-
-            // Run the callbacks on the JS thread otherwise there's an error on iOS
-            .runOnJS(true)
-            .onEnd(() => {
-                if (!isDevEnvironment) {
-                    return;
-                }
-                App.toggleTestToolsModal();
-            });
         return (
             <SafeAreaConsumer>
                 {({
@@ -106,7 +92,7 @@ class ScreenWrapper extends React.Component {
                     }
 
                     return (
-                        <GestureDetector gesture={quintupleTap}>
+                        <TestToolsGestureDetector>
                             <View
                                 style={[
                                     ...this.props.style,
@@ -131,7 +117,7 @@ class ScreenWrapper extends React.Component {
                                     )}
                                 </KeyboardAvoidingView>
                             </View>
-                        </GestureDetector>
+                        </TestToolsGestureDetector>
                     );
                 }}
             </SafeAreaConsumer>
