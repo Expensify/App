@@ -26,8 +26,7 @@ const story = {
         CheckboxWithLabel,
         Picker,
         StatePicker,
-
-        // DatePicker,
+        DatePicker,
     },
 };
 

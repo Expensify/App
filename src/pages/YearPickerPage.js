@@ -31,10 +31,9 @@ class YearPickerPage extends React.Component {
         super(props);
 
         const {params} = props.route;
-        const {min, max, year} = params;
-        const minYear = Number(min);
-        const maxYear = Number(max);
-        const currentYear = Number(year);
+        const minYear = Number(params.min);
+        const maxYear = Number(params.max);
+        const currentYear = Number(params.year);
 
         this.yearList = _.map(Array.from({length: (maxYear - minYear) + 1}, (k, v) => v + minYear), (value, index) => ({
             text: value.toString(),
@@ -80,15 +79,12 @@ class YearPickerPage extends React.Component {
     }
 
     render() {
-        const {params} = this.props.route;
-        const {backTo} = params;
-
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('yearPickerPage.year')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(backTo || ROUTES.HOME)}
+                    onBackButtonPress={() => Navigation.navigate(this.props.route.params.backTo || ROUTES.HOME)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <Text style={[styles.ph5, styles.mb6]}>

@@ -1,8 +1,6 @@
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {
-    View, Keyboard,
-} from 'react-native';
+import {View, Keyboard} from 'react-native';
 import moment from 'moment';
 import _ from 'underscore';
 import compose from '../../libs/compose';
@@ -34,7 +32,6 @@ class NewDatePicker extends React.Component {
         this.reset = this.reset.bind(this);
         this.hidePicker = this.hidePicker.bind(this);
         this.updateLocalDate = this.updateLocalDate.bind(this);
-        this.onClickedOutside = this.onC;
 
         this.wrapperRef = React.createRef();
 

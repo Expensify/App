@@ -100,8 +100,9 @@ class CalendarPicker extends React.Component {
             return;
         }
         const selectedDate = new Date(this.state.currentDateView.getFullYear(), this.state.currentDateView.getMonth(), day);
-        if ((this.props.minDate && moment(selectedDate) < moment(this.props.minDate).startOf('day'))
-        || (this.props.maxDate && moment(selectedDate) > moment(this.props.maxDate).startOf('day'))) {
+        const isBeforeMinDate = this.props.minDate && moment(selectedDate) < moment(this.props.minDate).startOf('day');
+        const isAfterMaxDate = this.props.maxDate && moment(selectedDate) > moment(this.props.maxDate).startOf('day');
+        if (isBeforeMinDate || isAfterMaxDate) {
             return;
         }
         this.props.onSelected(selectedDate);
