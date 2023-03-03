@@ -23,21 +23,32 @@ export default function generateMonthMatrix(year, month) {
         throw new TypeError('Month cannot be greater than 11');
     }
 
+    // Get the number of days in the month and the first day of the month
     const daysInMonth = moment([year, month]).daysInMonth();
     const firstDay = moment([year, month, 1]).startOf('month').locale('en');
+
+    // Create a matrix to hold the calendar days
     const matrix = [];
     let currentWeek = [];
+
+    // Add null values for days before the first day of the month
     for (let i = 0; i < firstDay.weekday(); i++) {
         currentWeek.push(null);
     }
+
+    // Add calendar days to the matrix
     for (let i = 1; i <= daysInMonth; i++) {
         const day = moment([year, month, i]).locale('en');
         currentWeek.push(day.date());
+
+        // Start a new row when the current week is full
         if (day.weekday() === 6) {
             matrix.push(currentWeek);
             currentWeek = [];
         }
     }
+
+    // Add null values for days after the last day of the month
     if (currentWeek.length > 0) {
         for (let i = currentWeek.length; i < 7; i++) {
             currentWeek.push(null);
