@@ -26,6 +26,12 @@ const propTypes = {
     /** The value of the comment box */
     value: PropTypes.string,
 
+    /** Number of lines for the comment */
+    numberOfLines: PropTypes.number,
+
+    /** Callback method to update number of lines for the comment */
+    onNumberOfLinesChange: PropTypes.func,
+
     /** Callback method to handle pasting a file */
     onPasteFile: PropTypes.func,
 
@@ -75,6 +81,8 @@ const propTypes = {
 const defaultProps = {
     defaultValue: undefined,
     value: undefined,
+    numberOfLines: 1,
+    onNumberOfLinesChange: () => {},
     maxLines: -1,
     onPasteFile: () => {},
     shouldClear: false,
@@ -116,7 +124,7 @@ class Composer extends React.Component {
             : `${props.value || ''}`;
 
         this.state = {
-            numberOfLines: 1,
+            numberOfLines: props.numberOfLines || 1,
             selection: {
                 start: initialValue.length,
                 end: initialValue.length,
@@ -129,7 +137,6 @@ class Composer extends React.Component {
         this.handleWheel = this.handleWheel.bind(this);
         this.putSelectionInClipboard = this.putSelectionInClipboard.bind(this);
         this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
-        this.updateNumberOfLinesOnLayoutChange = this.updateNumberOfLinesOnLayoutChange.bind(this);
     }
 
     componentDidMount() {
@@ -320,16 +327,6 @@ class Composer extends React.Component {
     }
 
     /**
-     * Update numberOfLines when TextInput renders on the screen and initial numberOfLines is 0
-     */
-    updateNumberOfLinesOnLayoutChange() {
-        if (this.state.numberOfLines !== 0) {
-            return;
-        }
-        this.updateNumberOfLines();
-    }
-
-    /**
      * Check the current scrollHeight of the textarea (minus any padding) and
      * divide by line height to get the total number of rows for the textarea.
      */
@@ -345,11 +342,13 @@ class Composer extends React.Component {
             const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
             const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
             + parseInt(computedStyle.paddingTop, 10);
-            const numberOfLines = getNumberOfLines(this.props.maxLines, lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
+            const computedNumberOfLines = getNumberOfLines(this.props.maxLines, lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
+            const numberOfLines = computedNumberOfLines === 0 ? Math.max(this.props.numberOfLines, 1) : computedNumberOfLines;
             updateIsFullComposerAvailable(this.props, numberOfLines);
             this.setState({
                 numberOfLines,
             });
+            this.props.onNumberOfLinesChange(numberOfLines);
         });
     }
 
@@ -368,8 +367,6 @@ class Composer extends React.Component {
                 selection={this.state.selection}
                 onChange={this.shouldCallUpdateNumberOfLines}
                 onSelectionChange={this.onSelectionChange}
-                onLayout={this.updateNumberOfLinesOnLayoutChange}
-                numberOfLines={this.state.numberOfLines}
                 style={[
                     propStyles,
 
@@ -379,6 +376,7 @@ class Composer extends React.Component {
                 ]}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsWithoutStyles}
+                numberOfLines={this.state.numberOfLines}
                 disabled={this.props.isDisabled}
             />
         );
