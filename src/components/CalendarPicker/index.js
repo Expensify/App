@@ -9,6 +9,8 @@ import styles from '../../styles/styles';
 import {propTypes, defaultProps} from './calendarPickerPropTypes';
 import generateMonthMatrix from './generateMonthMatrix';
 import withLocalize from '../withLocalize';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 class CalendarPicker extends React.Component {
     constructor(props) {
@@ -65,7 +67,7 @@ class CalendarPicker extends React.Component {
      * @returns {void}
      */
     onMonthPickerPress() {
-        this.setState({monthPickerVisible: true});
+        Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH_MONTH);
     }
 
     /**
@@ -73,7 +75,7 @@ class CalendarPicker extends React.Component {
      * @returns {void}
      */
     onYearPickerPress() {
-        this.setState({yearPickerVisible: true});
+        Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH_YEAR);
     }
 
     /**

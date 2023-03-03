@@ -268,6 +268,20 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsDateOfBirthYearPage = require('../../../pages/settings/Profile/PersonalDetails/DateOfBirthYearPage').default;
+            return SettingsDateOfBirthYearPage;
+        },
+        name: 'Settings_PersonalDetails_DateOfBirth_Year',
+    },
+    {
+        getComponent: () => {
+            const SettingsDateOfBirthMonthPage = require('../../../pages/settings/Profile/PersonalDetails/DateOfBirthMonthPage').default;
+            return SettingsDateOfBirthMonthPage;
+        },
+        name: 'Settings_PersonalDetails_DateOfBirth_Month',
+    },
+    {
+        getComponent: () => {
             const SettingsAddressPage = require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default;
             return SettingsAddressPage;
         },
