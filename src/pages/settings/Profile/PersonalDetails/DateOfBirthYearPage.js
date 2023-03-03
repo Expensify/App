@@ -31,11 +31,14 @@ const defaultProps = {
 const DateOfBirthYearPage = (props) => {
     const momentDob = moment(lodashGet(props.privatePersonalDetails, 'dob', ''));
     const currentYear = momentDob.year();
+    const {params} = props.route;
+    const minYear = Number(params.min);
+    const maxYear = Number(params.max);
 
-    const yearList = _.map(Array.from({length: 200}, (k, v) => v + 1970), (value, index) => ({
+    const yearList = _.map(Array.from({length: (maxYear - minYear) + 1}, (k, v) => v + minYear), (value, index) => ({
         text: value.toString(),
         value,
-        keyForList: index,
+        keyForList: index.toString(),
 
         // Include the green checkmark icon to indicate the currently selected value
         customIcon: value === currentYear ? greenCheckmark : undefined,
