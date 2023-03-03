@@ -96,7 +96,7 @@ const PLATFORM_DEPLOY__ANDROID__WARN_DEPLOYERS__STEP_MOCK = utils.getMockStep(
     'Warn deployers if Android production deploy failed',
     'Warning deployers of failed production deploy',
     'ANDROID',
-    ['status', 'custom_payload'],
+    ['status'],
     ['GITHUB_TOKEN', 'SLACK_WEBHOOK_URL'],
 );
 const PLATFORM_DEPLOY__ANDROID__STEP_MOCKS = [
@@ -239,7 +239,7 @@ const PLATFORM_DEPLOY__IOS__WARN_FAIL__STEP_MOCK = utils.getMockStep(
     'Warn deployers if iOS production deploy failed',
     'Warning developers of failed deploy',
     'IOS',
-    ['status', 'custom_payload'],
+    ['status'],
     ['GITHUB_TOKEN', 'SLACK_WEBHOOK_URL'],
 );
 const PLATFORM_DEPLOY__IOS__STEP_MOCKS = [
@@ -362,23 +362,23 @@ const PLATFORM_DEPLOY__POST_SLACK_SUCCESS__SET_VERSION__STEP_MOCK = utils.getMoc
 );
 const PLATFORM_DEPLOY__POST_SLACK_SUCCESS__ANNOUNCE_CHANNEL__STEP_MOCK = utils.getMockStep(
     'Announces the deploy in the #announce Slack room',
-    'Posting message to #announce channel',
+    'Posting message to \\#announce channel',
     'POST_SLACK_SUCCESS',
-    ['status', 'custom_payload'],
+    ['status'],
     ['GITHUB_TOKEN', 'SLACK_WEBHOOK_URL'],
 );
 const PLATFORM_DEPLOY__POST_SLACK_SUCCESS__DEPLOYER_CHANNEL__STEP_MOCK = utils.getMockStep(
     'Announces the deploy in the #deployer Slack room',
-    'Posting message to #deployer channel',
+    'Posting message to \\#deployer channel',
     'POST_SLACK_SUCCESS',
-    ['status', 'custom_payload'],
+    ['status'],
     ['GITHUB_TOKEN', 'SLACK_WEBHOOK_URL'],
 );
 const PLATFORM_DEPLOY__POST_SLACK_SUCCESS__EXPENSIFY_CHANNEL__STEP_MOCK = utils.getMockStep(
     'Announces a production deploy in the #expensify-open-source Slack room',
-    'Posting message to #expensify-open-source channel',
+    'Posting message to \\#expensify-open-source channel',
     'POST_SLACK_SUCCESS',
-    ['status', 'custom_payload'],
+    ['status'],
     ['GITHUB_TOKEN', 'SLACK_WEBHOOK_URL'],
 );
 const PLATFORM_DEPLOY__POST_SLACK_SUCCESS__STEP_MOCKS = [
