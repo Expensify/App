@@ -9,24 +9,24 @@ import styles from './styles';
 import * as ReportUtils from '../libs/ReportUtils';
 
 const workspaceColorOptions = [
-    [colors.blue200, colors.blue700],
-    [colors.blue400, colors.blue800],
-    [colors.blue700, colors.blue200],
-    [colors.green200, colors.green700],
-    [colors.green400, colors.green800],
-    [colors.green700, colors.green200],
-    [colors.yellow200, colors.yellow700],
-    [colors.yellow400, colors.yellow800],
-    [colors.yellow700, colors.yellow200],
-    [colors.tangerine200, colors.tangerine700],
-    [colors.tangerine400, colors.tangerine800],
-    [colors.tangerine700, colors.tangerine400],
-    [colors.pink200, colors.pink700],
-    [colors.pink400, colors.pink800],
-    [colors.pink700, colors.pink200],
-    [colors.ice200, colors.ice700],
-    [colors.ice400, colors.ice800],
-    [colors.ice700, colors.ice200],
+    {backgroundColor: colors.blue200, fill: colors.blue700},
+    {backgroundColor: colors.blue400, fill: colors.blue800},
+    {backgroundColor: colors.blue700, fill: colors.blue200},
+    {backgroundColor: colors.green200, fill: colors.green700},
+    {backgroundColor: colors.green400, fill: colors.green800},
+    {backgroundColor: colors.green700, fill: colors.green200},
+    {backgroundColor: colors.yellow200, fill: colors.yellow700},
+    {backgroundColor: colors.yellow400, fill: colors.yellow800},
+    {backgroundColor: colors.yellow700, fill: colors.yellow200},
+    {backgroundColor: colors.tangerine200, fill: colors.tangerine700},
+    {backgroundColor: colors.tangerine400, fill: colors.tangerine800},
+    {backgroundColor: colors.tangerine700, fill: colors.tangerine400},
+    {backgroundColor: colors.pink200, fill: colors.pink700},
+    {backgroundColor: colors.pink400, fill: colors.pink800},
+    {backgroundColor: colors.pink700, fill: colors.pink200},
+    {backgroundColor: colors.ice200, fill: colors.ice700},
+    {backgroundColor: colors.ice400, fill: colors.ice800},
+    {backgroundColor: colors.ice700, fill: colors.ice200},
 ];
 
 const avatarBorderSizes = {
@@ -80,7 +80,7 @@ function getAvatarStyle(size) {
 }
 
 /**
-* Return the border style if avatar is SVG
+* Return the border radius for an avatar
 *
 * @param {String} size
 * @param {String} type
@@ -96,7 +96,7 @@ function getAvatarBorderRadius(size, type) {
 }
 
 /**
- * Return the border style if avatar is SVG
+ * Return the border style for an avatar
  *
  * @param {String} size
  * @param {String} type
@@ -118,7 +118,7 @@ function getAvatarBorderStyle(size, type) {
 function getDefaultWorspaceAvatarColor(workspaceName) {
     const colorHash = ReportUtils.hashLogin(workspaceName.trim(), workspaceColorOptions.length);
 
-    return {backgroundColor: workspaceColorOptions[colorHash][0], fill: workspaceColorOptions[colorHash][1]};
+    return workspaceColorOptions[colorHash];
 }
 
 /**
