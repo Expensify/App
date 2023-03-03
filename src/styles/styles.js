@@ -1627,7 +1627,6 @@ const styles = {
         height: 28,
         width: 28,
         backgroundColor: themeColors.appBG,
-        borderRadius: 33,
         paddingTop: 2,
         alignItems: 'center',
     },
@@ -1794,7 +1793,6 @@ const styles = {
         width: 28,
         borderWidth: 2,
         borderStyle: 'solid',
-        borderRadius: 24,
         zIndex: 6,
     },
 
