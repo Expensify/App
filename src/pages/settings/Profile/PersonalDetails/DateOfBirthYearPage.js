@@ -2,20 +2,22 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../../components/withCurrentUserPersonalDetails';
+import moment from 'moment';
+import {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
+import * as FormActions from '../../../../libs/actions/FormActions';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import ROUTES from '../../../../ROUTES';
 import Text from '../../../../components/Text';
 import styles from '../../../../styles/styles';
 import Navigation from '../../../../libs/Navigation/Navigation';
-import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import OptionsList from '../../../../components/OptionsList';
 import themeColors from '../../../../styles/themes/default';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import ONYXKEYS from '../../../../ONYXKEYS';
+import CONST from '../../../../CONST';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -29,8 +31,9 @@ const defaultProps = {
 };
 
 const DateOfBirthYearPage = (props) => {
-    const currentYear = lodashGet(props.currentUserPersonalDetails, 'year', '');
-    console.log(props.dateOfBirthFormDraft);
+    const momentDob = moment(lodashGet(props.privatePersonalDetails, 'dob', ''));
+    const currentYear = momentDob.year();
+
     const yearList = _.map(Array.from({length: 200}, (k, v) => v + 1970), (value, index) => ({
         text: value.toString(),
         value,
@@ -47,7 +50,10 @@ const DateOfBirthYearPage = (props) => {
      * @param {String} selectedYear
      */
     const updateYearOfBirth = (selectedYear) => {
-        PersonalDetails.updateDateOfBirth(selectedYear);
+        momentDob.set('year', Number(selectedYear));
+        const dob = momentDob.format(CONST.DATE.MOMENT_FORMAT_STRING);
+        FormActions.setDraftValues(ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM, {dob});
+        Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH);
     };
 
     return (
@@ -80,8 +86,8 @@ DateOfBirthYearPage.displayName = 'DateOfBirthYearPage';
 export default compose(
     withLocalize,
     withOnyx({
-        dateOfBirthFormDraft: {
-            key: ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM
+        privatePersonalDetails: {
+            key: `${ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM}Draft`,
         },
     }),
 )(DateOfBirthYearPage);
