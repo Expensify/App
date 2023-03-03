@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
+import {withOnyx} from 'react-native-onyx';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
@@ -14,6 +15,7 @@ import compose from '../../../../libs/compose';
 import OptionsList from '../../../../components/OptionsList';
 import themeColors from '../../../../styles/themes/default';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
+import ONYXKEYS from '../../../../ONYXKEYS';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -28,8 +30,9 @@ const defaultProps = {
 
 const DateOfBirthYearPage = (props) => {
     const currentYear = lodashGet(props.currentUserPersonalDetails, 'year', '');
+    console.log(props.dateOfBirthFormDraft);
     const yearList = _.map(Array.from({length: 200}, (k, v) => v + 1970), (value, index) => ({
-        text: value,
+        text: value.toString(),
         value,
         keyForList: index,
 
@@ -76,5 +79,9 @@ DateOfBirthYearPage.displayName = 'DateOfBirthYearPage';
 
 export default compose(
     withLocalize,
-    withCurrentUserPersonalDetails,
+    withOnyx({
+        dateOfBirthFormDraft: {
+            key: ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM
+        },
+    }),
 )(DateOfBirthYearPage);

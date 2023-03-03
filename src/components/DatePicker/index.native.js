@@ -71,7 +71,11 @@ class DatePicker extends React.Component {
      */
     updateLocalDate(selectedDate) {
         this.setState({selectedDate});
-        this.props.onInputChange(selectedDate);
+        const asMoment = moment(this.state.selectedDate, true);
+        if (asMoment.isValid()) {
+            this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
+        }
+
         this.hidePicker();
     }
 
