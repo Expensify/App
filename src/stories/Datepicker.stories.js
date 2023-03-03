@@ -1,6 +1,6 @@
 import React from 'react';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
-import DatePicker from '../components/DatePicker';
+import DatePicker from '../components/NewDatePicker';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

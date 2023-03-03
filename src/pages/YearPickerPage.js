@@ -10,7 +10,7 @@ import Text from '../components/Text';
 import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
 import compose from '../libs/compose';
-import OptionsList from '../components/OptionsList';
+import OptionsSelector from '../components/OptionsSelector';
 import themeColors from '../styles/themes/default';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ONYXKEYS from '../ONYXKEYS';
@@ -64,7 +64,7 @@ const YearPickerPage = (props) => {
             <Text style={[styles.ph5, styles.mb6]}>
                 {props.translate('yearPickerPage.selectYear')}
             </Text>
-            <OptionsList
+            <OptionsSelector
                 sections={[{data: yearList}]}
                 onSelectRow={option => updateYearOfBirth(option.value)}
                 hideSectionHeaders

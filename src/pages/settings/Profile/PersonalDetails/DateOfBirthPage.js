@@ -13,7 +13,7 @@ import styles from '../../../../styles/styles';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
-import DatePicker from '../../../../components/DatePicker';
+import NewDatePicker from '../../../../components/NewDatePicker';
 
 const propTypes = {
     /* Onyx Props */
@@ -121,7 +121,7 @@ class DateOfBirthPage extends Component {
                     submitButtonText={this.props.translate('common.save')}
                     enabledWhenOffline
                 >
-                    <DatePicker
+                    <NewDatePicker
                         inputID="dob"
                         label={this.props.translate('common.date')}
                         defaultValue={privateDetails.dob || ''}
