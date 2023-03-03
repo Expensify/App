@@ -26,7 +26,7 @@ function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
 }
 
 /**
- * @param {String} accountType
+ * @param {String} [accountType] - one of {'bankAccount', 'debitCard', 'payPalMe'}
  * @param {Object} account
  * @returns {String}
  */
