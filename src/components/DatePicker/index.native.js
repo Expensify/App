@@ -1,14 +1,13 @@
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {
-    View, Keyboard, StatusBar,
+    View, Keyboard, Animated,
 } from 'react-native';
 import moment from 'moment';
 import _ from 'underscore';
 import compose from '../../libs/compose';
 import TextInput from '../TextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import Popover from '../Popover';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import {propTypes, defaultProps} from './datepickerPropTypes';
@@ -37,6 +36,8 @@ class DatePicker extends React.Component {
         this.reset = this.reset.bind(this);
         this.hidePicker = this.hidePicker.bind(this);
         this.updateLocalDate = this.updateLocalDate.bind(this);
+
+        this.opacity = new Animated.Value(1);
 
         this.minDate = props.minDate ? moment(props.minDate).toDate() : null;
         this.maxDate = props.maxDate ? moment(props.maxDate).toDate() : null;
@@ -119,7 +120,7 @@ class DatePicker extends React.Component {
                         this.props.innerRef(el);
                     }}
                 />
-                <Popover
+                {/* <Popover
                     isVisible={this.state.isPickerVisible}
                     onClose={this.hidePicker}
                     fromSidebarMediumScreen
@@ -128,20 +129,20 @@ class DatePicker extends React.Component {
                         top: this.state.pickerLayout.height + this.state.spaceFromTop + StatusBar.currentHeight + 10,
                         left: 20,
                     }}
-                >
-                    <View style={{width: this.state.pickerLayout.width}}>
-                        <CalendarPicker
-                            minDate={this.minDate}
-                            maxDate={this.maxDate}
-                            value={this.state.selectedDate}
-                            onSelected={this.updateLocalDate}
-                            onChanged={this.props.onDateChanged}
-                            onYearPressed={this.hidePicker}
-                            defaultMonth={this.props.defaultMonth}
-                            defaultYear={this.props.defaultYear}
-                        />
-                    </View>
-                </Popover>
+                > */}
+                <Animated.View style={[styles.datePickerPopover, styles.border, {opacity: this.opacity}]}>
+                    <CalendarPicker
+                        minDate={this.minDate}
+                        maxDate={this.maxDate}
+                        value={this.state.selectedDate}
+                        onSelected={this.updateLocalDate}
+                        onChanged={this.props.onDateChanged}
+                        onYearPressed={this.hidePicker}
+                        defaultMonth={this.props.defaultMonth}
+                        defaultYear={this.props.defaultYear}
+                    />
+                </Animated.View>
+                {/* </Popover> */}
             </View>
         );
     }

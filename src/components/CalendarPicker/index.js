@@ -85,7 +85,9 @@ class CalendarPicker extends React.Component {
         const currentYear = this.state.currentDateView.getFullYear();
         Navigation.navigate(ROUTES.getYearSelectionRoute(minYear, maxYear, currentYear, Navigation.getActiveRoute()));
 
-        this.props.onYearPressed();
+        if (this.props.onYearPressed) {
+            this.props.onYearPressed();
+        }
     }
 
     /**

@@ -28,7 +28,6 @@ const defaultProps = {
 
 const YearPickerPage = (props) => {
     const {params} = props.route;
-    console.log(props.route);
     const minYear = Number(params.min);
     const maxYear = Number(params.max);
     const currentYear = Number(params.year);

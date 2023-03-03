@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
@@ -57,6 +56,10 @@ class DateOfBirthPage extends Component {
         });
     }
 
+    /**
+     * Callback function when month or year changed internally in the CalendarPicker
+     * @param {Date} date
+     */
     onDateChanged(date) {
         this.setState(prev => ({...prev, defaultYear: moment(date).year().toString(), defaultMonth: moment(date).month().toString()}));
     }
@@ -112,20 +115,17 @@ class DateOfBirthPage extends Component {
                     submitButtonText={this.props.translate('common.save')}
                     enabledWhenOffline
                 >
-                    <View>
-                        <DatePicker
-                            placeholder="yyyy-mm-dd"
-                            inputID="dob"
-                            label={this.props.translate('common.date')}
-                            defaultValue={privateDetails.dob || ''}
-                            shouldSaveDraft
-                            minDate={moment().subtract(150, 'years').toDate()}
-                            maxDate={moment().subtract(5, 'years').toDate()}
-                            defaultMonth={this.state.defaultMonth}
-                            defaultYear={this.state.defaultYear}
-                            onDateChanged={this.onDateChanged}
-                        />
-                    </View>
+                    <DatePicker
+                        inputID="dob"
+                        label={this.props.translate('common.date')}
+                        defaultValue={privateDetails.dob || ''}
+                        shouldSaveDraft
+                        minDate={moment().subtract(150, 'years').toDate()}
+                        maxDate={moment().subtract(5, 'years').toDate()}
+                        defaultMonth={this.state.defaultMonth}
+                        defaultYear={this.state.defaultYear}
+                        onDateChanged={this.onDateChanged}
+                    />
                 </Form>
             </ScreenWrapper>
         );

@@ -1,11 +1,13 @@
 import React from 'react';
-import {View} from 'react-native';
+import {Animated, View} from 'react-native';
 import moment from 'moment';
 import _ from 'underscore';
 import TextInput from '../TextInput';
-import Popover from '../Popover';
+
+// import Popover from '../Popover';
 import CalendarPicker from '../CalendarPicker';
 import CONST from '../../CONST';
+import styles from '../../styles/styles';
 import {propTypes, defaultProps} from './datepickerPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import withNavigation from '../withNavigation';
@@ -29,7 +31,12 @@ class DatePicker extends React.Component {
 
         this.setDate = this.setDate.bind(this);
         this.togglePicker = this.togglePicker.bind(this);
-        this.onWindowResize = this.onWindowResize.bind(this);
+
+        // this.onWindowResize = this.onWindowResize.bind(this);
+        this.onClickedOutside = this.onClickedOutside.bind(this);
+
+        this.opacity = new Animated.Value(0);
+        this.wrapperRef = React.createRef();
 
         window.addEventListener('resize', this.onWindowResize);
 
@@ -45,7 +52,8 @@ class DatePicker extends React.Component {
     }
 
     componentDidMount() {
-        this.props.navigation.addListener('transitionEnd', this.onWindowResize);
+        // this.props.navigation.addListener('transitionEnd', this.onWindowResize);
+        // document.addEventListener('mousedown', this.onClickedOutside);
     }
 
     // eslint-disable-next-line rulesdir/prefer-early-return
@@ -56,30 +64,38 @@ class DatePicker extends React.Component {
     }
 
     componentWillUnmount() {
-        window.removeEventListener('resize', this.onWindowResize);
-        this.props.navigation.removeListener('transitionEnd', this.onWindowResize);
+        // window.removeEventListener('resize', this.onWindowResize);
+        // this.props.navigation.removeListener('transitionEnd', this.onWindowResize);
+        // document.removeEventListener('mousedown', this.onClickedOutside);
     }
 
     /**
      * Function called on window resize, to hide DatePicker and recalculate position of the calendar popover in the window
      */
-    onWindowResize() {
-        if (this.wrapperRef) {
-            const {
-                x, y, width, height, left, top,
-            } = this.wrapperRef.getBoundingClientRect();
-            this.setState({
-                pickerLayout: {
-                    x, y, width, height, left, top,
-                },
-            });
-        }
+    // onWindowResize() {
+    //     if (this.wrapperRef) {
+    //         const {
+    //             x, y, width, height, left, top,
+    //         } = this.wrapperRef.getBoundingClientRect();
+    //         this.setState({
+    //             pickerLayout: {
+    //                 x, y, width, height, left, top,
+    //             },
+    //         });
+    //     }
 
-        if (!this.state.isPickerVisible) {
-            return;
-        }
+    //     if (!this.state.isPickerVisible) {
+    //         return;
+    //     }
 
-        this.setState({isPickerVisible: false});
+    //     this.setState({isPickerVisible: false});
+    // }
+
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    onClickedOutside(event) {
+        if (this.wrapperRef && !this.wrapperRef.contains(event.target)) {
+            this.togglePicker();
+        }
     }
 
     /**
@@ -102,12 +118,18 @@ class DatePicker extends React.Component {
     }
 
     togglePicker() {
-        this.setState(prevState => ({...prevState, isPickerVisible: !prevState.isPickerVisible}));
+        Animated.timing(this.opacity, {
+            toValue: Number(JSON.stringify(this.opacity)) === 0 ? 1 : 0,
+            duration: 100,
+            useNativeDriver: true,
+        }).start();
+
+        // this.setState(prevState => ({...prevState, isPickerVisible: !prevState.isPickerVisible}));
     }
 
     render() {
         return (
-            <View ref={ref => this.wrapperRef = ref}>
+            <View ref={ref => this.wrapperRef = ref} style={{flexGrow: 0}}>
                 <TextInput
                     forceActiveLabel
                     ref={(el) => {
@@ -128,33 +150,18 @@ class DatePicker extends React.Component {
                     onBlur={this.props.onBlur}
                     readOnly
                 />
-                <Popover
-                    isVisible={this.state.isPickerVisible}
-                    onClose={this.togglePicker}
-                    fullscreen
-                    isSmallScreenWidth={false}
-                    disableAnimation={false}
-                    animationInTiming={200}
-                    animationOutTiming={200}
-                    anchorPosition={{
-                        // The position of the popover needs to be calculated. 10px space is added to move it a little bit from the TextInput
-                        top: this.state.pickerLayout.height + this.state.pickerLayout.top + 10,
-                        left: this.state.pickerLayout.left,
-                    }}
-                >
-                    <View style={{width: this.state.pickerLayout.width}}>
-                        <CalendarPicker
-                            minDate={this.minDate}
-                            maxDate={this.maxDate}
-                            value={this.state.selectedDate}
-                            onSelected={this.setDate}
-                            onChanged={this.props.onDateChanged}
-                            onYearPressed={this.togglePicker}
-                            defaultMonth={this.props.defaultMonth}
-                            defaultYear={this.props.defaultYear}
-                        />
-                    </View>
-                </Popover>
+                <Animated.View style={[styles.datePickerPopover, styles.border, {opacity: this.opacity}]}>
+                    <CalendarPicker
+                        minDate={this.minDate}
+                        maxDate={this.maxDate}
+                        value={this.state.selectedDate}
+                        onSelected={this.setDate}
+                        onChanged={this.props.onDateChanged}
+                        onYearPressed={this.togglePicker}
+                        defaultMonth={this.props.defaultMonth}
+                        defaultYear={this.props.defaultYear}
+                    />
+                </Animated.View>
             </View>
         );
     }
