@@ -220,7 +220,7 @@ function addActions(reportID, text = '', file) {
     const currentTime = DateUtils.getDBTime();
 
     const optimisticReport = {
-        lastActionCreated: currentTime,
+        lastVisibleActionCreated: currentTime,
         lastMessageText: ReportUtils.formatReportLastMessageText(lastAction.message[0].text),
         lastActorEmail: currentUserEmail,
         lastReadTime: currentTime,
@@ -692,12 +692,12 @@ function deleteReportComment(reportID, reportAction) {
     };
 
     // If we are deleting the last visible message, let's find the previous visible one and update the lastMessageText in the LHN.
-    // Similarly, if we are deleting the last read comment we will want to update the lastActionCreated to use the previous visible message.
+    // Similarly, if we are deleting the last read comment we will want to update the lastVisibleActionCreated to use the previous visible message.
     const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
-    const lastActionCreated = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions).created;
+    const lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions).created;
     const optimisticReport = {
         lastMessageText,
-        lastActionCreated,
+        lastVisibleActionCreated,
     };
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
@@ -805,6 +805,9 @@ const removeLinks = (comment, links) => {
  */
 const handleUserDeletedLinks = (newCommentText, originalHtml) => {
     const parser = new ExpensiMark();
+    if (newCommentText.length >= CONST.MAX_MARKUP_LENGTH) {
+        return newCommentText;
+    }
     const htmlWithAutoLinks = parser.replace(newCommentText);
     const markdownWithAutoLinks = parser.htmlToMarkdown(htmlWithAutoLinks);
     const markdownOriginalComment = parser.htmlToMarkdown(originalHtml);
@@ -829,8 +832,15 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const markdownForNewComment = handleUserDeletedLinks(textForNewComment, originalCommentHTML);
 
     const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')};
-    const htmlForNewComment = parser.replace(markdownForNewComment, autolinkFilter);
-    const parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML), autolinkFilter);
+
+    // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
+    // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
+    let htmlForNewComment = markdownForNewComment;
+    let parsedOriginalCommentHTML = originalCommentHTML;
+    if (markdownForNewComment.length < CONST.MAX_MARKUP_LENGTH) {
+        htmlForNewComment = parser.replace(markdownForNewComment, autolinkFilter);
+        parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML), autolinkFilter);
+    }
 
     //  Delete the comment if it's empty
     if (_.isEmpty(htmlForNewComment)) {

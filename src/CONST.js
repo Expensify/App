@@ -28,7 +28,7 @@ const CONST = {
 
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
 
-    AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp'],
+    AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
 
     // Minimum width and height size in px for a selected image
     AVATAR_MIN_WIDTH_PX: 80,
@@ -40,6 +40,11 @@ const CONST = {
 
     DEFAULT_AVATAR_COUNT: 24,
     OLD_DEFAULT_AVATAR_COUNT: 8,
+
+    DISPLAY_NAME: {
+        MAX_LENGTH: 50,
+        RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
+    },
 
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
@@ -65,6 +70,7 @@ const CONST = {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
         UNIX_EPOCH: '1970-01-01 00:00:00.000',
         MAX_DATE: '9999-12-31',
+        MIN_DATE: '0001-01-01',
     },
     SMS: {
         DOMAIN: '@expensify.sms',
@@ -369,7 +375,6 @@ const CONST = {
             CONFIRM: 'confirm',
             CENTERED: 'centered',
             CENTERED_UNSWIPEABLE: 'centered_unswipeable',
-            CENTERED_SMALL: 'centered_small',
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
@@ -395,9 +400,9 @@ const CONST = {
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
-        TEST_TOOLS_MODAL_THROTTLE_TIME: 800,
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
+        COMMENT_LENGTH_DEBOUNCE_TIME: 500,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -409,8 +414,17 @@ const CONST = {
         EXP_ERROR: 666,
         UNABLE_TO_RETRY: 'unableToRetry',
     },
+    HTTP_STATUS: {
+        // When Cloudflare throttles
+        TOO_MANY_REQUESTS: 429,
+        INTERNAL_SERVER_ERROR: 500,
+        BAD_GATEWAY: 502,
+        GATEWAY_TIMEOUT: 504,
+        UNKNOWN_ERROR: 520,
+    },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
+        THROTTLED: 'throttled',
         UNKNOWN_ERROR: 'Unknown error',
         REQUEST_CANCELLED: 'AbortError',
         FAILED_TO_FETCH: 'Failed to fetch',
@@ -439,7 +453,9 @@ const CONST = {
         METHOD: {
             POST: 'post',
         },
-        MAX_REQUEST_RETRIES: 10,
+        MIN_RETRY_WAIT_TIME_MS: 10,
+        MAX_RANDOM_RETRY_WAIT_TIME_MS: 100,
+        MAX_RETRY_WAIT_TIME_MS: 10 * 1000,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
     },
@@ -457,6 +473,7 @@ const CONST = {
         KYC_MIGRATION: 'expensify_migration_2020_04_28_RunKycVerifications',
         PREFERRED_EMOJI_SKIN_TONE: 'expensify_preferredEmojiSkinTone',
         FREQUENTLY_USED_EMOJIS: 'expensify_frequentlyUsedEmojis',
+        PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
@@ -487,6 +504,11 @@ const CONST = {
 
     EMOJI_SPACER: 'SPACER',
 
+    // This is the number of columns in each row of the picker.
+    // Because of how flatList implements these rows, each row is an index rather than each element
+    // For this reason to make headers work, we need to have the header be the only rendered element in its row
+    // If this number is changed, emojis.js will need to be updated to have the proper number of spacer elements
+    // around each header.
     EMOJI_NUM_PER_ROW: 8,
 
     EMOJI_FREQUENT_ROW_COUNT: 3,
@@ -507,8 +529,10 @@ const CONST = {
         VISIBLE_PASSWORD: 'visible-password',
         EMAIL_ADDRESS: 'email-address',
         ASCII_CAPABLE: 'ascii-capable',
+        URL: 'url',
     },
 
+    ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
@@ -533,9 +557,9 @@ const CONST = {
     ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_SIZE: {
         WIDTH: 320,
-        HEIGHT: 390,
+        HEIGHT: 392,
     },
-    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 288,
+    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 256,
     EMOJI_PICKER_ITEM_HEIGHT: 32,
     EMOJI_PICKER_HEADER_HEIGHT: 32,
     COMPOSER_MAX_HEIGHT: 125,
@@ -720,7 +744,6 @@ const CONST = {
     },
 
     DEFAULT_LOCALE: 'en',
-    DEFAULT_SKIN_TONE: 'default',
 
     POLICY: {
         TYPE: {
@@ -752,6 +775,8 @@ const CONST = {
 
     ICON_TYPE_ICON: 'icon',
     ICON_TYPE_AVATAR: 'avatar',
+    ICON_TYPE_WORKSPACE: 'workspace',
+
     AVATAR_SIZE: {
         LARGE: 'large',
         MEDIUM: 'medium',
@@ -801,6 +826,7 @@ const CONST = {
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
+        MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
     },
 
     PRONOUNS: {
@@ -842,8 +868,12 @@ const CONST = {
     // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
     MAX_COMMENT_LENGTH: 15000,
 
+    // Furthermore, applying markup is very resource-consuming, so let's set a slightly lower limit for that
+    MAX_MARKUP_LENGTH: 10000,
+
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
+    WORKSPACE_NAME_CHARACTER_LIMIT: 80,
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
         // Values define in how many times the image can be bigger than its container.
@@ -877,6 +907,37 @@ const CONST = {
         SETTINGS: 'settings',
         INVITE: 'invite',
         LEAVE_ROOM: 'leaveRoom',
+    },
+
+    FOOTER: {
+        EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
+        SPEND_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/spend-management`,
+        EXPENSE_REPORTS_URL: `${USE_EXPENSIFY_URL}/expense-reports`,
+        COMPANY_CARD_URL: `${USE_EXPENSIFY_URL}/company-credit-card`,
+        RECIEPT_SCANNING_URL: `${USE_EXPENSIFY_URL}/receipt-scanning-app`,
+        BILL_PAY_URL: `${USE_EXPENSIFY_URL}/bills`,
+        INVOICES_URL: `${USE_EXPENSIFY_URL}/invoices`,
+        CPA_CARD_URL: `${USE_EXPENSIFY_URL}/cpa-card`,
+        PAYROLL_URL: `${USE_EXPENSIFY_URL}/payroll`,
+        TRAVEL_URL: `${USE_EXPENSIFY_URL}/travel`,
+        EXPENSIFY_APPROVED_URL: `${USE_EXPENSIFY_URL}/accountants`,
+        PRESS_KIT_URL: 'https://we.are.expensify.com/press-kit',
+        SUPPORT_URL: `${USE_EXPENSIFY_URL}/support`,
+        COMMUNITY_URL: 'https://community.expensify.com/',
+        PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
+        ABOUT_URL: 'https://we.are.expensify.com/',
+        BLOG_URL: 'https://blog.expensify.com/',
+        JOBS_URL: 'https://we.are.expensify.com/apply',
+        ORG_URL: 'https://expensify.org/',
+        INVESTOR_RELATIONS_URL: 'https://ir.expensify.com/',
+    },
+
+    SOCIALS: {
+        PODCAST: 'https://we.are.expensify.com/podcast',
+        TWITTER: 'https://www.twitter.com/expensify',
+        INSTAGRAM: 'https://www.instagram.com/expensify',
+        FACEBOOK: 'https://www.facebook.com/expensify',
+        LINKEDIN: 'https://www.linkedin.com/company/expensify',
     },
 
     // These split the maximum decimal value of a signed 64-bit number (9,223,372,036,854,775,807) into parts where none of them are too big to fit into a 32-bit number, so that we can
@@ -1164,6 +1225,15 @@ const CONST = {
         'Zambia',
         'Zimbabwe',
     ],
+
+    // Values for checking if polyfill is required on a platform
+    POLYFILL_TEST: {
+        STYLE: 'currency',
+        CURRENCY: 'XAF',
+        FORMAT: 'symbol',
+        SAMPLE_INPUT: '123456.789',
+        EXPECTED_OUTPUT: 'FCFA 123,457',
+    },
 };
 
 export default CONST;

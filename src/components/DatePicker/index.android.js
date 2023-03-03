@@ -25,20 +25,17 @@ class DatePicker extends React.Component {
      * @param {Date} selectedDate
      */
     setDate(event, selectedDate) {
-        if (event.type === 'set') {
-            this.props.onInputChange(selectedDate);
-        }
-
         this.setState({isPickerVisible: false});
+
+        if (event.type === 'set') {
+            const asMoment = moment(selectedDate, true);
+            this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
+        }
     }
 
-    /**
-     * @param {Event} event
-     */
-    showPicker(event) {
+    showPicker() {
         Keyboard.dismiss();
         this.setState({isPickerVisible: true});
-        event.preventDefault();
     }
 
     render() {
@@ -49,6 +46,7 @@ class DatePicker extends React.Component {
                 <TextInput
                     label={this.props.label}
                     value={dateAsText}
+                    forceActiveLabel
                     placeholder={this.props.placeholder}
                     errorText={this.props.errorText}
                     containerStyles={this.props.containerStyles}
@@ -61,6 +59,13 @@ class DatePicker extends React.Component {
                         if (!_.isFunction(this.props.innerRef)) {
                             return;
                         }
+                        if (el && el.focus && typeof el.focus === 'function') {
+                            let inputRef = {...el};
+                            inputRef = {...inputRef, focus: this.showPicker};
+                            this.props.innerRef(inputRef);
+                            return;
+                        }
+
                         this.props.innerRef(el);
                     }}
                 />
@@ -69,6 +74,8 @@ class DatePicker extends React.Component {
                         value={this.props.value || this.props.defaultValue ? moment(this.props.value || this.props.defaultValue).toDate() : new Date()}
                         mode="date"
                         onChange={this.setDate}
+                        maximumDate={new Date(CONST.DATE.MAX_DATE)}
+                        minimumDate={new Date(CONST.DATE.MIN_DATE)}
                     />
                 )}
             </>

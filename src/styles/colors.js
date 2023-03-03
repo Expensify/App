@@ -35,6 +35,37 @@ export default {
     greenDefaultButtonDisabled: '#8BA69E',
     midnight: '#002140',
 
+    // Brand Colors from Figma
+    blue200: '#8DC8FF',
+    blue400: '#0185FF',
+    blue700: '#003C73',
+    blue800: '#002140',
+
+    green200: '#8EECC4',
+    green400: '#03D47C',
+    green700: '#085239',
+    green800: '#002E22',
+
+    yellow200: '#FFED8F',
+    yellow400: '#FED607',
+    yellow700: '#722B03',
+    yellow800: '#401102',
+
+    tangerine200: '#FFC68C',
+    tangerine400: '#FF7101',
+    tangerine700: '#780505',
+    tangerine800: '#400000',
+
+    pink200: '#FBCCFF',
+    pink400: '#F68DFE',
+    pink700: '#712A76',
+    pink800: '#49225B',
+
+    ice200: '#CCF7FF',
+    ice400: '#50EEF6',
+    ice700: '#28736D',
+    ice800: '#134038',
+
     // DEPRECATED COLORS. Do not reference these colors. Will be deleted in color switch PR.
     gray1: '#FAFAFA',
     gray2: '#ECECEC',

@@ -85,7 +85,7 @@ export default {
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
         error: {
             invalidAmount: 'Invalid amount',
-            acceptedTerms: 'You must accept the Terms of Service to continue',
+            acceptTerms: 'You must accept the Terms of Service to continue',
             phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'This field is required.',
             characterLimit: ({limit}) => `Exceeds the maximum length of ${limit} characters`,
@@ -154,6 +154,14 @@ export default {
         redirectedToDesktopApp: 'We\'ve redirected you to the desktop app.',
         youCanAlso: 'You can also',
         openLinkInBrowser: 'open this link in your browser',
+    },
+    validateCodeModal: {
+        successfulSignInTitle: 'Abracadabra,\nyou are signed in!',
+        successfulSignInDescription: 'Head back to your original tab to continue.',
+        title: 'Here is your magic code',
+        description: 'Please enter the code using the device\nwhere it was originally requested',
+        or: ', or',
+        signInHere: 'just sign in here',
     },
     iOUConfirmationList: {
         whoPaid: 'Who paid?',
@@ -320,7 +328,6 @@ export default {
         emailAddress: 'Email address',
         setMyTimezoneAutomatically: 'Set my timezone automatically',
         timezone: 'Timezone',
-        growlMessageOnSave: 'Your profile was successfully saved',
         invalidFileMessage: 'Invalid file. Please try a different image.',
         avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
         online: 'Online',
@@ -331,12 +338,18 @@ export default {
         pronouns: 'Pronouns',
         isShownOnProfile: 'Your pronouns are shown on your profile.',
     },
+    contacts: {
+        contactMethod: 'Contact method',
+        contactMethods: 'Contact methods',
+    },
     pronouns: {
         coCos: 'Co / Cos',
         eEyEmEir: 'E / Ey / Em / Eir',
         faeFaer: 'Fae / Faer',
         heHimHis: 'He / Him / His',
+        heHimHisTheyThemTheirs: 'He / Him / His / They / Them / Theirs',
         sheHerHers: 'She / Her / Hers',
+        sheHerHersTheyThemTheirs: 'She / Her / Hers / They / Them / Theirs',
         merMers: 'Mer / Mers',
         neNirNirs: 'Ne / Nir / Nirs',
         neeNerNers: 'Nee / Ner / Ners',
@@ -364,8 +377,8 @@ export default {
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add phone number',
         addEmailAddress: 'Add email address',
-        enterPreferredPhoneNumberToSendValidationLink: 'Enter your preferred phone number and password to send a validation link.',
-        enterPreferredEmailToSendValidationLink: 'Enter your preferred email address and password to send a validation link.',
+        enterPreferredPhoneNumberToSendValidationLink: 'Enter your preferred phone number to send a validation link.',
+        enterPreferredEmailToSendValidationLink: 'Enter your preferred email address to send a validation link.',
         sendValidation: 'Send validation',
     },
     initialSettingsPage: {
@@ -555,6 +568,7 @@ export default {
         enterAuthenticatorCode: 'Please enter your authenticator code',
         twoFactorCode: 'Two factor code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
+        codeSent: 'Magic code sent!',
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
             incorrectMagicCode: 'Incorrect magic code.',
@@ -590,9 +604,8 @@ export default {
     },
     personalDetails: {
         error: {
-            firstNameLength: 'First name shouldn\'t be longer than 50 characters',
-            lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
-            hasInvalidCharacter: ({invalidCharacter}) => `Please remove the ${invalidCharacter} from the name field.`,
+            containsReservedWord: 'First name cannot contain the words Expensify or Concierge',
+            hasInvalidCharacter: 'Name cannot contain a comma or semicolon',
         },
     },
     privatePersonalDetails: {
@@ -603,7 +616,6 @@ export default {
         legalLastName: 'Legal last name',
         homeAddress: 'Home address',
         error: {
-            hasInvalidCharacter: ({invalidCharacter}) => `Please remove the ${invalidCharacter} from the field above.`,
             dateShouldBeBefore: ({dateString}) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,
         },
@@ -1057,8 +1069,6 @@ export default {
             phoneNumberExtension: 'Please enter a valid phone extension number',
             firstName: 'Please provide your first name',
             lastName: 'Please provide your last name',
-            firstNameLength: 'First name shouldn\'t be longer than 50 characters',
-            lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
         },
     },
     requestCallConfirmationScreen: {
@@ -1171,5 +1181,34 @@ export default {
     },
     report: {
         genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
+    },
+    footer: {
+        features: 'Features',
+        expenseManagement: 'Expense Management',
+        spendManagement: 'Spend Management',
+        expenseReports: 'Expense Reports',
+        companyCreditCard: 'Company Credit Card',
+        receiptScanningApp: 'Receipt Scanning App',
+        billPay: 'Bill Pay',
+        invoicing: 'Invoicing',
+        CPACard: 'CPA Card',
+        payroll: 'Payroll',
+        travel: 'Travel',
+        resources: 'Resources',
+        expensifyApproved: 'ExpensifyApproved!',
+        pressKit: 'Press Kit',
+        support: 'Support',
+        expensifyHelp: 'ExpensifyHelp',
+        community: 'Community',
+        privacy: 'Privacy',
+        learnMore: 'Learn More',
+        aboutExpensify: 'About Expensify',
+        blog: 'Blog',
+        jobs: 'Jobs',
+        expensifyOrg: 'Expensify.org',
+        investorRelations: 'Investor Relations',
+        getStarted: 'Get Started',
+        createAccount: 'Create a new account',
+        logIn: 'Log in',
     },
 };

@@ -52,6 +52,12 @@ Onyx.connect({
     callback: policies => allPolicies = policies,
 });
 
+let preferredLocale;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: val => preferredLocale = val,
+});
+
 /**
  * @param {Array} policies
  * @return {Array<String>} array of policy ids
@@ -68,6 +74,10 @@ function getNonOptimisticPolicyIDs(policies) {
 * @param {String} locale
 */
 function setLocale(locale) {
+    if (locale === preferredLocale) {
+        return;
+    }
+
     // If user is not signed in, change just locally.
     if (!currentUserAccountID) {
         Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
@@ -86,6 +96,14 @@ function setLocale(locale) {
     API.write('UpdatePreferredLocale', {
         value: locale,
     }, {optimisticData});
+}
+
+/**
+* @param {String} locale
+*/
+function setLocaleAndNavigate(locale) {
+    setLocale(locale);
+    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
 }
 
 function setSidebarLoaded() {
@@ -268,28 +286,12 @@ function openProfile() {
     Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
-let isTestToolsModalOpen = false;
-Onyx.connect({
-    key: ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN,
-    callback: val => isTestToolsModalOpen = val || false,
-});
-
-/**
- * Toggle the test tools modal open or closed. Throttle the toggle to fix Android Chrome where there seems to be an extra tap which closes the modal.
- * Throttling also makes the modal stay open if you accidentally tap an extra time, which is easy to do.
- */
-function toggleTestToolsModal() {
-    const toggle = () => Onyx.set(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN, !isTestToolsModalOpen);
-    const throttledToggle = _.throttle(toggle, CONST.TIMING.TEST_TOOLS_MODAL_THROTTLE_TIME);
-    throttledToggle();
-}
-
 export {
     setLocale,
+    setLocaleAndNavigate,
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
     openProfile,
     openApp,
     reconnectApp,
-    toggleTestToolsModal,
 };

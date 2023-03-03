@@ -13,7 +13,7 @@ import compose from '../../../../libs/compose';
 import Text from '../../../../components/Text';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 import reportPropTypes from '../../../reportPropTypes';
-import SafeAreaConsumer from '../../../../components/SafeAreaConsumer';
+import avatarPropTypes from '../../../../components/avatarPropTypes';
 
 const propTypes = {
     /** Beta features list */
@@ -30,7 +30,7 @@ const propTypes = {
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
         hasDraftComment: PropTypes.bool,
-        icons: PropTypes.arrayOf(PropTypes.string),
+        icons: PropTypes.arrayOf(avatarPropTypes),
         searchText: PropTypes.string,
         text: PropTypes.string,
         keyForList: PropTypes.string,
@@ -43,11 +43,18 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes).isRequired,
 
+    /** padding bottom style of safe area */
+    safeAreaPaddingBottomStyle: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     participants: [],
+    safeAreaPaddingBottomStyle: {},
 };
 
 class IOUParticipantsSplit extends Component {
@@ -210,29 +217,26 @@ class IOUParticipantsSplit extends Component {
             maxParticipantsReached,
         );
         return (
-            <SafeAreaConsumer>
-                {({safeAreaPaddingBottomStyle}) => (
-                    <View style={[styles.flex1, styles.w100, (this.props.participants.length > 0 ? safeAreaPaddingBottomStyle : {})]}>
-                        <Text style={[styles.textLabelSupporting, styles.pt3, styles.ph5]}>
-                            {this.props.translate('common.to')}
-                        </Text>
-                        <OptionsSelector
-                            canSelectMultipleOptions
-                            sections={sections}
-                            selectedOptions={this.props.participants}
-                            value={this.state.searchTerm}
-                            onSelectRow={this.toggleOption}
-                            onChangeText={this.updateOptionsWithSearchTerm}
-                            headerMessage={headerMessage}
-                            boldStyle
-                            shouldShowConfirmButton
-                            confirmButtonText={this.props.translate('common.next')}
-                            onConfirmSelection={this.finalizeParticipants}
-                            placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                        />
-                    </View>
-                )}
-            </SafeAreaConsumer>
+            <View style={[styles.flex1, styles.w100, (this.props.participants.length > 0 ? this.props.safeAreaPaddingBottomStyle : {})]}>
+                <Text style={[styles.textLabelSupporting, styles.pt3, styles.ph5]}>
+                    {this.props.translate('common.to')}
+                </Text>
+                <OptionsSelector
+                    canSelectMultipleOptions
+                    sections={sections}
+                    selectedOptions={this.props.participants}
+                    value={this.state.searchTerm}
+                    onSelectRow={this.toggleOption}
+                    onChangeText={this.updateOptionsWithSearchTerm}
+                    headerMessage={headerMessage}
+                    boldStyle
+                    shouldShowConfirmButton
+                    confirmButtonText={this.props.translate('common.next')}
+                    onConfirmSelection={this.finalizeParticipants}
+                    placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                    safeAreaPaddingBottomStyle={this.props.safeAreaPaddingBottomStyle}
+                />
+            </View>
         );
     }
 }

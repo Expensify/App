@@ -19,6 +19,7 @@ import Tooltip from '../../../components/Tooltip';
 import ControlSelection from '../../../libs/ControlSelection';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** All the data of the action */
@@ -51,13 +52,14 @@ const showUserDetails = (email) => {
 };
 
 const ReportActionItemSingle = (props) => {
+    const actorEmail = props.action.actorEmail.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const {
         avatar,
         displayName,
         login,
         pendingFields,
-    } = props.personalDetails[props.action.actorEmail] || {};
-    const avatarSource = ReportUtils.getAvatar(avatar, props.action.actorEmail);
+    } = props.personalDetails[actorEmail] || {};
+    const avatarSource = ReportUtils.getAvatar(avatar, actorEmail);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
@@ -72,9 +74,9 @@ const ReportActionItemSingle = (props) => {
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
                 onPressOut={ControlSelection.unblock}
-                onPress={() => showUserDetails(props.action.actorEmail)}
+                onPress={() => showUserDetails(actorEmail)}
             >
-                <Tooltip text={props.action.actorEmail}>
+                <Tooltip text={actorEmail}>
                     <OfflineWithFeedback
                         pendingAction={lodashGet(pendingFields, 'avatar', null)}
                     >
@@ -92,13 +94,13 @@ const ReportActionItemSingle = (props) => {
                             style={[styles.flexShrink1, styles.mr1]}
                             onPressIn={ControlSelection.block}
                             onPressOut={ControlSelection.unblock}
-                            onPress={() => showUserDetails(props.action.actorEmail)}
+                            onPress={() => showUserDetails(actorEmail)}
                         >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
                                     key={`person-${props.action.reportActionID}-${index}`}
                                     fragment={fragment}
-                                    tooltipText={props.action.actorEmail}
+                                    tooltipText={actorEmail}
                                     isAttachment={props.action.isAttachment}
                                     isLoading={props.action.isLoading}
                                     isSingleLine

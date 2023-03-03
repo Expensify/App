@@ -10,6 +10,7 @@ import Composer from '../../../components/Composer';
 import * as Report from '../../../libs/actions/Report';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
+import openReportActionComposeViewWhenClosingMessageEdit from '../../../libs/openReportActionComposeViewWhenClosingMessageEdit';
 import Button from '../../../components/Button';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import compose from '../../../libs/compose';
@@ -68,9 +69,11 @@ class ReportActionItemMessageEdit extends React.Component {
         this.triggerSaveOrCancel = this.triggerSaveOrCancel.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
+        this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
         this.saveButtonID = 'saveButton';
         this.cancelButtonID = 'cancelButton';
         this.emojiButtonID = 'emojiButton';
+        this.messageEditInput = 'messageEditInput';
 
         const parser = new ExpensiMark();
         const draftMessage = parser.htmlToMarkdown(this.props.draftMessage);
@@ -82,6 +85,7 @@ class ReportActionItemMessageEdit extends React.Component {
                 end: draftMessage.length,
             },
             isFocused: false,
+            hasExceededMaxCommentLength: false,
         };
     }
 
@@ -92,6 +96,16 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     onSelectionChange(e) {
         this.setState({selection: e.nativeEvent.selection});
+    }
+
+    /**
+     * Updates the composer when the comment length is exceeded
+     * Shows red borders and prevents the comment from being sent
+     *
+     * @param {Boolean} hasExceededMaxCommentLength
+     */
+    setExceededMaxCommentLength(hasExceededMaxCommentLength) {
+        this.setState({hasExceededMaxCommentLength});
     }
 
     /**
@@ -215,8 +229,7 @@ class ReportActionItemMessageEdit extends React.Component {
     }
 
     render() {
-        const draftLength = ReportUtils.getCommentLength(this.state.draft);
-        const hasExceededMaxCommentLength = draftLength > CONST.MAX_COMMENT_LENGTH;
+        const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
         return (
             <View style={styles.chatItemMessage}>
                 <View
@@ -233,6 +246,7 @@ class ReportActionItemMessageEdit extends React.Component {
                             this.textInput = el;
                             this.props.forwardedRef(el);
                         }}
+                        nativeID={this.messageEditInput}
                         onChangeText={this.updateDraft} // Debounced saveDraftComment
                         onKeyPress={this.triggerSaveOrCancel}
                         value={this.state.draft}
@@ -244,12 +258,18 @@ class ReportActionItemMessageEdit extends React.Component {
                             toggleReportActionComposeView(false, this.props.isSmallScreenWidth);
                         }}
                         onBlur={(event) => {
+                            const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
+
                             // Return to prevent re-render when save/cancel button is pressed which cancels the onPress event by re-rendering
-                            if (_.contains([this.saveButtonID, this.cancelButtonID, this.emojiButtonID], lodashGet(event, 'nativeEvent.relatedTarget.id'))) {
+                            if (_.contains([this.saveButtonID, this.cancelButtonID, this.emojiButtonID], relatedTargetId)) {
                                 return;
                             }
                             this.setState({isFocused: false});
-                            toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
+
+                            if (this.messageEditInput === relatedTargetId) {
+                                return;
+                            }
+                            openReportActionComposeViewWhenClosingMessageEdit(this.props.isSmallScreenWidth);
                         }}
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
@@ -281,7 +301,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         onPress={this.publishDraft}
                         text={this.props.translate('common.saveChanges')}
                     />
-                    <ExceededCommentLength commentLength={draftLength} />
+                    <ExceededCommentLength comment={this.state.draft} onExceededMaxCommentLength={this.setExceededMaxCommentLength} />
                 </View>
             </View>
         );

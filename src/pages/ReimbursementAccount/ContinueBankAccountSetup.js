@@ -18,12 +18,18 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import Section from '../../components/Section';
 import Text from '../../components/Text';
 import withPolicy from '../workspace/withPolicy';
+import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
+import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 
 const propTypes = {
+    /** Bank account currently in setup */
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
+
     /** Callback to continue to the next step of the setup */
     continue: PropTypes.func.isRequired,
 
-    /** Callback to start over the setup */
+    /** Callback to reset the bank account */
     startOver: PropTypes.func.isRequired,
 
     /** Policy values needed in the component */
@@ -67,13 +73,20 @@ const ContinueBankAccountSetup = props => (
                     <MenuItem
                         title={props.translate('workspace.bankAccount.startOver')}
                         icon={Expensicons.RotateLeft}
-                        onPress={props.startOver}
+                        onPress={() => BankAccounts.requestResetFreePlanBankAccount()}
                         shouldShowRightIcon
                         wrapperStyle={[styles.cardMenuItem]}
                     />
                 </Section>
             </ScrollView>
         </FullPageNotFoundView>
+
+        {props.reimbursementAccount.shouldShowResetModal && (
+            <WorkspaceResetBankAccountModal
+                reimbursementAccount={props.reimbursementAccount}
+                onConfirm={props.startOver}
+            />
+        )}
     </ScreenWrapper>
 );
 

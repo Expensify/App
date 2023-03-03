@@ -28,6 +28,7 @@ const darkTheme = {
     successHover: colors.greenHover,
     successPressed: colors.greenPressed,
     transparent: colors.transparent,
+    midtone: colors.green700,
 
     // Additional keys
     overlay: colors.greenHighlightBackground,
@@ -58,8 +59,9 @@ const darkTheme = {
     dropUIBG: 'rgba(6,27,9,0.92)',
     dropTransparentOverlay: 'rgba(255,255,255,0)',
     checkBox: colors.green,
-    pickerOptionsTextColor: colors.midnight,
+    pickerOptionsTextColor: colors.white,
     imageCropBackgroundColor: colors.greenIcons,
+    fallbackIconColor: colors.green700,
 };
 
 const oldTheme = {
