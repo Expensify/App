@@ -3,7 +3,6 @@ import React from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import moment from 'moment';
 import Text from '../Text';
-import ListPicker from './ListPicker';
 import ArrowIcon from './ArrowIcon';
 import styles from '../../styles/styles';
 import {propTypes, defaultProps} from './calendarPickerPropTypes';
@@ -112,35 +111,6 @@ class CalendarPicker extends React.Component {
         const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
         const hasAvailableDatesNextMonth = this.props.maxDate ? moment(this.props.maxDate).endOf('month').startOf('day') > moment(this.state.currentDateView).add(1, 'M') : true;
         const hasAvailableDatesPrevMonth = this.props.minDate ? moment(this.props.minDate).startOf('day') < moment(this.state.currentDateView).subtract(1, 'M').endOf('month') : true;
-
-        if (this.state.yearPickerVisible) {
-            const minYear = this.props.minDate ? moment(this.props.minDate).year() : 1970;
-            const maxDate = this.props.maxDate ? moment(this.props.maxDate).year() - minYear : 200;
-            const years = Array.from({length: maxDate}, (k, v) => v + minYear);
-            return (
-                <ListPicker
-                    selected={currentYearView}
-                    data={years}
-                    onSelect={(year) => {
-                        this.setState(prev => ({yearPickerVisible: false, currentDateView: new Date(year, prev.currentDateView.getMonth(), prev.currentDateView.getDay())}));
-                    }}
-                />
-            );
-        }
-
-        if (this.state.monthPickerVisible) {
-            const months = Array.from({length: 12}, (k, v) => v);
-            return (
-                <ListPicker
-                    selected={currentMonthView}
-                    data={months}
-                    format={index => this.monthNames[index]}
-                    onSelect={(month) => {
-                        this.setState(prev => ({monthPickerVisible: false, currentDateView: new Date(prev.currentDateView.getFullYear(), month, prev.currentDateView.getDay())}));
-                    }}
-                />
-            );
-        }
 
         return (
             <View>
