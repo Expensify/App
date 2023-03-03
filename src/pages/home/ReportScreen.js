@@ -112,14 +112,9 @@ class ReportScreen extends React.Component {
         this.chatWithAccountManager = this.chatWithAccountManager.bind(this);
         this.dismissBanner = this.dismissBanner.bind(this);
 
-        // We need sortedAndFilteredReportActions to be set before this.state is initialized
-        // because the function to calculate the newMarkerReportActionID (ReportActionsView) uses the sorted report actions
-        const sortedAndFilteredReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(props.reportActions);
-
         this.state = {
             skeletonViewContainerHeight: reportActionsListViewHeight,
             isBannerVisible: true,
-            sortedAndFilteredReportActions,
         };
     }
 
@@ -130,15 +125,12 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.route.params.reportID !== prevProps.route.params.reportID) {
-            this.fetchReportIfNeeded();
-            toggleReportActionComposeView(true);
+        if (this.props.route.params.reportID === prevProps.route.params.reportID) {
+            return;
         }
 
-        if (!_.isEqual(prevProps.reportActions, this.props.reportActions)) {
-            const sortedAndFilteredReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(this.props.reportActions);
-            this.setState({sortedAndFilteredReportActions});
-        }
+        this.fetchReportIfNeeded();
+        toggleReportActionComposeView(true);
     }
 
     /**
@@ -284,7 +276,7 @@ class ReportScreen extends React.Component {
                             {(this.isReportReadyForDisplay() && !isLoadingInitialReportActions) && (
                                 <>
                                     <ReportActionsView
-                                        reportActions={this.state.sortedAndFilteredReportActions}
+                                        reportActions={this.props.reportActions}
                                         report={this.props.report}
                                         session={this.props.session}
                                         isComposerFullSize={this.props.isComposerFullSize}
@@ -295,7 +287,7 @@ class ReportScreen extends React.Component {
                                         errors={addWorkspaceRoomOrChatErrors}
                                         pendingAction={addWorkspaceRoomOrChatPendingAction}
                                         isOffline={this.props.network.isOffline}
-                                        reportActions={this.state.sortedAndFilteredReportActions}
+                                        reportActions={this.props.reportActions}
                                         report={this.props.report}
                                         isComposerFullSize={this.props.isComposerFullSize}
                                         onSubmitComment={this.onSubmitComment}
@@ -341,6 +333,7 @@ export default compose(
         reportActions: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
             canEvict: false,
+            selector: ReportActionsUtils.getSortedReportActionsForDisplay,
         },
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
