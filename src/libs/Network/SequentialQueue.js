@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashCloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 import * as PersistedRequests from '../actions/PersistedRequests';
 import * as NetworkStore from './NetworkStore';
@@ -34,9 +33,7 @@ function process() {
     if (_.isEmpty(persistedRequests) || NetworkStore.isOffline()) {
         return Promise.resolve();
     }
-
-    // Make a copy of the request as safeguard so that if someone modifies it within the middleware, the original will be unaltered when it is retried.
-    const requestToProcess = lodashCloneDeep(persistedRequests[0]);
+    const requestToProcess = persistedRequests[0];
 
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequest = Request.processWithMiddleware(requestToProcess, true).then(() => {
