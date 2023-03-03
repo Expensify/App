@@ -668,13 +668,24 @@ function hasSafeAreas(windowWidth, windowHeight) {
 }
 
 /**
- * Get variable keyboard height as style
- * @param {Number} keyboardHeight
+ * Get height as style
+ * @param {Number} height
  * @returns {Object}
  */
-function getHeight(keyboardHeight) {
+function getHeight(height) {
     return {
-        height: keyboardHeight,
+        height,
+    };
+}
+
+/**
+ * Get minimum height as style
+ * @param {Number} minHeight
+ * @returns {Object}
+ */
+function getMinimumHeight(minHeight) {
+    return {
+        minHeight,
     };
 }
 
@@ -833,6 +844,7 @@ export {
     convertToLTR,
     hasSafeAreas,
     getHeight,
+    getMinimumHeight,
     fade,
     getHorizontalStackedAvatarBorderStyle,
     getReportWelcomeBackgroundImageStyle,

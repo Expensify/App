@@ -28,6 +28,7 @@ const darkTheme = {
     successHover: colors.greenHover,
     successPressed: colors.greenPressed,
     transparent: colors.transparent,
+    midtone: colors.green700,
 
     // Additional keys
     overlay: colors.greenHighlightBackground,
