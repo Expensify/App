@@ -452,9 +452,9 @@ const CONST = {
         METHOD: {
             POST: 'post',
         },
-        MIN_RETRY_WAIT_TIME: 10,
-        MAX_RANDOM_RETRY_WAIT_TIME: 100,
-        MAX_RETRY_WAIT_TIME: 10 * 1000,
+        MIN_RETRY_WAIT_TIME_MS: 10,
+        MAX_RANDOM_RETRY_WAIT_TIME_MS: 100,
+        MAX_RETRY_WAIT_TIME_MS: 10 * 1000,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
     },
