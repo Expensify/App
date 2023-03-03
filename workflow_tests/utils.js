@@ -1,5 +1,16 @@
 const yaml = require('yaml');
 const fs = require('fs');
+const kieActJs = require('@kie/act-js');
+
+class ExtendedAct extends kieActJs.Act {
+    async parseRunOpts(opts) {
+        const {cwd, actArguments, proxy} = await super.parseRunOpts(opts);
+        if (opts?.actor) {
+            actArguments.push('--actor', opts?.actor);
+        }
+        return {cwd, actArguments, proxy};
+    }
+}
 
 const setUpActParams = (act, event = null, event_options = null, secrets = null, github_token = null, env_vars = null) => {
     let updated_act = act;
@@ -116,4 +127,5 @@ module.exports = {
     getMockStep,
     getStepAssertion,
     setJobRunners,
+    ExtendedAct,
 };
