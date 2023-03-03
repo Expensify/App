@@ -68,6 +68,7 @@ class CalendarPicker extends React.Component {
      */
     onMonthPickerPress() {
         Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH_MONTH);
+        this.props.onMonthPressed();
     }
 
     /**
@@ -76,6 +77,7 @@ class CalendarPicker extends React.Component {
      */
     onYearPickerPress() {
         Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH_YEAR);
+        this.props.onYearPressed();
     }
 
     /**

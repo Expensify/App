@@ -12,6 +12,12 @@ const propTypes = {
 
     /** A maximum date of calendar to select */
     maxDate: PropTypes.objectOf(Date),
+
+    /** Callback function to call when month is pressed */
+    onMonthPressed: PropTypes.func.isRequired,
+
+    /** Callback function to call when year is pressed */
+    onYearPressed: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -19,6 +25,8 @@ const defaultProps = {
     minDate: null,
     maxDate: null,
     onChange: null,
+    onMonthPressed: null,
+    onYearPressed: null,
 };
 
 export {propTypes, defaultProps};

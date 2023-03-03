@@ -133,7 +133,14 @@ class DatePicker extends React.Component {
                     }}
                 >
                     <View style={{width: this.state.pickerLayout.width}}>
-                        <CalendarPicker minDate={this.minDate} maxDate={this.maxDate} value={this.state.selectedDate} onChange={this.setDate} />
+                        <CalendarPicker
+                            minDate={this.minDate}
+                            maxDate={this.maxDate}
+                            value={this.state.selectedDate}
+                            onChange={this.setDate}
+                            onMonthPressed={this.togglePicker}
+                            onYearPressed={this.togglePicker}
+                        />
                     </View>
                 </Popover>
             </View>
