@@ -60,9 +60,7 @@ const darkTheme = {
     checkBox: colors.green,
     pickerOptionsTextColor: colors.white,
     imageCropBackgroundColor: colors.greenIcons,
-
-    // Brand color keys
-    green700: colors.green700,
+    fallbackIconColor: colors.green700,
 };
 
 const oldTheme = {
