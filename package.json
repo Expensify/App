@@ -141,7 +141,8 @@
     "semver": "^7.3.8",
     "shim-keyboard-event-key": "^1.0.3",
     "underscore": "^1.13.1",
-    "urbanairship-react-native": "^14.6.1"
+    "urbanairship-react-native": "^14.6.1",
+    "yaml": "^2.2.1"
   },
   "devDependencies": {
     "@actions/core": "1.10.0",
