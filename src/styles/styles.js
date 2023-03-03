@@ -297,6 +297,7 @@ const styles = {
 
     textHeadline: {
         ...headlineFont,
+        ...whiteSpace.preWrap,
         color: themeColors.heading,
         fontSize: variables.fontSizeXLarge,
     },
@@ -1349,6 +1350,7 @@ const styles = {
         fontWeight: fontWeightBold,
         lineHeight: variables.lineHeightXLarge,
         ...wordBreak.breakWord,
+        ...whiteSpace.preWrap,
     },
 
     chatItemMessageHeaderTimestamp: {
