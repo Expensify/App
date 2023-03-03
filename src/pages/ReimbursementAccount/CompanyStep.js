@@ -9,8 +9,7 @@ import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
-
-// import DatePicker from '../../components/DatePicker';
+import DatePicker from '../../components/DatePicker';
 import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
@@ -222,13 +221,13 @@ class CompanyStep extends React.Component {
                         />
                     </View>
                     <View style={styles.mt4}>
-                        {/* <DatePicker
+                        <DatePicker
                             inputID="incorporationDate"
                             label={this.props.translate('companyStep.incorporationDate')}
                             placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
                             defaultValue={this.props.getDefaultStateForField('incorporationDate')}
                             shouldSaveDraft
-                        /> */}
+                        />
                     </View>
                     <View style={styles.mt4}>
                         <StatePicker

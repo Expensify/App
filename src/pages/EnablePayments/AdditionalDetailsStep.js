@@ -19,8 +19,7 @@ import * as Wallet from '../../libs/actions/Wallet';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
 import AddressForm from '../ReimbursementAccount/AddressForm';
-
-// import DatePicker from '../../components/DatePicker';
+import DatePicker from '../../components/DatePicker';
 import Form from '../../components/Form';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
@@ -259,13 +258,13 @@ class AdditionalDetailsStep extends React.Component {
                             placeholder={this.props.translate('common.phoneNumberPlaceholder')}
                             shouldSaveDraft
                         />
-                        {/* <DatePicker
+                        <DatePicker
                             inputID={INPUT_IDS.DOB}
                             containerStyles={[styles.mt4]}
                             label={this.props.translate(this.fieldNameTranslationKeys.dob)}
                             placeholder={this.props.translate('common.dob')}
                             shouldSaveDraft
-                        /> */}
+                        />
                         <TextInput
                             inputID={INPUT_IDS.SSN}
                             containerStyles={[styles.mt4]}

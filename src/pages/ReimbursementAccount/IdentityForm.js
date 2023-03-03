@@ -5,8 +5,7 @@ import _ from 'underscore';
 import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
-
-// import DatePicker from '../../components/DatePicker';
+import DatePicker from '../../components/DatePicker';
 import AddressForm from './AddressForm';
 
 const propTypes = {
@@ -161,7 +160,7 @@ const IdentityForm = (props) => {
                     />
                 </View>
             </View>
-            {/* <DatePicker
+            <DatePicker
                 inputID={props.inputKeys.dob}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={`${props.translate('common.dob')}`}
@@ -170,7 +169,7 @@ const IdentityForm = (props) => {
                 defaultValue={props.values.dob || props.defaultValues.dob}
                 onInputChange={value => props.onFieldChange({dob: value})}
                 errorText={dobErrorText}
-            /> */}
+            />
             <TextInput
                 inputID={props.inputKeys.ssnLast4}
                 shouldSaveDraft={props.shouldSaveDraft}
