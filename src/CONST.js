@@ -772,6 +772,8 @@ const CONST = {
 
     ICON_TYPE_ICON: 'icon',
     ICON_TYPE_AVATAR: 'avatar',
+    ICON_TYPE_WORKSPACE: 'workspace',
+
     AVATAR_SIZE: {
         LARGE: 'large',
         MEDIUM: 'medium',
@@ -907,6 +909,37 @@ const CONST = {
         SETTINGS: 'settings',
         INVITE: 'invite',
         LEAVE_ROOM: 'leaveRoom',
+    },
+
+    FOOTER: {
+        EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
+        SPEND_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/spend-management`,
+        EXPENSE_REPORTS_URL: `${USE_EXPENSIFY_URL}/expense-reports`,
+        COMPANY_CARD_URL: `${USE_EXPENSIFY_URL}/company-credit-card`,
+        RECIEPT_SCANNING_URL: `${USE_EXPENSIFY_URL}/receipt-scanning-app`,
+        BILL_PAY_URL: `${USE_EXPENSIFY_URL}/bills`,
+        INVOICES_URL: `${USE_EXPENSIFY_URL}/invoices`,
+        CPA_CARD_URL: `${USE_EXPENSIFY_URL}/cpa-card`,
+        PAYROLL_URL: `${USE_EXPENSIFY_URL}/payroll`,
+        TRAVEL_URL: `${USE_EXPENSIFY_URL}/travel`,
+        EXPENSIFY_APPROVED_URL: `${USE_EXPENSIFY_URL}/accountants`,
+        PRESS_KIT_URL: 'https://we.are.expensify.com/press-kit',
+        SUPPORT_URL: `${USE_EXPENSIFY_URL}/support`,
+        COMMUNITY_URL: 'https://community.expensify.com/',
+        PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
+        ABOUT_URL: 'https://we.are.expensify.com/',
+        BLOG_URL: 'https://blog.expensify.com/',
+        JOBS_URL: 'https://we.are.expensify.com/apply',
+        ORG_URL: 'https://expensify.org/',
+        INVESTOR_RELATIONS_URL: 'https://ir.expensify.com/',
+    },
+
+    SOCIALS: {
+        PODCAST: 'https://we.are.expensify.com/podcast',
+        TWITTER: 'https://www.twitter.com/expensify',
+        INSTAGRAM: 'https://www.instagram.com/expensify',
+        FACEBOOK: 'https://www.facebook.com/expensify',
+        LINKEDIN: 'https://www.linkedin.com/company/expensify',
     },
 
     // These split the maximum decimal value of a signed 64-bit number (9,223,372,036,854,775,807) into parts where none of them are too big to fit into a 32-bit number, so that we can
