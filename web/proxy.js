@@ -24,34 +24,25 @@ const server = http.createServer((request, response) => {
     let hostname = host;
     let requestPath = request.url;
 
-    // Regex not declared globally to avoid internal regex pointer reset for each request.
-    const apiRegex = /(\/staging.*)api/g;
-
     /**
-     * We only match staging api root to redirect requests to the staging server if the request
-     * is an API call, except chat attachments. By default, requests are sent to the prod server.
+     * When a request is matching a proxy config path we might direct it to a different host (e.g. staging)
+     * For requests matching proxy config patterns we replace the mapping url (prefix) with the actual path.
+     * This is done because the staging api root is only intended for the proxy,
+     * the actual server request must use the /api path.
      * For example,
      * /api?command=OpenReport => request sent to production server
      * /staging-api?command=OpenReport => request sent to staging server
      * /staging-secure-api?command=OpenReport => request sent to secure staging server
      * /chat-attachments/46545... => request sent to production server
      */
-    const apiRootMatch = apiRegex.exec(requestPath);
-
-    // Switch host only if API call, not on chat attachments.
-    if (apiRootMatch) {
-        const apiRoot = apiRootMatch[1];
-
-        // apiRoot can only be staging or secure staging
-        hostname = apiRoot === proxyConfig.STAGING_SECURE ? stagingSecureHost : stagingHost;
-
-        /**
-         * Replace the mapping url with the actual path.
-         * This is done because the staging api root is only intended for the proxy,
-         * the actual server request must use the /api path.
-         */
-        requestPath = request.url.replace(apiRoot, '/');
+    if (request.url.startsWith(proxyConfig.STAGING_SECURE)) {
+        hostname = stagingSecureHost;
+        requestPath = request.url.replace(proxyConfig.STAGING_SECURE, '/');
+    } else if (request.url.startsWith(proxyConfig.STAGING)) {
+        hostname = stagingHost;
+        requestPath = request.url.replace(proxyConfig.STAGING, '/');
     }
+
     const proxyRequest = https.request({
         hostname,
         method: 'POST',
