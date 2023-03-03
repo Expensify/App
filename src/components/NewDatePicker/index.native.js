@@ -80,7 +80,7 @@ class NewDatePicker extends React.Component {
      */
     updateLocalDate(selectedDate) {
         this.setState({selectedDate});
-        this.props.onInputChange(selectedDate);
+        this.props.onInputChange(moment(selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
 
         this.hidePicker();
     }

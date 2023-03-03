@@ -2,8 +2,6 @@ import _ from 'underscore';
 import React from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import moment from 'moment';
-import * as Expensicons from '../Icon/Expensicons';
-import Icon from '../Icon';
 import Text from '../Text';
 import ArrowIcon from './ArrowIcon';
 import styles from '../../styles/styles';
@@ -130,20 +128,11 @@ class CalendarPicker extends React.Component {
                     </View>
                     <TouchableOpacity
                         onPress={this.onYearPickerPress}
-                        style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, !this.props.onClosePressed && styles.justifyContentEnd]}
+                        style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentEnd]}
                     >
                         <Text style={styles.sidebarLinkTextBold} accessibilityLabel="Current year">{currentYearView}</Text>
                         <ArrowIcon />
                     </TouchableOpacity>
-                    {this.props.onClosePressed && (
-                    <View style={[styles.justifyContentEnd]}>
-                        <TouchableOpacity onPress={this.props.onClosePressed} style={[styles.alignItemsCenter, styles.flexRow, styles.flex1]}>
-                            <View style={[styles.p1, styles.ph2]}>
-                                <Icon src={Expensicons.Close} />
-                            </View>
-                        </TouchableOpacity>
-                    </View>
-                    )}
                 </View>
                 <View style={styles.flexRow}>
                     {_.map(this.daysOfWeek, (dayOfWeek => (
