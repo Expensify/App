@@ -21,42 +21,35 @@ let isSequentialQueueRunning = false;
 let currentRequest = null;
 
 /**
- * This method will get any persisted requests and fire them off in sequence to retry them.
+ * Process any persisted requests, when online, one at a time until the queue is empty.
  *
+ * If a request fails due to some kind of network error, such as a request being throttled or when our backend is down, then we retry it with an exponential back off process until a response
+ * is successfully returned. The first time a request fails we set a random, small, initial wait time. After waiting, we retry the request. If there are subsequent failures the request wait
+ * time is doubled creating an exponential back off in the frequency of requests hitting the server. Since the initial wait time is random and it increases exponentially, the load of
+ * requests to our backend is evenly distributed and it gradually decreases with time, which helps the servers catch up.
  * @returns {Promise}
  */
 function process() {
     const persistedRequests = PersistedRequests.getAll();
-
-    // If we have no persisted requests or we are offline we don't want to make any requests so we return early
     if (_.isEmpty(persistedRequests) || NetworkStore.isOffline()) {
         return Promise.resolve();
     }
 
-    // Get the first request in the queue and process it
-    // Make a copy of the first request in the queue and process it. We make a copy so that the middlewares can't modify the persisted request which could cause problems with retries.
+    // Make a copy of the request as safeguard so that if someone modifies it within the middleware, the original will be unaltered when it is retried.
     const requestToProcess = lodashCloneDeep(persistedRequests[0]);
 
     // Set the current request to a promise awaiting its processing
     currentRequest = Request.processWithMiddleware(requestToProcess, true).then(() => {
-        // If the request is successful we want to:
-        // - Remove it from the queue
-        // - Clear any wait time we may have added if it failed before
-        // - Call process again to process the other requests in the queue
         PersistedRequests.remove(requestToProcess);
         RequestThrottle.clear();
         return process();
     }).catch((error) => {
-        // If the request was cancelled we don't want to retry it, so remove it from the queue and move on to the next request
+        // On sign out we cancel any in flight requests from the user. Since that user is no longer signed in their requests should not be retried.
         if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
             PersistedRequests.remove(requestToProcess);
             RequestThrottle.clear();
             return process();
         }
-
-        // If the request failed and we want to retry it:
-        // - Sleep for a period of time
-        // - Call process again. This will retry the same request since we have not removed it from the queue
         return RequestThrottle.sleep().then(process);
     });
     return currentRequest;
