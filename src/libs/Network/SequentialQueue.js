@@ -38,7 +38,7 @@ function process() {
     // Make a copy of the request as safeguard so that if someone modifies it within the middleware, the original will be unaltered when it is retried.
     const requestToProcess = lodashCloneDeep(persistedRequests[0]);
 
-    // Set the current request to a promise awaiting its processing
+    // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequest = Request.processWithMiddleware(requestToProcess, true).then(() => {
         PersistedRequests.remove(requestToProcess);
         RequestThrottle.clear();
