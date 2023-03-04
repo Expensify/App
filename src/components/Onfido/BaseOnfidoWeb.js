@@ -63,16 +63,12 @@ class Onfido extends React.Component {
                     options: {
                         useLiveDocumentCapture: true,
                         forceCrossDevice: true,
-                        showCountrySelection: false,
+                        hideCountrySelection: true,
+                        country: 'USA',
+                        uploadFallback: false,
                         documentTypes: {
                             driving_licence: {
-                                country: null,
-                            },
-                            national_identity_card: {
-                                country: null,
-                            },
-                            residence_permit: {
-                                country: null,
+                                country: 'USA',
                             },
                             passport: true,
                         },

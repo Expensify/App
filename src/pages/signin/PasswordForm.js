@@ -23,8 +23,8 @@ import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
-import OfflineIndicator from '../../components/OfflineIndicator';
 import FormHelpMessage from '../../components/FormHelpMessage';
+import Terms from './Terms';
 
 const propTypes = {
     /* Onyx Props */
@@ -225,7 +225,9 @@ class PasswordForm extends React.Component {
                     />
                     <ChangeExpensifyLoginLink onPress={this.clearSignInData} />
                 </View>
-                <OfflineIndicator containerStyles={[styles.mv5]} />
+                <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
+                    <Terms />
+                </View>
             </>
         );
     }
