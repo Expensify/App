@@ -11,6 +11,27 @@ const flatListRef = React.createRef();
  */
 function scrollToIndex(index) {
     flatListRef.current.scrollToIndex(index);
+    lastIndex = index;
+}
+
+// This is a reference  
+let lastIndex = undefined;
+
+/**
+ * Layout Change the latest indexes set 
+ * The is a fallback handler for asyncrounius scrolling and layout changes.
+ *
+ */
+function layoutChange() {
+    if (!flatListRef.current) {
+        return;
+    }
+    if (lastIndex == undefined) { 
+        return;
+    }
+
+    flatListRef.current.scrollToIndex(lastIndex);
+    lastIndex = undefined;
 }
 
 /**
@@ -29,4 +50,5 @@ export {
     flatListRef,
     scrollToIndex,
     scrollToBottom,
+    layoutChange
 };

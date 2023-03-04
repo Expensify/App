@@ -192,6 +192,8 @@ class ReportActionsList extends React.Component {
                         this.setState({
                             skeletonViewHeight: event.nativeEvent.layout.height,
                         });
+                        if (ReportScrollManager && ReportScrollManager.layoutChange)
+                            ReportScrollManager.layoutChange()
                         this.props.onLayout(event);
                     }}
                     onScroll={this.props.onScroll}
