@@ -17,7 +17,6 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
-import OfflineIndicator from '../../components/OfflineIndicator';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as ErrorUtils from '../../libs/ErrorUtils';
@@ -211,7 +210,6 @@ class LoginForm extends React.Component {
                         </View>
                     )
                 }
-                <OfflineIndicator containerStyles={[styles.mv1]} />
             </>
         );
     }
