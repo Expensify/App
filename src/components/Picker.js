@@ -193,6 +193,21 @@ class Picker extends PureComponent {
                                 this.setState({isOpen: false});
                                 this.props.onBlur();
                             },
+
+                            // The following 2 handlers are specific to web (onChange overrides onValueChange on web)
+                            // They are used to make the picker indicator behave the same way as it does on native
+                            onMouseDown: () => {
+                                this.setState({isOpen: true});
+                            },
+                            onChange: (e) => {
+                                if (e.target.selectedIndex === undefined) {
+                                    return;
+                                }
+                                const index = e.target.selectedIndex;
+                                const value = e.target.options[index].value;
+                                this.onInputChange(value, index);
+                                this.setState({isOpen: false});
+                            },
                         }}
                         ref={(el) => {
                             if (!_.isFunction(this.props.innerRef)) {
