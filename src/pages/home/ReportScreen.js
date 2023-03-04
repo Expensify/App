@@ -34,6 +34,9 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
 
+// import mocData from './mocData';
+import * as ReportScrollManager from '../../libs/ReportScrollManager';
+
 const propTypes = {
     /** Navigation route context info provided by react navigation */
     route: PropTypes.shape({
@@ -106,6 +109,9 @@ function getReportID(route) {
 // Keep a reference to the list view height so we can use it when a new ReportScreen component mounts
 let reportActionsListViewHeight = 0;
 
+const sliceFrom = 400;
+const sliceTo = 450;
+
 class ReportScreen extends React.Component {
     constructor(props) {
         super(props);
@@ -114,9 +120,13 @@ class ReportScreen extends React.Component {
         this.chatWithAccountManager = this.chatWithAccountManager.bind(this);
         this.dismissBanner = this.dismissBanner.bind(this);
 
+        // this.reportID = getReportID()
+        this.fullMockData = generateReportActionsArray(500);
         this.state = {
             skeletonViewContainerHeight: reportActionsListViewHeight,
             isBannerVisible: true,
+
+            mockData: this.fullMockData.slice(sliceFrom, sliceTo),
         };
     }
 
@@ -131,6 +141,14 @@ class ReportScreen extends React.Component {
             return;
         }
 
+        setTimeout(() => {
+            this.loadNewerReportActions();
+        }, 1000);
+
+        setTimeout(() => {
+            this.loadOlderReportActions();
+        }, 5000);
+
         this.fetchReportIfNeeded();
         toggleReportActionComposeView(true);
     }
@@ -140,6 +158,14 @@ class ReportScreen extends React.Component {
      */
     onSubmitComment(text) {
         Report.addComment(getReportID(this.props.route), text);
+    }
+
+    loadNewerReportActions() {
+        this.setState({mockData: this.fullMockData.slice(sliceFrom - 50, this.fullMockData.length)});
+    }
+
+    loadOlderReportActions() {
+        this.setState({mockData: this.fullMockData.slice(sliceFrom, this.fullMockData.length)});
     }
 
     /**
@@ -272,18 +298,24 @@ class ReportScreen extends React.Component {
                             {(this.isReportReadyForDisplay() && !isLoadingInitialReportActions) && (
                                 <>
                                     <ReportActionsView
-                                        reportActions={this.props.reportActions}
+                                        reportActions={this.state.mockData}
                                         report={this.props.report}
                                         session={this.props.session}
                                         isComposerFullSize={this.props.isComposerFullSize}
                                         isDrawerOpen={this.props.isDrawerOpen}
                                         parentViewHeight={this.state.skeletonViewContainerHeight}
+
+                                        // reportActions={this.state.mockData}
+                                        // onEndReached={this.onEndReached}
+                                        // onStartReached={this.onStartReached}
                                     />
                                     <ReportFooter
                                         errors={addWorkspaceRoomOrChatErrors}
                                         pendingAction={addWorkspaceRoomOrChatPendingAction}
                                         isOffline={this.props.network.isOffline}
-                                        reportActions={this.props.reportActions}
+                                        reportActions={this.state.mockData}
+
+                                        // reportActions={this.state.mockData}
                                         report={this.props.report}
                                         isComposerFullSize={this.props.isComposerFullSize}
                                         onSubmitComment={this.onSubmitComment}
@@ -348,3 +380,55 @@ export default compose(
         },
     }),
 )(ReportScreen);
+
+function generateStringsWithRandomLength(str) {
+    let s = '';
+    const len = Math.floor(Math.random() * 250) + 1; // generate a random length between 1 and 50
+    for (let j = 0; j < len; j++) {
+        s += `${str} `; // build the string by concatenating str
+    }
+    return s;
+}
+
+function generateReportActionsArray(numObjects) {
+    const reportActionsArray = [];
+    const newDate = new Date();
+    for (let i = 0; i < numObjects; i++) {
+        const reversedI = numObjects - i - 1;
+        const stamp = newDate.setDate(newDate.getDate() + i);
+        const timestamp = Math.floor(stamp / 1000);
+        const reportActionTimestamp = timestamp * 1000;
+        const reportActionID = Math.random().toString(36).slice(2);
+        const created = new Date(newDate.setDate(newDate.getDate()) - i).toISOString();
+        const message = generateStringsWithRandomLength(reversedI);
+
+        reportActionsArray.push({
+            reportActionID,
+            actionName: 'ADDCOMMENT',
+            actorEmail: 'taras@margelo.io',
+            actorAccountID: 14307271,
+            person: [{type: 'TEXT', style: 'strong', text: 'taras@margelo.io'}],
+            automatic: false,
+            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_6.png',
+            created,
+            message: [{
+                type: 'COMMENT',
+                html: message,
+                text: message,
+                isEdited: false,
+            }],
+            isFirstItem: false,
+            isAttachment: false,
+            attachmentInfo: {},
+            pendingAction: null,
+            shouldShow: true,
+            originalMessage: {html: message},
+            timestamp,
+            reportActionTimestamp,
+            clientID: '',
+        });
+    }
+
+    return reportActionsArray;
+}
+

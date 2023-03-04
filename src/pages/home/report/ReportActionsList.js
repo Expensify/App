@@ -77,6 +77,8 @@ class ReportActionsList extends React.Component {
 
     componentDidMount() {
         this.fadeIn();
+
+        ReportScrollManager.flatListRef.current.scrollToOffset({animated: false, offset: 1});
     }
 
     fadeIn() {
@@ -161,7 +163,6 @@ class ReportActionsList extends React.Component {
                     keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
                     initialNumToRender={this.calculateInitialNumToRender()}
-                    onEndReached={this.props.loadMoreChats}
                     onEndReachedThreshold={0.75}
                     ListFooterComponent={() => {
                         if (this.props.report.isLoadingMoreReportActions) {

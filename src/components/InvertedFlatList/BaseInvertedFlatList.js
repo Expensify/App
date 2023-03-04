@@ -141,6 +141,7 @@ class BaseInvertedFlatList extends Component {
                 {...this.props}
                 ref={this.props.innerRef}
                 renderItem={this.renderItem}
+                // sizeMap={this.sizeMap}
 
                 // Native platforms do not need to measure items and work fine without this.
                 // Web requires that items be measured or else crazy things happen when scrolling.
@@ -149,6 +150,7 @@ class BaseInvertedFlatList extends Component {
                 // We keep this property very low so that chat switching remains fast
                 maxToRenderPerBatch={1}
                 windowSize={15}
+                initialListSize={50}
                 maintainVisibleContentPosition={{minIndexForVisible: 0, autoscrollToTopThreshold: 0}}
             />
         );
