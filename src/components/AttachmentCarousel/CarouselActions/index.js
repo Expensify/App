@@ -43,10 +43,10 @@ class Carousel extends React.Component {
         // prevents focus from highlighting around the modal
         e.target.blur();
         if (e.key === 'ArrowLeft') {
-            this.props.onCycleThroughAttachments(1);
+            this.props.onCycleThroughAttachments(-1);
         }
         if (e.key === 'ArrowRight') {
-            this.props.onCycleThroughAttachments(-1);
+            this.props.onCycleThroughAttachments(1);
         }
     }
 

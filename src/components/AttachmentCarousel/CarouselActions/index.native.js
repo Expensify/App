@@ -49,7 +49,7 @@ class Carousel extends Component {
                         return;
                     }
 
-                    this.props.onCycleThroughAttachments(deltaSlide);
+                    this.props.onCycleThroughAttachments(-deltaSlide);
                     this.pan.setValue(-slideLength);
                     Animated.timing(this.pan, {useNativeDriver: false, duration: 100, toValue: 0}).start();
                 });
