@@ -94,6 +94,9 @@ class MainDrawerNavigator extends Component {
             return false;
         }
 
+        // Update the report screen initial params after the reports are available
+        // to show the correct report instead of the "no access" report.
+        // https://github.com/Expensify/App/issues/12698#issuecomment-1352632883
         if (!this.initialParams.reportID) {
             const state = this.props.navigation.getState();
             const reportScreenKey = lodashGet(state, 'routes[0].state.routes[0].key', '');
