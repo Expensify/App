@@ -28,6 +28,7 @@ const darkTheme = {
     successHover: colors.greenHover,
     successPressed: colors.greenPressed,
     transparent: colors.transparent,
+    midtone: colors.green700,
 
     // Additional keys
     overlay: colors.greenHighlightBackground,
@@ -60,6 +61,7 @@ const darkTheme = {
     checkBox: colors.green,
     pickerOptionsTextColor: colors.white,
     imageCropBackgroundColor: colors.greenIcons,
+    fallbackIconColor: colors.green700,
 };
 
 const oldTheme = {

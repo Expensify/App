@@ -25,6 +25,7 @@ import FixedFooter from '../../components/FixedFooter';
 import BlockingView from '../../components/BlockingViews/BlockingView';
 import {withNetwork} from '../../components/OnyxProvider';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -125,7 +126,7 @@ class WorkspacesListPage extends Component {
             .filter(policy => PolicyUtils.shouldShowPolicy(policy, this.props.network.isOffline))
             .map(policy => ({
                 title: policy.name,
-                icon: policy.avatar ? policy.avatar : Expensicons.Building,
+                icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                 iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
                 iconStyles: policy.avatar ? [] : [styles.popoverMenuIconEmphasized],
@@ -163,7 +164,7 @@ class WorkspacesListPage extends Component {
                 <MenuItem
                     title={keyTitle}
                     icon={item.icon}
-                    iconType={item.iconType}
+                    iconType={CONST.ICON_TYPE_WORKSPACE}
                     onPress={item.action}
                     iconStyles={item.iconStyles}
                     iconFill={item.iconFill}
