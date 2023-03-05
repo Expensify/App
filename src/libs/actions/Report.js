@@ -39,7 +39,15 @@ Onyx.connect({
 let preferredSkinTone;
 Onyx.connect({
     key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-    callback: val => preferredSkinTone = val,
+    callback: (val) => {
+        // TODO: the preferred skin tone is sometimes still default, although it
+        //  was changed that "default" has become -1.
+        if (Number.isInteger(Number(val))) {
+            preferredSkinTone = val;
+        } else {
+            preferredSkinTone = -1;
+        }
+    },
 });
 
 const allReports = {};
