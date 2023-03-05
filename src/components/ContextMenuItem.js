@@ -73,7 +73,11 @@ class ContextMenuItem extends Component {
         return (
             this.props.isMini
                 ? (
-                    <BaseMiniContextMenuItem tooltipText={text} onPress={this.triggerPressAndUpdateSuccess}>
+                    <BaseMiniContextMenuItem
+                        tooltipText={text}
+                        onPress={this.triggerPressAndUpdateSuccess}
+                        isDelayButtonStateComplete={this.props.isDelayButtonStateComplete}
+                    >
                         {({hovered, pressed}) => (
                             <Icon
                                 small
