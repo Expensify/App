@@ -29,10 +29,10 @@ const propTypes = {
     chatReportID: PropTypes.string,
 
     /** List of cards */
-    cardList: PropTypes.arrayOf(cardPropTypes),
+    cardList: PropTypes.objectOf(cardPropTypes),
 
     /** List of bank accounts */
-    bankAccountList: PropTypes.arrayOf(bankAccountPropTypes),
+    bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 };
 
 const defaultProps = {
@@ -41,8 +41,8 @@ const defaultProps = {
     shouldListenForResize: false,
     isDisabled: false,
     chatReportID: '',
-    bankAccountList: [],
-    cardList: [],
+    bankAccountList: {},
+    cardList: {},
 };
 
 export {propTypes, defaultProps};
