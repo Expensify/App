@@ -33,9 +33,6 @@ const propTypes = {
 
     /** List of bank accounts */
     bankAccountList: PropTypes.arrayOf(bankAccountPropTypes),
-
-    /** Are we loading payment methods? */
-    isLoadingPaymentMethods: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -46,7 +43,6 @@ const defaultProps = {
     chatReportID: '',
     bankAccountList: [],
     cardList: [],
-    isLoadingPaymentMethods: true,
 };
 
 export {propTypes, defaultProps};
