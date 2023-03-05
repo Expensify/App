@@ -869,14 +869,15 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     // Optimistically update the reportAction with the new message
     const reportActionID = originalReportAction.reportActionID;
+    const originalMessage = lodashGet(originalReportAction, ['message', 0]);
     const optimisticReportActions = {
         [reportActionID]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             message: [{
+                ...originalMessage,
                 isEdited: true,
                 html: htmlForNewComment,
                 text: markdownForNewComment,
-                type: originalReportAction.message[0].type,
             }],
         },
     };
