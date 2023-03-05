@@ -1,4 +1,3 @@
-// bruh
 import React from 'react';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';

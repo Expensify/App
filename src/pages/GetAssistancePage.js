@@ -1,4 +1,3 @@
-// bruh
 import React from 'react';
 import {View, ScrollView, Linking} from 'react-native';
 import PropTypes from 'prop-types';
