@@ -55,9 +55,6 @@ const propTypes = {
         /** Whether or not transaction creation has resulted to error */
         error: PropTypes.bool,
 
-        /** Flag to show a loading indicator and avoid showing a previously selected currency */
-        isRetrievingCurrency: PropTypes.bool,
-
         // Selected Currency Code of the current IOU
         selectedCurrencyCode: PropTypes.string,
     }),
@@ -96,7 +93,6 @@ const defaultProps = {
     iou: {
         creatingIOUTransaction: false,
         error: false,
-        isRetrievingCurrency: false,
         selectedCurrencyCode: null,
     },
 };
