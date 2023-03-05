@@ -73,8 +73,10 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** The account manager report ID */
     accountManagerReportID: PropTypes.string,
 
+    /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     ...windowDimensionsPropTypes,
