@@ -45,6 +45,7 @@ const defaultProps = {
     text: '',
     maxWidth: variables.sideBarWidth,
     numberOfLines: CONST.TOOLTIP_MAX_LINES,
+    renderTooltipContent: undefined,
 };
 
 export {
