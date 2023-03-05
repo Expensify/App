@@ -1235,6 +1235,9 @@ function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = pref
             emoji: emoji.name,
             users: [],
         };
+    } else {
+        // Make a copy of the reaction object so that we can modify it without mutating the original
+        reactionObject = {...reactionObject};
     }
 
     const hasCurrentUserReacted = hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone);
@@ -1281,14 +1284,17 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
         return;
     }
 
-    reactionObject.users = _.filter(reactionObject.users, sender => sender.accountID !== currentUserAccountID);
+    const updatedReactionObject = {
+        ...reactionObject,
+    };
+    updatedReactionObject.users = _.filter(reactionObject.users, sender => sender.accountID !== currentUserAccountID);
     const updatedReactions = _.filter(
 
         // Replace the reaction object either with the updated one or null if there are no users
         _.map(message.reactions, (reaction) => {
             if (reaction.emoji === emoji.name) {
                 if (reaction.users.length === 0) { return null; }
-                return reactionObject;
+                return updatedReactionObject;
             }
             return reaction;
         }),
