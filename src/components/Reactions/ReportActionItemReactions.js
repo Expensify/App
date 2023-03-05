@@ -54,6 +54,10 @@ const ReportActionItemReactions = props => (
                 props.toggleReaction(emoji);
             };
 
+            if (reactionCount === 0) {
+                return null;
+            }
+
             return (
                 <EmojiReactionBubble
                     key={reaction.emoji}
