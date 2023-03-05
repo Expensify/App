@@ -12,16 +12,12 @@ const propTypes = {
     session: PropTypes.shape({
         /** Currently logged in user authToken */
         authToken: PropTypes.string,
-
-        /** Currently logged in user email */
-        email: PropTypes.string,
     }),
 };
 
 const defaultProps = {
     session: {
         authToken: null,
-        email: null,
     },
 };
 
