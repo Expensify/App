@@ -48,8 +48,9 @@
 
     <div id="content-area">
 
-        <!-- Article title (only shown in article pages) -->
-        {% if page.url contains "/articles/" %}
+        <div id="article-content">
+            <!-- Article title (only shown in article pages) -->
+            {% if page.url contains "/articles/" %}
             <h1 class="title">
                 {{ page.name | remove: '.md' | split: "-" |  join: " " }}
             </h1>
@@ -57,11 +58,12 @@
             <div class="article-toc-content article">
                 {{ content }}
             </div>
-        {% else %}
+            {% else %}
             <div class="article-toc-content lhn">
                 {{ content }}
             </div>
-        {% endif %}
+            {% endif %}
+        </div>
 
         <!-- Concierge button at the bottom of the page -->
         <a class="card get-help" href="{{ CONCIERGE_CHAT_URL }}" target="_blank">
@@ -78,5 +80,12 @@
             {% include footer.html %}
         </div>
     </div>
+
+    <!-- Use hidden input to pass hubs data to main.js -->
+    <input
+        id="hubs-data"
+        type="hidden"
+        value={{ site.data.routes.hubs | map: 'href' | jsonify }}
+    />
 </body>
 </html>

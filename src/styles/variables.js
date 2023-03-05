@@ -22,7 +22,9 @@ export default {
     componentSizeLarge: 52,
     componentBorderRadius: 8,
     componentBorderRadiusSmall: 4,
+    componentBorderRadiusMedium: 6,
     componentBorderRadiusNormal: 8,
+    componentBorderRadiusLarge: 16,
     componentBorderRadiusCard: 12,
     componentBorderRadiusRounded: 20,
     buttonBorderRadius: 100,
@@ -92,9 +94,13 @@ export default {
     checkboxLabelActiveOpacity: 0.7,
     avatarChatSpacing: 12,
     chatInputSpacing: 52, // 40 + avatarChatSpacing
+    borderTopWidth: 1,
     modalTopIconWidth: 200,
     modalTopIconHeight: 164,
     modalTopBigIconHeight: 244,
     modalWordmarkWidth: 154,
     modalWordmarkHeight: 34,
+    verticalLogoHeight: 634,
+    verticalLogoWidth: 111,
+    badgeMaxWidth: 180,
 };
