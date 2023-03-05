@@ -92,7 +92,7 @@ const defaultProps = {
     isComposerFullSize: false,
     betas: [],
     policies: {},
-    accountManagerReportID: {},
+    accountManagerReportID: null,
     personalDetails: {},
 };
 
