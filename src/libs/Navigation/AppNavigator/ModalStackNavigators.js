@@ -247,7 +247,42 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const SettingsAddSecondaryLoginPage = require('../../../pages/settings/AddSecondaryLoginPage').default;
+            const SettingsPersonalDetailsInitialPage = require('../../../pages/settings/Profile/PersonalDetails/PersonalDetailsInitialPage').default;
+            return SettingsPersonalDetailsInitialPage;
+        },
+        name: 'Settings_PersonalDetails_Initial',
+    },
+    {
+        getComponent: () => {
+            const SettingsLegalNamePage = require('../../../pages/settings/Profile/PersonalDetails/LegalNamePage').default;
+            return SettingsLegalNamePage;
+        },
+        name: 'Settings_PersonalDetails_LegalName',
+    },
+    {
+        getComponent: () => {
+            const SettingsDateOfBirthPage = require('../../../pages/settings/Profile/PersonalDetails/DateOfBirthPage').default;
+            return SettingsDateOfBirthPage;
+        },
+        name: 'Settings_PersonalDetails_DateOfBirth',
+    },
+    {
+        getComponent: () => {
+            const SettingsAddressPage = require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default;
+            return SettingsAddressPage;
+        },
+        name: 'Settings_PersonalDetails_Address',
+    },
+    {
+        getComponent: () => {
+            const SettingsContactMethodsPage = require('../../../pages/settings/Profile/Contacts/ContactMethodsPage').default;
+            return SettingsContactMethodsPage;
+        },
+        name: 'Settings_ContactMethods',
+    },
+    {
+        getComponent: () => {
+            const SettingsAddSecondaryLoginPage = require('../../../pages/settings/Profile/Contacts/AddSecondaryLoginPage').default;
             return SettingsAddSecondaryLoginPage;
         },
         name: 'Settings_Add_Secondary_Login',

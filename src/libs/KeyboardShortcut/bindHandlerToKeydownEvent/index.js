@@ -19,6 +19,11 @@ function bindHandlerToKeydownEvent(getDisplayName, eventHandlers, keycommandEven
 
     // Loop over all the callbacks
     _.every(eventHandlers[displayName], (callback) => {
+        // Early return for excludedNodes
+        if (_.contains(callback.excludedNodes, event.target.nodeName)) {
+            return true;
+        }
+
         // If configured to do so, prevent input text control to trigger this event
         if (!callback.captureOnInputs && (
             event.target.nodeName === 'INPUT'

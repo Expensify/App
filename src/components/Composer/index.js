@@ -12,6 +12,9 @@ import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFull
 import getNumberOfLines from '../../libs/ComposerUtils/index';
 import * as Browser from '../../libs/Browser';
 import Clipboard from '../../libs/Clipboard';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import compose from '../../libs/compose';
+import styles from '../../styles/styles';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -65,6 +68,8 @@ const propTypes = {
     isComposerFullSize: PropTypes.bool,
 
     ...withLocalizePropTypes,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -156,7 +161,8 @@ class Composer extends React.Component {
 
         if (prevProps.value !== this.props.value
             || prevProps.defaultValue !== this.props.defaultValue
-            || prevProps.isComposerFullSize !== this.props.isComposerFullSize) {
+            || prevProps.isComposerFullSize !== this.props.isComposerFullSize
+            || prevProps.windowWidth !== this.props.windowWidth) {
             this.updateNumberOfLines();
         }
 
@@ -268,7 +274,7 @@ class Composer extends React.Component {
             return;
         }
 
-        const plainText = event.clipboardData.getData('text/plain').replace(/\n\n/g, '\n');
+        const plainText = event.clipboardData.getData('text/plain');
 
         this.paste(Str.htmlDecode(plainText));
     }
@@ -297,9 +303,7 @@ class Composer extends React.Component {
         // the only stuff put into the clipboard is what the user selected.
         const selectedText = event.target.value.substring(this.state.selection.start, this.state.selection.end);
 
-        // The plaintext portion that is put into the clipboard needs to have the newlines duplicated. This is because
-        // the paste functionality is stripping all duplicate newlines to try and provide consistent behavior.
-        Clipboard.setHtml(selectedText, selectedText.replace(/\n/g, '\n\n'));
+        Clipboard.setHtml(selectedText, selectedText);
     }
 
     /**
@@ -354,7 +358,13 @@ class Composer extends React.Component {
                 onChange={this.shouldCallUpdateNumberOfLines}
                 onSelectionChange={this.onSelectionChange}
                 numberOfLines={this.state.numberOfLines}
-                style={propStyles}
+                style={[
+                    propStyles,
+
+                    // We are hiding the scrollbar to prevent it from reducing the text input width,
+                    // so we can get the correct scroll height while calculating the number of lines.
+                    this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
+                ]}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsWithoutStyles}
                 disabled={this.props.isDisabled}
@@ -366,7 +376,10 @@ class Composer extends React.Component {
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
-export default withLocalize(React.forwardRef((props, ref) => (
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <Composer {...props} forwardedRef={ref} />
 )));
