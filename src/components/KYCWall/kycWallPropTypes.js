@@ -29,10 +29,10 @@ const propTypes = {
     chatReportID: PropTypes.string,
 
     /** List of cards */
-    cardList: PropTypes.objectOf(cardPropTypes),
+    cardList: PropTypes.arrayOf(cardPropTypes),
 
     /** List of bank accounts */
-    bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
+    bankAccountList: PropTypes.arrayOf(bankAccountPropTypes),
 
     /** Are we loading payment methods? */
     isLoadingPaymentMethods: PropTypes.bool,
@@ -44,8 +44,8 @@ const defaultProps = {
     shouldListenForResize: false,
     isDisabled: false,
     chatReportID: '',
-    bankAccountList: {},
-    cardList: {},
+    bankAccountList: [],
+    cardList: [],
     isLoadingPaymentMethods: true,
 };
 
