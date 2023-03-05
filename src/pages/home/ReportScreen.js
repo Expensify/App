@@ -73,11 +73,6 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
-    /** Session of currently logged in user */
-    session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
-    }),
-
     accountManagerReportID: PropTypes.string,
 
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
@@ -97,7 +92,6 @@ const defaultProps = {
     isComposerFullSize: false,
     betas: [],
     policies: {},
-    session: {},
     accountManagerReportID: {},
     personalDetails: {},
 };
@@ -285,7 +279,6 @@ class ReportScreen extends React.Component {
                                     <ReportActionsView
                                         reportActions={this.props.reportActions}
                                         report={this.props.report}
-                                        session={this.props.session}
                                         isComposerFullSize={this.props.isComposerFullSize}
                                         isDrawerOpen={this.props.isDrawerOpen}
                                         parentViewHeight={this.state.skeletonViewContainerHeight}
@@ -331,9 +324,6 @@ export default compose(
     withOnyx({
         isSidebarLoaded: {
             key: ONYXKEYS.IS_SIDEBAR_LOADED,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
         reportActions: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,

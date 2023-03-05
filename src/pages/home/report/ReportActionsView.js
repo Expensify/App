@@ -31,12 +31,6 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
-    /** The session of the logged in person */
-    session: PropTypes.shape({
-        /** Email of the logged in person */
-        email: PropTypes.string,
-    }),
-
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool.isRequired,
 
@@ -49,8 +43,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    reportActions: [],
-    session: {},
+    reportActions: {},
 };
 
 class ReportActionsView extends React.Component {
