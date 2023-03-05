@@ -32,11 +32,6 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
-    /** Session of currently logged in user */
-    session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
-    }),
-
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
@@ -47,9 +42,6 @@ const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
-    session: {
-        email: null,
-    },
 };
 
 class NewChatPage extends Component {
@@ -291,9 +283,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
         betas: {
             key: ONYXKEYS.BETAS,

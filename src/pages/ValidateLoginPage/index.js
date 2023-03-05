@@ -22,8 +22,8 @@ const propTypes = {
 
     /** Session of currently logged in user */
     session: PropTypes.shape({
-        /** Email address */
-        email: PropTypes.string.isRequired,
+        /** Currently logged in user authToken */
+        authToken: PropTypes.string,
     }),
 };
 
@@ -31,7 +31,7 @@ const defaultProps = {
     route: validateLinkDefaultProps,
     betas: [],
     session: {
-        email: null,
+        authToken: null,
     },
 };
 

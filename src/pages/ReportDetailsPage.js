@@ -29,11 +29,6 @@ import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundVi
 const propTypes = {
     ...withLocalizePropTypes,
 
-    /** Whether or not to show the Compose Input */
-    session: PropTypes.shape({
-        accountID: PropTypes.number,
-    }),
-
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
 
@@ -56,9 +51,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    session: {
-        accountID: null,
-    },
     policies: {},
     personalDetails: {},
 };
@@ -202,9 +194,6 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     }),
 )(ReportDetailsPage);

@@ -33,11 +33,6 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
-    /** Session of currently logged in user */
-    session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
-    }),
-
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
 
@@ -48,9 +43,6 @@ const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
-    session: {
-        email: null,
-    },
 };
 
 class SearchPage extends Component {
@@ -219,9 +211,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
         betas: {
             key: ONYXKEYS.BETAS,
