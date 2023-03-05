@@ -41,6 +41,12 @@ const propTypes = {
     policies: PropTypes.objectOf(PropTypes.shape({
         /** The policy type */
         type: PropTypes.oneOf(_.values(CONST.POLICY.TYPE)),
+
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The ID of the policy */
+        id: PropTypes.string,
     })),
 
     ...withLocalizePropTypes,

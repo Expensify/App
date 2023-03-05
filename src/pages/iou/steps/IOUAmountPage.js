@@ -36,10 +36,6 @@ const propTypes = {
 
     /** Holds data related to IOU view state, rather than the underlying IOU data. */
     iou: PropTypes.shape({
-
-        /** Whether or not the IOU step is loading (retrieving users preferred currency) */
-        loading: PropTypes.bool,
-
         /** Selected Currency Code of the current IOU */
         selectedCurrencyCode: PropTypes.string,
     }),
@@ -49,7 +45,6 @@ const propTypes = {
 
 const defaultProps = {
     iou: {
-        loading: false,
         selectedCurrencyCode: null,
     },
 };

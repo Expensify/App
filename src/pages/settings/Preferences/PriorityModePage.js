@@ -14,6 +14,7 @@ import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as User from '../../../libs/actions/User';
+import CONST from '../../../CONST';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -25,7 +26,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    priorityMode: null,
+    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 
 const PriorityModePage = (props) => {
