@@ -24,8 +24,8 @@ const propTypes = {
 
     /** Session of currently logged in user */
     session: PropTypes.shape({
-        /** Email address */
-        email: PropTypes.string.isRequired,
+        /** Currently logged in user authToken */
+        authToken: PropTypes.string,
     }),
 
     /** The credentials of the logged in person */
@@ -37,6 +37,12 @@ const propTypes = {
         validateCode: PropTypes.string,
     }),
 
+    /** The details about the account that the user is signing in with */
+    account: PropTypes.shape({
+        /** Whether a sign on form is loading (being submitted) */
+        isLoading: PropTypes.bool,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -44,9 +50,10 @@ const defaultProps = {
     route: validateLinkDefaultProps,
     betas: [],
     session: {
-        email: null,
+        authToken: null,
     },
     credentials: {},
+    account: {},
 };
 
 class ValidateLoginPage extends Component {
