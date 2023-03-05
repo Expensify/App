@@ -2,8 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Animated, View} from 'react-native';
 import ReactDOM from 'react-dom';
+import _ from 'underscore';
 import getTooltipStyles from '../../styles/getTooltipStyles';
 import Text from '../Text';
+import styles from '../../styles/styles';
 
 const propTypes = {
     /** Window width */
@@ -40,20 +42,17 @@ const propTypes = {
     numberOfLines: PropTypes.number.isRequired,
 
     /** Number of pixels to set max-width on tooltip  */
-    maxWidth: PropTypes.number.isRequired,
+    maxWidth: PropTypes.number,
 
     /** Render custom content inside the tooltip. Note: This cannot be used together with the text props. */
     renderTooltipContent: PropTypes.func,
-
-    /** When rendering arbitrarily content using renderTooltipContent you should specify the width of the content */
-    contentWidth: PropTypes.number,
 };
 
 const defaultProps = {
     shiftHorizontal: 0,
     shiftVertical: 0,
-    contentWidth: 0,
     renderTooltipContent: undefined,
+    maxWidth: 0,
 };
 
 // Props will change frequently.
@@ -66,7 +65,7 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
         super(props);
         this.state = {
             // The width of tooltip's inner content
-            tooltipContentWidth: props.contentWidth,
+            tooltipContentWidth: 0,
 
             // The width and height of the tooltip itself
             tooltipWidth: 0,
@@ -74,6 +73,7 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
         };
 
         this.measureTooltip = this.measureTooltip.bind(this);
+        this.measureContent = this.measureContent.bind(this);
         this.updateTooltipTextWidth = this.updateTooltipTextWidth.bind(this);
     }
 
@@ -110,6 +110,12 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
         this.setState({
             tooltipWidth: nativeEvent.layout.width,
             tooltipHeight: nativeEvent.layout.height,
+        });
+    }
+
+    measureContent({nativeEvent}) {
+        this.setState({
+            tooltipContentWidth: nativeEvent.layout.width,
         });
     }
 
@@ -160,16 +166,30 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
             );
         }
 
+        const isCustomContent = _.isFunction(this.props.renderTooltipContent);
+
         return ReactDOM.createPortal(
-            <Animated.View
-                onLayout={this.measureTooltip}
-                style={[tooltipWrapperStyle, animationStyle]}
-            >
-                {content}
-                <View style={pointerWrapperStyle}>
-                    <View style={pointerStyle} />
-                </View>
-            </Animated.View>,
+            <>
+                {/* If rendering custom content always render an invisible version of
+                    it to detect layout size changes, if the content updates. */}
+                {isCustomContent && (
+                    <View
+                        style={styles.invisible}
+                        onLayout={this.measureContent}
+                    >
+                        {this.props.renderTooltipContent()}
+                    </View>
+                )}
+                <Animated.View
+                    onLayout={this.measureTooltip}
+                    style={[tooltipWrapperStyle, animationStyle]}
+                >
+                    {content}
+                    <View style={pointerWrapperStyle}>
+                        <View style={pointerStyle} />
+                    </View>
+                </Animated.View>
+            </>,
             document.querySelector('body'),
         );
     }

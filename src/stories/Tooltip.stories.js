@@ -44,16 +44,48 @@ Default.args = {
     absolute: false,
 };
 
-const RenderContent = Template.bind({});
-RenderContent.args = {
-    renderTooltipContent: () => (
+const RenderContent = () => {
+    const [size, setSize] = React.useState(40);
+
+    const renderTooltipContent = () => (
         <div style={{
-            width: 40,
-            height: 40,
+            width: size,
+            height: size,
             backgroundColor: 'blue',
         }}
         />
-    ),
+    );
+
+    return (
+        <div style={{
+            width: 100,
+        }}
+        >
+            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+            <Tooltip renderTooltipContent={renderTooltipContent}>
+                {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+                <div
+                    onClick={() => setSize(size + 25)}
+                    style={{
+                        width: 100,
+                        height: 60,
+                        display: 'flex',
+                        backgroundColor: 'red',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    Hover me
+                    {' '}
+                    {'\n'}
+                    Press me change content
+                </div>
+            </Tooltip>
+        </div>
+    );
+};
+RenderContent.args = {
+
 };
 
 export default story;
