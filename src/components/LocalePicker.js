@@ -9,6 +9,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import Picker from './Picker';
 import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 
 const propTypes = {
     /** Indicates which locale the user currently has selected */
@@ -47,6 +48,7 @@ const LocalePicker = (props) => {
             size={props.size}
             value={props.preferredLocale}
             containerStyles={props.size === 'small' ? [styles.pickerContainerSmall] : []}
+            backgroundColor={themeColors.transparent}
         />
     );
 };

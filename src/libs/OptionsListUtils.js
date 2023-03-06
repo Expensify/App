@@ -593,7 +593,11 @@ function getOptions(reports, personalDetails, {
         });
 
         // If user doesn't exist, use a default avatar
-        userToInvite.icons = [ReportUtils.getAvatar('', login)];
+        userToInvite.icons = [{
+            source: ReportUtils.getAvatar('', login),
+            name: login,
+            type: CONST.ICON_TYPE_AVATAR,
+        }];
     }
 
     // If we are prioritizing 1:1 chats in search, do it only once we started searching
@@ -663,7 +667,11 @@ function getIOUConfirmationOptionsFromMyPersonalDetail(myPersonalDetail, amountT
     return {
         text: myPersonalDetail.displayName,
         alternateText: myPersonalDetail.login,
-        icons: [ReportUtils.getAvatar(myPersonalDetail.avatar, myPersonalDetail.login)],
+        icons: [{
+            source: ReportUtils.getAvatar(myPersonalDetail.avatar, myPersonalDetail.login),
+            name: myPersonalDetail.login,
+            type: CONST.ICON_TYPE_AVATAR,
+        }],
         descriptiveText: amountText,
         login: myPersonalDetail.login,
     };

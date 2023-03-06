@@ -190,9 +190,13 @@ class ReportActionCompose extends React.Component {
             this.setMaxLines();
         }
 
+        // Value state does not have the same value as comment props when the comment gets changed from another tab.
+        // In this case, we should synchronize the value between tabs.
+        const shouldSyncComment = prevProps.comment !== this.props.comment && this.state.value !== this.props.comment;
+
         // As the report IDs change, make sure to update the composer comment as we need to make sure
         // we do not show incorrect data in there (ie. draft of message from other report).
-        if (this.props.report.reportID === prevProps.report.reportID) {
+        if (this.props.report.reportID === prevProps.report.reportID && !shouldSyncComment) {
             return;
         }
 
@@ -691,17 +695,18 @@ class ReportActionCompose extends React.Component {
                             onEmojiSelected={this.addEmojiToTextBox}
                         />
                     )}
-                    <View style={[styles.justifyContentEnd]}>
+                    <View
+                        style={[styles.justifyContentEnd]}
+
+                        // Keep focus on the composer when Send message is clicked.
+                        onMouseDown={e => e.preventDefault()}
+                    >
                         <Tooltip text={this.props.translate('common.send')}>
                             <TouchableOpacity
                                 style={[styles.chatItemSubmitButton,
                                     (this.state.isCommentEmpty || hasExceededMaxCommentLength) ? undefined : styles.buttonSuccess,
                                 ]}
                                 onPress={this.submitForm}
-
-                                // Keep focus on the composer when Send message is clicked.
-                                // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                                onMouseDown={e => e.preventDefault()}
                                 disabled={this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength}
                                 hitSlop={{
                                     top: 3, right: 3, bottom: 3, left: 3,
