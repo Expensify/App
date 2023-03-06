@@ -49,7 +49,7 @@ export default {
         back: 'Back',
         saveAndContinue: 'Save & continue',
         settings: 'Settings',
-        termsOfService: 'Terms of service',
+        termsOfService: 'Terms of Service',
         members: 'Members',
         invite: 'Invite',
         here: 'here',
