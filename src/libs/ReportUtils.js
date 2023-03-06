@@ -228,7 +228,20 @@ function isChatRoom(report) {
  */
 function isPublicRoom(report) {
     const visibility = lodashGet(report, 'visibility', '');
-    return visibility === CONST.REPORT.VISIBILITY.PUBLIC || visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE, 
+    return visibility === CONST.REPORT.VISIBILITY.PUBLIC || visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE;
+}
+
+/**
+ * Whether the current user is able to edit the name of a public room
+ * @param {Object} report
+ * @param {Object} policy
+ */
+function canEditPublicRoomName(report, policy) {
+    let shouldDisablePublicRoomRename = ReportUtils.isPublicRoom(this.props.report) && !linkedWorkspace;
+    if (ReportUtils.isPublicRoom(this.props.report) && linkedWorkspace) {
+        shouldDisablePublicRoomRename = !Policy.isPolicyOwner(linkedWorkspace) || linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN;
+    }
+    return !shouldDisablePublicRoomRename;
 }
 
 /**
@@ -1614,6 +1627,7 @@ export {
     getPolicyName,
     getPolicyType,
     isArchivedRoom,
+    isPublicRoom,
     isConciergeChatReport,
     hasAutomatedExpensifyEmails,
     hasExpensifyGuidesEmails,

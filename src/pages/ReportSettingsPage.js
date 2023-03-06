@@ -10,6 +10,7 @@ import styles from '../styles/styles';
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import * as Report from '../libs/actions/Report';
+import * as Policy from '../libs/actions/Policy';
 import * as ReportUtils from '../libs/ReportUtils';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -112,9 +113,14 @@ class ReportSettingsPage extends Component {
         const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, policy => policy && policy.id === this.props.report.policyID);
 
+        let shouldDisablePublicRoomRename = ReportUtils.isPublicRoom(this.props.report) && !linkedWorkspace;
+        if (ReportUtils.isPublicRoom(this.props.report) && linkedWorkspace) {
+            shouldDisablePublicRoomRename = !Policy.isPolicyOwner(linkedWorkspace) && linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN;
+        }
+
         const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report)
             || ReportUtils.isArchivedRoom(this.props.report)
-            || (ReportUtils.isPublicRoom(this.props.report) && !linkedWorkspace);
+            || shouldDisablePublicRoomRename;
 
         return (
             <ScreenWrapper>

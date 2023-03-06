@@ -14,6 +14,7 @@ import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import * as ReportUtils from '../ReportUtils';
 import Log from '../Log';
+import { session } from 'electron';
 
 const allPolicies = {};
 Onyx.connect({
@@ -148,6 +149,16 @@ function isAdminOfFreePolicy(policies) {
     return _.some(policies, policy => policy
         && policy.type === CONST.POLICY.TYPE.FREE
         && policy.role === CONST.POLICY.ROLE.ADMIN);
+}
+
+/**
+ * Is the user the owner of the given policy?
+ *
+ * @param {Object} policy
+ * @returns {Boolean}
+ */
+function isPolicyOwner(policy) {
+    return policy.owner === sessionEmail;
 }
 
 /**
@@ -1027,4 +1038,5 @@ export {
     openWorkspaceMembersPage,
     openWorkspaceInvitePage,
     removeWorkspace,
+    isPolicyOwner,
 };
