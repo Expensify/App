@@ -225,6 +225,9 @@ class ImageView extends PureComponent {
     }
 
     imageLoadingStart() {
+        if (this.state.isLoading) {
+            return;
+        }
         this.setState({isLoading: true, zoomScale: 0, isZoomed: false});
     }
 
@@ -248,6 +251,7 @@ class ImageView extends PureComponent {
                         // When Image dimensions are lower than the container boundary(zoomscale <= 1), use `contain` to render the image with natural dimensions.
                         // Both `center` and `contain` keeps the image centered on both x and y axis.
                         resizeMode={this.state.zoomScale > 1 ? Image.resizeMode.center : Image.resizeMode.contain}
+                        onLoadStart={this.imageLoadingStart}
                         onLoad={this.imageLoad}
                     />
                     {this.state.isLoading && (
@@ -286,6 +290,7 @@ class ImageView extends PureComponent {
                             styles.w100,
                         ]} // Hide image until finished loading to prevent showing preview with wrong dimensions.
                         resizeMode={Image.resizeMode.contain}
+                        onLoadStart={this.imageLoadingStart}
                         onLoad={this.imageLoad}
                     />
                 </Pressable>

@@ -64,12 +64,10 @@ class ImageView extends PureComponent {
             return;
         }
 
+        this.imageLoadingStart();
+
         if (this.interactionPromise) {
             this.state.interactionPromise.cancel();
-        }
-
-        if (!this.state.isLoading) {
-            this.imageLoadingStart();
         }
     }
 
@@ -147,6 +145,9 @@ class ImageView extends PureComponent {
     }
 
     imageLoadingStart() {
+        if (this.state.isLoading) {
+            return;
+        }
         this.resetImageZoom();
         this.setState({imageHeight: 0, imageWidth: 0, isLoading: true});
     }
