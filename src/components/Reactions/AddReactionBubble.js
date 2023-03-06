@@ -10,6 +10,7 @@ import Text from '../Text';
 import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import variables from '../../styles/variables';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
     /**
@@ -43,6 +44,8 @@ const propTypes = {
      * Called when the user selects an emoji.
      */
     onSelectEmoji: PropTypes.func.isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -76,7 +79,7 @@ const AddReactionBubble = (props) => {
     };
 
     return (
-        <Tooltip text="Add Reaction…">
+        <Tooltip text={props.translate('reportActionContextMenu.addReactionTooltip')}>
             <Pressable
                 ref={ref}
                 style={({
@@ -126,4 +129,4 @@ AddReactionBubble.propTypes = propTypes;
 AddReactionBubble.defaultProps = defaultProps;
 AddReactionBubble.displayName = 'AddReactionBubble';
 
-export default AddReactionBubble;
+export default withLocalize(AddReactionBubble);

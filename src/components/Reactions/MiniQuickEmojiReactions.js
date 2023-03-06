@@ -14,8 +14,14 @@ import {
     baseQuickEmojiReactionsDefaultProps,
     baseQuickEmojiReactionsPropTypes,
 } from './QuickEmojiReactions/BaseQuickEmojiReactions';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const ICON_SIZE_SCALE_FACTOR = 1.3;
+
+const propTypes = {
+    ...baseQuickEmojiReactionsPropTypes,
+    ...withLocalizePropTypes,
+};
 
 /**
  * Shows the four common quick reactions and a
@@ -60,8 +66,8 @@ const MiniQuickEmojiReactions = (props) => {
             <BaseMiniContextMenuItem
                 ref={ref}
                 onPress={openEmojiPicker}
-                tooltipText="Add emoji reaction"
                 isDelayButtonStateComplete={false}
+                tooltipText={props.translate('reportActionContextMenu.addEmojiReaction')}
             >
                 {({hovered, pressed}) => (
                     <Icon
@@ -76,6 +82,6 @@ const MiniQuickEmojiReactions = (props) => {
 };
 
 MiniQuickEmojiReactions.displayName = 'MiniQuickEmojiReactions';
-MiniQuickEmojiReactions.propTypes = baseQuickEmojiReactionsPropTypes;
+MiniQuickEmojiReactions.propTypes = propTypes;
 MiniQuickEmojiReactions.defaultProps = baseQuickEmojiReactionsDefaultProps;
-export default MiniQuickEmojiReactions;
+export default withLocalize(MiniQuickEmojiReactions);
