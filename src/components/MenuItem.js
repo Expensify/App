@@ -17,6 +17,7 @@ import SelectCircle from './SelectCircle';
 import colors from '../styles/colors';
 import variables from '../styles/variables';
 import MultipleAvatars from './MultipleAvatars';
+import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 
 const propTypes = {
     ...menuItemPropTypes,
@@ -42,7 +43,7 @@ const defaultProps = {
     disabled: false,
     isSelected: false,
     subtitle: undefined,
-    iconType: 'icon',
+    iconType: CONST.ICON_TYPE_ICON,
     onPress: () => {},
     interactive: true,
     fallbackIcon: Expensicons.FallbackAvatar,
@@ -54,11 +55,16 @@ const defaultProps = {
 const MenuItem = (props) => {
     const titleTextStyle = StyleUtils.combineStyles([
         styles.popoverMenuText,
-        styles.ml3,
+        (props.icon ? styles.ml3 : undefined),
         (props.shouldShowBasicTitle ? undefined : styles.textStrong),
         (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
     ], props.style);
-    const descriptionTextStyle = StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml3, styles.breakAll, styles.lineHeightNormal], props.style);
+    const descriptionTextStyle = StyleUtils.combineStyles([
+        styles.textLabelSupporting,
+        (props.icon ? styles.ml3 : undefined),
+        styles.breakAll,
+        styles.lineHeightNormal,
+    ], props.style);
 
     return (
         <Pressable
@@ -83,36 +89,42 @@ const MenuItem = (props) => {
             {({hovered, pressed}) => (
                 <>
                     <View style={[styles.flexRow, styles.pointerEventsAuto, styles.flex1, props.disabled && styles.cursorDisabled]}>
-                        {(props.icon && props.iconType === CONST.ICON_TYPE_ICON) && (
+                        {props.icon && (
                             <View
                                 style={[
                                     styles.popoverMenuIcon,
                                     ...props.iconStyles,
                                 ]}
                             >
-                                <Icon
-                                    src={props.icon}
-                                    width={props.iconWidth}
-                                    height={props.iconHeight}
-                                    fill={props.iconFill || StyleUtils.getIconFillColor(
-                                        getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive),
-                                        true,
-                                    )}
-                                />
-                            </View>
-                        )}
-                        {(props.icon && props.iconType === CONST.ICON_TYPE_AVATAR) && (
-                            <View
-                                style={[
-                                    styles.popoverMenuIcon,
-                                    ...props.iconStyles,
-                                ]}
-                            >
-                                <Avatar
-                                    imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
-                                    source={props.icon}
-                                    fallbackIcon={props.fallbackIcon}
-                                />
+                                {(props.iconType === CONST.ICON_TYPE_ICON) && (
+                                    <Icon
+                                        src={props.icon}
+                                        width={props.iconWidth}
+                                        height={props.iconHeight}
+                                        fill={props.iconFill || StyleUtils.getIconFillColor(
+                                            getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive),
+                                            true,
+                                        )}
+                                    />
+                                )}
+                                {(props.iconType === CONST.ICON_TYPE_WORKSPACE) && (
+
+                                    <Avatar
+                                        imageStyles={[styles.alignSelfCenter]}
+                                        size={CONST.AVATAR_SIZE.DEFAULT}
+                                        source={props.icon}
+                                        fallbackIcon={props.fallbackIcon}
+                                        name={props.title}
+                                        type={CONST.ICON_TYPE_WORKSPACE}
+                                    />
+                                )}
+                                {(props.iconType === CONST.ICON_TYPE_AVATAR) && (
+                                    <Avatar
+                                        imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
+                                        source={props.icon}
+                                        fallbackIcon={props.fallbackIcon}
+                                    />
+                                )}
                             </View>
                         )}
                         <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1, styles.gap1]}>
@@ -168,7 +180,7 @@ const MenuItem = (props) => {
                                     isPressed={pressed}
                                     icons={props.floatRightAvatars}
                                     size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-                                    fallbackIcon={Expensicons.Workspace}
+                                    fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
                                     shouldStackHorizontally={props.shouldStackHorizontally}
                                 />
                             </View>

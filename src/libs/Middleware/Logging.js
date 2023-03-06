@@ -2,7 +2,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Log from '../Log';
 import CONST from '../../CONST';
-import * as PersistedRequests from '../actions/PersistedRequests';
 
 /**
  * @param {String} message
@@ -53,19 +52,6 @@ function Logging(response, request) {
             return data;
         })
         .catch((error) => {
-            const persisted = lodashGet(request, 'data.persist');
-
-            // Cancelled requests are normal and can happen when a user logs out. No extra handling is needed here besides
-            // remove the request from the PersistedRequests if the request exists.
-            if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
-                Log.info('[Network] API request error: Request canceled', false, request);
-                if (persisted) {
-                    PersistedRequests.remove(request);
-                }
-
-                // Re-throw this error so the next handler can manage it
-                throw error;
-            }
             const logParams = {
                 message: error.message,
                 status: error.status,
@@ -73,14 +59,17 @@ function Logging(response, request) {
                 request,
             };
 
-            if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
+            if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
+                // Cancelled requests are normal and can happen when a user logs out.
+                Log.info('[Network] API request error: Request canceled', false, logParams);
+            } else if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
                 // If the command that failed is Log it's possible that the next call to Log may also fail.
                 // This will lead to infinitely complex log params that can eventually crash the app.
                 if (request.command === 'Log') {
                     delete logParams.request;
                 }
 
-                // Throw when we get a "Failed to fetch" error so we can retry. Very common if a user is offline or experiencing an unlikely scenario like
+                // Log when we get a "Failed to fetch" error. Very common if a user is offline or experiencing an unlikely scenario like
                 // incorrect url, bad cors headers returned by the server, DNS lookup failure etc.
                 Log.hmmm('[Network] API request error: Failed to fetch', logParams);
             } else if (_.contains([
@@ -116,12 +105,15 @@ function Logging(response, request) {
                 // Expensify site is down completely OR
                 // Auth (database connection) is down / bedrock has timed out while making a request. We currently can't tell the difference between Auth down and bedrock timing out.
                 Log.hmmm('[Network] API request error: Expensify service interrupted or timed out', logParams);
+            } else if (error.message === CONST.ERROR.THROTTLED) {
+                Log.hmmm('[Network] API request error: Expensify API throttled the request', logParams);
             } else {
                 // If we get any error that is not known log an alert so we can learn more about it and document it here.
                 Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} unknown API request error caught while processing request`, logParams, false);
             }
 
-            throw new Error(CONST.ERROR.XHR_FAILED);
+            // Re-throw this error so the next handler can manage it
+            throw error;
         });
 }
 
