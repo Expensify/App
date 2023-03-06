@@ -76,12 +76,12 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
 }
 
 /**
- * Finds most recent IOU request action number.
+ * Finds most recent IOU request action ID.
  *
  * @param {Array} reportActions
  * @returns {String}
  */
-function getMostRecentIOUReportActionID(reportActions) {
+function getMostRecentIOURequestActionID(reportActions) {
     const iouRequestActions = _.filter(reportActions, action => action.originalMessage
         && action.originalMessage.type && action.originalMessage.type == "create");
 
@@ -228,7 +228,7 @@ export {
     getSortedReportActions,
     getLastVisibleAction,
     getLastVisibleMessageText,
-    getMostRecentIOUReportActionID,
+    getMostRecentIOURequestActionID,
     isDeletedAction,
     isConsecutiveActionMadeByPreviousActor,
     getSortedReportActionsForDisplay,
