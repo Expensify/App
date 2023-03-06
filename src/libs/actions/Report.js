@@ -1325,7 +1325,7 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
         }),
 
         // Remove any null reactions
-        r => r != null,
+        reportObject => reportObject != null,
     );
 
     const updatedMessage = {
