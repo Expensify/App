@@ -118,7 +118,11 @@ class IOUModal extends Component {
             firstName: lodashGet(personalDetails, 'firstName', ''),
             lastName: lodashGet(personalDetails, 'lastName', ''),
             alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
-            icons: [ReportUtils.getAvatar(personalDetails.avatar, personalDetails.login)],
+            icons: [{
+                source: ReportUtils.getAvatar(personalDetails.avatar, personalDetails.login),
+                name: personalDetails.login,
+                type: CONST.ICON_TYPE_AVATAR,
+            }],
             keyForList: personalDetails.login,
             payPalMeAddress: lodashGet(personalDetails, 'payPalMeAddress', ''),
             phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
