@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard, View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -24,6 +24,11 @@ import CONST from '../../../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
+import Tooltip from '../../../components/Tooltip';
+import Icon from '../../../components/Icon';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import ONYXKEYS from '../../../ONYXKEYS';
+import {withOnyx} from 'react-native-onyx';
 
 const propTypes = {
     /** All the data of the action */
@@ -74,6 +79,7 @@ class ReportActionItemMessageEdit extends React.Component {
         this.cancelButtonID = 'cancelButton';
         this.emojiButtonID = 'emojiButton';
         this.messageEditInput = 'messageEditInput';
+        this.setIsFullComposerAvailable = this.setIsFullComposerAvailable.bind(this);
 
         const parser = new ExpensiMark();
         const draftMessage = parser.htmlToMarkdown(this.props.draftMessage);
@@ -228,18 +234,42 @@ class ReportActionItemMessageEdit extends React.Component {
         }
     }
 
+    setIsFullComposerAvailable(isFullComposerAvailable) {
+        this.setState({isFullComposerAvailable});
+    }
+
     render() {
+        console.log('this.props.isComposerFullSize', this.props.isComposerFullSize);
+
         const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
         return (
-            <View style={styles.chatItemMessage}>
+            <View style={[styles.chatItemMessage/*{height: '725px'}*/]}>
                 <View
                     style={[
                         styles.chatItemComposeBox,
                         styles.flexRow,
                         this.state.isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
                         hasExceededMaxCommentLength && styles.borderColorDanger,
+                        this.props.isComposerFullSize && styles.chatItemFullComposeBox,
                     ]}
                 >
+                    {((!this.props.isComposerFullSize && this.state.isFullComposerAvailable)) && (
+                        <Tooltip text={this.props.translate('reportActionCompose.expand')}>
+                            <TouchableOpacity
+                                onPress={(e) => {
+                                    e.preventDefault();
+                                    Report.setIsEditComposerFullSize(this.props.reportID, this.props.action.reportActionID, true);
+                                }}
+
+                                // Keep focus on the composer when Expand button is clicked.
+                                onMouseDown={e => e.preventDefault()}
+                                style={styles.composerSizeButton}
+                                disabled={this.props.disabled}
+                            >
+                                <Icon src={Expensicons.Expand} />
+                            </TouchableOpacity>
+                        </Tooltip>
+                    )}
                     <Composer
                         multiline
                         ref={(el) => {
@@ -251,7 +281,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         onKeyPress={this.triggerSaveOrCancel}
                         value={this.state.draft}
                         maxLines={16} // This is the same that slack has
-                        style={[styles.textInputCompose, styles.flex4, styles.editInputComposeSpacing]}
+                        style={[styles.textInputCompose, styles.flex4, styles.editInputComposeSpacing, {height: '100%'}]}
                         onFocus={() => {
                             this.setState({isFocused: true});
                             ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
@@ -273,6 +303,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         }}
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
+                        setIsFullComposerAvailable={this.setIsFullComposerAvailable}
                     />
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
@@ -314,6 +345,11 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withKeyboardState,
+    withOnyx({
+        isComposerFullSize: {
+            key: props => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${props.reportID}${props.action.reportActionID}`,
+        },
+    }),
 )(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <ReportActionItemMessageEdit {...props} forwardedRef={ref} />

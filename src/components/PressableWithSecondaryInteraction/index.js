@@ -54,7 +54,7 @@ class PressableWithSecondaryInteraction extends Component {
         // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
         return (
             <Pressable
-                style={this.props.inline && styles.dInline}
+                style={[this.props.inline && styles.dInline, this.props.style]}
                 onPressIn={this.props.onPressIn}
                 onLongPress={(e) => {
                     if (DeviceCapabilities.hasHoverSupport()) {

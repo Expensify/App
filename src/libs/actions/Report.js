@@ -1118,6 +1118,14 @@ function setIsComposerFullSize(reportID, isComposerFullSize) {
 
 /**
  * @param {String} reportID
+ * @param {Boolean} isComposerFullSize
+ */
+function setIsEditComposerFullSize(reportID, reportActionID, isComposerFullSize) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}${reportActionID}`, isComposerFullSize);
+}
+
+/**
+ * @param {String} reportID
  * @param {Object} action
  */
 function showReportActionNotification(reportID, action) {
@@ -1217,4 +1225,5 @@ export {
     clearIOUError,
     subscribeToNewActionEvent,
     showReportActionNotification,
+    setIsEditComposerFullSize,
 };

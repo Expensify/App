@@ -212,10 +212,11 @@ class ReportActionItem extends Component {
                 onSecondaryInteraction={this.showPopover}
                 preventDefaultContentMenu={!this.props.draftMessage}
                 withoutFocusOnSecondaryInteraction
+                style={{height: '99%'}}
             >
-                <Hoverable>
+                <Hoverable containerStyles={{ height: '99%' }}>
                     {hovered => (
-                        <View accessibilityLabel="Chat message">
+                        <View accessibilityLabel="Chat message" style={{ height: '100%' }}>
                             {this.props.shouldDisplayNewMarker && (
                                 <UnreadActionIndicator reportActionID={this.props.action.reportActionID} />
                             )}

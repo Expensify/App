@@ -276,7 +276,7 @@ class ReportScreen extends React.Component {
                                         isDrawerOpen={this.props.isDrawerOpen}
                                         parentViewHeight={this.state.skeletonViewContainerHeight}
                                     />
-                                    <ReportFooter
+                                    {/*<ReportFooter
                                         errors={addWorkspaceRoomOrChatErrors}
                                         pendingAction={addWorkspaceRoomOrChatPendingAction}
                                         isOffline={this.props.network.isOffline}
@@ -284,7 +284,7 @@ class ReportScreen extends React.Component {
                                         report={this.props.report}
                                         isComposerFullSize={this.props.isComposerFullSize}
                                         onSubmitComment={this.onSubmitComment}
-                                    />
+                            />*/}
                                 </>
                             )}
 
