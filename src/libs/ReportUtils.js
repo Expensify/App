@@ -564,7 +564,7 @@ function getSmallSizeAvatar(avatarURL, login) {
     if (!_.isString(source) || source.substring(lastPeriodIndex - 4, lastPeriodIndex) === '_128') {
         return source;
     }
-    return source.substring(0, lastPeriodIndex) + '_128' + source.substring(lastPeriodIndex);
+    return `${source.substring(0, lastPeriodIndex)}_128${source.substring(lastPeriodIndex)}`;
 }
 
 /**
