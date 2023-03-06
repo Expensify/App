@@ -40,8 +40,8 @@ let preferredSkinTone;
 Onyx.connect({
     key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
     callback: (val) => {
-        // TODO: the preferred skin tone is sometimes still default, although it
-        //  was changed that "default" has become -1.
+        // the preferred skin tone is sometimes still "default", although it
+        // was changed that "default" has become -1.
         if (Number.isInteger(Number(val))) {
             preferredSkinTone = val;
         } else {
@@ -1224,8 +1224,24 @@ function getOptimisticDataForReportActionUpdate(originalReportAction, message, r
     ];
 }
 
+/**
+ * Returns true if the accountID has reacted to the report action (with the given skin tone).
+ * @param {String} accountID
+ * @param {Array<Object | String | number>} users
+ * @param {Number} [skinTone]
+ * @returns {boolean}
+ */
 function hasAccountIDReacted(accountID, users, skinTone) {
-    return _.find(users, user => user.accountID === accountID && (skinTone == null ? true : user.skinTone === skinTone)) != null;
+    return _.find(users, (user) => {
+        let userAccountID;
+        if (typeof user === 'object') {
+            userAccountID = `${user.accountID}`;
+        } else {
+            userAccountID = `${user}`;
+        }
+
+        return userAccountID === `${accountID}` && (skinTone == null ? true : user.skinTone === skinTone);
+    }) !== undefined;
 }
 
 /**
@@ -1383,4 +1399,5 @@ export {
     addEmojiReaction,
     removeEmojiReaction,
     toggleEmojiReaction,
+    hasAccountIDReacted,
 };

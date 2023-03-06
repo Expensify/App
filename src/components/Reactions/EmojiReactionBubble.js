@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Pressable} from 'react-native';
-import _ from 'underscore';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -9,6 +8,7 @@ import withCurrentUserPersonalDetails, {
     withCurrentUserPersonalDetailsDefaultProps,
     withCurrentUserPersonalDetailsPropTypes,
 } from '../withCurrentUserPersonalDetails';
+import * as Report from '../../libs/actions/Report';
 
 const propTypes = {
     /**
@@ -57,7 +57,7 @@ const defaultProps = {
 };
 
 const EmojiReactionBubble = (props) => {
-    const hasUserReacted = _.find(props.reactionUsers, accountID => `${accountID}` === `${props.currentUserPersonalDetails.accountID}`) != null;
+    const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, props.reactionUsers);
     return (
         <Pressable
             style={({hovered}) => [
