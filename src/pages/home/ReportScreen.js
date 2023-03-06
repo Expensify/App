@@ -52,7 +52,7 @@ const propTypes = {
     report: reportPropTypes,
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
