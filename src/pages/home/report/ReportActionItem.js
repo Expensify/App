@@ -36,7 +36,9 @@ import reportPropTypes from '../../reportPropTypes';
 import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext';
 import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
 import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
+import * as ReactionList from './ReactionList/ReactionList';
 import * as Report from '../../../libs/actions/Report';
+import getPersonalDetailsByIDs from '../../../libs/getPersonalDetailsByIDs';
 
 const propTypes = {
     /** Report for this action */
@@ -75,6 +77,7 @@ class ReportActionItem extends Component {
     constructor(props) {
         super(props);
         this.popoverAnchor = undefined;
+        this.popoverReactionListAnchor = undefined;
         this.state = {
             isContextMenuActive: ReportActionContextMenu.isActiveReportAction(props.action.reportActionID),
         };
@@ -203,14 +206,24 @@ class ReportActionItem extends Component {
 
         const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
         const hasReactions = reactions.length > 0;
-
+        const onReactionListOpen = (e, reactionUsers, emojiName) => {
+            const users = getPersonalDetailsByIDs(reactionUsers);
+            ReactionList.showReactionList(
+                e,
+                this.popoverReactionListAnchor,
+                users,
+                emojiName,
+            );
+        };
         return (
             <>
                 {children}
                 {hasReactions && (
                     <ReportActionItemReactions
+                        ref={el => this.popoverReactionListAnchor = el}
                         reactions={reactions}
                         toggleReaction={this.toggleReaction}
+                        onReactionListOpen={onReactionListOpen}
                     />
                 )}
             </>

@@ -24,6 +24,9 @@ import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
 
+import * as ReactionList from './ReactionList/ReactionList';
+import PopoverReactionList from './ReactionList/PopoverReactionList';
+
 const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
@@ -365,6 +368,9 @@ class ReportActionsView extends React.Component {
                             isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
                             loadMoreChats={this.loadMoreChats}
                             newMarkerReportActionID={this.state.newMarkerReportActionID}
+                        />
+                        <PopoverReactionList
+                            ref={ReactionList.reactionListRef}
                         />
                     </>
                 )}

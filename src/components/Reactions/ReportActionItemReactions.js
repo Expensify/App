@@ -40,6 +40,15 @@ const propTypes = {
      * hence this function asks to toggle the reaction by emoji.
      */
     toggleReaction: PropTypes.func.isRequired,
+
+    /** A ref to PressableWithSecondaryInteraction */
+    forwardedRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
+    ]).isRequired,
+
+    /** Function which opens Reaction List */
+    onReactionListOpen: PropTypes.func.isRequired,
 };
 
 const ReportActionItemReactions = props => (
@@ -58,14 +67,20 @@ const ReportActionItemReactions = props => (
                 return null;
             }
 
+            const onReactionListOpen = (e) => {
+                props.onReactionListOpen(e, reactionUsers, reaction.emoji);
+            };
+
             return (
                 <EmojiReactionBubble
+                    ref={props.forwardedRef}
                     key={reaction.emoji}
                     count={reactionCount}
                     emojiName={reaction.emoji}
                     emojiCodes={emojiCodes}
                     onPress={onPress}
                     reactionUsers={reactionUsers}
+                    onReactionListOpen={onReactionListOpen}
                 />
             );
         })}
@@ -75,4 +90,9 @@ const ReportActionItemReactions = props => (
 
 ReportActionItemReactions.displayName = 'ReportActionItemReactions';
 ReportActionItemReactions.propTypes = propTypes;
-export default ReportActionItemReactions;
+
+export default React.forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <ReportActionItemReactions {...props} forwardedRef={ref} />
+));
+
