@@ -1,6 +1,7 @@
 import React from 'react';
 import {Pressable, View} from 'react-native';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
+import * as Modal from '../../libs/actions/Modal';
 import {propTypes, defaultProps} from './popoverPropTypes';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -45,6 +46,24 @@ const Popover = (props) => {
             document.removeEventListener('click', listener, true);
         };
     }, []);
+
+    React.useEffect(() => {
+        Modal.setCloseModal(props.onClose);
+
+        return () => {
+            Modal.setCloseModal(null);
+        };
+    }, []);
+
+    React.useEffect(() => {
+        if (props.isVisible) {
+            props.onModalShow();
+        } else {
+            props.onModalHide();
+        }
+        Modal.willAlertModalBecomeVisible(props.isVisible);
+        Modal.setCloseModal(props.isVisible ? props.onClose : null);
+    }, [props.isVisible]);
 
     return props.isVisible ? (
         <Pressable style={[modalStyle, {zIndex: 1}]} ref={ref}>
