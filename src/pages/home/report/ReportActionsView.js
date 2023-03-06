@@ -43,7 +43,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    reportActions: {},
+    reportActions: [],
 };
 
 class ReportActionsView extends React.Component {
