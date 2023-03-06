@@ -28,12 +28,6 @@ const propTypes = {
     currencyList: PropTypes.objectOf(PropTypes.shape({
         // Symbol for the currency
         symbol: PropTypes.string,
-
-        // Name of the currency
-        name: PropTypes.string,
-
-        // ISO4217 Code for the currency
-        ISO4217: PropTypes.string,
     })),
     ...policyPropTypes,
     ...withLocalizePropTypes,
