@@ -272,7 +272,10 @@ class InitialSettingsPage extends React.Component {
                                         <Text style={[styles.textHeadline]} numberOfLines={1}>
                                             {this.props.currentUserPersonalDetails.displayName
                                                 ? (
-                                                    <TextEmoji style={[styles.emojiMessageText, styles.profileEmojiText]}>
+                                                    <TextEmoji
+                                                        plainTextContainerStyle={styles.messageTextWithoutEmoji}
+                                                        style={[styles.emojiMessageText, styles.profileEmojiText]}
+                                                    >
                                                         {this.props.currentUserPersonalDetails.displayName}
                                                     </TextEmoji>
                                                 )

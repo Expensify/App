@@ -113,7 +113,7 @@ const AboutPage = (props) => {
                         </View>
                         <View style={[styles.sidebarFooter]}>
                             <Text
-                                style={[styles.chatItemMessageHeaderTimestamp]}
+                                style={styles.sidebarFooterItem}
                                 numberOfLines={1}
                             >
                                 {props.translate(

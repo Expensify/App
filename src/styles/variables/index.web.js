@@ -1,4 +1,4 @@
-import variables from './variables.native';
+import variables from './baseVariables';
 
 export default {
     ...variables,

@@ -128,10 +128,12 @@ const ReportActionItemFragment = (props) => {
                         EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined,
                     ]}
                 >
-                    <TextEmoji style={[
-                        styles.emojiMessageText, styles.ltr, ...props.style,
-                        EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined,
-                    ]}
+                    <TextEmoji
+                        plainTextContainerStyle={styles.messageTextWithoutEmoji}
+                        style={[
+                            styles.emojiMessageText, styles.ltr, ...props.style,
+                            EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined,
+                        ]}
                     >
                         {StyleUtils.convertToLTR(Str.htmlDecode(text))}
                     </TextEmoji>
@@ -153,7 +155,12 @@ const ReportActionItemFragment = (props) => {
                         numberOfLines={props.isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessageHeaderSender]}
                     >
-                        <TextEmoji style={styles.emojiMessageText}>{props.fragment.text}</TextEmoji>
+                        <TextEmoji
+                            style={styles.emojiMessageText}
+                            plainTextContainerStyle={styles.messageTextWithoutEmoji}
+                        >
+                            {props.fragment.text}
+                        </TextEmoji>
                     </Text>
                 </Tooltip>
             );

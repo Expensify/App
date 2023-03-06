@@ -6,7 +6,6 @@ import Text from './Text';
 import * as EmojiUtils from '../libs/EmojiUtils';
 import * as StyleUtils from '../styles/StyleUtils';
 import stylePropTypes from '../styles/stylePropTypes';
-import styles from '../styles/styles';
 
 const propTypes = {
     /** The message text to render */
@@ -15,8 +14,11 @@ const propTypes = {
     /** The message text additional style */
     style: stylePropTypes,
 
-    /** If TextEmoji was used in the menuItem component */
-    isMenuItem: PropTypes.bool,
+    /** The emoji text additional style */
+    emojiContainerStyle: stylePropTypes,
+
+    /** The plain text additional style */
+    plainTextContainerStyle: stylePropTypes,
 };
 
 const defaultProps = {
@@ -27,15 +29,15 @@ const TextEmoji = (props) => {
     const words = EmojiUtils.getAllEmojiFromText(props.children);
     const propsStyle = StyleUtils.parseStyleAsArray(props.style);
 
-    return _.map(words, ({text, isEmoji}, index) => (isEmoji ? (
-        <View key={`${text}_${index}`}>
-            <Text style={propsStyle}>
-                {text}
-            </Text>
-        </View>
-    )
-        : (
-            <View key={`${text}_${index}`} style={[!props.isMenuItem ? styles.messageTextWithoutEmoji : undefined]}>
+    return _.map(words, ({text, isEmoji}, index) => (isEmoji
+        ? (
+            <View key={`${text}_${index}`} style={props.emojiContainerStyle}>
+                <Text style={propsStyle}>
+                    {text}
+                </Text>
+            </View>
+        ) : (
+            <View key={`${text}_${index}`} style={props.plainTextContainerStyle}>
                 <Text>
                     {text}
                 </Text>

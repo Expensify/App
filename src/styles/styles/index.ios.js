@@ -1,38 +1,47 @@
+import _ from 'lodash';
 import variables from '../variables';
-import baseStyles from './styles.native';
+import baseStyles from './baseStyles';
+import themeColors from '../themes/default';
 
 const styles = {
     ...baseStyles.styles,
     displayNameText: {
-        marginTop: 4,
+        marginTop: 6,
     },
 
     emojiMessageText: {
-        top: 3,
         position: 'relative',
         fontSize: variables.fontSizeEmoji,
         lineHeight: variables.fontSizeEmojiHeight,
     },
 
     inboxEmojiMessageText: {
-        marginTop: 6,
-    },
-
-    inboxMessageText: {
         marginTop: 1,
     },
 
     onlyEmojisText: {
-        marginTop: 3,
+        marginTop: 1,
         fontSize: variables.fontSizeOnlyEmojis,
         lineHeight: variables.fontSizeOnlyEmojisHeight,
     },
 
+    inboxMessageText: {
+        marginTop: 0,
+    },
+
     profileEmojiText: {
+        top: 0,
         fontSize: variables.fontSizeEmojiProfile,
         lineHeight: variables.fontSizeEmojiProfileHeight,
-        top: 4,
+    },
+
+    chatItemMessageHeaderTimestamp: {
+        flexShrink: 0,
+        paddingTop: 0,
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeSmall,
+        bottom: 2.5,
     },
 };
 
-export default {...baseStyles, ...styles};
+export default _.assign(baseStyles, styles);

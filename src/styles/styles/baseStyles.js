@@ -1001,6 +1001,13 @@ const styles = {
         width: '100%',
     },
 
+    sidebarFooterItem: {
+        flexShrink: 0,
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeSmall,
+        paddingTop: 2,
+    },
+
     sidebarAvatar: {
         backgroundColor: themeColors.icon,
         borderRadius: 20,

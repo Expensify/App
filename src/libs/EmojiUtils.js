@@ -6,43 +6,43 @@ import CONST from '../CONST';
 import * as User from './actions/User';
 import emojisTrie from './EmojiTrie';
 
-/**
- * Get the unicode code of an emoji in base 16.
- * @param {String} input
- * @returns {String}
- */
-const getEmojiUnicode = _.memoize((input) => {
-    if (input.length === 0) {
-        return '';
-    }
+// /**
+//  * Get the unicode code of an emoji in base 16.
+//  * @param {String} input
+//  * @returns {String}
+//  */
+// const getEmojiUnicode = _.memoize((input) => {
+//     if (input.length === 0) {
+//         return '';
+//     }
 
-    if (input.length === 1) {
-        return _.map(input.charCodeAt(0).toString().split(' '), val => parseInt(val, 10).toString(16)).join(' ');
-    }
+//     if (input.length === 1) {
+//         return _.map(input.charCodeAt(0).toString().split(' '), val => parseInt(val, 10).toString(16)).join(' ');
+//     }
 
-    const pairs = [];
+//     const pairs = [];
 
-    // Some Emojis in UTF-16 are stored as pair of 2 Unicode characters (eg Flags)
-    // The first char is generally between the range U+D800 to U+DBFF called High surrogate
-    // & the second char between the range U+DC00 to U+DFFF called low surrogate
-    // More info in the following links:
-    // 1. https://docs.microsoft.com/en-us/windows/win32/intl/surrogates-and-supplementary-characters
-    // 2. https://thekevinscott.com/emojis-in-javascript/
-    for (let i = 0; i < input.length; i++) {
-        if (input.charCodeAt(i) >= 0xd800 && input.charCodeAt(i) <= 0xdbff) { // high surrogate
-            if (input.charCodeAt(i + 1) >= 0xdc00 && input.charCodeAt(i + 1) <= 0xdfff) { // low surrogate
-                pairs.push(
-                    ((input.charCodeAt(i) - 0xd800) * 0x400)
-                      + (input.charCodeAt(i + 1) - 0xdc00) + 0x10000,
-                );
-            }
-        } else if (input.charCodeAt(i) < 0xd800 || input.charCodeAt(i) > 0xdfff) {
-            // modifiers and joiners
-            pairs.push(input.charCodeAt(i));
-        }
-    }
-    return _.map(pairs, val => parseInt(val, 10).toString(16)).join(' ');
-});
+//     // Some Emojis in UTF-16 are stored as pair of 2 Unicode characters (eg Flags)
+//     // The first char is generally between the range U+D800 to U+DBFF called High surrogate
+//     // & the second char between the range U+DC00 to U+DFFF called low surrogate
+//     // More info in the following links:
+//     // 1. https://docs.microsoft.com/en-us/windows/win32/intl/surrogates-and-supplementary-characters
+//     // 2. https://thekevinscott.com/emojis-in-javascript/
+//     for (let i = 0; i < input.length; i++) {
+//         if (input.charCodeAt(i) >= 0xd800 && input.charCodeAt(i) <= 0xdbff) { // high surrogate
+//             if (input.charCodeAt(i + 1) >= 0xdc00 && input.charCodeAt(i + 1) <= 0xdfff) { // low surrogate
+//                 pairs.push(
+//                     ((input.charCodeAt(i) - 0xd800) * 0x400)
+//                       + (input.charCodeAt(i + 1) - 0xdc00) + 0x10000,
+//                 );
+//             }
+//         } else if (input.charCodeAt(i) < 0xd800 || input.charCodeAt(i) > 0xdfff) {
+//             // modifiers and joiners
+//             pairs.push(input.charCodeAt(i));
+//         }
+//     }
+//     return _.map(pairs, val => parseInt(val, 10).toString(16)).join(' ');
+// });
 
 /**
  * Function to remove Skin Tone and utf16 surrogates from Emoji
@@ -59,27 +59,27 @@ function trimEmojiUnicode(emojiCode) {
  * @param {String} message
  * @returns {Boolean}
  */
-function containsOnlyEmojis(message) {
-    const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
-    const match = trimmedMessage.match(CONST.REGEX.EMOJIS);
+// function containsOnlyEmojis(message) {
+//     const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
+//     const match = trimmedMessage.match(CONST.REGEX.EMOJIS);
 
-    if (!match) {
-        return false;
-    }
+//     if (!match) {
+//         return false;
+//     }
 
-    const codes = [];
-    _.map(match, emoji => _.map(getEmojiUnicode(emoji).split(' '), (code) => {
-        if (!CONST.INVISIBLE_CODEPOINTS.includes(code)) {
-            codes.push(code);
-        }
-        return code;
-    }));
+//     const codes = [];
+//     _.map(match, emoji => _.map(getEmojiUnicode(emoji).split(' '), (code) => {
+//         if (!CONST.INVISIBLE_CODEPOINTS.includes(code)) {
+//             codes.push(code);
+//         }
+//         return code;
+//     }));
 
-    // Emojis are stored as multiple characters, so we're using spread operator
-    // to iterate over the actual emojis, not just characters that compose them
-    const messageCodes = _.filter(_.map([...trimmedMessage], char => getEmojiUnicode(char)), string => string.length > 0 && !CONST.INVISIBLE_CODEPOINTS.includes(string));
-    return codes.length === messageCodes.length;
-}
+//     // Emojis are stored as multiple characters, so we're using spread operator
+//     // to iterate over the actual emojis, not just characters that compose them
+//     const messageCodes = _.filter(_.map([...trimmedMessage], char => getEmojiUnicode(char)), string => string.length > 0 && !CONST.INVISIBLE_CODEPOINTS.includes(string));
+//     return codes.length === messageCodes.length;
+// }
 
 /**
  * Get the header indices based on the max emojis per row
@@ -245,19 +245,21 @@ function suggestEmojis(text, limit = 5) {
     return [];
 }
 
-/**
- * Validates that this message contains emojis
- *
- * @param {String} message
- * @returns {Boolean}
- */
-function hasEmojis(message) {
-    if (!message) {
-        return false;
-    }
-    const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
-    return Boolean(trimmedMessage.match(CONST.REGEX.EMOJIS));
-}
+// /**
+//  * Validates that this message contains emojis
+//  *
+//  * @param {String} message
+//  * @returns {Boolean}
+//  */
+// function hasEmojis(message) {
+//     if (!message) {
+//         return false;
+//     }
+//     const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
+
+//     // return CONST.REGEX.EMOJIS.test(trimmedMessage);
+//     return Boolean(trimmedMessage.match(CONST.REGEX.EMOJIS));
+// }
 
 /**
  * Get all the emojis in the message
@@ -265,27 +267,32 @@ function hasEmojis(message) {
  * @returns {Array}
  */
 function getAllEmojiFromText(text) {
-    const result = [];
-
-    if (!hasEmojis(text)) {
-        result.push({text, isEmoji: false});
-        return result;
+    // return empty array when no text is passed
+    if (!text) {
+        return [];
     }
 
-    const emptySpaceChecker = '\u200D';
-    const emojiCharacterSpaceReplacer = '~';
+    const result = [];
+
+    // Unicode Character 'ZERO WIDTH JOINER' (U+200D) usually used to join surrogate pair together without braking the emoji
+    const emptySpaceChecker = '\u200D'; // https://codepoints.net/U+200D?lang=en
+    const emojiCharacterSpaceReplacer = '~'; // unique identifier to replace 'ZERO WIDTH JOINER' in our first string split
     const splittedMessage = text.split('');
     const convertedSplittedMessage = [];
 
     for (let i = 0; i < splittedMessage.length; i++) {
         const char = splittedMessage[i];
+
+        // replace every 'ZERO WIDTH JOINER' with '~' so we can easily identify where a surrogate pair starts and concatenate them together
         convertedSplittedMessage.push((char === emptySpaceChecker) ? emojiCharacterSpaceReplacer : char);
     }
 
-    let wordHolder = '';
-    let emojiHolder = '';
+    let wordHolder = ''; // word counter
+    let emojiHolder = ''; // emoji counter
 
     const setWord = word => result.push({text: word, isEmoji: false});
+
+    // replace all '~' back with a 'ZERO WIDTH JOINER', this helps maintain surrogate pair just as there where before splitting
     const setEmoji = word => result.push({text: Str.replaceAll(word, emojiCharacterSpaceReplacer, emptySpaceChecker), isEmoji: true});
 
     _.forEach(convertedSplittedMessage, (word, index) => {
@@ -305,7 +312,74 @@ function getAllEmojiFromText(text) {
         }
     });
 
+    // remove none next characters like '' only return where text is a word or white space ' '
     return _.filter(result, res => res.text);
+}
+
+// function getAllEmojiFromText(text) {
+//     if (!text) {
+//         return [];
+//     }
+
+//     const splitText = [];
+//     let reResult;
+//     let lastMatchIndexEnd = 0;
+//     do {
+//         // Look for an emoji chunk in the string
+//         reResult = CONST.REGEX.EMOJIS.exec(text);
+
+//         // If we reached the end of the string and it wasn't included in a previous match
+//         // the chunk between the end of the last match and the end of the string is plain text
+//         if (reResult === null && lastMatchIndexEnd !== text.length - 1) {
+//             splitText.push({
+//                 text: text.slice(lastMatchIndexEnd, text.length),
+//                 isEmoji: false,
+//             });
+//             // eslint-disable-next-line no-continue
+//             continue;
+//         }
+
+//         const matchIndexStart = reResult.indices[0][0];
+//         const matchIndexEnd = reResult.indices[0][1];
+
+//         // The chunk between the end of the last match and the start of the new one is plain-text
+//         splitText.push({
+//             text: text.slice(lastMatchIndexEnd, matchIndexStart),
+//             isEmoji: false,
+//         });
+
+//         // Everything captured by the regex itself is emoji + whitespace
+//         splitText.push({
+//             text: text.slice(matchIndexStart, matchIndexEnd),
+//             isEmoji: true,
+//         });
+
+//         lastMatchIndexEnd = matchIndexEnd;
+//     } while (reResult !== null);
+
+//     return _.filter(splitText, res => res.text);
+// }
+
+/**
+ * Validates that this message contains has emojis
+ *
+ * @param {String} message
+ * @returns {Boolean}
+ */
+function hasEmojis(message) {
+    const splitText = getAllEmojiFromText(message);
+    return _.find(splitText, chunk => chunk.isEmoji) !== undefined;
+}
+
+/**
+ * Validates that this message contains only emojis
+ *
+ * @param {String} message
+ * @returns {Boolean}
+ */
+function containsOnlyEmojis(message) {
+    const splitText = getAllEmojiFromText(message);
+    return _.every(splitText, chunk => chunk.isEmoji);
 }
 
 export {

@@ -135,7 +135,7 @@ const MenuItem = (props) => {
                                     style={titleTextStyle}
                                     numberOfLines={1}
                                 >
-                                    <TextEmoji isMenuItem style={[styles.emojiMessageText, styles.profileEmojiText]}>{props.title}</TextEmoji>
+                                    <TextEmoji style={[styles.emojiMessageText, styles.profileEmojiText]}>{props.title}</TextEmoji>
                                 </Text>
                             )}
                             {Boolean(props.description) && !props.shouldShowDescriptionOnTop && (
