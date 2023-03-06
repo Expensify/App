@@ -40,6 +40,7 @@ class ValidateLoginPage extends Component {
         super(props);
 
         this.resendValidateCode = this.resendValidateCode.bind(this);
+        this.signInWithValidateCode = this.signInWithValidateCode.bind(this);
 
         this.state = {justSignedIn: false};
     }
@@ -71,10 +72,10 @@ class ValidateLoginPage extends Component {
             }
             return;
         }
-        if (!(prevProps.credentials && !prevProps.credentials.validateCode && this.props.credentials.validateCode)) {
+        if (!(!lodashGet(prevProps, 'credentials.validateCode', null) && lodashGet(this.props, 'credentials.validateCode', null))) {
             return;
         }
-        this.setState({justSignedIn: true});
+        setTimeout(() => this.setState({justSignedIn: true}), 500);
     }
 
     /**
@@ -103,11 +104,12 @@ class ValidateLoginPage extends Component {
      */
     isSignInInitiated = () => !this.isAuthenticated() && lodashGet(this.props, 'credentials.login', null);
 
-    /**
-     * Trigger the reset validate code flow
-     */
     resendValidateCode() {
         Session.resendLinkWithValidateCode();
+    }
+
+    signInWithValidateCode() {
+        Session.signInWithValidateCode(this.accountID(), this.validateCode());
     }
 
     render() {
@@ -133,7 +135,7 @@ class ValidateLoginPage extends Component {
                     <ValidateCodeModal
                         code={this.validateCode()}
                         shouldShowSignInHere={!this.isAuthenticated() && !this.isSignInInitiated()}
-                        onSignInHereClick={() => Session.signInWithValidateCode(this.accountID(), this.validateCode())}
+                        onSignInHereClick={this.signInWithValidateCode}
                     />
                 )}
                 {!showExpiredCodeModal && !showAbracadabra && !showValidateCodeModal && <FullScreenLoadingIndicator />}
