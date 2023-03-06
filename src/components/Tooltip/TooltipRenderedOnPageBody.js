@@ -134,7 +134,6 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
             this.props.shiftVertical,
         );
 
-        let content;
         const contentRef = (ref) => {
             // Once the content for the tooltip first renders, update the width of the tooltip dynamically to fit the width of the content.
             // Note that we can't have this code in componentDidMount because the ref for the content won't be set until after the first render
@@ -146,6 +145,7 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
             this.updateTooltipContentWidth();
         };
 
+        let content;
         if (this.props.renderTooltipContent) {
             content = (
                 <View ref={contentRef}>
