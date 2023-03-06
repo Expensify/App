@@ -26,7 +26,7 @@ export default function generateMonthMatrix(year, month) {
 
     // Get the number of days in the month and the first day of the month
     const daysInMonth = moment([year, month]).daysInMonth();
-    const firstDay = moment([year, month, 1]).startOf('month').locale('en');
+    const firstDay = moment([year, month, 1]).locale('en');
 
     // Create a matrix to hold the calendar days
     const matrix = [];

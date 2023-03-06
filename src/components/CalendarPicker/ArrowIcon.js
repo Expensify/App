@@ -22,8 +22,8 @@ const ArrowIcon = props => (
     <View style={[
         styles.p1,
         styles.ph2,
-        props.direction === 'left' ? {transform: [{rotate: '180deg'}]} : undefined,
-        props.disabled && styles.calendarButtonDisabled,
+        props.direction === 'left' ? {transform: [{rotate: '180deg'}]} : {},
+        props.disabled ? styles.calendarButtonDisabled : {},
     ]}
     >
         <Icon src={Expensicons.ArrowRight} />

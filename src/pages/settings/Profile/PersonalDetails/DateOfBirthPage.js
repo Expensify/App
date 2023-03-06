@@ -60,7 +60,7 @@ class DateOfBirthPage extends Component {
      * @param {Date} date
      */
     onDateChanged(date) {
-        this.setState(prev => ({...prev, defaultYear: moment(date).year().toString(), defaultMonth: moment(date).month().toString()}));
+        this.setState({defaultYear: moment(date).year().toString(), defaultMonth: moment(date).month().toString()});
     }
 
     /**
@@ -70,7 +70,7 @@ class DateOfBirthPage extends Component {
     readParams() {
         const {params} = this.props.route;
         if (params && params.year) {
-            this.setState(prev => ({...prev, defaultYear: params.year}));
+            this.setState({defaultYear: params.year});
         }
     }
 

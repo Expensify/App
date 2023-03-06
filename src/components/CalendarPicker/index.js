@@ -21,16 +21,14 @@ class CalendarPicker extends React.Component {
         this.monthNames = moment.localeData(props.preferredLocale).months();
         this.daysOfWeek = moment.localeData(props.preferredLocale).weekdays();
 
-        let currentDateView = props.value || new Date();
-        if (props.maxDate && props.maxDate < currentDateView) {
+        let currentDateView = props.value;
+        if (props.maxDate < currentDateView) {
             currentDateView = props.maxDate;
-        } else if (props.minDate && props.minDate > currentDateView) {
+        } else if (props.minDate > currentDateView) {
             currentDateView = props.minDate;
         }
 
         this.state = {
-            yearPickerVisible: false,
-            monthPickerVisible: false,
             currentDateView,
         };
 
@@ -82,7 +80,9 @@ class CalendarPicker extends React.Component {
     }
 
     /**
-     * Sets the yearPickerVisible state to true, displaying the year picker component.
+     * Handles the user pressing the year picker button.
+     * Opens the year selection screen with the minimum and maximum year range
+     * based on the props, the current year based on the state, and the active route.
      * @returns {void}
      */
     onYearPickerPressed() {
