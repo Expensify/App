@@ -17,7 +17,7 @@ const propTypes = {
     /** The height of the icon. */
     height: PropTypes.number,
 
-    /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue' */
+    /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
     fill: PropTypes.string,
 
     /** Is small icon */
@@ -26,8 +26,8 @@ const propTypes = {
     /** Is inline icon */
     inline: PropTypes.bool,
 
-    /** Is SVG avatar icon */
-    isSVGAvatar: PropTypes.bool,
+    // eslint-disable-next-line react/forbid-prop-types
+    additionalStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
@@ -36,7 +36,7 @@ const defaultProps = {
     fill: themeColors.icon,
     small: false,
     inline: false,
-    isSVGAvatar: false,
+    additionalStyles: [],
 };
 
 // We must use a class component to create an animatable component with the Animated API
@@ -46,7 +46,8 @@ class Icon extends PureComponent {
         const width = this.props.small ? variables.iconSizeSmall : this.props.width;
         const height = this.props.small ? variables.iconSizeSmall : this.props.height;
         const iconStyles = [StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute,
-            StyleUtils.getAvatarSVGBorder(this.props.isSVGAvatar)];
+            ...this.props.additionalStyles,
+        ];
 
         if (this.props.inline) {
             return (
@@ -66,7 +67,10 @@ class Icon extends PureComponent {
         }
 
         return (
-            <View accessibilityHint={`${this.props.src.name} Icon`} style={StyleUtils.getAvatarSVGBorder(this.props.isSVGAvatar)}>
+            <View
+                accessibilityHint={`${this.props.src.name} Icon`}
+                style={this.props.additionalStyles}
+            >
                 <this.props.src
                     width={width}
                     height={height}
