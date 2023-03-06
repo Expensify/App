@@ -246,7 +246,7 @@ const mainWindow = (() => {
         app.on('open-url', (event, url) => {
             event.preventDefault();
             const urlObject = new URL(url);
-            deeplinkUrl = `${APP_DOMAIN}${urlObject.pathname}`;
+            deeplinkUrl = `${APP_DOMAIN}${urlObject.pathname}${urlObject.search}${urlObject.hash}`;
 
             if (browserWindow) {
                 browserWindow.loadURL(deeplinkUrl);
