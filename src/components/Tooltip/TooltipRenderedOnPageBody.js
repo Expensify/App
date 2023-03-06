@@ -62,16 +62,42 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = {
+            // The width of tooltip's inner content
+            tooltipContentWidth: undefined,
+
             // The width and height of the tooltip itself
             tooltipWidth: 0,
             tooltipHeight: 0,
         };
 
         this.measureTooltip = this.measureTooltip.bind(this);
+        this.updateTooltipContentWidth = this.updateTooltipContentWidth.bind(this);
     }
 
     componentDidMount() {
-        // this.updateTooltipContentWidth();
+        this.updateTooltipContentWidth();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.text === this.props.text && prevProps.renderTooltipContent === this.props.renderTooltipContent) {
+            return;
+        }
+
+        // Reset the tooltip content width to undefined so that we can measure it again.
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({tooltipContentWidth: undefined}, this.updateTooltipContentWidth);
+    }
+
+    updateTooltipContentWidth() {
+        if (!this.contentWrapperRef) {
+            return;
+        }
+
+        const contentWidth = this.contentWrapperRef.offsetWidth;
+
+        this.setState({
+            tooltipContentWidth: contentWidth,
+        });
     }
 
     /**
@@ -103,6 +129,7 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
             this.props.maxWidth,
             this.state.tooltipWidth,
             this.state.tooltipHeight,
+            this.state.tooltipContentWidth,
             this.props.shiftHorizontal,
             this.props.shiftVertical,
         );
@@ -125,7 +152,18 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
                 onLayout={this.measureTooltip}
                 style={[tooltipWrapperStyle, animationStyle]}
             >
-                {content}
+                <View
+                    ref={(ref) => {
+                        if (this.contentWrapperRef) {
+                            return;
+                        }
+
+                        this.contentWrapperRef = ref;
+                        this.updateTooltipContentWidth();
+                    }}
+                >
+                    {content}
+                </View>
                 <View style={pointerWrapperStyle}>
                     <View style={pointerStyle} />
                 </View>
