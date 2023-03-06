@@ -73,12 +73,11 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
         };
 
         this.measureTooltip = this.measureTooltip.bind(this);
-        this.measureContent = this.measureContent.bind(this);
-        this.updateTooltipTextWidth = this.updateTooltipTextWidth.bind(this);
+        this.updateTooltipContentWidth = this.updateTooltipContentWidth.bind(this);
     }
 
     componentDidMount() {
-        this.updateTooltipTextWidth();
+        this.updateTooltipContentWidth();
     }
 
     componentDidUpdate(prevProps) {
@@ -88,16 +87,24 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
 
         // Reset the tooltip text width to 0 so that we can measure it again.
         // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({tooltipContentWidth: 0}, this.updateTooltipTextWidth);
+        this.setState({tooltipContentWidth: 0}, this.updateTooltipContentWidth);
     }
 
-    updateTooltipTextWidth() {
-        if (!this.textRef) {
+    /**
+     * Updates the tooltipContentWidth state with the width of the tooltip's inner content.
+     * Can be called in onLayout, or if you are using text just call it after the first render
+     * to get the text's width.
+     *
+     * @param {Object} [event]
+     */
+    updateTooltipContentWidth(event) {
+        if (!this.textRef && !event) {
             return;
         }
 
+        const widthFromEvent = _.get(event, ['nativeEvent', 'layout', 'width']);
         this.setState({
-            tooltipContentWidth: this.textRef.offsetWidth,
+            tooltipContentWidth: widthFromEvent || this.textRef.offsetWidth,
         });
     }
 
@@ -110,12 +117,6 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
         this.setState({
             tooltipWidth: nativeEvent.layout.width,
             tooltipHeight: nativeEvent.layout.height,
-        });
-    }
-
-    measureContent({nativeEvent}) {
-        this.setState({
-            tooltipContentWidth: nativeEvent.layout.width,
         });
     }
 
@@ -157,7 +158,7 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
                             }
 
                             this.textRef = ref;
-                            this.updateTooltipTextWidth();
+                            this.updateTooltipContentWidth();
                         }}
                     >
                         {this.props.text}
@@ -175,7 +176,7 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
                 {isCustomContent && (
                     <View
                         style={styles.invisible}
-                        onLayout={this.measureContent}
+                        onLayout={this.updateTooltipContentWidth}
                     >
                         {this.props.renderTooltipContent()}
                     </View>
