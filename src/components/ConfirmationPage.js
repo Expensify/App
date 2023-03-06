@@ -10,7 +10,7 @@ import FixedFooter from './FixedFooter';
 
 const propTypes = {
     /** The asset to render */
-    animation: PropTypes.string,
+    animation: PropTypes.object,
 
     /** Heading of the confirmation page */
     heading: PropTypes.string,
