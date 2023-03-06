@@ -1097,6 +1097,8 @@ export default {
         visibility: 'Visibility',
         restrictedDescription: 'People in your workspace can find this room',
         privateDescription: 'People invited to this room can find it',
+        publicDescription: 'Anyone can find it',
+        public_announceDescription: 'Anyone can find it',
         createRoom: 'Create room',
         roomAlreadyExistsError: 'A room with this name already exists',
         roomNameReservedError: 'A room on this workspace already uses this name',
