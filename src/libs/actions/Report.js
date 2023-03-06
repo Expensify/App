@@ -1317,7 +1317,7 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
         // Replace the reaction object either with the updated one or null if there are no users
         _.map(message.reactions, (reaction) => {
             if (reaction.emoji === emoji.name) {
-                if (reaction.users.length === 0) {
+                if (updatedReactionObject.users.length === 0) {
                     return null;
                 }
                 return updatedReactionObject;
@@ -1326,7 +1326,7 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
         }),
 
         // Remove any null reactions
-        reportObject => reportObject != null,
+        reportObject => reportObject !== null,
     );
 
     const updatedMessage = {
