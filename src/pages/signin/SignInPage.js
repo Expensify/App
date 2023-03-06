@@ -1,10 +1,8 @@
 import React, {Component} from 'react';
-import {
-    SafeAreaView,
-} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
