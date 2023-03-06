@@ -40,9 +40,8 @@ const propTypes = {
 const BaseQuickEmojiReactions = props => (
     <View style={styles.quickReactionsContainer}>
         {_.map(CONST.QUICK_REACTIONS, emoji => (
-            <Tooltip text={`:${emoji.name}:`}>
+            <Tooltip text={`:${emoji.name}:`} key={emoji.name}>
                 <EmojiReactionBubble
-                    key={emoji.name}
                     emojiName={emoji.name}
                     emojiCodes={[getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
                     sizeScale={EMOJI_BUBBLE_SCALE}
