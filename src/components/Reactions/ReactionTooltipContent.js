@@ -8,9 +8,20 @@ import getPersonalDetailsByIDs from '../../libs/getPersonalDetailsByIDs';
 import Text from '../Text';
 
 const propTypes = {
+    /**
+     * A list of emoji codes to display in the tooltip.
+     */
     emojiCodes: PropTypes.arrayOf(PropTypes.string).isRequired,
-    accountIDs: PropTypes.arrayOf(PropTypes.string).isRequired,
+
+    /**
+     * The name of the emoji to display in the tooltip.
+     */
     emojiName: PropTypes.string.isRequired,
+
+    /**
+     * A list of account IDs to display in the tooltip.
+     */
+    accountIDs: PropTypes.arrayOf(PropTypes.string).isRequired,
 };
 
 const ReactionTooltipContent = (props) => {
