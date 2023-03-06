@@ -595,7 +595,6 @@ const styles = {
             paddingRight: 17,
             paddingTop: 6,
             paddingBottom: 6,
-            borderRadius: variables.componentBorderRadius,
             borderWidth: 0,
             color: themeColors.text,
             height: 26,
@@ -620,7 +619,6 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderWidth: 0,
-            borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             appearance: 'none',
             height: 26,
@@ -636,7 +634,6 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderWidth: 0,
-            borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             height: 26,
             opacity: 1,
@@ -1560,9 +1557,8 @@ const styles = {
     categoryShortcutButton: {
         flex: 1,
         borderRadius: 8,
-        paddingTop: 2,
-        paddingBottom: 2,
         height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+        alignItems: 'center',
         justifyContent: 'center',
     },
 
@@ -1577,6 +1573,7 @@ const styles = {
 
     editChatItemEmojiWrapper: {
         marginRight: 3,
+        alignSelf: 'flex-end',
     },
 
     hoveredButton: {
