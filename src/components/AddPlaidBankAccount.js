@@ -78,9 +78,11 @@ class AddPlaidBankAccount extends React.Component {
 
     componentDidMount() {
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
+        // If there is already a selected Plaid accountID then we don't need to trigger the Plaid flow
         if ((this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken)
             || !_.isEmpty(lodashGet(this.props.plaidData, 'bankAccounts'))
-            || !_.isEmpty(lodashGet(this.props.plaidData, 'errors'))) {
+            || !_.isEmpty(lodashGet(this.props.plaidData, 'errors'))
+            || !_.isEmpty(this.props.selectedPlaidAccountID)) {
             return;
         }
 
