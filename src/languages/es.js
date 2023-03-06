@@ -225,7 +225,7 @@ export default {
         deleteComment: 'Eliminar comentario',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
         addEmojiReaction: 'Añadir una reacción emoji',
-        addReactionTooltip: 'Añadir una reacción...',
+        addReactionTooltip: 'Añadir una reacción…',
     },
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'Te perdiste la fiesta en ',
