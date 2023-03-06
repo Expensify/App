@@ -14,6 +14,7 @@ import * as Browser from '../../libs/Browser';
 import Clipboard from '../../libs/Clipboard';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import compose from '../../libs/compose';
+import styles from '../../styles/styles';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -357,7 +358,13 @@ class Composer extends React.Component {
                 onChange={this.shouldCallUpdateNumberOfLines}
                 onSelectionChange={this.onSelectionChange}
                 numberOfLines={this.state.numberOfLines}
-                style={propStyles}
+                style={[
+                    propStyles,
+
+                    // We are hiding the scrollbar to prevent it from reducing the text input width,
+                    // so we can get the correct scroll height while calculating the number of lines.
+                    this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
+                ]}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsWithoutStyles}
                 disabled={this.props.isDisabled}
