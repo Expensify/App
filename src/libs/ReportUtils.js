@@ -232,19 +232,6 @@ function isPublicRoom(report) {
 }
 
 /**
- * Whether the current user is able to edit the name of a public room
- * @param {Object} report
- * @param {Object} policy
- */
-function canEditPublicRoomName(report, policy) {
-    let shouldDisablePublicRoomRename = ReportUtils.isPublicRoom(this.props.report) && !linkedWorkspace;
-    if (ReportUtils.isPublicRoom(this.props.report) && linkedWorkspace) {
-        shouldDisablePublicRoomRename = !Policy.isPolicyOwner(linkedWorkspace) || linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN;
-    }
-    return !shouldDisablePublicRoomRename;
-}
-
-/**
  * Get the policy type from a given report
  * @param {Object} report
  * @param {String} report.policyID
