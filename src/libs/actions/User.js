@@ -102,6 +102,8 @@ function resendValidateCode(login) {
 }
 
 /**
+ * Requests a new validate code be sent for the passed contact method
+ *
  * @param {String} contactMethod - the new contact method that the user is trying to verify
  */
 function requestContactMethodValidateCode(contactMethod) {
@@ -268,6 +270,12 @@ function deleteContactMethod(contactMethod, oldLoginData) {
     }, {optimisticData, successData, failureData});
 }
 
+/**
+ * Clears any possible stored errors for a specific field on a contact method
+ *
+ * @param {String} contactMethod
+ * @param {String} fieldName
+ */
 function clearContactMethodErrors(contactMethod, fieldName) {
     Onyx.merge(ONYXKEYS.LOGIN_LIST, {
         [contactMethod]: {

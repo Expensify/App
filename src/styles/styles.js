@@ -1013,7 +1013,7 @@ const styles = {
         borderWidth: 2,
         position: 'absolute',
         right: -2,
-        top:-1,
+        top: -1,
         height: 16,
         width: 16,
         zIndex: 10,
