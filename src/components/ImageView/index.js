@@ -248,7 +248,6 @@ class ImageView extends PureComponent {
                         // When Image dimensions are lower than the container boundary(zoomscale <= 1), use `contain` to render the image with natural dimensions.
                         // Both `center` and `contain` keeps the image centered on both x and y axis.
                         resizeMode={this.state.zoomScale > 1 ? Image.resizeMode.center : Image.resizeMode.contain}
-                        onLoadStart={this.imageLoadingStart}
                         onLoad={this.imageLoad}
                     />
                     {this.state.isLoading && (
