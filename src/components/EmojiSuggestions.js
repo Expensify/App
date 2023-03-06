@@ -37,7 +37,7 @@ const propTypes = {
 
     /** Show that we can use large emoji picker.
      * Depending on available space and whether the input is expanded, we can have a small or large emoji suggester.
-     * When this value is false suggester would have a height of 2.5 items. When this value is true, the height can be up to 5 items.  */
+     * When this value is false, the suggester will have a height of 2.5 items. When this value is true, the height can be up to 5 items.  */
     isEmojiPickerLarge: PropTypes.bool.isRequired,
 
     /** Show that we should include ReportRecipientLocalTime view height */

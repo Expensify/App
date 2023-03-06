@@ -118,14 +118,20 @@ const defaultProps = {
 };
 
 /**
-  * Return number of emoji suggestions. For small screen we can fit 3 items and for large we show up to 5 items
+  * Return the max available index for arrow manager.
  * @param {Number} numRows
  * @param {Boolean} isEmojiPickerLarge
  * @returns {Number}
  */
-const getEmojiRowCount = (numRows, isEmojiPickerLarge) => (isEmojiPickerLarge
-    ? Math.max(numRows, CONST.EMOJI_SUGGESTER.MAX_AMOUNT_OF_ITEM)
-    : Math.max(numRows, CONST.EMOJI_SUGGESTER.MIN_AMOUNT_OF_ITEM));
+const getMaxArrowIndex = (numRows, isEmojiPickerLarge) => {
+    // EmojiRowCount is number of emoji suggestions. For small screen we can fit 3 items and for large we show up to 5 items
+    const emojiRowCount = isEmojiPickerLarge
+        ? Math.max(numRows, CONST.EMOJI_SUGGESTER.MAX_AMOUNT_OF_ITEMS)
+        : Math.max(numRows, CONST.EMOJI_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
+
+    // -1 because we start at 0
+    return emojiRowCount - 1;
+};
 
 class ReportActionCompose extends React.Component {
     constructor(props) {
@@ -143,7 +149,7 @@ class ReportActionCompose extends React.Component {
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
         this.calculateEmojiSuggestion = _.debounce(this.calculateEmojiSuggestion.bind(this), 10, false);
         this.onSelectionChange = this.onSelectionChange.bind(this);
-        this.isLikeEmojiCode = this.isLikeEmojiCode.bind(this);
+        this.isEmojiCode = this.isEmojiCode.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
         this.getIOUOptions = this.getIOUOptions.bind(this);
@@ -354,11 +360,11 @@ class ReportActionCompose extends React.Component {
     calculateEmojiSuggestion() {
         const leftString = this.state.value.substring(0, this.state.selection.end);
         const colonIndex = leftString.lastIndexOf(':');
-        const isCurrentlyShowingEmojiSuggestion = this.isLikeEmojiCode(this.state.value, this.state.selection.end);
+        const isCurrentlyShowingEmojiSuggestion = this.isEmojiCode(this.state.value, this.state.selection.end);
 
         // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
-        const isEnoughSpaceForLargeSuggestion = this.props.windowHeight / this.state.composerHeight >= 6.8;
-        const isEmojiPickerLarge = !this.props.isSmallScreenWidth || (this.props.isSmallScreenWidth && isEnoughSpaceForLargeSuggestion);
+        const hasEnoughSpaceForLargeSuggestion = this.props.windowHeight / this.state.composerHeight >= 6.8;
+        const isEmojiPickerLarge = !this.props.isSmallScreenWidth || (this.props.isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
 
         const nextState = {
             suggestedEmojis: [],
@@ -385,7 +391,7 @@ class ReportActionCompose extends React.Component {
      * @param {Number} pos
      * @returns {Boolean}
      */
-    isLikeEmojiCode(str, pos) {
+    isEmojiCode(str, pos) {
         const leftWords = str.slice(0, pos).split(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE);
         const leftWord = _.last(leftWords);
 
@@ -530,25 +536,27 @@ class ReportActionCompose extends React.Component {
      */
     triggerHotkeyActions(e) {
         // Do not trigger actions for mobileWeb or native clients that have the keyboard open because for those devices, we want the return key to insert newlines rather than submit the form
-        if (e.key === 'Enter' && this.state.suggestedEmojis.length) {
+        if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && this.state.suggestedEmojis.length) {
             e.preventDefault();
             this.insertSelectedEmoji(this.state.highlightedEmojiIndex);
             return;
         }
-        if (e.key === 'Escape' && this.state.suggestedEmojis.length) {
+        if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && this.state.suggestedEmojis.length) {
             e.preventDefault();
             this.resetSuggestedEmojis();
             return;
         }
 
         // Submit the form when Enter is pressed
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
             e.preventDefault();
             this.submitForm();
         }
 
         // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
-        if (e.key === 'ArrowUp' && this.textInput.selectionStart === 0 && this.state.isCommentEmpty && !ReportUtils.chatIncludesChronos(this.props.report)) {
+        if (
+            e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && this.textInput.selectionStart === 0 && this.state.isCommentEmpty && !ReportUtils.chatIncludesChronos(this.props.report)
+        ) {
             e.preventDefault();
 
             const reportActionKey = _.find(
@@ -842,7 +850,7 @@ class ReportActionCompose extends React.Component {
                 {!_.isEmpty(this.state.suggestedEmojis) && this.state.shouldShowSuggestionMenu && (
                     <ArrowKeyFocusManager
                         focusedIndex={this.state.highlightedEmojiIndex}
-                        maxIndex={getEmojiRowCount(this.state.suggestedEmojis.length, this.state.isEmojiPickerLarge)}
+                        maxIndex={getMaxArrowIndex(this.state.suggestedEmojis.length, this.state.isEmojiPickerLarge)}
                         shouldExcludeTextAreaNodes={false}
                         onFocusedIndexChanged={index => this.setState({highlightedEmojiIndex: index})}
                     >

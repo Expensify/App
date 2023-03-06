@@ -22,7 +22,7 @@ const propTypes = {
     /** A callback executed when the focused input changes. */
     onFocusedIndexChanged: PropTypes.func.isRequired,
 
-    /** if this value is true, then we exclude TextArea Node. */
+    /** If this value is true, then we exclude TextArea Node. */
     shouldExcludeTextAreaNodes: PropTypes.bool,
 };
 
