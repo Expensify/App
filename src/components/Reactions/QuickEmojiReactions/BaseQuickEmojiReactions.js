@@ -29,7 +29,10 @@ const baseQuickEmojiReactionsPropTypes = {
      * to actually open the emoji picker.
      */
     onPressOpenPicker: PropTypes.func,
+};
 
+const propTypes = {
+    ...baseQuickEmojiReactionsPropTypes,
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
 };
 
@@ -62,7 +65,7 @@ const BaseQuickEmojiReactions = props => (
 );
 
 BaseQuickEmojiReactions.displayName = 'BaseQuickEmojiReactions';
-BaseQuickEmojiReactions.propTypes = baseQuickEmojiReactionsPropTypes;
+BaseQuickEmojiReactions.propTypes = propTypes;
 BaseQuickEmojiReactions.defaultProps = baseQuickEmojiReactionsDefaultProps;
 export default withOnyx({
     preferredSkinTone: {
