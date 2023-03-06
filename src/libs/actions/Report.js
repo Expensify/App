@@ -1265,8 +1265,7 @@ function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = pref
         reactionObject = {...reactionObject};
     }
 
-    const hasCurrentUserReacted = hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone);
-    if (hasCurrentUserReacted) {
+    if (hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone)) {
         return;
     }
 
@@ -1318,7 +1317,9 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
         // Replace the reaction object either with the updated one or null if there are no users
         _.map(message.reactions, (reaction) => {
             if (reaction.emoji === emoji.name) {
-                if (reaction.users.length === 0) { return null; }
+                if (reaction.users.length === 0) {
+                    return null;
+                }
                 return updatedReactionObject;
             }
             return reaction;
