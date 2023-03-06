@@ -100,9 +100,9 @@ export default function getTooltipStyles(
     // We get wrapper width based on the tooltip's inner text width so the wrapper is just big enough to fit text and prevent white space.
     // If the text width is less than the maximum available width, add horizontal padding.
     // Note: tooltipContentWidth ignores the fractions (OffsetWidth) so add 1px to fit the text properly.
-    const wrapperWidth = tooltipContentWidth && tooltipContentWidth < maxWidth
+    const wrapperWidth = tooltipContentWidth && (tooltipContentWidth < maxWidth
         ? tooltipContentWidth + (spacing.ph2.paddingHorizontal * 2) + 1
-        : maxWidth;
+        : maxWidth);
 
     // Hide the tooltip entirely if it's position hasn't finished measuring yet. This prevents UI jank where the tooltip flashes in the top left corner of the screen.
     const opacity = (xOffset === 0 && yOffset === 0) ? 0 : 1;
