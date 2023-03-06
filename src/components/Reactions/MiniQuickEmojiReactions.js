@@ -13,7 +13,6 @@ import * as Expensicons from '../Icon/Expensicons';
 import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import {
-    baseQuickEmojiReactionsDefaultProps,
     baseQuickEmojiReactionsPropTypes,
 } from './QuickEmojiReactions/BaseQuickEmojiReactions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
@@ -39,7 +38,6 @@ const propTypes = {
 
 const defaultProps = {
     onEmojiPickerClosed: () => {},
-    ...baseQuickEmojiReactionsDefaultProps,
 };
 
 /**

@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import BaseQuickEmojiReactions, {baseQuickEmojiReactionsDefaultProps, baseQuickEmojiReactionsPropTypes} from './BaseQuickEmojiReactions';
+import BaseQuickEmojiReactions, {baseQuickEmojiReactionsPropTypes} from './BaseQuickEmojiReactions';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
@@ -35,5 +35,4 @@ const QuickEmojiReactions = (props) => {
 
 QuickEmojiReactions.displayName = 'QuickEmojiReactions';
 QuickEmojiReactions.propTypes = propTypes;
-QuickEmojiReactions.defaultProps = baseQuickEmojiReactionsDefaultProps;
 export default QuickEmojiReactions;

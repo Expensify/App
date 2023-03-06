@@ -36,13 +36,6 @@ const propTypes = {
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
 };
 
-const baseQuickEmojiReactionsDefaultProps = {
-    // eslint-disable-next-line react/default-props-match-prop-types
-    onWillShowPicker: undefined,
-    // eslint-disable-next-line react/default-props-match-prop-types
-    onPressOpenPicker: undefined,
-};
-
 const BaseQuickEmojiReactions = props => (
     <View style={styles.quickReactionsContainer}>
         {_.map(CONST.QUICK_REACTIONS, emoji => (
@@ -68,7 +61,6 @@ const BaseQuickEmojiReactions = props => (
 
 BaseQuickEmojiReactions.displayName = 'BaseQuickEmojiReactions';
 BaseQuickEmojiReactions.propTypes = propTypes;
-BaseQuickEmojiReactions.defaultProps = baseQuickEmojiReactionsDefaultProps;
 export default withOnyx({
     preferredSkinTone: {
         key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
@@ -77,5 +69,4 @@ export default withOnyx({
 
 export {
     baseQuickEmojiReactionsPropTypes,
-    baseQuickEmojiReactionsDefaultProps,
 };
