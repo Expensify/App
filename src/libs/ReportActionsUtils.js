@@ -76,18 +76,20 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
 }
 
 /**
- * Finds most recent IOU report action number.
+ * Finds most recent IOU request action number.
  *
  * @param {Array} reportActions
  * @returns {String}
  */
 function getMostRecentIOUReportActionID(reportActions) {
-    const iouActions = _.where(reportActions, {actionName: CONST.REPORT.ACTIONS.TYPE.IOU});
-    if (_.isEmpty(iouActions)) {
+    const iouRequestActions = _.filter(reportActions, action => action.originalMessage
+        && action.originalMessage.type && action.originalMessage.type == "create");
+
+    if (_.isEmpty(iouRequestActions)) {
         return null;
     }
 
-    const sortedReportActions = getSortedReportActions(iouActions);
+    const sortedReportActions = getSortedReportActions(iouRequestActions);
     return _.last(sortedReportActions).reportActionID;
 }
 
