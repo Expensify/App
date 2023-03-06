@@ -5,7 +5,8 @@ import moment from 'moment';
 import Text from '../Text';
 import ArrowIcon from './ArrowIcon';
 import styles from '../../styles/styles';
-import {propTypes, defaultProps} from './calendarPickerPropTypes';
+// eslint-disable-next-line rulesdir/prefer-import-module-contents
+import {calendarPickerPropType, defaultCalendarPickerPropType} from './calendarPickerPropTypes';
 import generateMonthMatrix from './generateMonthMatrix';
 import withLocalize from '../withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -178,7 +179,7 @@ class CalendarPicker extends React.Component {
     }
 }
 
-CalendarPicker.propTypes = propTypes;
-CalendarPicker.defaultProps = defaultProps;
+CalendarPicker.propTypes = calendarPickerPropType;
+CalendarPicker.defaultProps = defaultCalendarPickerPropType;
 
 export default compose(withLocalize, withNavigation)(CalendarPicker);

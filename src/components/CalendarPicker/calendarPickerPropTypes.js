@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-const propTypes = {
+const calendarPickerPropType = {
     /** A function that is called when the date changed inside the calendar component */
     onChanged: PropTypes.func,
 
@@ -29,7 +29,7 @@ const propTypes = {
     onClosePressed: PropTypes.func,
 };
 
-const defaultProps = {
+const defaultCalendarPickerPropType = {
     value: new Date(),
     minDate: null,
     maxDate: null,
@@ -38,4 +38,4 @@ const defaultProps = {
     onYearPressed: null,
 };
 
-export {propTypes, defaultProps};
+export {calendarPickerPropType, defaultCalendarPickerPropType};
