@@ -110,8 +110,11 @@ class ReportSettingsPage extends Component {
 
     render() {
         const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report);
-        const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report) || ReportUtils.isArchivedRoom(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, policy => policy && policy.id === this.props.report.policyID);
+
+        const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report)
+            || ReportUtils.isArchivedRoom(this.props.report)
+            || (ReportUtils.isPublicRoom(this.props.report) && !linkedWorkspace);
 
         return (
             <ScreenWrapper>
