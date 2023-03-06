@@ -30,6 +30,15 @@ const getUniqueEmojiCodes = (emoji, users) => {
 const propTypes = {
     /**
      * An array of objects containing the reaction data.
+     * The shape of a reaction looks like this:
+     *
+     * "reactionName": {
+     *     emoji: string,
+     *     users: {
+     *         accountID: string,
+     *         skinTone: number,
+     *     }[]
+     * }
      */
     // eslint-disable-next-line react/forbid-prop-types
     reactions: PropTypes.arrayOf(PropTypes.object).isRequired,
