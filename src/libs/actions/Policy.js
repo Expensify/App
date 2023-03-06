@@ -14,7 +14,6 @@ import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import * as ReportUtils from '../ReportUtils';
 import Log from '../Log';
-import { session } from 'electron';
 
 const allPolicies = {};
 Onyx.connect({
