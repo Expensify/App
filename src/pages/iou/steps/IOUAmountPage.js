@@ -45,7 +45,7 @@ const propTypes = {
 
 const defaultProps = {
     iou: {
-        selectedCurrencyCode: null,
+        selectedCurrencyCode: CONST.CURRENCY.USD,
     },
 };
 class IOUAmountPage extends React.Component {
@@ -261,7 +261,7 @@ class IOUAmountPage extends React.Component {
                         placeholder={this.props.numberFormat(0)}
                         preferredLocale={this.props.preferredLocale}
                         ref={el => this.textInput = el}
-                        selectedCurrencyCode={this.props.iou.selectedCurrencyCode || CONST.CURRENCY.USD}
+                        selectedCurrencyCode={this.props.iou.selectedCurrencyCode}
                         selection={this.state.selection}
                         onSelectionChange={(e) => {
                             if (!this.shouldUpdateSelection) {
