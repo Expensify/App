@@ -9,6 +9,7 @@ import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import getPreferredEmojiCode from '../getPreferredEmojiCode';
+import Tooltip from '../../Tooltip';
 
 const EMOJI_BUBBLE_SCALE = 1.5;
 
@@ -39,15 +40,17 @@ const propTypes = {
 const BaseQuickEmojiReactions = props => (
     <View style={styles.quickReactionsContainer}>
         {_.map(CONST.QUICK_REACTIONS, emoji => (
-            <EmojiReactionBubble
-                key={emoji.name}
-                emojiName={emoji.name}
-                emojiCodes={[getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
-                sizeScale={EMOJI_BUBBLE_SCALE}
-                onPress={() => {
-                    props.onEmojiSelected(emoji);
-                }}
-            />
+            <Tooltip text={`:${emoji.name}:`}>
+                <EmojiReactionBubble
+                    key={emoji.name}
+                    emojiName={emoji.name}
+                    emojiCodes={[getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
+                    sizeScale={EMOJI_BUBBLE_SCALE}
+                    onPress={() => {
+                        props.onEmojiSelected(emoji);
+                    }}
+                />
+            </Tooltip>
         ))}
         <AddReactionBubble
             iconSizeScale={1.2}
