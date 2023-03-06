@@ -68,6 +68,7 @@ export default [
                         key="MiniQuickEmojiReactions"
                         onEmojiSelected={onEmojiSelected}
                         onPressOpenPicker={keepOpen}
+                        onEmojiPickerClosed={closeContextMenu}
                     />
                 );
             }

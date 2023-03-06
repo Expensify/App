@@ -25,8 +25,21 @@ const ICON_SIZE_SCALE_FACTOR = 1.3;
 
 const propTypes = {
     ...baseQuickEmojiReactionsPropTypes,
+
+    /**
+     * Will be called when the user closed the emoji picker
+     * without selecting an emoji.
+     */
+    onEmojiPickerClosed: PropTypes.func,
+
     ...withLocalizePropTypes,
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+
+};
+
+const defaultProps = {
+    onEmojiPickerClosed: () => {},
+    ...baseQuickEmojiReactionsDefaultProps,
 };
 
 /**
@@ -43,7 +56,7 @@ const MiniQuickEmojiReactions = (props) => {
     const openEmojiPicker = () => {
         props.onPressOpenPicker();
         EmojiPickerAction.showEmojiPicker(
-            () => {},
+            props.onEmojiPickerClosed,
             (emojiCode, emojiObject) => {
                 props.onEmojiSelected(emojiObject);
             },
@@ -89,7 +102,7 @@ const MiniQuickEmojiReactions = (props) => {
 
 MiniQuickEmojiReactions.displayName = 'MiniQuickEmojiReactions';
 MiniQuickEmojiReactions.propTypes = propTypes;
-MiniQuickEmojiReactions.defaultProps = baseQuickEmojiReactionsDefaultProps;
+MiniQuickEmojiReactions.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
