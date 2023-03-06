@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import lodashOrderBy from 'lodash/orderBy';
 import moment from 'moment';
-import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
 import * as User from './actions/User';
 import emojisTrie from './EmojiTrie';
@@ -267,52 +266,50 @@ function suggestEmojis(text, limit = 5) {
  * @returns {Array}
  */
 function getAllEmojiFromText(text) {
-    // return empty array when no text is passed
+    // return an empty array when no text is passed
     if (!text) {
         return [];
     }
 
-    const result = [];
-
-    // Unicode Character 'ZERO WIDTH JOINER' (U+200D) usually used to join surrogate pair together without braking the emoji
-    const emptySpaceChecker = '\u200D'; // https://codepoints.net/U+200D?lang=en
-    const emojiCharacterSpaceReplacer = '~'; // unique identifier to replace 'ZERO WIDTH JOINER' in our first string split
+    // Unicode Character 'ZERO WIDTH JOINER' (U+200D) is usually used to join surrogate pair together without breaking the emoji
+    const zeroWidthJoiner = '\u200D'; // https://codepoints.net/U+200D?lang=en
     const splittedMessage = text.split('');
-    const convertedSplittedMessage = [];
-
-    for (let i = 0; i < splittedMessage.length; i++) {
-        const char = splittedMessage[i];
-
-        // replace every 'ZERO WIDTH JOINER' with '~' so we can easily identify where a surrogate pair starts and concatenate them together
-        convertedSplittedMessage.push((char === emptySpaceChecker) ? emojiCharacterSpaceReplacer : char);
-    }
+    const result = [];
 
     let wordHolder = ''; // word counter
     let emojiHolder = ''; // emoji counter
 
-    const setWord = word => result.push({text: word, isEmoji: false});
+    const setResult = (word, isEmoji = false) => {
+        // for some weird reason javascript sees the empty string `"` as a word with `length = 1`
+        // this is caused after splitting the text empty spaces are added to both the start and the end of all emojis and text
+        // given the empty space is close to a text then its length is counted as 0
+        // while if it's before or after an emoji then it's counted as 1, so we remove the word where word.length equals 1
+        // NOTE: this does not affect a single character element example typing `[i | J]` cause after splitting its empty word.length is calculated as 0
+        if (!isEmoji && word.length === 1) {
+            return;
+        }
 
-    // replace all '~' back with a 'ZERO WIDTH JOINER', this helps maintain surrogate pair just as there where before splitting
-    const setEmoji = word => result.push({text: Str.replaceAll(word, emojiCharacterSpaceReplacer, emptySpaceChecker), isEmoji: true});
+        result.push({text: word, isEmoji});
+    };
 
-    _.forEach(convertedSplittedMessage, (word, index) => {
-        if (CONST.REGEX.EMOJI_SURROGATE.test(word) || word === emojiCharacterSpaceReplacer) {
-            setWord(wordHolder);
+    _.forEach(splittedMessage, (word, index) => {
+        if (CONST.REGEX.EMOJI_SURROGATE.test(word) || word === zeroWidthJoiner) {
+            setResult(wordHolder);
             wordHolder = '';
             emojiHolder += word;
         } else {
-            setEmoji(emojiHolder);
+            setResult(emojiHolder, true);
             emojiHolder = '';
             wordHolder += word;
         }
 
-        if (index === convertedSplittedMessage.length - 1) {
-            setEmoji(emojiHolder);
-            setWord(wordHolder);
+        if (index === splittedMessage.length - 1) {
+            setResult(emojiHolder, true);
+            setResult(wordHolder);
         }
     });
 
-    // remove none next characters like '' only return where text is a word or white space ' '
+    // remove none text characters like '' only return where text is a word or white space ' '
     return _.filter(result, res => res.text);
 }
 
