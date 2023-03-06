@@ -51,13 +51,14 @@ class EmojiPickerMenu extends Component {
 
         this.emojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis, this.props.frequentlyUsedEmojis);
 
-        // This is the actual header index starting at the first emoji and counting each one
-        this.headerIndices = EmojiUtils.getHeaderIndices(this.emojis);
+        // Get the header emojis along with the code, index and icon.
+        // index is the actual header index starting at the first emoji and counting each one
+        this.headerEmojis = EmojiUtils.getHeaderEmojis(this.emojis);
 
         // This is the indices of each header's Row
         // The positions are static, and are calculated as index/numColumns (8 in our case)
         // This is because each row of 8 emojis counts as one index to the flatlist
-        this.headerRowIndices = _.map(this.headerIndices, headerIndex => Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW));
+        this.headerRowIndices = _.map(this.headerEmojis, headerEmoji => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
 
         this.renderItem = this.renderItem.bind(this);
         this.isMobileLandscape = this.isMobileLandscape.bind(this);
@@ -151,7 +152,7 @@ class EmojiPickerMenu extends Component {
             <View style={styles.emojiPickerContainer}>
                 <View>
                     <CategoryShortcutBar
-                        headerIndices={this.headerIndices}
+                        headerEmojis={this.headerEmojis}
                         onPress={this.scrollToHeader}
                     />
                 </View>
