@@ -14,7 +14,7 @@ function scrollToIndex(index) {
     lastIndex = index;
 }
 
-// This is a reference  
+// A reference to the last index required to scroll to, for async layout change handler.
 let lastIndex = undefined;
 
 /**
