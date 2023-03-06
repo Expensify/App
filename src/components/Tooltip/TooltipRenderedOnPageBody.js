@@ -163,17 +163,15 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
         }
 
         return ReactDOM.createPortal(
-            <>
-                <Animated.View
-                    onLayout={this.measureTooltip}
-                    style={[tooltipWrapperStyle, animationStyle]}
-                >
-                    {content}
-                    <View style={pointerWrapperStyle}>
-                        <View style={pointerStyle} />
-                    </View>
-                </Animated.View>
-            </>,
+            <Animated.View
+                onLayout={this.measureTooltip}
+                style={[tooltipWrapperStyle, animationStyle]}
+            >
+                {content}
+                <View style={pointerWrapperStyle}>
+                    <View style={pointerStyle} />
+                </View>
+            </Animated.View>,
             document.querySelector('body'),
         );
     }
