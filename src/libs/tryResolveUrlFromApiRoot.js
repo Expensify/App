@@ -8,7 +8,7 @@ const ORIGINS_TO_REPLACE = [
     '/+',
     Config.EXPENSIFY.EXPENSIFY_URL,
     Config.EXPENSIFY.STAGING_API_ROOT,
-    Config.EXPENSIFY.PRODUCTION_API_ROOT,
+    Config.EXPENSIFY.PRIMARY_API_ROOT,
 ];
 
 // Anything starting with a match from ORIGINS_TO_REPLACE

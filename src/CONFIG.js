@@ -50,8 +50,10 @@ export default {
         // Note: This will be EXACTLY what is set for EXPENSIFY_URL whether the proxy is enabled or not.
         EXPENSIFY_URL: expensifyURL,
         NEW_EXPENSIFY_URL: newExpensifyURL,
-        PRODUCTION_API_ROOT: expensifyURLRoot,
-        PRODUCTION_SECURE_API_ROOT: secureURLRoot,
+
+        // The main API is usually PRODUCTION, but there are cases where it points to internal DEV server
+        PRIMARY_API_ROOT: expensifyURLRoot,
+        PRIMARY_SECURE_API_ROOT: secureURLRoot,
         STAGING_API_ROOT: stagingExpensifyURL,
         STAGING_SECURE_API_ROOT: stagingSecureExpensifyUrl,
         PARTNER_NAME: lodashGet(Config, 'EXPENSIFY_PARTNER_NAME', 'chat-expensify-com'),
