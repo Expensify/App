@@ -6,6 +6,7 @@ import styles from '../../styles/styles';
 import EmojiReactionBubble from './EmojiReactionBubble';
 import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
+import getPreferredEmojiCode from './getPreferredEmojiCode';
 
 /**
  * Given an emoji object and a list of senders it will return an
@@ -18,7 +19,7 @@ import AddReactionBubble from './AddReactionBubble';
 const getUniqueEmojiCodes = (emoji, users) => {
     const emojiCodes = [];
     _.forEach(users, (user) => {
-        const emojiCode = (emoji.types && emoji.types[user.skinTone]) ? emoji.types[user.skinTone] : emoji.code;
+        const emojiCode = getPreferredEmojiCode(emoji, user.skinTone);
 
         if (emojiCode && !emojiCodes.includes(emojiCode)) {
             emojiCodes.push(emojiCode);

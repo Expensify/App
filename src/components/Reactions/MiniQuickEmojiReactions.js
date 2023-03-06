@@ -1,6 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import Text from '../Text';
@@ -15,12 +17,16 @@ import {
     baseQuickEmojiReactionsPropTypes,
 } from './QuickEmojiReactions/BaseQuickEmojiReactions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import compose from '../../libs/compose';
+import ONYXKEYS from '../../ONYXKEYS';
+import getPreferredEmojiCode from './getPreferredEmojiCode';
 
 const ICON_SIZE_SCALE_FACTOR = 1.3;
 
 const propTypes = {
     ...baseQuickEmojiReactionsPropTypes,
     ...withLocalizePropTypes,
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
 };
 
 /**
@@ -47,19 +53,19 @@ const MiniQuickEmojiReactions = (props) => {
 
     return (
         <View style={styles.flexRow}>
-            {_.map(CONST.QUICK_REACTIONS, reaction => (
+            {_.map(CONST.QUICK_REACTIONS, emoji => (
                 <BaseMiniContextMenuItem
-                    key={reaction.name}
+                    key={emoji.name}
                     isDelayButtonStateComplete={false}
-                    tooltipText={`:${reaction.name}:`}
-                    onPress={() => props.onEmojiSelected(reaction)}
+                    tooltipText={`:${emoji.name}:`}
+                    onPress={() => props.onEmojiSelected(emoji)}
                 >
                     <Text style={[
                         styles.emojiReactionText,
                         StyleUtils.getEmojiReactionTextStyle(ICON_SIZE_SCALE_FACTOR),
                     ]}
                     >
-                        {reaction.code}
+                        {getPreferredEmojiCode(emoji, props.preferredSkinTone)}
                     </Text>
                 </BaseMiniContextMenuItem>
             ))}
@@ -84,4 +90,11 @@ const MiniQuickEmojiReactions = (props) => {
 MiniQuickEmojiReactions.displayName = 'MiniQuickEmojiReactions';
 MiniQuickEmojiReactions.propTypes = propTypes;
 MiniQuickEmojiReactions.defaultProps = baseQuickEmojiReactionsDefaultProps;
-export default withLocalize(MiniQuickEmojiReactions);
+export default compose(
+    withLocalize,
+    withOnyx({
+        preferredSkinTone: {
+            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        },
+    }),
+)(MiniQuickEmojiReactions);

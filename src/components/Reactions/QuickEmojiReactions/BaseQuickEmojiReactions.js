@@ -2,10 +2,13 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import EmojiReactionBubble from '../EmojiReactionBubble';
 import AddReactionBubble from '../AddReactionBubble';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
+import ONYXKEYS from '../../../ONYXKEYS';
+import getPreferredEmojiCode from '../getPreferredEmojiCode';
 
 const EMOJI_BUBBLE_SCALE = 1.5;
 
@@ -26,6 +29,8 @@ const baseQuickEmojiReactionsPropTypes = {
      * to actually open the emoji picker.
      */
     onPressOpenPicker: PropTypes.func,
+
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
 };
 
 const baseQuickEmojiReactionsDefaultProps = {
@@ -35,14 +40,14 @@ const baseQuickEmojiReactionsDefaultProps = {
 
 const BaseQuickEmojiReactions = props => (
     <View style={styles.quickReactionsContainer}>
-        {_.map(CONST.QUICK_REACTIONS, reaction => (
+        {_.map(CONST.QUICK_REACTIONS, emoji => (
             <EmojiReactionBubble
-                key={reaction.name}
-                emojiName={reaction.name}
-                emojiCodes={[reaction.code]}
+                key={emoji.name}
+                emojiName={emoji.name}
+                emojiCodes={[getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
                 sizeScale={EMOJI_BUBBLE_SCALE}
                 onPress={() => {
-                    props.onEmojiSelected(reaction);
+                    props.onEmojiSelected(emoji);
                 }}
             />
         ))}
@@ -59,7 +64,11 @@ const BaseQuickEmojiReactions = props => (
 BaseQuickEmojiReactions.displayName = 'BaseQuickEmojiReactions';
 BaseQuickEmojiReactions.propTypes = baseQuickEmojiReactionsPropTypes;
 BaseQuickEmojiReactions.defaultProps = baseQuickEmojiReactionsDefaultProps;
-export default BaseQuickEmojiReactions;
+export default withOnyx({
+    preferredSkinTone: {
+        key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+    },
+})(BaseQuickEmojiReactions);
 
 export {
     baseQuickEmojiReactionsPropTypes,
