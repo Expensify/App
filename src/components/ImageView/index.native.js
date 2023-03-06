@@ -60,10 +60,17 @@ class ImageView extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.url === prevProps.url || !this.interactionPromise) {
+        if (this.props.url === prevProps.url) {
             return;
         }
-        this.state.interactionPromise.cancel();
+
+        if (this.interactionPromise) {
+            this.state.interactionPromise.cancel();
+        }
+
+        if (!this.state.isLoading) {
+            this.imageLoadingStart();
+        }
     }
 
     componentWillUnmount() {
@@ -99,20 +106,6 @@ class ImageView extends PureComponent {
     configureImageZoom({nativeEvent}) {
         // Wait till animations are over to prevent stutter in navigation animation
         this.state.interactionPromise = InteractionManager.runAfterInteractions(() => {
-            this.setState({imageHeight: 0, imageWidth: 0, isLoading: true});
-            if (this.imageZoomScale !== 1) {
-                this.imageZoomScale = 1;
-            }
-
-            if (this.zoom) {
-                this.zoom.centerOn({
-                    x: 0,
-                    y: 0,
-                    scale: 1,
-                    duration: 0,
-                });
-            }
-
             let imageWidth = nativeEvent.width;
             let imageHeight = nativeEvent.height;
             const containerWidth = Math.round(this.props.windowWidth);
@@ -134,8 +127,28 @@ class ImageView extends PureComponent {
         });
     }
 
+    /**
+     * When the url changes and the image must load again,
+     * this resets the zoom to ensure the next image loads with the correct dimensions.
+     */
+    resetImageZoom() {
+        if (this.imageZoomScale !== 1) {
+            this.imageZoomScale = 1;
+        }
+
+        if (this.zoom) {
+            this.zoom.centerOn({
+                x: 0,
+                y: 0,
+                scale: 1,
+                duration: 0,
+            });
+        }
+    }
+
     imageLoadingStart() {
-        this.setState({isLoading: true});
+        this.resetImageZoom();
+        this.setState({imageHeight: 0, imageWidth: 0, isLoading: true});
     }
 
     render() {

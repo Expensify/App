@@ -60,6 +60,14 @@ class ImageView extends PureComponent {
         document.addEventListener('mouseup', this.trackPointerPosition);
     }
 
+    componentDidUpdate(prevProps) {
+        if (prevProps.url === this.props.url || this.state.isLoading) {
+            return;
+        }
+
+        this.imageLoadingStart();
+    }
+
     componentWillUnmount() {
         if (this.canUseTouchScreen) {
             return;
@@ -213,11 +221,11 @@ class ImageView extends PureComponent {
 
     imageLoad({nativeEvent}) {
         this.setImageRegion(nativeEvent.width, nativeEvent.height);
-        this.setState({isLoading: false, isZoomed: false});
+        this.setState({isLoading: false});
     }
 
     imageLoadingStart() {
-        this.setState({isLoading: true});
+        this.setState({isLoading: true, zoomScale: 0, isZoomed: false});
     }
 
     render() {
@@ -279,7 +287,6 @@ class ImageView extends PureComponent {
                             styles.w100,
                         ]} // Hide image until finished loading to prevent showing preview with wrong dimensions.
                         resizeMode={Image.resizeMode.contain}
-                        onLoadStart={this.imageLoadingStart}
                         onLoad={this.imageLoad}
                     />
                 </Pressable>
