@@ -1357,8 +1357,7 @@ function toggleEmojiReaction(reportID, reportAction, emoji, skinTone = preferred
     const message = reportAction.message[0];
     const reactionObject = message.reactions && _.find(message.reactions, reaction => reaction.emoji === emoji.name);
     if (reactionObject) {
-        const hasCurrentUserReacted = hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone);
-        if (hasCurrentUserReacted) {
+        if (hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone)) {
             return removeEmojiReaction(reportID, reportAction, emoji, skinTone);
         }
     }
