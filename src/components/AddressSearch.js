@@ -151,7 +151,8 @@ const AddressSearch = (props) => {
             values.street = street;
         }
 
-        if (CONST.ALL_COUNTRIES[country]) {
+        const isValidCountryCode = lodashGet(CONST.ALL_COUNTRIES, country);
+        if (isValidCountryCode) {
             values.country = country;
         }
 
