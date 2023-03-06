@@ -121,7 +121,6 @@ class AddressPage extends Component {
     render() {
         const address = lodashGet(this.props.privatePersonalDetails, 'address') || {};
         const [street1, street2] = (address.street || '').split('\n');
-        const countryISOcode = PersonalDetails.getCountryISO(address.country);
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -201,7 +200,7 @@ class AddressPage extends Component {
                         <CountryPicker
                             inputID="country"
                             onValueChange={this.onCountryUpdate}
-                            defaultValue={countryISOcode || ''}
+                            defaultValue={PersonalDetails.getCountryISO(address.country)}
                         />
                     </View>
                 </Form>
