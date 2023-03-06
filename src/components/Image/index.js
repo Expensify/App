@@ -2,6 +2,7 @@ import React from 'react';
 import {Image as RNImage} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
@@ -55,12 +56,12 @@ class Image extends React.Component {
     }
 
     render() {
-        // eslint-disable-next-line
-        const { source, onLoad, ...rest } = this.props;
-        const imageSource = this.getImageSource();
+        // Omit the props which the underlying RNImage won't use
+        const forwardedProps = _.omit(this.props, ['source', 'onLoad', 'session', 'isAuthTokenRequired']);
+        const source = this.getImageSource();
 
-        // eslint-disable-next-line
-        return <RNImage {...rest} source={imageSource} />;
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        return <RNImage {...forwardedProps} source={source} />;
     }
 }
 
