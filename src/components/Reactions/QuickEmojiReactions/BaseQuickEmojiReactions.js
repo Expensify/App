@@ -37,7 +37,9 @@ const propTypes = {
 };
 
 const baseQuickEmojiReactionsDefaultProps = {
+    // eslint-disable-next-line react/default-props-match-prop-types
     onWillShowPicker: undefined,
+    // eslint-disable-next-line react/default-props-match-prop-types
     onPressOpenPicker: undefined,
 };
 
