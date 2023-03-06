@@ -70,6 +70,7 @@ const CONST = {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
         UNIX_EPOCH: '1970-01-01 00:00:00.000',
         MAX_DATE: '9999-12-31',
+        MIN_DATE: '0001-01-01',
     },
     SMS: {
         DOMAIN: '@expensify.sms',
@@ -401,6 +402,7 @@ const CONST = {
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
+        COMMENT_LENGTH_DEBOUNCE_TIME: 500,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -412,8 +414,17 @@ const CONST = {
         EXP_ERROR: 666,
         UNABLE_TO_RETRY: 'unableToRetry',
     },
+    HTTP_STATUS: {
+        // When Cloudflare throttles
+        TOO_MANY_REQUESTS: 429,
+        INTERNAL_SERVER_ERROR: 500,
+        BAD_GATEWAY: 502,
+        GATEWAY_TIMEOUT: 504,
+        UNKNOWN_ERROR: 520,
+    },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
+        THROTTLED: 'throttled',
         UNKNOWN_ERROR: 'Unknown error',
         REQUEST_CANCELLED: 'AbortError',
         FAILED_TO_FETCH: 'Failed to fetch',
@@ -442,7 +453,9 @@ const CONST = {
         METHOD: {
             POST: 'post',
         },
-        MAX_REQUEST_RETRIES: 10,
+        MIN_RETRY_WAIT_TIME_MS: 10,
+        MAX_RANDOM_RETRY_WAIT_TIME_MS: 100,
+        MAX_RETRY_WAIT_TIME_MS: 10 * 1000,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
     },
@@ -460,6 +473,7 @@ const CONST = {
         KYC_MIGRATION: 'expensify_migration_2020_04_28_RunKycVerifications',
         PREFERRED_EMOJI_SKIN_TONE: 'expensify_preferredEmojiSkinTone',
         FREQUENTLY_USED_EMOJIS: 'expensify_frequentlyUsedEmojis',
+        PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
@@ -518,6 +532,7 @@ const CONST = {
         URL: 'url',
     },
 
+    ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
@@ -760,6 +775,8 @@ const CONST = {
 
     ICON_TYPE_ICON: 'icon',
     ICON_TYPE_AVATAR: 'avatar',
+    ICON_TYPE_WORKSPACE: 'workspace',
+
     AVATAR_SIZE: {
         LARGE: 'large',
         MEDIUM: 'medium',
@@ -781,7 +798,7 @@ const CONST = {
         US_PHONE_WITH_OPTIONAL_COUNTRY_CODE: /^(\+1)?\d{10}$/,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
-        PHONE_WITH_SPECIAL_CHARS: /^[+]*[(]{0,1}[0-9]{1,3}[)]{0,1}[-\s\\./0-9]{0,12}$/,
+        PHONE_WITH_SPECIAL_CHARS: /^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$/,
         ALPHABETIC_CHARS: /[a-zA-Z]+/,
         POSITIVE_INTEGER: /^\d+$/,
         NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
@@ -804,6 +821,7 @@ const CONST = {
         EMOJIS: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
+        NON_NUMERIC_WITH_PLUS: /[^0-9+]/g,
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
@@ -851,6 +869,9 @@ const CONST = {
     // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
     MAX_COMMENT_LENGTH: 15000,
 
+    // Furthermore, applying markup is very resource-consuming, so let's set a slightly lower limit for that
+    MAX_MARKUP_LENGTH: 10000,
+
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
@@ -887,6 +908,37 @@ const CONST = {
         SETTINGS: 'settings',
         INVITE: 'invite',
         LEAVE_ROOM: 'leaveRoom',
+    },
+
+    FOOTER: {
+        EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
+        SPEND_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/spend-management`,
+        EXPENSE_REPORTS_URL: `${USE_EXPENSIFY_URL}/expense-reports`,
+        COMPANY_CARD_URL: `${USE_EXPENSIFY_URL}/company-credit-card`,
+        RECIEPT_SCANNING_URL: `${USE_EXPENSIFY_URL}/receipt-scanning-app`,
+        BILL_PAY_URL: `${USE_EXPENSIFY_URL}/bills`,
+        INVOICES_URL: `${USE_EXPENSIFY_URL}/invoices`,
+        CPA_CARD_URL: `${USE_EXPENSIFY_URL}/cpa-card`,
+        PAYROLL_URL: `${USE_EXPENSIFY_URL}/payroll`,
+        TRAVEL_URL: `${USE_EXPENSIFY_URL}/travel`,
+        EXPENSIFY_APPROVED_URL: `${USE_EXPENSIFY_URL}/accountants`,
+        PRESS_KIT_URL: 'https://we.are.expensify.com/press-kit',
+        SUPPORT_URL: `${USE_EXPENSIFY_URL}/support`,
+        COMMUNITY_URL: 'https://community.expensify.com/',
+        PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
+        ABOUT_URL: 'https://we.are.expensify.com/',
+        BLOG_URL: 'https://blog.expensify.com/',
+        JOBS_URL: 'https://we.are.expensify.com/apply',
+        ORG_URL: 'https://expensify.org/',
+        INVESTOR_RELATIONS_URL: 'https://ir.expensify.com/',
+    },
+
+    SOCIALS: {
+        PODCAST: 'https://we.are.expensify.com/podcast',
+        TWITTER: 'https://www.twitter.com/expensify',
+        INSTAGRAM: 'https://www.instagram.com/expensify',
+        FACEBOOK: 'https://www.facebook.com/expensify',
+        LINKEDIN: 'https://www.linkedin.com/company/expensify',
     },
 
     // These split the maximum decimal value of a signed 64-bit number (9,223,372,036,854,775,807) into parts where none of them are too big to fit into a 32-bit number, so that we can
@@ -1174,6 +1226,15 @@ const CONST = {
         'Zambia',
         'Zimbabwe',
     ],
+
+    // Values for checking if polyfill is required on a platform
+    POLYFILL_TEST: {
+        STYLE: 'currency',
+        CURRENCY: 'XAF',
+        FORMAT: 'symbol',
+        SAMPLE_INPUT: '123456.789',
+        EXPECTED_OUTPUT: 'FCFA 123,457',
+    },
 };
 
 export default CONST;
