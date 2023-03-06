@@ -3,7 +3,6 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {View, Keyboard} from 'react-native';
-
 import CONST from '../../../CONST';
 import ReportActionCompose from './ReportActionCompose';
 import SwipeableView from '../../../components/SwipeableView';
@@ -16,7 +15,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import styles from '../../../styles/styles';
 import reportActionPropTypes from './reportActionPropTypes';
 import reportPropTypes from '../../reportPropTypes';
-import archivedReportPropTypes from '../../archivedReportPropTypes';
+import * as ReportUtils from '../../../libs/ReportUtils';
 
 const propTypes = {
     /** Report object for the current report */
@@ -44,12 +43,6 @@ const propTypes = {
     /** Whether user interactions should be disabled */
     shouldDisableCompose: PropTypes.bool,
 
-    /** The report action that closed the report */
-    reportClosedAction: archivedReportPropTypes,
-
-    /** Whether the report is archived */
-    isArchivedRoom: PropTypes.bool,
-
     ...windowDimensionsPropTypes,
 };
 
@@ -61,8 +54,6 @@ const defaultProps = {
     pendingAction: null,
     shouldShowComposeInput: true,
     shouldDisableCompose: false,
-    reportClosedAction: null,
-    isArchivedRoom: false,
 };
 
 class ReportFooter extends React.Component {
@@ -74,12 +65,14 @@ class ReportFooter extends React.Component {
     }
 
     render() {
-        const hideComposer = this.props.isArchivedRoom || !_.isEmpty(this.props.errors);
+        const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
+        const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors);
+
         return (
             <>
-                {(this.props.isArchivedRoom || hideComposer) && (
+                {(isArchivedRoom || hideComposer) && (
                     <View style={[styles.chatFooter, this.props.isSmallScreenWidth ? styles.mb5 : null]}>
-                        {this.props.isArchivedRoom && (
+                        {isArchivedRoom && (
                             <ArchivedReportFooter
                                 reportClosedAction={this.props.reportClosedAction}
                                 report={this.props.report}

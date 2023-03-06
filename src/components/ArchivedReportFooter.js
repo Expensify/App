@@ -10,12 +10,24 @@ import personalDetailsPropType from '../pages/personalDetailsPropType';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from '../libs/ReportUtils';
 import reportPropTypes from '../pages/reportPropTypes';
-import archivedReportPropTypes from '../pages/archivedReportPropTypes';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import styles from '../styles/styles';
 
 const propTypes = {
     /** The reason this report was archived */
-    reportClosedAction: archivedReportPropTypes,
+    reportClosedAction: PropTypes.shape({
+        /** Message attached to the report closed action */
+        originalMessage: PropTypes.shape({
+            /** The reason the report was closed */
+            reason: PropTypes.string.isRequired,
+
+            /** (For accountMerged reason only), the email of the previous owner of this report. */
+            oldLogin: PropTypes.string,
+
+            /** (For accountMerged reason only), the email of the account the previous owner was merged into */
+            newLogin: PropTypes.string,
+        }).isRequired,
+    }),
 
     /** The archived report */
     report: reportPropTypes.isRequired,
@@ -78,6 +90,11 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        reportClosedAction: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+            canEvict: false,
+            selector: ReportActionsUtils.getLastClosedReportAction,
         },
     }),
 )(ArchivedReportFooter);
