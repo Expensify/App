@@ -55,6 +55,10 @@ const ReportActionItemReactions = props => (
     <View style={[styles.flexRow, styles.flexWrap]}>
         {_.map(props.reactions, (reaction) => {
             const reactionCount = reaction.users.length;
+            if (reactionCount === 0) {
+                return null;
+            }
+
             const reactionUsers = _.map(reaction.users, sender => sender.accountID);
             const emoji = _.find(emojis, e => e.name === reaction.emoji);
             const emojiCodes = getUniqueEmojiCodes(emoji, reaction.users);
@@ -62,10 +66,6 @@ const ReportActionItemReactions = props => (
             const onPress = () => {
                 props.toggleReaction(emoji);
             };
-
-            if (reactionCount === 0) {
-                return null;
-            }
 
             return (
                 <EmojiReactionBubble
