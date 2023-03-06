@@ -64,6 +64,7 @@ class YearPickerPage extends React.Component {
 
     /**
      * Function filtering the list of the items when using search input
+     *
      * @param {String} text
      */
     filterYearList(text) {

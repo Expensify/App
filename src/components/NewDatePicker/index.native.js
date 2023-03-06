@@ -4,7 +4,6 @@ import moment from 'moment';
 import _ from 'underscore';
 import compose from '../../libs/compose';
 import TextInput from '../TextInput';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import {propTypes, defaultProps} from './datepickerPropTypes';
@@ -14,7 +13,6 @@ import withNavigation from '../withNavigation';
 
 const datepickerPropTypes = {
     ...propTypes,
-    ...withLocalizePropTypes,
     ...keyboardStatePropTypes,
 };
 
@@ -58,26 +56,28 @@ class NewDatePicker extends React.Component {
     }
 
     /**
-     * hides the calendar picker from the screen
+     * Hides the calendar picker from the screen.
      */
     hidePicker() {
         this.setState({isPickerVisible: false});
     }
 
     /**
-     * Reset the date spinner to the initial value
+     * Reset the date picker to the initial value.
      */
     reset() {
         this.setState({selectedDate: this.initialValue});
     }
 
     /**
-     * @param {Date} selectedDate
+     * Updates the selectedDate state with the given date, calls the onInputChange
+     * prop with the formatted date string, and hides the picker component.
+     *
+     * @param {Date} selectedDate - The date to set as the selectedDate state.
      */
     updateLocalDate(selectedDate) {
         this.setState({selectedDate});
         this.props.onInputChange(moment(selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
-
         this.hidePicker();
     }
 
@@ -140,7 +140,6 @@ NewDatePicker.defaultProps = defaultProps;
  * that the modal buttons are in one locale (app) while the (spinner) month names are another (system)
  */
 export default compose(
-    withLocalize,
     withNavigation,
     withKeyboardState,
 )(React.forwardRef((props, ref) => (

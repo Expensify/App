@@ -7,13 +7,13 @@ const propTypes = {
     /** A function called when the date is selected */
     onSelected: PropTypes.func,
 
-    /** A value initial of date */
+    /** An initial value of date */
     value: PropTypes.objectOf(Date),
 
-    /** A minimum date of calendar to select */
+    /** A minimum date (oldest) allowed to select */
     minDate: PropTypes.objectOf(Date),
 
-    /** A maximum date of calendar to select */
+    /** A maximum date (earliest) allowed to select */
     maxDate: PropTypes.objectOf(Date),
 
     /** Callback function to call when year is pressed */

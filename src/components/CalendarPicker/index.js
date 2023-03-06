@@ -48,13 +48,18 @@ class CalendarPicker extends React.Component {
 
     // eslint-disable-next-line no-shadow, rulesdir/prefer-early-return
     componentDidUpdate(prevProps, prevState) {
+        // Check if either the defaultYear or defaultMonth props have changed
         if (this.props.defaultYear !== prevProps.defaultYear && this.props.defaultMonth !== prevProps.defaultMonth) {
+            // If both defaultYear and defaultMonth props have changed, update the currentDateView state with the new year and month values
             this.setState(prev => ({...prev, currentDateView: moment(prev.currentDateView).set('year', this.props.defaultYear).set('month', this.props.defaultMonth).toDate()}));
         } else if (this.props.defaultYear !== prevProps.defaultYear) {
+            // If only the defaultYear prop has changed, update the currentDateView state with the new year value
             this.setState(prev => ({...prev, currentDateView: moment(prev.currentDateView).set('year', this.props.defaultYear).toDate()}));
         }
 
+        // Check if the currentDateView state has changed and if the onChanged prop is defined
         if (prevState.currentDateView !== this.state.currentDateView && this.props.onChanged) {
+            // If the currentDateView state has changed, call the onChanged prop with the new value of currentDateView
             this.props.onChanged(this.state.currentDateView);
         }
     }
