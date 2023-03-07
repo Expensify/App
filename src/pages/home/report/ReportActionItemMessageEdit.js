@@ -333,6 +333,7 @@ export default compose(
     withOnyx({
         numberOfLines: {
             key: ({reportID, action}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}_${action.reportActionID}`,
+            initWithStoredValues: false,
         },
     }),
 )(React.forwardRef((props, ref) => (

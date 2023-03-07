@@ -170,7 +170,8 @@ class Composer extends React.Component {
         if (prevProps.value !== this.props.value
             || prevProps.defaultValue !== this.props.defaultValue
             || prevProps.isComposerFullSize !== this.props.isComposerFullSize
-            || prevProps.windowWidth !== this.props.windowWidth) {
+            || prevProps.windowWidth !== this.props.windowWidth
+            || prevProps.numberOfLines !== this.props.numberOfLines) {
             this.updateNumberOfLines();
         }
 
