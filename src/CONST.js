@@ -46,6 +46,11 @@ const CONST = {
         RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
     },
 
+    CALENDAR_PICKER: {
+        MIN_YEAR: 1900,
+        MAX_YEAR: 2038,
+    },
+
     DATE_BIRTH: {
         MIN_AGE: 5,
         MAX_AGE: 150,

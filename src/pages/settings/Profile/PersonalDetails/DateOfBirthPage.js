@@ -40,8 +40,8 @@ class DateOfBirthPage extends Component {
         this.validate = this.validate.bind(this);
         this.updateDateOfBirth = this.updateDateOfBirth.bind(this);
         this.readParams = this.readParams.bind(this);
-        this.minDate = props.minDate ? moment(props.minDate).toDate() : moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
-        this.maxDate = props.maxDate ? moment(props.maxDate).toDate() : moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'Y').toDate();
+        this.minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
+        this.maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'Y').toDate();
 
         this.state = {
             defaultYear: undefined,

@@ -40,9 +40,6 @@ class NewDatePicker extends React.Component {
         this.defaultValue = props.defaultValue
             ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
             : '';
-
-        this.minDate = props.minDate ? moment(props.minDate).toDate() : null;
-        this.maxDate = props.maxDate ? moment(props.maxDate).toDate() : null;
     }
 
     componentDidMount() {
@@ -135,8 +132,8 @@ class NewDatePicker extends React.Component {
                 />
                 <Animated.View style={[styles.datePickerPopover, styles.border, {opacity: this.opacity}, this.state.isPickerVisible ? styles.pointerEventsAuto : styles.pointerEventsNone]}>
                     <CalendarPicker
-                        minDate={this.minDate}
-                        maxDate={this.maxDate}
+                        minDate={this.props.minDate}
+                        maxDate={this.props.maxDate}
                         value={this.state.selectedDate}
                         onSelected={this.setDate}
                         onYearPressed={this.removeClickListener}

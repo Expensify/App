@@ -1,8 +1,10 @@
 import PropTypes from 'prop-types';
+import moment from 'moment';
 import {
     propTypes as fieldPropTypes,
     defaultProps as defaultFieldPropTypes,
 } from '../TextInput/baseTextInputPropTypes';
+import CONST from '../../CONST';
 
 const propTypes = {
     ...fieldPropTypes,
@@ -31,6 +33,8 @@ const propTypes = {
 
 const defaultProps = {
     ...defaultFieldPropTypes,
+    minDate: moment().year(CONST.CALENDAR_PICKER.MIN_YEAR).toDate(),
+    maxDate: moment().year(CONST.CALENDAR_PICKER.MAX_YEAR).toDate(),
     value: undefined,
 };
 
