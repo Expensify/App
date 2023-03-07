@@ -824,6 +824,13 @@ function getEmojiReactionBubbleStyle(isHovered, hasUserReacted, sizeScale = 1) {
 
     return sizeStyles;
 }
+function getEmojiReactionListHeaderBubbleStyle(hasUserReacted) {
+    if (hasUserReacted) {
+        return {backgroundColor: themeColors.reactionActive};
+    }
+
+    return {backgroundColor: themeColors.border};
+}
 
 function getEmojiReactionTextStyle(sizeScale = 1) {
     return {
@@ -893,4 +900,5 @@ export {
     getEmojiReactionBubbleStyle,
     getEmojiReactionTextStyle,
     getEmojiReactionCounterTextStyle,
+    getEmojiReactionListHeaderBubbleStyle,
 };

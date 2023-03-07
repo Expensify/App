@@ -8,17 +8,19 @@ const reactionListRef = React.createRef();
  * @param {Object} [event] - A press event.
  * @param {Element} contextMenuAnchor - popoverAnchor
  * @param {Array} users - array of users id
- * @param {String} emojiName - name of emoji
- * @param {Function} [onShow] - Run a callback when Menu is shown
- * @param {Function} [onHide] - Run a callback when Menu is hidden
+ * @param {String} emojiName - he emoji codes to display near the bubble.
+ * @param {String} emojiCodes - the emoji codes to display in the bubble.
+ * @param {Boolean} hasUserReacted - Show if user has reacted
+ * @param {Number} sizeScale - Set the sizeScale of emoji
  */
 function showReactionList(
     event,
     contextMenuAnchor,
     users,
     emojiName,
-    onShow = () => {},
-    onHide = () => {},
+    emojiCodes,
+    hasUserReacted,
+    sizeScale,
 ) {
     if (!reactionListRef.current) {
         return;
@@ -28,8 +30,9 @@ function showReactionList(
         contextMenuAnchor,
         users,
         emojiName,
-        onShow,
-        onHide,
+        emojiCodes,
+        hasUserReacted,
+        sizeScale,
     );
 }
 

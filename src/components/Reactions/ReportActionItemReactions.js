@@ -6,6 +6,7 @@ import styles from '../../styles/styles';
 import EmojiReactionBubble from './EmojiReactionBubble';
 import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 
 /**
  * Given an emoji object and a list of senders it will return an
@@ -25,6 +26,10 @@ const getUniqueEmojiCodes = (emoji, users) => {
         }
     });
     return emojiCodes;
+};
+
+const defaultProps = {
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 const propTypes = {
@@ -47,8 +52,11 @@ const propTypes = {
         PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
     ]).isRequired,
 
-    /** Function which opens Reaction List */
+    /** Function which opens Reaction List popup */
     onReactionListOpen: PropTypes.func.isRequired,
+
+    ...withCurrentUserPersonalDetailsPropTypes,
+
 };
 
 const ReportActionItemReactions = props => (
@@ -58,6 +66,7 @@ const ReportActionItemReactions = props => (
             const reactionUsers = _.map(reaction.users, sender => `${sender.accountID}`);
             const emoji = _.find(emojis, e => e.name === reaction.emoji);
             const emojiCodes = getUniqueEmojiCodes(emoji, reaction.users);
+            const hasUserReacted = _.includes(reactionUsers, `${props.currentUserPersonalDetails.accountID}`);
 
             const onPress = () => {
                 props.toggleReaction(emoji);
@@ -67,8 +76,8 @@ const ReportActionItemReactions = props => (
                 return null;
             }
 
-            const onReactionListOpen = (e) => {
-                props.onReactionListOpen(e, reactionUsers, reaction.emoji);
+            const onReactionListOpen = (event) => {
+                props.onReactionListOpen(event, reactionUsers, reaction.emoji, emojiCodes, hasUserReacted);
             };
 
             return (
@@ -80,6 +89,7 @@ const ReportActionItemReactions = props => (
                     emojiCodes={emojiCodes}
                     onPress={onPress}
                     reactionUsers={reactionUsers}
+                    hasUserReacted={hasUserReacted}
                     onReactionListOpen={onReactionListOpen}
                 />
             );
@@ -90,9 +100,9 @@ const ReportActionItemReactions = props => (
 
 ReportActionItemReactions.displayName = 'ReportActionItemReactions';
 ReportActionItemReactions.propTypes = propTypes;
-
-export default React.forwardRef((props, ref) => (
+ReportActionItemReactions.defaultProps = defaultProps;
+export default withCurrentUserPersonalDetails(React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <ReportActionItemReactions {...props} forwardedRef={ref} />
-));
+)));
 

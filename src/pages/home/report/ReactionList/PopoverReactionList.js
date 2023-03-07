@@ -1,6 +1,5 @@
 import React from 'react';
 import {Dimensions} from 'react-native';
-import _ from 'underscore';
 
 import lodashGet from 'lodash/get';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -17,8 +16,6 @@ class PopoverReactionList extends React.Component {
         super(props);
 
         this.state = {
-            reportID: '0',
-            reportAction: {},
             isPopoverVisible: false,
             cursorRelativePosition: {
                 horizontal: 0,
@@ -31,11 +28,12 @@ class PopoverReactionList extends React.Component {
                 vertical: 0,
             },
             users: [],
+            emojiCodes: [],
             emojiName: '',
+            sizeScale: 1,
+            hasUserReacted: false,
         };
 
-        this.onPopoverShow = () => {};
-        this.onPopoverHide = () => {};
         this.onPopoverHideActionCallback = () => {};
         this.contextMenuAnchor = undefined;
         this.showReactionList = this.showReactionList.bind(this);
@@ -43,8 +41,6 @@ class PopoverReactionList extends React.Component {
         this.hideReactionList = this.hideReactionList.bind(this);
         this.measureContent = this.measureContent.bind(this);
         this.measureReactionListPosition = this.measureReactionListPosition.bind(this);
-        this.runAndResetOnPopoverShow = this.runAndResetOnPopoverShow.bind(this);
-        this.runAndResetOnPopoverHide = this.runAndResetOnPopoverHide.bind(this);
         this.getContextMenuMeasuredLocation = this.getContextMenuMeasuredLocation.bind(this);
 
         this.dimensionsEventListener = null;
@@ -98,31 +94,25 @@ class PopoverReactionList extends React.Component {
      * @param {Element} contextMenuAnchor - popoverAnchor
      * @param {Array} users - array of users id
      * @param {String} emojiName - name of emoji
-     * @param {Function} [onShow] - Run a callback when Menu is shown
-     * @param {Function} [onHide] - Run a callback when Menu is hidden
+     * @param {Array} emojiCodes - The emoji codes to display in the bubble.
+     * @param {Boolean} [hasUserReacted] - whether the current user has reacted to this emoji
+
      */
     showReactionList(
         event,
         contextMenuAnchor,
         users,
         emojiName,
-        onShow,
-        onHide,
+        emojiCodes,
+        hasUserReacted,
     ) {
         const nativeEvent = event.nativeEvent || {};
 
         this.contextMenuAnchor = contextMenuAnchor;
-        this.contextMenuTargetNode = nativeEvent.target;
 
         // Singleton behaviour of ContextMenu creates race conditions when user requests multiple contextMenus.
         // But it is possible that every new request registers new callbacks thus instanceID is used to corelate those callbacks
         this.instanceID = Math.random().toString(36).substr(2, 5);
-
-        // Register the onHide callback only when Popover is shown to remove the race conditions when there are mutltiple popover open requests
-        this.onPopoverShow = () => {
-            onShow();
-            this.onPopoverHide = onHide;
-        };
         this.getContextMenuMeasuredLocation().then(({x, y}) => {
             this.setState({
                 cursorRelativePosition: {
@@ -135,7 +125,9 @@ class PopoverReactionList extends React.Component {
                 },
                 users,
                 emojiName,
+                emojiCodes,
                 isPopoverVisible: true,
+                hasUserReacted,
             });
         });
     }
@@ -161,33 +153,9 @@ class PopoverReactionList extends React.Component {
     }
 
     /**
-     * After Popover shows, call the registered onPopoverShow callback and reset it
+     * Hide the ReactionList modal popover.
      */
-    runAndResetOnPopoverShow() {
-        this.onPopoverShow();
-
-        // After we have called the action, reset it.
-        this.onPopoverShow = () => {};
-    }
-
-    /**
-     * After Popover hides, call the registered onPopoverHide & onPopoverHideActionCallback callback and reset it
-     */
-    runAndResetOnPopoverHide() {
-        this.setState({reportID: '0', reportAction: {}}, () => {
-            this.onPopoverHide = this.runAndResetCallback(this.onPopoverHide);
-            this.onPopoverHideActionCallback = this.runAndResetCallback(this.onPopoverHideActionCallback);
-        });
-    }
-
-    /**
-     * Hide the ReportActionContextMenu modal popover.
-     * @param {Function} onHideActionCallback Callback to be called after popover is completely hidden
-     */
-    hideReactionList(onHideActionCallback) {
-        if (_.isFunction(onHideActionCallback)) {
-            this.onPopoverHideActionCallback = onHideActionCallback;
-        }
+    hideReactionList() {
         this.setState({
             isPopoverVisible: false,
         });
@@ -205,23 +173,12 @@ class PopoverReactionList extends React.Component {
                 isVisible
                 users={this.state.users}
                 emojiName={this.state.emojiName}
-                reportID={this.state.reportID}
-                reportAction={this.state.reportAction}
-                anchor={this.contextMenuTargetNode}
-                contentRef={this.setContentRef}
+                emojiCodes={this.state.emojiCodes}
                 onClose={this.hideReactionList}
+                sizeScale={this.state.sizeScale}
+                hasUserReacted={this.state.hasUserReacted}
             />
         );
-    }
-
-    /**
-     * Run the callback and return a noop function to reset it
-     * @param {Function} callback
-     * @returns {Function}
-     */
-    runAndResetCallback(callback) {
-        callback();
-        return () => {};
     }
 
     render() {
@@ -230,8 +187,6 @@ class PopoverReactionList extends React.Component {
                 <PopoverWithMeasuredContent
                     isVisible={this.state.isPopoverVisible}
                     onClose={this.hideReactionList}
-                    onModalShow={this.runAndResetOnPopoverShow}
-                    onModalHide={this.runAndResetOnPopoverHide}
                     anchorPosition={this.state.popoverAnchorPosition}
                     animationIn="fadeIn"
                     disableAnimation={false}
@@ -245,11 +200,10 @@ class PopoverReactionList extends React.Component {
                         isVisible
                         users={this.state.users}
                         emojiName={this.state.emojiName}
-                        reportID={this.state.reportID}
-                        reportAction={this.state.reportAction}
-                        anchor={this.contextMenuTargetNode}
-                        contentRef={this.setContentRef}
+                        emojiCodes={this.state.emojiCodes}
                         onClose={this.hideReactionList}
+                        sizeScale={this.state.sizeScale}
+                        hasUserReacted={this.state.hasUserReacted}
                     />
                 </PopoverWithMeasuredContent>
             </>

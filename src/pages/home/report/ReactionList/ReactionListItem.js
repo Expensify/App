@@ -15,13 +15,23 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     wrapperStyles: PropTypes.arrayOf(PropTypes.object),
 
-    /** Children view component for this action item */
+    /** Personal details of the user */
+    item: PropTypes.shape({
+        // Display Name of participant
+        displayName: PropTypes.string,
+
+        // Avatar url of participant
+        avatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+
+        /** First Name of the participant */
+        firstName: PropTypes.string,
+    }).isRequired,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    wrapperStyles: [styles.chatItem],
+    wrapperStyles: [styles.reactionListItem],
 };
 
 const ReactionListItem = props => (

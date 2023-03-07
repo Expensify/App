@@ -1,13 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import * as StyleUtils from '../../styles/StyleUtils';
-import withCurrentUserPersonalDetails, {
-    withCurrentUserPersonalDetailsDefaultProps,
-    withCurrentUserPersonalDetailsPropTypes,
-} from '../withCurrentUserPersonalDetails';
+import {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
@@ -60,55 +56,50 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const EmojiReactionBubble = (props) => {
-    const hasUserReacted = _.includes(props.reactionUsers, `${props.currentUserPersonalDetails.accountID}`);
-
-    return (
-        <Tooltip
-            renderTooltipContent={() => (
-                <ReactionTooltipContent
-                    emojiName={props.emojiName}
-                    emojiCodes={props.emojiCodes}
-                    accountIDs={props.reactionUsers}
-                />
-            )}
+const EmojiReactionBubble = props => (
+    <Tooltip
+        renderTooltipContent={() => (
+            <ReactionTooltipContent
+                emojiName={props.emojiName}
+                emojiCodes={props.emojiCodes}
+                accountIDs={props.reactionUsers}
+            />
+        )}
+    >
+        <PressableWithSecondaryInteraction
+            style={({hovered}) => [
+                styles.emojiReactionBubble,
+                StyleUtils.getEmojiReactionBubbleStyle(hovered, props.hasUserReacted, props.sizeScale),
+            ]}
+            onPress={props.onPress}
+            onLongPress={props.onReactionListOpen}
+            onSecondaryInteraction={props.onReactionListOpen}
+            ref={props.forwardedRef}
         >
-            <PressableWithSecondaryInteraction
-                style={({hovered}) => [
-                    styles.emojiReactionBubble,
-                    StyleUtils.getEmojiReactionBubbleStyle(hovered, hasUserReacted, props.sizeScale),
-                ]}
-                onPress={props.onPress}
-                onLongPress={props.onReactionListOpen}
-                onSecondaryInteraction={props.onReactionListOpen}
-                ref={props.forwardedRef}
+            <Text style={[
+                styles.emojiReactionText,
+                StyleUtils.getEmojiReactionTextStyle(props.sizeScale),
+            ]}
             >
-                <Text style={[
-                    styles.emojiReactionText,
-                    StyleUtils.getEmojiReactionTextStyle(props.sizeScale),
-                ]}
-                >
-                    {props.emojiCodes.join('')}
-                </Text>
-                {props.count > 0 && (
+                {props.emojiCodes.join('')}
+            </Text>
+            {props.count > 0 && (
                 <Text style={[
                     styles.reactionCounterText,
-                    StyleUtils.getEmojiReactionCounterTextStyle(hasUserReacted, props.sizeScale),
+                    StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted, props.sizeScale),
                 ]}
                 >
                     {props.count}
                 </Text>
-                )}
-            </PressableWithSecondaryInteraction>
-        </Tooltip>
-    );
-};
-
+            )}
+        </PressableWithSecondaryInteraction>
+    </Tooltip>
+);
 EmojiReactionBubble.propTypes = propTypes;
 EmojiReactionBubble.defaultProps = defaultProps;
 EmojiReactionBubble.displayName = 'EmojiReactionBubble';
 
-export default withCurrentUserPersonalDetails(React.forwardRef((props, ref) => (
+export default React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <EmojiReactionBubble {...props} forwardRef={ref} />
-)));
+));
