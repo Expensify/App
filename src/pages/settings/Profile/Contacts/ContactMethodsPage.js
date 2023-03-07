@@ -20,7 +20,6 @@ import LoginField from './LoginField';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import MenuItem from '../../../../components/MenuItem';
 import Text from '../../../../components/Text';
-import styles from '../../../../styles/styles';
 import CopyTextToClipboard from '../../../../components/CopyTextToClipboard';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 
@@ -147,16 +146,16 @@ const ContactMethodsPage = (props) => {
                         type="phone"
                         login={{}}
                     />
-                    <Button
-                        style={[styles.buttonCTA, styles.mt6]}
-                        iconStyles={[styles.buttonCTAIcon]}
-                        success
-                        icon={Expensicons.Plus}
-                        text={this.props.translate('contacts.newContactMethod')}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD)}
-                        pressOnEnter
-                    />
                 )}
+                <Button
+                    style={[styles.buttonCTA, styles.mt6]}
+                    iconStyles={[styles.buttonCTAIcon]}
+                    success
+                    icon={Expensicons.Plus}
+                    text={props.translate('contacts.newContactMethod')}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD)}
+                    pressOnEnter
+                />
             </ScrollView>
         </ScreenWrapper>
     );
