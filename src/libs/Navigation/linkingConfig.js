@@ -124,6 +124,9 @@ export default {
                         path: ROUTES.SETTINGS_CONTACT_METHODS,
                         exact: true,
                     },
+                    Settings_ContactMethodDetails: {
+                        path: ROUTES.SETTINGS_CONTACT_METHOD_DETAILS,
+                    },
                     Settings_Add_Secondary_Login: {
                         path: ROUTES.SETTINGS_ADD_LOGIN,
                     },
@@ -259,11 +262,6 @@ export default {
             EnablePayments: {
                 screens: {
                     EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
-                },
-            },
-            RequestCall: {
-                screens: {
-                    RequestCall_Root: ROUTES.REQUEST_CALL,
                 },
             },
             Wallet_Statement: {

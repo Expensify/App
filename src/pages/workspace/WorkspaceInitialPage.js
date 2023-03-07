@@ -10,12 +10,10 @@ import styles from '../../styles/styles';
 import Tooltip from '../../components/Tooltip';
 import Text from '../../components/Text';
 import ConfirmModal from '../../components/ConfirmModal';
-import Icon from '../../components/Icon';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import MenuItem from '../../components/MenuItem';
-import themedefault from '../../styles/themes/default';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
@@ -28,6 +26,7 @@ import CONST from '../../CONST';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import ONYXKEYS from '../../ONYXKEYS';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     ...policyPropTypes,
@@ -96,6 +95,7 @@ class WorkspaceInitialPage extends React.Component {
 
     render() {
         const policy = this.props.policy;
+        const policyName = lodashGet(this.props.policy, 'name', '');
         const hasMembersError = PolicyUtils.hasPolicyMemberError(this.props.policyMemberList);
         const hasGeneralSettingsError = !_.isEmpty(lodashGet(this.props.policy, 'errorFields.generalSettings', {}))
             || !_.isEmpty(lodashGet(this.props.policy, 'errorFields.avatar', {}));
@@ -192,24 +192,15 @@ class WorkspaceInitialPage extends React.Component {
                                                 style={[styles.pRelative, styles.avatarLarge]}
                                                 onPress={this.openEditor}
                                             >
-                                                {this.props.policy.avatar
-                                                    ? (
-                                                        <Avatar
-                                                            containerStyles={styles.avatarLarge}
-                                                            imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                                            source={this.props.policy.avatar}
-                                                            fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                                                            size={CONST.AVATAR_SIZE.LARGE}
-                                                        />
-                                                    )
-                                                    : (
-                                                        <Icon
-                                                            src={Expensicons.Workspace}
-                                                            height={80}
-                                                            width={80}
-                                                            fill={themedefault.iconSuccessFill}
-                                                        />
-                                                    )}
+                                                <Avatar
+                                                    containerStyles={styles.avatarLarge}
+                                                    imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                                    source={this.props.policy.avatar ? this.props.policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
+                                                    fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                                                    size={CONST.AVATAR_SIZE.LARGE}
+                                                    name={policyName}
+                                                    type={CONST.ICON_TYPE_WORKSPACE}
+                                                />
                                             </Pressable>
                                             {!_.isEmpty(this.props.policy.name) && (
                                                 <Pressable
