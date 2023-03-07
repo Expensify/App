@@ -13,6 +13,7 @@ import Licenses from '../Licenses';
 import Socials from '../Socials';
 import Hoverable from '../../../components/Hoverable';
 import CONST from '../../../CONST';
+import * as Environment from '../../../libs/Environment/Environment';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -123,11 +124,11 @@ const columns = [
         translationPath: 'footer.getStarted',
         rows: [
             {
-                link: CONST.NEW_EXPENSIFY_URL,
+                link: Environment.getEnvironmentURL(),
                 translationPath: 'footer.createAccount',
             },
             {
-                link: CONST.NEW_EXPENSIFY_URL,
+                link: Environment.getEnvironmentURL(),
                 translationPath: 'footer.logIn',
             },
         ],
