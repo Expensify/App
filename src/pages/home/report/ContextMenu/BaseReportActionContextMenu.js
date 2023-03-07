@@ -48,7 +48,7 @@ class BaseReportActionContextMenu extends React.Component {
         this.wrapperStyle = getReportActionContextMenuStyles(this.props.isMini);
 
         this.state = {
-            keepOpen: false,
+            shouldKeepOpen: false,
         };
     }
 
@@ -62,7 +62,7 @@ class BaseReportActionContextMenu extends React.Component {
             this.props.isChronosReport,
         );
 
-        return (this.props.isVisible || this.state.keepOpen) && (
+        return (this.props.isVisible || this.state.shouldKeepOpen) && (
             <View
                 ref={this.props.contentRef}
                 style={this.wrapperStyle}
@@ -74,8 +74,8 @@ class BaseReportActionContextMenu extends React.Component {
                         reportID: this.props.reportID,
                         draftMessage: this.props.draftMessage,
                         selection: this.props.selection,
-                        close: () => this.setState({keepOpen: false}),
-                        keepOpen: () => this.setState({keepOpen: true}),
+                        close: () => this.setState({shouldKeepOpen: false}),
+                        openContextMenu: () => this.setState({shouldKeepOpen: true}),
                     };
 
                     if (contextAction.renderContent) {

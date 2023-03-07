@@ -39,10 +39,10 @@ const CONTEXT_MENU_TYPES = {
 // A list of all the context actions in this menu.
 export default [
     {
-        keepOpen: true,
+        shouldKeepOpen: true,
         shouldShow: () => true,
         renderContent: (closePopover, {
-            reportID, reportAction, close: closeManually, keepOpen,
+            reportID, reportAction, close: closeManually, openContextMenu,
         }) => {
             const isMini = !closePopover;
 
@@ -67,7 +67,7 @@ export default [
                     <MiniQuickEmojiReactions
                         key="MiniQuickEmojiReactions"
                         onEmojiSelected={onEmojiSelected}
-                        onPressOpenPicker={keepOpen}
+                        onPressOpenPicker={openContextMenu}
                         onEmojiPickerClosed={closeContextMenu}
                     />
                 );
