@@ -33,9 +33,6 @@ class NewDatePicker extends React.Component {
         this.reset = this.reset.bind(this);
         this.hidePicker = this.hidePicker.bind(this);
         this.setDate = this.setDate.bind(this);
-
-        this.minDate = props.minDate ? moment(props.minDate).toDate() : null;
-        this.maxDate = props.maxDate ? moment(props.maxDate).toDate() : null;
     }
 
     /**
@@ -116,8 +113,8 @@ class NewDatePicker extends React.Component {
                 {this.state.isPickerVisible && (
                 <View style={[styles.datePickerPopover, styles.border]}>
                     <CalendarPicker
-                        minDate={this.minDate}
-                        maxDate={this.maxDate}
+                        minDate={this.props.minDate}
+                        maxDate={this.props.maxDate}
                         value={this.state.selectedDate}
                         onSelected={this.setDate}
                         defaultYear={this.props.defaultYear}
