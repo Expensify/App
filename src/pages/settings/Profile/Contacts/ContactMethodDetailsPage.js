@@ -50,7 +50,7 @@ const propTypes = {
     /** Current user session */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
-    }).isRequired,
+    }),
 
     /** Route params */
     route: PropTypes.shape({
@@ -69,6 +69,9 @@ const defaultProps = {
         params: {
             contactMethod: '',
         },
+    },
+    session: {
+        email: null,
     },
 };
 

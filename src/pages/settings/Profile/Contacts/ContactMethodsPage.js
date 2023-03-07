@@ -45,13 +45,16 @@ const propTypes = {
     /** Current user session */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
-    }).isRequired,
+    }),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     loginList: {},
+    session: {
+        email: null,
+    },
 };
 
 const ContactMethodsPage = (props) => {
