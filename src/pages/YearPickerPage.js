@@ -43,7 +43,7 @@ class YearPickerPage extends React.Component {
             boldStyle: value === currentYear,
         }));
 
-        this.updateYearOfBirth = this.updateYearOfBirth.bind(this);
+        this.updateYearOfBirth = this.updateSelectedYear.bind(this);
         this.filterYearList = this.filterYearList.bind(this);
 
         this.state = {
@@ -57,7 +57,7 @@ class YearPickerPage extends React.Component {
      *
      * @param {String} selectedYear
      */
-    updateYearOfBirth(selectedYear) {
+    updateSelectedYear(selectedYear) {
         // we have to navigate using concatenation here as it is not possible to pass function as route param
         Navigation.navigate(`${this.props.route.params.backTo}?year=${selectedYear}`);
     }
@@ -70,7 +70,7 @@ class YearPickerPage extends React.Component {
     filterYearList(text) {
         this.setState({
             inputText: text,
-            yearOptions: _.filter(this.yearList, (year => year.text.includes(text.trim()))),
+            yearOptions: _.filter(this.yearList, year => year.text.includes(text.trim())),
         });
     }
 
@@ -88,7 +88,7 @@ class YearPickerPage extends React.Component {
                     onChangeText={this.filterYearList}
                     value={this.state.inputText}
                     sections={[{data: this.state.yearOptions}]}
-                    onSelectRow={option => this.updateYearOfBirth(option.value)}
+                    onSelectRow={option => this.updateSelectedYear(option.value)}
                     hideSectionHeaders
                     optionHoveredStyle={styles.hoveredComponentBG}
                     shouldHaveOptionSeparator

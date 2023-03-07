@@ -23,9 +23,6 @@ const calendarPickerPropType = {
 
     /** Callback function to call when year is pressed */
     onYearPressed: PropTypes.func,
-
-    /** Callback function to run when pressing close button. Used with navigation to set the correct year after going back to the view with calendar */
-    onClosePressed: PropTypes.func,
 };
 
 const defaultCalendarPickerPropType = {
@@ -36,7 +33,6 @@ const defaultCalendarPickerPropType = {
     onChanged: () => {},
     onSelected: () => {},
     onYearPressed: () => {},
-    onClosePressed: () => {},
 };
 
 export {calendarPickerPropType, defaultCalendarPickerPropType};

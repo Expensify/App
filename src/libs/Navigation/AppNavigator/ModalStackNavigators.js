@@ -516,7 +516,7 @@ const YearPickerStackNavigator = createModalStackNavigator([{
         const YearPickerPage = require('../../../pages/YearPickerPage').default;
         return YearPickerPage;
     },
-    name: 'SelectYear_Root',
+    name: 'YearPicker_Root',
 }]);
 
 export {

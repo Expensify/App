@@ -44,7 +44,7 @@ class DateOfBirthPage extends Component {
         this.maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'Y').toDate();
 
         this.state = {
-            defaultYear: undefined,
+            defaultYear: '',
         };
     }
 

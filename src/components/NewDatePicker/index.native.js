@@ -6,7 +6,7 @@ import compose from '../../libs/compose';
 import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
-import {propTypes, defaultProps} from './datepickerPropTypes';
+import {propTypes, datePickerDefaultProps} from './datepickerPropTypes';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 import CalendarPicker from '../CalendarPicker';
 import withNavigation from '../withNavigation';
@@ -115,7 +115,6 @@ class NewDatePicker extends React.Component {
                         value={this.state.selectedDate}
                         onSelected={this.setDate}
                         defaultYear={this.props.defaultYear}
-                        onClosePressed={this.hidePicker}
                     />
                 </View>
                 )}
@@ -125,7 +124,7 @@ class NewDatePicker extends React.Component {
 }
 
 NewDatePicker.propTypes = datepickerPropTypes;
-NewDatePicker.defaultProps = defaultProps;
+NewDatePicker.defaultProps = datePickerDefaultProps;
 
 /**
  * We're applying localization here because we present a modal (with buttons) ourselves

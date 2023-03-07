@@ -264,7 +264,7 @@ export default {
             },
             Select_Year: {
                 screens: {
-                    SelectYear_Root: ROUTES.SELECT_YEAR,
+                    YearPicker_Root: ROUTES.SELECT_YEAR,
                 },
             },
             [SCREENS.NOT_FOUND]: '*',
