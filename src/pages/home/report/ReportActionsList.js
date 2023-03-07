@@ -149,15 +149,10 @@ class ReportActionsList extends React.Component {
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
         return (
             <Animated.View style={[StyleUtils.fade(this.state.fadeInAnimation), styles.flex1]}>
-                
-                {this.renderItem({
-                    item: this.props.sortedReportActions[0],
-                    index: 0,
-                })}
-                {/*<InvertedFlatList
+                <InvertedFlatList
                     accessibilityLabel="List of chat messages"
                     ref={ReportScrollManager.flatListRef}
-                    data={[this.props.sortedReportActions[0]]}
+                    data={this.props.sortedReportActions}
                     renderItem={this.renderItem}
                     contentContainerStyle={[
                         styles.chatContentScrollView,
@@ -202,7 +197,7 @@ class ReportActionsList extends React.Component {
                     onScroll={this.props.onScroll}
                     extraData={extraData}
                     scrollEnabled={false}
-                />*/}
+                />
             </Animated.View>
         );
     }
