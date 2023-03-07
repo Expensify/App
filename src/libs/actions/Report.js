@@ -990,7 +990,9 @@ function addPolicyReport(policy, reportName, visibility) {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${policyReport.reportID}`,
             value: {
-                
+                pendingFields: {
+                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
                 ...policyReport,
             },
         },
