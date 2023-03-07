@@ -3054,10 +3054,10 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
     datePickerPopover: {
-        position: 'absolute',
+        position: 'relative',
         backgroundColor: themeColors.appBG,
         width: '100%',
-        top: 60,
+        top: 10,
     },
 };
 

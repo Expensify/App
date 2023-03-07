@@ -47,12 +47,6 @@ class NewDatePicker extends React.Component {
 
     componentDidMount() {
         document.addEventListener('mousedown', this.handleOutsideClick);
-        // eslint-disable-next-line rulesdir/prefer-early-return
-        this.opacity.addListener(({value}) => {
-            if (value === 0 || value === 1) {
-                this.setState(prev => ({...prev, isPickerVisible: !!value}));
-            }
-        });
     }
 
     // eslint-disable-next-line rulesdir/prefer-early-return
@@ -88,7 +82,7 @@ class NewDatePicker extends React.Component {
      */
     // eslint-disable-next-line rulesdir/prefer-early-return
     handleOutsideClick(event) {
-        if (this.wrapperRef && !this.wrapperRef.contains(event.target) && this.wrapperRef !== event.target && this.state.isPickerVisible) {
+        if (this.wrapperRef.current && !this.wrapperRef.current.contains(event.target) && this.wrapperRef.current !== event.target && this.state.isPickerVisible) {
             this.togglePicker();
         }
     }
@@ -108,12 +102,17 @@ class NewDatePicker extends React.Component {
             toValue: this.state.isPickerVisible ? 0 : 1,
             duration: 100,
             useNativeDriver: true,
-        }).start();
+        }).start((animationResult) => {
+            if (!animationResult.finished) {
+                return;
+            }
+            this.setState(prev => ({isPickerVisible: !prev.isPickerVisible}));
+        });
     }
 
     render() {
         return (
-            <View ref={ref => this.wrapperRef = ref} style={[this.props.isSmallScreenWidth ? styles.flex2 : styles.flex1]}>
+            <View ref={this.wrapperRef} style={[this.props.isSmallScreenWidth ? styles.flex2 : {}]}>
                 <TextInput
                     forceActiveLabel
                     ref={(el) => {
