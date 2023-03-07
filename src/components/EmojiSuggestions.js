@@ -21,12 +21,6 @@ const propTypes = {
 
         /** The name of the emoji */
         name: PropTypes.string,
-
-        /** Optional types of the emoji skin tone variant */
-        types: PropTypes.oneOfType([
-            PropTypes.arrayOf(PropTypes.string),
-            PropTypes.undefined,
-        ]),
     })).isRequired,
 
     /** Fired when the user selects an emoji */

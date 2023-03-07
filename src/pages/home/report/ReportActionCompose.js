@@ -88,9 +88,6 @@ const propTypes = {
     /** Is composer screen focused */
     isFocused: PropTypes.bool.isRequired,
 
-    /** Is the composer full size */
-    isComposerFullSize: PropTypes.bool.isRequired,
-
     /** Whether user interactions should be disabled */
     disabled: PropTypes.bool,
 
@@ -637,8 +634,8 @@ class ReportActionCompose extends React.Component {
         const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
         const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyEmails[0]];
 
-        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report)
-            && !this.props.isComposerFullSize;
+        const shouldShowReportRecipientLocalTime = Boolean(ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report)
+            && !this.props.isComposerFullSize);
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
