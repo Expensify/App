@@ -18,10 +18,10 @@ function scrollToIndex(index) {
 }
 
 /**
- * Layout Change the latest indexes set
- * The is a fallback handler for asyncrounius scrolling and layout changes.
+ * Scroll to the last saved index on layout change
+ * The is a fallback handler for asyncronius scrolling and layout changes.
  */
-function layoutChange() {
+function scrollToLastIndex() {
     if (!flatListRef.current) {
         return;
     }
@@ -43,11 +43,12 @@ function scrollToBottom() {
     }
 
     flatListRef.current.scrollToOffset({animated: false, offset: 0});
+    lastIndex = 0;
 }
 
 export {
     flatListRef,
     scrollToIndex,
     scrollToBottom,
-    layoutChange,
+    scrollToLastIndex,
 };

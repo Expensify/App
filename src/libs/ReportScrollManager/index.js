@@ -20,6 +20,12 @@ function scrollToIndex(index, isEditing) {
 }
 
 /**
+ * Scroll to the last saved index on layout change
+ * The is a fallback handler for asyncronius scrolling and layout changes.
+ */
+function scrollToLastIndex() {}
+
+/**
  * Scroll to the bottom of the flatlist.
  *
  */
