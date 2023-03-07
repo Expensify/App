@@ -92,12 +92,12 @@ class PopoverReactionList extends React.Component {
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
-     * @param {Element} contextMenuAnchor - opoverAnchor
+     * @param {Element} contextMenuAnchor - contextMenuAnchor
      * @param {Array} users - Array of users id
      * @param {String} emojiName - Name of emoji
      * @param {Array} emojiCodes - The emoji codes to display in the bubble.
      * @param {Number} emojiCount - Count of emoji
-     * @param {Boolean} [hasUserReacted] - whether the current user has reacted to this emoji
+     * @param {Boolean} hasUserReacted - whether the current user has reacted to this emoji
 
      */
     showReactionList(
