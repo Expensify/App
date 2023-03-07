@@ -1115,6 +1115,7 @@ export default {
         visibility: 'Visibilidad',
         restrictedDescription: 'Sólo las personas en tu espacio de trabajo pueden encontrar esta sala',
         privateDescription: 'Sólo las personas que están invitadas a esta sala pueden encontrarla',
+        publicDescription: 'Cualquiera puede encontrarlo',
         createRoom: 'Crea una sala de chat',
         roomAlreadyExistsError: 'Ya existe una sala con este nombre',
         roomNameReservedError: 'Una sala en este espacio de trabajo ya usa este nombre',
@@ -1128,6 +1129,8 @@ export default {
         visibilityOptions: {
             restricted: 'Restringida',
             private: 'Privada',
+            public: 'Público',
+            public_announce: 'Anuncio Público',
         },
     },
     statementPage: {
