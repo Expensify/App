@@ -38,9 +38,6 @@ class NewDatePicker extends React.Component {
         this.defaultValue = props.defaultValue
             ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
             : '';
-
-        this.minDate = moment(props.minDate).toDate();
-        this.maxDate = moment(props.maxDate).toDate();
     }
 
     componentDidMount() {
