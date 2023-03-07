@@ -6,6 +6,52 @@ import variables from './variables';
 import colors from './colors';
 import positioning from './utilities/positioning';
 import styles from './styles';
+import * as ReportUtils from '../libs/ReportUtils';
+
+const workspaceColorOptions = [
+    {backgroundColor: colors.blue200, fill: colors.blue700},
+    {backgroundColor: colors.blue400, fill: colors.blue800},
+    {backgroundColor: colors.blue700, fill: colors.blue200},
+    {backgroundColor: colors.green200, fill: colors.green700},
+    {backgroundColor: colors.green400, fill: colors.green800},
+    {backgroundColor: colors.green700, fill: colors.green200},
+    {backgroundColor: colors.yellow200, fill: colors.yellow700},
+    {backgroundColor: colors.yellow400, fill: colors.yellow800},
+    {backgroundColor: colors.yellow700, fill: colors.yellow200},
+    {backgroundColor: colors.tangerine200, fill: colors.tangerine700},
+    {backgroundColor: colors.tangerine400, fill: colors.tangerine800},
+    {backgroundColor: colors.tangerine700, fill: colors.tangerine400},
+    {backgroundColor: colors.pink200, fill: colors.pink700},
+    {backgroundColor: colors.pink400, fill: colors.pink800},
+    {backgroundColor: colors.pink700, fill: colors.pink200},
+    {backgroundColor: colors.ice200, fill: colors.ice700},
+    {backgroundColor: colors.ice400, fill: colors.ice800},
+    {backgroundColor: colors.ice700, fill: colors.ice200},
+];
+
+const avatarBorderSizes = {
+    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.componentBorderRadiusSmall,
+    [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.componentBorderRadiusSmall,
+    [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.componentBorderRadiusSmall,
+    [CONST.AVATAR_SIZE.SMALLER]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.SMALL]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
+    [CONST.AVATAR_SIZE.MEDIUM]: variables.componentBorderRadiusLarge,
+    [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
+    [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.componentBorderRadiusRounded,
+};
+
+const avatarSizes = {
+    [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeNormal,
+    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.avatarSizeSmallSubscript,
+    [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.avatarSizeMidSubscript,
+    [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.avatarSizeSubscript,
+    [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
+    [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
+    [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
+    [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
+    [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
+};
 
 /**
  * Return the style size from an avatar size constant
@@ -14,19 +60,7 @@ import styles from './styles';
  * @returns {Number}
  */
 function getAvatarSize(size) {
-    const AVATAR_SIZES = {
-        [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeNormal,
-        [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.avatarSizeSmallSubscript,
-        [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.avatarSizeMidSubscript,
-        [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.avatarSizeSubscript,
-        [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
-        [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
-        [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
-        [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
-        [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
-    };
-
-    return AVATAR_SIZES[size];
+    return avatarSizes[size];
 }
 
 /**
@@ -46,16 +80,45 @@ function getAvatarStyle(size) {
 }
 
 /**
- * Return the border style if avatar is SVG
+* Return the border radius for an avatar
+*
+* @param {String} size
+* @param {String} type
+* @returns {Object}
+*/
+function getAvatarBorderRadius(size, type) {
+    if (type === CONST.ICON_TYPE_WORKSPACE) {
+        return {borderRadius: avatarBorderSizes[size]};
+    }
+
+    // Default to rounded border
+    return {borderRadius: variables.buttonBorderRadius};
+}
+
+/**
+ * Return the border style for an avatar
  *
- * @param {Boolean} isSVG
+ * @param {String} size
+ * @param {String} type
  * @returns {Object}
  */
-function getAvatarSVGBorder(isSVG) {
-    if (!isSVG) {
-        return {};
-    }
-    return styles.svgAvatarBorder;
+function getAvatarBorderStyle(size, type) {
+    return {
+        overflow: 'hidden',
+        ...getAvatarBorderRadius(size, type),
+    };
+}
+
+/**
+ * Helper method to return old dot default avatar associated with login
+ *
+ * @param {String} [workspaceName]
+ * @returns {Object}
+ */
+function getDefaultWorspaceAvatarColor(workspaceName) {
+    const colorHash = ReportUtils.hashLogin(workspaceName.trim(), workspaceColorOptions.length);
+
+    return workspaceColorOptions[colorHash];
 }
 
 /**
@@ -605,13 +668,24 @@ function hasSafeAreas(windowWidth, windowHeight) {
 }
 
 /**
- * Get variable keyboard height as style
- * @param {Number} keyboardHeight
+ * Get height as style
+ * @param {Number} height
  * @returns {Object}
  */
-function getHeight(keyboardHeight) {
+function getHeight(height) {
     return {
-        height: keyboardHeight,
+        height,
+    };
+}
+
+/**
+ * Get minimum height as style
+ * @param {Number} minHeight
+ * @returns {Object}
+ */
+function getMinimumHeight(minHeight) {
+    return {
+        minHeight,
     };
 }
 
@@ -684,30 +758,32 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth) {
         return {
             height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
             width: '100%',
+            position: 'absolute',
         };
     }
 
     return {
         height: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT,
         width: '100%',
+        position: 'absolute',
     };
 }
 
 /**
- * Gets the correct size for the empty state background image view based on screen dimensions
+ * Gets the correct top margin size for the chat welcome message based on screen dimensions
  *
  * @param {Boolean} isSmallScreenWidth
  * @returns {Object}
  */
-function getReportWelcomeBackgroundImageViewStyle(isSmallScreenWidth) {
+function getReportWelcomeTopMarginStyle(isSmallScreenWidth) {
     if (isSmallScreenWidth) {
         return {
-            height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.VIEW_HEIGHT,
+            marginTop: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.VIEW_HEIGHT,
         };
     }
 
     return {
-        height: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.VIEW_HEIGHT,
+        marginTop: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.VIEW_HEIGHT,
     };
 }
 
@@ -736,7 +812,7 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth) {
 export {
     getAvatarSize,
     getAvatarStyle,
-    getAvatarSVGBorder,
+    getAvatarBorderStyle,
     getErrorPageContainerStyle,
     getSafeAreaPadding,
     getSafeAreaMargins,
@@ -768,9 +844,12 @@ export {
     convertToLTR,
     hasSafeAreas,
     getHeight,
+    getMinimumHeight,
     fade,
     getHorizontalStackedAvatarBorderStyle,
     getReportWelcomeBackgroundImageStyle,
-    getReportWelcomeBackgroundImageViewStyle,
+    getReportWelcomeTopMarginStyle,
     getReportWelcomeContainerStyle,
+    getDefaultWorspaceAvatarColor,
+    getAvatarBorderRadius,
 };

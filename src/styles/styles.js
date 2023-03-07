@@ -1553,6 +1553,7 @@ const styles = {
 
     editChatItemEmojiWrapper: {
         marginRight: 3,
+        alignSelf: 'flex-end',
     },
 
     hoveredButton: {
@@ -1627,7 +1628,6 @@ const styles = {
         height: 28,
         width: 28,
         backgroundColor: themeColors.appBG,
-        borderRadius: 33,
         paddingTop: 2,
         alignItems: 'center',
     },
@@ -1794,7 +1794,6 @@ const styles = {
         width: 28,
         borderWidth: 2,
         borderStyle: 'solid',
-        borderRadius: 24,
         zIndex: 6,
     },
 
@@ -2920,6 +2919,43 @@ const styles = {
         fontSize: variables.fontSizeXXLarge,
         letterSpacing: 4,
     },
+
+    footer: {
+        backgroundColor: themeColors.midtone,
+    },
+
+    footerWrapper: {
+        fontSize: variables.fontSizeNormal,
+        paddingTop: 64,
+        paddingHorizontal: 32,
+        maxWidth: 1100, // Match footer across all Expensify platforms
+    },
+
+    footerColumnsContainer: {
+        flex: 1,
+        flexWrap: 'wrap',
+        marginBottom: 40,
+        marginHorizontal: -16,
+    },
+
+    footerTitle: {
+        fontSize: variables.fontSizeLarge,
+        color: themeColors.success,
+        marginBottom: 16,
+    },
+
+    footerRow: {
+        paddingVertical: 4,
+        marginBottom: 8,
+        color: themeColors.textLight,
+        fontSize: variables.fontSizeMedium,
+    },
+
+    footerBottomLogo: {
+        marginTop: 40,
+        width: '100%',
+    },
+
 };
 
 export default styles;
