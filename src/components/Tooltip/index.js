@@ -151,6 +151,7 @@ class Tooltip extends PureComponent {
                 ref={el => this.wrapperView = el}
                 onBlur={this.hideTooltip}
                 focusable={this.props.focusable}
+                style={this.props.containerStyles}
             >
                 {this.props.children}
             </View>
