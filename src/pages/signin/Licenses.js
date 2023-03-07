@@ -15,6 +15,18 @@ const Licenses = props => (
             {`© ${currentYear} Expensify`}
         </Text>
         <Text style={[styles.textExtraSmallSupporting]}>
+            {props.translate('termsOfUse.phrase1')}
+            <TextLink style={[styles.textExtraSmallSupporting, styles.link]} href={CONST.TERMS_URL}>
+                {' '}
+                {props.translate('termsOfUse.phrase2')}
+                {' '}
+            </TextLink>
+            {props.translate('termsOfUse.phrase3')}
+            <TextLink style={[styles.textExtraSmallSupporting, styles.link]} href={CONST.PRIVACY_URL}>
+                {' '}
+                {props.translate('termsOfUse.phrase4')}
+            </TextLink>
+            {'. '}
             {props.translate('termsOfUse.phrase5')}
             <TextLink style={[styles.textExtraSmallSupporting, styles.link]} href={CONST.LICENSES_URL}>
                 {' '}
