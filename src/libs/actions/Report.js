@@ -346,7 +346,6 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             isLoadingReportActions: false,
             pendingFields: {
                 createChat: null,
-                openReport: null,
             },
             errorFields: {
                 createChat: null,
