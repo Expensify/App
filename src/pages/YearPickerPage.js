@@ -31,10 +31,10 @@ class YearPickerPage extends React.Component {
         const maxYear = Number(params.max);
         const currentYear = Number(params.year);
 
-        this.yearList = _.map(Array.from({length: (maxYear - minYear) + 1}, (k, v) => v + minYear), (value, index) => ({
+        this.yearList = _.map(Array.from({length: (maxYear - minYear) + 1}, (v, i) => i + minYear), value => ({
             text: value.toString(),
             value,
-            keyForList: index.toString(),
+            keyForList: value.toString(),
 
             // Include the green checkmark icon to indicate the currently selected value
             customIcon: value === currentYear ? greenCheckmark : undefined,
