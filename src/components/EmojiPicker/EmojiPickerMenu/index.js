@@ -504,6 +504,7 @@ class EmojiPickerMenu extends Component {
                                 styles.alignItemsCenter,
                                 styles.justifyContentCenter,
                                 this.isMobileLandscape() && styles.emojiPickerListLandscape,
+                                {height: CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT},
                             ]}
                         >
                             {this.props.translate('common.noResultsFound')}

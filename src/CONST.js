@@ -547,6 +547,7 @@ const CONST = {
         WIDTH: 320,
         HEIGHT: 392,
     },
+    CATEGORY_SHORTCUT_BAR_HEIGHT: 40,
     SMALL_EMOJI_PICKER_SIZE: {
         WIDTH: '100%',
     },
