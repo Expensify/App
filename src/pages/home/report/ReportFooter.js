@@ -74,7 +74,6 @@ class ReportFooter extends React.Component {
                     <View style={[styles.chatFooter, this.props.isSmallScreenWidth ? styles.mb5 : null]}>
                         {isArchivedRoom && (
                             <ArchivedReportFooter
-                                reportClosedAction={this.props.reportClosedAction}
                                 report={this.props.report}
                             />
                         )}
