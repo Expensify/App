@@ -41,4 +41,5 @@ export {
     flatListRef,
     scrollToIndex,
     scrollToBottom,
+    scrollToLastIndex,
 };
