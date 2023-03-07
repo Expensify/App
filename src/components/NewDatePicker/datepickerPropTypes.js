@@ -25,14 +25,8 @@ const propTypes = {
     /** A maximum date of calendar to select */
     maxDate: PropTypes.objectOf(Date),
 
-    /** Default month to be set in the calendar picker */
-    defaultMonth: PropTypes.string,
-
     /** Default year to be set in the calendar picker */
     defaultYear: PropTypes.string,
-
-    /** A function called when date changed in the picker */
-    onDateChanged: PropTypes.func,
 };
 
 const defaultProps = {

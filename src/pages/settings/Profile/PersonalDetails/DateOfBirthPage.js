@@ -14,6 +14,7 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import NewDatePicker from '../../../../components/NewDatePicker';
+import CONST from '../../../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -40,11 +41,8 @@ class DateOfBirthPage extends Component {
         this.updateDateOfBirth = this.updateDateOfBirth.bind(this);
         this.readParams = this.readParams.bind(this);
         this.state = {
-            defaultMonth: undefined,
             defaultYear: undefined,
         };
-
-        this.onDateChanged = this.onDateChanged.bind(this);
     }
 
     componentDidMount() {
@@ -53,14 +51,6 @@ class DateOfBirthPage extends Component {
 
     componentWillUnmount() {
         this.props.navigation.removeListener('focus', this.readParams);
-    }
-
-    /**
-     * Callback function when month or year changed internally in the CalendarPicker
-     * @param {Date} date
-     */
-    onDateChanged(date) {
-        this.setState({defaultYear: moment(date).year().toString(), defaultMonth: moment(date).month().toString()});
     }
 
     /**
@@ -92,8 +82,8 @@ class DateOfBirthPage extends Component {
      */
     validate(values) {
         const errors = {};
-        const minimumAge = 5;
-        const maximumAge = 150;
+        const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
+        const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
 
         if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
             errors.dob = this.props.translate('common.error.fieldRequired');
@@ -132,9 +122,7 @@ class DateOfBirthPage extends Component {
                         shouldSaveDraft
                         minDate={moment().subtract(150, 'years').toDate()}
                         maxDate={moment().subtract(5, 'years').toDate()}
-                        defaultMonth={this.state.defaultMonth}
                         defaultYear={this.state.defaultYear}
-                        onDateChanged={this.onDateChanged}
                     />
                 </Form>
             </ScreenWrapper>

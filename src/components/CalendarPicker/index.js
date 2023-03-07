@@ -14,7 +14,7 @@ import ROUTES from '../../ROUTES';
 import compose from '../../libs/compose';
 import withNavigation from '../withNavigation';
 
-class CalendarPicker extends React.Component {
+class CalendarPicker extends React.PureComponent {
     constructor(props) {
         super(props);
 
@@ -40,26 +40,17 @@ class CalendarPicker extends React.Component {
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     componentDidMount() {
-        if (this.props.minDate && this.props.maxDate && this.props.minDate > this.props.maxDate) {
+        if (this.props.minDate > this.props.maxDate) {
             throw new Error('Minimum date cannot be greater than the maximum date.');
         }
     }
 
     // eslint-disable-next-line no-shadow, rulesdir/prefer-early-return
-    componentDidUpdate(prevProps, prevState) {
-        // Check if either the defaultYear or defaultMonth props have changed
-        if (this.props.defaultYear !== prevProps.defaultYear && this.props.defaultMonth !== prevProps.defaultMonth) {
-            // If both defaultYear and defaultMonth props have changed, update the currentDateView state with the new year and month values
-            this.setState(prev => ({...prev, currentDateView: moment(prev.currentDateView).set('year', this.props.defaultYear).set('month', this.props.defaultMonth).toDate()}));
-        } else if (this.props.defaultYear !== prevProps.defaultYear) {
+    componentDidUpdate(prevProps) {
+        // // Check if either the defaultYear
+        if (this.props.defaultYear !== prevProps.defaultYear) {
             // If only the defaultYear prop has changed, update the currentDateView state with the new year value
             this.setState(prev => ({...prev, currentDateView: moment(prev.currentDateView).set('year', this.props.defaultYear).toDate()}));
-        }
-
-        // Check if the currentDateView state has changed and if the onChanged prop is defined
-        if (prevState.currentDateView !== this.state.currentDateView && this.props.onChanged) {
-            // If the currentDateView state has changed, call the onChanged prop with the new value of currentDateView
-            this.props.onChanged(this.state.currentDateView);
         }
     }
 
@@ -86,14 +77,11 @@ class CalendarPicker extends React.Component {
      * @returns {void}
      */
     onYearPickerPressed() {
-        const minYear = this.props.minDate ? Number(moment(this.props.minDate).year()) : 1970;
-        const maxYear = this.props.maxDate ? Number(moment(this.props.maxDate).year()) : 1970 + 200;
+        const minYear = moment(this.props.minDate).year();
+        const maxYear = moment(this.props.maxDate).year();
         const currentYear = this.state.currentDateView.getFullYear();
         Navigation.navigate(ROUTES.getYearSelectionRoute(minYear, maxYear, currentYear, Navigation.getActiveRoute()));
-
-        if (this.props.onYearPressed) {
-            this.props.onYearPressed();
-        }
+        this.props.onYearPressed();
     }
 
     /**
@@ -102,12 +90,9 @@ class CalendarPicker extends React.Component {
      * @returns {void}
      */
     onDayPressed(day) {
-        if (!this.props.onSelected) {
-            return;
-        }
         const selectedDate = new Date(this.state.currentDateView.getFullYear(), this.state.currentDateView.getMonth(), day);
-        const isBeforeMinDate = this.props.minDate && moment(selectedDate) < moment(this.props.minDate).startOf('day');
-        const isAfterMaxDate = this.props.maxDate && moment(selectedDate) > moment(this.props.maxDate).startOf('day');
+        const isBeforeMinDate = moment(selectedDate) < moment(this.props.minDate).startOf('day');
+        const isAfterMaxDate = moment(selectedDate) > moment(this.props.maxDate).startOf('day');
         if (isBeforeMinDate || isAfterMaxDate) {
             return;
         }
@@ -118,13 +103,20 @@ class CalendarPicker extends React.Component {
         const currentMonthView = this.state.currentDateView.getMonth();
         const currentYearView = this.state.currentDateView.getFullYear();
         const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
-        const hasAvailableDatesNextMonth = this.props.maxDate ? moment(this.props.maxDate).endOf('month').startOf('day') > moment(this.state.currentDateView).add(1, 'M') : true;
-        const hasAvailableDatesPrevMonth = this.props.minDate ? moment(this.props.minDate).startOf('day') < moment(this.state.currentDateView).subtract(1, 'M').endOf('month') : true;
+        const hasAvailableDatesNextMonth = moment(this.props.maxDate).endOf('month').startOf('day') > moment(this.state.currentDateView).add(1, 'M');
+        const hasAvailableDatesPrevMonth = moment(this.props.minDate).startOf('day') < moment(this.state.currentDateView).subtract(1, 'M').endOf('month');
 
         return (
             <View>
                 <View style={[styles.calendarHeader, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph4, styles.pr1]}>
-                    <View style={[styles.alignItemsCenter, styles.flexRow, styles.flex1]}>
+                    <TouchableOpacity
+                        onPress={this.onYearPickerPressed}
+                        style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentStart]}
+                    >
+                        <Text style={styles.sidebarLinkTextBold} accessibilityLabel="Current year">{currentYearView}</Text>
+                        <ArrowIcon />
+                    </TouchableOpacity>
+                    <View style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentEnd]}>
                         <Text style={styles.sidebarLinkTextBold} accessibilityLabel="Current month">{this.monthNames[currentMonthView]}</Text>
                         <TouchableOpacity testID="prev-month-arrow" disabled={!hasAvailableDatesPrevMonth} onPress={this.onPrevMonthPressed}>
                             <ArrowIcon disabled={!hasAvailableDatesPrevMonth} direction="left" />
@@ -133,13 +125,6 @@ class CalendarPicker extends React.Component {
                             <ArrowIcon disabled={!hasAvailableDatesNextMonth} />
                         </TouchableOpacity>
                     </View>
-                    <TouchableOpacity
-                        onPress={this.onYearPickerPressed}
-                        style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentEnd]}
-                    >
-                        <Text style={styles.sidebarLinkTextBold} accessibilityLabel="Current year">{currentYearView}</Text>
-                        <ArrowIcon />
-                    </TouchableOpacity>
                 </View>
                 <View style={styles.flexRow}>
                     {_.map(this.daysOfWeek, (dayOfWeek => (

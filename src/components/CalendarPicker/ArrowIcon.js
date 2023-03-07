@@ -21,7 +21,6 @@ const defaultProps = {
 const ArrowIcon = props => (
     <View style={[
         styles.p1,
-        styles.ph2,
         props.direction === 'left' ? {transform: [{rotate: '180deg'}]} : {},
         props.disabled ? styles.calendarButtonDisabled : {},
     ]}

@@ -1,12 +1,8 @@
 import PropTypes from 'prop-types';
+import moment from 'moment';
+import CONST from '../../CONST';
 
 const calendarPickerPropType = {
-    /** A function that is called when the date changed inside the calendar component */
-    onChanged: PropTypes.func,
-
-    /** A function called when the date is selected */
-    onSelected: PropTypes.func,
-
     /** An initial value of date */
     value: PropTypes.objectOf(Date),
 
@@ -16,14 +12,17 @@ const calendarPickerPropType = {
     /** A maximum date (earliest) allowed to select */
     maxDate: PropTypes.objectOf(Date),
 
-    /** Callback function to call when year is pressed */
-    onYearPressed: PropTypes.func,
-
-    /** Default month to be set in the calendar picker */
-    defaultMonth: PropTypes.string,
-
     /** Default year to be set in the calendar picker. Used with navigation to set the correct year after going back to the view with calendar */
     defaultYear: PropTypes.string,
+
+    /** A function that is called when the date changed inside the calendar component */
+    onChanged: PropTypes.func,
+
+    /** A function called when the date is selected */
+    onSelected: PropTypes.func,
+
+    /** Callback function to call when year is pressed */
+    onYearPressed: PropTypes.func,
 
     /** Callback function to run when pressing close button. Used with navigation to set the correct year after going back to the view with calendar */
     onClosePressed: PropTypes.func,
@@ -31,11 +30,13 @@ const calendarPickerPropType = {
 
 const defaultCalendarPickerPropType = {
     value: new Date(),
-    minDate: null,
-    maxDate: null,
-    onChanged: null,
-    onSelected: null,
-    onYearPressed: null,
+    minDate: moment().add(CONST.DATE_BIRTH.MIN_AGE, 'M'),
+    maxDate: moment().add(CONST.DATE_BIRTH.MAX_AGE, 'M'),
+    defaultYear: null,
+    onChanged: () => {},
+    onSelected: () => {},
+    onYearPressed: () => {},
+    onClosePressed: () => {},
 };
 
 export {calendarPickerPropType, defaultCalendarPickerPropType};

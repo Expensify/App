@@ -118,8 +118,6 @@ class NewDatePicker extends React.Component {
                         maxDate={this.maxDate}
                         value={this.state.selectedDate}
                         onSelected={this.updateLocalDate}
-                        onChanged={this.props.onDateChanged}
-                        defaultMonth={this.props.defaultMonth}
                         defaultYear={this.props.defaultYear}
                         onClosePressed={this.hidePicker}
                     />

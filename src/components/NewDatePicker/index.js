@@ -22,7 +22,7 @@ class NewDatePicker extends React.Component {
         super(props);
 
         this.state = {
-            selectedDate: null,
+            selectedDate: new Date(),
             isPickerVisible: false,
         };
 
@@ -140,10 +140,7 @@ class NewDatePicker extends React.Component {
                         maxDate={this.maxDate}
                         value={this.state.selectedDate}
                         onSelected={this.setDate}
-                        onChanged={this.props.onDateChanged}
-
                         onYearPressed={this.removeClickListener}
-                        defaultMonth={this.props.defaultMonth}
                         defaultYear={this.props.defaultYear}
                     />
                 </Animated.View>

@@ -46,6 +46,11 @@ const CONST = {
         RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
     },
 
+    DATE_BIRTH: {
+        MIN_AGE: 5,
+        MAX_AGE: 150,
+    },
+
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
         SMALL_SCREEN: {
