@@ -7,6 +7,7 @@ import {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetai
 import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
+import withWindowDimensions from '../withWindowDimensions';
 
 const propTypes = {
     emojiName: PropTypes.string.isRequired,
@@ -75,6 +76,7 @@ const EmojiReactionBubble = props => (
             onLongPress={props.onReactionListOpen}
             onSecondaryInteraction={props.onReactionListOpen}
             ref={props.forwardedRef}
+            isLongPressEnabledWithHover={props.isSmallScreenWidth}
         >
             <Text style={[
                 styles.emojiReactionText,
@@ -99,7 +101,7 @@ EmojiReactionBubble.propTypes = propTypes;
 EmojiReactionBubble.defaultProps = defaultProps;
 EmojiReactionBubble.displayName = 'EmojiReactionBubble';
 
-export default React.forwardRef((props, ref) => (
+export default withWindowDimensions(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <EmojiReactionBubble {...props} forwardRef={ref} />
-));
+)));

@@ -57,7 +57,7 @@ class PressableWithSecondaryInteraction extends Component {
                 style={this.props.inline && styles.dInline}
                 onPressIn={this.props.onPressIn}
                 onLongPress={(e) => {
-                    if (DeviceCapabilities.hasHoverSupport()) {
+                    if (DeviceCapabilities.hasHoverSupport() && !this.props.isLongPressEnabledWithHover) {
                         return;
                     }
                     if (this.props.withoutFocusOnSecondaryInteraction && this.pressableRef) {
