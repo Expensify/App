@@ -20,7 +20,7 @@ function isDevelopment() {
 }
 
 /**
- * Get the URL based on the environment we are in
+ * Asynchornously get the URL based on the environment we are in
  *
  * @returns {Promise}
  */
@@ -31,8 +31,18 @@ function getEnvironmentURLAsync() {
     });
 }
 
+/**
+ * Get the URL based on the environment we are in
+ *
+ * @returns {String}
+ */
+function getEnvironmentURL() {
+    return ENVIRONMENT_URLS[CONFIG.ENVIRONMENT];
+}
+
 export {
     getEnvironment,
     isDevelopment,
     getEnvironmentURLAsync,
+    getEnvironmentURL,
 };
