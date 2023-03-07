@@ -278,6 +278,7 @@ function signIn(password, validateCode, twoFactorAuthCode) {
     ];
 
     const params = {twoFactorAuthCode, email: credentials.login};
+    
     // Conditionally pass a password or validateCode to command since we temporarily allow both flows
     if (validateCode) {
         params.validateCode = validateCode;
