@@ -13,17 +13,13 @@ const propTypes = {
 };
 
 const SignInHeroCopy = props => (
-    <View style={[styles.flex1, {backgroundColor: 'orange'}]}>
-        <View style={[]}>
-            <Text style={[styles.flex1, styles.loginHeroHeader, {fontSize: props.isMediumScreenWidth ? 54 : 72}]}>
-                {props.translate('login.hero.header')}
-            </Text>
-        </View>
-        <View style={[]}>
-            <Text style={[styles.flex1, styles.loginHeroBody, {fontSize: props.isMediumScreenWidth ? 24 : 16}]}>
-                {props.translate('login.hero.body')}
-            </Text>
-        </View>
+    <View style={[styles.flex1, styles.alignSelfCenter, {backgroundColor: 'forestgreen'}, {gap: 36}]}>
+        <Text style={[styles.loginHeroHeader]}>
+            {props.translate('login.hero.header')}
+        </Text>
+        <Text style={[styles.loginHeroBody]}>
+            {props.translate('login.hero.body')}
+        </Text>
     </View>
 );
 

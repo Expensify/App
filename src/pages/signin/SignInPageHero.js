@@ -7,6 +7,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import SignInHeroImage from './SignInHeroImage';
 import SignInHeroCopy from './SignInHeroCopy';
 import styles from '../../styles/styles';
+import variables from '../../styles/variables';
 
 // import BuildingsBackgroundImage from '../../../assets/images/home-background--desktop.svg';
 
@@ -19,14 +20,16 @@ const SignInPageHero = props => (
         style={[
             StyleUtils.getHeight(props.windowHeight),
             StyleUtils.getBackgroundColorStyle('pink'),
+            {minHeight: 600},
         ]}
     >
         <View style={[
-            {display: 'flex'},
             styles.flex1,
-            !props.isLargeScreenWidth ? styles.flexColumnReverse : styles.flexRow,
-            {gap: 40},
+            props.windowWidth <= variables.signInDesktopBreakpoint ? styles.flexColumnReverse : styles.flexRow,
+            {gap: 20},
             StyleUtils.getBackgroundColorStyle('red'),
+            {paddingBottom: 80},
+            props.isMediumScreenWidth ? {paddingVertical: 90} : {paddingTop: 140},
         ]}
         >
             <SignInHeroCopy />

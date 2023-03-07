@@ -3,18 +3,27 @@ import {View} from 'react-native';
 import React from 'react';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import * as Illustrations from '../../components/Icon/Illustrations';
-import Icon from '../../components/Icon';
+import styles from '../../styles/styles';
+
+// import Icon from '../../components/Icon';
+// import variables from '../../styles/variables';
+// import SVGImage from '../../components/SVGImage';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
 const SignInHeroImage = props => (
-    <View style={[{backgroundColor: 'blue'}]}>
-        <Icon
-            width={props.isMediumScreenWidth ? 360 : 470}
-            height={props.isMediumScreenWidth ? 360 : 470}
+    <View style={[{backgroundColor: 'blue'}, {flex: 1}, styles.alignSelfCenter]}>
+        {/* <Icon
+            width={props.isMediumScreenWidth ? variables.signInHeroImageDesktop : variables.signInHeroImageDesktopLarge}
+            height={props.isMediumScreenWidth ? variables.signInHeroImageDesktop : variables.signInHeroImageDesktopLarge}
             src={props.isSmallScreenWidth ? Illustrations.HandsMobile : Illustrations.HandsDesktop}
+            additionalStyles={[{width: '100%'}]}
+        /> */}
+        <Illustrations.HandsMobile
+            width="100%"
+            height="100%"
         />
     </View>
 );

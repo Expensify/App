@@ -2927,7 +2927,8 @@ const styles = {
     footerWrapper: {
         fontSize: variables.fontSizeNormal,
         paddingTop: 64,
-        paddingHorizontal: 32,
+
+        // paddingHorizontal: 32,
         maxWidth: 1100, // Match footer across all Expensify platforms
     },
 
@@ -2958,13 +2959,14 @@ const styles = {
 
     loginHeroHeader: {
         fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
-        fontSize: variables.fontSizeHeroXL,
+        fontSize: variables.fontSizeSignInHero,
         color: themeColors.success,
+        fontWeight: 500,
     },
 
     loginHeroBody: {
         fontFamily: fontFamily.EXP_NEUE,
-        fontSize: variables.iconSizeLarge,
+        fontSize: variables.fontSizeSignInHeroBody,
         color: themeColors.textLight,
     },
 

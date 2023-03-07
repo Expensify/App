@@ -52,8 +52,14 @@ const SignInPageLayout = (props) => {
                             style={[styles.flex1]}
                             contentContainerStyle={[styles.flex1]}
                         >
-                            <SignInPageHero />
-                            <Footer />
+                            <View style={[{backgroundColor: 'yellow'}]}>
+                                <View style={[{maxWidth: 1360}, {backgroundColor: 'navy'}, {paddingHorizontal: props.isLargeScreenWidth ? 40 : 40}]}>
+                                    <View style={[{backgroundColor: 'maroon'}]}>
+                                        <SignInPageHero />
+                                        <Footer />
+                                    </View>
+                                </View>
+                            </View>
                         </ScrollView>
                     </View>
                 ) : (
