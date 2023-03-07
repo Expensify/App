@@ -352,10 +352,10 @@ const CONST = {
             ALWAYS: 'always',
         },
         VISIBILITY: {
-            RESTRICTED: 'restricted',
-            PRIVATE: 'private',
             PUBLIC: 'public',
             PUBLIC_ANNOUNCE: 'public_announce',
+            PRIVATE: 'private',
+            RESTRICTED: 'restricted',
         },
         RESERVED_ROOM_NAMES: ['#admins', '#announce'],
         MAX_PREVIEW_AVATARS: 4,

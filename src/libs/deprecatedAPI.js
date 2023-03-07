@@ -34,29 +34,6 @@ function Get(parameters, shouldUseSecure = false) {
 
 /**
  * @param {Object} parameters
- * @param {Object} parameters.details
- * @returns {Promise}
- */
-function PersonalDetails_Update(parameters) {
-    const commandName = 'PersonalDetails_Update';
-    requireParameters(['details'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.email
- * @returns {Promise}
- */
-function ResendValidateCode(parameters) {
-    const commandName = 'ResendValidateCode';
-    requireParameters(['email'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.name
  * @param {String} parameters.value
  * @returns {Promise}
@@ -81,8 +58,6 @@ function User_SecondaryLogin_Send(parameters) {
 
 export {
     Get,
-    PersonalDetails_Update,
-    ResendValidateCode,
     SetNameValuePair,
     User_SecondaryLogin_Send,
 };
