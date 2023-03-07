@@ -57,7 +57,7 @@ class NewContactMethodPage extends Component {
         if (Permissions.canUsePasswordlessLogins(this.props.betas)) {
 
         } else {
-            User.setSecondaryLoginAndNavigate(this.state.login, this.state.password);
+            User.addNewContactMethodAndNavigate(this.state.login, this.state.password);
         }
     }
 

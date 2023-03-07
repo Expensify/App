@@ -163,6 +163,30 @@ function setSecondaryLoginAndNavigate(login, password) {
 }
 
 /**
+ * Adds a secondary login to a user's account
+ *
+ * @param {String} login
+ * @param {String} password
+ * @returns {Promise}
+ */
+function addNewContactMethodAndNavigate(login, password) {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
+
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.write('AddNewContactMethod', {login, password}, optimisticData);
+    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)
+}
+
+/**
  * Validates a login given an accountID and validation code
  *
  * @param {Number} accountID
@@ -476,6 +500,7 @@ export {
     resendValidateCode,
     updateNewsletterSubscription,
     setSecondaryLoginAndNavigate,
+    addNewContactMethodAndNavigate,
     validateLogin,
     isBlockedFromConcierge,
     subscribeToUserEvents,
