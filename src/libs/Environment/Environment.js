@@ -24,7 +24,7 @@ function isDevelopment() {
  *
  * @returns {Promise}
  */
-function getEnvironmentURL() {
+function getEnvironmentURLAsync() {
     return new Promise((resolve) => {
         getEnvironment()
             .then(environment => resolve(ENVIRONMENT_URLS[environment]));
@@ -34,5 +34,5 @@ function getEnvironmentURL() {
 export {
     getEnvironment,
     isDevelopment,
-    getEnvironmentURL,
+    getEnvironmentURLAsync,
 };

@@ -281,7 +281,7 @@ const CONST = {
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     NEWHELP_URL: 'https://help.expensify.com',
 
-    // Use Environment.getEnvironmentURL to get the complete URL with port number
+    // Use Environment.getEnvironmentURLAsync to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
 
     OPTION_TYPE: {
