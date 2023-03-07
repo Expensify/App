@@ -55,6 +55,8 @@ export default {
         here: 'aquí',
         date: 'Fecha',
         dob: 'Fecha de Nacimiento',
+        currentYear: 'Año actual',
+        currentMonth: 'Mes actual',
         ssnLast4: 'Últimos 4 dígitos de su SSN',
         ssnFull9: 'Los 9 dígitos del SSN',
         addressLine: ({lineNumber}) => `Dirección línea ${lineNumber}`,

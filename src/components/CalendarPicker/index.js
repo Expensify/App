@@ -91,11 +91,6 @@ class CalendarPicker extends React.PureComponent {
      */
     onDayPressed(day) {
         const selectedDate = new Date(this.state.currentDateView.getFullYear(), this.state.currentDateView.getMonth(), day);
-        const isBeforeMinDate = moment(selectedDate) < moment(this.props.minDate).startOf('day');
-        const isAfterMaxDate = moment(selectedDate) > moment(this.props.maxDate).startOf('day');
-        if (isBeforeMinDate || isAfterMaxDate) {
-            return;
-        }
         this.props.onSelected(selectedDate);
     }
 
@@ -113,11 +108,17 @@ class CalendarPicker extends React.PureComponent {
                         onPress={this.onYearPickerPressed}
                         style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentStart]}
                     >
-                        <Text style={styles.sidebarLinkTextBold} accessibilityLabel="Current year">{currentYearView}</Text>
+                        <Text style={styles.sidebarLinkTextBold} testID="currentYearText" accessibilityLabel={this.props.translate('common.currentYear')}>{currentYearView}</Text>
                         <ArrowIcon />
                     </TouchableOpacity>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentEnd]}>
-                        <Text style={styles.sidebarLinkTextBold} accessibilityLabel="Current month">{this.monthNames[currentMonthView]}</Text>
+                        <Text
+                            style={styles.sidebarLinkTextBold}
+                            testID="currentMonthText"
+                            accessibilityLabel={this.props.translate('common.currentMonth')}
+                        >
+                            {this.monthNames[currentMonthView]}
+                        </Text>
                         <TouchableOpacity testID="prev-month-arrow" disabled={!hasAvailableDatesPrevMonth} onPress={this.onPrevMonthPressed}>
                             <ArrowIcon disabled={!hasAvailableDatesPrevMonth} direction="left" />
                         </TouchableOpacity>
