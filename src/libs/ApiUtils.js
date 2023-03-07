@@ -22,6 +22,11 @@ Onyx.connect({
     },
 });
 
+/**
+ * Helper method used to decide which API endpoint to call
+ *
+ * @returns {Boolean}
+ */
 function shouldUseStagingServer() {
     // Choosing between staging and prod/dev is only available on DEV and STAGING
     if (ENV_NAME === CONST.ENVIRONMENT.PRODUCTION) {
@@ -67,6 +72,11 @@ function getCommandUrl(request) {
     return `${getApiRoot(request)}api?command=${request.command}`;
 }
 
+/**
+ * Check if we're currently using the staging API root
+ *
+ * @returns {Boolean}
+ */
 function isUsingStagingApi() {
     return getApiRoot({shouldUseSecure: false}) === CONFIG.EXPENSIFY.STAGING_API_ROOT;
 }
