@@ -6,10 +6,8 @@ import TextInput from '../TextInput';
 import CalendarPicker from '../CalendarPicker';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
-import {propTypes, defaultProps} from './datepickerPropTypes';
+import {propTypes, datePickerDefaultProps} from './datepickerPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import withNavigation from '../withNavigation';
-import compose from '../../libs/compose';
 import './styles.css';
 
 const datePickerPropTypes = {
@@ -40,6 +38,9 @@ class NewDatePicker extends React.Component {
         this.defaultValue = props.defaultValue
             ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
             : '';
+
+        this.minDate = moment(props.minDate).toDate();
+        this.maxDate = moment(props.maxDate).toDate();
     }
 
     componentDidMount() {
@@ -140,10 +141,9 @@ class NewDatePicker extends React.Component {
 }
 
 NewDatePicker.propTypes = datePickerPropTypes;
-NewDatePicker.defaultProps = defaultProps;
+NewDatePicker.defaultProps = datePickerDefaultProps;
 
-export default compose(withNavigation,
-    withWindowDimensions)(React.forwardRef((props, ref) => (
+export default withWindowDimensions(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-        <NewDatePicker {...props} innerRef={ref} />
+    <NewDatePicker {...props} innerRef={ref} />
 )));
