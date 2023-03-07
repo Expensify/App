@@ -4,6 +4,7 @@ import {Animated, View} from 'react-native';
 import ReactDOM from 'react-dom';
 import getTooltipStyles from '../../styles/getTooltipStyles';
 import Text from '../Text';
+import Log from '../../libs/Log';
 
 const propTypes = {
     /** Window width */
@@ -71,6 +72,10 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
             tooltipWidth: 0,
             tooltipHeight: 0,
         };
+
+        if (props.renderTooltipContent && props.text) {
+            Log.warn('Developer error: Cannot use both text and renderTooltipContent props at the same time in <TooltipRenderedOnPageBody />!');
+        }
 
         this.measureTooltip = this.measureTooltip.bind(this);
         this.updateTooltipContentWidth = this.updateTooltipContentWidth.bind(this);
