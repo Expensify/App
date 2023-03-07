@@ -968,7 +968,7 @@ const styles = {
     },
 
     signInPageLeftContainerWide: {
-        maxWidth: 360,
+        maxWidth: variables.sideBarWidth,
     },
 
     signInPageWelcomeFormContainer: {
@@ -2954,6 +2954,18 @@ const styles = {
     footerBottomLogo: {
         marginTop: 40,
         width: '100%',
+    },
+
+    loginHeroHeader: {
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        fontSize: variables.fontSizeHeroXL,
+        color: themeColors.success,
+    },
+
+    loginHeroBody: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.iconSizeLarge,
+        color: themeColors.textLight,
     },
 
 };

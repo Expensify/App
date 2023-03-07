@@ -190,6 +190,12 @@ export default {
         welcomeBack: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, introduce tu contraseña.',
         welcomeBackEnterMagicCode: ({login}) => `¡Bienvenido de nuevo! Por favor, introduce el código mágico enviado a ${login}`,
     },
+    login: {
+        hero: {
+            header: '',
+            body: '',
+        },
+    },
     reportActionCompose: {
         addAction: 'Acción',
         dropToUpload: 'Suelta el archivo aquí para compartirlo',

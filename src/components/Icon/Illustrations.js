@@ -37,6 +37,8 @@ import ConciergeNew from '../../../assets/images/simple-illustrations/simple-ill
 import MoneyBadge from '../../../assets/images/simple-illustrations/simple-illustration__moneybadge.svg';
 import TreasureChest from '../../../assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 import ThumbsUpStars from '../../../assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
+import HandsDesktop from '../../../assets/images/product-illustrations/home-illustration-hands--desktop.svg';
+import HandsMobile from '../../../assets/images/product-illustrations/home-illustration-hands--mobile.svg';
 
 export {
     Abracadabra,
@@ -78,4 +80,6 @@ export {
     MoneyBadge,
     TreasureChest,
     ThumbsUpStars,
+    HandsDesktop,
+    HandsMobile,
 };

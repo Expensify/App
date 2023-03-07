@@ -7,7 +7,7 @@ import SignInPageContent from './SignInPageContent';
 import Footer from './Footer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import styles from '../../../styles/styles';
-import SignInPageGraphics from './SignInPageGraphics';
+import SignInPageHero from '../SignInPageHero';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import scrollViewContentContainerStyles from './signInPageStyles';
 
@@ -52,7 +52,7 @@ const SignInPageLayout = (props) => {
                             style={[styles.flex1]}
                             contentContainerStyle={[styles.flex1]}
                         >
-                            <SignInPageGraphics />
+                            <SignInPageHero />
                             <Footer />
                         </ScrollView>
                     </View>

@@ -48,6 +48,7 @@ export default {
     fontSizeMedium: getValueUsingPixelRatio(16, 22),
     fontSizeLarge: getValueUsingPixelRatio(17, 19),
     fontSizeHero: 36,
+    fontSizeHeroXL: 72,
     fontSizeh1: 19,
     fontSizeXLarge: 22,
     fontSizeXXLarge: 28,
@@ -103,4 +104,7 @@ export default {
     verticalLogoHeight: 634,
     verticalLogoWidth: 111,
     badgeMaxWidth: 180,
+    signInContentMaxWidth: 1360,
+    signInHeroImageDesktop: 470,
+    signInHeroImageDesktopSmall: 345,
 };

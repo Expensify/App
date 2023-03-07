@@ -190,6 +190,12 @@ export default {
         welcomeBack: 'Welcome back to the New Expensify! Please enter your password.',
         welcomeBackEnterMagicCode: ({login}) => `Welcome back! Please enter the magic code sent to ${login}`,
     },
+    login: {
+        hero: {
+            header: 'Your one-stop shop for all of life\'s expenses',
+            body: 'Split bills, get paid, and manage spend for work or play — all in one easy chat.',
+        },
+    },
     reportActionCompose: {
         addAction: 'Actions',
         dropToUpload: 'Drop to upload',
