@@ -6,7 +6,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import CONST from '../../CONST';
-import CONFIG from '../../CONFIG';
 import asyncOpenURL from '../asyncOpenURL';
 import * as API from '../API';
 import * as Environment from '../Environment/Environment';
