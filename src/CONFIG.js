@@ -51,7 +51,11 @@ export default {
         EXPENSIFY_URL: expensifyURL,
         NEW_EXPENSIFY_URL: newExpensifyURL,
 
-        // The main API is usually PRODUCTION, but there are cases where it points to internal DEV server
+        // The PRIMARY API is the API used by most environments, but staging, where we use STAGING (bellow)
+        // The "staging toggle" in settings toggles between PRIMARY and STAGING APIs
+        // We can think of PRIMARY as PROD, because on both STAGING and PROD it points to the production address
+        // On DEV this can be configured through ENV settings and can be a proxy or ngrok address (defaults to PROD)
+        // Usually you don't need to use this URL directly - prefer `ApiUtils.getApiRoot()`
         PRIMARY_API_ROOT: expensifyURLRoot,
         PRIMARY_SECURE_API_ROOT: secureURLRoot,
         STAGING_API_ROOT: stagingExpensifyURL,
