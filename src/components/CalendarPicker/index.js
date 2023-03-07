@@ -11,8 +11,6 @@ import generateMonthMatrix from './generateMonthMatrix';
 import withLocalize from '../withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import compose from '../../libs/compose';
-import withNavigation from '../withNavigation';
 
 class CalendarPicker extends React.PureComponent {
     constructor(props) {
@@ -138,8 +136,8 @@ class CalendarPicker extends React.PureComponent {
                     <View key={`week-${week}`} style={styles.flexRow}>
                         {_.map(week, (day, index) => {
                             const currentDate = moment([currentYearView, currentMonthView, day]);
-                            const isBeforeMinDate = this.props.minDate && (currentDate < moment(this.props.minDate).startOf('day'));
-                            const isAfterMaxDate = this.props.maxDate && (currentDate > moment(this.props.maxDate).startOf('day'));
+                            const isBeforeMinDate = currentDate < moment(this.props.minDate).startOf('day');
+                            const isAfterMaxDate = currentDate > moment(this.props.maxDate).startOf('day');
                             const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
 
                             return (
@@ -153,7 +151,7 @@ class CalendarPicker extends React.PureComponent {
                                     <View style={moment(this.props.value).isSame(moment([currentYearView, currentMonthView, day]), 'day') ? [
                                         styles.calendarDayContainerSelected, styles.justifyContentCenter, styles.alignItemsCenter] : null}
                                     >
-                                        <Text style={isDisabled ? styles.calendarButtonDisabled : styles.dayText}>{day || ''}</Text>
+                                        <Text style={isDisabled ? styles.calendarButtonDisabled : styles.dayText}>{day}</Text>
                                     </View>
                                 </TouchableOpacity>
                             );
@@ -168,4 +166,4 @@ class CalendarPicker extends React.PureComponent {
 CalendarPicker.propTypes = calendarPickerPropType;
 CalendarPicker.defaultProps = defaultCalendarPickerPropType;
 
-export default compose(withLocalize, withNavigation)(CalendarPicker);
+export default withLocalize(CalendarPicker);
