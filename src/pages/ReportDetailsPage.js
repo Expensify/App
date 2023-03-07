@@ -143,6 +143,7 @@ class ReportDetailsPage extends Component {
                                             styles.optionAlternateText,
                                             styles.textLabelSupporting,
                                             styles.mb2,
+                                            styles.preWrap,
                                         ]}
                                         numberOfLines={1}
                                     >

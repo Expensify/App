@@ -166,7 +166,7 @@ class ReportSettingsPage extends Component {
                                                     <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
                                                         {this.props.translate('newRoomPage.roomName')}
                                                     </Text>
-                                                    <Text numberOfLines={1} style={[styles.optionAlternateText]}>
+                                                    <Text numberOfLines={1} style={[styles.optionAlternateText, styles.preWrap]}>
                                                         {this.props.report.reportName}
                                                     </Text>
                                                 </View>
@@ -187,7 +187,7 @@ class ReportSettingsPage extends Component {
                                 <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
                                     {this.props.translate('workspace.common.workspace')}
                                 </Text>
-                                <Text numberOfLines={1} style={[styles.optionAlternateText]}>
+                                <Text numberOfLines={1} style={[styles.optionAlternateText, styles.preWrap]}>
                                     {linkedWorkspace.name}
                                 </Text>
                             </View>
