@@ -30,8 +30,8 @@ const calendarPickerPropType = {
 
 const defaultCalendarPickerPropType = {
     value: new Date(),
-    minDate: moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y'),
-    maxDate: moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'Y'),
+    minDate: moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate(),
+    maxDate: moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'Y').toDate(),
     defaultYear: null,
     onChanged: () => {},
     onSelected: () => {},
