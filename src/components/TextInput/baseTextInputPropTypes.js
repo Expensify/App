@@ -17,7 +17,7 @@ const propTypes = {
     placeholder: PropTypes.string,
 
     /** Error text to display */
-    errorText: PropTypes.string,
+    errorText: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]),
 
     /** Customize the TextInput container */
     textInputContainerStyles: PropTypes.arrayOf(PropTypes.object),

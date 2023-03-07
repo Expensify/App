@@ -54,13 +54,17 @@ class DisplayNamePage extends Component {
      * @returns {Object} - An object containing the errors for each inputID
      */
     validate(values) {
-        const errors = {};
+        const errors = {
+            firstName: [],
+            lastName: undefined,
+        };
 
         // First we validate the first name field
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
-            errors.firstName = this.props.translate('personalDetails.error.hasInvalidCharacter');
-        } else if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
-            errors.firstName = this.props.translate('personalDetails.error.containsReservedWord');
+            errors.firstName.push(this.props.translate('personalDetails.error.hasInvalidCharacter'));
+        }
+        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
+            errors.firstName.push(this.props.translate('personalDetails.error.containsReservedWord'));
         }
 
         // Then we validate the last name field
