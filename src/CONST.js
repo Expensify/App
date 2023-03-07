@@ -247,6 +247,11 @@ const CONST = {
             shortcutKey: 'ArrowDown',
             modifiers: [],
         },
+        TAB: {
+            descriptionKey: null,
+            shortcutKey: 'Tab',
+            modifiers: [],
+        },
     },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
         CONTROL: 'CTRL',

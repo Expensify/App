@@ -552,7 +552,11 @@ class ReportActionCompose extends React.Component {
      */
     triggerHotkeyActions(e) {
         // Do not trigger actions for mobileWeb or native clients that have the keyboard open because for those devices, we want the return key to insert newlines rather than submit the form
-        if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && this.state.suggestedEmojis.length) {
+        if (!e || this.props.isSmallScreenWidth || this.props.isKeyboardShown) {
+            return;
+        }
+
+        if ((e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && this.state.suggestedEmojis.length) {
             e.preventDefault();
             this.insertSelectedEmoji(this.state.highlightedEmojiIndex);
             return;
