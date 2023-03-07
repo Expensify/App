@@ -59,8 +59,8 @@ function getApiRoot(request) {
  * Get the command url for the given request
  *
  * @param {Object} request
- * @param {Boolean} request.shouldUseSecure
  * @param {String} request.command - the name of the API command
+ * @param {Boolean} [request.shouldUseSecure]
  * @returns {String}
  */
 function getCommandUrl(request) {
