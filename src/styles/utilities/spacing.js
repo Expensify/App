@@ -402,6 +402,10 @@ export default {
         paddingBottom: 32,
     },
 
+    pb20: {
+        paddingBottom: 80,
+    },
+
     pb10Percentage: {
         paddingBottom: '10%',
     },
@@ -412,5 +416,9 @@ export default {
 
     gap8: {
         gap: 32,
+    },
+
+    gap9: {
+        gap: 36,
     },
 };

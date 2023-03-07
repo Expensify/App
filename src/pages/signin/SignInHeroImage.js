@@ -13,7 +13,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const SignInHeroImage = props => (
+const SignInHeroImage = () => (
     <View style={[{backgroundColor: 'blue'}, {flex: 1}, styles.alignSelfCenter]}>
         {/* <Icon
             width={props.isMediumScreenWidth ? variables.signInHeroImageDesktop : variables.signInHeroImageDesktopLarge}

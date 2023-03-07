@@ -19,16 +19,16 @@ const SignInPageHero = props => (
     <View
         style={[
             StyleUtils.getHeight(props.windowHeight),
-            StyleUtils.getBackgroundColorStyle('pink'),
-            {minHeight: 600},
+            StyleUtils.getBackgroundColorStyle('transparent'),
+            {minHeight: 700},
         ]}
     >
         <View style={[
             styles.flex1,
             props.windowWidth <= variables.signInDesktopBreakpoint ? styles.flexColumnReverse : styles.flexRow,
-            {gap: 20},
-            StyleUtils.getBackgroundColorStyle('red'),
-            {paddingBottom: 80},
+            styles.gap9,
+            StyleUtils.getBackgroundColorStyle('transparent'),
+            styles.pb20,
             props.isMediumScreenWidth ? {paddingVertical: 90} : {paddingTop: 140},
         ]}
         >
