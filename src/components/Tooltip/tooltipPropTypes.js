@@ -32,6 +32,9 @@ const propTypes = {
 
     /** Maximum number of lines to show in tooltip */
     numberOfLines: PropTypes.number,
+
+    /** Accessibility prop. Sets the tabindex to 0 if true. Default is true. */
+    focusable: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -42,6 +45,7 @@ const defaultProps = {
     text: '',
     maxWidth: variables.sideBarWidth,
     numberOfLines: CONST.TOOLTIP_MAX_LINES,
+    focusable: true,
 };
 
 export {
