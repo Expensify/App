@@ -1063,35 +1063,6 @@ export default {
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
     },
-    requestCallPage: {
-        title: 'Request a call',
-        subtitle: 'Need help, or a demo?',
-        description: 'Our team is ready to help each step of the way. Enter your name and phone number, and we\'ll give you a call back ASAP.*',
-        phoneNumberExtension: 'Extension (Optional)',
-        callMe: 'Call me',
-        growlMessageOnSave: 'Call requested.',
-        callButton: 'Call',
-        callButtonTooltip: 'Get live help from our team',
-        blockedFromConcierge: 'Due to previous interactions with our staff, a call cannot be scheduled at this time.',
-        waitTime: {
-            calculating: 'Calculating wait time...',
-            fiveHoursPlus: 'The current wait time is longer than 5 hours.',
-            hoursAndMinutes: ({minutes}) => `The current wait time is ${Math.floor(minutes / 60)} hours and ${minutes % 60} minutes. `,
-            minutes: ({minutes}) => `The current wait time is ${minutes} minutes. `,
-            weekend: 'We have limited availability on the weekends. We\'ll give you a call back as soon as we can. ',
-            guides: 'Please note that our Guides are typically available from Sunday at 5pm CT to Friday at 5pm CT.',
-        },
-        error: {
-            phoneNumberExtension: 'Please enter a valid phone extension number',
-            firstName: 'Please provide your first name',
-            lastName: 'Please provide your last name',
-        },
-    },
-    requestCallConfirmationScreen: {
-        callRequested: 'Call successfully requested!',
-        allSet: 'You’re all set. You will be receiving a call from us soon.',
-        gotIt: 'Got it',
-    },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
         headers: {
