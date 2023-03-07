@@ -44,18 +44,20 @@ function shouldUseStagingServer() {
  * Get the currently used API endpoint
  * (Some environments allow for dynamically switching the API)
  *
- * @param {Object} request
- * @param {Boolean} request.shouldUseSecure
+ * @param {Object} [request]
+ * @param {Boolean} [request.shouldUseSecure]
  * @returns {String}
  */
 function getApiRoot(request) {
+    const shouldUseSecure = lodashGet(request, 'shouldUseSecure', false);
+
     if (shouldUseStagingServer()) {
-        return request.shouldUseSecure
+        return shouldUseSecure
             ? CONFIG.EXPENSIFY.STAGING_SECURE_API_ROOT
             : CONFIG.EXPENSIFY.STAGING_API_ROOT;
     }
 
-    return request.shouldUseSecure
+    return shouldUseSecure
         ? CONFIG.EXPENSIFY.PRIMARY_SECURE_API_ROOT
         : CONFIG.EXPENSIFY.PRIMARY_API_ROOT;
 }
@@ -78,7 +80,7 @@ function getCommandUrl(request) {
  * @returns {Boolean}
  */
 function isUsingStagingApi() {
-    return getApiRoot({shouldUseSecure: false}) === CONFIG.EXPENSIFY.STAGING_API_ROOT;
+    return getApiRoot() === CONFIG.EXPENSIFY.STAGING_API_ROOT;
 }
 
 export {
