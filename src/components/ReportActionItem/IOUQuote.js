@@ -83,7 +83,7 @@ const IOUQuote = props => (
                         : styles.cursorDefault]}
                     >
                         {/* Get remainder of IOU message */}
-                        {Str.htmlDecode(fragment.text.substring(fragment.text.indexOf(' ')))}
+                        {Str.htmlDecode(fragment.html.substring(fragment.html.indexOf(' ')))}
                     </Text>
                 </Text>
                 <Icon src={Expensicons.ArrowRight} fill={props.shouldAllowViewDetails ? StyleUtils.getIconFillColor(getButtonState(props.isHovered)) : themeColors.transparent} />
