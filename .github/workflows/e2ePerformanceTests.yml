@@ -4,14 +4,14 @@ on:
   workflow_call:
     inputs:
       PR_NUMBER:
-        description: A PR to run performance tests against. If already merged, the merge commit will be used. If not, the test merge commit will be used.
+        description: A PR number to run performance tests against. If the PR is already merged, the merge commit will be used. If not, the test merge commit will be used.
         type: string
         required: true
 
   workflow_dispatch:
     inputs:
       PR_NUMBER:
-        description: A PR to run performance tests against. If already merged, the merge commit will be used. If not, the test merge commit will be used.
+        description: A PR number to run performance tests against. If the PR is already merged, the merge commit will be used. If not, the test merge commit will be used.
         type: string
         required: true
 
