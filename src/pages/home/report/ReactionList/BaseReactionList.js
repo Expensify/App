@@ -21,6 +21,7 @@ const BaseReactionList = props => (props.isVisible) && (
             onClose={props.onClose}
             emojiName={props.emojiName}
             emojiCodes={props.emojiCodes}
+            emojiCount={props.emojiCount}
             hasUserReacted={props.hasUserReacted}
             sizeScale={props.sizeScale}
         />

@@ -2951,6 +2951,11 @@ const styles = {
         paddingVertical: 12,
         paddingHorizontal: 20,
     },
+    reactionListHeaderText: {
+        color: colors.greenSupportingText,
+        marginTop: 1,
+        marginLeft: 8,
+    },
 
     emojiReactionText: {
         fontSize: 12,

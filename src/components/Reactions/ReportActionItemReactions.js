@@ -77,7 +77,7 @@ const ReportActionItemReactions = props => (
             }
 
             const onReactionListOpen = (event) => {
-                props.onReactionListOpen(event, reactionUsers, reaction.emoji, emojiCodes, hasUserReacted);
+                props.onReactionListOpen(event, reactionUsers, reaction.emoji, emojiCodes, reactionCount, hasUserReacted);
             };
 
             return (

@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import styles from '../../../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../../../components/withLocalize';
 import Text from '../../../../../components/Text';
-import colors from '../../../../../styles/colors';
 import * as StyleUtils from '../../../../../styles/StyleUtils';
 
 const propTypes = {
@@ -14,6 +13,9 @@ const propTypes = {
 
     /** The name of the emoji */
     emojiName: PropTypes.string.isRequired,
+
+    /** Count of the emoji */
+    emojiCount: PropTypes.number.isRequired,
 
     /**
      * The default size of the reaction bubble is defined
@@ -36,8 +38,11 @@ const HeaderReactionList = props => (
                 <Text style={[styles.emojiReactionText, StyleUtils.getEmojiReactionTextStyle(props.sizeScale)]}>
                     {props.emojiCodes.join('')}
                 </Text>
+                <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted, props.sizeScale)]}>
+                    {props.emojiCount}
+                </Text>
             </View>
-            <Text style={[{color: colors.greenSupportingText}, styles.ml2]}>{`:${props.emojiName}:`}</Text>
+            <Text style={styles.reactionListHeaderText}>{`:${props.emojiName}:`}</Text>
         </View>
     </View>
 );

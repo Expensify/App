@@ -31,6 +31,7 @@ class PopoverReactionList extends React.Component {
             emojiCodes: [],
             emojiName: '',
             sizeScale: 1,
+            emojiCount: 0,
             hasUserReacted: false,
         };
 
@@ -91,10 +92,11 @@ class PopoverReactionList extends React.Component {
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
-     * @param {Element} contextMenuAnchor - popoverAnchor
-     * @param {Array} users - array of users id
-     * @param {String} emojiName - name of emoji
+     * @param {Element} contextMenuAnchor - opoverAnchor
+     * @param {Array} users - Array of users id
+     * @param {String} emojiName - Name of emoji
      * @param {Array} emojiCodes - The emoji codes to display in the bubble.
+     * @param {Number} emojiCount - Count of emoji
      * @param {Boolean} [hasUserReacted] - whether the current user has reacted to this emoji
 
      */
@@ -104,6 +106,7 @@ class PopoverReactionList extends React.Component {
         users,
         emojiName,
         emojiCodes,
+        emojiCount,
         hasUserReacted,
     ) {
         const nativeEvent = event.nativeEvent || {};
@@ -126,6 +129,7 @@ class PopoverReactionList extends React.Component {
                 users,
                 emojiName,
                 emojiCodes,
+                emojiCount,
                 isPopoverVisible: true,
                 hasUserReacted,
             });
@@ -174,6 +178,7 @@ class PopoverReactionList extends React.Component {
                 users={this.state.users}
                 emojiName={this.state.emojiName}
                 emojiCodes={this.state.emojiCodes}
+                emojiCount={this.state.emojiCount}
                 onClose={this.hideReactionList}
                 sizeScale={this.state.sizeScale}
                 hasUserReacted={this.state.hasUserReacted}
@@ -201,6 +206,7 @@ class PopoverReactionList extends React.Component {
                         users={this.state.users}
                         emojiName={this.state.emojiName}
                         emojiCodes={this.state.emojiCodes}
+                        emojiCount={this.state.emojiCount}
                         onClose={this.hideReactionList}
                         sizeScale={this.state.sizeScale}
                         hasUserReacted={this.state.hasUserReacted}

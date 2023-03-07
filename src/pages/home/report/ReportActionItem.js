@@ -206,7 +206,7 @@ class ReportActionItem extends Component {
 
         const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
         const hasReactions = reactions.length > 0;
-        const onReactionListOpen = (event, reactionUsers, emojiName, emojiCode, hasUserReacted) => {
+        const onReactionListOpen = (event, reactionUsers, emojiName, emojiCode, emojiCount, hasUserReacted) => {
             const users = getPersonalDetailsByIDs(reactionUsers);
             ReactionList.showReactionList(
                 event,
@@ -214,6 +214,7 @@ class ReportActionItem extends Component {
                 users,
                 emojiName,
                 emojiCode,
+                emojiCount,
                 hasUserReacted,
             );
         };
