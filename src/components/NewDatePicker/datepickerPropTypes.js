@@ -31,11 +31,11 @@ const propTypes = {
     defaultYear: PropTypes.string,
 };
 
-const datePickerDefaultProps = {
+const defaultProps = {
     ...defaultFieldPropTypes,
     minDate: moment().year(CONST.CALENDAR_PICKER.MIN_YEAR).toDate(),
     maxDate: moment().year(CONST.CALENDAR_PICKER.MAX_YEAR).toDate(),
     value: undefined,
 };
 
-export {propTypes, datePickerDefaultProps};
+export {propTypes, defaultProps};

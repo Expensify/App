@@ -6,7 +6,7 @@ import compose from '../../libs/compose';
 import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
-import {propTypes, datePickerDefaultProps} from './datepickerPropTypes';
+import {propTypes, defaultProps} from './datepickerPropTypes';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 import CalendarPicker from '../CalendarPicker';
 import withNavigation from '../withNavigation';
@@ -14,6 +14,10 @@ import withNavigation from '../withNavigation';
 const datepickerPropTypes = {
     ...propTypes,
     ...keyboardStatePropTypes,
+};
+
+const datePickerDefaultProps = {
+    ...defaultProps,
 };
 
 class NewDatePicker extends React.Component {
@@ -28,7 +32,7 @@ class NewDatePicker extends React.Component {
         this.showPicker = this.showPicker.bind(this);
         this.reset = this.reset.bind(this);
         this.hidePicker = this.hidePicker.bind(this);
-        this.updateLocalDate = this.setDate.bind(this);
+        this.setDate = this.setDate.bind(this);
 
         this.minDate = props.minDate ? moment(props.minDate).toDate() : null;
         this.maxDate = props.maxDate ? moment(props.maxDate).toDate() : null;
@@ -39,8 +43,10 @@ class NewDatePicker extends React.Component {
      * @param {Date} selectedDate
      */
     setDate(selectedDate) {
-        this.setState({selectedDate});
-        this.props.onInputChange(moment(selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
+        this.setState(() => {
+            this.props.onInputChange(moment(selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
+            return {selectedDate};
+        });
         this.hidePicker();
     }
 

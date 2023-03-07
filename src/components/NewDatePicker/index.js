@@ -6,13 +6,17 @@ import TextInput from '../TextInput';
 import CalendarPicker from '../CalendarPicker';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
-import {propTypes, datePickerDefaultProps} from './datepickerPropTypes';
+import {propTypes, defaultProps} from './datepickerPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import './styles.css';
 
 const datePickerPropTypes = {
     ...propTypes,
     ...windowDimensionsPropTypes,
+};
+
+const datePickerDefaultProps = {
+    ...defaultProps,
 };
 
 class NewDatePicker extends React.Component {
@@ -60,8 +64,10 @@ class NewDatePicker extends React.Component {
      * @param {Date} selectedDate
      */
     setDate(selectedDate) {
-        this.setState({selectedDate});
-        this.props.onInputChange(moment(selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
+        this.setState(() => {
+            this.props.onInputChange(moment(selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
+            return {selectedDate};
+        });
         this.togglePicker();
     }
 
