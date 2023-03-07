@@ -6,6 +6,7 @@ import _ from 'underscore';
 import htmlRendererPropTypes from '../htmlRendererPropTypes';
 import withLocalize from '../../../withLocalize';
 import {ShowContextMenuContext, showContextMenuForReport} from '../../../ShowContextMenuContext';
+import styles from '../../../../styles/styles';
 
 const propTypes = {
     /** Press in handler for the code block */
@@ -30,6 +31,7 @@ const BasePreRenderer = forwardRef((props, ref) => {
         <ScrollView
             ref={ref}
             horizontal
+            style={styles.mv2}
         >
             <ShowContextMenuContext.Consumer>
                 {({

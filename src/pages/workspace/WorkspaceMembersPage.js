@@ -29,7 +29,6 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
-import * as Expensicons from '../../components/Icon/Expensicons';
 import * as ReportUtils from '../../libs/ReportUtils';
 import FormHelpMessage from '../../components/FormHelpMessage';
 import TextInput from '../../components/TextInput';
@@ -279,7 +278,11 @@ class WorkspaceMembersPage extends React.Component {
                                 text: Str.removeSMSDomain(item.displayName),
                                 alternateText: Str.removeSMSDomain(item.login),
                                 participantsList: [item],
-                                icons: [ReportUtils.getAvatar(item.avatar, item.login)],
+                                icons: [{
+                                    source: ReportUtils.getAvatar(item.avatar, item.login),
+                                    name: item.login,
+                                    type: CONST.ICON_TYPE_AVATAR,
+                                }],
                                 keyForList: item.login,
                             }}
                         />
@@ -309,7 +312,7 @@ class WorkspaceMembersPage extends React.Component {
             if (email !== this.props.session.email && email !== this.props.policy.owner && policyMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 removableMembers.push(email);
             }
-            const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email, avatar: Expensicons.FallbackAvatar});
+            const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email});
             data.push({
                 ...policyMember,
                 ...details,

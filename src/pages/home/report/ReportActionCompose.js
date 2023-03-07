@@ -74,7 +74,7 @@ const propTypes = {
     report: reportPropTypes,
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Is the report view covered by the drawer */
     isDrawerOpen: PropTypes.bool.isRequired,
@@ -108,7 +108,7 @@ const defaultProps = {
     comment: '',
     modal: {},
     report: {},
-    reportActions: {},
+    reportActions: [],
     blockedFromConcierge: {},
     personalDetails: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -190,9 +190,13 @@ class ReportActionCompose extends React.Component {
             this.setMaxLines();
         }
 
+        // Value state does not have the same value as comment props when the comment gets changed from another tab.
+        // In this case, we should synchronize the value between tabs.
+        const shouldSyncComment = prevProps.comment !== this.props.comment && this.state.value !== this.props.comment;
+
         // As the report IDs change, make sure to update the composer comment as we need to make sure
         // we do not show incorrect data in there (ie. draft of message from other report).
-        if (this.props.report.reportID === prevProps.report.reportID) {
+        if (this.props.report.reportID === prevProps.report.reportID && !shouldSyncComment) {
             return;
         }
 
@@ -443,14 +447,13 @@ class ReportActionCompose extends React.Component {
         if (e.key === 'ArrowUp' && this.textInput.selectionStart === 0 && this.state.isCommentEmpty && !ReportUtils.chatIncludesChronos(this.props.report)) {
             e.preventDefault();
 
-            const reportActionKey = _.find(
-                _.keys(this.props.reportActions).reverse(),
-                key => ReportUtils.canEditReportAction(this.props.reportActions[key]),
+            const lastReportAction = _.find(
+                this.props.reportActions,
+                action => ReportUtils.canEditReportAction(action),
             );
 
-            if (reportActionKey !== -1 && this.props.reportActions[reportActionKey]) {
-                const {reportActionID, message} = this.props.reportActions[reportActionKey];
-                Report.saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).html);
+            if (lastReportAction !== -1 && lastReportAction) {
+                Report.saveReportActionDraft(this.props.reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
             }
         }
     }
@@ -691,17 +694,18 @@ class ReportActionCompose extends React.Component {
                             onEmojiSelected={this.addEmojiToTextBox}
                         />
                     )}
-                    <View style={[styles.justifyContentEnd]}>
+                    <View
+                        style={[styles.justifyContentEnd]}
+
+                        // Keep focus on the composer when Send message is clicked.
+                        onMouseDown={e => e.preventDefault()}
+                    >
                         <Tooltip text={this.props.translate('common.send')}>
                             <TouchableOpacity
                                 style={[styles.chatItemSubmitButton,
                                     (this.state.isCommentEmpty || hasExceededMaxCommentLength) ? undefined : styles.buttonSuccess,
                                 ]}
                                 onPress={this.submitForm}
-
-                                // Keep focus on the composer when Send message is clicked.
-                                // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                                onMouseDown={e => e.preventDefault()}
                                 disabled={this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength}
                                 hitSlop={{
                                     top: 3, right: 3, bottom: 3, left: 3,
