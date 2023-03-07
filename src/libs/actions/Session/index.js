@@ -277,15 +277,7 @@ function signIn(password, validateCode, twoFactorAuthCode) {
         },
     ];
 
-    const params = {twoFactorAuthCode};
-    if (credentials.login) {
-        // The user initiated the sign in operation on the current device, sign in with the email
-        params.email = credentials.login;
-    } else {
-        // The user is signing in with the accountID and validateCode from the magic link
-        params.accountID = credentials.accountID;
-    }
-
+    const params = {twoFactorAuthCode, email: credentials.login};
     // Conditionally pass a password or validateCode to command since we temporarily allow both flows
     if (validateCode) {
         params.validateCode = validateCode;
