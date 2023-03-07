@@ -7,6 +7,7 @@ const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com'));
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
+const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const USA_COUNTRY_NAME = 'United States';
 
@@ -210,6 +211,7 @@ const CONST = {
             trigger: {
                 DEFAULT: {input: 'k', modifierFlags: KeyCommand.constants.keyModifierControl},
                 [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: KeyCommand.constants.keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'k', modifierFlags: KeyCommand.constants.keyModifierCommand},
             },
         },
         NEW_GROUP: {
@@ -219,6 +221,7 @@ const CONST = {
             trigger: {
                 DEFAULT: {input: 'k', modifierFlags: KeyCommand.constants.keyModifierShiftControl},
                 [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: KeyCommand.constants.keyModifierShiftCommand},
+                [PLATFORM_IOS]: {input: 'k', modifierFlags: KeyCommand.constants.keyModifierShiftCommand},
             },
         },
         SHORTCUT_MODAL: {
@@ -228,6 +231,7 @@ const CONST = {
             trigger: {
                 DEFAULT: {input: 'i', modifierFlags: KeyCommand.constants.keyModifierControl},
                 [PLATFORM_OS_MACOS]: {input: 'i', modifierFlags: KeyCommand.constants.keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'i', modifierFlags: KeyCommand.constants.keyModifierCommand},
             },
         },
         ESCAPE: {
@@ -237,6 +241,7 @@ const CONST = {
             trigger: {
                 DEFAULT: {input: KeyCommand.constants.keyInputEscape},
                 [PLATFORM_OS_MACOS]: {input: KeyCommand.constants.keyInputEscape},
+                [PLATFORM_IOS]: {input: KeyCommand.constants.keyInputEscape},
             },
         },
         ENTER: {
@@ -246,6 +251,7 @@ const CONST = {
             trigger: {
                 DEFAULT: {input: KeyCommand.constants.keyInputEnter},
                 [PLATFORM_OS_MACOS]: {input: KeyCommand.constants.keyInputEnter},
+                [PLATFORM_IOS]: {input: KeyCommand.constants.keyInputEnter},
             },
         },
         CTRL_ENTER: {
@@ -255,6 +261,7 @@ const CONST = {
             trigger: {
                 DEFAULT: {input: KeyCommand.constants.keyInputEnter, modifierFlags: KeyCommand.constants.keyModifierControl},
                 [PLATFORM_OS_MACOS]: {input: KeyCommand.constants.keyInputEnter, modifierFlags: KeyCommand.constants.keyModifierCommand},
+                [PLATFORM_IOS]: {input: KeyCommand.constants.keyInputEnter, modifierFlags: KeyCommand.constants.keyModifierCommand},
             },
         },
         COPY: {
@@ -264,6 +271,7 @@ const CONST = {
             trigger: {
                 DEFAULT: {input: 'c', modifierFlags: KeyCommand.constants.keyModifierControl},
                 [PLATFORM_OS_MACOS]: {input: 'c', modifierFlags: KeyCommand.constants.keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'c', modifierFlags: KeyCommand.constants.keyModifierCommand},
             },
         },
         ARROW_UP: {
@@ -273,6 +281,7 @@ const CONST = {
             trigger: {
                 DEFAULT: {input: KeyCommand.constants.keyInputUpArrow},
                 [PLATFORM_OS_MACOS]: {input: KeyCommand.constants.keyInputUpArrow},
+                [PLATFORM_IOS]: {input: KeyCommand.constants.keyInputUpArrow},
             },
         },
         ARROW_DOWN: {
@@ -282,6 +291,7 @@ const CONST = {
             trigger: {
                 DEFAULT: {input: KeyCommand.constants.keyInputDownArrow},
                 [PLATFORM_OS_MACOS]: {input: KeyCommand.constants.keyInputDownArrow},
+                [PLATFORM_IOS]: {input: KeyCommand.constants.keyInputDownArrow},
             },
         },
     },
@@ -723,7 +733,7 @@ const CONST = {
         WINDOWS: 'Windows',
         MAC_OS: PLATFORM_OS_MACOS,
         ANDROID: 'Android',
-        IOS: 'iOS',
+        IOS: PLATFORM_IOS,
         LINUX: 'Linux',
         NATIVE: 'Native',
     },
