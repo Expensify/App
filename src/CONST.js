@@ -198,6 +198,7 @@ const CONST = {
         CTRL: {
             DEFAULT: 'control',
             [PLATFORM_OS_MACOS]: 'meta',
+            [PLATFORM_IOS]: 'meta',
         },
         SHIFT: {
             DEFAULT: 'shift',
