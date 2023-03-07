@@ -1,4 +1,5 @@
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONFIG from '../CONFIG';
@@ -27,7 +28,7 @@ function shouldUseStagingServer() {
         return false;
     }
 
-    if (typeof stagingServerToggleState !== 'boolean') {
+    if (!_.isBoolean(stagingServerToggleState)) {
         return ENV_NAME === CONST.ENVIRONMENT.STAGING;
     }
 
@@ -60,7 +61,7 @@ function getApiRoot(request) {
  * @param {Object} request
  * @param {Boolean} request.shouldUseSecure
  * @param {String} request.command - the name of the API command
- * @returns {string}
+ * @returns {String}
  */
 function getCommandUrl(request) {
     return `${getApiRoot(request)}api?command=${request.command}`;
