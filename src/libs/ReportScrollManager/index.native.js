@@ -4,6 +4,9 @@ import React from 'react';
 // to the original ref.
 const flatListRef = React.createRef();
 
+// A reference to the last index required to scroll to, for async layout change handler.
+let lastIndex;
+
 /**
  * Scroll to the provided index.
  *
@@ -14,19 +17,15 @@ function scrollToIndex(index) {
     lastIndex = index;
 }
 
-// A reference to the last index required to scroll to, for async layout change handler.
-let lastIndex = undefined;
-
 /**
- * Layout Change the latest indexes set 
+ * Layout Change the latest indexes set
  * The is a fallback handler for asyncrounius scrolling and layout changes.
- *
  */
 function layoutChange() {
     if (!flatListRef.current) {
         return;
     }
-    if (lastIndex == undefined) { 
+    if (lastIndex === undefined) {
         return;
     }
 
@@ -50,5 +49,5 @@ export {
     flatListRef,
     scrollToIndex,
     scrollToBottom,
-    layoutChange
+    layoutChange,
 };
