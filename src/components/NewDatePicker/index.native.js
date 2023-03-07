@@ -28,12 +28,20 @@ class NewDatePicker extends React.Component {
         this.showPicker = this.showPicker.bind(this);
         this.reset = this.reset.bind(this);
         this.hidePicker = this.hidePicker.bind(this);
-        this.updateLocalDate = this.updateLocalDate.bind(this);
-
-        this.wrapperRef = React.createRef();
+        this.updateLocalDate = this.setDate.bind(this);
 
         this.minDate = props.minDate ? moment(props.minDate).toDate() : null;
         this.maxDate = props.maxDate ? moment(props.maxDate).toDate() : null;
+    }
+
+    /**
+     * Trigger the `onInputChange` handler when the user input has a complete date or is cleared
+     * @param {Date} selectedDate
+     */
+    setDate(selectedDate) {
+        this.setState({selectedDate});
+        this.props.onInputChange(moment(selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
+        this.hidePicker();
     }
 
     /**
@@ -69,22 +77,10 @@ class NewDatePicker extends React.Component {
         this.setState({selectedDate: this.initialValue});
     }
 
-    /**
-     * Updates the selectedDate state with the given date, calls the onInputChange
-     * prop with the formatted date string, and hides the picker component.
-     *
-     * @param {Date} selectedDate - The date to set as the selectedDate state.
-     */
-    updateLocalDate(selectedDate) {
-        this.setState({selectedDate});
-        this.props.onInputChange(moment(selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
-        this.hidePicker();
-    }
-
     render() {
         const dateAsText = this.props.value || this.props.defaultValue ? moment(this.props.value || this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
         return (
-            <View ref={ref => this.wrapperRef = ref} style={[styles.flex2]}>
+            <View style={styles.flex2}>
                 <TextInput
                     forceActiveLabel
                     label={this.props.label}
@@ -117,7 +113,7 @@ class NewDatePicker extends React.Component {
                         minDate={this.minDate}
                         maxDate={this.maxDate}
                         value={this.state.selectedDate}
-                        onSelected={this.updateLocalDate}
+                        onSelected={this.setDate}
                         defaultYear={this.props.defaultYear}
                         onClosePressed={this.hidePicker}
                     />

@@ -58,17 +58,12 @@ class NewDatePicker extends React.Component {
     }
 
     /**
-     * Trigger the `onChange` handler when the user input has a complete date or is cleared
-     * @param {String} text
+     * Trigger the `onInputChange` handler when the user input has a complete date or is cleared
+     * @param {Date} selectedDate
      */
-    setDate(text) {
-        if (!text) {
-            this.props.onInputChange('');
-            return;
-        }
-
-        this.setState({selectedDate: text});
-        this.props.onInputChange(moment(text).format(CONST.DATE.MOMENT_FORMAT_STRING));
+    setDate(selectedDate) {
+        this.setState({selectedDate});
+        this.props.onInputChange(moment(selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
 
         this.togglePicker();
     }
@@ -112,9 +107,8 @@ class NewDatePicker extends React.Component {
             <View ref={this.wrapperRef} style={[this.props.isSmallScreenWidth ? styles.flex2 : {}]}>
                 <TextInput
                     forceActiveLabel
+                    // eslint-disable-next-line rulesdir/prefer-early-return
                     ref={(el) => {
-                        this.inputRef = el;
-
                         if (_.isFunction(this.props.innerRef)) {
                             this.props.innerRef(el);
                         }
