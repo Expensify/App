@@ -131,10 +131,10 @@ class SidebarLinks extends React.Component {
 
     render() {
         const isLoading = _.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.chatReports);
-        const freeze = this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded;
+        const shouldFreeze = this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded;
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
 
-        const skeletonPlaceholder = <LHNSkeletonView shouldAnimate={!freeze} />;
+        const skeletonPlaceholder = <LHNSkeletonView shouldAnimate={!shouldFreeze} />;
 
         return (
             <View
@@ -185,7 +185,7 @@ class SidebarLinks extends React.Component {
                     </TouchableOpacity>
                 </View>
                 <Freeze
-                    freeze={freeze}
+                    freeze={shouldFreeze}
                     placeholder={skeletonPlaceholder}
                 >
                     {isLoading ? skeletonPlaceholder : (
