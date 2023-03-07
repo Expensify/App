@@ -337,15 +337,18 @@ function signInWithValidateCode(accountID, validateCode) {
                 isLoading: true,
             },
         },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.CREDENTIALS,
+            value: {signedWithLink: true},
+        },
     ];
 
     const successData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
+            value: {isLoading: false},
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -361,13 +364,16 @@ function signInWithValidateCode(accountID, validateCode) {
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
+            value: {isLoading: false},
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.CREDENTIALS,
+            value: {signedWithLink: null},
         },
     ];
 
-    API.write('SigninUser', {
+    API.write('SigninUserWithLink', {
         validateCode,
         accountID,
     }, {optimisticData, successData, failureData});
