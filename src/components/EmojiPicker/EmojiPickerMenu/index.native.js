@@ -224,7 +224,7 @@ class EmojiPickerMenu extends Component {
                     getItemLayout={this.getItemLayout}
                     showsVerticalScrollIndicator
                 />
-                {!!this.state.value && (
+                {Boolean(this.state.value) && (
                     <View style={styles.emojiPickerSearchListContainer}>
                         <FlatList
                             ref={el => this.emojiList = el}
