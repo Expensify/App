@@ -31,16 +31,16 @@ function getDocumentedShortcuts() {
 function getDisplayName(key, modifiers) {
     let displayName = (() => {
         // Type of key is string and the type of KeyCommand.constants.* is number | string. Use _.isEqual to match different types.
-        if (_.isEqual(key, KeyCommand.constants.keyInputEnter.toString())) {
+        if (_.isEqual(key, lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInputEnter').toString())) {
             return ['ENTER'];
         }
-        if (_.isEqual(key, KeyCommand.constants.keyInputEscape.toString())) {
+        if (_.isEqual(key, lodashGet(KeyCommand, 'constants.keyInputEscape', 'keyInputEscape').toString())) {
             return ['ESCAPE'];
         }
-        if (_.isEqual(key, KeyCommand.constants.keyInputUpArrow.toString())) {
+        if (_.isEqual(key, lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow').toString())) {
             return ['ARROWUP'];
         }
-        if (_.isEqual(key, KeyCommand.constants.keyInputDownArrow.toString())) {
+        if (_.isEqual(key, lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow').toString())) {
             return ['ARROWDOWN'];
         }
         return [key.toUpperCase()];

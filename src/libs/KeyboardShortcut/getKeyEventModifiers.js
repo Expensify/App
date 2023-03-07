@@ -1,4 +1,5 @@
 import * as KeyCommand from 'react-native-key-command';
+import lodashGet from 'lodash/get';
 
 /**
  * Gets modifiers from a keyboard event.
@@ -7,16 +8,16 @@ import * as KeyCommand from 'react-native-key-command';
  * @returns {Array<String>}
  */
 function getKeyEventModifiers(event) {
-    if (event.modifierFlags === KeyCommand.constants.keyModifierControl) {
+    if (event.modifierFlags === lodashGet(KeyCommand, 'constants.keyModifierControl', 'keyModifierControl')) {
         return ['CONTROL'];
     }
-    if (event.modifierFlags === KeyCommand.constants.keyModifierCommand) {
+    if (event.modifierFlags === lodashGet(KeyCommand, 'constants.keyModifierCommand', 'keyModifierCommand')) {
         return ['META'];
     }
-    if (event.modifierFlags === KeyCommand.constants.keyModifierShiftControl) {
+    if (event.modifierFlags === lodashGet(KeyCommand, 'constants.keyModifierShiftControl', 'keyModifierShiftControl')) {
         return ['CONTROL', 'Shift'];
     }
-    if (event.modifierFlags === KeyCommand.constants.keyModifierShiftCommand) {
+    if (event.modifierFlags === lodashGet(KeyCommand, 'constants.keyModifierShiftCommand', 'keyModifierShiftCommand')) {
         return ['META', 'Shift'];
     }
 

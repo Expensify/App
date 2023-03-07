@@ -210,9 +210,9 @@ const CONST = {
             shortcutKey: 'K',
             modifiers: ['CTRL'],
             trigger: {
-                DEFAULT: {input: 'k', modifierFlags: KeyCommand.constants.keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: KeyCommand.constants.keyModifierCommand},
-                [PLATFORM_IOS]: {input: 'k', modifierFlags: KeyCommand.constants.keyModifierCommand},
+                DEFAULT: {input: 'k', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierCommand},
             },
         },
         NEW_GROUP: {
@@ -220,9 +220,9 @@ const CONST = {
             shortcutKey: 'K',
             modifiers: ['CTRL', 'SHIFT'],
             trigger: {
-                DEFAULT: {input: 'k', modifierFlags: KeyCommand.constants.keyModifierShiftControl},
-                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: KeyCommand.constants.keyModifierShiftCommand},
-                [PLATFORM_IOS]: {input: 'k', modifierFlags: KeyCommand.constants.keyModifierShiftCommand},
+                DEFAULT: {input: 'k', modifierFlags: keyModifierShiftControl},
+                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
+                [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
             },
         },
         SHORTCUT_MODAL: {
@@ -230,9 +230,9 @@ const CONST = {
             shortcutKey: 'I',
             modifiers: ['CTRL'],
             trigger: {
-                DEFAULT: {input: 'i', modifierFlags: KeyCommand.constants.keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: 'i', modifierFlags: KeyCommand.constants.keyModifierCommand},
-                [PLATFORM_IOS]: {input: 'i', modifierFlags: KeyCommand.constants.keyModifierCommand},
+                DEFAULT: {input: 'i', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'i', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'i', modifierFlags: keyModifierCommand},
             },
         },
         ESCAPE: {
@@ -240,9 +240,9 @@ const CONST = {
             shortcutKey: 'Escape',
             modifiers: [],
             trigger: {
-                DEFAULT: {input: KeyCommand.constants.keyInputEscape},
-                [PLATFORM_OS_MACOS]: {input: KeyCommand.constants.keyInputEscape},
-                [PLATFORM_IOS]: {input: KeyCommand.constants.keyInputEscape},
+                DEFAULT: {input: keyInputEscape},
+                [PLATFORM_OS_MACOS]: {input: keyInputEscape},
+                [PLATFORM_IOS]: {input: keyInputEscape},
             },
         },
         ENTER: {
@@ -250,9 +250,9 @@ const CONST = {
             shortcutKey: 'Enter',
             modifiers: [],
             trigger: {
-                DEFAULT: {input: KeyCommand.constants.keyInputEnter},
-                [PLATFORM_OS_MACOS]: {input: KeyCommand.constants.keyInputEnter},
-                [PLATFORM_IOS]: {input: KeyCommand.constants.keyInputEnter},
+                DEFAULT: {input: keyInputEnter},
+                [PLATFORM_OS_MACOS]: {input: keyInputEnter},
+                [PLATFORM_IOS]: {input: keyInputEnter},
             },
         },
         CTRL_ENTER: {
@@ -260,9 +260,9 @@ const CONST = {
             shortcutKey: 'Enter',
             modifiers: ['CTRL'],
             trigger: {
-                DEFAULT: {input: KeyCommand.constants.keyInputEnter, modifierFlags: KeyCommand.constants.keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: KeyCommand.constants.keyInputEnter, modifierFlags: KeyCommand.constants.keyModifierCommand},
-                [PLATFORM_IOS]: {input: KeyCommand.constants.keyInputEnter, modifierFlags: KeyCommand.constants.keyModifierCommand},
+                DEFAULT: {input: keyInputEnter), modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: keyInputEnter), modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: keyInputEnter), modifierFlags: keyModifierCommand},
             },
         },
         COPY: {
@@ -270,9 +270,9 @@ const CONST = {
             shortcutKey: 'C',
             modifiers: ['CTRL'],
             trigger: {
-                DEFAULT: {input: 'c', modifierFlags: KeyCommand.constants.keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: 'c', modifierFlags: KeyCommand.constants.keyModifierCommand},
-                [PLATFORM_IOS]: {input: 'c', modifierFlags: KeyCommand.constants.keyModifierCommand},
+                DEFAULT: {input: 'c', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'c', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'c', modifierFlags: keyModifierCommand},
             },
         },
         ARROW_UP: {
@@ -280,9 +280,9 @@ const CONST = {
             shortcutKey: 'ArrowUp',
             modifiers: [],
             trigger: {
-                DEFAULT: {input: KeyCommand.constants.keyInputUpArrow},
-                [PLATFORM_OS_MACOS]: {input: KeyCommand.constants.keyInputUpArrow},
-                [PLATFORM_IOS]: {input: KeyCommand.constants.keyInputUpArrow},
+                DEFAULT: {input: keyInputUpArrow},
+                [PLATFORM_OS_MACOS]: {input: keyInputUpArrow},
+                [PLATFORM_IOS]: {input: keyInputUpArrow},
             },
         },
         ARROW_DOWN: {
@@ -290,9 +290,9 @@ const CONST = {
             shortcutKey: 'ArrowDown',
             modifiers: [],
             trigger: {
-                DEFAULT: {input: KeyCommand.constants.keyInputDownArrow},
-                [PLATFORM_OS_MACOS]: {input: KeyCommand.constants.keyInputDownArrow},
-                [PLATFORM_IOS]: {input: KeyCommand.constants.keyInputDownArrow},
+                DEFAULT: {input: keyInputDownArrow},
+                [PLATFORM_OS_MACOS]: {input: keyInputDownArrow},
+                [PLATFORM_IOS]: {input: keyInputDownArrow},
             },
         },
     },
