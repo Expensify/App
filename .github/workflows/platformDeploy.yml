@@ -4,7 +4,7 @@ name: Build and deploy android, desktop, iOS, and web clients
 on:
   push:
     tags:
-      - '*'
+      - "*"
   release:
     types: [created]
 
@@ -40,7 +40,7 @@ jobs:
 
       - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
         with:
-          ruby-version: '2.7'
+          ruby-version: "2.7"
           bundler-cache: true
 
       - name: Decrypt keystore
@@ -154,7 +154,7 @@ jobs:
 
       - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
         with:
-          ruby-version: '2.7'
+          ruby-version: "2.7"
           bundler-cache: true
 
       - name: Install cocoapods
@@ -264,11 +264,11 @@ jobs:
 
       - name: Deploy production to S3
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://expensify-cash/
+        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://expensify-cash/ && aws s3 cp --content-type 'application/json' --metadata-directive REPLACE s3://expensify-cash/.well-known/apple-app-site-association s3://expensify-cash/.well-known/apple-app-site-association
 
       - name: Deploy staging to S3
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://staging-expensify-cash/
+        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://staging-expensify-cash/ && aws s3 cp --content-type 'application/json' --metadata-directive REPLACE s3://expensify-cash/.well-known/apple-app-site-association s3://expensify-cash/.well-known/apple-app-site-association
 
       - name: Purge production Cloudflare cache
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -303,7 +303,7 @@ jobs:
       - name: Set version
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
-      - name: 'Announces the deploy in the #announce Slack room'
+      - name: "Announces the deploy in the #announce Slack room"
         uses: 8398a7/action-slack@v3
         with:
           status: custom
@@ -319,7 +319,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
-      - name: 'Announces the deploy in the #deployer Slack room'
+      - name: "Announces the deploy in the #deployer Slack room"
         uses: 8398a7/action-slack@v3
         with:
           status: custom
@@ -335,7 +335,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
-      - name: 'Announces a production deploy in the #expensify-open-source Slack room'
+      - name: "Announces a production deploy in the #expensify-open-source Slack room"
         uses: 8398a7/action-slack@v3
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         with:
