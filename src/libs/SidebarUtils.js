@@ -129,7 +129,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
             return;
         }
 
-        if (report.hasOutstandingIOU && !report.isIOUReportOwner) {
+        if (report.hasOutstandingIOU && !ReportUtils.isIOUOwnedByCurrentUser(report, iouReports)) {
             outstandingIOUReports.push(report);
             return;
         }
@@ -283,7 +283,7 @@ function getOptionData(reportID) {
         result.alternateText = lastMessageText || Str.removeSMSDomain(personalDetail.login);
     }
 
-    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, currentUserLogin, iouReports);
+    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);
     result.iouReportAmount = ReportUtils.getIOUTotal(result, iouReports);
 
     if (!hasMultipleParticipants) {

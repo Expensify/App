@@ -2138,6 +2138,31 @@ const styles = {
         alignSelf: 'flex-start',
     },
 
+    attachmentModalArrowsContainer: {
+        display: 'flex',
+        justifyContent: 'center',
+        cursor: 'unset',
+        height: '100%',
+        width: '100%',
+    },
+
+    leftAttachmentArrow: {
+        zIndex: 23,
+        position: 'absolute',
+        left: 32,
+    },
+
+    rightAttachmentArrow: {
+        zIndex: 23,
+        position: 'absolute',
+        right: 32,
+    },
+
+    arrowIcon: {
+        height: 52,
+        width: 52,
+    },
+
     detailsPageSectionVersion: {
         alignSelf: 'center',
         color: themeColors.textSupporting,
@@ -2890,6 +2915,52 @@ const styles = {
     deeplinkWrapperFooter: {
         paddingTop: 80,
         paddingBottom: 45,
+    },
+
+    emojiReactionBubble: {
+        paddingVertical: 2,
+        paddingHorizontal: 8,
+        borderRadius: 28,
+        backgroundColor: themeColors.border,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        alignSelf: 'flex-start',
+        marginTop: 8,
+        marginRight: 4,
+    },
+
+    emojiReactionText: {
+        fontSize: 12,
+        lineHeight: 20,
+        textAlignVertical: 'center',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+    },
+    reactionCounterText: {
+        fontSize: 11,
+        marginLeft: 4,
+        fontWeight: 'bold',
+        color: themeColors.textLight,
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+    },
+
+    fontColorReactionLabel: {
+        color: '#586A64',
+    },
+
+    reactionEmojiTitle: {
+        fontSize: variables.iconSizeLarge,
+        lineHeight: variables.iconSizeXLarge,
+    },
+
+    quickReactionsContainer: {
+        gap: 12,
+        flexDirection: 'row',
+        paddingHorizontal: 25,
+        paddingVertical: 12,
+        justifyContent: 'space-between',
     },
 
     magicCodeDigits: {
