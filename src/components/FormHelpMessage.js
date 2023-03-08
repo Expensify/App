@@ -35,6 +35,8 @@ const FormHelpMessage = (props) => {
         return null;
     }
 
+    const textStyles = [props.isError ? styles.formError : styles.formHelp, styles.mb0];
+
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, ...props.style]}>
             {props.isError && <Icon src={Expensicons.DotIndicator} fill={colors.red} />}
@@ -42,11 +44,11 @@ const FormHelpMessage = (props) => {
                 {props.children || (
                     <>
                         {typeof props.message === 'string' ? (
-                            <Text style={[props.isError ? styles.formError : styles.formHelp, styles.mb0]}>
+                            <Text style={textStyles}>
                                 {props.message}
                             </Text>
                         ) : _.map(props.message, msg => (
-                            <Text key={msg} style={[props.isError ? styles.formError : styles.formHelp, styles.mb0]}>
+                            <Text key={msg} style={textStyles}>
                                 {msg}
                             </Text>
                         ))}
