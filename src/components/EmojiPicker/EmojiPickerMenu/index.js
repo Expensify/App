@@ -45,7 +45,7 @@ const propTypes = {
 
 const defaultProps = {
     forwardedRef: () => {},
-    preferredSkinTone: undefined,
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     frequentlyUsedEmojis: [],
 };
 

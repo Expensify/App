@@ -39,7 +39,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    preferredSkinTone: undefined,
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     frequentlyUsedEmojis: [],
 };
 

@@ -33,7 +33,6 @@ const baseQuickEmojiReactionsPropTypes = {
 };
 
 const baseQuickEmojiReactionsDefaultProps = {
-    onEmojiSelected: () => {},
     onWillShowPicker: () => {},
     onPressOpenPicker: () => {},
 };
@@ -45,7 +44,7 @@ const propTypes = {
 
 const defaultProps = {
     ...baseQuickEmojiReactionsDefaultProps,
-    preferredSkinTone: undefined,
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
 const BaseQuickEmojiReactions = props => (

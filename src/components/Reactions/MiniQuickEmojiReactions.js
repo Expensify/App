@@ -38,7 +38,7 @@ const propTypes = {
 
 const defaultProps = {
     onEmojiPickerClosed: () => {},
-    preferredSkinTone: undefined,
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
 /**
