@@ -6,7 +6,6 @@ import variables from './variables';
 import colors from './colors';
 import positioning from './utilities/positioning';
 import styles from './styles';
-import spacing from './utilities/spacing';
 import * as ReportUtils from '../libs/ReportUtils';
 
 const workspaceColorOptions = [
@@ -813,15 +812,12 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth) {
 /**
  * Gets the correct height for emoji picker list based on screen dimensions
  *
- * @param {Boolean} isSmallScreenWidth
+ * @param {Boolean} hasAdditionalSpace
  * @returns {Object}
  */
-function getEmojiPickerListHeight(isSmallScreenWidth) {
+function getEmojiPickerListHeight(hasAdditionalSpace) {
     return {
-        height: isSmallScreenWidth ? 238 : 288,
-        width: '100%',
-        ...spacing.ph4,
-
+        height: hasAdditionalSpace ? CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT,
     };
 }
 

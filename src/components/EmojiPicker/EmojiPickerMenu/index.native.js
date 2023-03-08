@@ -228,7 +228,6 @@ class EmojiPickerMenu extends Component {
                 {Boolean(this.state.value) && (
                     <View style={styles.emojiPickerSearchListContainer}>
                         <FlatList
-                            ref={el => this.emojiList = el}
                             keyboardShouldPersistTaps="handled"
                             data={this.state.filteredEmojis}
                             renderItem={this.renderItem}
