@@ -2,6 +2,9 @@ package com.expensify.chat;
 
 import android.os.Bundle;
 import android.content.pm.ActivityInfo;
+import android.view.View;
+import android.view.WindowInsets;
+
 import com.expensify.chat.bootsplash.BootSplash;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
@@ -56,5 +59,18 @@ public class MainActivity extends ReactActivity {
       setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     }
     BootSplash.init(R.drawable.bootsplash, MainActivity.this); // <- display the generated bootsplash.xml drawable over our MainActivity
+
+    // Sets translucent status bar. This code is based on what the react-native StatusBar
+    // module does, but we need to do it here to avoid the splash screen jumping on app start.
+    View decorView = getWindow().getDecorView();
+    decorView.setOnApplyWindowInsetsListener(
+            (v, insets) -> {
+              WindowInsets defaultInsets = v.onApplyWindowInsets(insets);
+              return defaultInsets.replaceSystemWindowInsets(
+                      defaultInsets.getSystemWindowInsetLeft(),
+                      0,
+                      defaultInsets.getSystemWindowInsetRight(),
+                      defaultInsets.getSystemWindowInsetBottom());
+            });
   }
 }

@@ -1,8 +1,9 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
@@ -14,6 +15,7 @@ import ResendValidationForm from './ResendValidationForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Performance from '../../libs/Performance';
 import Permissions from '../../libs/Permissions';
+import * as StyleUtils from '../../styles/StyleUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -102,7 +104,7 @@ class SignInPage extends Component {
         }
 
         return (
-            <SafeAreaView style={[styles.signInPage]}>
+            <View style={[styles.signInPage, StyleUtils.getSafeAreaPadding(this.props.insets, 1)]}>
                 <SignInPageLayout
                     welcomeText={welcomeText}
                     shouldShowWelcomeText={showLoginForm || showPasswordForm || showValidateCodeForm || !showResendValidationForm}
@@ -117,7 +119,7 @@ class SignInPage extends Component {
                     )}
                     {showResendValidationForm && <ResendValidationForm />}
                 </SignInPageLayout>
-            </SafeAreaView>
+            </View>
         );
     }
 }
@@ -126,6 +128,7 @@ SignInPage.propTypes = propTypes;
 SignInPage.defaultProps = defaultProps;
 
 export default compose(
+    withSafeAreaInsets,
     withLocalize,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},

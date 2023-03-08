@@ -1,10 +1,8 @@
 import React, {Component} from 'react';
-import {
-    SafeAreaView,
-    View,
-} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {

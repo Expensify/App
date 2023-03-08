@@ -1,6 +1,5 @@
 import React from 'react';
 import {StatusBar} from 'react-native';
-import themeColors from '../../styles/themes/default';
 
 /**
  * Only the Android platform supports "setBackgroundColor"
@@ -9,10 +8,11 @@ import themeColors from '../../styles/themes/default';
 export default class CustomStatusBar extends React.Component {
     componentDidMount() {
         StatusBar.setBarStyle('light-content');
-        StatusBar.setBackgroundColor(themeColors.appBG);
     }
 
     render() {
-        return <StatusBar />;
+        // Prefer to not render the StatusBar component in Android as it can cause
+        // issues with edge to edge display, which we setup in MainActivity.java.
+        return null;
     }
 }
