@@ -31,7 +31,6 @@ class ImageView extends PureComponent {
         this.onContainerPress = this.onContainerPress.bind(this);
         this.imageLoad = this.imageLoad.bind(this);
         this.imageLoadingStart = this.imageLoadingStart.bind(this);
-        this.imageLoadingEnd = this.imageLoadingEnd.bind(this);
         this.trackMovement = this.trackMovement.bind(this);
         this.trackPointerPosition = this.trackPointerPosition.bind(this);
 
@@ -56,8 +55,17 @@ class ImageView extends PureComponent {
         if (this.canUseTouchScreen) {
             return;
         }
+
         document.addEventListener('mousemove', this.trackMovement);
         document.addEventListener('mouseup', this.trackPointerPosition);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.url === this.props.url || this.state.isLoading) {
+            return;
+        }
+
+        this.imageLoadingStart();
     }
 
     componentWillUnmount() {
@@ -213,14 +221,14 @@ class ImageView extends PureComponent {
 
     imageLoad({nativeEvent}) {
         this.setImageRegion(nativeEvent.width, nativeEvent.height);
+        this.setState({isLoading: false});
     }
 
     imageLoadingStart() {
-        this.setState({isLoading: true});
-    }
-
-    imageLoadingEnd() {
-        this.setState({isLoading: false});
+        if (this.state.isLoading) {
+            return;
+        }
+        this.setState({isLoading: true, zoomScale: 0, isZoomed: false});
     }
 
     render() {
@@ -233,16 +241,17 @@ class ImageView extends PureComponent {
                     <Image
                         source={{uri: this.props.url}}
                         isAuthTokenRequired={this.props.isAuthTokenRequired}
-                        style={this.state.zoomScale === 0 ? undefined : [
+
+                        // Hide image until finished loading to prevent showing preview with wrong dimensions.
+                        style={this.state.isLoading ? undefined : [
                             styles.w100,
                             styles.h100,
-                        ]} // Hide image until zoomScale calculated to prevent showing preview with wrong dimensions.
+                        ]}
 
                         // When Image dimensions are lower than the container boundary(zoomscale <= 1), use `contain` to render the image with natural dimensions.
                         // Both `center` and `contain` keeps the image centered on both x and y axis.
                         resizeMode={this.state.zoomScale > 1 ? Image.resizeMode.center : Image.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}
-                        onLoadEnd={this.imageLoadingEnd}
                         onLoad={this.imageLoad}
                     />
                     {this.state.isLoading && (
@@ -276,14 +285,12 @@ class ImageView extends PureComponent {
                 >
                     <Image
                         source={{uri: this.props.url}}
-                        isAuthTokenRequired={this.props.isAuthTokenRequired}
-                        style={this.state.zoomScale === 0 ? undefined : [
+                        style={this.state.isLoading ? undefined : [
                             styles.h100,
                             styles.w100,
-                        ]} // Hide image until zoomScale calculated to prevent showing preview with wrong dimensions.
+                        ]} // Hide image until finished loading to prevent showing preview with wrong dimensions.
                         resizeMode={Image.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}
-                        onLoadEnd={this.imageLoadingEnd}
                         onLoad={this.imageLoad}
                     />
                 </Pressable>
