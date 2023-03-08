@@ -47,7 +47,7 @@ describe('test workflow deploy', () => {
         test('to main - nothing triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
-            let act = new utils.ExtendedAct(repoPath, workflowPath);
+            let act = new eAct.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'push',
@@ -79,7 +79,7 @@ describe('test workflow deploy', () => {
         test('to staging - deployStaging triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
-            let act = new utils.ExtendedAct(repoPath, workflowPath);
+            let act = new eAct.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'push',
@@ -111,7 +111,7 @@ describe('test workflow deploy', () => {
         test('to production - deployProduction triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
-            let act = new utils.ExtendedAct(repoPath, workflowPath);
+            let act = new eAct.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'push',
@@ -144,7 +144,7 @@ describe('test workflow deploy', () => {
         test('to main - nothing triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
-            let act = new utils.ExtendedAct(repoPath, workflowPath);
+            let act = new eAct.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'push',
@@ -176,7 +176,7 @@ describe('test workflow deploy', () => {
         test('to staging - nothing triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
-            let act = new utils.ExtendedAct(repoPath, workflowPath);
+            let act = new eAct.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'push',
@@ -208,7 +208,7 @@ describe('test workflow deploy', () => {
         test('to production - nothing triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
-            let act = new utils.ExtendedAct(repoPath, workflowPath);
+            let act = new eAct.ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'push',
@@ -241,7 +241,7 @@ describe('test workflow deploy', () => {
     test('different event than push - workflow does not execute', async () => {
         const repoPath = mockGithub.repo.getPath('testdeployWorkflowRepo') || '';
         const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
-        let act = new utils.ExtendedAct(repoPath, workflowPath);
+        let act = new eAct.ExtendedAct(repoPath, workflowPath);
         const testMockSteps = {
             validate: mocks.VALIDATE__OSBOTIFY__STEP_MOCKS,
             deployStaging: mocks.DEPLOY_STAGING_STEP_MOCKS,
