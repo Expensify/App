@@ -1,5 +1,4 @@
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONFIG from '../CONFIG';
@@ -14,30 +13,25 @@ Environment.getEnvironment()
         ENV_NAME = envName;
     });
 
-let stagingServerToggleState;
+let stagingServerToggleState = false;
 Onyx.connect({
     key: ONYXKEYS.USER,
     callback: (val) => {
-        stagingServerToggleState = lodashGet(val, 'shouldUseStagingServer');
+        const defaultValue = ENV_NAME === CONST.ENVIRONMENT.STAGING;
+        stagingServerToggleState = lodashGet(val, 'shouldUseStagingServer', defaultValue);
     },
 });
 
 /**
  * Helper method used to decide which API endpoint to call
+ * Non PROD environments allow API switching via the {@link stagingServerToggleState}
  *
  * @returns {Boolean}
  */
-function shouldUseStagingServer() {
-    // Choosing between staging and prod/dev is only available on DEV and STAGING
-    if (ENV_NAME === CONST.ENVIRONMENT.PRODUCTION) {
-        return false;
-    }
-
-    if (!_.isBoolean(stagingServerToggleState)) {
-        return ENV_NAME === CONST.ENVIRONMENT.STAGING;
-    }
-
-    return stagingServerToggleState;
+function canUseStagingServer() {
+    return ENV_NAME === CONST.ENVIRONMENT.PRODUCTION
+        ? false
+        : stagingServerToggleState;
 }
 
 /**
@@ -51,7 +45,7 @@ function shouldUseStagingServer() {
 function getApiRoot(request) {
     const shouldUseSecure = lodashGet(request, 'shouldUseSecure', false);
 
-    if (shouldUseStagingServer()) {
+    if (canUseStagingServer()) {
         return shouldUseSecure
             ? CONFIG.EXPENSIFY.STAGING_SECURE_API_ROOT
             : CONFIG.EXPENSIFY.STAGING_API_ROOT;
