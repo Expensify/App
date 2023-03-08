@@ -40,7 +40,7 @@ const CONTEXT_MENU_TYPES = {
 export default [
     {
         shouldKeepOpen: true,
-        shouldShow: (type, reportAction) => reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU,
+        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && _.has(reportAction, 'message') && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU,
         renderContent: (closePopover, {
             reportID, reportAction, close: closeManually, openContextMenu,
         }) => {
@@ -73,11 +73,6 @@ export default [
                 );
             }
 
-            const hasMessage = _.has(reportAction, 'message');
-            if (!hasMessage) {
-                // It happens when we long-press on a link. We can only provide a reaction for messages
-                return null;
-            }
             return (
                 <QuickEmojiReactions
                     key="BaseQuickEmojiReactions"
