@@ -20,7 +20,7 @@ function scrollToIndex(index, isEditing) {
 }
 
 /**
- * The is a fallback handler for asyncronius scrolling and layout changes.
+ * Noop as this is only needed on iOS
  */
 function scrollToLastIndex() {}
 
