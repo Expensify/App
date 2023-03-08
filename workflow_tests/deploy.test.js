@@ -1,8 +1,9 @@
 const path = require('path');
 const kieMockGithub = require('@kie/mock-github');
-const utils = require('./utils');
+const utils = require('./utils/utils');
 const assertions = require('./assertions/deployAssertions');
 const mocks = require('./mocks/deployMocks');
+const eAct = require('./utils/ExtendedAct');
 
 let mockGithub;
 const FILES_TO_COPY_INTO_TEST_REPO = [
