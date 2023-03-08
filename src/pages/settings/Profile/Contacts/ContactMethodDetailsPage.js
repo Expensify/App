@@ -25,6 +25,7 @@ import colors from '../../../../styles/colors';
 import Button from '../../../../components/Button';
 import * as ErrorUtils from '../../../../libs/ErrorUtils';
 import themeColors from '../../../../styles/themes/default';
+import FullScreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -89,7 +90,14 @@ class ContactMethodDetailsPage extends Component {
     }
 
     componentDidMount() {
-        if (this.getContactMethod()) {
+        if (this.doesContactMethodExist()) {
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+    }
+
+    componentDidUpdate() {
+        if (this.doesContactMethodExist()) {
             return;
         }
         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
@@ -102,6 +110,20 @@ class ContactMethodDetailsPage extends Component {
      */
     getContactMethod() {
         return decodeURIComponent(lodashGet(this.props.route, 'params.contactMethod'));
+    }
+
+    /**
+     * Checks that we have a contact method in the route params and that we can find the login data in Onyx
+     *
+     * @returns {boolean}
+     */
+    doesContactMethodExist() {
+        const contactMethod = this.getContactMethod();
+        const loginData = this.props.loginList[contactMethod];
+        if (!contactMethod || !loginData) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -118,12 +140,8 @@ class ContactMethodDetailsPage extends Component {
     confirmDeleteAndHideModal() {
         const contactMethod = this.getContactMethod();
         User.deleteContactMethod(contactMethod);
-
-        // We only need to close the modal, calling Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)
-        // is not necessary because we will get navigate automatically when the contact method is removed from Onyx.
-        // Using Navigation.navigate cause the Navigation.isNavigating to get stuck with a true value blocking further
-        // navigations.
         this.toggleDeleteModal(false);
+        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
     }
 
     /**
@@ -144,8 +162,7 @@ class ContactMethodDetailsPage extends Component {
         const contactMethod = this.getContactMethod();
         const loginData = this.props.loginList[contactMethod];
         if (!contactMethod || !loginData) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
-            return null;
+            return <FullScreenLoadingIndicator />;
         }
 
         const isDefaultContactMethod = (this.props.session.email === loginData.partnerUserID);
