@@ -3,6 +3,7 @@ const kieMockGithub = require('@kie/mock-github');
 const utils = require('./utils/utils');
 const assertions = require('./assertions/platformDeployAssertions');
 const mocks = require('./mocks/platformDeployMocks');
+const eAct = require('./utils/ExtendedAct');
 
 let mockGithub;
 const FILES_TO_COPY_INTO_TEST_REPO = [
@@ -48,7 +49,7 @@ describe('test workflow platformDeploy', () => {
             test('as team member - platform deploy executes on staging', async () => {
                 const repoPath = mockGithub.repo.getPath('testPlatformDeployWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml');
-                let act = new utils.ExtendedAct(repoPath, workflowPath);
+                let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
                     'push',
@@ -120,7 +121,7 @@ describe('test workflow platformDeploy', () => {
             test('as OSBotify - platform deploy executes on staging', async () => {
                 const repoPath = mockGithub.repo.getPath('testPlatformDeployWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml');
-                let act = new utils.ExtendedAct(repoPath, workflowPath);
+                let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
                     'push',
@@ -192,7 +193,7 @@ describe('test workflow platformDeploy', () => {
             test('as outsider - platform deploy does not execute', async () => {
                 const repoPath = mockGithub.repo.getPath('testPlatformDeployWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml');
-                let act = new utils.ExtendedAct(repoPath, workflowPath);
+                let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
                     'push',
