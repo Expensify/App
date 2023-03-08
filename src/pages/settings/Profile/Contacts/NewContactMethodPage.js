@@ -50,15 +50,12 @@ class NewContactMethodPage extends Component {
         const login = this.state.login.trim();
         const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login);
 
-        return !this.state.password || !Str.isValidEmail(login) && !Str.isValidPhone(phoneLogin);
+         return (Permissions.canUsePasswordlessLogins(this.props.betas) || this.state.password)
+             && (Str.isValidEmail(login) || Str.isValidPhone(phoneLogin));
     }
 
     submitForm() {
-        if (Permissions.canUsePasswordlessLogins(this.props.betas)) {
-
-        } else {
-            User.addNewContactMethodAndNavigate(this.state.login, this.state.password);
-        }
+        User.addNewContactMethodAndNavigate(this.state.login, this.state.password);
     }
 
     render() {
@@ -104,7 +101,7 @@ class NewContactMethodPage extends Component {
                 <FixedFooter style={[styles.flexGrow0]}>
                     <Button
                         success
-                        isDisabled={this.validateForm()}
+                        isDisabled={!this.validateForm()}
                         text={this.props.translate('common.add')}
                         onPress={this.submitForm}
                         pressOnEnter
