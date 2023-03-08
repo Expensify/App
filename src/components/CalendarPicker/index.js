@@ -30,8 +30,8 @@ class CalendarPicker extends React.PureComponent {
             currentDateView,
         };
 
-        this.onPrevMonthPressed = this.onPrevMonthPressed.bind(this);
-        this.onNextMonthPressed = this.onNextMonthPressed.bind(this);
+        this.moveToPrevMonth = this.moveToPrevMonth.bind(this);
+        this.moveToNextMonth = this.moveToNextMonth.bind(this);
         this.onYearPickerPressed = this.onYearPickerPressed.bind(this);
         this.onDayPressed = this.onDayPressed.bind(this);
     }
@@ -51,14 +51,6 @@ class CalendarPicker extends React.PureComponent {
 
         // If only the defaultYear prop has changed, update the currentDateView state with the new year value
         this.setState(prev => ({currentDateView: moment(prev.currentDateView).set('year', this.props.defaultYear).toDate()}));
-    }
-
-    onPrevMonthPressed() {
-        this.setState(prev => ({currentDateView: moment(prev.currentDateView).subtract(1, 'M').toDate()}));
-    }
-
-    onNextMonthPressed() {
-        this.setState(prev => ({currentDateView: moment(prev.currentDateView).add(1, 'M').toDate()}));
     }
 
     /**
@@ -81,6 +73,14 @@ class CalendarPicker extends React.PureComponent {
     onDayPressed(day) {
         const selectedDate = new Date(this.state.currentDateView.getFullYear(), this.state.currentDateView.getMonth(), day);
         this.props.onSelected(selectedDate);
+    }
+
+    moveToPrevMonth() {
+        this.setState(prev => ({currentDateView: moment(prev.currentDateView).subtract(1, 'M').toDate()}));
+    }
+
+    moveToNextMonth() {
+        this.setState(prev => ({currentDateView: moment(prev.currentDateView).add(1, 'M').toDate()}));
     }
 
     render() {
@@ -108,10 +108,10 @@ class CalendarPicker extends React.PureComponent {
                         >
                             {this.monthNames[currentMonthView]}
                         </Text>
-                        <TouchableOpacity testID="prev-month-arrow" disabled={!hasAvailableDatesPrevMonth} onPress={this.onPrevMonthPressed}>
+                        <TouchableOpacity testID="prev-month-arrow" disabled={!hasAvailableDatesPrevMonth} onPress={this.moveToPrevMonth}>
                             <ArrowIcon disabled={!hasAvailableDatesPrevMonth} direction={CONST.DIRECTION.LEFT} />
                         </TouchableOpacity>
-                        <TouchableOpacity testID="next-month-arrow" disabled={!hasAvailableDatesNextMonth} onPress={this.onNextMonthPressed}>
+                        <TouchableOpacity testID="next-month-arrow" disabled={!hasAvailableDatesNextMonth} onPress={this.moveToNextMonth}>
                             <ArrowIcon disabled={!hasAvailableDatesNextMonth} />
                         </TouchableOpacity>
                     </View>
