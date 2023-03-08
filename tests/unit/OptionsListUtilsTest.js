@@ -515,6 +515,17 @@ describe('OptionsListUtils', () => {
         expect(results.userToInvite).not.toBe(null);
         expect(results.userToInvite.login).toBe('+15005550006');
 
+        // When we add a search term for which no options exist and the searchValue itself
+        // is a potential phone number with special characters added
+        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '+1 (800)324-3233');
+
+        // Then we should have no options or personal details at all but there should be a userToInvite and the login
+        // should have the country code included
+        expect(results.recentReports.length).toBe(0);
+        expect(results.personalDetails.length).toBe(0);
+        expect(results.userToInvite).not.toBe(null);
+        expect(results.userToInvite.login).toBe('+18003243233');
+
         // Test Concierge's existence in new group options
         results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE);
 

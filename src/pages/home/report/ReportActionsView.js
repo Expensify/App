@@ -29,7 +29,7 @@ const propTypes = {
     report: reportPropTypes.isRequired,
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
     /** The session of the logged in person */
     session: PropTypes.shape({
@@ -49,7 +49,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    reportActions: {},
+    reportActions: [],
     session: {},
 };
 
@@ -62,12 +62,9 @@ class ReportActionsView extends React.Component {
         this.unsubscribeVisibilityListener = null;
         this.hasCachedActions = _.size(props.reportActions) > 0;
 
-        // We need this.sortedAndFilteredReportActions to be set before this.state is initialized because the function to calculate the newMarkerReportActionID uses the sorted report actions
-        this.sortedAndFilteredReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(props.reportActions);
-
         this.state = {
             isFloatingMessageCounterVisible: false,
-            newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions),
+            newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, props.reportActions),
         };
 
         this.currentScrollOffset = 0;
@@ -132,7 +129,6 @@ class ReportActionsView extends React.Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            this.sortedAndFilteredReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(nextProps.reportActions);
             this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(nextProps.reportActions);
             return true;
         }
@@ -203,16 +199,17 @@ class ReportActionsView extends React.Component {
         if (didReportBecomeVisible) {
             this.setState({
                 newMarkerReportActionID: ReportUtils.isUnread(this.props.report)
-                    ? ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions)
+                    ? ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions)
                     : '',
             });
             this.openReportIfNecessary();
         }
 
-        // If the report action marking the unread point is deleted we need to recalculate which action should be the unread marker
-        if (this.state.newMarkerReportActionID && _.isEmpty(lodashGet(this.props.reportActions[this.state.newMarkerReportActionID], 'message[0].html'))) {
+        // If the report is unread, we want to check if the number of actions has decreased. If so, then it seems that one of them was deleted. In this case, if the deleted action was the
+        // one marking the unread point, we need to recalculate which action should be the unread marker.
+        if (ReportUtils.isUnread(this.props.report) && prevProps.reportActions.length > this.props.reportActions.length) {
             this.setState({
-                newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions),
+                newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions),
             });
         }
 
@@ -229,7 +226,7 @@ class ReportActionsView extends React.Component {
         const didManuallyMarkReportAsUnread = (prevProps.report.lastReadTime !== this.props.report.lastReadTime)
             && ReportUtils.isUnread(this.props.report);
         if (didManuallyMarkReportAsUnread) {
-            this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions)});
+            this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions)});
         }
 
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
@@ -283,7 +280,7 @@ class ReportActionsView extends React.Component {
             return;
         }
 
-        const oldestReportAction = _.last(this.sortedAndFilteredReportActions);
+        const oldestReportAction = _.last(this.props.reportActions);
 
         // Don't load more chats if we're already at the beginning of the chat history
         if (oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
@@ -347,7 +344,6 @@ class ReportActionsView extends React.Component {
         if (!_.size(this.props.reportActions)) {
             return null;
         }
-
         return (
             <>
                 {!this.props.isComposerFullSize && (
@@ -360,7 +356,7 @@ class ReportActionsView extends React.Component {
                             report={this.props.report}
                             onScroll={this.trackScroll}
                             onLayout={this.recordTimeToMeasureItemLayout}
-                            sortedReportActions={this.sortedAndFilteredReportActions}
+                            sortedReportActions={this.props.reportActions}
                             mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
                             isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
                             loadMoreChats={this.loadMoreChats}

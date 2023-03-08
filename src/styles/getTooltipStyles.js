@@ -63,7 +63,7 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  * @param {Number} maxWidth - The tooltip's max width.
  * @param {Number} tooltipWidth - The width of the tooltip itself.
  * @param {Number} tooltipHeight - The height of the tooltip itself.
- * @param {Number} tooltipTextWidth - The tooltip's inner text width.
+ * @param {Number} tooltipContentWidth - The tooltip's inner content width.
  * @param {Number} [manualShiftHorizontal] - Any additional amount to manually shift the tooltip to the left or right.
  *                                         A positive value shifts it to the right,
  *                                         and a negative value shifts it to the left.
@@ -81,7 +81,7 @@ export default function getTooltipStyles(
     maxWidth,
     tooltipWidth,
     tooltipHeight,
-    tooltipTextWidth,
+    tooltipContentWidth,
     manualShiftHorizontal = 0,
     manualShiftVertical = 0,
 ) {
@@ -99,10 +99,10 @@ export default function getTooltipStyles(
 
     // We get wrapper width based on the tooltip's inner text width so the wrapper is just big enough to fit text and prevent white space.
     // If the text width is less than the maximum available width, add horizontal padding.
-    // Note: tooltipTextWidth ignores the fractions (OffsetWidth) so add 1px to fit the text properly.
-    const wrapperWidth = tooltipTextWidth && tooltipTextWidth < maxWidth
-        ? tooltipTextWidth + (spacing.ph2.paddingHorizontal * 2) + 1
-        : maxWidth;
+    // Note: tooltipContentWidth ignores the fractions (OffsetWidth) so add 1px to fit the text properly.
+    const wrapperWidth = tooltipContentWidth && (tooltipContentWidth < maxWidth
+        ? tooltipContentWidth + (spacing.ph2.paddingHorizontal * 2) + 1
+        : maxWidth);
 
     // Hide the tooltip entirely if it's position hasn't finished measuring yet. This prevents UI jank where the tooltip flashes in the top left corner of the screen.
     const opacity = (xOffset === 0 && yOffset === 0) ? 0 : 1;

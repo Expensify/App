@@ -442,7 +442,7 @@ function getOptions(reports, personalDetails, {
 
     // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
     sortByReportTypeInSearch = false,
-    searchValue = '',
+    searchInputValue = '',
     showChatPreviewLine = false,
     sortPersonalDetailsByAlphaAsc = true,
     forcePolicyNamePreview = false,
@@ -450,6 +450,8 @@ function getOptions(reports, personalDetails, {
     let recentReportOptions = [];
     let personalDetailsOptions = [];
     const reportMapForLogins = {};
+    const isPhoneNumber = CONST.REGEX.PHONE_WITH_SPECIAL_CHARS.test(searchInputValue);
+    const searchValue = isPhoneNumber ? searchInputValue.replace(CONST.REGEX.NON_NUMERIC_WITH_PLUS, '') : searchInputValue;
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(
@@ -593,7 +595,11 @@ function getOptions(reports, personalDetails, {
         });
 
         // If user doesn't exist, use a default avatar
-        userToInvite.icons = [ReportUtils.getAvatar('', login)];
+        userToInvite.icons = [{
+            source: ReportUtils.getAvatar('', login),
+            name: login,
+            type: CONST.ICON_TYPE_AVATAR,
+        }];
     }
 
     // If we are prioritizing 1:1 chats in search, do it only once we started searching
@@ -641,7 +647,7 @@ function getSearchOptions(
 ) {
     return getOptions(reports, personalDetails, {
         betas,
-        searchValue: searchValue.trim(),
+        searchInputValue: searchValue.trim(),
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
@@ -663,7 +669,11 @@ function getIOUConfirmationOptionsFromMyPersonalDetail(myPersonalDetail, amountT
     return {
         text: myPersonalDetail.displayName,
         alternateText: myPersonalDetail.login,
-        icons: [ReportUtils.getAvatar(myPersonalDetail.avatar, myPersonalDetail.login)],
+        icons: [{
+            source: ReportUtils.getAvatar(myPersonalDetail.avatar, myPersonalDetail.login),
+            name: myPersonalDetail.login,
+            type: CONST.ICON_TYPE_AVATAR,
+        }],
         descriptiveText: amountText,
         login: myPersonalDetail.login,
     };
@@ -705,7 +715,7 @@ function getNewChatOptions(
 ) {
     return getOptions(reports, personalDetails, {
         betas,
-        searchValue: searchValue.trim(),
+        searchInputValue: searchValue.trim(),
         selectedOptions,
         excludeChatRooms: true,
         includeRecentReports: true,
@@ -732,7 +742,7 @@ function getMemberInviteOptions(
 ) {
     return getOptions([], personalDetails, {
         betas,
-        searchValue: searchValue.trim(),
+        searchInputValue: searchValue.trim(),
         excludeDefaultRooms: true,
         includePersonalDetails: true,
         excludeLogins,

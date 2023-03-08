@@ -1,5 +1,5 @@
 ---
-title: Expensify Playbook for US Small Businesses
+title: Expensify Playbook for US Based Small Businesses
 description: Best practices for how to deploy Expensify for your business
 ---
 This guide provides practical tips and recommendations for small businesses with under 100 employees to effectively use Expensify to improve spend visibility, facilitate employee reimbursements, and reduce the risk of fraudulent expenses.

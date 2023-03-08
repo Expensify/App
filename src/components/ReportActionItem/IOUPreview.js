@@ -136,8 +136,16 @@ const IOUPreview = (props) => {
 
     const managerName = ReportUtils.getDisplayNameForParticipant(managerEmail, true);
     const ownerName = ReportUtils.getDisplayNameForParticipant(ownerEmail, true);
-    const managerAvatar = ReportUtils.getAvatar(lodashGet(props.personalDetails, [managerEmail, 'avatar']), managerEmail);
-    const ownerAvatar = ReportUtils.getAvatar(lodashGet(props.personalDetails, [ownerEmail, 'avatar']), ownerEmail);
+    const managerAvatar = {
+        source: ReportUtils.getAvatar(lodashGet(props.personalDetails, [managerEmail, 'avatar']), managerEmail),
+        type: CONST.ICON_TYPE_AVATAR,
+        name: managerEmail,
+    };
+    const ownerAvatar = {
+        source: ReportUtils.getAvatar(lodashGet(props.personalDetails, [ownerEmail, 'avatar']), ownerEmail),
+        type: CONST.ICON_TYPE_AVATAR,
+        name: ownerEmail,
+    };
     const cachedTotal = props.iouReport.total && props.iouReport.currency
         ? props.numberFormat(
             Math.abs(props.iouReport.total) / 100,

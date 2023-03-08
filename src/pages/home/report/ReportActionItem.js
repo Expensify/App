@@ -260,7 +260,6 @@ class ReportActionItem extends Component {
                                 displayAsGroup={this.props.displayAsGroup}
                                 isVisible={
                                     hovered
-                                    && !this.state.isContextMenuActive
                                     && !this.props.draftMessage
                                 }
                                 draftMessage={this.props.draftMessage}

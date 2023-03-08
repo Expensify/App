@@ -219,6 +219,20 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsContactMethodDetailsPage = require('../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default;
+            return SettingsContactMethodDetailsPage;
+        },
+        name: 'Settings_ContactMethodDetails',
+    },
+    {
+        getComponent: () => {
+            const SettingsContactMethodsPage = require('../../../pages/settings/Profile/Contacts/ContactMethodsPage').default;
+            return SettingsContactMethodsPage;
+        },
+        name: 'Settings_ContactMethods',
+    },
+    {
+        getComponent: () => {
             const SettingsPronounsPage = require('../../../pages/settings/Profile/PronounsPage').default;
             return SettingsPronounsPage;
         },
@@ -272,13 +286,6 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             return SettingsAddressPage;
         },
         name: 'Settings_PersonalDetails_Address',
-    },
-    {
-        getComponent: () => {
-            const SettingsContactMethodsPage = require('../../../pages/settings/Profile/Contacts/ContactMethodsPage').default;
-            return SettingsContactMethodsPage;
-        },
-        name: 'Settings_ContactMethods',
     },
     {
         getComponent: () => {
@@ -503,14 +510,6 @@ const ReimbursementAccountModalStackNavigator = createModalStackNavigator([{
     name: 'ReimbursementAccount_Root',
 }]);
 
-const RequestCallModalStackNavigator = createModalStackNavigator([{
-    getComponent: () => {
-        const RequestCallPage = require('../../../pages/RequestCallPage').default;
-        return RequestCallPage;
-    },
-    name: 'RequestCall_Root',
-}]);
-
 const WalletStatementStackNavigator = createModalStackNavigator([{
     getComponent: () => {
         const WalletStatementPage = require('../../../pages/wallet/WalletStatementPage').default;
@@ -535,6 +534,5 @@ export {
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
-    RequestCallModalStackNavigator,
     WalletStatementStackNavigator,
 };
