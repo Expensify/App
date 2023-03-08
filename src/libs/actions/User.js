@@ -19,6 +19,8 @@ import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
 import * as Report from './Report';
 import * as ReportActionsUtils from '../ReportActionsUtils';
+import DateUtils from '../DateUtils';
+import * as Session from './Session';
 
 let currentUserAccountID = '';
 Onyx.connect({
@@ -95,8 +97,63 @@ function closeAccount(message) {
  * @param {String} login
  * @param {Boolean} isPasswordless - temporary param to trigger passwordless flow in backend
  */
-function resendValidateCode(login, isPasswordless = false) {
-    DeprecatedAPI.ResendValidateCode({email: login, isPasswordless});
+function resendValidateCode(login) {
+    Session.resendValidateCode(login);
+}
+
+/**
+ * Requests a new validate code be sent for the passed contact method
+ *
+ * @param {String} contactMethod - the new contact method that the user is trying to verify
+ */
+function requestContactMethodValidateCode(contactMethod) {
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                validateCodeSent: true,
+                errorFields: {
+                    validateCodeSent: null,
+                },
+                pendingFields: {
+                    validateCodeSent: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                pendingFields: {
+                    validateCodeSent: null,
+                },
+            },
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                validateCodeSent: false,
+                errorFields: {
+                    validateCodeSent: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.requestContactMethodValidateCode'),
+                    },
+                },
+                pendingFields: {
+                    validateCodeSent: null,
+                },
+            },
+        },
+    }];
+
+    API.write('RequestContactMethodValidateCode', {
+        email: contactMethod,
+    }, {optimisticData, successData, failureData});
 }
 
 /**
@@ -141,7 +198,7 @@ function setSecondaryLoginAndNavigate(login, password) {
     }).then((response) => {
         if (response.jsonCode === 200) {
             Onyx.set(ONYXKEYS.LOGIN_LIST, response.loginList);
-            Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
             return;
         }
 
@@ -158,6 +215,77 @@ function setSecondaryLoginAndNavigate(login, password) {
         Onyx.merge(ONYXKEYS.USER, {error});
     }).finally(() => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
+    });
+}
+
+/**
+ * Delete a specific contact method
+ *
+ * @param {String} contactMethod - the contact method being deleted
+ * @param {Object} oldLoginData
+ */
+function deleteContactMethod(contactMethod, oldLoginData) {
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                partnerUserID: '',
+                errorFields: {
+                    deletedLogin: null,
+                },
+                pendingFields: {
+                    deletedLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            },
+        },
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: null,
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                ...oldLoginData,
+                errorFields: {
+                    deletedLogin: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.deleteContactMethod'),
+                    },
+                },
+                pendingFields: {
+                    deletedLogin: null,
+                },
+            },
+        },
+    }];
+
+    API.write('DeleteContactMethod', {
+        partnerUserID: contactMethod,
+    }, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears any possible stored errors for a specific field on a contact method
+ *
+ * @param {String} contactMethod
+ * @param {String} fieldName
+ */
+function clearContactMethodErrors(contactMethod, fieldName) {
+    Onyx.merge(ONYXKEYS.LOGIN_LIST, {
+        [contactMethod]: {
+            errorFields: {
+                [fieldName]: null,
+            },
+            pendingFields: {
+                [fieldName]: null,
+            },
+        },
     });
 }
 
@@ -184,6 +312,62 @@ function validateLogin(accountID, validateCode) {
         validateCode,
     }, {optimisticData});
     Navigation.navigate(ROUTES.HOME);
+}
+
+/**
+ * Validates a secondary login / contact method
+ *
+ * @param {String} contactMethod - The contact method the user is trying to verify
+ * @param {String} validateCode
+ */
+function validateSecondaryLogin(contactMethod, validateCode) {
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                errorFields: {
+                    validateLogin: null,
+                },
+                pendingFields: {
+                    validateLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                pendingFields: {
+                    validateLogin: null,
+                },
+            },
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                errorFields: {
+                    validateLogin: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.validateSecondaryLogin'),
+                    },
+                },
+                pendingFields: {
+                    validateLogin: null,
+                },
+            },
+        },
+    }];
+
+    API.write('ValidateSecondaryLogin', {
+        partnerUserID: contactMethod,
+        validateCode,
+    }, {optimisticData, successData, failureData});
+    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**
@@ -402,6 +586,7 @@ function updateChatPriorityMode(mode) {
     API.write('UpdateChatPriorityMode', {
         value: mode,
     }, {optimisticData});
+    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
 }
 
 /**
@@ -472,9 +657,13 @@ export {
     updatePassword,
     closeAccount,
     resendValidateCode,
+    requestContactMethodValidateCode,
     updateNewsletterSubscription,
     setSecondaryLoginAndNavigate,
+    deleteContactMethod,
+    clearContactMethodErrors,
     validateLogin,
+    validateSecondaryLogin,
     isBlockedFromConcierge,
     subscribeToUserEvents,
     updatePreferredSkinTone,

@@ -15,6 +15,7 @@ import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
 import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
+import emojiHeaderContainerPlatformStyles from './emojiHeaderContainerPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
@@ -559,7 +560,7 @@ const styles = {
         height: 140,
     },
 
-    pickerSmall: {
+    pickerSmall: (backgroundColor = themeColors.highlightBG) => ({
         inputIOS: {
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
@@ -567,12 +568,21 @@ const styles = {
             paddingRight: 17,
             paddingTop: 6,
             paddingBottom: 6,
-            borderRadius: variables.componentBorderRadius,
             borderWidth: 0,
             color: themeColors.text,
             height: 26,
             opacity: 1,
             backgroundColor: 'transparent',
+        },
+        done: {
+            color: themeColors.text,
+        },
+        modalViewMiddle: {
+            backgroundColor: themeColors.border,
+            borderTopWidth: 0,
+        },
+        modalViewBottom: {
+            backgroundColor: themeColors.highlightBG,
         },
         inputWeb: {
             fontFamily: fontFamily.EXP_NEUE,
@@ -582,13 +592,12 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderWidth: 0,
-            borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             appearance: 'none',
             height: 26,
             opacity: 1,
             cursor: 'pointer',
-            backgroundColor: 'transparent',
+            backgroundColor,
         },
         inputAndroid: {
             fontFamily: fontFamily.EXP_NEUE,
@@ -598,10 +607,10 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderWidth: 0,
-            borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             height: 26,
             opacity: 1,
+            backgroundColor: 'transparent',
         },
         iconContainer: {
             top: 7,
@@ -611,7 +620,7 @@ const styles = {
             width: variables.iconSizeExtraSmall,
             height: variables.iconSizeExtraSmall,
         },
-    },
+    }),
 
     badge: {
         backgroundColor: themeColors.border,
@@ -741,7 +750,7 @@ const styles = {
         position: 'absolute',
         top: 0,
         width: '100%',
-        height: 25,
+        height: 23,
         backgroundColor: themeColors.componentBG,
     },
 
@@ -760,7 +769,7 @@ const styles = {
     baseTextInput: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
-        lineHeight: variables.lineHeightNormal,
+        lineHeight: variables.lineHeightXLarge,
         color: themeColors.text,
         paddingTop: 23,
         paddingBottom: 8,
@@ -812,13 +821,19 @@ const styles = {
         textAlignVertical: 'center',
     },
 
-    textInputPrefix: {
+    textInputPrefixWrapper: {
         position: 'absolute',
         left: 0,
         top: 0,
-        height: '100%',
+        height: variables.inputHeight,
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
         paddingTop: 23,
         paddingBottom: 8,
+    },
+
+    textInputPrefix: {
         color: themeColors.text,
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
@@ -833,6 +848,7 @@ const styles = {
         justifyContent: 'center',
         backgroundColor: 'transparent',
         height: variables.inputHeight,
+        overflow: 'hidden',
     },
 
     pickerContainerSmall: {
@@ -843,23 +859,35 @@ const styles = {
         position: 'absolute',
         left: 0,
         top: 6,
+        zIndex: 1,
     },
 
-    picker: (disabled = false) => ({
+    picker: (disabled = false, backgroundColor = themeColors.appBG) => ({
         iconContainer: {
             top: Math.round(variables.inputHeight * 0.5) - 11,
             right: 0,
-            zIndex: -1,
+            ...pointerEventsNone,
         },
 
         inputWeb: {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...picker,
+            backgroundColor,
         },
 
         inputIOS: {
             ...picker,
+        },
+        done: {
+            color: themeColors.text,
+        },
+        modalViewMiddle: {
+            backgroundColor: themeColors.border,
+            borderTopWidth: 0,
+        },
+        modalViewBottom: {
+            backgroundColor: themeColors.highlightBG,
         },
 
         inputAndroid: {
@@ -975,35 +1003,18 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
-    statusIndicator: {
+    statusIndicator: (backgroundColor = themeColors.danger) => ({
         borderColor: themeColors.sidebar,
-        backgroundColor: themeColors.danger,
-        borderRadius: 6,
-        borderWidth: 2,
-        position: 'absolute',
-        right: -1,
-        bottom: -1,
-        height: 12,
-        width: 12,
-        zIndex: 10,
-    },
-
-    statusIndicatorLarge: {
-        borderColor: themeColors.componentBG,
-        backgroundColor: themeColors.danger,
+        backgroundColor,
         borderRadius: 8,
         borderWidth: 2,
         position: 'absolute',
-        right: 4,
-        bottom: 4,
+        right: -2,
+        top: -1,
         height: 16,
         width: 16,
         zIndex: 10,
-    },
-
-    statusIndicatorOnline: {
-        backgroundColor: themeColors.success,
-    },
+    }),
 
     avatarWithIndicator: {
         errorDot: {
@@ -1192,7 +1203,7 @@ const styles = {
         minWidth: 'auto',
         flexBasis: 'auto',
         flexGrow: 0,
-        flexShrink: 0,
+        flexShrink: 1,
     },
 
     displayNameTooltipEllipsis: {
@@ -1203,7 +1214,7 @@ const styles = {
     },
 
     optionAlternateText: {
-        height: variables.alternateTextHeight,
+        minHeight: variables.alternateTextHeight,
         lineHeight: variables.lineHeightXLarge,
     },
 
@@ -1215,7 +1226,7 @@ const styles = {
     },
 
     optionRow: {
-        height: variables.optionRowHeight,
+        minHeight: variables.optionRowHeight,
         paddingTop: 12,
         paddingBottom: 12,
     },
@@ -1458,13 +1469,7 @@ const styles = {
         height: CONST.EMOJI_PICKER_HEADER_HEIGHT,
         justifyContent: 'center',
         width: '100%',
-    },
-
-    emojiHeaderStyle: {
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
-        color: themeColors.heading,
-        fontSize: variables.fontSizeSmall,
+        ...emojiHeaderContainerPlatformStyles,
     },
 
     emojiSkinToneTitle: {
@@ -1508,6 +1513,14 @@ const styles = {
         borderRadius: variables.buttonBorderRadius,
     },
 
+    categoryShortcutButton: {
+        flex: 1,
+        borderRadius: 8,
+        height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
     chatItemEmojiButton: {
         alignSelf: 'flex-end',
         borderRadius: variables.buttonBorderRadius,
@@ -1519,6 +1532,7 @@ const styles = {
 
     editChatItemEmojiWrapper: {
         marginRight: 3,
+        alignSelf: 'flex-end',
     },
 
     hoveredButton: {
@@ -1593,7 +1607,6 @@ const styles = {
         height: 28,
         width: 28,
         backgroundColor: themeColors.appBG,
-        borderRadius: 33,
         paddingTop: 2,
         alignItems: 'center',
     },
@@ -1760,7 +1773,6 @@ const styles = {
         width: 28,
         borderWidth: 2,
         borderStyle: 'solid',
-        borderRadius: 24,
         zIndex: 6,
     },
 
@@ -2807,7 +2819,8 @@ const styles = {
         borderRadius: 10,
         overflow: 'hidden',
         paddingVertical: 2,
-        flexShrink: 1,
+        flexShrink: 0,
+        maxWidth: variables.badgeMaxWidth,
         fontSize: variables.fontSizeSmall,
         ...spacing.ph2,
     },
@@ -2878,6 +2891,96 @@ const styles = {
         paddingTop: 80,
         paddingBottom: 45,
     },
+
+    emojiReactionBubble: {
+        paddingVertical: 2,
+        paddingHorizontal: 8,
+        borderRadius: 28,
+        backgroundColor: themeColors.border,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        alignSelf: 'flex-start',
+        marginTop: 8,
+        marginRight: 4,
+    },
+
+    emojiReactionText: {
+        fontSize: 12,
+        lineHeight: 20,
+        textAlignVertical: 'center',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+    },
+    reactionCounterText: {
+        fontSize: 11,
+        marginLeft: 4,
+        fontWeight: 'bold',
+        color: themeColors.textLight,
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+    },
+
+    fontColorReactionLabel: {
+        color: '#586A64',
+    },
+
+    reactionEmojiTitle: {
+        fontSize: variables.iconSizeLarge,
+        lineHeight: variables.iconSizeXLarge,
+    },
+
+    quickReactionsContainer: {
+        gap: 12,
+        flexDirection: 'row',
+        paddingHorizontal: 25,
+        paddingVertical: 12,
+        justifyContent: 'space-between',
+    },
+
+    magicCodeDigits: {
+        color: themeColors.text,
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeXXLarge,
+        letterSpacing: 4,
+    },
+
+    footer: {
+        backgroundColor: themeColors.midtone,
+    },
+
+    footerWrapper: {
+        fontSize: variables.fontSizeNormal,
+        paddingTop: 64,
+        paddingHorizontal: 32,
+        maxWidth: 1100, // Match footer across all Expensify platforms
+    },
+
+    footerColumnsContainer: {
+        flex: 1,
+        flexWrap: 'wrap',
+        marginBottom: 40,
+        marginHorizontal: -16,
+    },
+
+    footerTitle: {
+        fontSize: variables.fontSizeLarge,
+        color: themeColors.success,
+        marginBottom: 16,
+    },
+
+    footerRow: {
+        paddingVertical: 4,
+        marginBottom: 8,
+        color: themeColors.textLight,
+        fontSize: variables.fontSizeMedium,
+    },
+
+    footerBottomLogo: {
+        marginTop: 40,
+        width: '100%',
+    },
+
 };
 
 export default styles;

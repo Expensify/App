@@ -30,17 +30,28 @@ class BaseModal extends PureComponent {
         this.hideModal = this.hideModal.bind(this);
     }
 
+    componentDidMount() {
+        if (!this.props.isVisible) { return; }
+
+        // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
+        Modal.setCloseModal(this.props.onClose);
+    }
+
     componentDidUpdate(prevProps) {
         if (prevProps.isVisible === this.props.isVisible) {
             return;
         }
 
         Modal.willAlertModalBecomeVisible(this.props.isVisible);
+        Modal.setCloseModal(this.props.isVisible ? this.props.onClose : null);
     }
 
     componentWillUnmount() {
         // we don't want to call the onModalHide on unmount
         this.hideModal(this.props.isVisible);
+
+        // To prevent closing any modal already unmounted when this modal still remains as visible state
+        Modal.setCloseModal(null);
     }
 
     /**
@@ -76,7 +87,8 @@ class BaseModal extends PureComponent {
                 isSmallScreenWidth: this.props.isSmallScreenWidth,
             },
             this.props.popoverAnchorPosition,
-            this.props.containerStyle,
+            this.props.innerContainerStyle,
+            this.props.outerStyle,
         );
         return (
             <ReactNativeModal

@@ -5,6 +5,7 @@ import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
 import * as User from './actions/User';
 import emojisTrie from './EmojiTrie';
+import FrequentlyUsed from '../../assets/images/history.svg';
 
 /**
  * Get the unicode code of an emoji in base 16.
@@ -82,17 +83,17 @@ function containsOnlyEmojis(message) {
 }
 
 /**
- * Get the header indices based on the max emojis per row
+ * Get the header emojis with their code, icon and index
  * @param {Object[]} emojis
- * @returns {Number[]}
+ * @returns {Object[]}
  */
-function getDynamicHeaderIndices(emojis) {
+function getHeaderEmojis(emojis) {
     const headerIndices = [];
     _.each(emojis, (emoji, index) => {
         if (!emoji.header) {
             return;
         }
-        headerIndices.push(Math.floor(index / CONST.EMOJI_NUM_PER_ROW));
+        headerIndices.push({code: emoji.code, index, icon: emoji.icon});
     });
     return headerIndices;
 }
@@ -149,6 +150,7 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis, frequentlyUsedEmojis = []) 
     let allEmojis = [{
         header: true,
         code: 'frequentlyUsed',
+        icon: FrequentlyUsed,
     }];
 
     allEmojis = allEmojis.concat(frequentlyUsedEmojis, emojis);
@@ -228,7 +230,7 @@ function suggestEmojis(text, limit = 5) {
                 if (matching.length === limit) {
                     return matching;
                 }
-                matching.push({code: nodes[j].metaData.code, name: nodes[j].name});
+                matching.push({code: nodes[j].metaData.code, name: nodes[j].name, types: nodes[j].metaData.types});
             }
             const suggestions = nodes[j].metaData.suggestions;
             for (let i = 0; i < suggestions.length; i++) {
@@ -246,7 +248,7 @@ function suggestEmojis(text, limit = 5) {
 }
 
 export {
-    getDynamicHeaderIndices,
+    getHeaderEmojis,
     mergeEmojisWithFrequentlyUsedEmojis,
     addToFrequentlyUsedEmojis,
     containsOnlyEmojis,

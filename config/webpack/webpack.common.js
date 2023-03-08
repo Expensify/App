@@ -8,6 +8,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 const dotenv = require('dotenv');
 const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 const HtmlInlineScriptPlugin = require('html-inline-script-webpack-plugin');
+const FontPreloadPlugin = require('webpack-font-preload-plugin');
 const CustomVersionFilePlugin = require('./CustomVersionFilePlugin');
 
 const includeModules = [
@@ -78,6 +79,9 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         }),
         new HtmlInlineScriptPlugin({
             scriptMatchPattern: [/splash.+[.]js$/],
+        }),
+        new FontPreloadPlugin({
+            extensions: ['woff2'],
         }),
         new ProvidePlugin({
             process: 'process/browser',
@@ -152,22 +156,16 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             // Rule for react-native-web-webview
             {
                 test: /postMock.html$/,
-                use: {
-                    loader: 'file-loader',
-                    options: {
-                        name: '[name].[ext]',
-                    },
+                type: 'asset',
+                generator: {
+                    filename: '[name].[ext]',
                 },
             },
 
             // Gives the ability to load local images
             {
                 test: /\.(png|jpe?g|gif)$/i,
-                use: [
-                    {
-                        loader: 'file-loader',
-                    },
-                ],
+                type: 'asset',
             },
 
             // Load svg images
@@ -212,6 +210,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             'react-native$': '@expensify/react-native-web',
             'react-native-web': '@expensify/react-native-web',
             'react-content-loader/native': 'react-content-loader',
+            'lottie-react-native': 'react-native-web-lottie',
         },
 
         // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`

@@ -4,16 +4,6 @@ import PushNotification from '../../libs/Notification/PushNotification';
 import * as Report from '../../libs/actions/Report';
 import Performance from '../../libs/Performance';
 
-// we only need polyfills for Mobile.
-import '@formatjs/intl-getcanonicallocales/polyfill';
-import '@formatjs/intl-locale/polyfill';
-import '@formatjs/intl-pluralrules/polyfill';
-import '@formatjs/intl-numberformat/polyfill';
-
-// Load en & es Locale data
-import '@formatjs/intl-numberformat/locale-data/en';
-import '@formatjs/intl-numberformat/locale-data/es';
-
 export default function () {
     // We do not want to send crash reports if we are on a locally built release version of the app.
     // Crashlytics is disabled by default for debug builds, but not local release builds so we are using

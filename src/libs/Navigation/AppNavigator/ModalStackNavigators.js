@@ -219,6 +219,20 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsContactMethodDetailsPage = require('../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default;
+            return SettingsContactMethodDetailsPage;
+        },
+        name: 'Settings_ContactMethodDetails',
+    },
+    {
+        getComponent: () => {
+            const SettingsContactMethodsPage = require('../../../pages/settings/Profile/Contacts/ContactMethodsPage').default;
+            return SettingsContactMethodsPage;
+        },
+        name: 'Settings_ContactMethods',
+    },
+    {
+        getComponent: () => {
             const SettingsPronounsPage = require('../../../pages/settings/Profile/PronounsPage').default;
             return SettingsPronounsPage;
         },
@@ -247,17 +261,59 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const SettingsAddSecondaryLoginPage = require('../../../pages/settings/AddSecondaryLoginPage').default;
+            const SettingsPersonalDetailsInitialPage = require('../../../pages/settings/Profile/PersonalDetails/PersonalDetailsInitialPage').default;
+            return SettingsPersonalDetailsInitialPage;
+        },
+        name: 'Settings_PersonalDetails_Initial',
+    },
+    {
+        getComponent: () => {
+            const SettingsLegalNamePage = require('../../../pages/settings/Profile/PersonalDetails/LegalNamePage').default;
+            return SettingsLegalNamePage;
+        },
+        name: 'Settings_PersonalDetails_LegalName',
+    },
+    {
+        getComponent: () => {
+            const SettingsDateOfBirthPage = require('../../../pages/settings/Profile/PersonalDetails/DateOfBirthPage').default;
+            return SettingsDateOfBirthPage;
+        },
+        name: 'Settings_PersonalDetails_DateOfBirth',
+    },
+    {
+        getComponent: () => {
+            const SettingsAddressPage = require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default;
+            return SettingsAddressPage;
+        },
+        name: 'Settings_PersonalDetails_Address',
+    },
+    {
+        getComponent: () => {
+            const SettingsAddSecondaryLoginPage = require('../../../pages/settings/Profile/Contacts/AddSecondaryLoginPage').default;
             return SettingsAddSecondaryLoginPage;
         },
         name: 'Settings_Add_Secondary_Login',
     },
     {
         getComponent: () => {
-            const SettingsPreferencesPage = require('../../../pages/settings/PreferencesPage').default;
+            const SettingsPreferencesPage = require('../../../pages/settings/Preferences/PreferencesPage').default;
             return SettingsPreferencesPage;
         },
         name: 'Settings_Preferences',
+    },
+    {
+        getComponent: () => {
+            const SettingsPreferencesPriorityModePage = require('../../../pages/settings/Preferences/PriorityModePage').default;
+            return SettingsPreferencesPriorityModePage;
+        },
+        name: 'Settings_Preferences_PriorityMode',
+    },
+    {
+        getComponent: () => {
+            const SettingsPreferencesLanguagePage = require('../../../pages/settings/Preferences/LanguagePage').default;
+            return SettingsPreferencesLanguagePage;
+        },
+        name: 'Settings_Preferences_Language',
     },
     {
         getComponent: () => {
@@ -454,14 +510,6 @@ const ReimbursementAccountModalStackNavigator = createModalStackNavigator([{
     name: 'ReimbursementAccount_Root',
 }]);
 
-const RequestCallModalStackNavigator = createModalStackNavigator([{
-    getComponent: () => {
-        const RequestCallPage = require('../../../pages/RequestCallPage').default;
-        return RequestCallPage;
-    },
-    name: 'RequestCall_Root',
-}]);
-
 const WalletStatementStackNavigator = createModalStackNavigator([{
     getComponent: () => {
         const WalletStatementPage = require('../../../pages/wallet/WalletStatementPage').default;
@@ -486,6 +534,5 @@ export {
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
-    RequestCallModalStackNavigator,
     WalletStatementStackNavigator,
 };

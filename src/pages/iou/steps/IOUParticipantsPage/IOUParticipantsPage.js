@@ -7,6 +7,7 @@ import IOUParticipantsSplit from './IOUParticipantsSplit';
 import IOUParticipantsRequest from './IOUParticipantsRequest';
 import styles from '../../../../styles/styles';
 import FullScreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
+import avatarPropTypes from '../../../../components/avatarPropTypes';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -23,7 +24,7 @@ const propTypes = {
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
         hasDraftComment: PropTypes.bool,
-        icons: PropTypes.arrayOf(PropTypes.string),
+        icons: PropTypes.arrayOf(avatarPropTypes),
         searchText: PropTypes.string,
         text: PropTypes.string,
         keyForList: PropTypes.string,
@@ -41,11 +42,18 @@ const propTypes = {
         /** Whether or not the IOU step is loading (retrieving participants) */
         loading: PropTypes.bool,
     }),
+
+    /** padding bottom style of safe area */
+    safeAreaPaddingBottomStyle: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
 };
 
 const defaultProps = {
     iou: {},
     participants: [],
+    safeAreaPaddingBottomStyle: {},
 };
 
 const IOUParticipantsPage = (props) => {
@@ -63,12 +71,14 @@ const IOUParticipantsPage = (props) => {
                 onStepComplete={props.onStepComplete}
                 participants={props.participants}
                 onAddParticipants={props.onAddParticipants}
+                safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle}
             />
         )
         : (
             <IOUParticipantsRequest
                 onStepComplete={props.onStepComplete}
                 onAddParticipants={props.onAddParticipants}
+                safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle}
             />
         )
     );

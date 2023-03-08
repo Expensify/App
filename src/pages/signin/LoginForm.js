@@ -17,7 +17,6 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
-import OfflineIndicator from '../../components/OfflineIndicator';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as ErrorUtils from '../../libs/ErrorUtils';
@@ -165,8 +164,8 @@ class LoginForm extends React.Component {
     }
 
     render() {
-        const formErrorTranslated = this.state.formError && this.props.translate(this.state.formError);
-        const error = formErrorTranslated || ErrorUtils.getLatestErrorMessage(this.props.account);
+        const formErrorText = this.state.formError ? this.props.translate(this.state.formError) : '';
+        const serverErrorText = ErrorUtils.getLatestErrorMessage(this.props.account);
         return (
             <>
                 <View accessibilityLabel="Login form" style={[styles.mt3]}>
@@ -183,6 +182,7 @@ class LoginForm extends React.Component {
                         autoCapitalize="none"
                         autoCorrect={false}
                         keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                        errorText={formErrorText}
                     />
                 </View>
                 {!_.isEmpty(this.props.account.success) && (
@@ -203,14 +203,13 @@ class LoginForm extends React.Component {
                                 buttonText={this.props.translate('common.continue')}
                                 isLoading={this.props.account.isLoading}
                                 onSubmit={this.validateAndSubmitForm}
-                                message={error}
-                                isAlertVisible={!_.isEmpty(error)}
+                                message={serverErrorText}
+                                isAlertVisible={!_.isEmpty(serverErrorText)}
                                 containerStyles={[styles.mh0]}
                             />
                         </View>
                     )
                 }
-                <OfflineIndicator containerStyles={[styles.mv1]} />
             </>
         );
     }

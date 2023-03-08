@@ -15,6 +15,7 @@ import styles from '../styles/styles';
 import DisplayNames from '../components/DisplayNames';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/ReportUtils';
+import * as Policy from '../libs/actions/Policy';
 import participantPropTypes from '../components/participantPropTypes';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
@@ -22,7 +23,8 @@ import MenuItem from '../components/MenuItem';
 import Text from '../components/Text';
 import CONST from '../CONST';
 import reportPropTypes from './reportPropTypes';
-import withReportOrNavigateHome from './home/report/withReportOrNavigateHome';
+import withReportOrNotFound from './home/report/withReportOrNotFound';
+import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -85,14 +87,19 @@ class ReportDetailsPage extends Component {
                 translationKey: 'common.invite',
                 icon: Expensicons.Plus,
                 action: () => { /* Placeholder for when inviting other users is built in */ },
-            },
-            {
+            });
+        }
+
+        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
+        if (ReportUtils.isUserCreatedPolicyRoom(this.props.report) || ReportUtils.canLeaveRoom(this.props.report, !_.isEmpty(policy))) {
+            menuItems.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: 'common.leaveRoom',
                 icon: Expensicons.Exit,
-                action: () => { /* Placeholder for when leaving rooms is built in */ },
+                action: () => Policy.leaveRoom(this.props.report.reportID),
             });
         }
+
         return menuItems;
     }
 
@@ -109,66 +116,68 @@ class ReportDetailsPage extends Component {
         const menuItems = this.getMenuItems();
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('common.details')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
-                <ScrollView style={[styles.flex1]}>
-                    <View style={[styles.m5]}>
-                        <View
-                            style={styles.reportDetailsTitleContainer}
-                        >
-                            <View style={styles.mb4}>
-                                <RoomHeaderAvatars
-                                    icons={ReportUtils.getIcons(this.props.report, this.props.personalDetails, this.props.policies)}
-                                />
-                            </View>
-                            <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
-                                <View style={[styles.alignSelfCenter, styles.w100]}>
-                                    <DisplayNames
-                                        fullTitle={ReportUtils.getReportName(this.props.report, this.props.policies)}
-                                        displayNamesWithTooltips={displayNamesWithTooltips}
-                                        tooltipEnabled
-                                        numberOfLines={1}
-                                        textStyles={[styles.textHeadline, styles.mb2, styles.textAlignCenter]}
-                                        shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
+                <FullPageNotFoundView shouldShow={_.isEmpty(this.props.report)}>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('common.details')}
+                        onBackButtonPress={() => Navigation.goBack()}
+                        onCloseButtonPress={() => Navigation.dismissModal()}
+                    />
+                    <ScrollView style={[styles.flex1]}>
+                        <View style={[styles.m5]}>
+                            <View
+                                style={styles.reportDetailsTitleContainer}
+                            >
+                                <View style={styles.mb4}>
+                                    <RoomHeaderAvatars
+                                        icons={ReportUtils.getIcons(this.props.report, this.props.personalDetails, this.props.policies)}
                                     />
                                 </View>
-                                <Text
-                                    style={[
-                                        styles.sidebarLinkText,
-                                        styles.optionAlternateText,
-                                        styles.textLabelSupporting,
-                                        styles.mb2,
-                                    ]}
-                                    numberOfLines={1}
-                                >
-                                    {chatRoomSubtitle}
-                                </Text>
+                                <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
+                                    <View style={[styles.alignSelfCenter, styles.w100]}>
+                                        <DisplayNames
+                                            fullTitle={ReportUtils.getReportName(this.props.report, this.props.policies)}
+                                            displayNamesWithTooltips={displayNamesWithTooltips}
+                                            tooltipEnabled
+                                            numberOfLines={1}
+                                            textStyles={[styles.textHeadline, styles.mb2, styles.textAlignCenter]}
+                                            shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
+                                        />
+                                    </View>
+                                    <Text
+                                        style={[
+                                            styles.sidebarLinkText,
+                                            styles.optionAlternateText,
+                                            styles.textLabelSupporting,
+                                            styles.mb2,
+                                        ]}
+                                        numberOfLines={1}
+                                    >
+                                        {chatRoomSubtitle}
+                                    </Text>
+                                </View>
                             </View>
                         </View>
-                    </View>
-                    {_.map(menuItems, (item) => {
-                        const brickRoadIndicator = (
-                            ReportUtils.hasReportNameError(this.props.report)
-                            && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS
-                        )
-                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                            : '';
-                        return (
-                            <MenuItem
-                                key={item.key}
-                                title={this.props.translate(item.translationKey)}
-                                subtitle={item.subtitle}
-                                icon={item.icon}
-                                onPress={item.action}
-                                shouldShowRightIcon
-                                brickRoadIndicator={brickRoadIndicator}
-                            />
-                        );
-                    })}
-                </ScrollView>
+                        {_.map(menuItems, (item) => {
+                            const brickRoadIndicator = (
+                                ReportUtils.hasReportNameError(this.props.report)
+                                && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS
+                            )
+                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                : '';
+                            return (
+                                <MenuItem
+                                    key={item.key}
+                                    title={this.props.translate(item.translationKey)}
+                                    subtitle={item.subtitle}
+                                    icon={item.icon}
+                                    onPress={item.action}
+                                    shouldShowRightIcon
+                                    brickRoadIndicator={brickRoadIndicator}
+                                />
+                            );
+                        })}
+                    </ScrollView>
+                </FullPageNotFoundView>
             </ScreenWrapper>
         );
     }
@@ -178,7 +187,7 @@ ReportDetailsPage.propTypes = propTypes;
 
 export default compose(
     withLocalize,
-    withReportOrNavigateHome,
+    withReportOrNotFound,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,

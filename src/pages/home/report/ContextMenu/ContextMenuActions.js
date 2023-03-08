@@ -1,3 +1,4 @@
+import React from 'react';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
@@ -16,6 +17,8 @@ import addEncryptedAuthTokenToURL from '../../../../libs/addEncryptedAuthTokenTo
 import * as ContextMenuUtils from './ContextMenuUtils';
 import * as Environment from '../../../../libs/Environment/Environment';
 import Permissions from '../../../../libs/Permissions';
+import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReactions';
+import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickEmojiReactions';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -35,6 +38,55 @@ const CONTEXT_MENU_TYPES = {
 
 // A list of all the context actions in this menu.
 export default [
+    {
+        shouldKeepOpen: true,
+        shouldShow: (type, reportAction) => reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU,
+        renderContent: (closePopover, {
+            reportID, reportAction, close: closeManually, openContextMenu,
+        }) => {
+            const isMini = !closePopover;
+
+            const closeContextMenu = (onHideCallback) => {
+                if (isMini) {
+                    closeManually();
+                    if (onHideCallback) {
+                        onHideCallback();
+                    }
+                } else {
+                    hideContextMenu(false, onHideCallback);
+                }
+            };
+
+            const onEmojiSelected = (emoji) => {
+                Report.toggleEmojiReaction(reportID, reportAction, emoji);
+                closeContextMenu();
+            };
+
+            if (isMini) {
+                return (
+                    <MiniQuickEmojiReactions
+                        key="MiniQuickEmojiReactions"
+                        onEmojiSelected={onEmojiSelected}
+                        onPressOpenPicker={openContextMenu}
+                        onEmojiPickerClosed={closeContextMenu}
+                    />
+                );
+            }
+
+            const hasMessage = _.has(reportAction, 'message');
+            if (!hasMessage) {
+                // It happens when we long-press on a link. We can only provide a reaction for messages
+                return null;
+            }
+            return (
+                <QuickEmojiReactions
+                    key="BaseQuickEmojiReactions"
+                    closeContextMenu={closeContextMenu}
+                    onEmojiSelected={onEmojiSelected}
+                />
+            );
+        },
+    },
     {
         textTranslateKey: 'common.download',
         icon: Expensicons.Download,
@@ -112,11 +164,7 @@ export default [
                     if (!Clipboard.canSetHtml()) {
                         Clipboard.setString(parser.htmlToMarkdown(content));
                     } else {
-                        // Thanks to how browsers work, when text is highlighted and CTRL+c is pressed, browsers end up doubling the amount of newlines. Since the code in this file is
-                        // triggered from a context menu and not CTRL+c, the newlines need to be doubled so that the content that goes into the clipboard is consistent with CTRL+c behavior.
-                        // The extra newlines are stripped when the contents are pasted into the compose input, but if the contents are pasted outside of the comment composer, it will
-                        // contain extra newlines and that's OK because it is consistent with CTRL+c behavior.
-                        const plainText = Str.htmlDecode(parser.htmlToText(content)).replace(/\n/g, '\n\n');
+                        const plainText = Str.htmlDecode(parser.htmlToText(content));
                         Clipboard.setHtml(content, plainText);
                     }
                 }
@@ -165,7 +213,6 @@ export default [
             }
         },
         getDescription: () => {},
-        autoReset: false,
     },
 
     {
