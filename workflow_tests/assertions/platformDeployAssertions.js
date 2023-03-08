@@ -1,6 +1,6 @@
 const utils = require('../utils');
 
-const assertVerifyActorJobExecuted = (workflowResult, didExecute = true) => {
+const assertVerifyActorJobExecuted = (workflowResult, username, didExecute = true) => {
     const steps = [
         utils.getStepAssertion(
             'Check if user is deployer',
@@ -8,7 +8,7 @@ const assertVerifyActorJobExecuted = (workflowResult, didExecute = true) => {
             null,
             'VALIDATE_ACTOR',
             'Checking if the user is a deployer',
-            [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'team', value: 'mobile-deployers'}],
+            [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'username', value: username}, {key: 'team', value: 'mobile-deployers'}],
         ),
     ];
 
@@ -549,7 +549,7 @@ const assertPostSlackOnSuccessJobExecuted = (workflowResult, didExecute = true, 
     }
 };
 
-const assertPostGithubCommentJobExecuted = (workflowResult, didExecute = true, isProduction = true) => {
+const assertPostGithubCommentJobExecuted = (workflowResult, didExecute = true, isProduction = true, didDeploy = true) => {
     const steps = [
         utils.getStepAssertion(
             'Checkout',
@@ -587,7 +587,7 @@ const assertPostGithubCommentJobExecuted = (workflowResult, didExecute = true, i
             null,
             'POST_GITHUB_COMMENT',
             'Commenting on issues',
-            [{key: 'PR_LIST', value: '[1.2.1, 1.2.2]'}, {key: 'IS_PRODUCTION_DEPLOY', value: isProduction ? 'true' : 'false'}, {key: 'DEPLOY_VERSION', value: '1.2.3'}, {key: 'GITHUB_TOKEN', value: '***'}, {key: 'ANDROID', value: 'success'}, {key: 'DESKTOP', value: 'success'}, {key: 'IOS', value: 'success'}, {key: 'WEB', value: 'success'}],
+            [{key: 'PR_LIST', value: '[1.2.1, 1.2.2]'}, {key: 'IS_PRODUCTION_DEPLOY', value: isProduction ? 'true' : 'false'}, {key: 'DEPLOY_VERSION', value: '1.2.3'}, {key: 'GITHUB_TOKEN', value: '***'}, {key: 'ANDROID', value: didDeploy ? 'success' : ''}, {key: 'DESKTOP', value: didDeploy ? 'success' : ''}, {key: 'IOS', value: didDeploy ? 'success' : ''}, {key: 'WEB', value: didDeploy ? 'success' : ''}],
         ),
     ];
 

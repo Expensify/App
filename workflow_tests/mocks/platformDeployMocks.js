@@ -5,7 +5,7 @@ const PLATFORM_DEPLOY__VALIDATE_ACTOR__CHECK_USER_DEPLOYER__TEAM_MEMBER__STEP_MO
     'Check if user is deployer',
     'Checking if the user is a deployer',
     'VALIDATE_ACTOR',
-    ['GITHUB_TOKEN', 'team'],
+    ['GITHUB_TOKEN', 'username', 'team'],
     null,
     {isTeamMember: true},
 );
