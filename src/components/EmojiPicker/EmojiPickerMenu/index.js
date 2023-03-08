@@ -472,7 +472,7 @@ class EmojiPickerMenu extends Component {
         const isFiltered = this.emojis.length !== this.state.filteredEmojis.length;
         return (
             <View
-                style={[styles.emojiPickerContainerWeb, StyleUtils.getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
+                style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
                 {!this.props.isSmallScreenWidth && (

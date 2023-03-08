@@ -1478,11 +1478,6 @@ const styles = {
         backgroundColor: themeColors.componentBG,
     },
 
-    emojiPickerContainerWeb: {
-        backgroundColor: themeColors.componentBG,
-        paddingBottom: 4,
-    },
-
     emojiPickerList: {
         height: 288,
         width: '100%',
