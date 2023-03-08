@@ -1351,12 +1351,13 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
  * @param {String} reportID
  * @param {Object} reportAction
  * @param {Object} emoji
- * @param {number} skinTone
+ * @param {number} paramSkinTone
  * @returns {Promise}
  */
-function toggleEmojiReaction(reportID, reportAction, emoji, skinTone = preferredSkinTone) {
+function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = preferredSkinTone) {
     const message = reportAction.message[0];
     const reactionObject = message.reactions && _.find(message.reactions, reaction => reaction.emoji === emoji.name);
+    const skinTone = emoji.types == null ? null : paramSkinTone; // only use skin tone if emoji supports it
     if (reactionObject) {
         if (hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone)) {
             return removeEmojiReaction(reportID, reportAction, emoji, skinTone);
