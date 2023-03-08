@@ -92,7 +92,7 @@ class EmojiPicker extends React.Component {
      * @param {Object} [anchorOrigin=DEFAULT_ANCHOR_ORIGIN] - Anchor origin for Popover
      * @param {Function} [onWillShow=() => {}] - Run a callback when Popover will show
      */
-    showEmojiPicker(onModalHide, onEmojiSelected, emojiPopoverAnchor, anchorOrigin, onWillShow) {
+    showEmojiPicker(onModalHide, onEmojiSelected, emojiPopoverAnchor, anchorOrigin, onWillShow = () => {}) {
         this.onModalHide = onModalHide;
         this.onEmojiSelected = onEmojiSelected;
         this.emojiPopoverAnchor = emojiPopoverAnchor;
@@ -103,9 +103,7 @@ class EmojiPicker extends React.Component {
         }
 
         this.measureEmojiPopoverAnchorPosition().then((emojiPopoverAnchorPosition) => {
-            if (onWillShow) {
-                onWillShow();
-            }
+            onWillShow();
             this.setState({isEmojiPickerVisible: true, emojiPopoverAnchorPosition, emojiPopoverAnchorOrigin: anchorOrigin || DEFAULT_ANCHOR_ORIGIN});
         });
     }

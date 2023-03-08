@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import BaseQuickEmojiReactions, {baseQuickEmojiReactionsDefaultProps, baseQuickEmojiReactionsPropTypes} from './BaseQuickEmojiReactions';
+import BaseQuickEmojiReactions, {baseQuickEmojiReactionsPropTypes} from './BaseQuickEmojiReactions';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
@@ -20,12 +20,10 @@ const QuickEmojiReactions = (props) => {
         // The picker is a popover as well and on mobile there can only
         // be one active popover at a time.
         props.closeContextMenu(() => {
-            requestAnimationFrame(() => {
-                // As the menu which includes the button to open the emoji picker
-                // gets closed, before the picker actually opens, we pass the composer
-                // ref as anchor for the emoji picker popover.
-                openPicker(ReportActionComposeFocusManager.composerRef.current);
-            });
+            // As the menu which includes the button to open the emoji picker
+            // gets closed, before the picker actually opens, we pass the composer
+            // ref as anchor for the emoji picker popover.
+            openPicker(ReportActionComposeFocusManager.composerRef.current);
         });
     };
 
@@ -37,5 +35,4 @@ const QuickEmojiReactions = (props) => {
 
 QuickEmojiReactions.displayName = 'QuickEmojiReactions';
 QuickEmojiReactions.propTypes = propTypes;
-QuickEmojiReactions.defaultProps = baseQuickEmojiReactionsDefaultProps;
 export default QuickEmojiReactions;

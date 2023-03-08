@@ -2909,12 +2909,16 @@ const styles = {
         fontSize: 12,
         lineHeight: 20,
         textAlignVertical: 'center',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
     },
     reactionCounterText: {
         fontSize: 11,
         marginLeft: 4,
         fontWeight: 'bold',
         color: themeColors.textLight,
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
     },
 
     fontColorReactionLabel: {

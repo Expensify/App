@@ -40,8 +40,8 @@ let preferredSkinTone;
 Onyx.connect({
     key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
     callback: (val) => {
-        // TODO: the preferred skin tone is sometimes still default, although it
-        //  was changed that "default" has become -1.
+        // the preferred skin tone is sometimes still "default", although it
+        // was changed that "default" has become -1.
         if (Number.isInteger(Number(val))) {
             preferredSkinTone = val;
         } else {
@@ -1224,8 +1224,24 @@ function getOptimisticDataForReportActionUpdate(originalReportAction, message, r
     ];
 }
 
+/**
+ * Returns true if the accountID has reacted to the report action (with the given skin tone).
+ * @param {String} accountID
+ * @param {Array<Object | String | number>} users
+ * @param {Number} [skinTone]
+ * @returns {boolean}
+ */
 function hasAccountIDReacted(accountID, users, skinTone) {
-    return _.find(users, user => user.accountID === accountID && (skinTone == null ? true : user.skinTone === skinTone)) != null;
+    return _.find(users, (user) => {
+        let userAccountID;
+        if (typeof user === 'object') {
+            userAccountID = `${user.accountID}`;
+        } else {
+            userAccountID = `${user}`;
+        }
+
+        return userAccountID === `${accountID}` && (skinTone == null ? true : user.skinTone === skinTone);
+    }) !== undefined;
 }
 
 /**
@@ -1249,8 +1265,7 @@ function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = pref
         reactionObject = {...reactionObject};
     }
 
-    const hasCurrentUserReacted = hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone);
-    if (hasCurrentUserReacted) {
+    if (hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone)) {
         return;
     }
 
@@ -1302,14 +1317,16 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
         // Replace the reaction object either with the updated one or null if there are no users
         _.map(message.reactions, (reaction) => {
             if (reaction.emoji === emoji.name) {
-                if (reaction.users.length === 0) { return null; }
+                if (updatedReactionObject.users.length === 0) {
+                    return null;
+                }
                 return updatedReactionObject;
             }
             return reaction;
         }),
 
         // Remove any null reactions
-        r => r != null,
+        reportObject => reportObject !== null,
     );
 
     const updatedMessage = {
@@ -1334,15 +1351,15 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
  * @param {String} reportID
  * @param {Object} reportAction
  * @param {Object} emoji
- * @param {number} skinTone
+ * @param {number} paramSkinTone
  * @returns {Promise}
  */
-function toggleEmojiReaction(reportID, reportAction, emoji, skinTone = preferredSkinTone) {
+function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = preferredSkinTone) {
     const message = reportAction.message[0];
     const reactionObject = message.reactions && _.find(message.reactions, reaction => reaction.emoji === emoji.name);
+    const skinTone = emoji.types == null ? null : paramSkinTone; // only use skin tone if emoji supports it
     if (reactionObject) {
-        const hasCurrentUserReacted = hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone);
-        if (hasCurrentUserReacted) {
+        if (hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone)) {
             return removeEmojiReaction(reportID, reportAction, emoji, skinTone);
         }
     }
@@ -1383,4 +1400,5 @@ export {
     addEmojiReaction,
     removeEmojiReaction,
     toggleEmojiReaction,
+    hasAccountIDReacted,
 };

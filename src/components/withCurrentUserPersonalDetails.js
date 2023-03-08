@@ -22,10 +22,7 @@ export default function (WrappedComponent) {
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 ref={props.forwardedRef}
-                currentUserPersonalDetails={{
-                    ...props.session,
-                    ...props.personalDetails[currentUserEmail],
-                }}
+                currentUserPersonalDetails={props.personalDetails[currentUserEmail]}
             />
         );
     };
