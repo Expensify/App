@@ -199,7 +199,7 @@ const AddressSearch = (props) => {
                     query={query}
                     requestUrl={{
                         useOnPlatform: 'all',
-                        url: ApiUtils.getCommandUrl({command: 'Proxy_GooglePlaces&proxyUrl='}),
+                        url: ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
                     }}
                     textInputProps={{
                         InputComp: TextInput,

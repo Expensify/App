@@ -64,7 +64,7 @@ function getApiRoot(request) {
  * @param {Boolean} [request.shouldUseSecure]
  * @returns {String}
  */
-function getCommandUrl(request) {
+function getCommandURL(request) {
     return `${getApiRoot(request)}api?command=${request.command}`;
 }
 
@@ -79,7 +79,7 @@ function isUsingStagingApi() {
 
 export {
     getApiRoot,
-    getCommandUrl,
+    getCommandURL,
     isUsingStagingApi,
 };
 

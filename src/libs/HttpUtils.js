@@ -108,7 +108,7 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
         formData.append(key, val);
     });
 
-    const url = ApiUtils.getCommandUrl({shouldUseSecure, command});
+    const url = ApiUtils.getCommandURL({shouldUseSecure, command});
     return processHTTPRequest(url, type, formData, data.canCancel);
 }
 
