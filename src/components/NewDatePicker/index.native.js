@@ -6,7 +6,7 @@ import compose from '../../libs/compose';
 import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
-import {propTypes, defaultProps} from './datepickerPropTypes';
+import {propTypes, defaultProps} from './datePickerPropTypes';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 import CalendarPicker from '../CalendarPicker';
 import withNavigation from '../withNavigation';
