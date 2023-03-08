@@ -14,7 +14,7 @@ const propTypes = {
 };
 
 const SignInHeroImage = () => (
-    <View style={[{backgroundColor: 'blue'}, {flex: 1}, styles.alignSelfCenter]}>
+    <View style={[{backgroundColor: 'transparent'}, {flex: 1}, styles.alignSelfCenter]}>
         {/* <Icon
             width={props.isMediumScreenWidth ? variables.signInHeroImageDesktop : variables.signInHeroImageDesktopLarge}
             height={props.isMediumScreenWidth ? variables.signInHeroImageDesktop : variables.signInHeroImageDesktopLarge}

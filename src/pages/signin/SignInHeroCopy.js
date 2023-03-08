@@ -13,7 +13,7 @@ const propTypes = {
 };
 
 const SignInHeroCopy = props => (
-    <View style={[styles.flex1, styles.alignSelfCenter, {backgroundColor: 'forestgreen'}, {gap: 36}]}>
+    <View style={[styles.flex1, styles.alignSelfCenter, {backgroundColor: 'transparent'}, {gap: 36}]}>
         <Text style={[styles.loginHeroHeader, props.isMediumScreenWidth ? {fontSize: 50} : {}]}>
             {props.translate('login.hero.header')}
         </Text>

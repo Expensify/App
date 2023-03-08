@@ -10,6 +10,7 @@ import styles from '../../../styles/styles';
 import SignInPageHero from '../SignInPageHero';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import scrollViewContentContainerStyles from './signInPageStyles';
+import themeColors from '../../../styles/themes/default';
 
 // import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_background-fade.png';
 import SignInHeroBackgroundImage from '../../../../assets/images/home-background--desktop.svg';
@@ -52,14 +53,18 @@ const SignInPageLayout = (props) => {
                             {props.children}
                         </SignInPageContent>
                         <ScrollView
-                            style={[styles.flex1]}
+                            style={[styles.flex1, {backgroundColor: themeColors.midtone}]}
                             contentContainerStyle={[styles.flex1]}
                         >
-                            <View style={[{backgroundColor: 'forestgreen'}, styles.alignItemsCenter]}>
+                            <View style={[styles.flex1, styles.alignItemsCenter]}>
                                 <SignInHeroBackgroundImage
                                     pointerEvents="none"
                                     height="100%"
-                                    style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
+                                    style={{
+                                        height: '100%',
+                                        width: 'auto',
+                                        position: 'absolute',
+                                    }}
                                 />
                                 <View style={[{maxWidth: 1360}, {backgroundColor: 'transparent'}, {paddingHorizontal: 40}]}>
                                     <View style={[{backgroundColor: 'transparent'}]}>
