@@ -39,7 +39,7 @@ class DateOfBirthPage extends Component {
 
         this.validate = this.validate.bind(this);
         this.updateDateOfBirth = this.updateDateOfBirth.bind(this);
-        this.readParams = this.readParams.bind(this);
+        this.getYearFromRouteParams = this.getYearFromRouteParams.bind(this);
         this.minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
         this.maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'Y').toDate();
 
@@ -49,18 +49,18 @@ class DateOfBirthPage extends Component {
     }
 
     componentDidMount() {
-        this.props.navigation.addListener('focus', this.readParams);
+        this.props.navigation.addListener('focus', this.getYearFromRouteParams);
     }
 
     componentWillUnmount() {
-        this.props.navigation.removeListener('focus', this.readParams);
+        this.props.navigation.removeListener('focus', this.getYearFromRouteParams);
     }
 
     /**
      * Function to be called to read year from params - necessary to read passed year from the Year picker which is a separate screen
      * It allows to display selected year in the calendar picker without overwriting this value in Onyx
      */
-    readParams() {
+    getYearFromRouteParams() {
         const {params} = this.props.route;
         if (params && params.year) {
             this.setState({defaultYear: params.year});
