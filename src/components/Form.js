@@ -297,7 +297,7 @@ class Form extends React.Component {
                     onSubmit={this.submit}
                     onFixTheErrorsLinkPressed={() => {
                         const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
-                        const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
+                        const focusKey = _.find(_.keys(this.inputRefs), key => !_.isEmpty(errors[key]));
                         const focusInput = this.inputRefs[focusKey];
                         if (focusInput.focus && typeof focusInput.focus === 'function') {
                             focusInput.focus();
