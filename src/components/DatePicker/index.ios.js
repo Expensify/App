@@ -11,7 +11,7 @@ import Popover from '../Popover';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
-import {propTypes, defaultProps} from './datepickerPropTypes';
+import {propTypes, defaultProps} from './datePickerPropTypes';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 
 const datepickerPropTypes = {

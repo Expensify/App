@@ -6,7 +6,7 @@ import TextInput from '../TextInput';
 import CalendarPicker from '../CalendarPicker';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
-import {propTypes as datePickerPropTypes, defaultProps as defaultDatePickerProps} from './_datepickerPropTypes';
+import {propTypes as datePickerPropTypes, defaultProps as defaultDatePickerProps} from './datePickerPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import './styles.css';
 
