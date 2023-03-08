@@ -7,6 +7,7 @@ import EmojiReactionBubble from './EmojiReactionBubble';
 import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
+import getPreferredEmojiCode from './getPreferredEmojiCode';
 
 /**
  * Given an emoji object and a list of senders it will return an
@@ -19,7 +20,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 const getUniqueEmojiCodes = (emoji, users) => {
     const emojiCodes = [];
     _.forEach(users, (user) => {
-        const emojiCode = (emoji.types && emoji.types[user.skinTone]) ? emoji.types[user.skinTone] : emoji.code;
+        const emojiCode = getPreferredEmojiCode(emoji, user.skinTone);
 
         if (emojiCode && !emojiCodes.includes(emojiCode)) {
             emojiCodes.push(emojiCode);
@@ -35,6 +36,15 @@ const defaultProps = {
 const propTypes = {
     /**
      * An array of objects containing the reaction data.
+     * The shape of a reaction looks like this:
+     *
+     * "reactionName": {
+     *     emoji: string,
+     *     users: {
+     *         accountID: string,
+     *         skinTone: number,
+     *     }[]
+     * }
      */
     // eslint-disable-next-line react/forbid-prop-types
     reactions: PropTypes.arrayOf(PropTypes.object).isRequired,
@@ -59,44 +69,47 @@ const propTypes = {
 
 };
 
-const ReportActionItemReactions = props => (
-    <View style={[styles.flexRow, styles.flexWrap]}>
-        {_.map(props.reactions, (reaction) => {
-            const reactionCount = reaction.users.length;
-            const reactionUsers = _.map(reaction.users, sender => `${sender.accountID}`);
-            const emoji = _.find(emojis, e => e.name === reaction.emoji);
-            const emojiCodes = getUniqueEmojiCodes(emoji, reaction.users);
-            const hasUserReacted = _.includes(reactionUsers, `${props.currentUserPersonalDetails.accountID}`);
+const ReportActionItemReactions = (props) => {
+    const reactionsWithCount = _.filter(props.reactions, reaction => reaction.users.length > 0);
 
-            const onPress = () => {
-                props.toggleReaction(emoji);
-            };
+    return (
+        <View style={[styles.flexRow, styles.flexWrap]}>
+            {_.map(reactionsWithCount, (reaction) => {
+                const reactionCount = reaction.users.length;
+                if (reactionCount === 0) {
+                    return null;
+                }
 
-            if (reactionCount === 0) {
-                return null;
-            }
+                const reactionUsers = _.map(reaction.users, sender => `${sender.accountID}`);
+                const emoji = _.find(emojis, e => e.name === reaction.emoji);
+                const emojiCodes = getUniqueEmojiCodes(emoji, reaction.users);
+                const hasUserReacted = _.includes(reactionUsers, `${props.currentUserPersonalDetails.accountID}`);
 
-            const onReactionListOpen = (event) => {
-                props.onReactionListOpen(event, reactionUsers, reaction.emoji, emojiCodes, reactionCount, hasUserReacted);
-            };
+                const onPress = () => {
+                    props.toggleReaction(emoji);
+                };
+                const onReactionListOpen = (event) => {
+                    props.onReactionListOpen(event, reactionUsers, reaction.emoji, emojiCodes, reactionCount, hasUserReacted);
+                };
 
-            return (
-                <EmojiReactionBubble
-                    ref={props.forwardedRef}
-                    key={reaction.emoji}
-                    count={reactionCount}
-                    emojiName={reaction.emoji}
-                    emojiCodes={emojiCodes}
-                    onPress={onPress}
-                    reactionUsers={reactionUsers}
-                    hasUserReacted={hasUserReacted}
-                    onReactionListOpen={onReactionListOpen}
-                />
-            );
-        })}
-        {props.reactions.length > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}
-    </View>
-);
+                return (
+                    <EmojiReactionBubble
+                        ref={props.forwardedRef}
+                        key={reaction.emoji}
+                        count={reactionCount}
+                        emojiName={reaction.emoji}
+                        emojiCodes={emojiCodes}
+                        onPress={onPress}
+                        reactionUsers={reactionUsers}
+                        hasUserReacted={hasUserReacted}
+                        onReactionListOpen={onReactionListOpen}
+                    />
+                );
+            })}
+            {reactionsWithCount.length > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}
+        </View>
+    );
+};
 
 ReportActionItemReactions.displayName = 'ReportActionItemReactions';
 ReportActionItemReactions.propTypes = propTypes;

@@ -84,9 +84,6 @@ const RenderContent = () => {
         </div>
     );
 };
-RenderContent.args = {
-
-};
 
 export default story;
 export {

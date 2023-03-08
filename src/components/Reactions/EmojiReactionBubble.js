@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+
 import styles from '../../styles/styles';
 import Text from '../Text';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -68,6 +69,7 @@ const EmojiReactionBubble = props => (
         )}
     >
         <PressableWithSecondaryInteraction
+
             style={({hovered}) => [
                 styles.emojiReactionBubble,
                 StyleUtils.getEmojiReactionBubbleStyle(hovered, props.hasUserReacted, props.sizeScale),
