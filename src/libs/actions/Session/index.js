@@ -329,7 +329,6 @@ function signInWithValidateCode(accountID, validateCode) {
         },
     ];
 
-    // This is temporary for now. Server should login with the accountID and validateCode
     API.write('SigninUserWithLink', {
         validateCode,
         accountID,
