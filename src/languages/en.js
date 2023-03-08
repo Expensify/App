@@ -227,6 +227,8 @@ export default {
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
+        addEmojiReaction: 'Add emoji reaction',
+        addReactionTooltip: 'Add Reaction…',
     },
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'You missed the party in ',
