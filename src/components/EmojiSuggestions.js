@@ -97,6 +97,14 @@ const getStyledTextArray = (name, prefix) => {
     return texts;
 };
 
+/**
+     * Create unique keys for each emoji item
+     * @param {Object} item
+     * @param {Number} index
+     * @returns {String}
+     */
+const keyExtractor = (item, index) => `${item.name}+${index}}`;
+
 const EmojiSuggestions = (props) => {
     /**
      * Render a suggestion menu item component.
@@ -153,7 +161,7 @@ const EmojiSuggestions = (props) => {
                 keyboardShouldPersistTaps="handled"
                 data={props.emojis}
                 renderItem={renderSuggestionMenuItem}
-                keyExtractor={item => item.name}
+                keyExtractor={keyExtractor}
                 style={{height: rowHeight}}
             />
         </View>
