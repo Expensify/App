@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import CONST from '../../CONST';
 
-const calendarPickerPropType = {
+const propTypes = {
     /** An initial value of date */
     value: PropTypes.objectOf(Date),
 
@@ -25,7 +25,7 @@ const calendarPickerPropType = {
     onYearPressed: PropTypes.func,
 };
 
-const defaultCalendarPickerPropType = {
+const defaultProps = {
     value: new Date(),
     minDate: moment().year(CONST.CALENDAR_PICKER.MIN_YEAR).toDate(),
     maxDate: moment().year(CONST.CALENDAR_PICKER.MAX_YEAR).toDate(),
@@ -35,4 +35,4 @@ const defaultCalendarPickerPropType = {
     onYearPressed: () => {},
 };
 
-export {calendarPickerPropType, defaultCalendarPickerPropType};
+export {propTypes, defaultProps};

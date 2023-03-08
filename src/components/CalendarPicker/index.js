@@ -5,8 +5,7 @@ import moment from 'moment';
 import Text from '../Text';
 import ArrowIcon from './ArrowIcon';
 import styles from '../../styles/styles';
-// eslint-disable-next-line rulesdir/prefer-import-module-contents
-import {calendarPickerPropType, defaultCalendarPickerPropType} from './calendarPickerPropTypes';
+import {propTypes, defaultProps} from './calendarPickerPropTypes';
 import generateMonthMatrix from './generateMonthMatrix';
 import withLocalize from '../withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -48,7 +47,7 @@ class CalendarPicker extends React.PureComponent {
         // // Check if either the defaultYear
         if (this.props.defaultYear !== prevProps.defaultYear) {
             // If only the defaultYear prop has changed, update the currentDateView state with the new year value
-            this.setState(prev => ({...prev, currentDateView: moment(prev.currentDateView).set('year', this.props.defaultYear).toDate()}));
+            this.setState(prev => ({currentDateView: moment(prev.currentDateView).set('year', this.props.defaultYear).toDate()}));
         }
     }
 
@@ -163,7 +162,7 @@ class CalendarPicker extends React.PureComponent {
     }
 }
 
-CalendarPicker.propTypes = calendarPickerPropType;
-CalendarPicker.defaultProps = defaultCalendarPickerPropType;
+CalendarPicker.propTypes = propTypes;
+CalendarPicker.defaultProps = defaultProps;
 
 export default withLocalize(CalendarPicker);

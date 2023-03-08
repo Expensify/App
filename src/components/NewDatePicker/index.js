@@ -30,11 +30,9 @@ class NewDatePicker extends React.Component {
 
         this.setDate = this.setDate.bind(this);
         this.togglePicker = this.togglePicker.bind(this);
-        this.removeClickListener = this.removeClickListener.bind(this);
         this.handleOutsideClick = this.handleOutsideClick.bind(this);
 
         this.opacity = new Animated.Value(0);
-        this.wrapperRef = React.createRef();
 
         /* We're using uncontrolled input otherwise it wont be possible to
         * raise change events with a date value - each change will produce a date
@@ -48,15 +46,8 @@ class NewDatePicker extends React.Component {
         document.addEventListener('mousedown', this.handleOutsideClick);
     }
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    componentDidUpdate(prevProps) {
-        if (prevProps.maxDate !== this.props.maxDate) {
-            document.addEventListener('mousedown', this.handleOutsideClick);
-        }
-    }
-
     componentWillUnmount() {
-        this.removeClickListener();
+        document.removeEventListener('mousedown', this.handleOutsideClick);
     }
 
     /**
@@ -77,16 +68,9 @@ class NewDatePicker extends React.Component {
      */
     // eslint-disable-next-line rulesdir/prefer-early-return
     handleOutsideClick(event) {
-        if (this.wrapperRef.current && !this.wrapperRef.current.contains(event.target) && this.wrapperRef.current !== event.target && this.state.isPickerVisible) {
+        if (this.wrapperRef && this.wrapperRef.current && !this.wrapperRef.current.contains(event.target) && this.wrapperRef.current !== event.target && this.state.isPickerVisible) {
             this.togglePicker();
         }
-    }
-
-    /**
-     * Function to remove event listener on clicking outside, to prevent unexpected showing/hiding the datepicker
-     */
-    removeClickListener() {
-        document.removeEventListener('mousedown', this.handleOutsideClick);
     }
 
     /**
@@ -110,11 +94,11 @@ class NewDatePicker extends React.Component {
             <View ref={this.wrapperRef} style={[this.props.isSmallScreenWidth ? styles.flex2 : {}]}>
                 <TextInput
                     forceActiveLabel
-                    // eslint-disable-next-line rulesdir/prefer-early-return
                     ref={(el) => {
-                        if (_.isFunction(this.props.innerRef)) {
-                            this.props.innerRef(el);
+                        if (!_.isFunction(this.props.innerRef)) {
+                            return;
                         }
+                        this.props.innerRef(el);
                     }}
                     onPress={this.togglePicker}
                     label={this.props.label}
@@ -133,7 +117,6 @@ class NewDatePicker extends React.Component {
                         maxDate={this.props.maxDate}
                         value={this.state.selectedDate}
                         onSelected={this.setDate}
-                        onYearPressed={this.removeClickListener}
                         defaultYear={this.props.defaultYear}
                     />
                 </Animated.View>
