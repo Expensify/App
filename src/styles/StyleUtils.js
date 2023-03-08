@@ -418,13 +418,19 @@ function getModalPaddingStyles({
     modalContainerStyleMarginBottom,
     modalContainerStylePaddingTop,
     modalContainerStylePaddingBottom,
+    statusBarTranslucent,
+    statusBarHeight,
 }) {
+    let paddingTop = shouldAddTopSafeAreaPadding
+        ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
+        : modalContainerStylePaddingTop || 0;
+    if (statusBarTranslucent) {
+        paddingTop += statusBarHeight;
+    }
     return {
         marginTop: (modalContainerStyleMarginTop || 0) + (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0),
         marginBottom: (modalContainerStyleMarginBottom || 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottom : 0),
-        paddingTop: shouldAddTopSafeAreaPadding
-            ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
-            : modalContainerStylePaddingTop || 0,
+        paddingTop,
         paddingBottom: shouldAddBottomSafeAreaPadding
             ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottom
             : modalContainerStylePaddingBottom || 0,
