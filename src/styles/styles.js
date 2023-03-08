@@ -2843,7 +2843,7 @@ const styles = {
         flexShrink: 0,
         maxWidth: variables.badgeMaxWidth,
         fontSize: variables.fontSizeSmall,
-        whiteSpace: 'pre',
+        ...whiteSpace.pre,
         ...spacing.ph2,
     },
 
