@@ -157,6 +157,7 @@ class ReportActionsList extends React.Component {
                     contentContainerStyle={[
                         styles.chatContentScrollView,
                         shouldShowReportRecipientLocalTime && styles.pt0,
+                        {overflow: 'hidden', flex: 1},
                     ]}
                     keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
