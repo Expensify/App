@@ -497,4 +497,173 @@ describe('actions/Report', () => {
                 expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION);
             });
     });
+
+    it('should properly toggle reactions on a message', () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@test.com';
+        const REPORT_ID = 1;
+        const EMOJI_CODE = '👍';
+        const EMOJI_SKIN_TONE = 2;
+        const EMOJI_NAME = '+1';
+        const EMOJI = {
+            code: EMOJI_CODE,
+            name: EMOJI_NAME,
+        };
+
+        let reportActions;
+
+        Onyx.connect({
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+            callback: val => reportActions = val,
+        });
+
+        // Set up Onyx with some test user data
+        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
+            .then(() => {
+                User.subscribeToUserEvents();
+                return waitForPromisesToResolve();
+            })
+            .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
+            .then(() => {
+                // This is a fire and forget response, but once it completes we should be able to verify that we
+                // have an "optimistic" report action in Onyx.
+                Report.addComment(REPORT_ID, 'Testing a comment');
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                const resultAction = _.first(_.values(reportActions));
+
+                // Add a reaction to the comment
+                Report.addEmojiReaction(REPORT_ID, resultAction, EMOJI);
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                const resultAction = _.first(_.values(reportActions));
+
+                // Expect to have the reaction on the message
+                expect(resultAction.message[0].reactions)
+                    .toEqual(expect.arrayContaining([
+                        expect.objectContaining({
+                            emoji: EMOJI_NAME,
+                            users: expect.arrayContaining([
+                                expect.objectContaining({accountID: TEST_USER_ACCOUNT_ID}),
+                            ]),
+                        })]));
+
+                // Now we remove the reaction
+                Report.removeEmojiReaction(REPORT_ID, resultAction, EMOJI);
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                // Expect that the reaction is removed
+                const resultAction = _.first(_.values(reportActions));
+
+                expect(resultAction.message[0].reactions).toHaveLength(0);
+            })
+            .then(() => {
+                const resultAction = _.first(_.values(reportActions));
+
+                // Add the reaction to the comment, but two times with different variations
+                Report.addEmojiReaction(REPORT_ID, resultAction, EMOJI);
+                return waitForPromisesToResolve()
+                    .then(() => {
+                        const updatedResultAction = _.first(_.values(reportActions));
+                        Report.addEmojiReaction(
+                            REPORT_ID,
+                            updatedResultAction,
+                            EMOJI,
+                            2,
+                        );
+                        return waitForPromisesToResolve();
+                    })
+                    .then(() => {
+                        const updatedResultAction = _.first(_.values(reportActions));
+
+                        // Expect to have the reaction on the message
+                        expect(updatedResultAction.message[0].reactions)
+                            .toEqual(expect.arrayContaining([
+                                expect.objectContaining({
+                                    emoji: EMOJI_NAME,
+                                    users: expect.arrayContaining([
+                                        expect.objectContaining({
+                                            accountID: TEST_USER_ACCOUNT_ID,
+                                        }),
+                                        expect.objectContaining({
+                                            accountID: TEST_USER_ACCOUNT_ID,
+                                            skinTone: EMOJI_SKIN_TONE,
+                                        }),
+                                    ]),
+                                })]));
+
+                        // Now we remove the reaction, and expect that both variations are removed
+                        Report.removeEmojiReaction(REPORT_ID, updatedResultAction, EMOJI);
+                        return waitForPromisesToResolve();
+                    })
+                    .then(() => {
+                        // Expect that the reaction is removed
+                        const updatedResultAction = _.first(_.values(reportActions));
+
+                        expect(updatedResultAction.message[0].reactions).toHaveLength(0);
+                    });
+            });
+    });
+
+    it('shouldn\'t add the same reaction twice when changing preferred skin color and reaction doesn\'t support skin colors', () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@test.com';
+        const REPORT_ID = 1;
+        const EMOJI_CODE = '😄';
+        const EMOJI_NAME = 'smile';
+        const EMOJI = {
+            code: EMOJI_CODE,
+            name: EMOJI_NAME,
+        };
+
+        let reportActions;
+
+        Onyx.connect({
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+            callback: val => reportActions = val,
+        });
+
+        // Set up Onyx with some test user data
+        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
+            .then(() => {
+                User.subscribeToUserEvents();
+                return waitForPromisesToResolve();
+            })
+            .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
+            .then(() => {
+                // This is a fire and forget response, but once it completes we should be able to verify that we
+                // have an "optimistic" report action in Onyx.
+                Report.addComment(REPORT_ID, 'Testing a comment');
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                const resultAction = _.first(_.values(reportActions));
+
+                // Add a reaction to the comment
+                Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI);
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                const resultAction = _.first(_.values(reportActions));
+
+                // Now we toggle the reaction while the skin tone has changed.
+                // As the emoji doesn't support skin tones, the emoji
+                // should get removed instead of added again.
+                Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, 2);
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                const resultAction = _.first(_.values(reportActions));
+
+                // Expect to have the reaction on the message
+                expect(resultAction.message[0].reactions).toHaveLength(0);
+            });
+    });
 });

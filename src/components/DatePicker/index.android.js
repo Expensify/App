@@ -25,21 +25,17 @@ class DatePicker extends React.Component {
      * @param {Date} selectedDate
      */
     setDate(event, selectedDate) {
+        this.setState({isPickerVisible: false});
+
         if (event.type === 'set') {
             const asMoment = moment(selectedDate, true);
             this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
         }
-
-        this.setState({isPickerVisible: false});
     }
 
-    /**
-     * @param {Event} event
-     */
-    showPicker(event) {
+    showPicker() {
         Keyboard.dismiss();
         this.setState({isPickerVisible: true});
-        event.preventDefault();
     }
 
     render() {
@@ -63,6 +59,13 @@ class DatePicker extends React.Component {
                         if (!_.isFunction(this.props.innerRef)) {
                             return;
                         }
+                        if (el && el.focus && typeof el.focus === 'function') {
+                            let inputRef = {...el};
+                            inputRef = {...inputRef, focus: this.showPicker};
+                            this.props.innerRef(inputRef);
+                            return;
+                        }
+
                         this.props.innerRef(el);
                     }}
                 />

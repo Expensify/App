@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '../CONST';
 
 /* eslint-disable max-len */
@@ -85,7 +86,7 @@ export default {
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
         error: {
             invalidAmount: 'Invalid amount',
-            acceptedTerms: 'You must accept the Terms of Service to continue',
+            acceptTerms: 'You must accept the Terms of Service to continue',
             phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'This field is required.',
             characterLimit: ({limit}) => `Exceeds the maximum length of ${limit} characters`,
@@ -119,6 +120,8 @@ export default {
         youAppearToBeOffline: 'You appear to be offline.',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
         areYouSure: 'Are you sure?',
+        verify: 'Verify',
+        yesContinue: 'Yes, continue',
         zipCodeExample: 'e.g. 12345, 12345-1234, 12345 1234',
         websiteExample: 'e.g. https://www.expensify.com',
     },
@@ -225,6 +228,8 @@ export default {
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
+        addEmojiReaction: 'Add emoji reaction',
+        addReactionTooltip: 'Add Reaction…',
     },
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'You missed the party in ',
@@ -342,6 +347,20 @@ export default {
     contacts: {
         contactMethod: 'Contact method',
         contactMethods: 'Contact methods',
+        helpTextBeforeEmail: 'Add more ways for people to find you, and forward receipts to ',
+        helpTextAfterEmail: ' from multiple email addresses.',
+        pleaseVerify: 'Please verify this contact method',
+        getInTouch: "Whenever we need to get in touch with you, we'll use this contact method.",
+        enterMagicCode: ({contactMethod}) => `Please enter the magic code sent to ${contactMethod}`,
+        yourDefaultContactMethod: 'This is your current default contact method. You will not be able to delete this contact method until you set an alternative default by selecting another contact method and pressing “Set as default”.',
+        removeContactMethod: 'Remove contact method',
+        removeAreYouSure: 'Are you sure you want to remove this contact method? This action cannot be undone.',
+        resendMagicCode: 'Resend magic code',
+        genericFailureMessages: {
+            requestContactMethodValidateCode: 'Failed to send a new magic code. Please wait a bit and try again.',
+            validateSecondaryLogin: 'Failed to validate contact method with given magic code. Please request a new code and try again.',
+            deleteContactMethod: 'Failed to delete contact method. Please reach out to Concierge for help.',
+        },
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -378,8 +397,8 @@ export default {
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add phone number',
         addEmailAddress: 'Add email address',
-        enterPreferredPhoneNumberToSendValidationLink: 'Enter your preferred phone number and password to send a validation link.',
-        enterPreferredEmailToSendValidationLink: 'Enter your preferred email address and password to send a validation link.',
+        enterPreferredPhoneNumberToSendValidationLink: 'Enter your preferred phone number to send a validation link.',
+        enterPreferredEmailToSendValidationLink: 'Enter your preferred email address to send a validation link.',
         sendValidation: 'Send validation',
     },
     initialSettingsPage: {
@@ -569,6 +588,7 @@ export default {
         enterAuthenticatorCode: 'Please enter your authenticator code',
         twoFactorCode: 'Two factor code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
+        codeSent: 'Magic code sent!',
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
             incorrectMagicCode: 'Incorrect magic code.',
@@ -1046,35 +1066,6 @@ export default {
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
     },
-    requestCallPage: {
-        title: 'Request a call',
-        subtitle: 'Need help, or a demo?',
-        description: 'Our team is ready to help each step of the way. Enter your name and phone number, and we\'ll give you a call back ASAP.*',
-        phoneNumberExtension: 'Extension (Optional)',
-        callMe: 'Call me',
-        growlMessageOnSave: 'Call requested.',
-        callButton: 'Call',
-        callButtonTooltip: 'Get live help from our team',
-        blockedFromConcierge: 'Due to previous interactions with our staff, a call cannot be scheduled at this time.',
-        waitTime: {
-            calculating: 'Calculating wait time...',
-            fiveHoursPlus: 'The current wait time is longer than 5 hours.',
-            hoursAndMinutes: ({minutes}) => `The current wait time is ${Math.floor(minutes / 60)} hours and ${minutes % 60} minutes. `,
-            minutes: ({minutes}) => `The current wait time is ${minutes} minutes. `,
-            weekend: 'We have limited availability on the weekends. We\'ll give you a call back as soon as we can. ',
-            guides: 'Please note that our Guides are typically available from Sunday at 5pm CT to Friday at 5pm CT.',
-        },
-        error: {
-            phoneNumberExtension: 'Please enter a valid phone extension number',
-            firstName: 'Please provide your first name',
-            lastName: 'Please provide your last name',
-        },
-    },
-    requestCallConfirmationScreen: {
-        callRequested: 'Call successfully requested!',
-        allSet: 'You’re all set. You will be receiving a call from us soon.',
-        gotIt: 'Got it',
-    },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
         headers: {
@@ -1096,6 +1087,7 @@ export default {
         visibility: 'Visibility',
         restrictedDescription: 'People in your workspace can find this room',
         privateDescription: 'People invited to this room can find it',
+        publicDescription: 'Anyone can find it',
         createRoom: 'Create room',
         roomAlreadyExistsError: 'A room with this name already exists',
         roomNameReservedError: 'A room on this workspace already uses this name',
@@ -1109,6 +1101,8 @@ export default {
         visibilityOptions: {
             restricted: 'Restricted',
             private: 'Private',
+            public: 'Public',
+            public_announce: 'Public Announce',
         },
     },
     statementPage: {
@@ -1181,4 +1175,35 @@ export default {
     report: {
         genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
     },
+    footer: {
+        features: 'Features',
+        expenseManagement: 'Expense Management',
+        spendManagement: 'Spend Management',
+        expenseReports: 'Expense Reports',
+        companyCreditCard: 'Company Credit Card',
+        receiptScanningApp: 'Receipt Scanning App',
+        billPay: 'Bill Pay',
+        invoicing: 'Invoicing',
+        CPACard: 'CPA Card',
+        payroll: 'Payroll',
+        travel: 'Travel',
+        resources: 'Resources',
+        expensifyApproved: 'ExpensifyApproved!',
+        pressKit: 'Press Kit',
+        support: 'Support',
+        expensifyHelp: 'ExpensifyHelp',
+        community: 'Community',
+        privacy: 'Privacy',
+        learnMore: 'Learn More',
+        aboutExpensify: 'About Expensify',
+        blog: 'Blog',
+        jobs: 'Jobs',
+        expensifyOrg: 'Expensify.org',
+        investorRelations: 'Investor Relations',
+        getStarted: 'Get Started',
+        createAccount: 'Create a new account',
+        logIn: 'Log in',
+    },
+    allStates: COMMON_CONST.STATES,
+    allCountries: CONST.ALL_COUNTRIES,
 };

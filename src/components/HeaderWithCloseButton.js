@@ -128,7 +128,7 @@ class HeaderWithCloseButton extends Component {
 
     render() {
         return (
-            <View style={[styles.headerBar, this.props.shouldShowBorderBottom && styles.borderBottom]}>
+            <View style={[styles.headerBar, this.props.shouldShowBorderBottom && styles.borderBottom, this.props.shouldShowBackButton && styles.pl2]}>
                 <View style={[
                     styles.dFlex,
                     styles.flexRow,
@@ -139,7 +139,6 @@ class HeaderWithCloseButton extends Component {
                 ]}
                 >
                     {this.props.shouldShowBackButton && (
-                    <View style={[styles.mr2]}>
                         <Tooltip text={this.props.translate('common.back')}>
                             <Pressable
                                 onPress={() => {
@@ -153,7 +152,6 @@ class HeaderWithCloseButton extends Component {
                                 <Icon src={Expensicons.BackArrow} />
                             </Pressable>
                         </Tooltip>
-                    </View>
                     )}
                     <Header
                         title={this.props.title}
@@ -165,7 +163,12 @@ class HeaderWithCloseButton extends Component {
                             <Tooltip text={this.props.translate('common.download')}>
 
                                 <Pressable
-                                    onPress={this.triggerButtonCompleteAndDownload}
+                                    onPress={(e) => {
+                                        // Blur the pressable in case this button triggers a Growl notification
+                                        // We do not want to overlap Growl with the Tooltip (#15271)
+                                        e.currentTarget.blur();
+                                        this.triggerButtonCompleteAndDownload();
+                                    }}
                                     style={[styles.touchableButtonImage]}
                                 >
                                     <Icon

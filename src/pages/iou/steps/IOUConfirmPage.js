@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import IOUConfirmationList from '../../../components/IOUConfirmationList';
 import CONST from '../../../CONST';
+import avatarPropTypes from '../../../components/avatarPropTypes';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -27,7 +28,7 @@ const propTypes = {
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
         hasDraftComment: PropTypes.bool,
-        icons: PropTypes.arrayOf(PropTypes.string),
+        icons: PropTypes.arrayOf(avatarPropTypes),
         searchText: PropTypes.string,
         text: PropTypes.string,
         keyForList: PropTypes.string,

@@ -1,6 +1,7 @@
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import lodashMerge from 'lodash/merge';
+import lodashFindLast from 'lodash/findLast';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
 import moment from 'moment';
@@ -75,18 +76,19 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
 }
 
 /**
- * Finds most recent IOU report action number.
+ * Finds most recent IOU request action ID.
  *
  * @param {Array} reportActions
  * @returns {String}
  */
-function getMostRecentIOUReportActionID(reportActions) {
-    const iouActions = _.where(reportActions, {actionName: CONST.REPORT.ACTIONS.TYPE.IOU});
-    if (_.isEmpty(iouActions)) {
+function getMostRecentIOURequestActionID(reportActions) {
+    const iouRequestActions = _.filter(reportActions, action => lodashGet(action, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.CREATE);
+
+    if (_.isEmpty(iouRequestActions)) {
         return null;
     }
 
-    const sortedReportActions = getSortedReportActions(iouActions);
+    const sortedReportActions = getSortedReportActions(iouRequestActions);
     return _.last(sortedReportActions).reportActionID;
 }
 
@@ -156,18 +158,15 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
 }
 
 /**
- * This method returns the report actions that are ready for display in the ReportActionsView.
- * The report actions need to be sorted by created timestamp first, and reportActionID second
- * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
- * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
+ * A helper method to filter out report actions keyed by sequenceNumbers.
  *
  * @param {Object} reportActions
  * @returns {Array}
  */
-function getSortedReportActionsForDisplay(reportActions) {
+function filterOutDeprecatedReportActions(reportActions) {
     // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
     // to prevent bugs during the migration from sequenceNumber -> reportActionID
-    const filteredReportActions = _.filter(reportActions, (reportAction, key) => {
+    return _.filter(reportActions, (reportAction, key) => {
         if (!reportAction) {
             return false;
         }
@@ -179,7 +178,19 @@ function getSortedReportActionsForDisplay(reportActions) {
 
         return true;
     });
+}
 
+/**
+ * This method returns the report actions that are ready for display in the ReportActionsView.
+ * The report actions need to be sorted by created timestamp first, and reportActionID second
+ * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
+ * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
+ *
+ * @param {Object} reportActions
+ * @returns {Array}
+ */
+function getSortedReportActionsForDisplay(reportActions) {
+    const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
     const sortedReportActions = getSortedReportActions(filteredReportActions, true);
     return _.filter(sortedReportActions, (reportAction) => {
         // Filter out any unsupported reportAction types
@@ -199,12 +210,26 @@ function getSortedReportActionsForDisplay(reportActions) {
     });
 }
 
+/**
+ * In some cases, there can be multiple closed report actions in a chat report.
+ * This method returns the last closed report action so we can always show the correct archived report reason.
+ *
+ * @param {Object} reportActions
+ * @returns {Object}
+ */
+function getLastClosedReportAction(reportActions) {
+    const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
+    const sortedReportActions = getSortedReportActions(filteredReportActions);
+    return lodashFindLast(sortedReportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
     getLastVisibleMessageText,
-    getMostRecentIOUReportActionID,
+    getMostRecentIOURequestActionID,
     isDeletedAction,
     isConsecutiveActionMadeByPreviousActor,
     getSortedReportActionsForDisplay,
+    getLastClosedReportAction,
 };
