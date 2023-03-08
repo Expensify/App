@@ -260,11 +260,6 @@ export default {
                     EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
                 },
             },
-            RequestCall: {
-                screens: {
-                    RequestCall_Root: ROUTES.REQUEST_CALL,
-                },
-            },
             Wallet_Statement: {
                 screens: {
                     WalletStatement_Root: ROUTES.WALLET_STATEMENT_WITH_DATE,
