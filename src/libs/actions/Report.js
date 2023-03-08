@@ -1357,7 +1357,7 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
 function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = preferredSkinTone) {
     const message = reportAction.message[0];
     const reactionObject = message.reactions && _.find(message.reactions, reaction => reaction.emoji === emoji.name);
-    const skinTone = emoji.types == null ? null : paramSkinTone; // only use skin tone if emoji supports it
+    const skinTone = emoji.types === undefined ? null : paramSkinTone; // only use skin tone if emoji supports it
     if (reactionObject) {
         if (hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone)) {
             return removeEmojiReaction(reportID, reportAction, emoji, skinTone);
