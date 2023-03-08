@@ -90,6 +90,7 @@ class BaseModal extends PureComponent {
             this.props.innerContainerStyle,
             this.props.outerStyle,
         );
+        const statusBarHeight = StatusBar.currentHeight || 0;
         return (
             <ReactNativeModal
                 onBackdropPress={(e) => {
@@ -154,6 +155,8 @@ class BaseModal extends PureComponent {
                             modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
                             modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
                             modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
+                            statusBarTranslucent: this.props.statusBarTranslucent,
+                            statusBarHeight,
                         });
 
                         return (
