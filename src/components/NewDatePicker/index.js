@@ -6,7 +6,7 @@ import TextInput from '../TextInput';
 import CalendarPicker from '../CalendarPicker';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
-import {propTypes, defaultProps} from './datePickerPropTypes';
+import {propTypes, defaultProps} from './datepickerPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import './styles.css';
 
@@ -30,11 +30,13 @@ class NewDatePicker extends React.Component {
 
         this.setDate = this.setDate.bind(this);
         this.togglePicker = this.togglePicker.bind(this);
+        this.removeClickListener = this.removeClickListener.bind(this);
         this.handleOutsideClick = this.handleOutsideClick.bind(this);
 
+        this.wrapperRef = React.createRef();
         this.opacity = new Animated.Value(0);
 
-        /* We're using uncontrolled input otherwise it won't be possible to
+        /* We're using uncontrolled input otherwise it wont be possible to
         * raise change events with a date value - each change will produce a date
         * and make us reset the text input */
         this.defaultValue = props.defaultValue
@@ -46,8 +48,15 @@ class NewDatePicker extends React.Component {
         document.addEventListener('mousedown', this.handleOutsideClick);
     }
 
+    componentDidUpdate(prevProps) {
+        if (prevProps.defaultYear === this.props.defaultYear) {
+            return;
+        }
+        document.addEventListener('mousedown', this.handleOutsideClick);
+    }
+
     componentWillUnmount() {
-        document.removeEventListener('mousedown', this.handleOutsideClick);
+        this.removeClickListener();
     }
 
     /**
@@ -60,6 +69,10 @@ class NewDatePicker extends React.Component {
             return {selectedDate};
         });
         this.togglePicker();
+    }
+
+    removeClickListener() {
+        document.removeEventListener('mousedown', this.handleOutsideClick);
     }
 
     /**
@@ -118,6 +131,7 @@ class NewDatePicker extends React.Component {
                         value={this.state.selectedDate}
                         onSelected={this.setDate}
                         defaultYear={this.props.defaultYear}
+                        onYearPressed={this.removeClickListener}
                     />
                 </Animated.View>
             </View>
