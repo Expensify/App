@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '../CONST';
 
 /* eslint-disable max-len */
@@ -226,6 +227,8 @@ export default {
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
+        addEmojiReaction: 'Add emoji reaction',
+        addReactionTooltip: 'Add Reaction…',
     },
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'You missed the party in ',
@@ -1201,4 +1204,6 @@ export default {
         createAccount: 'Create a new account',
         logIn: 'Log in',
     },
+    allStates: COMMON_CONST.STATES,
+    allCountries: CONST.ALL_COUNTRIES,
 };
