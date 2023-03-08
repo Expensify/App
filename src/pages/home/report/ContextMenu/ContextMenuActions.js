@@ -73,6 +73,11 @@ export default [
                 );
             }
 
+            const hasMessage = _.has(reportAction, 'message');
+            if (!hasMessage) {
+                // It happens when we long-press on a link. We can only provide a reaction for messages
+                return null;
+            }
             return (
                 <QuickEmojiReactions
                     key="BaseQuickEmojiReactions"
