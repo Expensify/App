@@ -31,14 +31,16 @@ const ReactionTooltipContent = (props) => {
 
     return (
         <View style={[styles.alignItemsCenter, styles.ph2]}>
-            {_.map(props.emojiCodes, emojiCode => (
-                <Text
-                    key={emojiCode}
-                    style={styles.reactionEmojiTitle}
-                >
-                    {emojiCode}
-                </Text>
-            ))}
+            <View style={styles.flexRow}>
+                {_.map(props.emojiCodes, emojiCode => (
+                    <Text
+                        key={emojiCode}
+                        style={styles.reactionEmojiTitle}
+                    >
+                        {emojiCode}
+                    </Text>
+                ))}
+            </View>
 
             <Text style={[
                 styles.mt1,
