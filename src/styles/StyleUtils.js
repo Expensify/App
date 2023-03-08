@@ -6,6 +6,7 @@ import variables from './variables';
 import colors from './colors';
 import positioning from './utilities/positioning';
 import styles from './styles';
+import spacing from './utilities/spacing';
 
 /**
  * Return the style size from an avatar size constant
@@ -733,6 +734,21 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth) {
     };
 }
 
+/**
+ * Gets the correct height for emoji picker list based on screen dimensions
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
+function getEmojiPickerListHeight(isSmallScreenWidth) {
+    return {
+        height: isSmallScreenWidth ? 238 : 288,
+        width: '100%',
+        ...spacing.ph4,
+
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -773,4 +789,5 @@ export {
     getReportWelcomeBackgroundImageStyle,
     getReportWelcomeBackgroundImageViewStyle,
     getReportWelcomeContainerStyle,
+    getEmojiPickerListHeight,
 };

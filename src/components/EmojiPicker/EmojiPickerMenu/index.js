@@ -480,7 +480,7 @@ class EmojiPickerMenu extends Component {
                         onChangeText={this.filterEmojis}
                         defaultValue=""
                         ref={el => this.searchInput = el}
-                        autoFocus={!this.isMobileLandscape()}
+                        autoFocus={!this.isMobileLandscape() || this.props.isSmallScreenWidth}
                         selectTextOnFocus={this.state.selectTextOnFocus}
                         onSelectionChange={this.onSelectionChange}
                         onFocus={() => this.setState({isFocused: true, highlightedIndex: -1, isUsingKeyboardMovement: false})}
@@ -499,12 +499,11 @@ class EmojiPickerMenu extends Component {
                         <Text
                             style={[
                                 styles.disabledText,
-                                styles.emojiPickerList,
+                                styles.emojiPickerListEmptyComponent,
                                 styles.dFlex,
                                 styles.alignItemsCenter,
                                 styles.justifyContentCenter,
                                 this.isMobileLandscape() && styles.emojiPickerListLandscape,
-                                {height: CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT},
                             ]}
                         >
                             {this.props.translate('common.noResultsFound')}
@@ -520,6 +519,7 @@ class EmojiPickerMenu extends Component {
                             style={[
                                 styles.emojiPickerList,
                                 this.isMobileLandscape() && styles.emojiPickerListLandscape,
+                                StyleUtils.getEmojiPickerListHeight(this.props.isSmallScreenWidth),
                             ]}
                             extraData={
                               [this.state.filteredEmojis, this.state.highlightedIndex, this.props.preferredSkinTone]
