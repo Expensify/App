@@ -52,8 +52,8 @@ function getApiRoot(request) {
     }
 
     return shouldUseSecure
-        ? CONFIG.EXPENSIFY.PRIMARY_SECURE_API_ROOT
-        : CONFIG.EXPENSIFY.PRIMARY_API_ROOT;
+        ? CONFIG.EXPENSIFY.DEFAULT_SECURE_API_ROOT
+        : CONFIG.EXPENSIFY.DEFAULT_API_ROOT;
 }
 
 /**

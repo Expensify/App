@@ -51,13 +51,13 @@ export default {
         EXPENSIFY_URL: expensifyURL,
         NEW_EXPENSIFY_URL: newExpensifyURL,
 
-        // The PRIMARY API is the API used by most environments, but staging, where we use STAGING (bellow)
-        // The "staging toggle" in settings toggles between PRIMARY and STAGING APIs
-        // We can think of PRIMARY as PROD, because on both STAGING and PROD it points to the production address
+        // The DEFAULT API is the API used by most environments, but staging, where we use STAGING (bellow)
+        // The "staging toggle" in settings toggles between DEFAULT and STAGING APIs
+        // We can think of DEFAULT as PROD, because on both STAGING and PROD it points to the production address
         // On DEV this can be configured through ENV settings and can be a proxy or ngrok address (defaults to PROD)
         // Usually you don't need to use this URL directly - prefer `ApiUtils.getApiRoot()`
-        PRIMARY_API_ROOT: expensifyURLRoot,
-        PRIMARY_SECURE_API_ROOT: secureURLRoot,
+        DEFAULT_API_ROOT: expensifyURLRoot,
+        DEFAULT_SECURE_API_ROOT: secureURLRoot,
         STAGING_API_ROOT: stagingExpensifyURL,
         STAGING_SECURE_API_ROOT: stagingSecureExpensifyUrl,
         PARTNER_NAME: lodashGet(Config, 'EXPENSIFY_PARTNER_NAME', 'chat-expensify-com'),
