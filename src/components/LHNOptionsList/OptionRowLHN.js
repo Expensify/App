@@ -67,13 +67,13 @@ const OptionRowLHN = (props) => {
         : styles.sidebarLinkText;
     const textUnreadStyle = optionItem.isUnread
         ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
-    const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, styles.preWrap, ...textUnreadStyle], props.style);
+    const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, ...textUnreadStyle], props.style);
     const textPillStyle = props.isFocused
-        ? [styles.ml1, styles.preWrap, StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.icon, 0.5)]
-        : [styles.ml1, styles.preWrap];
+        ? [styles.ml1, StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.icon, 0.5)]
+        : [styles.ml1];
     const alternateTextStyle = StyleUtils.combineStyles(props.viewMode === CONST.OPTION_MODE.COMPACT
-        ? [textStyle, styles.optionAlternateText, styles.preWrap, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
-        : [textStyle, styles.optionAlternateText, styles.preWrap, styles.textLabelSupporting], props.style);
+        ? [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
+        : [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting], props.style);
     const contentContainerStyles = props.viewMode === CONST.OPTION_MODE.COMPACT
         ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter]
         : [styles.flex1];

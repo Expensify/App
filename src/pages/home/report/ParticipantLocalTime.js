@@ -65,7 +65,7 @@ class ParticipantLocalTime extends PureComponent {
                     style={[
                         styles.chatItemComposeSecondaryRowSubText,
                         styles.chatItemComposeSecondaryRowOffset,
-                        styles.preWrap,
+                        styles.pre,
                     ]}
                     numberOfLines={1}
                 >

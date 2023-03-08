@@ -71,7 +71,7 @@ class DisplayNames extends PureComponent {
             // No need for any complex text-splitting, just return a simple Text component
             return (
                 <Text
-                    style={[...this.props.textStyles, styles.preWrap]}
+                    style={[...this.props.textStyles, (this.props.numberOfLines === 1 ? styles.pre : styles.preWrap)]}
                     numberOfLines={this.props.numberOfLines}
                 >
                     {this.props.fullTitle}
