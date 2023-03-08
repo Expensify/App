@@ -39,7 +39,6 @@ export default function () {
             },
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
             [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
-            [ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE]: -1,
         },
     });
 
