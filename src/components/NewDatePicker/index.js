@@ -34,7 +34,7 @@ class NewDatePicker extends React.Component {
 
         this.opacity = new Animated.Value(0);
 
-        /* We're using uncontrolled input otherwise it wont be possible to
+        /* We're using uncontrolled input otherwise it won't be possible to
         * raise change events with a date value - each change will produce a date
         * and make us reset the text input */
         this.defaultValue = props.defaultValue

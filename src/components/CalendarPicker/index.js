@@ -37,32 +37,26 @@ class CalendarPicker extends React.PureComponent {
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     componentDidMount() {
-        if (this.props.minDate > this.props.maxDate) {
-            throw new Error('Minimum date cannot be greater than the maximum date.');
+        if (this.props.minDate <= this.props.maxDate) {
+            return;
         }
+        throw new Error('Minimum date cannot be greater than the maximum date.');
     }
 
-    // eslint-disable-next-line no-shadow, rulesdir/prefer-early-return
     componentDidUpdate(prevProps) {
-        // // Check if either the defaultYear
-        if (this.props.defaultYear !== prevProps.defaultYear) {
-            // If only the defaultYear prop has changed, update the currentDateView state with the new year value
-            this.setState(prev => ({currentDateView: moment(prev.currentDateView).set('year', this.props.defaultYear).toDate()}));
+        // Check if the defaultYear changed
+        if (this.props.defaultYear === prevProps.defaultYear) {
+            return;
         }
+
+        // If only the defaultYear prop has changed, update the currentDateView state with the new year value
+        this.setState(prev => ({currentDateView: moment(prev.currentDateView).set('year', this.props.defaultYear).toDate()}));
     }
 
-    /**
-     * Updates the currentDateView state by subtracting one month from it.
-     * @returns {void}
-     */
     onPrevMonthPressed() {
         this.setState(prev => ({currentDateView: moment(prev.currentDateView).subtract(1, 'M').toDate()}));
     }
 
-    /**
-     * Updates the currentDateView state by adding one month to it.
-     * @returns {void}
-     */
     onNextMonthPressed() {
         this.setState(prev => ({currentDateView: moment(prev.currentDateView).add(1, 'M').toDate()}));
     }
