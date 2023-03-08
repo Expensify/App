@@ -1,4 +1,4 @@
-const utils = require('../utils');
+const utils = require('../utils/utils');
 
 // lint
 const LINT_WORKFLOW_MOCK_STEP = utils.getMockStep(

@@ -1,4 +1,4 @@
-const utils = require('../utils');
+const utils = require('../utils/utils');
 
 // validateActor
 const PLATFORM_DEPLOY__VALIDATE_ACTOR__CHECK_USER_DEPLOYER__TEAM_MEMBER__STEP_MOCK = utils.getMockStep(

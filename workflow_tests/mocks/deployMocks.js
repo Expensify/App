@@ -1,4 +1,4 @@
-const utils = require('../utils');
+const utils = require('../utils/utils');
 
 const VALIDATE__GET_MERGED_PR__STEP_MOCK = utils.getMockStep(
     'Get merged pull request',

@@ -1,4 +1,4 @@
-const utils = require('../utils');
+const utils = require('../utils/utils');
 
 const assertVerifyActorJobExecuted = (workflowResult, username, didExecute = true) => {
     const steps = [
