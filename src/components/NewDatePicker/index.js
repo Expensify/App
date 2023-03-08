@@ -64,11 +64,10 @@ class NewDatePicker extends React.Component {
      * @param {Date} selectedDate
      */
     setDate(selectedDate) {
-        this.setState(() => {
+        this.setState({selectedDate}, () => {
             this.props.onInputChange(moment(selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
-            return {selectedDate};
+            this.togglePicker();
         });
-        this.togglePicker();
     }
 
     removeClickListener() {
