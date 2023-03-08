@@ -79,6 +79,12 @@ const propTypes = {
     chatReport: PropTypes.shape({
         /** Report ID associated with the transaction */
         reportID: PropTypes.string,
+
+        /** The participants of this report */
+        participants: PropTypes.arrayOf(PropTypes.string),
+
+        /** Whether the chat report has an outstanding IOU */
+        hasOutstandingIOU: PropTypes.bool.isRequired,
     }),
 
     ...withLocalizePropTypes,
