@@ -5,6 +5,7 @@ import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
 import * as User from './actions/User';
 import emojisTrie from './EmojiTrie';
+import FrequentlyUsed from '../../assets/images/history.svg';
 
 /**
  * Get the unicode code of an emoji in base 16.
@@ -82,17 +83,17 @@ function containsOnlyEmojis(message) {
 }
 
 /**
- * Get the header indices based on the max emojis per row
+ * Get the header emojis with their code, icon and index
  * @param {Object[]} emojis
- * @returns {Number[]}
+ * @returns {Object[]}
  */
-function getHeaderIndices(emojis) {
+function getHeaderEmojis(emojis) {
     const headerIndices = [];
     _.each(emojis, (emoji, index) => {
         if (!emoji.header) {
             return;
         }
-        headerIndices.push(index);
+        headerIndices.push({code: emoji.code, index, icon: emoji.icon});
     });
     return headerIndices;
 }
@@ -149,6 +150,7 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis, frequentlyUsedEmojis = []) 
     let allEmojis = [{
         header: true,
         code: 'frequentlyUsed',
+        icon: FrequentlyUsed,
     }];
 
     allEmojis = allEmojis.concat(frequentlyUsedEmojis, emojis);
@@ -246,7 +248,7 @@ function suggestEmojis(text, limit = 5) {
 }
 
 export {
-    getHeaderIndices,
+    getHeaderEmojis,
     mergeEmojisWithFrequentlyUsedEmojis,
     addToFrequentlyUsedEmojis,
     containsOnlyEmojis,

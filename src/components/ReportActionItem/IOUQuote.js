@@ -13,6 +13,8 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import ControlSelection from '../../libs/ControlSelection';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
+import * as StyleUtils from '../../styles/StyleUtils';
+import getButtonState from '../../libs/getButtonState';
 
 const propTypes = {
     /** All the data of the action */
@@ -33,12 +35,16 @@ const propTypes = {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: PropTypes.func,
 
+    /** Whether the IOU is hovered so we can modify its style */
+    isHovered: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     contextMenuAnchor: null,
     shouldAllowViewDetails: false,
+    isHovered: false,
     onViewDetailsPressed: () => {},
     checkIfContextMenuActive: () => {},
 };
@@ -80,7 +86,7 @@ const IOUQuote = props => (
                         {Str.htmlDecode(fragment.text.substring(fragment.text.indexOf(' ')))}
                     </Text>
                 </Text>
-                <Icon src={Expensicons.ArrowRight} fill={props.shouldAllowViewDetails ? themeColors.icon : themeColors.transparent} />
+                <Icon src={Expensicons.ArrowRight} fill={props.shouldAllowViewDetails ? StyleUtils.getIconFillColor(getButtonState(props.isHovered)) : themeColors.transparent} />
             </Pressable>
         ))}
     </View>

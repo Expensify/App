@@ -3,7 +3,7 @@ import React, {Component} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import getComponentDisplayName from '../../../libs/getComponentDisplayName';
-import Navigation from '../../../libs/Navigation/Navigation';
+import NotFoundPage from '../../ErrorPage/NotFoundPage';
 import ONYXKEYS from '../../../ONYXKEYS';
 import reportPropTypes from '../../reportPropTypes';
 
@@ -22,15 +22,12 @@ export default function (WrappedComponent) {
         report: {},
     };
 
-    class WithReportOrNavigateHome extends Component {
-        componentDidMount() {
-            if (!_.isEmpty(this.props.report)) {
-                return;
-            }
-            Navigation.dismissModal();
-        }
-
+    class WithReportOrNotFound extends Component {
         render() {
+            if (_.isEmpty(this.props.report) || !this.props.report.reportID) {
+                return <NotFoundPage />;
+            }
+
             const rest = _.omit(this.props, ['forwardedRef']);
 
             return (
@@ -43,17 +40,18 @@ export default function (WrappedComponent) {
         }
     }
 
-    WithReportOrNavigateHome.propTypes = propTypes;
-    WithReportOrNavigateHome.defaultProps = defaultProps;
-    WithReportOrNavigateHome.displayName = `withReportOrNavigateHome(${getComponentDisplayName(WrappedComponent)})`;
-    const withReportOrNavigateHome = React.forwardRef((props, ref) => (
+    WithReportOrNotFound.propTypes = propTypes;
+    WithReportOrNotFound.defaultProps = defaultProps;
+    WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const withReportOrNotFound = React.forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <WithReportOrNavigateHome {...props} forwardedRef={ref} />
+        <WithReportOrNotFound {...props} forwardedRef={ref} />
     ));
 
     return withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
         },
-    })(withReportOrNavigateHome);
+    })(withReportOrNotFound);
 }

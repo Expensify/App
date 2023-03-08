@@ -1,6 +1,7 @@
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
+import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as API from '../API';
@@ -79,6 +80,19 @@ function extractFirstAndLastNameFromAvailableDetails({
         firstName: displayName.substring(0, firstSpaceIndex).trim(),
         lastName: displayName.substring(lastSpaceIndex).trim(),
     };
+}
+
+/**
+ * Convert country names obtained from the backend to their respective ISO codes
+ * This is for backward compatibility of stored data before E/App#15507
+ * @param {String} countryName
+ * @returns {String}
+ */
+function getCountryISO(countryName) {
+    if (_.isEmpty(countryName) || countryName.length === 2) {
+        return countryName;
+    }
+    return _.findKey(CONST.ALL_COUNTRIES, country => country === countryName) || '';
 }
 
 /**
@@ -365,4 +379,5 @@ export {
     clearAvatarErrors,
     updateAutomaticTimezone,
     updateSelectedTimezone,
+    getCountryISO,
 };
