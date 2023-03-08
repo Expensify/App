@@ -118,8 +118,12 @@ class ContactMethodDetailsPage extends Component {
     confirmDeleteAndHideModal() {
         const contactMethod = this.getContactMethod();
         User.deleteContactMethod(contactMethod);
+
+        // We only need to close the modal, calling Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)
+        // is not necessary because we will get navigate automatically when the contact method is removed from Onyx.
+        // Using Navigation.navigate cause the Navigation.isNavigating to get stuck with a true value blocking further
+        // navigations.
         this.toggleDeleteModal(false);
-        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
     }
 
     /**
