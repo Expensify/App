@@ -15,6 +15,8 @@ import {policyPropTypes} from '../pages/workspace/withPolicy';
 import walletTermsPropTypes from '../pages/EnablePayments/walletTermsPropTypes';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
+import * as UserUtils from '../libs/UserUtils';
+import themeColors from '../styles/themes/default';
 
 const propTypes = {
     /** URL for the avatar */
@@ -25,6 +27,8 @@ const propTypes = {
 
     /** To show a tooltip on hover */
     tooltipText: PropTypes.string,
+
+    /* Onyx Props */
 
     /** The employee list of all policies (coming from Onyx) */
     policiesMemberList: PropTypes.objectOf(policyMemberPropType),
@@ -43,6 +47,15 @@ const propTypes = {
 
     /** Information about the user accepting the terms for payments */
     walletTerms: walletTermsPropTypes,
+
+    /** Login list for the user that is signed in */
+    loginList: PropTypes.shape({
+        /** Date login was validated, used to show info indicator status */
+        validatedDate: PropTypes.string,
+
+        /** Field-specific server side errors keyed by microtime */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+    }),
 };
 
 const defaultProps = {
@@ -54,45 +67,50 @@ const defaultProps = {
     cardList: {},
     userWallet: {},
     walletTerms: {},
+    loginList: {},
 };
 
 const AvatarWithIndicator = (props) => {
-    const isLarge = props.size === 'large';
-    const indicatorStyles = [
-        styles.alignItemsCenter,
-        styles.justifyContentCenter,
-        isLarge ? styles.statusIndicatorLarge : styles.statusIndicator,
-    ];
-
     // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
     // those should be cleaned out before doing any error checking
     const cleanPolicies = _.pick(props.policies, policy => policy);
     const cleanPolicyMembers = _.pick(props.policiesMemberList, member => member);
 
-    // All of the error-checking methods are put into an array. This is so that using _.some() will return
-    // early as soon as the first error is returned. This makes the error checking very efficient since
-    // we only care if a single error exists anywhere.
+    // All of the error & info-checking methods are put into an array. This is so that using _.some() will return
+    // early as soon as the first error / info condition is returned. This makes the checks very efficient since
+    // we only care if a single error / info condition exists anywhere.
     const errorCheckingMethods = [
         () => !_.isEmpty(props.userWallet.errors),
         () => PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList),
         () => _.some(cleanPolicies, PolicyUtils.hasPolicyError),
         () => _.some(cleanPolicies, PolicyUtils.hasCustomUnitsError),
         () => _.some(cleanPolicyMembers, PolicyUtils.hasPolicyMemberError),
+        () => UserUtils.hasLoginListError(props.loginList),
 
         // Wallet term errors that are not caused by an IOU (we show the red brick indicator for those in the LHN instead)
         () => !_.isEmpty(props.walletTerms.errors) && !props.walletTerms.chatReportID,
     ];
-    const shouldShowIndicator = _.some(errorCheckingMethods, errorCheckingMethod => errorCheckingMethod());
+    const infoCheckingMethods = [
+        () => UserUtils.hasLoginListInfo(props.loginList),
+    ];
+    const shouldShowErrorIndicator = _.some(errorCheckingMethods, errorCheckingMethod => errorCheckingMethod());
+    const shouldShowInfoIndicator = !shouldShowErrorIndicator && _.some(infoCheckingMethods, infoCheckingMethod => infoCheckingMethod());
+
+    const indicatorColor = shouldShowErrorIndicator ? themeColors.danger : themeColors.success;
+    const indicatorStyles = [
+        styles.alignItemsCenter,
+        styles.justifyContentCenter,
+        styles.statusIndicator(indicatorColor),
+    ];
 
     return (
-        <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
+        <View style={[styles.sidebarAvatar]}>
             <Tooltip text={props.tooltipText}>
                 <Avatar
-                    imageStyles={[isLarge ? styles.avatarLarge : null]}
                     source={props.source}
                     size={props.size}
                 />
-                {shouldShowIndicator && (
+                {(shouldShowErrorIndicator || shouldShowInfoIndicator) && (
                     <View style={StyleSheet.flatten(indicatorStyles)} />
                 )}
             </Tooltip>
@@ -122,5 +140,8 @@ export default withOnyx({
     },
     walletTerms: {
         key: ONYXKEYS.WALLET_TERMS,
+    },
+    loginList: {
+        key: ONYXKEYS.LOGIN_LIST,
     },
 })(AvatarWithIndicator);

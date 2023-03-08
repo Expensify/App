@@ -118,6 +118,8 @@ export default {
         youAppearToBeOffline: 'Parece que estás desconectado.',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
         areYouSure: '¿Estás seguro?',
+        verify: 'Verifique',
+        yesContinue: 'Sí, Continuar',
         zipCodeExample: 'p. ej. 12345, 12345-1234, 12345 1234',
         websiteExample: 'p. ej. https://www.expensify.com',
     },
@@ -341,6 +343,20 @@ export default {
     contacts: {
         contactMethod: 'Método de contacto',
         contactMethods: 'Métodos de contacto',
+        helpTextBeforeEmail: 'Añade más formas de que la gente te encuentre y reenvía los recibos a ',
+        helpTextAfterEmail: ' desde varias direcciones de correo electrónico.',
+        pleaseVerify: 'Por favor verifica este método de contacto',
+        getInTouch: 'Utilizaremos este método de contacto cuando necesitemos contactarte.',
+        enterMagicCode: ({contactMethod}) => `Por favor, introduce el código mágico enviado a ${contactMethod}`,
+        yourDefaultContactMethod: 'Este es tu método de contacto predeterminado. No podrás eliminarlo hasta que añadas otro método de contacto y lo marques como predeterminado pulsando "Establecer como predeterminado".',
+        removeContactMethod: 'Eliminar método de contacto',
+        removeAreYouSure: '¿Estás seguro de que quieres eliminar este método de contacto? Esta acción no se puede deshacer.',
+        resendMagicCode: 'Reenviar código mágico',
+        genericFailureMessages: {
+            requestContactMethodValidateCode: 'No se ha podido enviar un nuevo código mágico. Espera un rato y vuelve a intentarlo.',
+            validateSecondaryLogin: 'No se ha podido validar el método de contacto con el código mágico provisto. Solicita un nuevo código y vuelve a intentarlo.',
+            deleteContactMethod: 'No se ha podido eliminar el método de contacto. Por favor contacta con Concierge para obtener ayuda.',
+        },
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -1049,35 +1065,6 @@ export default {
         questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
         exploreHelpDocs: 'Explorar la documentación de ayuda',
     },
-    requestCallPage: {
-        title: 'Llámame por teléfono',
-        subtitle: '¿Necesitas ayuda o una demostración?',
-        description: 'Nuestro equipo está listo para ayudarte en cada paso. Ingresa tu nombre y número de teléfono y te llamaremos lo antes posible.*',
-        phoneNumberExtension: 'Extensión (Opcional)',
-        callMe: 'Llámame',
-        growlMessageOnSave: 'Llamada solicitada.',
-        callButton: 'Llamar',
-        callButtonTooltip: 'Recibe ayuda telefónica de nuestro equipo',
-        blockedFromConcierge: 'Debido a sus interacciones pasadas con nuestro equipo, la llamada no puede ser agendada en este momento.',
-        waitTime: {
-            calculating: 'Calculando el tiempo de espera...',
-            fiveHoursPlus: 'El tiempo de espera actual es superior a 5 horas.',
-            hoursAndMinutes: ({minutes}) => `El tiempo de espera actual es de ${Math.floor(minutes / 60)} horas y ${minutes % 60} minutos. `,
-            minutes: ({minutes}) => `El tiempo de espera actual es de ${minutes} minutos. `,
-            weekend: 'Tenemos disponibilidad limitada los fines de semana. Te devolveremos la llamada tan pronto como podamos.',
-            guides: 'Tenga en cuenta que nuestras guías suelen estar disponibles desde el domingo a las 5pm CT hasta el viernes a las 5pm CT.',
-        },
-        error: {
-            phoneNumberExtension: 'Por favor, introduce una extensión telefónica válida',
-            firstName: 'Por favor, ingresa tu nombre',
-            lastName: 'Por favor, ingresa tus apellidos',
-        },
-    },
-    requestCallConfirmationScreen: {
-        callRequested: '¡Llamada solicitada con éxito!',
-        allSet: '¡Todo listo! Pronto recibirás una llamada nuestra.',
-        gotIt: 'Entendido',
-    },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
         headers: {
@@ -1099,6 +1086,7 @@ export default {
         visibility: 'Visibilidad',
         restrictedDescription: 'Sólo las personas en tu espacio de trabajo pueden encontrar esta sala',
         privateDescription: 'Sólo las personas que están invitadas a esta sala pueden encontrarla',
+        publicDescription: 'Cualquiera puede encontrarlo',
         createRoom: 'Crea una sala de chat',
         roomAlreadyExistsError: 'Ya existe una sala con este nombre',
         roomNameReservedError: 'Una sala en este espacio de trabajo ya usa este nombre',
@@ -1112,6 +1100,8 @@ export default {
         visibilityOptions: {
             restricted: 'Restringida',
             private: 'Privada',
+            public: 'Público',
+            public_announce: 'Anuncio Público',
         },
     },
     statementPage: {

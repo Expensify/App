@@ -118,6 +118,8 @@ export default {
         youAppearToBeOffline: 'You appear to be offline.',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
         areYouSure: 'Are you sure?',
+        verify: 'Verify',
+        yesContinue: 'Yes, continue',
         zipCodeExample: 'e.g. 12345, 12345-1234, 12345 1234',
         websiteExample: 'e.g. https://www.expensify.com',
     },
@@ -341,6 +343,20 @@ export default {
     contacts: {
         contactMethod: 'Contact method',
         contactMethods: 'Contact methods',
+        helpTextBeforeEmail: 'Add more ways for people to find you, and forward receipts to ',
+        helpTextAfterEmail: ' from multiple email addresses.',
+        pleaseVerify: 'Please verify this contact method',
+        getInTouch: "Whenever we need to get in touch with you, we'll use this contact method.",
+        enterMagicCode: ({contactMethod}) => `Please enter the magic code sent to ${contactMethod}`,
+        yourDefaultContactMethod: 'This is your current default contact method. You will not be able to delete this contact method until you set an alternative default by selecting another contact method and pressing “Set as default”.',
+        removeContactMethod: 'Remove contact method',
+        removeAreYouSure: 'Are you sure you want to remove this contact method? This action cannot be undone.',
+        resendMagicCode: 'Resend magic code',
+        genericFailureMessages: {
+            requestContactMethodValidateCode: 'Failed to send a new magic code. Please wait a bit and try again.',
+            validateSecondaryLogin: 'Failed to validate contact method with given magic code. Please request a new code and try again.',
+            deleteContactMethod: 'Failed to delete contact method. Please reach out to Concierge for help.',
+        },
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -1047,35 +1063,6 @@ export default {
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
     },
-    requestCallPage: {
-        title: 'Request a call',
-        subtitle: 'Need help, or a demo?',
-        description: 'Our team is ready to help each step of the way. Enter your name and phone number, and we\'ll give you a call back ASAP.*',
-        phoneNumberExtension: 'Extension (Optional)',
-        callMe: 'Call me',
-        growlMessageOnSave: 'Call requested.',
-        callButton: 'Call',
-        callButtonTooltip: 'Get live help from our team',
-        blockedFromConcierge: 'Due to previous interactions with our staff, a call cannot be scheduled at this time.',
-        waitTime: {
-            calculating: 'Calculating wait time...',
-            fiveHoursPlus: 'The current wait time is longer than 5 hours.',
-            hoursAndMinutes: ({minutes}) => `The current wait time is ${Math.floor(minutes / 60)} hours and ${minutes % 60} minutes. `,
-            minutes: ({minutes}) => `The current wait time is ${minutes} minutes. `,
-            weekend: 'We have limited availability on the weekends. We\'ll give you a call back as soon as we can. ',
-            guides: 'Please note that our Guides are typically available from Sunday at 5pm CT to Friday at 5pm CT.',
-        },
-        error: {
-            phoneNumberExtension: 'Please enter a valid phone extension number',
-            firstName: 'Please provide your first name',
-            lastName: 'Please provide your last name',
-        },
-    },
-    requestCallConfirmationScreen: {
-        callRequested: 'Call successfully requested!',
-        allSet: 'You’re all set. You will be receiving a call from us soon.',
-        gotIt: 'Got it',
-    },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
         headers: {
@@ -1097,6 +1084,7 @@ export default {
         visibility: 'Visibility',
         restrictedDescription: 'People in your workspace can find this room',
         privateDescription: 'People invited to this room can find it',
+        publicDescription: 'Anyone can find it',
         createRoom: 'Create room',
         roomAlreadyExistsError: 'A room with this name already exists',
         roomNameReservedError: 'A room on this workspace already uses this name',
@@ -1110,6 +1098,8 @@ export default {
         visibilityOptions: {
             restricted: 'Restricted',
             private: 'Private',
+            public: 'Public',
+            public_announce: 'Public Announce',
         },
     },
     statementPage: {
