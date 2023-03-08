@@ -7,6 +7,7 @@ import IOUParticipantsSplit from './IOUParticipantsSplit';
 import IOUParticipantsRequest from './IOUParticipantsRequest';
 import styles from '../../../../styles/styles';
 import FullScreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
+import avatarPropTypes from '../../../../components/avatarPropTypes';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -23,7 +24,7 @@ const propTypes = {
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
         hasDraftComment: PropTypes.bool,
-        icons: PropTypes.arrayOf(PropTypes.string),
+        icons: PropTypes.arrayOf(avatarPropTypes),
         searchText: PropTypes.string,
         text: PropTypes.string,
         keyForList: PropTypes.string,

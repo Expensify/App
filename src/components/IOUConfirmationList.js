@@ -16,6 +16,7 @@ import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from './withCurrentUserPersonalDetails';
 import * as IOUUtils from '../libs/IOUUtils';
+import avatarPropTypes from './avatarPropTypes';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -44,7 +45,7 @@ const propTypes = {
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
         hasDraftComment: PropTypes.bool,
-        icons: PropTypes.arrayOf(PropTypes.string),
+        icons: PropTypes.arrayOf(avatarPropTypes),
         searchText: PropTypes.string,
         text: PropTypes.string,
         keyForList: PropTypes.string,

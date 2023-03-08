@@ -13,6 +13,7 @@ import compose from '../../../../libs/compose';
 import Text from '../../../../components/Text';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 import reportPropTypes from '../../../reportPropTypes';
+import avatarPropTypes from '../../../../components/avatarPropTypes';
 
 const propTypes = {
     /** Beta features list */
@@ -29,7 +30,7 @@ const propTypes = {
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
         hasDraftComment: PropTypes.bool,
-        icons: PropTypes.arrayOf(PropTypes.string),
+        icons: PropTypes.arrayOf(avatarPropTypes),
         searchText: PropTypes.string,
         text: PropTypes.string,
         keyForList: PropTypes.string,
