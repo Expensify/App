@@ -56,6 +56,11 @@ const CONST = {
         MAX_AGE: 150,
     },
 
+    DIRECTION: {
+        LEFT: 'left',
+        RIGHT: 'right',
+    },
+
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
         SMALL_SCREEN: {

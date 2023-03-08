@@ -5,11 +5,12 @@ import moment from 'moment';
 import Text from '../Text';
 import ArrowIcon from './ArrowIcon';
 import styles from '../../styles/styles';
-import {propTypes, defaultProps} from './calendarPickerPropTypes';
+import {propTypes as calendarPickerPropType, defaultProps as defaultCalendarPickerPropType} from './calendarPickerPropTypes';
 import generateMonthMatrix from './generateMonthMatrix';
 import withLocalize from '../withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import CONST from '../../CONST';
 
 class CalendarPicker extends React.PureComponent {
     constructor(props) {
@@ -44,7 +45,7 @@ class CalendarPicker extends React.PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        // Check if the defaultYear changed
+        // Check if defaultYear has changed
         if (this.props.defaultYear === prevProps.defaultYear) {
             return;
         }
@@ -111,7 +112,7 @@ class CalendarPicker extends React.PureComponent {
                             {this.monthNames[currentMonthView]}
                         </Text>
                         <TouchableOpacity testID="prev-month-arrow" disabled={!hasAvailableDatesPrevMonth} onPress={this.onPrevMonthPressed}>
-                            <ArrowIcon disabled={!hasAvailableDatesPrevMonth} direction="left" />
+                            <ArrowIcon disabled={!hasAvailableDatesPrevMonth} direction={CONST.DIRECTION.LEFT} />
                         </TouchableOpacity>
                         <TouchableOpacity testID="next-month-arrow" disabled={!hasAvailableDatesNextMonth} onPress={this.onNextMonthPressed}>
                             <ArrowIcon disabled={!hasAvailableDatesNextMonth} />
@@ -156,7 +157,7 @@ class CalendarPicker extends React.PureComponent {
     }
 }
 
-CalendarPicker.propTypes = propTypes;
-CalendarPicker.defaultProps = defaultProps;
+CalendarPicker.propTypes = calendarPickerPropType;
+CalendarPicker.defaultProps = defaultCalendarPickerPropType;
 
 export default withLocalize(CalendarPicker);

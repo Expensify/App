@@ -3,25 +3,27 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import * as Expensicons from '../Icon/Expensicons';
+import * as StyleUtils from '../../styles/StyleUtils';
 import Icon from '../Icon';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Specifies if the arrow icon should be disabled or not. */
     disabled: PropTypes.bool,
 
-    /** Specifies direction or icon */
-    direction: PropTypes.oneOf(['left', 'right']),
+    /** Specifies direction of icon */
+    direction: PropTypes.oneOf([CONST.DIRECTION.LEFT, CONST.DIRECTION.RIGHT]),
 };
 
 const defaultProps = {
     disabled: false,
-    direction: 'right',
+    direction: CONST.DIRECTION.RIGHT,
 };
 
 const ArrowIcon = props => (
     <View style={[
         styles.p1,
-        props.direction === 'left' ? {transform: [{rotate: '180deg'}]} : {},
+        StyleUtils.getDirectionStyle(props.direction),
         props.disabled ? styles.calendarButtonDisabled : {},
     ]}
     >

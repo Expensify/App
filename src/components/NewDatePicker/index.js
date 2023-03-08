@@ -6,17 +6,17 @@ import TextInput from '../TextInput';
 import CalendarPicker from '../CalendarPicker';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
-import {propTypes, defaultProps} from './datePickerPropTypes';
+import {propTypes as datePickerPropTypes, defaultProps as defaultDatePickerProps} from './_datepickerPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import './styles.css';
 
-const datePickerPropTypes = {
-    ...propTypes,
+const propTypes = {
+    ...datePickerPropTypes,
     ...windowDimensionsPropTypes,
 };
 
 const datePickerDefaultProps = {
-    ...defaultProps,
+    ...defaultDatePickerProps,
 };
 
 class NewDatePicker extends React.Component {
@@ -139,7 +139,7 @@ class NewDatePicker extends React.Component {
     }
 }
 
-NewDatePicker.propTypes = datePickerPropTypes;
+NewDatePicker.propTypes = propTypes;
 NewDatePicker.defaultProps = datePickerDefaultProps;
 
 export default withWindowDimensions(React.forwardRef((props, ref) => (
