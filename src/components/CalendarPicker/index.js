@@ -36,7 +36,6 @@ class CalendarPicker extends React.PureComponent {
         this.onDayPressed = this.onDayPressed.bind(this);
     }
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     componentDidMount() {
         if (this.props.minDate <= this.props.maxDate) {
             return;
@@ -66,7 +65,6 @@ class CalendarPicker extends React.PureComponent {
      * Handles the user pressing the year picker button.
      * Opens the year selection screen with the minimum and maximum year range
      * based on the props, the current year based on the state, and the active route.
-     * @returns {void}
      */
     onYearPickerPressed() {
         const minYear = moment(this.props.minDate).year();
@@ -79,7 +77,6 @@ class CalendarPicker extends React.PureComponent {
     /**
      * Calls the onSelected function with the selected date, if it is within the min/max range.
      * @param {number} day - The day of the month that was selected.
-     * @returns {void}
      */
     onDayPressed(day) {
         const selectedDate = new Date(this.state.currentDateView.getFullYear(), this.state.currentDateView.getMonth(), day);

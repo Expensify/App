@@ -18,10 +18,10 @@ export default function generateMonthMatrix(year, month) {
         throw new TypeError('Month must be a number');
     }
     if (month < 0) {
-        throw new TypeError('Month cannot be less than 0');
+        throw new Error('Month cannot be less than 0');
     }
     if (month > 11) {
-        throw new TypeError('Month cannot be greater than 11');
+        throw new Error('Month cannot be greater than 11');
     }
 
     // Get the number of days in the month and the first day of the month
