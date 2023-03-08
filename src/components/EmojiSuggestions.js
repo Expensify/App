@@ -7,6 +7,7 @@ import _ from 'underscore';
 import {FlatList} from 'react-native-gesture-handler';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
+import * as EmojiUtils from '../libs/EmojiUtils';
 import Text from './Text';
 import CONST from '../CONST';
 
@@ -96,22 +97,6 @@ const getStyledTextArray = (name, prefix) => {
     return texts;
 };
 
-/**
-     * Given an emoji item object, return an emoji code based on its type.
-     *
-     * @param {Object} item
-     * @param {Number} preferredSkinToneIndex
-     * @returns {String}
-     */
-const emojiCode = (item, preferredSkinToneIndex) => {
-    const {code, types} = item;
-    if (types && types[preferredSkinToneIndex]) {
-        return types[preferredSkinToneIndex];
-    }
-
-    return code;
-};
-
 const EmojiSuggestions = (props) => {
     /**
      * Render a suggestion menu item component.
@@ -134,11 +119,11 @@ const EmojiSuggestions = (props) => {
                 onPress={() => props.onSelect(index)}
             >
                 <View style={styles.emojiSuggestionContainer}>
-                    <Text style={styles.emojiSuggestionsEmoji}>{emojiCode(item, props.preferredSkinToneIndex)}</Text>
+                    <Text style={styles.emojiSuggestionsEmoji}>{EmojiUtils.emojiCode(item, props.preferredSkinToneIndex)}</Text>
                     <Text style={styles.emojiSuggestionsText}>
                         :
                         {_.map(styledTextArray, ({text, isColored}, i) => (
-                            <Text key={i} style={StyleUtils.getColoredBackgroundStyle(isColored)}>
+                            <Text key={`${text}+${i}`} style={StyleUtils.getColoredBackgroundStyle(isColored)}>
                                 {text}
                             </Text>
                         ))}

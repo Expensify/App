@@ -134,6 +134,7 @@ const getMaxArrowIndex = (numRows, isEmojiPickerLarge) => {
 class ReportActionCompose extends React.Component {
     constructor(props) {
         super(props);
+        this.calculateEmojiSuggestionDebounce = _.debounce(this.calculateEmojiSuggestion, 10, false);
 
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
@@ -141,11 +142,9 @@ class ReportActionCompose extends React.Component {
         this.triggerHotkeyActions = this.triggerHotkeyActions.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
-        this.resetSuggestedEmojis = this.resetSuggestedEmojis.bind(this);
         this.setIsFullComposerAvailable = this.setIsFullComposerAvailable.bind(this);
         this.focus = this.focus.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
-        this.calculateEmojiSuggestion = _.debounce(this.calculateEmojiSuggestion.bind(this), 10, false);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.isEmojiCode = this.isEmojiCode.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
@@ -250,7 +249,7 @@ class ReportActionCompose extends React.Component {
 
     onSelectionChange(e) {
         this.setState({selection: e.nativeEvent.selection});
-        this.calculateEmojiSuggestion();
+        this.calculateEmojiSuggestionDebounce();
     }
 
     /**
@@ -358,6 +357,13 @@ class ReportActionCompose extends React.Component {
             maxLines = CONST.COMPOSER.MAX_LINES_FULL;
         }
         this.setState({maxLines});
+    }
+
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    setShouldShowSuggestionMenuToFalse() {
+        if (this.state && this.state.shouldShowSuggestionMenu) {
+            this.setState({shouldShowSuggestionMenu: false});
+        }
     }
 
     /**
@@ -653,8 +659,8 @@ class ReportActionCompose extends React.Component {
         const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
         const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyEmails[0]];
 
-        const shouldShowReportRecipientLocalTime = Boolean(ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report)
-            && !this.props.isComposerFullSize);
+        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report)
+            && !this.props.isComposerFullSize;
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
@@ -699,7 +705,7 @@ class ReportActionCompose extends React.Component {
                                                         <TouchableOpacity
                                                             onPress={(e) => {
                                                                 e.preventDefault();
-                                                                this.setState({shouldShowSuggestionMenu: false});
+                                                                this.setShouldShowSuggestionMenuToFalse();
                                                                 Report.setIsComposerFullSize(this.props.reportID, false);
                                                             }}
 
@@ -718,7 +724,7 @@ class ReportActionCompose extends React.Component {
                                                         <TouchableOpacity
                                                             onPress={(e) => {
                                                                 e.preventDefault();
-                                                                this.setState({shouldShowSuggestionMenu: false});
+                                                                this.setShouldShowSuggestionMenuToFalse();
                                                                 Report.setIsComposerFullSize(this.props.reportID, true);
                                                             }}
 
@@ -818,8 +824,13 @@ class ReportActionCompose extends React.Component {
                                             setIsFullComposerAvailable={this.setIsFullComposerAvailable}
                                             isComposerFullSize={this.props.isComposerFullSize}
                                             value={this.state.value}
-                                            onLayout={e => this.setState({composerHeight: e.nativeEvent.layout.height})}
-                                            onScroll={() => this.setState({shouldShowSuggestionMenu: false})}
+                                            onLayout={(e) => {
+                                                const composerHeight = e.nativeEvent.layout.height;
+                                                if (this.state.composerHeight !== composerHeight) {
+                                                    this.setState({composerHeight});
+                                                }
+                                            }}
+                                            onScroll={this.setShouldShowSuggestionMenuToFalse}
                                         />
                                     </DragAndDrop>
                                 </View>
@@ -874,7 +885,6 @@ class ReportActionCompose extends React.Component {
                         onFocusedIndexChanged={index => this.setState({highlightedEmojiIndex: index})}
                     >
                         <EmojiSuggestions
-                            isVisible={!_.isEmpty(this.state.suggestedEmojis)}
                             onClose={() => this.setState({suggestedEmojis: []})}
                             highlightedEmojiIndex={this.state.highlightedEmojiIndex}
                             emojis={this.state.suggestedEmojis}
