@@ -79,7 +79,7 @@ const AddReactionBubble = (props) => {
     };
 
     return (
-        <Tooltip text={props.translate('reportActionContextMenu.addReactionTooltip')}>
+        <Tooltip text={props.translate('reportActionContextMenu.addReactionTooltip')} focusable={false}>
             <Pressable
                 ref={ref}
                 style={({
