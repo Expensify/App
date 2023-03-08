@@ -19,7 +19,7 @@ function scrollToIndex(index) {
 
 /**
  * Scroll to the last saved index on layout change
- * The is a fallback handler for asyncronius scrolling and layout changes.
+ * See https://github.com/Expensify/App/issues/15303 for more context
  */
 function scrollToLastIndex() {
     if (!flatListRef.current) {
