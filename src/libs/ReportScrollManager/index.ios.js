@@ -4,6 +4,9 @@ import React from 'react';
 // to the original ref.
 const flatListRef = React.createRef();
 
+// A reference to the last index required to scroll to, for async layout change handler.
+let lastIndex;
+
 /**
  * Scroll to the provided index.
  *
@@ -11,12 +14,24 @@ const flatListRef = React.createRef();
  */
 function scrollToIndex(index) {
     flatListRef.current.scrollToIndex(index);
+    lastIndex = index;
 }
 
 /**
- * Noop as this is only needed on iOS
+ * Scroll to the last saved index on layout change
+ * See https://github.com/Expensify/App/issues/15303 for more context
  */
-function scrollToLastIndex() {}
+function scrollToLastIndex() {
+    if (!flatListRef.current) {
+        return;
+    }
+    if (lastIndex === undefined) {
+        return;
+    }
+
+    flatListRef.current.scrollToIndex(lastIndex);
+    lastIndex = undefined;
+}
 
 /**
  * Scroll to the bottom of the flatlist.
@@ -28,6 +43,7 @@ function scrollToBottom() {
     }
 
     flatListRef.current.scrollToOffset({animated: false, offset: 0});
+    lastIndex = 0;
 }
 
 export {
