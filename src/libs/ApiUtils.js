@@ -36,7 +36,7 @@ function canUseStagingServer() {
 
 /**
  * Get the currently used API endpoint
- * (Some environments allow for dynamically switching the API)
+ * (Non-production environments allow for dynamically switching the API)
  *
  * @param {Object} [request]
  * @param {Boolean} [request.shouldUseSecure]
