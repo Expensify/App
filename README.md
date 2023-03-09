@@ -247,8 +247,8 @@ In most cases, the code written for this repo should be platform-independent. In
 - Desktop => `index.desktop.js`
 
 Note that `index.js` should be the default and only platform-specific implementations should be done in their respective files. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`.
-Furthermore, `index.iso.js` and `index.android.js` are used when the app is running natively on respective platforms. These files are not used when users access the app through mobile browsers.
-`index.native.js` are for both iOS and Android native apps. `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`.
+
+`index.ios.js` and `index.android.js` are used when the app is running natively on respective platforms. These files are not used when users access the app through mobile browsers, but `index.website.js` is used instead. `index.native.js` are for both iOS and Android native apps. `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`.
 
 ## API building
 When adding new API commands (and preferably when starting using a new one that was not yet used in this codebase) always
