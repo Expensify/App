@@ -423,6 +423,16 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
+     * Return a unique key for each emoji item
+     *
+     * @param {Object} item
+     * @returns {String}
+     */
+    keyExtractor(item) {
+        return (`emoji_picker_${item.code}`);
+    }
+
+    /**
      * Given an emoji item object, render a component based on its type.
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
      * so that the sticky headers function properly.
@@ -515,7 +525,7 @@ class EmojiPickerMenu extends Component {
                             ref={el => this.emojiList = el}
                             data={this.state.filteredEmojis}
                             renderItem={this.renderItem}
-                            keyExtractor={item => `emoji_picker_${item.code}`}
+                            keyExtractor={this.keyExtractor}
                             numColumns={CONST.EMOJI_NUM_PER_ROW}
                             style={[
                                 styles.emojiPickerList,

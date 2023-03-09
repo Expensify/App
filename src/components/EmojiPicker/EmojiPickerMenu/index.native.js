@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, findNodeHandle, FlatList} from 'react-native';
+import {View, findNodeHandle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -18,6 +18,7 @@ import * as EmojiUtils from '../../../libs/EmojiUtils';
 import * as User from '../../../libs/actions/User';
 import TextInput from '../../TextInput';
 import CategoryShortcutBar from '../CategoryShortcutBar';
+import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -70,7 +71,6 @@ class EmojiPickerMenu extends Component {
 
         this.state = {
             filteredEmojis: this.emojis,
-            value: '',
         };
     }
 
@@ -86,10 +86,13 @@ class EmojiPickerMenu extends Component {
     filterEmojis(searchTerm) {
         const normalizedSearchTerm = searchTerm.toLowerCase().trim();
 
+        if (this.emojiList) {
+            this.emojiList.scrollToOffset({offset: 0, animated: false});
+        }
+
         if (normalizedSearchTerm === '') {
             this.setState({
                 filteredEmojis: this.emojis,
-                value: '',
             });
 
             return;
@@ -101,7 +104,6 @@ class EmojiPickerMenu extends Component {
 
         this.setState({
             filteredEmojis: newFilteredEmojiList,
-            value: searchTerm,
         });
     }
 
@@ -134,20 +136,6 @@ class EmojiPickerMenu extends Component {
         User.updatePreferredSkinTone(skinTone);
     }
 
-    listEmptyComponent() {
-        return (
-            <View
-                style={[styles.justifyContentCenter, styles.dFlex, styles.alignItemsCenter, styles.emojiPickerList]}
-            >
-                <Text
-                    style={[this.isMobileLandscape() && styles.emojiPickerListLandscape]}
-                >
-                    {this.props.translate('common.noResultsFound')}
-                </Text>
-            </View>
-        );
-    }
-
     scrollToHeader(headerIndex) {
         const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
         this.emojiList.flashScrollIndicators();
@@ -157,6 +145,16 @@ class EmojiPickerMenu extends Component {
 
             _scrollTo(node, 0, calculatedOffset, true);
         })();
+    }
+
+    /**
+     * Return a unique key for each emoji item
+     *
+     * @param {Object} item
+     * @returns {String}
+     */
+    keyExtractor(item) {
+        return (`emoji_picker_${item.code}`);
     }
 
     /**
@@ -196,6 +194,7 @@ class EmojiPickerMenu extends Component {
     }
 
     render() {
+        const isFiltered = this.emojis.length !== this.state.filteredEmojis.length;
         return (
             <View style={styles.emojiPickerContainer}>
                 <View style={[styles.ph4, styles.pb1]}>
@@ -204,45 +203,44 @@ class EmojiPickerMenu extends Component {
                         onChangeText={this.filterEmojis}
                     />
                 </View>
-                <View>
+                {!isFiltered && (
                     <CategoryShortcutBar
                         headerEmojis={this.headerEmojis}
                         onPress={this.scrollToHeader}
                     />
-                </View>
-                <Animated.FlatList
-                    ref={el => this.emojiList = el}
-                    keyboardShouldPersistTaps="handled"
-                    data={this.emojis}
-                    renderItem={this.renderItem}
-                    keyExtractor={item => (`emoji_picker_${item.code}`)}
-                    numColumns={CONST.EMOJI_NUM_PER_ROW}
-                    style={[
-                        styles.emojiPickerList,
-                        this.isMobileLandscape() && styles.emojiPickerListLandscape,
-                    ]}
-                    stickyHeaderIndices={this.headerRowIndices}
-                    getItemLayout={this.getItemLayout}
-                    showsVerticalScrollIndicator
-                />
-                {Boolean(this.state.value) && (
-                    <View style={styles.emojiPickerSearchListContainer}>
-                        <FlatList
+                )}
+                {this.state.filteredEmojis.length === 0
+                    ? (
+                        <View style={[
+                            styles.alignItemsCenter,
+                            styles.justifyContentCenter,
+                            styles.emojiPickerListWithPadding,
+                            this.isMobileLandscape() && styles.emojiPickerListLandscape,
+                        ]}
+                        >
+                            <Text style={styles.disabledText}>
+                                {this.props.translate('common.noResultsFound')}
+                            </Text>
+                        </View>
+                    )
+                    : (
+                        <Animated.FlatList
+                            ref={el => this.emojiList = el}
                             keyboardShouldPersistTaps="handled"
                             data={this.state.filteredEmojis}
                             renderItem={this.renderItem}
-                            keyExtractor={item => `emoji_picker_${item.code}`}
+                            keyExtractor={this.keyExtractor}
                             numColumns={CONST.EMOJI_NUM_PER_ROW}
                             style={[
                                 styles.emojiPickerList,
+                                StyleUtils.getEmojiPickerListHeight(isFiltered),
                                 this.isMobileLandscape() && styles.emojiPickerListLandscape,
                             ]}
+                            stickyHeaderIndices={isFiltered ? null : this.headerRowIndices}
                             getItemLayout={this.getItemLayout}
-                            ListEmptyComponent={this.listEmptyComponent()}
                             showsVerticalScrollIndicator
                         />
-                    </View>
-                )}
+                    )}
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}
                     preferredSkinTone={this.props.preferredSkinTone}
