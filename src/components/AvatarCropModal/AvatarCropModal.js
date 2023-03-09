@@ -72,6 +72,8 @@ const AvatarCropModal = (props) => {
     const rotation = useSharedValue(0);
     const translateSlider = useSharedValue(0);
     const isPressableEnabled = useSharedValue(true);
+    const prevMaxOffsetX = useSharedValue(0);
+    const prevMaxOffsetY = useSharedValue(0);
 
     const [imageContainerSize, setImageContainerSize] = useState(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const [sliderContainerSize, setSliderContainerSize] = useState(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
@@ -166,6 +168,8 @@ const AvatarCropModal = (props) => {
         const maxOffsetY = (height - imageContainerSize) / 2;
         translateX.value = clamp(offsetX, [maxOffsetX * -1, maxOffsetX]);
         translateY.value = clamp(offsetY, [maxOffsetY * -1, maxOffsetY]);
+        prevMaxOffsetX.value = maxOffsetX;
+        prevMaxOffsetY.value = maxOffsetY;
     }, [imageContainerSize, scale, clamp]);
 
     /**
@@ -198,6 +202,37 @@ const AvatarCropModal = (props) => {
             updateImageOffset(newX, newY);
         },
     }, [imageContainerSize, updateImageOffset, translateX, translateY]);
+
+    useEffect(() => {
+        // If no panning has happened already, the value is 0 and
+        // we do an early return.
+        if (!prevMaxOffsetX.value && !prevMaxOffsetY.value) {
+            return;
+        }
+        const {height, width} = getDisplayedImageSize();
+        const maxOffsetX = (width - imageContainerSize) / 2;
+        const maxOffsetY = (height - imageContainerSize) / 2;
+
+        // Since interpolation is expensive, we only want to do it if
+        // image has been panned across X or Y axis.
+        if (prevMaxOffsetX) {
+            translateX.value = interpolate(
+                translateX.value,
+                [prevMaxOffsetX.value * -1, prevMaxOffsetX.value],
+                [maxOffsetX * -1, maxOffsetX],
+            );
+        }
+
+        if (prevMaxOffsetY) {
+            translateY.value = interpolate(
+                translateY.value,
+                [prevMaxOffsetY.value * -1, prevMaxOffsetY.value],
+                [maxOffsetY * -1, maxOffsetY],
+            );
+        }
+        prevMaxOffsetX.value = maxOffsetX;
+        prevMaxOffsetY.value = maxOffsetY;
+    }, [imageContainerSize]);
 
     /**
      * Calculates new scale value and updates images offset to ensure
