@@ -4,7 +4,6 @@ import lodashGet from 'lodash/get';
 import lodashIntersection from 'lodash/intersection';
 import Onyx from 'react-native-onyx';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import {InteractionManager} from 'react-native';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
@@ -1551,21 +1550,6 @@ function getReportIDFromLink(url) {
 }
 
 /**
- * @param {String|null} url
- */
-function openReportFromDeepLink(url) {
-    const reportID = getReportIDFromLink(url);
-    if (!reportID) {
-        return;
-    }
-    InteractionManager.runAfterInteractions(() => {
-        Navigation.isReportScreenReady().then(() => {
-            Navigation.navigate(ROUTES.getReportRoute(reportID));
-        });
-    });
-}
-
-/**
  * @param {Object} report
  * @param {Array} reportParticipants
  * @param {Array} betas
@@ -1685,7 +1669,6 @@ export {
     hashLogin,
     getDefaultWorkspaceAvatar,
     getCommentLength,
-    openReportFromDeepLink,
     getFullSizeAvatar,
     getIOUOptions,
 };

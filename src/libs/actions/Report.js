@@ -1,4 +1,4 @@
-import {Linking} from 'react-native';
+import {Linking, InteractionManager} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -1366,6 +1366,21 @@ function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = pref
     return addEmojiReaction(reportID, reportAction, emoji, skinTone);
 }
 
+/**
+ * @param {String|null} url
+ */
+function openReportFromDeepLink(url) {
+    const reportID = ReportUtils.getReportIDFromLink(url);
+    if (!reportID) {
+        return;
+    }
+    InteractionManager.runAfterInteractions(() => {
+        Navigation.isReportScreenReady().then(() => {
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
+        });
+    });
+}
+
 export {
     addComment,
     addAttachment,
@@ -1390,6 +1405,7 @@ export {
     readNewestAction,
     readOldestAction,
     openReport,
+    openReportFromDeepLink,
     navigateToAndOpenReport,
     openPaymentDetailsPage,
     updatePolicyRoomName,
