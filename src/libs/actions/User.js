@@ -225,6 +225,13 @@ function setSecondaryLoginAndNavigate(login, password) {
  * @param {Object} oldLoginData
  */
 function deleteContactMethod(contactMethod, oldLoginData) {
+
+    // If the contact method failed to be added to the account, then it should only be deleted locally.
+    if (lodashGet(oldLoginData, 'errorFields.addedLogin', null)) {
+        Onyx.merge(ONYXKEYS.LOGIN_LIST, {[contactMethod]: null});
+        return;
+    }
+
     const optimisticData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: ONYXKEYS.LOGIN_LIST,

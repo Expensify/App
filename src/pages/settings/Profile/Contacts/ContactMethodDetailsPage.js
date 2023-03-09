@@ -118,7 +118,7 @@ class ContactMethodDetailsPage extends Component {
      */
     confirmDeleteAndHideModal() {
         const contactMethod = this.getContactMethod();
-        User.deleteContactMethod(contactMethod);
+        User.deleteContactMethod(contactMethod, this.props.loginList[contactMethod]);
         this.toggleDeleteModal(false);
         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
     }
