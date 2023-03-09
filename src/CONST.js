@@ -304,6 +304,7 @@ const CONST = {
                 CREATED: 'CREATED',
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
+                CHRONOSOOOLIST: 'CHRONOSOOOLIST',
             },
         },
         ARCHIVE_REASON: {
