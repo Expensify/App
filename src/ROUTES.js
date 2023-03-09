@@ -138,7 +138,7 @@ export default {
      */
     parseReportRouteParams: (route) => {
         if (!route.startsWith(Url.addTrailingForwardSlash(REPORT))) {
-            return {};
+            return {reportID: '', isSubReportPageRoute: false};
         }
 
         const pathSegments = route.split('/');

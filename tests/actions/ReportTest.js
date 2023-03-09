@@ -676,4 +676,9 @@ describe('actions/Report', () => {
         expect(ReportUtils.getReportIDFromDeepLink('https://staging.expensify.cash/r/75431276')).toBe('75431276');
         expect(ReportUtils.getReportIDFromDeepLink('https://new.expensify.com/r/75431276')).toBe('75431276');
     });
+
+    it('shouldn\'t get the correct reportID from a deep link', () => {
+        expect(ReportUtils.getReportIDFromDeepLink('new-expensify-not-valid://r/75431276')).toBe('');
+        expect(ReportUtils.getReportIDFromDeepLink('new-expensify://settings')).toBe('');
+    });
 });
