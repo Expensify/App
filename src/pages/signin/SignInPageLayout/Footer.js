@@ -15,6 +15,8 @@ import Hoverable from '../../../components/Hoverable';
 import CONST from '../../../CONST';
 import * as Environment from '../../../libs/Environment/Environment';
 import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
+import * as Session from '../../../libs/actions/Session';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -163,7 +165,10 @@ const Footer = (props) => {
                                         _.has(row, 'navigateRoute') ? (
                                             <Pressable
                                                 key={row.translationPath}
-                                                onPress={() => Navigation.navigate(row.navigateRoute)}
+                                                onPress={() => {
+                                                    Navigation.navigate(ROUTES.HOME);
+                                                    Session.clearSignInData();
+                                                }}
                                             >
                                                 <Text>
                                                     {props.translate(row.translationPath)}
