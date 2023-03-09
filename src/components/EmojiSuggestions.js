@@ -64,11 +64,11 @@ const measureHeightOfEmojiRows = (numRows, isEmojiPickerLarge) => {
 };
 
 /**
-     * Create unique keys for each emoji item
-     * @param {Object} item
-     * @param {Number} index
-     * @returns {String}
-     */
+ * Create unique keys for each emoji item
+ * @param {Object} item
+ * @param {Number} index
+ * @returns {String}
+ */
 const keyExtractor = (item, index) => `${item.name}+${index}}`;
 
 const EmojiSuggestions = (props) => {
@@ -93,7 +93,7 @@ const EmojiSuggestions = (props) => {
                 onPress={() => props.onSelect(index)}
             >
                 <View style={styles.emojiSuggestionContainer}>
-                    <Text style={styles.emojiSuggestionsEmoji}>{EmojiUtils.emojiCode(item, props.preferredSkinToneIndex)}</Text>
+                    <Text style={styles.emojiSuggestionsEmoji}>{EmojiUtils.getEmojiCodeWithSkinColor(item, props.preferredSkinToneIndex)}</Text>
                     <Text style={styles.emojiSuggestionsText}>
                         :
                         {_.map(styledTextArray, ({text, isColored}, i) => (

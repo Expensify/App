@@ -254,7 +254,7 @@ function suggestEmojis(text, limit = 5) {
  * @param {Number} preferredSkinToneIndex
  * @returns {String}
  */
-const emojiCode = (item, preferredSkinToneIndex) => {
+const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
     const {code, types} = item;
     if (types && types[preferredSkinToneIndex]) {
         return types[preferredSkinToneIndex];
@@ -271,5 +271,5 @@ export {
     replaceEmojis,
     suggestEmojis,
     trimEmojiUnicode,
-    emojiCode,
+    getEmojiCodeWithSkinColor,
 };

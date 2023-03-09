@@ -1,4 +1,3 @@
-
 /**
  * Render a suggestion menu item component.
  * @param {String} name

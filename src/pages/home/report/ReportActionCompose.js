@@ -134,8 +134,7 @@ const getMaxArrowIndex = (numRows, isEmojiPickerLarge) => {
 class ReportActionCompose extends React.Component {
     constructor(props) {
         super(props);
-        this.calculateEmojiSuggestionDebounce = _.debounce(this.calculateEmojiSuggestion, 10, false);
-
+        this.calculateEmojiSuggestion = _.debounce(this.calculateEmojiSuggestion, 10, false);
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.debouncedBroadcastUserIsTyping = _.debounce(this.debouncedBroadcastUserIsTyping.bind(this), 100, true);
@@ -249,7 +248,7 @@ class ReportActionCompose extends React.Component {
 
     onSelectionChange(e) {
         this.setState({selection: e.nativeEvent.selection});
-        this.calculateEmojiSuggestionDebounce();
+        this.calculateEmojiSuggestion();
     }
 
     /**
@@ -826,9 +825,10 @@ class ReportActionCompose extends React.Component {
                                             value={this.state.value}
                                             onLayout={(e) => {
                                                 const composerHeight = e.nativeEvent.layout.height;
-                                                if (this.state.composerHeight !== composerHeight) {
-                                                    this.setState({composerHeight});
+                                                if (this.state.composerHeight === composerHeight) {
+                                                    return;
                                                 }
+                                                this.setState({composerHeight});
                                             }}
                                             onScroll={this.setShouldShowSuggestionMenuToFalse}
                                         />
