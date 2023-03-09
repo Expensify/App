@@ -459,7 +459,6 @@ export default {
         expirationDate: 'MMYY',
         cvv: 'CVV',
         billingAddress: 'Billing address',
-        expensifyTermsOfService: 'Expensify Terms of Service',
         growlMessageOnSave: 'Your debit card was successfully added',
         expensifyPassword: 'Expensify password',
         error: {

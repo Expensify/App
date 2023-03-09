@@ -459,7 +459,6 @@ export default {
         expirationDate: 'MMAA',
         cvv: 'CVV',
         billingAddress: 'Dirección de envio',
-        expensifyTermsOfService: 'Expensify Términos de servicio',
         growlMessageOnSave: 'Su tarteja de débito se agregó correctamente',
         expensifyPassword: 'Contraseña de Expensify',
         error: {
