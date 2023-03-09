@@ -84,7 +84,10 @@ const AvatarCropModal = (props) => {
     const initializeImageContainer = useCallback((event) => {
         setIsImageContainerInitialized(true);
         const {height, width} = event.nativeEvent.layout;
-        setImageContainerSize(Math.floor(Math.min(Math.max(height - styles.imageCropRotateButton.height, CONST.AVATAR_CROP_MODAL.INITIAL_SIZE), width)));
+
+        // Even if the browser height is reduced too much, the relative height should not be negative
+        const relativeHeight = Math.max(height - styles.imageCropRotateButton.height, CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
+        setImageContainerSize(Math.floor(Math.min(relativeHeight, width)));
     }, [props.isSmallScreenWidth]);
 
     // An onLayout callback, that initializes the slider container size, for proper render of a slider
@@ -205,6 +208,8 @@ const AvatarCropModal = (props) => {
         },
     }, [imageContainerSize, updateImageOffset, translateX, translateY]);
 
+    // This effect is needed to recalculate the maximum offset values
+    // when the browser window is resized.
     useEffect(() => {
         // If no panning has happened already, the value is 0 and
         // we do an early return.
@@ -216,7 +221,7 @@ const AvatarCropModal = (props) => {
         const maxOffsetY = (height - imageContainerSize) / 2;
 
         // Since interpolation is expensive, we only want to do it if
-        // image has been panned across X or Y axis.
+        // image has been panned across X or Y axis by the user.
         if (prevMaxOffsetX) {
             translateX.value = interpolate(
                 translateX.value,
