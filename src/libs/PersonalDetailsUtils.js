@@ -13,6 +13,20 @@ Onyx.connect({
  * @param {Array<string>} accountIDs  - Array of accountIDs
  * @returns {Array} - Array of personal detail objects
  */
-export default function getPersonalDetailsByIDs(accountIDs) {
-    return _.filter(personalDetails, value => accountIDs.includes(`${value.accountID}`));
+function getPersonalDetailsByIDs(accountIDs) {
+    const result = [];
+    _.each(personalDetails, (detail) => {
+        for (let i = 0; i < accountIDs.length; i++) {
+            if (detail.accountID === accountIDs[i]) {
+                result[i] = detail;
+                break;
+            }
+        }
+    });
+    return result;
 }
+
+export {
+    // eslint-disable-next-line import/prefer-default-export
+    getPersonalDetailsByIDs,
+};
