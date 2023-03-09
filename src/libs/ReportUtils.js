@@ -1506,7 +1506,7 @@ function getCommentLength(textComment) {
  * @param {String|null} url
  * @returns {String}
  */
-function getReportIDFromDeepLink(url) {
+function getRouteFromLink(url) {
     if (!url) {
         return '';
     }
@@ -1533,6 +1533,15 @@ function getReportIDFromDeepLink(url) {
             route = route.replace('/', '');
         }
     });
+    return route;
+}
+
+/**
+ * @param {String|null} url
+ * @returns {String}
+ */
+function getReportIDFromLink(url) {
+    const route = getRouteFromLink(url);
     const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(route);
     if (isSubReportPageRoute) {
         // We allow the Sub-Report deep link routes (settings, details, etc.) to be handled by their respective component pages
@@ -1545,7 +1554,7 @@ function getReportIDFromDeepLink(url) {
  * @param {String|null} url
  */
 function openReportFromDeepLink(url) {
-    const reportID = getReportIDFromDeepLink(url);
+    const reportID = getReportIDFromLink(url);
     if (!reportID) {
         return;
     }
@@ -1649,7 +1658,7 @@ export {
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
     getReportName,
-    getReportIDFromDeepLink,
+    getReportIDFromLink,
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
