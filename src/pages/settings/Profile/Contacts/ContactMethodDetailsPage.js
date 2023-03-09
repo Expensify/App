@@ -165,7 +165,7 @@ class ContactMethodDetailsPage extends Component {
                         isVisible={this.state.isDeleteModalOpen}
                         danger
                     />
-                    {!loginData.validatedDate && (
+                    {!loginData.validatedDate && !lodashGet(loginData, 'errorFields.addedLogin', null) && (
                         <View style={[styles.mh5, styles.mb7]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb1, styles.mt3]}>
                                 <Icon src={Expensicons.DotIndicator} fill={colors.green} />
