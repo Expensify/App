@@ -71,6 +71,7 @@ class EmojiPickerMenu extends Component {
 
         this.state = {
             filteredEmojis: this.emojis,
+            headerIndices: this.headerRowIndices,
         };
     }
 
@@ -93,6 +94,7 @@ class EmojiPickerMenu extends Component {
         if (normalizedSearchTerm === '') {
             this.setState({
                 filteredEmojis: this.emojis,
+                headerIndices: this.headerRowIndices,
             });
 
             return;
@@ -101,6 +103,7 @@ class EmojiPickerMenu extends Component {
 
         this.setState({
             filteredEmojis: newFilteredEmojiList,
+            headerIndices: undefined,
         });
     }
 
@@ -233,9 +236,12 @@ class EmojiPickerMenu extends Component {
                                 StyleUtils.getEmojiPickerListHeight(isFiltered),
                                 this.isMobileLandscape() && styles.emojiPickerListLandscape,
                             ]}
-                            stickyHeaderIndices={isFiltered ? [0] : this.headerRowIndices}
+                            stickyHeaderIndices={this.state.headerIndices}
                             getItemLayout={this.getItemLayout}
                             showsVerticalScrollIndicator
+
+                            // used because of a bug in RN where stickyHeaderIndices can't be updated after the list is rendered https://github.com/facebook/react-native/issues/25157
+                            removeClippedSubviews={false}
                         />
                     )}
                 <EmojiSkinToneList
