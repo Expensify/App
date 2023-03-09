@@ -97,10 +97,7 @@ class EmojiPickerMenu extends Component {
 
             return;
         }
-        const newFilteredEmojiList = EmojiUtils.suggestEmojis(
-            `:${normalizedSearchTerm}`,
-            this.emojis.length,
-        );
+        const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, this.emojis.length);
 
         this.setState({
             filteredEmojis: newFilteredEmojiList,
@@ -236,7 +233,7 @@ class EmojiPickerMenu extends Component {
                                 StyleUtils.getEmojiPickerListHeight(isFiltered),
                                 this.isMobileLandscape() && styles.emojiPickerListLandscape,
                             ]}
-                            stickyHeaderIndices={isFiltered ? null : this.headerRowIndices}
+                            stickyHeaderIndices={isFiltered ? [0] : this.headerRowIndices}
                             getItemLayout={this.getItemLayout}
                             showsVerticalScrollIndicator
                         />
