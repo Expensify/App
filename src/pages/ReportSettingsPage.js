@@ -68,7 +68,7 @@ class ReportSettingsPage extends Component {
 
     /**
      * @param {Object} report - the given report we're viewing settings for
-     * @param {Object|null} policy - null if the user isn't in the workspace the report is on
+     * @param {Object|null} policy - the workspace the report is on, null if the user isn't a member of the workspace
      * @returns {Boolean}
      */
     getShouldDisablePublicRoomRename(report, policy) {
