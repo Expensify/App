@@ -384,6 +384,12 @@ export default {
         enterPreferredEmailToSendValidationLink: 'Enter your preferred email address to send a validation link.',
         sendValidation: 'Send validation',
     },
+    validateSecondaryLoginPage: {
+        validate: 'Validate',
+        enterMagicCode: 'Enter the magic code sent to',
+        toValidateLogin: 'to validate your login.',
+        submit: 'Submit'
+    },
     initialSettingsPage: {
         about: 'About',
         aboutPage: {
