@@ -157,7 +157,7 @@ class Form extends React.Component {
         ));
 
         // Validate form and return early if any errors are found
-        if (!_.isEmpty(this.validate(this.state.inputValues))) {
+        if (_.find(_.values(this.validate(this.state.inputValues)), err => !_.isEmpty(err))) {
             return;
         }
 
@@ -290,7 +290,7 @@ class Form extends React.Component {
                 {this.props.isSubmitButtonVisible && (
                 <FormAlertWithSubmitButton
                     buttonText={this.props.submitButtonText}
-                    isAlertVisible={_.filter(_.values(this.state.errors), value => !_.isEmpty(value)).length > 0
+                    isAlertVisible={Boolean(_.find(_.values(this.state.errors), value => !_.isEmpty(value)))
                         || Boolean(this.getErrorMessage()) || !_.isEmpty(this.props.formState.errorFields)}
                     isLoading={this.props.formState.isLoading}
                     message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
