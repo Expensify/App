@@ -666,4 +666,14 @@ describe('actions/Report', () => {
                 expect(resultAction.message[0].reactions).toHaveLength(0);
             });
     });
+
+    it('should get the correct reportID from a deep link', () => {
+        expect(ReportUtils.getReportIDFromDeepLink('new-expensify://r/75431276')).toBe('75431276');
+        expect(ReportUtils.getReportIDFromDeepLink('https://www.expensify.cash/r/75431276')).toBe('75431276');
+        expect(ReportUtils.getReportIDFromDeepLink('https://staging.new.expensify.com/r/75431276')).toBe('75431276');
+        expect(ReportUtils.getReportIDFromDeepLink('http://localhost/r/75431276')).toBe('75431276');
+        expect(ReportUtils.getReportIDFromDeepLink('http://localhost:8080/r/75431276')).toBe('75431276');
+        expect(ReportUtils.getReportIDFromDeepLink('https://staging.expensify.cash/r/75431276')).toBe('75431276');
+        expect(ReportUtils.getReportIDFromDeepLink('https://new.expensify.com/r/75431276')).toBe('75431276');
+    });
 });
