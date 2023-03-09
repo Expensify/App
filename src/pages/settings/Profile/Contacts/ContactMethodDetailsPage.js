@@ -16,6 +16,7 @@ import styles from '../../../../styles/styles';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import Text from '../../../../components/Text';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
+import DotIndicatorMessage from '../../../../components/DotIndicatorMessage';
 import ConfirmModal from '../../../../components/ConfirmModal';
 import * as User from '../../../../libs/actions/User';
 import TextInput from '../../../../components/TextInput';
@@ -146,6 +147,7 @@ class ContactMethodDetailsPage extends Component {
 
         const isDefaultContactMethod = (this.props.session.email === loginData.partnerUserID);
         const hasMagicCodeBeenSent = lodashGet(this.props.loginList, [contactMethod, 'validateCodeSent'], false);
+        const isFailedAddContactMethod = Boolean(lodashGet(loginData, 'errorFields.addedLogin', null));
 
         return (
             <ScreenWrapper>
@@ -165,7 +167,8 @@ class ContactMethodDetailsPage extends Component {
                         isVisible={this.state.isDeleteModalOpen}
                         danger
                     />
-                    {!loginData.validatedDate && !lodashGet(loginData, 'errorFields.addedLogin', null) && (
+                    {isFailedAddContactMethod && <DotIndicatorMessage style={[styles.mh5]} messages={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')} type="error" />}
+                    {!loginData.validatedDate && !isFailedAddContactMethod && (
                         <View style={[styles.mh5, styles.mb7]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb1, styles.mt3]}>
                                 <Icon src={Expensicons.DotIndicator} fill={colors.green} />
@@ -179,7 +182,7 @@ class ContactMethodDetailsPage extends Component {
                                 label={this.props.translate('common.magicCode')}
                                 name="validateCode"
                                 value={this.state.validateCode}
-                                onChangeText={text => this.setState({validateCode: text})}
+                                onChangeText={text => this.setState({ validateCode: text })}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                 blurOnSubmit={false}
                             />
