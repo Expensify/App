@@ -1370,13 +1370,16 @@ function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = pref
  * @param {String|null} url
  */
 function openReportFromDeepLink(url) {
-    const reportID = ReportUtils.getReportIDFromLink(url);
-    if (!reportID) {
-        return;
-    }
     InteractionManager.runAfterInteractions(() => {
         Navigation.isReportScreenReady().then(() => {
-            Navigation.navigate(ROUTES.getReportRoute(reportID));
+            const route = ReportUtils.getRouteFromLink(url);
+            const reportID = ReportUtils.getReportIDFromLink(url);
+            if (reportID) {
+                Navigation.navigate(ROUTES.getReportRoute(reportID));
+            }
+            if (route === ROUTES.CONCIERGE) {
+                navigateToConciergeChat();
+            }
         });
     });
 }

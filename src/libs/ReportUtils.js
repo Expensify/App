@@ -1643,6 +1643,7 @@ export {
     getDisplayNamesWithTooltips,
     getReportName,
     getReportIDFromLink,
+    getRouteFromLink,
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
