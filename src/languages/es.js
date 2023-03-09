@@ -50,6 +50,7 @@ export default {
         saveAndContinue: 'Guardar y continuar',
         settings: 'Configuración',
         termsOfService: 'Términos de Servicio',
+        expensifyTermsOfService: 'Términos de Servicio de Expensify',
         members: 'Miembros',
         invite: 'Invitar',
         here: 'aquí',
