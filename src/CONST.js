@@ -280,6 +280,9 @@ const CONST = {
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     NEWHELP_URL: 'https://help.expensify.com',
+    INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
+    STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
+    EXPENSIFY_URL: 'https://www.expensify.com',
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
