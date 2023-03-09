@@ -904,7 +904,6 @@ function getEmojiReactionCounterTextStyle(hasUserReacted, sizeScale = 1) {
     return sizeStyles;
 }
 
-
 export {
     getAvatarSize,
     getAvatarStyle,
