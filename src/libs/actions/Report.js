@@ -1186,6 +1186,15 @@ function clearIOUError(reportID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errorFields: {iou: null}});
 }
 
+/**
+ * @param {String} reportID
+ * @param {String} reportActionID
+ * @param {Boolean} isEditComposerFullSize
+ */
+function setIsEditComposerFullSize(reportID, reportActionID, isEditComposerFullSize) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_EDIT_COMPOSER_FULL_SIZE}${reportID}`, {[reportActionID]: isEditComposerFullSize});
+}
+
 export {
     addComment,
     addAttachment,
@@ -1217,4 +1226,5 @@ export {
     clearIOUError,
     subscribeToNewActionEvent,
     showReportActionNotification,
+    setIsEditComposerFullSize,
 };
