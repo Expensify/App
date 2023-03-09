@@ -14,7 +14,6 @@ import Socials from '../Socials';
 import Hoverable from '../../../components/Hoverable';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 import * as Session from '../../../libs/actions/Session';
 
 const propTypes = {
@@ -23,7 +22,7 @@ const propTypes = {
 };
 
 const navigateHome = () => {
-    Navigation.navigate(ROUTES.HOME);
+    Navigation.navigate();
 
     // We need to clear sign in data in case the user is already in the ValidateCodeForm or PasswordForm pages
     Session.clearSignInData();
