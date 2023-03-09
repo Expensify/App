@@ -22,9 +22,9 @@ import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus
 import * as ErrorUtils from '../../../libs/ErrorUtils';
 import {withNetwork} from '../../../components/OnyxProvider';
 import networkPropTypes from '../../../components/networkPropTypes';
-import OfflineIndicator from '../../../components/OfflineIndicator';
 import * as User from '../../../libs/actions/User';
 import FormHelpMessage from '../../../components/FormHelpMessage';
+import Terms from '../Terms';
 
 const propTypes = {
     /* Onyx Props */
@@ -249,7 +249,9 @@ class BaseValidateCodeForm extends React.Component {
                     />
                     <ChangeExpensifyLoginLink onPress={this.clearSignInData} />
                 </View>
-                <OfflineIndicator containerStyles={[styles.mv5]} />
+                <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
+                    <Terms />
+                </View>
             </>
         );
     }

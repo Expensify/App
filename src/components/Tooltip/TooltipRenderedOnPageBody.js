@@ -4,6 +4,7 @@ import {Animated, View} from 'react-native';
 import ReactDOM from 'react-dom';
 import getTooltipStyles from '../../styles/getTooltipStyles';
 import Text from '../Text';
+import Log from '../../libs/Log';
 
 const propTypes = {
     /** Window width */
@@ -36,16 +37,21 @@ const propTypes = {
     /** Text to be shown in the tooltip */
     text: PropTypes.string.isRequired,
 
-    /** Number of pixels to set max-width on tooltip  */
-    maxWidth: PropTypes.number.isRequired,
-
     /** Maximum number of lines to show in tooltip */
     numberOfLines: PropTypes.number.isRequired,
+
+    /** Number of pixels to set max-width on tooltip  */
+    maxWidth: PropTypes.number,
+
+    /** Render custom content inside the tooltip. Note: This cannot be used together with the text props. */
+    renderTooltipContent: PropTypes.func,
 };
 
 const defaultProps = {
     shiftHorizontal: 0,
     shiftVertical: 0,
+    renderTooltipContent: undefined,
+    maxWidth: 0,
 };
 
 // Props will change frequently.
@@ -57,35 +63,45 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            // The width of tooltip's inner text
-            tooltipTextWidth: 0,
+            // The width of tooltip's inner content. Has to be undefined in the beginning
+            // as a width of 0 will cause the content to be rendered of a width of 0,
+            // which prevents us from measuring it correctly.
+            tooltipContentWidth: undefined,
 
             // The width and height of the tooltip itself
             tooltipWidth: 0,
             tooltipHeight: 0,
         };
 
+        if (props.renderTooltipContent && props.text) {
+            Log.warn('Developer error: Cannot use both text and renderTooltipContent props at the same time in <TooltipRenderedOnPageBody />!');
+        }
+
         this.measureTooltip = this.measureTooltip.bind(this);
-        this.updateTooltipTextWidth = this.updateTooltipTextWidth.bind(this);
+        this.updateTooltipContentWidth = this.updateTooltipContentWidth.bind(this);
     }
 
     componentDidMount() {
-        this.updateTooltipTextWidth();
+        this.updateTooltipContentWidth();
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.text === this.props.text) {
+        if (prevProps.text === this.props.text && prevProps.renderTooltipContent === this.props.renderTooltipContent) {
             return;
         }
 
         // Reset the tooltip text width to 0 so that we can measure it again.
         // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({tooltipTextWidth: 0}, this.updateTooltipTextWidth);
+        this.setState({tooltipContentWidth: undefined}, this.updateTooltipContentWidth);
     }
 
-    updateTooltipTextWidth() {
+    updateTooltipContentWidth() {
+        if (!this.contentRef) {
+            return;
+        }
+
         this.setState({
-            tooltipTextWidth: this.textRef.offsetWidth,
+            tooltipContentWidth: this.contentRef.offsetWidth,
         });
     }
 
@@ -118,32 +134,45 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
             this.props.maxWidth,
             this.state.tooltipWidth,
             this.state.tooltipHeight,
-            this.state.tooltipTextWidth,
+            this.state.tooltipContentWidth,
             this.props.shiftHorizontal,
             this.props.shiftVertical,
         );
+
+        const contentRef = (ref) => {
+            // Once the content for the tooltip first renders, update the width of the tooltip dynamically to fit the width of the content.
+            // Note that we can't have this code in componentDidMount because the ref for the content won't be set until after the first render
+            if (this.contentRef) {
+                return;
+            }
+
+            this.contentRef = ref;
+            this.updateTooltipContentWidth();
+        };
+
+        let content;
+        if (this.props.renderTooltipContent) {
+            content = (
+                <View ref={contentRef}>
+                    {this.props.renderTooltipContent()}
+                </View>
+            );
+        } else {
+            content = (
+                <Text numberOfLines={this.props.numberOfLines} style={tooltipTextStyle}>
+                    <Text style={tooltipTextStyle} ref={contentRef}>
+                        {this.props.text}
+                    </Text>
+                </Text>
+            );
+        }
+
         return ReactDOM.createPortal(
             <Animated.View
                 onLayout={this.measureTooltip}
                 style={[tooltipWrapperStyle, animationStyle]}
             >
-                <Text numberOfLines={this.props.numberOfLines} style={tooltipTextStyle}>
-                    <Text
-                        style={tooltipTextStyle}
-                        ref={(ref) => {
-                            // Once the text for the tooltip first renders, update the width of the tooltip dynamically to fit the width of the text.
-                            // Note that we can't have this code in componentDidMount because the ref for the text won't be set until after the first render
-                            if (this.textRef) {
-                                return;
-                            }
-
-                            this.textRef = ref;
-                            this.updateTooltipTextWidth();
-                        }}
-                    >
-                        {this.props.text}
-                    </Text>
-                </Text>
+                {content}
                 <View style={pointerWrapperStyle}>
                     <View style={pointerStyle} />
                 </View>

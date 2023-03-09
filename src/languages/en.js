@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '../CONST';
 
 /* eslint-disable max-len */
@@ -224,6 +225,8 @@ export default {
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
+        addEmojiReaction: 'Add emoji reaction',
+        addReactionTooltip: 'Add Reaction…',
     },
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'You missed the party in ',
@@ -1047,35 +1050,6 @@ export default {
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
     },
-    requestCallPage: {
-        title: 'Request a call',
-        subtitle: 'Need help, or a demo?',
-        description: 'Our team is ready to help each step of the way. Enter your name and phone number, and we\'ll give you a call back ASAP.*',
-        phoneNumberExtension: 'Extension (Optional)',
-        callMe: 'Call me',
-        growlMessageOnSave: 'Call requested.',
-        callButton: 'Call',
-        callButtonTooltip: 'Get live help from our team',
-        blockedFromConcierge: 'Due to previous interactions with our staff, a call cannot be scheduled at this time.',
-        waitTime: {
-            calculating: 'Calculating wait time...',
-            fiveHoursPlus: 'The current wait time is longer than 5 hours.',
-            hoursAndMinutes: ({minutes}) => `The current wait time is ${Math.floor(minutes / 60)} hours and ${minutes % 60} minutes. `,
-            minutes: ({minutes}) => `The current wait time is ${minutes} minutes. `,
-            weekend: 'We have limited availability on the weekends. We\'ll give you a call back as soon as we can. ',
-            guides: 'Please note that our Guides are typically available from Sunday at 5pm CT to Friday at 5pm CT.',
-        },
-        error: {
-            phoneNumberExtension: 'Please enter a valid phone extension number',
-            firstName: 'Please provide your first name',
-            lastName: 'Please provide your last name',
-        },
-    },
-    requestCallConfirmationScreen: {
-        callRequested: 'Call successfully requested!',
-        allSet: 'You’re all set. You will be receiving a call from us soon.',
-        gotIt: 'Got it',
-    },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
         headers: {
@@ -1097,6 +1071,7 @@ export default {
         visibility: 'Visibility',
         restrictedDescription: 'People in your workspace can find this room',
         privateDescription: 'People invited to this room can find it',
+        publicDescription: 'Anyone can find this room',
         createRoom: 'Create room',
         roomAlreadyExistsError: 'A room with this name already exists',
         roomNameReservedError: 'A room on this workspace already uses this name',
@@ -1110,6 +1085,8 @@ export default {
         visibilityOptions: {
             restricted: 'Restricted',
             private: 'Private',
+            public: 'Public',
+            public_announce: 'Public Announce',
         },
     },
     statementPage: {
@@ -1182,4 +1159,35 @@ export default {
     report: {
         genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
     },
+    footer: {
+        features: 'Features',
+        expenseManagement: 'Expense Management',
+        spendManagement: 'Spend Management',
+        expenseReports: 'Expense Reports',
+        companyCreditCard: 'Company Credit Card',
+        receiptScanningApp: 'Receipt Scanning App',
+        billPay: 'Bill Pay',
+        invoicing: 'Invoicing',
+        CPACard: 'CPA Card',
+        payroll: 'Payroll',
+        travel: 'Travel',
+        resources: 'Resources',
+        expensifyApproved: 'ExpensifyApproved!',
+        pressKit: 'Press Kit',
+        support: 'Support',
+        expensifyHelp: 'ExpensifyHelp',
+        community: 'Community',
+        privacy: 'Privacy',
+        learnMore: 'Learn More',
+        aboutExpensify: 'About Expensify',
+        blog: 'Blog',
+        jobs: 'Jobs',
+        expensifyOrg: 'Expensify.org',
+        investorRelations: 'Investor Relations',
+        getStarted: 'Get Started',
+        createAccount: 'Create a new account',
+        logIn: 'Log in',
+    },
+    allStates: COMMON_CONST.STATES,
+    allCountries: CONST.ALL_COUNTRIES,
 };
