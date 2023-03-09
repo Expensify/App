@@ -294,9 +294,7 @@ class BaseTextInput extends Component {
                                             this.props.prefixCharacter && StyleUtils.getPaddingLeft(this.state.prefixWidth + styles.pl1.paddingLeft),
                                             this.props.secureTextEntry && styles.secureInput,
 
-                                            // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
-                                            // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
-                                            !this.props.multiline && {height: this.state.height, lineHeight: undefined},
+                                            !this.props.multiline && {height: this.state.height},
                                         ]}
                                         multiline={this.props.multiline}
                                         maxLength={this.props.maxLength}

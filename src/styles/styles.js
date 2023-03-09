@@ -767,9 +767,10 @@ const styles = {
     }),
 
     baseTextInput: {
+        // Adding lineheight should be avoided here
+        // as per https://github.com/Expensify/App/issues/14799
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
-        lineHeight: variables.lineHeightXLarge,
         color: themeColors.text,
         paddingTop: 23,
         paddingBottom: 8,
