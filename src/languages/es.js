@@ -49,7 +49,7 @@ export default {
         back: 'Volver',
         saveAndContinue: 'Guardar y continuar',
         settings: 'Configuración',
-        termsOfService: 'Términos de servicio',
+        termsOfService: 'Términos de Servicio',
         members: 'Miembros',
         invite: 'Invitar',
         here: 'aquí',
