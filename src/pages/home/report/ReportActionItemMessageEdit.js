@@ -1,9 +1,13 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {
+    InteractionManager, Keyboard, View, TouchableOpacity,
+} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {withOnyx} from 'react-native-onyx';
+import * as User from '../../../libs/actions/User';
 import reportActionPropTypes from './reportActionPropTypes';
 import styles from '../../../styles/styles';
 import Composer from '../../../components/Composer';
@@ -24,6 +28,10 @@ import CONST from '../../../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
+import Tooltip from '../../../components/Tooltip';
+import Icon from '../../../components/Icon';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
     /** All the data of the action */
@@ -74,6 +82,7 @@ class ReportActionItemMessageEdit extends React.Component {
         this.cancelButtonID = 'cancelButton';
         this.emojiButtonID = 'emojiButton';
         this.messageEditInput = 'messageEditInput';
+        this.setIsFullComposerAvailable = this.setIsFullComposerAvailable.bind(this);
 
         const parser = new ExpensiMark();
         const draftMessage = parser.htmlToMarkdown(this.props.draftMessage);
@@ -86,7 +95,20 @@ class ReportActionItemMessageEdit extends React.Component {
             },
             isFocused: false,
             hasExceededMaxCommentLength: false,
+            isFullComposerAvailable: props.isEditComposerFullSize,
+            maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
         };
+    }
+
+    componentDidMount() {
+        this.setMaxLines();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (this.props.isEditComposerFullSize === prevProps.isEditComposerFullSize) {
+            return;
+        }
+        this.setMaxLines();
     }
 
     /**
@@ -96,6 +118,21 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     onSelectionChange(e) {
         this.setState({selection: e.nativeEvent.selection});
+    }
+
+    /**
+     * Set the maximum number of lines for the composer
+     */
+    setMaxLines() {
+        let maxLines = this.props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
+        if (this.props.isEditComposerFullSize) {
+            maxLines = CONST.COMPOSER.MAX_LINES_FULL;
+        }
+        this.setState({maxLines});
+    }
+
+    setIsFullComposerAvailable(isFullComposerAvailable) {
+        this.setState({isFullComposerAvailable});
     }
 
     /**
@@ -140,6 +177,10 @@ class ReportActionItemMessageEdit extends React.Component {
      * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
      */
     deleteDraft() {
+        if (this.props.isEditComposerFullSize) {
+            Report.setIsEditComposerFullSize(this.props.reportID, this.props.action.reportActionID, false);
+        }
+        this.setState({isFullComposerAvailable: false});
         this.debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
         toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
@@ -230,16 +271,54 @@ class ReportActionItemMessageEdit extends React.Component {
 
     render() {
         const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
+        const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
+
         return (
-            <View style={styles.chatItemMessage}>
+            <View style={[styles.chatItemMessage, this.props.isComposerFullSize && styles.chatItemFullComposeRow]}>
                 <View
                     style={[
                         styles.chatItemComposeBox,
                         styles.flexRow,
                         this.state.isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
                         hasExceededMaxCommentLength && styles.borderColorDanger,
+                        this.props.isEditComposerFullSize && styles.chatItemFullComposeBox,
                     ]}
                 >
+                    {this.props.isEditComposerFullSize && (
+                    <Tooltip text={this.props.translate('reportActionCompose.collapse')}>
+                        <TouchableOpacity
+                            onPress={(e) => {
+                                e.preventDefault();
+                                Report.setIsEditComposerFullSize(this.props.reportID, this.props.action.reportActionID, false);
+                            }}
+
+                            // Keep focus on the composer when Collapse button is clicked.
+                            onMouseDown={e => e.preventDefault()}
+                            style={styles.composerSizeButton}
+                            disabled={isBlockedFromConcierge || this.props.disabled}
+                        >
+                            <Icon src={Expensicons.Collapse} />
+                        </TouchableOpacity>
+                    </Tooltip>
+
+                    )}
+                    {(!this.props.isEditComposerFullSize && this.state.isFullComposerAvailable) && (
+                    <Tooltip text={this.props.translate('reportActionCompose.expand')}>
+                        <TouchableOpacity
+                            onPress={(e) => {
+                                e.preventDefault();
+                                Report.setIsEditComposerFullSize(this.props.reportID, this.props.action.reportActionID, true);
+                            }}
+
+                            // Keep focus on the composer when Expand button is clicked.
+                            onMouseDown={e => e.preventDefault()}
+                            style={styles.composerSizeButton}
+                            disabled={isBlockedFromConcierge || this.props.disabled}
+                        >
+                            <Icon src={Expensicons.Expand} />
+                        </TouchableOpacity>
+                    </Tooltip>
+                    )}
                     <Composer
                         multiline
                         ref={(el) => {
@@ -250,8 +329,8 @@ class ReportActionItemMessageEdit extends React.Component {
                         onChangeText={this.updateDraft} // Debounced saveDraftComment
                         onKeyPress={this.triggerSaveOrCancel}
                         value={this.state.draft}
-                        maxLines={16} // This is the same that slack has
-                        style={[styles.textInputCompose, styles.flex4, styles.editInputComposeSpacing]}
+                        maxLines={this.state.maxLines}
+                        style={[styles.textInputCompose, this.props.isEditComposerFullSize ? styles.textInputFullCompose : styles.flex4, styles.editInputComposeSpacing]}
                         onFocus={() => {
                             this.setState({isFocused: true});
                             ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
@@ -273,6 +352,9 @@ class ReportActionItemMessageEdit extends React.Component {
                         }}
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
+                        isFullComposerAvailable={this.state.isFullComposerAvailable}
+                        isComposerFullSize={this.props.isEditComposerFullSize}
+                        setIsFullComposerAvailable={this.setIsFullComposerAvailable}
                     />
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
@@ -314,6 +396,11 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withKeyboardState,
+    withOnyx({
+        isEditComposerFullSize: {
+            key: props => `${ONYXKEYS.COLLECTION.REPORT_IS_EDIT_COMPOSER_FULL_SIZE}${props.reportID}_${props.action.reportActionID}`,
+        },
+    }),
 )(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <ReportActionItemMessageEdit {...props} forwardedRef={ref} />

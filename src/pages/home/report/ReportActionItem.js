@@ -64,12 +64,16 @@ const propTypes = {
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
+    /** edit composer full size list */
+    isEditComposerFullSize: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     draftMessage: '',
     hasOutstandingIOU: false,
+    isEditComposerFullSize: false,
 };
 
 class ReportActionItem extends Component {
@@ -196,6 +200,7 @@ class ReportActionItem extends Component {
                                     (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge))
                                     || ReportUtils.isArchivedRoom(this.props.report)
                                 }
+                                isEditComposerFullSize={this.props.isEditComposerFullSize}
                             />
                         )}
                 </ShowContextMenuContext.Provider>
@@ -237,10 +242,11 @@ class ReportActionItem extends Component {
                 onSecondaryInteraction={this.showPopover}
                 preventDefaultContentMenu={!this.props.draftMessage}
                 withoutFocusOnSecondaryInteraction
+                style={{height: '100%', flex: 1}}
             >
-                <Hoverable>
+                <Hoverable containerStyles={{height: '100%', flex: 1}}>
                     {hovered => (
-                        <View accessibilityLabel="Chat message">
+                        <View accessibilityLabel="Chat message" style={{height: '100%', flex: 1}}>
                             {this.props.shouldDisplayNewMarker && (
                                 <UnreadActionIndicator reportActionID={this.props.action.reportActionID} />
                             )}
@@ -250,6 +256,7 @@ class ReportActionItem extends Component {
                                     || this.state.isContextMenuActive
                                     || this.props.draftMessage,
                                     (this.props.network.isOffline && this.props.action.isLoading) || this.props.action.error,
+                                    this.props.isEditComposerFullSize && styles.chatItemFullComposeRow,
                                 )}
                             >
                                 <OfflineWithFeedback

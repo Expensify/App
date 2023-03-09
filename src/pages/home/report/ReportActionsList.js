@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {Animated} from 'react-native';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import compose from '../../../libs/compose';
@@ -20,6 +21,7 @@ import CONST from '../../../CONST';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -52,6 +54,11 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** Array of report actions for this report */
+    editComposerFullSizeList: PropTypes.arrayOf(PropTypes.shape(
+        PropTypes.bool,
+    )),
+
     ...withDrawerPropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -61,6 +68,7 @@ const defaultProps = {
     personalDetails: {},
     mostRecentIOUReportActionID: '',
     isLoadingMoreReportActions: false,
+    editComposerFullSizeList: {},
 };
 
 class ReportActionsList extends React.Component {
@@ -138,6 +146,7 @@ class ReportActionsList extends React.Component {
                 isMostRecentIOUReportAction={reportAction.reportActionID === this.props.mostRecentIOUReportActionID}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
+                isEditComposerFullSize={_.get(this.props.editComposerFullSizeList, reportAction.reportActionID, null)}
             />
         );
     }
@@ -147,16 +156,19 @@ class ReportActionsList extends React.Component {
         // To notify there something changes we can use extraData prop to flatlist
         const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.newMarkerReportActionID : undefined;
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
+        const editComposerFullSizeReportActions = _.find(_.keys(this.props.editComposerFullSizeList), key => this.props.editComposerFullSizeList[key] === true);
+        const indexOfEditComposerFullSizeReportActions = _.findIndex(this.props.sortedReportActions, reportAction => reportAction.reportActionID === editComposerFullSizeReportActions);
         return (
             <Animated.View style={[StyleUtils.fade(this.state.fadeInAnimation), styles.flex1]}>
                 <InvertedFlatList
                     accessibilityLabel="List of chat messages"
                     ref={ReportScrollManager.flatListRef}
-                    data={this.props.sortedReportActions}
+                    data={indexOfEditComposerFullSizeReportActions > -1 ? [this.props.sortedReportActions[indexOfEditComposerFullSizeReportActions]] : this.props.sortedReportActions}
                     renderItem={this.renderItem}
                     contentContainerStyle={[
                         styles.chatContentScrollView,
                         shouldShowReportRecipientLocalTime && styles.pt0,
+                        !_.isEmpty(this.props.editComposerFullSizeList) && {overflow: 'hidden', flex: 1},
                     ]}
                     keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
@@ -196,6 +208,7 @@ class ReportActionsList extends React.Component {
                     }}
                     onScroll={this.props.onScroll}
                     extraData={extraData}
+                    scrollEnabled={_.isEmpty(this.props.editComposerFullSizeList)}
                 />
             </Animated.View>
         );
@@ -210,4 +223,9 @@ export default compose(
     withWindowDimensions,
     withPersonalDetails(),
     withNetwork(),
+    withOnyx({
+        editComposerFullSizeList: {
+            key: props => `${ONYXKEYS.COLLECTION.REPORT_IS_EDIT_COMPOSER_FULL_SIZE}${props.report.reportID}`,
+        },
+    }),
 )(ReportActionsList);

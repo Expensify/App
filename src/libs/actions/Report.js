@@ -1202,6 +1202,15 @@ function clearIOUError(reportID) {
 }
 
 /**
+ * @param {String} reportID
+ * @param {String} reportActionID
+ * @param {Boolean} isEditComposerFullSize
+ */
+function setIsEditComposerFullSize(reportID, reportActionID, isEditComposerFullSize) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_EDIT_COMPOSER_FULL_SIZE}${reportID}`, {[reportActionID]: isEditComposerFullSize});
+}
+
+/**
  * Internal function to help with updating the onyx state of a message of a report action.
  * @param {Object} originalReportAction
  * @param {Object} message
@@ -1397,6 +1406,7 @@ export {
     clearIOUError,
     subscribeToNewActionEvent,
     showReportActionNotification,
+    setIsEditComposerFullSize,
     addEmojiReaction,
     removeEmojiReaction,
     toggleEmojiReaction,

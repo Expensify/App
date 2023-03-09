@@ -109,6 +109,7 @@ export default {
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         POLICY: 'policy_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
+        REPORT_IS_EDIT_COMPOSER_FULL_SIZE: 'reportIsEditComposerFullSize_',
         POLICY_MEMBER_LIST: 'policyMemberList_',
         DOWNLOAD: 'download_',
     },
