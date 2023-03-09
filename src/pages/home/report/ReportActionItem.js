@@ -35,6 +35,8 @@ import * as ReportActions from '../../../libs/actions/ReportActions';
 import reportPropTypes from '../../reportPropTypes';
 import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext';
 import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
+import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
+import * as Report from '../../../libs/actions/Report';
 
 const propTypes = {
     /** Report for this action */
@@ -79,6 +81,7 @@ class ReportActionItem extends Component {
         this.checkIfContextMenuActive = this.checkIfContextMenuActive.bind(this);
         this.showPopover = this.showPopover.bind(this);
         this.renderItemContent = this.renderItemContent.bind(this);
+        this.toggleReaction = this.toggleReaction.bind(this);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -138,6 +141,10 @@ class ReportActionItem extends Component {
         );
     }
 
+    toggleReaction(emoji) {
+        Report.toggleEmojiReaction(this.props.report.reportID, this.props.action, emoji);
+    }
+
     /**
      * Get the content of ReportActionItem
      * @param {Boolean} hovered whether the ReportActionItem is hovered
@@ -193,7 +200,21 @@ class ReportActionItem extends Component {
                 </ShowContextMenuContext.Provider>
             );
         }
-        return children;
+
+        const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
+        const hasReactions = reactions.length > 0;
+
+        return (
+            <>
+                {children}
+                {hasReactions && (
+                    <ReportActionItemReactions
+                        reactions={reactions}
+                        toggleReaction={this.toggleReaction}
+                    />
+                )}
+            </>
+        );
     }
 
     render() {
@@ -203,6 +224,7 @@ class ReportActionItem extends Component {
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             return <RenameAction action={this.props.action} />;
         }
+
         return (
             <PressableWithSecondaryInteraction
                 pointerEvents={this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? 'none' : 'auto'}
