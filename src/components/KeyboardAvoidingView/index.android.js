@@ -5,14 +5,14 @@ import PropTypes from 'prop-types';
 
 const propTypes = {
     /** In most cases, we do not need to use KeyboardAvoidingView on Android, so it is set to false by default. */
-    isApplyToAndroid: PropTypes.bool,
+    shouldApplyToAndroid: PropTypes.bool,
 };
 const defaultProps = {
-    isApplyToAndroid: false,
+    shouldApplyToAndroid: false,
 };
 
 const KeyboardAvoidingView = (props) => {
-    if (props.isApplyToAndroid) {
+    if (props.shouldApplyToAndroid) {
         return (
         // eslint-disable-next-line react/jsx-props-no-spreading
             <KeyboardAvoidingViewComponent {...props} />

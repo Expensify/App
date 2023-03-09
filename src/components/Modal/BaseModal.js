@@ -174,7 +174,7 @@ class BaseModal extends PureComponent {
                             <KeyboardAvoidingView
                                 behavior="padding"
                                 style={styles.w100}
-                                isApplyToAndroid
+                                shouldApplyToAndroid
                             >
                                 {content}
                             </KeyboardAvoidingView>
