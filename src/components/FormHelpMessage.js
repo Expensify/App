@@ -43,7 +43,7 @@ const FormHelpMessage = (props) => {
             <View style={[styles.flex1, styles.ml2]}>
                 {props.children || (
                     <>
-                        {typeof props.message === 'string' ? (
+                        {_.isString(props.message) ? (
                             <Text style={textStyles}>
                                 {props.message}
                             </Text>

@@ -145,6 +145,15 @@ class Form extends React.Component {
         this.touchedInputs[inputID] = true;
     }
 
+    /**
+     *
+     * @param {Object} values - An object with error messages assigned to each inputID
+     * @returns {Boolean} - Returns true if form is free of errors
+     */
+    isValidForm(values) {
+        return !_.chain(values).values().some(err => !_.isEmpty(err)).value();
+    }
+
     submit() {
         // Return early if the form is already submitting to avoid duplicate submission
         if (this.props.formState.isLoading) {
@@ -157,7 +166,7 @@ class Form extends React.Component {
         ));
 
         // Validate form and return early if any errors are found
-        if (_.find(_.values(this.validate(this.state.inputValues)), err => !_.isEmpty(err))) {
+        if (!this.isValidForm(this.validate(this.state.inputValues))) {
             return;
         }
 
@@ -290,7 +299,7 @@ class Form extends React.Component {
                 {this.props.isSubmitButtonVisible && (
                 <FormAlertWithSubmitButton
                     buttonText={this.props.submitButtonText}
-                    isAlertVisible={Boolean(_.find(_.values(this.state.errors), value => !_.isEmpty(value)))
+                    isAlertVisible={!this.isValidForm(this.state.errors)
                         || Boolean(this.getErrorMessage()) || !_.isEmpty(this.props.formState.errorFields)}
                     isLoading={this.props.formState.isLoading}
                     message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
