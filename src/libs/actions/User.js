@@ -296,21 +296,61 @@ function clearContactMethodErrors(contactMethod, fieldName) {
  * @param {String} password
  * @returns {Promise}
  */
-function addNewContactMethodAndNavigate(login, password) {
+function addNewContactMethodAndNavigate(contactMethod, password) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
-    const optimisticData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                partnerUserID: contactMethod,
+                validatedDate: '',
+                errorFields: {
+                    addedLogin: null,
+                },
+                pendingFields: {
+                    addedLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
             },
         },
-    ];
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                partnerUserID: contactMethod,
+                validatedDate: '',
+                errorFields: {
+                    addedLogin: null,
+                },
+                pendingFields: {
+                    addedLogin: null,
+                },
+            },
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                partnerUserID: contactMethod,
+                errorFields: {
+                    addedLogin: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.addContactMethod'),
+                    },
+                },
+                pendingFields: {
+                    addedLogin: null,
+                },
+            },
+        },
+    }];
 
-    API.write('AddNewContactMethod', {login, password}, optimisticData);
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)
+    API.write('AddNewContactMethod', {partnerUserID: contactMethod, password}, {optimisticData, successData, failureData});
+    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**
