@@ -13,7 +13,6 @@ import Licenses from '../Licenses';
 import Socials from '../Socials';
 import Hoverable from '../../../components/Hoverable';
 import CONST from '../../../CONST';
-import * as Environment from '../../../libs/Environment/Environment';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import * as Session from '../../../libs/actions/Session';
@@ -22,6 +21,11 @@ const propTypes = {
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
+
+const navigateHome = () => {
+    Navigation.navigate(ROUTES.HOME);
+    Session.clearSignInData();
+}
 
 const columns = [
     {
@@ -127,11 +131,11 @@ const columns = [
         translationPath: 'footer.getStarted',
         rows: [
             {
-                navigateRoute: Environment.getEnvironmentURL(),
+                onPress: navigateHome,
                 translationPath: 'footer.createAccount',
             },
             {
-                navigateRoute: Environment.getEnvironmentURL(),
+                onPress: navigateHome,
                 translationPath: 'footer.logIn',
             },
         ],
@@ -162,33 +166,19 @@ const Footer = (props) => {
                                 </Text>
                                 <View style={[styles.footerRow]}>
                                     {_.map(column.rows, row => (
-                                        _.has(row, 'navigateRoute') ? (
-                                            <Pressable
-                                                key={row.translationPath}
-                                                onPress={() => {
-                                                    Navigation.navigate(ROUTES.HOME);
-                                                    Session.clearSignInData();
-                                                }}
-                                            >
-                                                <Text>
-                                                    {props.translate(row.translationPath)}
-                                                </Text>
-                                            </Pressable>
-                                        )
-                                            : (
-                                                <Hoverable
-                                                    key={row.translationPath}
+                                        <Hoverable
+                                            key={row.translationPath}
+                                        >
+                                            {hovered => (
+                                                <TextLink
+                                                    style={[styles.footerRow, hovered ? styles.textBlue : {}]}
+                                                    href={row.link}
+                                                    onPress={row.onPress}
                                                 >
-                                                    {hovered => (
-                                                        <TextLink
-                                                            style={[styles.footerRow, hovered ? styles.textBlue : {}]}
-                                                            href={row.link}
-                                                        >
-                                                            {props.translate(row.translationPath)}
-                                                        </TextLink>
-                                                    )}
-                                                </Hoverable>
-                                            )
+                                                    {props.translate(row.translationPath)}
+                                                </TextLink>
+                                            )}
+                                        </Hoverable>
                                     ))}
                                     {(i === 2) && (
                                         <View style={styles.mt5}>
