@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '../CONST';
 
 /* eslint-disable max-len */
@@ -118,8 +119,6 @@ export default {
         youAppearToBeOffline: 'You appear to be offline.',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
         areYouSure: 'Are you sure?',
-        verify: 'Verify',
-        yesContinue: 'Yes, continue',
         zipCodeExample: 'e.g. 12345, 12345-1234, 12345 1234',
         websiteExample: 'e.g. https://www.expensify.com',
     },
@@ -226,6 +225,8 @@ export default {
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
+        addEmojiReaction: 'Add emoji reaction',
+        addReactionTooltip: 'Add Reaction…',
     },
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'You missed the party in ',
@@ -343,20 +344,6 @@ export default {
     contacts: {
         contactMethod: 'Contact method',
         contactMethods: 'Contact methods',
-        helpTextBeforeEmail: 'Add more ways for people to find you, and forward receipts to ',
-        helpTextAfterEmail: ' from multiple email addresses.',
-        pleaseVerify: 'Please verify this contact method',
-        getInTouch: "Whenever we need to get in touch with you, we'll use this contact method.",
-        enterMagicCode: ({contactMethod}) => `Please enter the magic code sent to ${contactMethod}`,
-        yourDefaultContactMethod: 'This is your current default contact method. You will not be able to delete this contact method until you set an alternative default by selecting another contact method and pressing “Set as default”.',
-        removeContactMethod: 'Remove contact method',
-        removeAreYouSure: 'Are you sure you want to remove this contact method? This action cannot be undone.',
-        resendMagicCode: 'Resend magic code',
-        genericFailureMessages: {
-            requestContactMethodValidateCode: 'Failed to send a new magic code. Please wait a bit and try again.',
-            validateSecondaryLogin: 'Failed to validate contact method with given magic code. Please request a new code and try again.',
-            deleteContactMethod: 'Failed to delete contact method. Please reach out to Concierge for help.',
-        },
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -1084,7 +1071,7 @@ export default {
         visibility: 'Visibility',
         restrictedDescription: 'People in your workspace can find this room',
         privateDescription: 'People invited to this room can find it',
-        publicDescription: 'Anyone can find it',
+        publicDescription: 'Anyone can find this room',
         createRoom: 'Create room',
         roomAlreadyExistsError: 'A room with this name already exists',
         roomNameReservedError: 'A room on this workspace already uses this name',
@@ -1172,6 +1159,10 @@ export default {
     report: {
         genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
     },
+    chronos: {
+        oooEventSummaryFullDay: ({summary, dayCount, date}) => `${summary} for ${dayCount} ${dayCount === 1 ? 'day' : 'days'} until ${date}`,
+        oooEventSummaryPartialDay: ({summary, timePeriod, date}) => `${summary} from ${timePeriod} on ${date}`,
+    },
     footer: {
         features: 'Features',
         expenseManagement: 'Expense Management',
@@ -1201,4 +1192,6 @@ export default {
         createAccount: 'Create a new account',
         logIn: 'Log in',
     },
+    allStates: COMMON_CONST.STATES,
+    allCountries: CONST.ALL_COUNTRIES,
 };
