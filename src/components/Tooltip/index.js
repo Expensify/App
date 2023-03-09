@@ -142,8 +142,9 @@ class Tooltip extends PureComponent {
     }
 
     render() {
-        // Skip the tooltip and return the children if the text is empty or the device does not support hovering
-        if (_.isEmpty(this.props.text) || !this.hasHoverSupport) {
+        // Skip the tooltip and return the children if the text is empty,
+        // we don't have a render function or the device does not support hovering
+        if ((_.isEmpty(this.props.text) && this.props.renderTooltipContent == null) || !this.hasHoverSupport) {
             return this.props.children;
         }
         let child = (
@@ -180,6 +181,7 @@ class Tooltip extends PureComponent {
                 focusable: true,
             });
         }
+
         return (
             <>
                 {this.state.isRendered && (
@@ -195,6 +197,7 @@ class Tooltip extends PureComponent {
                         text={this.props.text}
                         maxWidth={this.props.maxWidth}
                         numberOfLines={this.props.numberOfLines}
+                        renderTooltipContent={this.props.renderTooltipContent}
                     />
                 )}
                 <Hoverable
