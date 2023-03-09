@@ -163,6 +163,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         }
 
         NotificationCache notificationCache = findOrCreateNotificationCache(reportID);
+        JsonValue reportAcc = payload.get("onyxData").getList().get(1).getMap().get("value");
         JsonMap reportAction = payload.get("reportAction").getMap();
         String name = reportAction.get("person").getList().get(0).getMap().get("text").getString();
         String avatar = reportAction.get("avatar").getString();
