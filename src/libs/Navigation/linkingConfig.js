@@ -127,6 +127,9 @@ export default {
                     Settings_Add_Secondary_Login: {
                         path: ROUTES.SETTINGS_ADD_LOGIN,
                     },
+                    Settings_Validate_Secondary_Login: {
+                        path: ROUTES.SETTINGS_VALIDATE_LOGIN,
+                    },
                     Settings_PersonalDetails_Initial: {
                         path: ROUTES.SETTINGS_PERSONAL_DETAILS,
                         exact: true,

@@ -289,6 +289,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsValidateSecondaryLoginPage = require('../../../pages/settings/Profile/Contacts/ValidateSecondaryLoginPage').default;
+            return SettingsValidateSecondaryLoginPage;
+        },
+        name: 'Settings_Validate_Secondary_Login',
+    },
+    {
+        getComponent: () => {
             const SettingsPreferencesPage = require('../../../pages/settings/Preferences/PreferencesPage').default;
             return SettingsPreferencesPage;
         },

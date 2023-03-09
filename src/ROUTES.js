@@ -44,6 +44,8 @@ export default {
     SETTINGS_ENABLE_PAYMENTS: 'settings/payments/enable-payments',
     SETTINGS_ADD_LOGIN: 'settings/addlogin/:type',
     getSettingsAddLoginRoute: type => `settings/addlogin/${type}`,
+    SETTINGS_VALIDATE_LOGIN: 'settings/validatelogin/:login',
+    getSettingsValidateLoginRoute: login => `settings/validatelogin/${login}`,
     SETTINGS_PAYMENTS_TRANSFER_BALANCE: 'settings/payments/transfer-balance',
     SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT: 'settings/payments/choose-transfer-account',
     SETTINGS_PERSONAL_DETAILS,
