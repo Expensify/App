@@ -67,6 +67,21 @@ class ReportSettingsPage extends Component {
     }
 
     /**
+     * @param {Object} report - the given report we're viewing settings for
+     * @param {Object|null} policy - null if the user isn't in the workspace the report is on
+     * @returns {Boolean}
+     */
+    getShouldDisablePublicRoomRename(report, policy) {
+        if (!ReportUtils.isPublicRoom(report)) {
+            return false;
+        }
+        if (!policy) {
+            return true;
+        }
+        return !Policy.isPolicyOwner(policy) && policy.role !== CONST.POLICY.ROLE.ADMIN;
+    }
+
+    /**
      * @param {Object} values - form input values passed by the Form component
      */
     updatePolicyRoomName(values) {
@@ -112,15 +127,9 @@ class ReportSettingsPage extends Component {
     render() {
         const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, policy => policy && policy.id === this.props.report.policyID);
-
-        let shouldDisablePublicRoomRename = ReportUtils.isPublicRoom(this.props.report) && !linkedWorkspace;
-        if (ReportUtils.isPublicRoom(this.props.report) && linkedWorkspace) {
-            shouldDisablePublicRoomRename = !Policy.isPolicyOwner(linkedWorkspace) && linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN;
-        }
-
         const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report)
             || ReportUtils.isArchivedRoom(this.props.report)
-            || shouldDisablePublicRoomRename;
+            || this.getShouldDisablePublicRoomRename(this.props.report, linkedWorkspace);
 
         return (
             <ScreenWrapper>
