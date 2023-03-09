@@ -26,7 +26,7 @@ function isDevelopment() {
 }
 
 /**
- * Asynchornously get the URL based on the environment we are in
+ * Get the URL based on the environment we are in
  *
  * @returns {Promise}
  */
