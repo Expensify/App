@@ -69,6 +69,8 @@ const ContactMethodsPage = (props) => {
         let description = '';
         if (props.session.email === login.partnerUserID) {
             description = props.translate('contacts.getInTouch');
+        } else if (lodashGet(login, 'errorFields.addedLogin', null)) {
+            description = props.translate('contacts.failedNewContact');
         } else if (!login.validatedDate) {
             description = props.translate('contacts.pleaseVerify');
         }

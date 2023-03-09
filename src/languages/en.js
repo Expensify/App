@@ -352,6 +352,7 @@ export default {
         removeContactMethod: 'Remove contact method',
         removeAreYouSure: 'Are you sure you want to remove this contact method? This action cannot be undone.',
         resendMagicCode: 'Resend magic code',
+        failedNewContact: 'Failed to add this contact method',
         genericFailureMessages: {
             requestContactMethodValidateCode: 'Failed to send a new magic code. Please wait a bit and try again.',
             validateSecondaryLogin: 'Failed to validate contact method with given magic code. Please request a new code and try again.',
