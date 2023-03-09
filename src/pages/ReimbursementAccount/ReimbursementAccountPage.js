@@ -120,7 +120,7 @@ class ReimbursementAccountPage extends React.Component {
      * @returns {*}
      */
     getDefaultStateForField(fieldName, defaultValue = '') {
-        return ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccountDraft, this.props.reimbursementAccount, fieldName, defaultValue);
+        return ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccount, fieldName, defaultValue);
     }
 
     /**
