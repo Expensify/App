@@ -2,14 +2,12 @@ import React from 'react';
 import {View, Keyboard} from 'react-native';
 import moment from 'moment';
 import _ from 'underscore';
-import compose from '../../libs/compose';
 import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import {propTypes, defaultProps} from './datePickerPropTypes';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 import CalendarPicker from '../CalendarPicker';
-import withNavigation from '../withNavigation';
 
 const datepickerPropTypes = {
     ...propTypes,
