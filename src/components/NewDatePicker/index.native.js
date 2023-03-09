@@ -134,10 +134,7 @@ NewDatePicker.defaultProps = datePickerDefaultProps;
  * locale. Otherwise the spinner would be present in the system locale and it would be weird if it happens
  * that the modal buttons are in one locale (app) while the (spinner) month names are another (system)
  */
-export default compose(
-    withNavigation,
-    withKeyboardState,
-)(React.forwardRef((props, ref) => (
+export default withKeyboardState(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <NewDatePicker {...props} innerRef={ref} />
 )));
