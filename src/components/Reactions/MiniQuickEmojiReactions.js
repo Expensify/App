@@ -84,7 +84,7 @@ const MiniQuickEmojiReactions = (props) => {
                 ref={ref}
                 onPress={openEmojiPicker}
                 isDelayButtonStateComplete={false}
-                tooltipText={props.translate('reportActionContextMenu.addEmojiReaction')}
+                tooltipText={props.translate('reportActionContextMenu.addReactionTooltip')}
             >
                 {({hovered, pressed}) => (
                     <Icon
