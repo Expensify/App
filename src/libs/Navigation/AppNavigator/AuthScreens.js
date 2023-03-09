@@ -304,12 +304,6 @@ class AuthScreens extends React.Component {
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
-                    name="RequestCall"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.RequestCallModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
                     name="IOU_Send"
                     options={modalScreenOptions}
                     component={ModalStackNavigators.IOUSendModalStackNavigator}
