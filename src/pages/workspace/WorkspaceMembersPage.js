@@ -157,6 +157,7 @@ class WorkspaceMembersPage extends React.Component {
      * @param {Object} memberList
      */
     toggleAllUsers(memberList) {
+        // If a memberList is provided, only select those members. Otherwise, select all the policy ones
         let policyMemberList = _.isEmpty(memberList) ? lodashGet(this.props, 'policyMemberList', {}) : memberList;
 
         policyMemberList = _.filter(_.keys(policyMemberList), policyMember => policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
