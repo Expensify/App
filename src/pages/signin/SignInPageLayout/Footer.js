@@ -1,4 +1,4 @@
-import {View} from 'react-native';
+import {View, Pressable} from 'react-native';
 import React from 'react';
 import _ from 'underscore';
 import Text from '../../../components/Text';
@@ -14,6 +14,7 @@ import Socials from '../Socials';
 import Hoverable from '../../../components/Hoverable';
 import CONST from '../../../CONST';
 import * as Environment from '../../../libs/Environment/Environment';
+import Navigation from '../../../libs/Navigation/Navigation';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -124,11 +125,11 @@ const columns = [
         translationPath: 'footer.getStarted',
         rows: [
             {
-                link: Environment.getEnvironmentURL(),
+                navigateRoute: Environment.getEnvironmentURL(),
                 translationPath: 'footer.createAccount',
             },
             {
-                link: Environment.getEnvironmentURL(),
+                navigateRoute: Environment.getEnvironmentURL(),
                 translationPath: 'footer.logIn',
             },
         ],
@@ -159,18 +160,30 @@ const Footer = (props) => {
                                 </Text>
                                 <View style={[styles.footerRow]}>
                                     {_.map(column.rows, row => (
-                                        <Hoverable
-                                            key={row.translationPath}
-                                        >
-                                            {hovered => (
-                                                <TextLink
-                                                    style={[styles.footerRow, hovered ? styles.textBlue : {}]}
-                                                    href={row.link}
-                                                >
+                                        _.has(row, 'navigateRoute') ? (
+                                            <Pressable
+                                                key={row.translationPath}
+                                                onPress={() => Navigation.navigate(row.navigateRoute)}
+                                            >
+                                                <Text>
                                                     {props.translate(row.translationPath)}
-                                                </TextLink>
-                                            )}
-                                        </Hoverable>
+                                                </Text>
+                                            </Pressable>
+                                        )
+                                            : (
+                                                <Hoverable
+                                                    key={row.translationPath}
+                                                >
+                                                    {hovered => (
+                                                        <TextLink
+                                                            style={[styles.footerRow, hovered ? styles.textBlue : {}]}
+                                                            href={row.link}
+                                                        >
+                                                            {props.translate(row.translationPath)}
+                                                        </TextLink>
+                                                    )}
+                                                </Hoverable>
+                                            )
                                     ))}
                                     {(i === 2) && (
                                         <View style={styles.mt5}>
