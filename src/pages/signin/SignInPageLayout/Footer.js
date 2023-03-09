@@ -1,4 +1,4 @@
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import React from 'react';
 import _ from 'underscore';
 import Text from '../../../components/Text';
@@ -24,8 +24,10 @@ const propTypes = {
 
 const navigateHome = () => {
     Navigation.navigate(ROUTES.HOME);
+
+    // We need to clear sign in data in case the user is already in the ValidateCodeForm or PasswordForm pages
     Session.clearSignInData();
-}
+};
 
 const columns = [
     {
