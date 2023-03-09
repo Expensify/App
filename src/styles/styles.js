@@ -15,6 +15,7 @@ import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
 import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
+import emojiHeaderContainerPlatformStyles from './emojiHeaderContainerPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
@@ -567,7 +568,6 @@ const styles = {
             paddingRight: 17,
             paddingTop: 6,
             paddingBottom: 6,
-            borderRadius: variables.componentBorderRadius,
             borderWidth: 0,
             color: themeColors.text,
             height: 26,
@@ -592,7 +592,6 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderWidth: 0,
-            borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             appearance: 'none',
             height: 26,
@@ -608,7 +607,6 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderWidth: 0,
-            borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             height: 26,
             opacity: 1,
@@ -1222,7 +1220,7 @@ const styles = {
         minWidth: 'auto',
         flexBasis: 'auto',
         flexGrow: 0,
-        flexShrink: 0,
+        flexShrink: 1,
     },
 
     displayNameTooltipEllipsis: {
@@ -1233,7 +1231,7 @@ const styles = {
     },
 
     optionAlternateText: {
-        height: variables.alternateTextHeight,
+        minHeight: variables.alternateTextHeight,
         lineHeight: variables.lineHeightXLarge,
     },
 
@@ -1245,7 +1243,7 @@ const styles = {
     },
 
     optionRow: {
-        height: variables.optionRowHeight,
+        minHeight: variables.optionRowHeight,
         paddingTop: 12,
         paddingBottom: 12,
     },
@@ -1488,6 +1486,7 @@ const styles = {
         height: CONST.EMOJI_PICKER_HEADER_HEIGHT,
         justifyContent: 'center',
         width: '100%',
+        ...emojiHeaderContainerPlatformStyles,
     },
 
     emojiSkinToneTitle: {
@@ -1534,9 +1533,8 @@ const styles = {
     categoryShortcutButton: {
         flex: 1,
         borderRadius: 8,
-        paddingTop: 2,
-        paddingBottom: 2,
         height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+        alignItems: 'center',
         justifyContent: 'center',
     },
 
@@ -1551,6 +1549,7 @@ const styles = {
 
     editChatItemEmojiWrapper: {
         marginRight: 3,
+        alignSelf: 'flex-end',
     },
 
     hoveredButton: {
@@ -1589,6 +1588,8 @@ const styles = {
     },
 
     navigationModalOverlay: {
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
         position: 'absolute',
         width: '100%',
         height: '100%',
@@ -1625,7 +1626,6 @@ const styles = {
         height: 28,
         width: 28,
         backgroundColor: themeColors.appBG,
-        borderRadius: 33,
         paddingTop: 2,
         alignItems: 'center',
     },
@@ -1792,7 +1792,6 @@ const styles = {
         width: 28,
         borderWidth: 2,
         borderStyle: 'solid',
-        borderRadius: 24,
         zIndex: 6,
     },
 
@@ -2156,6 +2155,31 @@ const styles = {
 
     detailsPageSectionContainer: {
         alignSelf: 'flex-start',
+    },
+
+    attachmentModalArrowsContainer: {
+        display: 'flex',
+        justifyContent: 'center',
+        cursor: 'unset',
+        height: '100%',
+        width: '100%',
+    },
+
+    leftAttachmentArrow: {
+        zIndex: 23,
+        position: 'absolute',
+        left: 32,
+    },
+
+    rightAttachmentArrow: {
+        zIndex: 23,
+        position: 'absolute',
+        right: 32,
+    },
+
+    arrowIcon: {
+        height: 52,
+        width: 52,
     },
 
     detailsPageSectionVersion: {
@@ -2839,7 +2863,8 @@ const styles = {
         borderRadius: 10,
         overflow: 'hidden',
         paddingVertical: 2,
-        flexShrink: 1,
+        flexShrink: 0,
+        maxWidth: variables.badgeMaxWidth,
         fontSize: variables.fontSizeSmall,
         ...spacing.ph2,
     },
@@ -2911,12 +2936,95 @@ const styles = {
         paddingBottom: 45,
     },
 
+    emojiReactionBubble: {
+        paddingVertical: 2,
+        paddingHorizontal: 8,
+        borderRadius: 28,
+        backgroundColor: themeColors.border,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        alignSelf: 'flex-start',
+        marginTop: 8,
+        marginRight: 4,
+    },
+
+    emojiReactionText: {
+        fontSize: 12,
+        lineHeight: 20,
+        textAlignVertical: 'center',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+    },
+    reactionCounterText: {
+        fontSize: 11,
+        marginLeft: 4,
+        fontWeight: 'bold',
+        color: themeColors.textLight,
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+    },
+
+    fontColorReactionLabel: {
+        color: '#586A64',
+    },
+
+    reactionEmojiTitle: {
+        fontSize: variables.iconSizeLarge,
+        lineHeight: variables.iconSizeXLarge,
+    },
+
+    quickReactionsContainer: {
+        gap: 12,
+        flexDirection: 'row',
+        paddingHorizontal: 25,
+        paddingVertical: 12,
+        justifyContent: 'space-between',
+    },
+
     magicCodeDigits: {
         color: themeColors.text,
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeXXLarge,
         letterSpacing: 4,
     },
+
+    footer: {
+        backgroundColor: themeColors.midtone,
+    },
+
+    footerWrapper: {
+        fontSize: variables.fontSizeNormal,
+        paddingTop: 64,
+        paddingHorizontal: 32,
+        maxWidth: 1100, // Match footer across all Expensify platforms
+    },
+
+    footerColumnsContainer: {
+        flex: 1,
+        flexWrap: 'wrap',
+        marginBottom: 40,
+        marginHorizontal: -16,
+    },
+
+    footerTitle: {
+        fontSize: variables.fontSizeLarge,
+        color: themeColors.success,
+        marginBottom: 16,
+    },
+
+    footerRow: {
+        paddingVertical: 4,
+        marginBottom: 8,
+        color: themeColors.textLight,
+        fontSize: variables.fontSizeMedium,
+    },
+
+    footerBottomLogo: {
+        marginTop: 40,
+        width: '100%',
+    },
+
 };
 
 export default styles;

@@ -22,7 +22,9 @@ export default {
     componentSizeLarge: 52,
     componentBorderRadius: 8,
     componentBorderRadiusSmall: 4,
+    componentBorderRadiusMedium: 6,
     componentBorderRadiusNormal: 8,
+    componentBorderRadiusLarge: 16,
     componentBorderRadiusCard: 12,
     componentBorderRadiusRounded: 20,
     buttonBorderRadius: 100,
@@ -98,4 +100,7 @@ export default {
     modalTopBigIconHeight: 244,
     modalWordmarkWidth: 154,
     modalWordmarkHeight: 34,
+    verticalLogoHeight: 634,
+    verticalLogoWidth: 111,
+    badgeMaxWidth: 180,
 };
