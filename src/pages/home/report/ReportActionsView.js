@@ -69,8 +69,10 @@ class ReportActionsView extends React.Component {
 
         this.currentScrollOffset = 0;
         this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(props.reportActions);
-        this.trackScroll = this.trackScroll.bind(this);
-        this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
+
+        // this.trackScroll = this.trackScroll.bind(this);
+
+        // this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
         this.scrollToBottomAndMarkReportAsRead = this.scrollToBottomAndMarkReportAsRead.bind(this);
@@ -191,6 +193,7 @@ class ReportActionsView extends React.Component {
             }
         }
 
+        // I THINK THIS WON"T BE IN NEXT RELEASE
         // If the report was previously hidden by the side bar, or the view is expanded from mobile to desktop layout
         // we update the new marker position, mark the report as read, and fetch new report actions
         const didSidebarClose = prevProps.isDrawerOpen && !this.props.isDrawerOpen;
@@ -205,6 +208,7 @@ class ReportActionsView extends React.Component {
             this.openReportIfNecessary();
         }
 
+        // THIS CAN BE HANDLE MORE EFFICIENTLY, USING THE INDEX
         // If the report is unread, we want to check if the number of actions has decreased. If so, then it seems that one of them was deleted. In this case, if the deleted action was the
         // one marking the unread point, we need to recalculate which action should be the unread marker.
         if (ReportUtils.isUnread(this.props.report) && prevProps.reportActions.length > this.props.reportActions.length) {
@@ -297,29 +301,6 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
-     */
-    toggleFloatingMessageCounter() {
-        if (this.currentScrollOffset < -200 && !this.state.isFloatingMessageCounterVisible) {
-            this.setState({isFloatingMessageCounterVisible: true});
-        }
-
-        if (this.currentScrollOffset > -200 && this.state.isFloatingMessageCounterVisible) {
-            this.setState({isFloatingMessageCounterVisible: false});
-        }
-    }
-
-    /**
-     * keeps track of the Scroll offset of the main messages list
-     *
-     * @param {Object} {nativeEvent}
-     */
-    trackScroll({nativeEvent}) {
-        this.currentScrollOffset = -nativeEvent.contentOffset.y;
-        this.toggleFloatingMessageCounter();
-    }
-
-    /**
      * Runs when the FlatList finishes laying out
      */
     recordTimeToMeasureItemLayout() {
@@ -347,22 +328,18 @@ class ReportActionsView extends React.Component {
         return (
             <>
                 {!this.props.isComposerFullSize && (
-                    <>
-                        <FloatingMessageCounter
-                            isActive={this.state.isFloatingMessageCounterVisible && !_.isEmpty(this.state.newMarkerReportActionID)}
-                            onClick={this.scrollToBottomAndMarkReportAsRead}
-                        />
-                        <ReportActionsList
-                            report={this.props.report}
-                            onScroll={this.trackScroll}
-                            onLayout={this.recordTimeToMeasureItemLayout}
-                            sortedReportActions={this.props.reportActions}
-                            mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
-                            isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
-                            loadMoreChats={this.loadMoreChats}
-                            newMarkerReportActionID={this.state.newMarkerReportActionID}
-                        />
-                    </>
+
+                <ReportActionsList
+                    report={this.props.report}
+                    onScroll={this.trackScroll}
+                    onLayout={this.recordTimeToMeasureItemLayout}
+                    sortedReportActions={this.props.reportActions}
+                    mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
+                    isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
+                    loadMoreChats={this.loadMoreChats}
+                    newMarkerReportActionID={this.state.newMarkerReportActionID}
+                />
+
                 )}
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                 <CopySelectionHelper />

@@ -20,6 +20,7 @@ import CONST from '../../../CONST';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
+import FloatingMessageCounter from './FloatingMessageCounter';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -68,10 +69,15 @@ class ReportActionsList extends React.Component {
         super(props);
         this.renderItem = this.renderItem.bind(this);
         this.keyExtractor = this.keyExtractor.bind(this);
-
+        this.currentUnreadMarker = React.createRef(null);
+        this.currentScrollOffset = 0;
+        this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
+        this.trackScroll = this.trackScroll.bind(this);
+        console.log('<<<<<ReportActionsList constructor>>>>>');
         this.state = {
             fadeInAnimation: new Animated.Value(0),
             skeletonViewHeight: 0,
+            isFloatingMessageCounterVisible: false,
         };
     }
 
@@ -79,12 +85,44 @@ class ReportActionsList extends React.Component {
         this.fadeIn();
     }
 
-    fadeIn() {
-        Animated.timing(this.state.fadeInAnimation, {
-            toValue: 1,
-            duration: 100,
-            useNativeDriver: true,
-        }).start();
+    /**
+     * Create a unique key for each action in the FlatList.
+     * We use the reportActionID that is a string representation of a random 64-bit int, which should be
+     * random enough to avoid collisions
+     * @param {Object} item
+     * @param {Object} item.action
+     * @return {String}
+     */
+    keyExtractor(item) {
+        return item.reportActionID;
+    }
+
+    /**
+     * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
+     */
+    toggleFloatingMessageCounter() {
+        if (this.currentScrollOffset < -200 && !this.state.isFloatingMessageCounterVisible) {
+            this.setState({isFloatingMessageCounterVisible: true});
+        }
+
+        if (this.currentScrollOffset > -200 && this.state.isFloatingMessageCounterVisible) {
+            this.setState({isFloatingMessageCounterVisible: false});
+        }
+    }
+
+    /**
+     * keeps track of the Scroll offset of the main messages list
+     *
+     * @param {Object} {nativeEvent}
+     */
+    trackScroll({nativeEvent}) {
+        this.currentScrollOffset = -nativeEvent.contentOffset.y;
+        this.toggleFloatingMessageCounter();
+    }
+
+    componentWillUnmount() {
+        console.log('<<<<<ReportActionsList componentWillUnmount>>>>>');
+        this.currentUnreadMarker = null;
     }
 
     /**
@@ -100,16 +138,17 @@ class ReportActionsList extends React.Component {
         return Math.ceil(availableHeight / minimumReportActionHeight);
     }
 
-    /**
-     * Create a unique key for each action in the FlatList.
-     * We use the reportActionID that is a string representation of a random 64-bit int, which should be
-     * random enough to avoid collisions
-     * @param {Object} item
-     * @param {Object} item.action
-     * @return {String}
-     */
-    keyExtractor(item) {
-        return item.reportActionID;
+    fadeIn() {
+        Animated.timing(this.state.fadeInAnimation, {
+            toValue: 1,
+            duration: 100,
+            useNativeDriver: true,
+        }).start();
+    }
+
+    isUnreadMsg(message, lastRead) {
+        // console.log(`lastRead ${lastRead} < message ${message?.created}`, message);
+        return message && lastRead && message.created && lastRead < message.created;
     }
 
     /**
@@ -127,8 +166,30 @@ class ReportActionsList extends React.Component {
         item: reportAction,
         index,
     }) {
-        // When the new indicator should not be displayed we explicitly set it to null
-        const shouldDisplayNewMarker = reportAction.reportActionID === this.props.newMarkerReportActionID;
+        // console.log('----------Start renderItem----------');
+        let shouldDisplayNewMarker = false;
+
+        // console.log('this.currentUnreadMarker.current', this.currentUnreadMarker.current);
+        if (!this.currentUnreadMarker.current) {
+            // When the new indicator should not be displayed we explicitly set it to null
+            const lastMessage = this.props.sortedReportActions?.[index + 1];
+
+            // console.log('lastMessage', lastMessage);
+            const showUnreadUnderlay = !!this.isUnreadMsg(reportAction, this.props.report.lastReadTime);
+
+            // console.log('showUnreadUnderlay', showUnreadUnderlay);
+            shouldDisplayNewMarker = showUnreadUnderlay && !this.isUnreadMsg(lastMessage, this.props.report.lastReadTime);
+
+            // console.log('shouldDisplayNewMarker', shouldDisplayNewMarker);
+
+            if (!this.currentUnreadMarker.current && shouldDisplayNewMarker) {
+                this.currentUnreadMarker.current = {id: reportAction.reportActionID, index};
+            }
+        } else {
+            shouldDisplayNewMarker = reportAction.reportActionID === this.currentUnreadMarker.current.id;
+        }
+
+        // const shouldDisplayNewMarker = reportAction.reportActionID === this.props.newMarkerReportActionID;
         return (
             <ReportActionItem
                 report={this.props.report}
@@ -149,6 +210,14 @@ class ReportActionsList extends React.Component {
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
         return (
             <Animated.View style={[StyleUtils.fade(this.state.fadeInAnimation), styles.flex1]}>
+                <FloatingMessageCounter
+                    isActive={this.state.isFloatingMessageCounterVisible && this.currentUnreadMarker.current != null}
+                    onClick={() => {
+                        console.log('FloatingMessageCounter onClick: ', this.currentUnreadMarker.current);
+                        this.setState({isFloatingMessageCounterVisible: false});
+                        ReportScrollManager.scrollToIndex(this.currentUnreadMarker.current.index, false);
+                    }}
+                />
                 <InvertedFlatList
                     accessibilityLabel="List of chat messages"
                     ref={ReportScrollManager.flatListRef}
@@ -194,7 +263,7 @@ class ReportActionsList extends React.Component {
                         });
                         this.props.onLayout(event);
                     }}
-                    onScroll={this.props.onScroll}
+                    onScroll={this.trackScroll}
                     extraData={extraData}
                 />
             </Animated.View>

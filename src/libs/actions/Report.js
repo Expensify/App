@@ -290,10 +290,12 @@ function addActions(reportID, text = '', file) {
         successData,
         failureData,
     });
+    console.log('newActionSubscriber executed');
 
     // Notify the ReportActionsView that a new comment has arrived
     if (reportID === newActionSubscriber.reportID) {
         const isFromCurrentUser = lastAction.actorAccountID === currentUserAccountID;
+        console.log('newActionSubscriber executed now with callback');
         newActionSubscriber.callback(isFromCurrentUser, lastAction.reportActionID);
     }
 }

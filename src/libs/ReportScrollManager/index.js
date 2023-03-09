@@ -16,7 +16,7 @@ function scrollToIndex(index, isEditing) {
         return;
     }
 
-    flatListRef.current.scrollToIndex(index);
+    flatListRef.current.scrollToIndex({index});
 }
 
 /**

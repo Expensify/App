@@ -162,7 +162,7 @@ class ReportScreen extends React.Component {
         if (this.props.report.reportID) {
             return;
         }
-
+        console.log('ReportScreen - fetchReportIfNeeded: ', reportIDFromPath);
         Report.openReport(reportIDFromPath);
     }
 
@@ -175,6 +175,7 @@ class ReportScreen extends React.Component {
     }
 
     render() {
+        console.log('ReportScreen - render: ', this.props.report);
         if (!this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails)) {
             return null;
         }
