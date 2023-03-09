@@ -30,20 +30,11 @@ function isDevelopment() {
  *
  * @returns {Promise}
  */
-function getEnvironmentURLAsync() {
+function getEnvironmentURL() {
     return new Promise((resolve) => {
         getEnvironment()
             .then(environment => resolve(ENVIRONMENT_URLS[environment]));
     });
-}
-
-/**
- * Get the URL based on the environment we are in
- *
- * @returns {String}
- */
-function getEnvironmentURL() {
-    return ENVIRONMENT_URLS[CONFIG.ENVIRONMENT];
 }
 
 /**
@@ -59,7 +50,6 @@ function getOldDotEnvironmentURL() {
 export {
     getEnvironment,
     isDevelopment,
-    getEnvironmentURLAsync,
     getEnvironmentURL,
     getOldDotEnvironmentURL,
 };

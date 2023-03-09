@@ -186,7 +186,7 @@ export default [
             return Permissions.canUseCommentLinking(betas) && type === CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget;
         },
         onPress: (closePopover, {reportAction, reportID}) => {
-            Environment.getEnvironmentURLAsync()
+            Environment.getEnvironmentURL()
                 .then((environmentURL) => {
                     const reportActionID = parseInt(lodashGet(reportAction, 'reportActionID'), 10);
                     Clipboard.setString(`${environmentURL}/r/${reportID}/${reportActionID}`);
