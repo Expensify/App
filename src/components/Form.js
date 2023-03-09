@@ -241,6 +241,10 @@ class Form extends React.Component {
                 this.state.inputValues[inputID] = defaultValue;
             }
 
+            if (child.props.shouldDiscardDraft) {
+                this.state.inputValues[inputID] = child.props.defaultValue;
+            }
+
             if (!_.isUndefined(child.props.value)) {
                 this.state.inputValues[inputID] = child.props.value;
             }
