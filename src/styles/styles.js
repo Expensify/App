@@ -767,8 +767,10 @@ const styles = {
     }),
 
     baseTextInput: {
-        // Adding lineheight should be avoided here
-        // as per https://github.com/Expensify/App/issues/14799
+        // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
+        // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
+        // Adding lineheight for multiline input should be avoided here because of flickering issue
+        // on android as per https://github.com/Expensify/App/issues/14799
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
         color: themeColors.text,
