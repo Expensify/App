@@ -15,12 +15,11 @@ const ORIGINS_TO_REPLACE = [
 const ORIGIN_PATTERN = new RegExp(`^(${ORIGINS_TO_REPLACE.join('|')})`);
 
 /**
- * When possible resolve sources relative to API ROOT
- * Updates applicable URLs, so they are accessed relative to URL_API_ROOT
+ * When possible this function resolve URLs relative to API ROOT
  * - Absolute URLs like `/{path}`, become: `https://{API_ROOT}/{path}`
  * - Similarly for prod or staging URLs we replace the `https://www.expensify`
  * or `https://staging.expensify` part, with `https://{API_ROOT}`
- * - Unmatched URLs are returned with no modifications
+ * - Unmatched URLs (non expensify) are returned with no modifications
  *
  * @param {String} url
  * @returns {String}
