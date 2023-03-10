@@ -197,11 +197,8 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             long createdTimeInMillis = getMessageTimeInMillis(messageData.get("created").getString(""));
             notificationCache.messages.add(new NotificationCache.Message(person, message, createdTimeInMillis));
 
-            // Create the messaging style notification builder for this notification.
-            // Associate the notification with the person who sent the report comment.
-            // If this conversation has 2 participants or more and there's no room name, we should mark
-            // it as a group conversation.
-            // Also set the conversation title.
+            // Create the messaging style notification builder for this notification, associating the
+            // notification with the person who sent the report comment.
             NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person)
                     .setGroupConversation(notificationCache.people.size() > 2 || !roomName.isEmpty())
                     .setConversationTitle(conversationTitle);
