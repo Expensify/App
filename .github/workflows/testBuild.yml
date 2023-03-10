@@ -290,6 +290,6 @@ jobs:
           IOS: ${{ needs.iOS.result }}
           WEB: ${{ needs.web.result }}
           ANDROID_LINK: ${{fromJson(steps.get_android_path.outputs.android_paths).html_path}}
-          DESKTOP_LINK: "https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/$PULL_REQUEST_NUMBER/NewExpensify.dmg"
+          DESKTOP_LINK: https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/${{ env.PULL_REQUEST_NUMBER }}/NewExpensify.dmg
           IOS_LINK: ${{ fromJson(steps.get_ios_path.outputs.ios_paths).html_path }}
-          WEB_LINK: "https://$PULL_REQUEST_NUMBER.pr-testing.expensify.com"
+          WEB_LINK: https://${{ env.PULL_REQUEST_NUMBER }}.pr-testing.expensify.com
