@@ -71,13 +71,11 @@ class ReportSettingsPage extends Component {
      * @param {Object|null} policy - the workspace the report is on, null if the user isn't a member of the workspace
      * @returns {Boolean}
      */
-    getShouldDisablePublicRoomRename(report, policy) {
-        if (!ReportUtils.isPublicRoom(report)) {
+    shouldDisablePublicRoomRename(report, policy) {
+        if (!policy || !ReportUtils.isPublicRoom(report)) {
             return false;
         }
-        if (!policy) {
-            return true;
-        }
+
         return !Policy.isPolicyOwner(policy) && policy.role !== CONST.POLICY.ROLE.ADMIN;
     }
 
@@ -129,7 +127,7 @@ class ReportSettingsPage extends Component {
         const linkedWorkspace = _.find(this.props.policies, policy => policy && policy.id === this.props.report.policyID);
         const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report)
             || ReportUtils.isArchivedRoom(this.props.report)
-            || this.getShouldDisablePublicRoomRename(this.props.report, linkedWorkspace);
+            || this.shouldDisablePublicRoomRename(this.props.report, linkedWorkspace);
 
         return (
             <ScreenWrapper>
