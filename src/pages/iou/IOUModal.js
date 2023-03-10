@@ -29,6 +29,7 @@ import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
+import * as ReportScrollManager from '../../libs/ReportScrollManager';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -475,6 +476,7 @@ class IOUModal extends Component {
                                                     }
                                                     this.creatingIOUTransaction = true;
                                                     this.createTransaction(selectedParticipants);
+                                                    ReportScrollManager.scrollToBottom();
                                                 }}
                                                 onSendMoney={(paymentMethodType) => {
                                                     if (this.creatingIOUTransaction) {
@@ -482,6 +484,7 @@ class IOUModal extends Component {
                                                     }
                                                     this.creatingIOUTransaction = true;
                                                     this.sendMoney(paymentMethodType);
+                                                    ReportScrollManager.scrollToBottom();
                                                 }}
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
                                                 participants={_.filter(this.state.participants, email => this.props.currentUserPersonalDetails.login !== email.login)}
