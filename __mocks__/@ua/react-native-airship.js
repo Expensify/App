@@ -11,23 +11,30 @@ const iOS = {
     },
 };
 
-const UrbanAirship = {
+const Airship = {
     setUserNotificationsEnabled: jest.fn(),
-    clearNotifications: jest.fn(),
     addListener: jest.fn(),
-    getNamedUser: jest.fn(),
-    enableUserPushNotifications: () => Promise.resolve(false),
-    setNamedUser: jest.fn(),
     removeAllListeners: jest.fn(),
     setBadgeNumber: jest.fn(),
-    setForegroundPresentationOptions: jest.fn(),
     getNotificationStatus: () => Promise.resolve({airshipOptIn: false, systemEnabled: false}),
+    push: {
+        iOS: {
+            setBadgeNumber: jest.fn(),
+            setForegroundPresentationOptions: jest.fn(),
+        },
+        enableUserPushNotifications: () => Promise.resolve(false),
+        clearNotifications: jest.fn(),
+    },
+    contact: {
+        identify: jest.fn(),
+        getNamedUserId: jest.fn(),
+        reset: jest.fn(),
+    },
 };
 
-export default UrbanAirship;
+export default Airship;
 
 export {
     EventType,
     iOS,
-    UrbanAirship,
 };
