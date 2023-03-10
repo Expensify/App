@@ -28,6 +28,7 @@ const propTypes = {
     loginList: PropTypes.shape({
         /** Value of partner name */
         partnerName: PropTypes.string,
+
         /** Phone/Email associated with user */
         partnerUserID: PropTypes.string,
 
@@ -135,6 +136,13 @@ const ContactMethodsPage = (props) => {
                     <LoginField
                         label={props.translate('profilePage.emailAddress')}
                         type="email"
+                        login={{}}
+                    />
+                )}
+                {!hasPhoneNumberLogin && (
+                    <LoginField
+                        label={props.translate('common.phoneNumber')}
+                        type="phone"
                         login={{}}
                     />
                 )}
