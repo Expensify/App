@@ -123,21 +123,18 @@ function validate(values) {
 }
 ```
 
-When more than one method is used to validate the value, the `errors` object should contain a predefined empty array under input ID property. Here's an example for a form with a field with multiple validators for `firstName` input:
+When more than one method is used to validate the value, the `addErrorMessage` function from `ErrorUtils` should be used. Here's an example for a form with a field with multiple validators for `firstName` input:
 
 ```js
 function validate(values) {
-        const errors = {
-            firstName: [],
-            lastName: undefined,
-        };
+        let errors = {};
 
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
-            errors.firstName.push(props.translate('personalDetails.error.hasInvalidCharacter'));
+            errors = ErrorUtils.addErrorMessage(errors, 'firstName', props.translate('personalDetails.error.hasInvalidCharacter'));
         }
 
         if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
-            errors.firstName.push(props.translate('personalDetails.error.containsReservedWord'));
+            errors = ErrorUtils.addErrorMessage(errors, 'firstName', props.translate('personalDetails.error.containsReservedWord'));
         }
 
         if (!ValidationUtils.isValidDisplayName(values.lastName)) {

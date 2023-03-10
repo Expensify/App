@@ -145,15 +145,6 @@ class Form extends React.Component {
         this.touchedInputs[inputID] = true;
     }
 
-    /**
-     *
-     * @param {Object} values - An object with error messages assigned to each inputID
-     * @returns {Boolean} - Returns true if form is free of errors
-     */
-    isValidForm(values) {
-        return !_.chain(values).values().some(err => !_.isEmpty(err)).value();
-    }
-
     submit() {
         // Return early if the form is already submitting to avoid duplicate submission
         if (this.props.formState.isLoading) {
@@ -166,7 +157,7 @@ class Form extends React.Component {
         ));
 
         // Validate form and return early if any errors are found
-        if (!this.isValidForm(this.validate(this.state.inputValues))) {
+        if (!_.isEmpty(this.validate(this.state.inputValues))) {
             return;
         }
 
@@ -263,10 +254,15 @@ class Form extends React.Component {
                 .first()
                 .value() || '';
 
+            const inputError = this.state.errors[inputID];
+            const errorText = _.isString(inputError)
+                ? inputError
+                : _.reduce(inputError, (allMessages, currentMessage) => (!_.isEmpty(allMessages) ? `${allMessages}\n${currentMessage}` : currentMessage), '');
+
             return React.cloneElement(child, {
                 ref: node => this.inputRefs[inputID] = node,
                 value: this.state.inputValues[inputID],
-                errorText: this.state.errors[inputID] || fieldErrorMessage,
+                errorText: errorText || fieldErrorMessage,
                 onBlur: () => {
                     this.setTouchedInput(inputID);
                     this.validate(this.state.inputValues);
@@ -299,14 +295,13 @@ class Form extends React.Component {
                 {this.props.isSubmitButtonVisible && (
                 <FormAlertWithSubmitButton
                     buttonText={this.props.submitButtonText}
-                    isAlertVisible={!this.isValidForm(this.state.errors)
-                        || Boolean(this.getErrorMessage()) || !_.isEmpty(this.props.formState.errorFields)}
+                    isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage()) || !_.isEmpty(this.props.formState.errorFields)}
                     isLoading={this.props.formState.isLoading}
                     message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
                     onSubmit={this.submit}
                     onFixTheErrorsLinkPressed={() => {
                         const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
-                        const focusKey = _.find(_.keys(this.inputRefs), key => !_.isEmpty(errors[key]));
+                        const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
                         const focusInput = this.inputRefs[focusKey];
                         if (focusInput.focus && typeof focusInput.focus === 'function') {
                             focusInput.focus();

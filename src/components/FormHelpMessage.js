@@ -11,7 +11,7 @@ import stylePropTypes from '../styles/stylePropTypes';
 
 const propTypes = {
     /** Error or hint text. Ignored when children is not empty */
-    message: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]),
+    message: PropTypes.string,
 
     /** Children to render next to dot indicator */
     children: PropTypes.node,
@@ -35,24 +35,14 @@ const FormHelpMessage = (props) => {
         return null;
     }
 
-    const textStyles = [props.isError ? styles.formError : styles.formHelp, styles.mb0];
-
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, ...props.style]}>
             {props.isError && <Icon src={Expensicons.DotIndicator} fill={colors.red} />}
             <View style={[styles.flex1, styles.ml2]}>
                 {props.children || (
-                    <>
-                        {_.isString(props.message) ? (
-                            <Text style={textStyles}>
-                                {props.message}
-                            </Text>
-                        ) : _.map(props.message, msg => (
-                            <Text key={msg} style={textStyles}>
-                                {msg}
-                            </Text>
-                        ))}
-                    </>
+                    <Text style={[props.isError ? styles.formError : styles.formHelp, styles.mb0]}>
+                        {props.message}
+                    </Text>
                 )}
             </View>
         </View>

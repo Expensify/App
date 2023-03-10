@@ -216,7 +216,7 @@ class BaseTextInput extends Component {
             ...this.props.textInputContainerStyles,
             this.props.autoGrow && StyleUtils.getWidthStyle(this.state.textInputWidth),
             !this.props.hideFocusedState && this.state.isFocused && styles.borderColorFocus,
-            (this.props.hasError || !_.isEmpty(this.props.errorText)) && styles.borderColorDanger,
+            (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
         ], (finalStyles, s) => ({...finalStyles, ...s}), {});
 
         return (
