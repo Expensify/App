@@ -169,13 +169,12 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         try {
             JsonMap reportMap = payload.get("onyxData").getList().get(1).getMap().get("value").getMap();
             String reportId = reportMap.keySet().iterator().next();
-            JsonMap report = reportMap.get(reportId).getMap();
+            JsonMap messageData = reportMap.get(reportId).getMap();
 
-            String name = report.get("person").getList().get(0).getMap().get("text").getString();
-            String avatar = report.get("avatar").getString();
-            String accountID = Integer.toString(report.get("actorAccountID").getInt(-1));
-            String message = report.get("message").getList().get(0).getMap().get("text").getString();
-            long time = Timestamp.valueOf(report.get("created").getString(Instant.now().toString())).getTime();
+            String name = messageData.get("person").getList().get(0).getMap().get("text").getString();
+            String avatar = messageData.get("avatar").getString();
+            String accountID = Integer.toString(messageData.get("actorAccountID").getInt(-1));
+            String message = messageData.get("message").getList().get(0).getMap().get("text").getString();
 
             String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
             String conversationTitle = roomName.isEmpty() ? "Chat with " + name : roomName;
