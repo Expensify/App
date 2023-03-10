@@ -175,7 +175,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             String accountID = Integer.toString(messageData.get("actorAccountID").getInt(-1));
             String message = messageData.get("message").getList().get(0).getMap().get("text").getString();
 
-            String roomName = payload.get("roomName").isString() ? "" : payload.get("roomName").getString("");
+            String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
             String conversationTitle = roomName.isEmpty() ? "Chat with " + name : roomName;
 
             // Retrieve or create the Person object who sent the latest report comment
