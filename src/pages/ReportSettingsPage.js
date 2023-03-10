@@ -73,7 +73,7 @@ class ReportSettingsPage extends Component {
      */
     shouldDisablePublicRoomRename(report, policy) {
         if (!policy || !ReportUtils.isPublicRoom(report)) {
-            return false;
+            return true;
         }
 
         return !Policy.isPolicyOwner(policy) && policy.role !== CONST.POLICY.ROLE.ADMIN;
