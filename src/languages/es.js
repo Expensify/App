@@ -118,8 +118,6 @@ export default {
         youAppearToBeOffline: 'Parece que estás desconectado.',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
         areYouSure: '¿Estás seguro?',
-        verify: 'Verifique',
-        yesContinue: 'Sí, Continuar',
         zipCodeExample: 'p. ej. 12345, 12345-1234, 12345 1234',
         websiteExample: 'p. ej. https://www.expensify.com',
     },
@@ -345,20 +343,6 @@ export default {
     contacts: {
         contactMethod: 'Método de contacto',
         contactMethods: 'Métodos de contacto',
-        helpTextBeforeEmail: 'Añade más formas de que la gente te encuentre y reenvía los recibos a ',
-        helpTextAfterEmail: ' desde varias direcciones de correo electrónico.',
-        pleaseVerify: 'Por favor verifica este método de contacto',
-        getInTouch: 'Utilizaremos este método de contacto cuando necesitemos contactarte.',
-        enterMagicCode: ({contactMethod}) => `Por favor, introduce el código mágico enviado a ${contactMethod}`,
-        yourDefaultContactMethod: 'Este es tu método de contacto predeterminado. No podrás eliminarlo hasta que añadas otro método de contacto y lo marques como predeterminado pulsando "Establecer como predeterminado".',
-        removeContactMethod: 'Eliminar método de contacto',
-        removeAreYouSure: '¿Estás seguro de que quieres eliminar este método de contacto? Esta acción no se puede deshacer.',
-        resendMagicCode: 'Reenviar código mágico',
-        genericFailureMessages: {
-            requestContactMethodValidateCode: 'No se ha podido enviar un nuevo código mágico. Espera un rato y vuelve a intentarlo.',
-            validateSecondaryLogin: 'No se ha podido validar el método de contacto con el código mágico provisto. Solicita un nuevo código y vuelve a intentarlo.',
-            deleteContactMethod: 'No se ha podido eliminar el método de contacto. Por favor contacta con Concierge para obtener ayuda.',
-        },
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -1175,6 +1159,10 @@ export default {
     },
     report: {
         genericAddCommentFailureMessage: 'Error inesperado al agregar el comentario, por favor inténtalo más tarde',
+    },
+    chronos: {
+        oooEventSummaryFullDay: ({summary, dayCount, date}) => `${summary} por ${dayCount} ${dayCount === 1 ? 'día' : 'días'} hasta el ${date}`,
+        oooEventSummaryPartialDay: ({summary, timePeriod, date}) => `${summary} de ${timePeriod} del ${date}`,
     },
     footer: {
         features: 'Características',

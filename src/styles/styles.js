@@ -1003,18 +1003,35 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
-    statusIndicator: (backgroundColor = themeColors.danger) => ({
+    statusIndicator: {
         borderColor: themeColors.sidebar,
-        backgroundColor,
+        backgroundColor: themeColors.danger,
+        borderRadius: 6,
+        borderWidth: 2,
+        position: 'absolute',
+        right: -1,
+        bottom: -1,
+        height: 12,
+        width: 12,
+        zIndex: 10,
+    },
+
+    statusIndicatorLarge: {
+        borderColor: themeColors.componentBG,
+        backgroundColor: themeColors.danger,
         borderRadius: 8,
         borderWidth: 2,
         position: 'absolute',
-        right: -2,
-        top: -1,
+        right: 4,
+        bottom: 4,
         height: 16,
         width: 16,
         zIndex: 10,
-    }),
+    },
+
+    statusIndicatorOnline: {
+        backgroundColor: themeColors.success,
+    },
 
     avatarWithIndicator: {
         errorDot: {
@@ -1571,6 +1588,8 @@ const styles = {
     },
 
     navigationModalOverlay: {
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
         position: 'absolute',
         width: '100%',
         height: '100%',
