@@ -84,11 +84,8 @@ class ReimbursementAccountPage extends React.Component {
         this.continue = this.continue.bind(this);
         this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
         this.goBack = this.goBack.bind(this);
-        const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
-        const hasInProgressVBBA = achData.bankAccountID && achData.state !== BankAccount.STATE.OPEN && achData.state !== BankAccount.STATE.LOCKED;
-
         this.state = {
-            shouldHideContinueSetupButton: !hasInProgressVBBA,
+            shouldHideContinueSetupButton: !this.hasInProgressVBBA(),
         };
     }
 
@@ -100,6 +97,13 @@ class ReimbursementAccountPage extends React.Component {
         if (prevProps.network.isOffline && !this.props.network.isOffline) {
             this.fetchData();
         }
+        if (prevProps.reimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+            && this.props.reimbursementAccount.pendingAction !== prevProps.reimbursementAccount.pendingAction) {
+            // We are here after the use tried to delete the bank account. We will want to set
+            // this.state.shouldHideContinueSetupButton to `true` if the bank account was deleted.
+            this.setState({shouldHideContinueSetupButton: !this.hasInProgressVBBA()});
+        }
+
         const currentStep = lodashGet(this.props.reimbursementAccount, 'achData.currentStep') || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         const previousStep = lodashGet(prevProps.reimbursementAccount, 'achData.currentStep') || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         if (currentStep === previousStep) {
@@ -170,6 +174,15 @@ class ReimbursementAccountPage extends React.Component {
     }
 
     /**
+     * Returns true a VBBA exists in any state other than OPEN or LOCKED
+     * @returns {Boolean}
+     */
+    hasInProgressVBBA() {
+        const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
+        return achData.bankAccountID && achData.state !== BankAccount.STATE.OPEN && achData.state !== BankAccount.STATE.LOCKED;
+    }
+
+    /**
      * Retrieve verified business bank account currently being set up.
      * @param {boolean} ignoreLocalCurrentStep Pass true if you want the last "updated" view (from db), not the last "viewed" view (from onyx).
      */
@@ -198,10 +211,9 @@ class ReimbursementAccountPage extends React.Component {
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         const subStep = achData.subStep;
         const shouldShowOnfido = this.props.onfidoToken && !achData.isOnfidoSetupComplete;
-        const hasInProgressVBBA = achData.bankAccountID && achData.state !== BankAccount.STATE.OPEN && achData.state !== BankAccount.STATE.LOCKED;
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
-                if (hasInProgressVBBA) {
+                if (this.hasInProgressVBBA()) {
                     this.setState({shouldHideContinueSetupButton: false});
                 }
                 if (subStep) {
