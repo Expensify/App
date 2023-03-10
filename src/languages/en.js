@@ -641,6 +641,7 @@ export default {
         notHere: "Hmm... it's not here",
         pageNotFound: 'That page is nowhere to be found.',
         noAccess: 'You don\'t have access to this chat',
+        goBackHome: 'Go back to Home page',
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
