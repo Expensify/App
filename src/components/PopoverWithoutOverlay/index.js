@@ -48,6 +48,42 @@ const Popover = (props) => {
     }, []);
 
     React.useEffect(() => {
+        const listener = (e) => {
+            if (e.key !== 'Escape') {
+                return;
+            }
+            props.onClose();
+        };
+        document.addEventListener('keydown', listener);
+        return () => {
+            document.removeEventListener('keydown', listener);
+        };
+    }, []);
+
+    React.useEffect(() => {
+        const listener = () => {
+            if (document.hasFocus()) {
+                return;
+            }
+            props.onClose();
+        };
+        document.addEventListener('visibilitychange', listener);
+        return () => {
+            document.removeEventListener('visibilitychange', listener);
+        };
+    }, []);
+
+    React.useEffect(() => {
+        const listener = () => {
+            props.onClose();
+        };
+        document.addEventListener('contextmenu', listener);
+        return () => {
+            document.removeEventListener('contextmenu', listener);
+        };
+    }, []);
+
+    React.useEffect(() => {
         Modal.setCloseModal(props.onClose);
 
         return () => {
