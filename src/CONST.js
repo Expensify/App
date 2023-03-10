@@ -304,6 +304,7 @@ const CONST = {
                 CREATED: 'CREATED',
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
+                CHRONOSOOOLIST: 'CHRONOSOOOLIST',
             },
         },
         ARCHIVE_REASON: {
@@ -562,7 +563,7 @@ const CONST = {
     ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_SIZE: {
         WIDTH: 320,
-        HEIGHT: 392,
+        HEIGHT: 416,
     },
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 256,
     EMOJI_PICKER_ITEM_HEIGHT: 32,

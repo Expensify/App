@@ -1159,6 +1159,10 @@ export default {
     report: {
         genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
     },
+    chronos: {
+        oooEventSummaryFullDay: ({summary, dayCount, date}) => `${summary} for ${dayCount} ${dayCount === 1 ? 'day' : 'days'} until ${date}`,
+        oooEventSummaryPartialDay: ({summary, timePeriod, date}) => `${summary} from ${timePeriod} on ${date}`,
+    },
     footer: {
         features: 'Features',
         expenseManagement: 'Expense Management',
