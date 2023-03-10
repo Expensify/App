@@ -39,6 +39,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -164,54 +165,63 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         }
 
         NotificationCache notificationCache = findOrCreateNotificationCache(reportID);
-        JsonValue reportAcc = payload.get("onyxData").getList().get(1).getMap().get("value");
-        JsonMap reportAction = payload.get("reportAction").getMap();
-        String name = reportAction.get("person").getList().get(0).getMap().get("text").getString();
-        String avatar = reportAction.get("avatar").getString();
-        String accountID = Integer.toString(reportAction.get("actorAccountID").getInt(-1));
-        String message = reportAction.get("message").getList().get(0).getMap().get("text").getString();
-        long time = Timestamp.valueOf(reportAction.get("created").getString(Instant.now().toString())).getTime();
-        String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
-        String conversationTitle = roomName.isEmpty() ? "Chat with " + name : roomName;
 
-        // Retrieve or create the Person object who sent the latest report comment
-        Person person = notificationCache.people.get(accountID);
-        if (person == null) {
-            IconCompat iconCompat = fetchIcon(context, avatar);
-            person = new Person.Builder()
-                .setIcon(iconCompat)
-                .setKey(accountID)
-                .setName(name)
-                .build();
+        try {
+            JsonMap reportMap = payload.get("onyxData").getList().get(1).getMap().get("value").getMap();
+            String reportId = reportMap.keySet().iterator().next();
+            JsonMap report = reportMap.get(reportId).getMap();
 
-            notificationCache.people.put(accountID, person);
+            String name = report.get("person").getList().get(0).getMap().get("text").getString();
+            String avatar = report.get("avatar").getString();
+            String accountID = Integer.toString(report.get("actorAccountID").getInt(-1));
+            String message = report.get("message").getList().get(0).getMap().get("text").getString();
+            long time = Timestamp.valueOf(report.get("created").getString(Instant.now().toString())).getTime();
+
+            String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
+            String conversationTitle = roomName.isEmpty() ? "Chat with " + name : roomName;
+
+            // Retrieve or create the Person object who sent the latest report comment
+            Person person = notificationCache.people.get(accountID);
+            if (person == null) {
+                IconCompat iconCompat = fetchIcon(context, avatar);
+                person = new Person.Builder()
+                    .setIcon(iconCompat)
+                    .setKey(accountID)
+                    .setName(name)
+                    .build();
+
+                notificationCache.people.put(accountID, person);
+            }
+
+            // Store the latest report comment in the local conversation history
+            notificationCache.messages.add(new NotificationCache.Message(person, message, time));
+
+            // Create the messaging style notification builder for this notification.
+            // Associate the notification with the person who sent the report comment.
+            // If this conversation has 2 participants or more and there's no room name, we should mark
+            // it as a group conversation.
+            // Also set the conversation title.
+            NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person)
+                    .setGroupConversation(notificationCache.people.size() > 2 || !roomName.isEmpty())
+                    .setConversationTitle(conversationTitle);
+
+            // Add all conversation messages to the notification, including the last one we just received.
+            for (NotificationCache.Message cachedMessage : notificationCache.messages) {
+                messagingStyle.addMessage(cachedMessage.text, cachedMessage.time, cachedMessage.person);
+            }
+
+            // Clear the previous notification associated to this conversation so it looks like we are
+            // replacing them with this new one we just built.
+            if (notificationCache.prevNotificationID != -1) {
+                NotificationManagerCompat.from(context).cancel(notificationCache.prevNotificationID);
+            }
+
+            // Apply the messaging style to the notification builder
+            builder.setStyle(messagingStyle);
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        // Store the latest report comment in the local conversation history
-        notificationCache.messages.add(new NotificationCache.Message(person, message, time));
-
-        // Create the messaging style notification builder for this notification.
-        // Associate the notification with the person who sent the report comment.
-        // If this conversation has 2 participants or more and there's no room name, we should mark
-        // it as a group conversation.
-        // Also set the conversation title.
-        NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person)
-                .setGroupConversation(notificationCache.people.size() > 2 || !roomName.isEmpty())
-                .setConversationTitle(conversationTitle);
-
-        // Add all conversation messages to the notification, including the last one we just received.
-        for (NotificationCache.Message cachedMessage : notificationCache.messages) {
-            messagingStyle.addMessage(cachedMessage.text, cachedMessage.time, cachedMessage.person);
-        }
-
-        // Clear the previous notification associated to this conversation so it looks like we are
-        // replacing them with this new one we just built.
-        if (notificationCache.prevNotificationID != -1) {
-            NotificationManagerCompat.from(context).cancel(notificationCache.prevNotificationID);
-        }
-
-        // Apply the messaging style to the notification builder
-        builder.setStyle(messagingStyle);
 
         // Store the new notification ID so we can replace the notification if this conversation
         // receives more messages
