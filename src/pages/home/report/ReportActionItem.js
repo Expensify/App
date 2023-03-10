@@ -38,7 +38,7 @@ import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnima
 import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
 import * as ReactionList from './ReactionList/ReactionList';
 import * as Report from '../../../libs/actions/Report';
-import getPersonalDetailsByIDs from '../../../libs/getPersonalDetailsByIDs';
+import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /** Report for this action */
@@ -207,7 +207,7 @@ class ReportActionItem extends Component {
         const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
         const hasReactions = reactions.length > 0;
         const onReactionListOpen = (event, reactionUsers, emojiName, emojiCode, emojiCount, hasUserReacted) => {
-            const users = getPersonalDetailsByIDs(reactionUsers);
+            const users = PersonalDetailsUtils.getPersonalDetailsByIDs(reactionUsers);
             ReactionList.showReactionList(
                 event,
                 this.popoverReactionListAnchor,
