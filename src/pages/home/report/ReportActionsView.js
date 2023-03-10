@@ -346,24 +346,20 @@ class ReportActionsView extends React.Component {
         }
         return (
             <>
-                {!this.props.isComposerFullSize && (
-                    <>
-                        <FloatingMessageCounter
-                            isActive={this.state.isFloatingMessageCounterVisible && !_.isEmpty(this.state.newMarkerReportActionID)}
-                            onClick={this.scrollToBottomAndMarkReportAsRead}
-                        />
-                        <ReportActionsList
-                            report={this.props.report}
-                            onScroll={this.trackScroll}
-                            onLayout={this.recordTimeToMeasureItemLayout}
-                            sortedReportActions={this.props.reportActions}
-                            mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
-                            isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
-                            loadMoreChats={this.loadMoreChats}
-                            newMarkerReportActionID={this.state.newMarkerReportActionID}
-                        />
-                    </>
-                )}
+                <FloatingMessageCounter
+                    isActive={this.state.isFloatingMessageCounterVisible && !_.isEmpty(this.state.newMarkerReportActionID)}
+                    onClick={this.scrollToBottomAndMarkReportAsRead}
+                />
+                <ReportActionsList
+                    report={this.props.report}
+                    onScroll={this.trackScroll}
+                    onLayout={this.recordTimeToMeasureItemLayout}
+                    sortedReportActions={this.props.reportActions}
+                    mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
+                    isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
+                    loadMoreChats={this.loadMoreChats}
+                    newMarkerReportActionID={this.state.newMarkerReportActionID}
+                />
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                 <CopySelectionHelper />
             </>
