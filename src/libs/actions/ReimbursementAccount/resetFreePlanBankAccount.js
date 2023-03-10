@@ -65,7 +65,7 @@ function resetFreePlanBankAccount(bankAccountID) {
                 {
                     onyxMethod: CONST.ONYX.METHOD.MERGE,
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                    value: {isLoading: false},
+                    value: {isLoading: false, pendingAction: null},
                 },
             ],
         });
