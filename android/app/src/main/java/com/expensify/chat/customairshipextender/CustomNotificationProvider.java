@@ -37,6 +37,7 @@ import java.net.URL;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -193,7 +194,8 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             }
 
             // Store the latest report comment in the local conversation history
-            notificationCache.messages.add(new NotificationCache.Message(person, message, time));
+            long createdTimeInMillis = getMessageTimeInMillis(messageData.get("created").getString(""));
+            notificationCache.messages.add(new NotificationCache.Message(person, message, createdTimeInMillis));
 
             // Create the messaging style notification builder for this notification.
             // Associate the notification with the person who sent the report comment.
@@ -225,6 +227,17 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         // Store the new notification ID so we can replace the notification if this conversation
         // receives more messages
         notificationCache.prevNotificationID = notificationID;
+    }
+
+    /**
+     * Safely retrieve the message time in milliseconds
+     */
+    private long getMessageTimeInMillis(String createdTime) {
+        Calendar calendar = Calendar.getInstance();
+        if (!createdTime.isEmpty()) {
+            calendar.setTimeInMillis(Long.getLong(createdTime, 0));
+        }
+        return calendar.getTimeInMillis();
     }
 
     /**
