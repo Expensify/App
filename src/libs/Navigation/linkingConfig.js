@@ -124,6 +124,9 @@ export default {
                         path: ROUTES.SETTINGS_CONTACT_METHODS,
                         exact: true,
                     },
+                    Settings_ContactMethodDetails: {
+                        path: ROUTES.SETTINGS_CONTACT_METHOD_DETAILS,
+                    },
                     Settings_Add_Secondary_Login: {
                         path: ROUTES.SETTINGS_ADD_LOGIN,
                     },

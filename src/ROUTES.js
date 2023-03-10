@@ -51,6 +51,8 @@ export default {
     SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH: `${SETTINGS_PERSONAL_DETAILS}/date-of-birth`,
     SETTINGS_PERSONAL_DETAILS_ADDRESS: `${SETTINGS_PERSONAL_DETAILS}/address`,
     SETTINGS_CONTACT_METHODS,
+    SETTINGS_CONTACT_METHOD_DETAILS: `${SETTINGS_CONTACT_METHODS}/:contactMethod/details`,
+    getEditContactMethodRoute: contactMethod => `${SETTINGS_CONTACT_METHODS}/${encodeURIComponent(contactMethod)}/details`,
     NEW_GROUP: 'new/group',
     NEW_CHAT: 'new/chat',
     REPORT,
