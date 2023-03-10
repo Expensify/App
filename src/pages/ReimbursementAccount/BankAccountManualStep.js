@@ -123,7 +123,7 @@ class BankAccountManualStep extends React.Component {
                                     // to call the onPress in the TextLink before the input blur is fired and shift the link element
                                     onMouseDown={e => e.preventDefault()}
                                 >
-                                    {`Expensify ${this.props.translate('common.termsOfService')}`}
+                                    {this.props.translate('common.expensifyTermsOfService')}
                                 </TextLink>
                             </Text>
                         )}

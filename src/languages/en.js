@@ -50,7 +50,8 @@ export default {
         back: 'Back',
         saveAndContinue: 'Save & continue',
         settings: 'Settings',
-        termsOfService: 'Terms of service',
+        termsOfService: 'Terms of Service',
+        expensifyTermsOfService: 'Expensify Terms of Service',
         members: 'Members',
         invite: 'Invite',
         here: 'here',
@@ -460,7 +461,6 @@ export default {
         expirationDate: 'MMYY',
         cvv: 'CVV',
         billingAddress: 'Billing address',
-        expensifyTermsOfService: 'Expensify Terms of Service',
         growlMessageOnSave: 'Your debit card was successfully added',
         expensifyPassword: 'Expensify password',
         error: {

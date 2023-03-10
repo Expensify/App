@@ -49,7 +49,8 @@ export default {
         back: 'Volver',
         saveAndContinue: 'Guardar y continuar',
         settings: 'Configuración',
-        termsOfService: 'Términos de servicio',
+        termsOfService: 'Términos de Servicio',
+        expensifyTermsOfService: 'Términos de Servicio de Expensify',
         members: 'Miembros',
         invite: 'Invitar',
         here: 'aquí',
@@ -459,7 +460,6 @@ export default {
         expirationDate: 'MMAA',
         cvv: 'CVV',
         billingAddress: 'Dirección de envio',
-        expensifyTermsOfService: 'Expensify Términos de servicio',
         growlMessageOnSave: 'Su tarteja de débito se agregó correctamente',
         expensifyPassword: 'Contraseña de Expensify',
         error: {
