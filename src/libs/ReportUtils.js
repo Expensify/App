@@ -1318,15 +1318,14 @@ function getIOUTotal(report, iouReports = {}) {
 /**
  * @param {Object} report
  * @param {String} report.iouReportID
- * @param {String} currentUserLogin
  * @param {Object} iouReports
  * @returns {Boolean}
  */
-function isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports = {}) {
+function isIOUOwnedByCurrentUser(report, iouReports = {}) {
     if (report.hasOutstandingIOU) {
         const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
         if (iouReport) {
-            return iouReport.ownerEmail === currentUserLogin;
+            return iouReport.ownerEmail === currentUserEmail;
         }
     }
     return false;
@@ -1587,12 +1586,44 @@ function getIOUOptions(report, reportParticipants, betas) {
     ];
 }
 
+/**
+ * Allows a user to leave a policy room according to the following conditions of the visibility or chatType rNVP:
+ * `public` - Anyone can leave (because anybody can join)
+ * `public_announce` - Only non-policy members can leave (it's auto-shared with policy members)
+ * `policy_admins` - Nobody can leave (it's auto-shared with all policy admins)
+ * `policy_announce` - Nobody can leave (it's auto-shared with all policy members)
+ * `policy` - Anyone can leave (though only policy members can join)
+ * `domain` - Nobody can leave (it's auto-shared with domain members)
+ * `dm` - Nobody can leave (it's auto-shared with users)
+ * `private` - Anybody can leave (though you can only be invited to join)
+ *
+ * @param {Object} report
+ * @param {String} report.visibility
+ * @param {String} report.chatType
+ * @param {Boolean} isPolicyMember
+ * @returns {Boolean}
+ */
+function canLeaveRoom(report, isPolicyMember) {
+    if (_.isEmpty(report.visibility)) {
+        if (report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS
+            || report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE
+            || report.chatType === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL
+            || _.isEmpty(report.chatType)) { // DM chats don't have a chatType
+            return false;
+        }
+    } else if (report.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE && isPolicyMember) {
+        return false;
+    }
+    return true;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,
     canDeleteReportAction,
+    canLeaveRoom,
     sortReportsByLastRead,
     isDefaultRoom,
     isAdminRoom,

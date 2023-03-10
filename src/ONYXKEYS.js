@@ -162,9 +162,6 @@ export default {
     // Set when we are loading payment methods
     IS_LOADING_PAYMENT_METHODS: 'isLoadingPaymentMethods',
 
-    // The number of minutes a user has to wait for a call.
-    INBOX_CALL_USER_WAIT_TIME: 'inboxCallUserWaitTime',
-
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
@@ -180,7 +177,6 @@ export default {
     // List of Form ids
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
-        REQUEST_CALL_FORM: 'requestCallForm',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
         CLOSE_ACCOUNT_FORM: 'closeAccount',

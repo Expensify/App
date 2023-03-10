@@ -47,6 +47,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withDrawerState from '../../../components/withDrawerState';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
+import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 
 const propTypes = {
     /** Beta features list */
@@ -172,6 +173,16 @@ class ReportActionCompose extends React.Component {
 
             this.focus(false);
         });
+
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
+            if (!this.state.isFocused || this.comment.length === 0) {
+                return;
+            }
+
+            this.updateComment('');
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+
         this.setMaxLines();
         this.updateComment(this.comment);
     }
@@ -209,6 +220,10 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         ReportActionComposeFocusManager.clear();
+
+        if (this.unsubscribeEscapeKey) {
+            this.unsubscribeEscapeKey();
+        }
     }
 
     onSelectionChange(e) {
