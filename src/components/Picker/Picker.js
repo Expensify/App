@@ -111,6 +111,8 @@ class Picker extends PureComponent {
         };
 
         this.onInputChange = this.onInputChange.bind(this);
+        this.setIsOpen = this.setIsOpen.bind(this);
+        this.setIsClosed = this.setIsClosed.bind(this);
 
         // Windows will reuse the text color of the select for each one of the options
         // so we might need to color accordingly so it doesn't blend with the background.
@@ -200,17 +202,17 @@ class Picker extends PureComponent {
                         Icon={() => this.props.icon(this.props.size)}
                         disabled={this.props.isDisabled}
                         fixAndroidTouchableBug
-                        onOpen={() => this.setIsOpen()}
-                        onClose={() => this.setIsClosed()}
+                        onOpen={this.setIsOpen}
+                        onClose={this.setIsClosed}
                         textInputProps={{allowFontScaling: false}}
                         pickerProps={{
-                            onFocus: () => this.setIsOpen(),
+                            onFocus: this.setIsOpen,
                             onBlur: () => {
                                 this.setIsClosed();
                                 this.props.onBlur();
                             },
                             ...this.props.additionalPickerEvents(
-                                () => this.setIsOpen(),
+                                this.setIsOpen,
                                 (value, index) => {
                                     this.onInputChange(value, index);
                                     this.setIsClosed();
