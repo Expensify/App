@@ -48,15 +48,15 @@ const BlockingView = props => (
         />
         <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>
         <Text style={[styles.textAlignCenter]}>{props.subtitle}</Text>
-        {!!props.shouldShowBackHomeLink
-            && (
+        {props.shouldShowBackHomeLink
+            ? (
                 <TextLink
                     onPress={() => Navigation.navigate(ROUTES.REPORT)}
                     style={[styles.link, styles.mt2]}
                 >
                     {props.link}
                 </TextLink>
-            )}
+            ) : null}
     </View>
 );
 
