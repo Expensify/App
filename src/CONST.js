@@ -280,6 +280,9 @@ const CONST = {
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     NEWHELP_URL: 'https://help.expensify.com',
+    INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
+    STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
+    EXPENSIFY_URL: 'https://www.expensify.com',
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
@@ -301,6 +304,7 @@ const CONST = {
                 CREATED: 'CREATED',
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
+                CHRONOSOOOLIST: 'CHRONOSOOOLIST',
             },
         },
         ARCHIVE_REASON: {
@@ -562,7 +566,7 @@ const CONST = {
     ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_SIZE: {
         WIDTH: 320,
-        HEIGHT: 392,
+        HEIGHT: 416,
     },
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 256,
     EMOJI_PICKER_ITEM_HEIGHT: 32,
@@ -826,6 +830,10 @@ const CONST = {
         EMOJIS: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
+
+        // Extract attachment's source from the data's html string
+        ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
+
         NON_NUMERIC_WITH_PLUS: /[^0-9+]/g,
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
