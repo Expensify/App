@@ -41,20 +41,12 @@ class NewDatePicker extends React.Component {
             : '';
     }
 
-    componentDidMount() {
-        document.addEventListener('mousedown', this.handleMouseDown);
-    }
-
     componentDidUpdate(prevProps) {
         if (prevProps.defaultYear === this.props.defaultYear) {
             return;
         }
         this.textInputRef.focus();
         this.showPicker();
-    }
-
-    componentWillUnmount() {
-        document.addEventListener('mousedown', this.handleMouseDown);
     }
 
     /**
@@ -108,11 +100,7 @@ class NewDatePicker extends React.Component {
      * @param {MouseEvent} event - The mouse event object.
      */
     handleMouseDown(event) {
-        if (this.calendarWrapperRef && this.calendarWrapperRef.contains(event.target)) {
-            event.preventDefault();
-        } else {
-            this.hidePicker();
-        }
+        event.preventDefault();
     }
 
     render() {
@@ -143,7 +131,7 @@ class NewDatePicker extends React.Component {
                 {
                     this.state.isPickerVisible && (
                     <Animated.View
-                        ref={ref => this.calendarWrapperRef = ref}
+                        onMouseDown={this.handleMouseDown}
                         style={[styles.datePickerPopoverWeb, styles.border, {opacity: this.opacity}]}
                     >
                         <CalendarPicker
