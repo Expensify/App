@@ -640,6 +640,7 @@ export default {
         notHere: 'Hmm… no está aquí',
         pageNotFound: 'La página que buscas no existe.',
         noAccess: 'No tienes acceso a este chat',
+        goBackHome: 'Volver a la página principal',
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
