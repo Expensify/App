@@ -65,8 +65,6 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
     // Conversation JSON keys
     private static final String PAYLOAD_KEY = "payload";
-    private static final String TYPE_KEY = "type";
-    private static final String REPORT_COMMENT_TYPE = "reportComment";
 
     private final ExecutorService executorService = Executors.newCachedThreadPool();
     public final HashMap<Integer, NotificationCache> cache = new HashMap<>();
@@ -99,8 +97,8 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             try {
                 JsonMap payload = JsonValue.parseString(message.getExtra(PAYLOAD_KEY)).optMap();
 
-                // Apply message style only for chat report actions
-                if (payload.get(TYPE_KEY).getString().equals(REPORT_COMMENT_TYPE)) {
+                // Apply message style when onyxData is present
+                if (payload.get("onyxData").getList().size() > 0) {
                         applyMessageStyle(context, builder, payload, arguments.getNotificationId());
                 }
             } catch (Exception e) {
@@ -177,7 +175,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             String accountID = Integer.toString(messageData.get("actorAccountID").getInt(-1));
             String message = messageData.get("message").getList().get(0).getMap().get("text").getString();
 
-            String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
+            String roomName = payload.get("roomName").isString() ? "" : payload.get("roomName").getString("");
             String conversationTitle = roomName.isEmpty() ? "Chat with " + name : roomName;
 
             // Retrieve or create the Person object who sent the latest report comment
