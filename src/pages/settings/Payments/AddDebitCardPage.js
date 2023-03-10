@@ -165,21 +165,18 @@ class DebitCardPage extends Component {
                             containerStyles={[styles.mt4]}
                         />
                     </View>
-                    <View style={[styles.flexRow, styles.mt4]}>
-                        <View style={[styles.flex2, styles.mr2]}>
-                            <TextInput
-                                inputID="addressZipCode"
-                                label={this.props.translate('common.zip')}
-                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
-                                hint={this.props.translate('common.zipCodeExample')}
-                            />
-                        </View>
-                        <View style={[styles.flex1]}>
-                            <StatePicker
-                                inputID="addressState"
-                            />
-                        </View>
+                    <TextInput
+                        inputID="addressZipCode"
+                        label={this.props.translate('common.zip')}
+                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+                        hint={this.props.translate('common.zipCodeExample')}
+                        containerStyles={[styles.mt4]}
+                    />
+                    <View style={styles.mt4}>
+                        <StatePicker
+                            inputID="addressState"
+                        />
                     </View>
                     {!Permissions.canUsePasswordlessLogins(this.props.betas) && (
                         <View style={[styles.mt4]}>
