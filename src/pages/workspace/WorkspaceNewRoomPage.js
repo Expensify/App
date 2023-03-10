@@ -116,6 +116,7 @@ class WorkspaceNewRoomPage extends React.Component {
             _.filter(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE),
             policy => ({label: policy.name.replace(/ /g, '\u00a0'), key: policy.id, value: policy.id}),
         );
+
         const visibilityOptions = _.map(_.filter(_.values(CONST.REPORT.VISIBILITY), visibilityOption => visibilityOption !== CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE), visibilityOption => ({
             label: this.props.translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
             value: visibilityOption,
