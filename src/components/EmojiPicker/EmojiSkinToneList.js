@@ -40,7 +40,10 @@ class EmojiSkinToneList extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.preferredSkinTone === this.props.preferredSkinTone) { return; }
+        // Update the highlighted skin toneonly if the selected one changes
+        if (prevProps.preferredSkinTone === this.props.preferredSkinTone) {
+            return;
+        }
 
         const selectedEmoji = getSkinToneEmojiFromIndex(this.props.preferredSkinTone);
         this.setState({highlightedIndex: selectedEmoji.skinTone});
