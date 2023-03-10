@@ -569,7 +569,6 @@ const styles = {
             paddingRight: 17,
             paddingTop: 6,
             paddingBottom: 6,
-            borderRadius: variables.componentBorderRadius,
             borderWidth: 0,
             color: themeColors.text,
             height: 26,
@@ -594,7 +593,6 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderWidth: 0,
-            borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             appearance: 'none',
             height: 26,
@@ -610,7 +608,6 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderWidth: 0,
-            borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             height: 26,
             opacity: 1,
@@ -1537,9 +1534,8 @@ const styles = {
     categoryShortcutButton: {
         flex: 1,
         borderRadius: 8,
-        paddingTop: 2,
-        paddingBottom: 2,
         height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+        alignItems: 'center',
         justifyContent: 'center',
     },
 
@@ -1554,6 +1550,7 @@ const styles = {
 
     editChatItemEmojiWrapper: {
         marginRight: 3,
+        alignSelf: 'flex-end',
     },
 
     hoveredButton: {
@@ -1592,6 +1589,8 @@ const styles = {
     },
 
     navigationModalOverlay: {
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
         position: 'absolute',
         width: '100%',
         height: '100%',
@@ -2157,6 +2156,31 @@ const styles = {
 
     detailsPageSectionContainer: {
         alignSelf: 'flex-start',
+    },
+
+    attachmentModalArrowsContainer: {
+        display: 'flex',
+        justifyContent: 'center',
+        cursor: 'unset',
+        height: '100%',
+        width: '100%',
+    },
+
+    leftAttachmentArrow: {
+        zIndex: 23,
+        position: 'absolute',
+        left: 32,
+    },
+
+    rightAttachmentArrow: {
+        zIndex: 23,
+        position: 'absolute',
+        right: 32,
+    },
+
+    arrowIcon: {
+        height: 52,
+        width: 52,
     },
 
     detailsPageSectionVersion: {
@@ -2912,6 +2936,52 @@ const styles = {
     deeplinkWrapperFooter: {
         paddingTop: 80,
         paddingBottom: 45,
+    },
+
+    emojiReactionBubble: {
+        paddingVertical: 2,
+        paddingHorizontal: 8,
+        borderRadius: 28,
+        backgroundColor: themeColors.border,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        alignSelf: 'flex-start',
+        marginTop: 8,
+        marginRight: 4,
+    },
+
+    emojiReactionText: {
+        fontSize: 12,
+        lineHeight: 20,
+        textAlignVertical: 'center',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+    },
+    reactionCounterText: {
+        fontSize: 11,
+        marginLeft: 4,
+        fontWeight: 'bold',
+        color: themeColors.textLight,
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+    },
+
+    fontColorReactionLabel: {
+        color: '#586A64',
+    },
+
+    reactionEmojiTitle: {
+        fontSize: variables.iconSizeLarge,
+        lineHeight: variables.iconSizeXLarge,
+    },
+
+    quickReactionsContainer: {
+        gap: 12,
+        flexDirection: 'row',
+        paddingHorizontal: 25,
+        paddingVertical: 12,
+        justifyContent: 'space-between',
     },
 
     magicCodeDigits: {

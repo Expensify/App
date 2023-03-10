@@ -192,15 +192,17 @@ class WorkspaceInitialPage extends React.Component {
                                                 style={[styles.pRelative, styles.avatarLarge]}
                                                 onPress={this.openEditor}
                                             >
-                                                <Avatar
-                                                    containerStyles={styles.avatarLarge}
-                                                    imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                                    source={this.props.policy.avatar ? this.props.policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
-                                                    fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                                                    size={CONST.AVATAR_SIZE.LARGE}
-                                                    name={policyName}
-                                                    type={CONST.ICON_TYPE_WORKSPACE}
-                                                />
+                                                <Tooltip text={this.props.translate('workspace.common.settings')}>
+                                                    <Avatar
+                                                        containerStyles={styles.avatarLarge}
+                                                        imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                                        source={this.props.policy.avatar ? this.props.policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
+                                                        fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                                                        size={CONST.AVATAR_SIZE.LARGE}
+                                                        name={policyName}
+                                                        type={CONST.ICON_TYPE_WORKSPACE}
+                                                    />
+                                                </Tooltip>
                                             </Pressable>
                                             {!_.isEmpty(this.props.policy.name) && (
                                                 <Pressable
@@ -212,7 +214,7 @@ class WorkspaceInitialPage extends React.Component {
                                                     ]}
                                                     onPress={this.openEditor}
                                                 >
-                                                    <Tooltip text={this.props.policy.name}>
+                                                    <Tooltip text={this.props.translate('workspace.common.settings')}>
                                                         <Text
                                                             numberOfLines={1}
                                                             style={[
