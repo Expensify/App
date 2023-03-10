@@ -23,7 +23,6 @@ import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
-
 import * as ReactionList from './ReactionList/ReactionList';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 
@@ -349,27 +348,23 @@ class ReportActionsView extends React.Component {
         }
         return (
             <>
-                {!this.props.isComposerFullSize && (
-                    <>
-                        <FloatingMessageCounter
-                            isActive={this.state.isFloatingMessageCounterVisible && !_.isEmpty(this.state.newMarkerReportActionID)}
-                            onClick={this.scrollToBottomAndMarkReportAsRead}
-                        />
-                        <ReportActionsList
-                            report={this.props.report}
-                            onScroll={this.trackScroll}
-                            onLayout={this.recordTimeToMeasureItemLayout}
-                            sortedReportActions={this.props.reportActions}
-                            mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
-                            isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
-                            loadMoreChats={this.loadMoreChats}
-                            newMarkerReportActionID={this.state.newMarkerReportActionID}
-                        />
-                        <PopoverReactionList
-                            ref={ReactionList.reactionListRef}
-                        />
-                    </>
-                )}
+                <FloatingMessageCounter
+                    isActive={this.state.isFloatingMessageCounterVisible && !_.isEmpty(this.state.newMarkerReportActionID)}
+                    onClick={this.scrollToBottomAndMarkReportAsRead}
+                />
+                <ReportActionsList
+                    report={this.props.report}
+                    onScroll={this.trackScroll}
+                    onLayout={this.recordTimeToMeasureItemLayout}
+                    sortedReportActions={this.props.reportActions}
+                    mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
+                    isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
+                    loadMoreChats={this.loadMoreChats}
+                    newMarkerReportActionID={this.state.newMarkerReportActionID}
+                />
+                <PopoverReactionList
+                    ref={ReactionList.reactionListRef}
+                />
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                 <CopySelectionHelper />
             </>
