@@ -248,7 +248,8 @@ class ReimbursementAccountPage extends React.Component {
         const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
 
-        if (this.props.reimbursementAccount.isLoading) {
+        // Don't show the loading indicator if we're offline and restarted the bank account setup process
+        if (this.props.reimbursementAccount.isLoading && !(this.props.network.isOffline && currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)) {
             const isSubmittingVerificationsData = _.contains([
                 CONST.BANK_ACCOUNT.STEP.COMPANY,
                 CONST.BANK_ACCOUNT.STEP.REQUESTOR,
