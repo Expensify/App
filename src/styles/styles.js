@@ -1401,6 +1401,9 @@ const styles = {
 
     // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
     // Make sure you run the following tests against any changes: #12669
+    // Adding lineheight should be avoided here
+    // as per https://github.com/Expensify/App/issues/14799
+
     textInputCompose: addOutlineWidth({
         backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,
@@ -1409,7 +1412,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         borderWidth: 0,
         height: 'auto',
-        lineHeight: variables.lineHeightXLarge,
         ...overflowXHidden,
 
         // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
