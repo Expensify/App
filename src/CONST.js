@@ -247,6 +247,11 @@ const CONST = {
             shortcutKey: 'ArrowDown',
             modifiers: [],
         },
+        TAB: {
+            descriptionKey: null,
+            shortcutKey: 'Tab',
+            modifiers: [],
+        },
     },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
         CONTROL: 'CTRL',
@@ -568,6 +573,14 @@ const CONST = {
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 256,
     EMOJI_PICKER_ITEM_HEIGHT: 32,
     EMOJI_PICKER_HEADER_HEIGHT: 32,
+    RECIPIENT_LOCAL_TIME_HEIGHT: 25,
+    EMOJI_SUGGESTER: {
+        SUGGESTER_PADDING: 6,
+        ITEM_HEIGHT: 36,
+        SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
+        MIN_AMOUNT_OF_ITEMS: 3,
+        MAX_AMOUNT_OF_ITEMS: 5,
+    },
     COMPOSER_MAX_HEIGHT: 125,
     CHAT_FOOTER_MIN_HEIGHT: 65,
     CHAT_SKELETON_VIEW: {
@@ -837,6 +850,11 @@ const CONST = {
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
+        HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
+        NEW_LINE_OR_WHITE_SPACE: /[\n\s]/g,
+
+        // Define the regular expression pattern to match a string starting with a colon and ending with a space or newline character
+        EMOJI_REPLACER: /^:[^\n\r]+?(?=$|\s)/,
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
     },
 
@@ -1011,6 +1029,8 @@ const CONST = {
     CHAT_ATTACHMENT_TOKEN_KEY: 'X-Chat-Attachment-Token',
 
     USA_COUNTRY_NAME,
+    SPACE_LENGTH: 1,
+    SPACE: 1,
     ALL_COUNTRIES: {
         AC: 'Ascension Island',
         AD: 'Andorra',
