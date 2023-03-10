@@ -51,10 +51,10 @@ export default {
         EXPENSIFY_URL: expensifyURL,
         NEW_EXPENSIFY_URL: newExpensifyURL,
 
-        // The DEFAULT API is the API used by most environments, except staging, where we use STAGING (below)
+        // The DEFAULT API is the API used by most environments, except staging, where we use STAGING (defined below)
         // The "staging toggle" in settings toggles between DEFAULT and STAGING APIs
-        // We can think of DEFAULT as PROD, because on both STAGING and PROD it points to the production address
-        // On DEV this can be configured through ENV settings and can be a proxy or ngrok address (defaults to PROD)
+        // On both STAGING and PROD this (DEFAULT) address points to production
+        // On DEV it can be configured through ENV settings and can be a proxy or ngrok address (defaults to PROD)
         // Usually you don't need to use this URL directly - prefer `ApiUtils.getApiRoot()`
         DEFAULT_API_ROOT: expensifyURLRoot,
         DEFAULT_SECURE_API_ROOT: secureURLRoot,

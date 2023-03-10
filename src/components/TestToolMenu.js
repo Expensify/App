@@ -29,6 +29,8 @@ const propTypes = {
 
 const defaultProps = {
     user: {
+        // The default value is environment specific and can't be set with `defaultProps` (ENV is not resolved yet)
+        // When undefined (during render) STAGING defaults to `true`, other envs default to `false`
         shouldUseStagingServer: undefined,
     },
 };
