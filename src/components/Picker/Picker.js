@@ -3,13 +3,13 @@ import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import RNPickerSelect from 'react-native-picker-select';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import FormHelpMessage from './FormHelpMessage';
-import Text from './Text';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import {ScrollContext} from './ScrollViewWithContext';
+import Icon from '../Icon';
+import * as Expensicons from '../Icon/Expensicons';
+import FormHelpMessage from '../FormHelpMessage';
+import Text from '../Text';
+import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
+import {ScrollContext} from '../ScrollViewWithContext';
 
 const propTypes = {
     /** Picker label */
@@ -75,6 +75,9 @@ const propTypes = {
             current: PropTypes.element,
         }),
     ]),
+
+    /** Additional events passed to the core Picker for specific platforms such as web */
+    additionalPickerEvents: PropTypes.func,
 };
 
 const defaultProps = {
@@ -97,6 +100,7 @@ const defaultProps = {
     ),
     onBlur: () => {},
     innerRef: () => {},
+    additionalPickerEvents: () => {},
 };
 
 class Picker extends PureComponent {
@@ -151,6 +155,18 @@ class Picker extends PureComponent {
         this.props.onInputChange(this.props.items[0].value, 0);
     }
 
+    setIsOpen() {
+        this.setState({
+            isOpen: true,
+        });
+    }
+
+    setIsClosed() {
+        this.setState({
+            isOpen: false,
+        });
+    }
+
     render() {
         const hasError = !_.isEmpty(this.props.errorText);
 
@@ -184,30 +200,22 @@ class Picker extends PureComponent {
                         Icon={() => this.props.icon(this.props.size)}
                         disabled={this.props.isDisabled}
                         fixAndroidTouchableBug
-                        onOpen={() => this.setState({isOpen: true})}
-                        onClose={() => this.setState({isOpen: false})}
+                        onOpen={() => this.setIsOpen()}
+                        onClose={() => this.setIsClosed()}
                         textInputProps={{allowFontScaling: false}}
                         pickerProps={{
-                            onFocus: () => this.setState({isOpen: true}),
+                            onFocus: () => this.setIsOpen(),
                             onBlur: () => {
-                                this.setState({isOpen: false});
+                                this.setIsClosed();
                                 this.props.onBlur();
                             },
-
-                            // The following 2 handlers are specific to web (onChange overrides onValueChange on web)
-                            // They are used to make the picker indicator behave the same way as it does on native
-                            onMouseDown: () => {
-                                this.setState({isOpen: true});
-                            },
-                            onChange: (e) => {
-                                if (e.target.selectedIndex === undefined) {
-                                    return;
-                                }
-                                const index = e.target.selectedIndex;
-                                const value = e.target.options[index].value;
-                                this.onInputChange(value, index);
-                                this.setState({isOpen: false});
-                            },
+                            ...this.props.additionalPickerEvents(
+                                () => this.setIsOpen(),
+                                (value, index) => {
+                                    this.onInputChange(value, index);
+                                    this.setIsClosed();
+                                },
+                            ),
                         }}
                         ref={(el) => {
                             if (!_.isFunction(this.props.innerRef)) {
