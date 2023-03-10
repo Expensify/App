@@ -69,7 +69,6 @@ const EmojiReactionBubble = props => (
         )}
     >
         <PressableWithSecondaryInteraction
-
             style={({hovered}) => [
                 styles.emojiReactionBubble,
                 StyleUtils.getEmojiReactionBubbleStyle(hovered, props.hasUserReacted, props.sizeScale),
