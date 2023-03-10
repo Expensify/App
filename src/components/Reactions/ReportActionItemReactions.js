@@ -8,6 +8,7 @@ import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import getPreferredEmojiCode from './getPreferredEmojiCode';
+import * as Report from '../../libs/actions/Report';
 
 /**
  * Given an emoji object and a list of senders it will return an
@@ -79,7 +80,7 @@ const ReportActionItemReactions = (props) => {
                 const reactionUsers = _.map(reaction.users, sender => sender.accountID.toString());
                 const emoji = _.find(emojis, e => e.name === reaction.emoji);
                 const emojiCodes = getUniqueEmojiCodes(emoji, reaction.users);
-                const hasUserReacted = _.includes(reactionUsers, `${props.currentUserPersonalDetails.accountID}`);
+                const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, reactionUsers);
 
                 const onPress = () => {
                     props.toggleReaction(emoji);
