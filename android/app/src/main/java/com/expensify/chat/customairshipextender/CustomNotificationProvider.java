@@ -92,12 +92,13 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             builder.setPriority(PRIORITY_MAX);
         }
 
+        // Attempt to parse data and style notification
         if (message.containsKey(PAYLOAD_KEY)) {
             try {
                 JsonMap payload = JsonValue.parseString(message.getExtra(PAYLOAD_KEY)).optMap();
 
-                // Apply message style only for report comments
-                if (REPORT_COMMENT_TYPE.equals(payload.get(TYPE_KEY).getString())) {
+                // Apply message style only for chat report actions
+                if (payload.get(TYPE_KEY).getString().equals(REPORT_COMMENT_TYPE)) {
                         applyMessageStyle(context, builder, payload, arguments.getNotificationId());
                 }
             } catch (Exception e) {
@@ -150,7 +151,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
     /**
      * Applies the message style to the notification builder. It also takes advantage of the
-     * notification cache to build conversations.
+     * notification cache to build conversations style notifications.
      *
      * @param builder Notification builder that will receive the message style
      * @param payload Notification payload, which contains all the data we need to build the notifications.
