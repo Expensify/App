@@ -14,6 +14,7 @@ import ResendValidationForm from './ResendValidationForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Performance from '../../libs/Performance';
 import Permissions from '../../libs/Permissions';
+import UnlinkLoginForm from './UnlinkLoginForm';
 
 const propTypes = {
     /* Onyx Props */
@@ -25,6 +26,9 @@ const propTypes = {
 
         /** Whether the account is validated */
         validated: PropTypes.bool,
+
+        /** The primaryLogin associated with the account */
+        primaryLogin: PropTypes.string,
     }),
 
     /** List of betas available to current user */
@@ -57,31 +61,45 @@ class SignInPage extends Component {
         // - AND a validateCode has not been cached with sign in link
         const showLoginForm = !this.props.credentials.login && !this.props.credentials.validateCode;
 
+        // Show the unlink form if
+        // - A login has been entered
+        // - AND the login is not the primary login
+        // - AND the login is not validated
+        const showUnlinkLoginForm = this.props.credentials.login
+            && this.props.account.primaryLogin != this.props.credentials.login
+            && !this.props.account.validated;
+
         // Show the old password form if
         // - A login has been entered
         // - AND an account exists and is validated for this login
         // - AND a password hasn't been entered yet
         // - AND haven't forgotten password
+        // - AND the login isn't an unvalidated secondary login
         // - AND the user is NOT on the passwordless beta
         const showPasswordForm = this.props.credentials.login
             && this.props.account.validated
             && !this.props.credentials.password
             && !this.props.account.forgotPassword
+            && !showUnlinkLoginForm
             && !Permissions.canUsePasswordlessLogins(this.props.betas);
 
         // Show the new magic code / validate code form if
         // - A login has been entered or a validateCode has been cached from sign in link
+        // - AND the login isn't an unvalidated secondary login
         // - AND the user is on the 'passwordless' beta
         const showValidateCodeForm = (this.props.credentials.login
             || this.props.credentials.validateCode)
+            && !showUnlinkLoginForm
             && Permissions.canUsePasswordlessLogins(this.props.betas);
 
         // Show the resend validation link form if
         // - A login has been entered
         // - AND is not validated or password is forgotten
+        // - AND the login isn't an unvalidated secondary login
         // - AND user is not on 'passwordless' beta
         const showResendValidationForm = this.props.credentials.login
             && (!this.props.account.validated || this.props.account.forgotPassword)
+            && !showUnlinkLoginForm
             && !Permissions.canUsePasswordlessLogins(this.props.betas);
 
         let welcomeText = '';
@@ -105,7 +123,7 @@ class SignInPage extends Component {
             <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout
                     welcomeText={welcomeText}
-                    shouldShowWelcomeText={showLoginForm || showPasswordForm || showValidateCodeForm || !showResendValidationForm}
+                    shouldShowWelcomeText={showLoginForm || showPasswordForm || showValidateCodeForm}
                 >
                     {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
                     so that password managers can access the values. Conditionally rendering these components will break this feature. */}
@@ -116,6 +134,7 @@ class SignInPage extends Component {
                         <PasswordForm isVisible={showPasswordForm} />
                     )}
                     {showResendValidationForm && <ResendValidationForm />}
+                    {showUnlinkLoginForm && <UnlinkLoginForm />}
                 </SignInPageLayout>
             </SafeAreaView>
         );
