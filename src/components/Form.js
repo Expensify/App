@@ -179,7 +179,8 @@ class Form extends React.Component {
 
         // Validate the input for html tags. It should supercede any other error
         _.each(values, (inputValue, inputID) => {
-            if (!inputValue || inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX) === -1) {
+            // Check for HTML tags in string values
+            if (!inputValue || (_.isString(inputValue) && inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX) === -1)) {
                 return;
             }
 

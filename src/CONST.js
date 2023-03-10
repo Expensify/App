@@ -496,7 +496,8 @@ const CONST = {
     // 6 numeric digits
     VALIDATE_CODE_REGEX_STRING: /^\d{6}$/,
 
-    // Look for any html/xml tags that would be filtered out by WAF inputrules
+    // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags using this regex pattern.
+    // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
     VALIDATE_FOR_HTML_TAG_REGEX: /<(.|\n)*?>/g,
 
     PASSWORD_PAGE: {
