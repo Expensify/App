@@ -8,19 +8,20 @@ import * as Environment from './Environment/Environment';
 // To avoid rebuilding native apps, native apps use production config for both staging and prod
 // We use the async environment check because it works on all platforms
 let ENV_NAME = CONST.ENVIRONMENT.PRODUCTION;
+let stagingServerToggleState = false;
 Environment.getEnvironment()
     .then((envName) => {
         ENV_NAME = envName;
-    });
 
-let stagingServerToggleState = false;
-Onyx.connect({
-    key: ONYXKEYS.USER,
-    callback: (val) => {
-        const defaultValue = ENV_NAME === CONST.ENVIRONMENT.STAGING;
-        stagingServerToggleState = lodashGet(val, 'shouldUseStagingServer', defaultValue);
-    },
-});
+        // We connect here, so we have the updated ENV_NAME when Onyx callback runs
+        Onyx.connect({
+            key: ONYXKEYS.USER,
+            callback: (val) => {
+                const defaultToggleState = ENV_NAME === CONST.ENVIRONMENT.STAGING;
+                stagingServerToggleState = lodashGet(val, 'shouldUseStagingServer', defaultToggleState);
+            },
+        });
+    });
 
 /**
  * Helper method used to decide which API endpoint to call
