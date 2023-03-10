@@ -119,11 +119,7 @@ class ContactMethodDetailsPage extends Component {
      */
     doesContactMethodExist() {
         const contactMethod = this.getContactMethod();
-        const loginData = this.props.loginList[contactMethod];
-        if (!contactMethod || !loginData) {
-            return false;
-        }
-        return true;
+        return contactMethod && this.props.loginList[contactMethod];
     }
 
     /**
@@ -138,10 +134,8 @@ class ContactMethodDetailsPage extends Component {
      * Delete the contact method and hide the modal
      */
     confirmDeleteAndHideModal() {
-        const contactMethod = this.getContactMethod();
-        User.deleteContactMethod(contactMethod);
         this.toggleDeleteModal(false);
-        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+        User.deleteContactMethod(this.getContactMethod());
     }
 
     /**
