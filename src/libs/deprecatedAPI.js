@@ -5,8 +5,8 @@ import * as Middleware from './Middleware';
 import CONST from '../CONST';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
-// Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Retry. Errors thrown in one middleware will bubble to the next e.g. an error thrown in
-// Logging or Reauthenticate logic would be caught by the Retry logic (which is why it is the last one used).
+// Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next
+// e.g. an error thrown in Logging or Reauthenticate logic will be caught by the next middleware or the SequentialQueue which retries failing requests.
 
 // Logging - Logs request details and errors.
 Request.use(Middleware.Logging);
@@ -16,9 +16,6 @@ Request.use(Middleware.RecheckConnection);
 
 // Reauthentication - Handles jsonCode 407 which indicates an expired authToken. We need to reauthenticate and get a new authToken with our stored credentials.
 Request.use(Middleware.Reauthentication);
-
-// Retry - Handles retrying any failed requests.
-Request.use(Middleware.Retry);
 
 // SaveResponseInOnyx - Merges either the successData or failureData into Onyx depending on if the call was successful or not
 Request.use(Middleware.SaveResponseInOnyx);
@@ -33,29 +30,6 @@ function Get(parameters, shouldUseSecure = false) {
     const commandName = 'Get';
     requireParameters(['returnValueList'], parameters, commandName);
     return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, shouldUseSecure);
-}
-
-/**
- * @param {Object} parameters
- * @param {Object} parameters.details
- * @returns {Promise}
- */
-function PersonalDetails_Update(parameters) {
-    const commandName = 'PersonalDetails_Update';
-    requireParameters(['details'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.email
- * @returns {Promise}
- */
-function ResendValidateCode(parameters) {
-    const commandName = 'ResendValidateCode';
-    requireParameters(['email'], parameters, commandName);
-    return Network.post(commandName, parameters);
 }
 
 /**
@@ -84,8 +58,6 @@ function User_SecondaryLogin_Send(parameters) {
 
 export {
     Get,
-    PersonalDetails_Update,
-    ResendValidateCode,
     SetNameValuePair,
     User_SecondaryLogin_Send,
 };

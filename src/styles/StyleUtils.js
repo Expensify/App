@@ -809,6 +809,44 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth) {
     };
 }
 
+function getEmojiReactionBubbleStyle(isHovered, hasUserReacted, sizeScale = 1) {
+    const sizeStyles = {
+        paddingVertical: styles.emojiReactionBubble.paddingVertical * sizeScale,
+        paddingHorizontal: styles.emojiReactionBubble.paddingHorizontal * sizeScale,
+    };
+
+    if (hasUserReacted) {
+        return {backgroundColor: themeColors.reactionActive, ...sizeStyles};
+    }
+    if (isHovered) {
+        return {backgroundColor: themeColors.buttonHoveredBG, ...sizeStyles};
+    }
+
+    return sizeStyles;
+}
+
+function getEmojiReactionTextStyle(sizeScale = 1) {
+    return {
+        fontSize: styles.emojiReactionText.fontSize * sizeScale,
+        lineHeight: styles.emojiReactionText.lineHeight * sizeScale,
+    };
+}
+
+function getEmojiReactionCounterTextStyle(hasUserReacted, sizeScale = 1) {
+    const sizeStyles = {
+        fontSize: styles.reactionCounterText.fontSize * sizeScale,
+    };
+
+    if (hasUserReacted) {
+        return {
+            ...sizeStyles,
+            color: themeColors.link,
+        };
+    }
+
+    return sizeStyles;
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -852,4 +890,7 @@ export {
     getReportWelcomeContainerStyle,
     getDefaultWorspaceAvatarColor,
     getAvatarBorderRadius,
+    getEmojiReactionBubbleStyle,
+    getEmojiReactionTextStyle,
+    getEmojiReactionCounterTextStyle,
 };
