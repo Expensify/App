@@ -26,6 +26,10 @@ class CalendarPicker extends React.PureComponent {
             currentDateView = props.minDate;
         }
 
+        if (props.defaultYear) {
+            currentDateView = moment(currentDateView).set('year', props.defaultYear).toDate();
+        }
+
         this.state = {
             currentDateView,
         };
@@ -63,7 +67,6 @@ class CalendarPicker extends React.PureComponent {
         const maxYear = moment(this.props.maxDate).year();
         const currentYear = this.state.currentDateView.getFullYear();
         Navigation.navigate(ROUTES.getYearSelectionRoute(minYear, maxYear, currentYear, Navigation.getActiveRoute()));
-        this.props.onYearPressed();
     }
 
     /**

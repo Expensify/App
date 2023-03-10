@@ -20,9 +20,6 @@ const propTypes = {
 
     /** A function called when the date is selected */
     onSelected: PropTypes.func,
-
-    /** Callback function to call when year is pressed */
-    onYearPressed: PropTypes.func,
 };
 
 const defaultProps = {
@@ -32,7 +29,6 @@ const defaultProps = {
     defaultYear: null,
     onChanged: () => {},
     onSelected: () => {},
-    onYearPressed: () => {},
 };
 
 export {propTypes, defaultProps};

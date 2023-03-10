@@ -1,5 +1,5 @@
 import React from 'react';
-import {Animated, View} from 'react-native';
+import {View, Animated} from 'react-native';
 import moment from 'moment';
 import _ from 'underscore';
 import TextInput from '../TextInput';
@@ -7,12 +7,10 @@ import CalendarPicker from '../CalendarPicker';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import {propTypes as datePickerPropTypes, defaultProps as defaultDatePickerProps} from './datePickerPropTypes';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import './styles.css';
 
 const propTypes = {
     ...datePickerPropTypes,
-    ...windowDimensionsPropTypes,
 };
 
 const datePickerDefaultProps = {
@@ -29,11 +27,10 @@ class NewDatePicker extends React.Component {
         };
 
         this.setDate = this.setDate.bind(this);
-        this.togglePicker = this.togglePicker.bind(this);
-        this.removeClickListener = this.removeClickListener.bind(this);
-        this.handleOutsideClick = this.handleOutsideClick.bind(this);
+        this.showPicker = this.showPicker.bind(this);
+        this.hidePicker = this.hidePicker.bind(this);
+        this.handleMouseDown = this.handleMouseDown.bind(this);
 
-        this.wrapperRef = React.createRef();
         this.opacity = new Animated.Value(0);
 
         /* We're using uncontrolled input otherwise it wont be possible to
@@ -45,18 +42,19 @@ class NewDatePicker extends React.Component {
     }
 
     componentDidMount() {
-        document.addEventListener('mousedown', this.handleOutsideClick);
+        document.addEventListener('mousedown', this.handleMouseDown);
     }
 
     componentDidUpdate(prevProps) {
         if (prevProps.defaultYear === this.props.defaultYear) {
             return;
         }
-        document.addEventListener('mousedown', this.handleOutsideClick);
+        this.textInputRef.focus();
+        this.showPicker();
     }
 
     componentWillUnmount() {
-        this.removeClickListener();
+        document.addEventListener('mousedown', this.handleMouseDown);
     }
 
     /**
@@ -66,74 +64,99 @@ class NewDatePicker extends React.Component {
     setDate(selectedDate) {
         this.setState({selectedDate}, () => {
             this.props.onInputChange(moment(selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
-            this.togglePicker();
+            this.hidePicker();
         });
     }
 
-    removeClickListener() {
-        document.removeEventListener('mousedown', this.handleOutsideClick);
+    /**
+     * Function to show up and animates the picker.
+     */
+    showPicker() {
+        this.setState({isPickerVisible: true}, () => {
+            Animated.timing(this.opacity, {
+                toValue: 1,
+                duration: 100,
+                useNativeDriver: true,
+            }).start();
+        });
     }
 
     /**
-     * Function called when clicked outside of the DatePicker component on the page
-     * @param {Object} event
+     * Function to animate and hide the picker.
      */
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    handleOutsideClick(event) {
-        if (this.wrapperRef && this.wrapperRef.current && !this.wrapperRef.current.contains(event.target) && this.wrapperRef.current !== event.target && this.state.isPickerVisible) {
-            this.togglePicker();
-        }
-    }
-
-    /**
-     * Function to animate the value of opacity to display the picker component
-     */
-    togglePicker() {
+    hidePicker() {
         Animated.timing(this.opacity, {
-            toValue: this.state.isPickerVisible ? 0 : 1,
+            toValue: 0,
             duration: 100,
             useNativeDriver: true,
         }).start((animationResult) => {
             if (!animationResult.finished) {
                 return;
             }
-            this.setState(prev => ({isPickerVisible: !prev.isPickerVisible}));
+            this.setState({isPickerVisible: false});
+            this.textInputRef.blur();
         });
+    }
+
+    /**
+     * Handle the mouse down event.
+     *
+     * If the target element is contained within the calendarWrapperRef, prevent
+     * the default behavior of the event. If the target element is not contained
+     * within the calendarWrapperRef, hide the picker.
+     *
+     * @param {MouseEvent} event - The mouse event object.
+     */
+    handleMouseDown(event) {
+        if (this.calendarWrapperRef && this.calendarWrapperRef.contains(event.target)) {
+            event.preventDefault();
+        } else {
+            this.hidePicker();
+        }
     }
 
     render() {
         return (
-            <View ref={this.wrapperRef} style={[this.props.isSmallScreenWidth ? styles.flex2 : {}]}>
-                <TextInput
-                    forceActiveLabel
-                    ref={(el) => {
-                        if (!_.isFunction(this.props.innerRef)) {
-                            return;
-                        }
-                        this.props.innerRef(el);
-                    }}
-                    onPress={this.togglePicker}
-                    label={this.props.label}
-                    value={this.props.value}
-                    defaultValue={this.defaultValue}
-                    placeholder={this.props.placeholder || CONST.DATE.MOMENT_FORMAT_STRING}
-                    errorText={this.props.errorText}
-                    containerStyles={this.props.containerStyles}
-                    disabled={this.props.disabled}
-                    onBlur={this.props.onBlur}
-                    editable={false}
-                />
-                <Animated.View style={[styles.datePickerPopover, styles.border, {opacity: this.opacity}, this.state.isPickerVisible ? styles.pointerEventsAuto : styles.pointerEventsNone]}>
-                    <CalendarPicker
-                        minDate={this.props.minDate}
-                        maxDate={this.props.maxDate}
-                        value={this.state.selectedDate}
-                        onSelected={this.setDate}
-                        defaultYear={this.props.defaultYear}
-                        onYearPressed={this.removeClickListener}
+            <>
+                <View style={[this.props.isSmallScreenWidth ? styles.flex2 : {}]}>
+                    <TextInput
+                        forceActiveLabel
+                        ref={(el) => {
+                            this.textInputRef = el;
+                            if (!_.isFunction(this.props.innerRef)) {
+                                return;
+                            }
+                            this.props.innerRef(el);
+                        }}
+                        onPress={this.showPicker}
+                        onBlur={this.hidePicker}
+                        label={this.props.label}
+                        value={this.props.value}
+                        defaultValue={this.defaultValue}
+                        placeholder={this.props.placeholder || CONST.DATE.MOMENT_FORMAT_STRING}
+                        errorText={this.props.errorText}
+                        containerStyles={this.props.containerStyles}
+                        disabled={this.props.disabled}
+                        editable={false}
                     />
-                </Animated.View>
-            </View>
+                </View>
+                {
+                    this.state.isPickerVisible && (
+                    <Animated.View
+                        ref={ref => this.calendarWrapperRef = ref}
+                        style={[styles.datePickerPopoverWeb, styles.border, {opacity: this.opacity}]}
+                    >
+                        <CalendarPicker
+                            minDate={this.props.minDate}
+                            maxDate={this.props.maxDate}
+                            value={this.state.selectedDate}
+                            onSelected={this.setDate}
+                            defaultYear={this.props.defaultYear}
+                        />
+                    </Animated.View>
+                    )
+                }
+            </>
         );
     }
 }
@@ -141,7 +164,7 @@ class NewDatePicker extends React.Component {
 NewDatePicker.propTypes = propTypes;
 NewDatePicker.defaultProps = datePickerDefaultProps;
 
-export default withWindowDimensions(React.forwardRef((props, ref) => (
+export default React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <NewDatePicker {...props} innerRef={ref} />
-)));
+));
