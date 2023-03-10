@@ -235,7 +235,12 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
     private long getMessageTimeInMillis(String createdTime) {
         Calendar calendar = Calendar.getInstance();
         if (!createdTime.isEmpty()) {
-            calendar.setTimeInMillis(Long.getLong(createdTime, 0));
+            try {
+                long timeInMillis = Long.getLong(createdTime, 0);
+                calendar.setTimeInMillis(timeInMillis);
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+            }
         }
         return calendar.getTimeInMillis();
     }
