@@ -5,6 +5,11 @@ import EmojiPickerMenu from './EmojiPickerMenu';
 import CONST from '../../CONST';
 import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
 
+const DEFAULT_ANCHOR_ORIGIN = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+};
+
 class EmojiPicker extends React.Component {
     constructor(props) {
         super(props);
@@ -27,6 +32,8 @@ class EmojiPicker extends React.Component {
                 horizontal: 0,
                 vertical: 0,
             },
+
+            emojiPopoverAnchorOrigin: DEFAULT_ANCHOR_ORIGIN,
         };
     }
 
@@ -54,8 +61,9 @@ class EmojiPicker extends React.Component {
      * Callback for the emoji picker to add whatever emoji is chosen into the main input
      *
      * @param {String} emoji
+     * @param {Object} emojiObject
      */
-    selectEmoji(emoji) {
+    selectEmoji(emoji, emojiObject) {
         // Prevent fast click / multiple emoji selection;
         // The first click will hide the emoji picker by calling the hideEmojiPicker() function
         // and in that function the emojiPopoverAnchor prop to will be set to null (synchronously)
@@ -66,7 +74,7 @@ class EmojiPicker extends React.Component {
 
         this.hideEmojiPicker();
         if (_.isFunction(this.onEmojiSelected)) {
-            this.onEmojiSelected(emoji);
+            this.onEmojiSelected(emoji, emojiObject);
         }
     }
 
@@ -81,8 +89,10 @@ class EmojiPicker extends React.Component {
      * @param {Function} [onModalHide=() => {}] - Run a callback when Modal hides.
      * @param {Function} [onEmojiSelected=() => {}] - Run a callback when Emoji selected.
      * @param {Element} emojiPopoverAnchor - Element to which Popover is anchored
+     * @param {Object} [anchorOrigin=DEFAULT_ANCHOR_ORIGIN] - Anchor origin for Popover
+     * @param {Function} [onWillShow=() => {}] - Run a callback when Popover will show
      */
-    showEmojiPicker(onModalHide, onEmojiSelected, emojiPopoverAnchor) {
+    showEmojiPicker(onModalHide, onEmojiSelected, emojiPopoverAnchor, anchorOrigin, onWillShow = () => {}) {
         this.onModalHide = onModalHide;
         this.onEmojiSelected = onEmojiSelected;
         this.emojiPopoverAnchor = emojiPopoverAnchor;
@@ -93,7 +103,8 @@ class EmojiPicker extends React.Component {
         }
 
         this.measureEmojiPopoverAnchorPosition().then((emojiPopoverAnchorPosition) => {
-            this.setState({isEmojiPickerVisible: true, emojiPopoverAnchorPosition});
+            onWillShow();
+            this.setState({isEmojiPickerVisible: true, emojiPopoverAnchorPosition, emojiPopoverAnchorOrigin: anchorOrigin || DEFAULT_ANCHOR_ORIGIN});
         });
     }
 
@@ -157,10 +168,7 @@ class EmojiPicker extends React.Component {
                     width: CONST.EMOJI_PICKER_SIZE.WIDTH,
                     height: CONST.EMOJI_PICKER_SIZE.HEIGHT,
                 }}
-                anchorOrigin={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                }}
+                anchorOrigin={this.state.emojiPopoverAnchorOrigin}
                 measureContent={this.measureContent}
             >
                 <EmojiPickerMenu
