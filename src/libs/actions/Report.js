@@ -42,7 +42,7 @@ Onyx.connect({
     callback: (val) => {
         // the preferred skin tone is sometimes still "default", although it
         // was changed that "default" has become -1.
-        if (Number.isInteger(Number(val))) {
+        if (!_.isNull(val) && Number.isInteger(Number(val))) {
             preferredSkinTone = val;
         } else {
             preferredSkinTone = -1;

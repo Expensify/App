@@ -50,7 +50,8 @@ export default {
         back: 'Back',
         saveAndContinue: 'Save & continue',
         settings: 'Settings',
-        termsOfService: 'Terms of service',
+        termsOfService: 'Terms of Service',
+        expensifyTermsOfService: 'Expensify Terms of Service',
         members: 'Members',
         invite: 'Invite',
         here: 'here',
@@ -91,6 +92,7 @@ export default {
             fieldRequired: 'This field is required.',
             characterLimit: ({limit}) => `Exceeds the maximum length of ${limit} characters`,
             dateInvalid: 'Please enter a valid date',
+            invalidCharacter: 'Invalid character',
         },
         comma: 'comma',
         semicolon: 'semicolon',
@@ -119,8 +121,6 @@ export default {
         youAppearToBeOffline: 'You appear to be offline.',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
         areYouSure: 'Are you sure?',
-        verify: 'Verify',
-        yesContinue: 'Yes, continue',
         zipCodeExample: 'e.g. 12345, 12345-1234, 12345 1234',
         websiteExample: 'e.g. https://www.expensify.com',
     },
@@ -227,8 +227,7 @@ export default {
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
-        addEmojiReaction: 'Add emoji reaction',
-        addReactionTooltip: 'Add Reaction…',
+        addReactionTooltip: 'Add Reaction',
     },
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'You missed the party in ',
@@ -346,20 +345,6 @@ export default {
     contacts: {
         contactMethod: 'Contact method',
         contactMethods: 'Contact methods',
-        helpTextBeforeEmail: 'Add more ways for people to find you, and forward receipts to ',
-        helpTextAfterEmail: ' from multiple email addresses.',
-        pleaseVerify: 'Please verify this contact method',
-        getInTouch: "Whenever we need to get in touch with you, we'll use this contact method.",
-        enterMagicCode: ({contactMethod}) => `Please enter the magic code sent to ${contactMethod}`,
-        yourDefaultContactMethod: 'This is your current default contact method. You will not be able to delete this contact method until you set an alternative default by selecting another contact method and pressing “Set as default”.',
-        removeContactMethod: 'Remove contact method',
-        removeAreYouSure: 'Are you sure you want to remove this contact method? This action cannot be undone.',
-        resendMagicCode: 'Resend magic code',
-        genericFailureMessages: {
-            requestContactMethodValidateCode: 'Failed to send a new magic code. Please wait a bit and try again.',
-            validateSecondaryLogin: 'Failed to validate contact method with given magic code. Please request a new code and try again.',
-            deleteContactMethod: 'Failed to delete contact method. Please reach out to Concierge for help.',
-        },
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -477,7 +462,6 @@ export default {
         expirationDate: 'MMYY',
         cvv: 'CVV',
         billingAddress: 'Billing address',
-        expensifyTermsOfService: 'Expensify Terms of Service',
         growlMessageOnSave: 'Your debit card was successfully added',
         expensifyPassword: 'Expensify password',
         error: {
@@ -658,6 +642,7 @@ export default {
         notHere: "Hmm... it's not here",
         pageNotFound: 'That page is nowhere to be found.',
         noAccess: 'You don\'t have access to this chat',
+        goBackHome: 'Go back to Home page',
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
@@ -1028,7 +1013,6 @@ export default {
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             nameIsRequiredError: 'You need to define a name for your workspace.',
-            nameHasHtml: 'HTML tags are not allowed in workspace names.',
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
             save: 'Save',
@@ -1174,6 +1158,10 @@ export default {
     },
     report: {
         genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
+    },
+    chronos: {
+        oooEventSummaryFullDay: ({summary, dayCount, date}) => `${summary} for ${dayCount} ${dayCount === 1 ? 'day' : 'days'} until ${date}`,
+        oooEventSummaryPartialDay: ({summary, timePeriod, date}) => `${summary} from ${timePeriod} on ${date}`,
     },
     footer: {
         features: 'Features',
