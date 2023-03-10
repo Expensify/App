@@ -16,14 +16,14 @@ const Airship = {
     addListener: jest.fn(),
     removeAllListeners: jest.fn(),
     setBadgeNumber: jest.fn(),
-    getNotificationStatus: () => Promise.resolve({airshipOptIn: false, systemEnabled: false}),
     push: {
         iOS: {
             setBadgeNumber: jest.fn(),
             setForegroundPresentationOptions: jest.fn(),
         },
-        enableUserPushNotifications: () => Promise.resolve(false),
+        enableUserNotifications: () => Promise.resolve(false),
         clearNotifications: jest.fn(),
+        getNotificationStatus: () => Promise.resolve({airshipOptIn: false, systemEnabled: false}),
     },
     contact: {
         identify: jest.fn(),
