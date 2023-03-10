@@ -30,8 +30,8 @@ At this time, we are not hiring contractors in Crimea, North Korea, Russia, Iran
 ## Slack channels
 All contributors should be a member of **two** Slack channels:
 
-1. #expensify-open-source -- used to ask **general questions**, facilitate **discussions**, and make **feature requests**.
-2. #expensify-bugs -- used to discuss or report **bugs** specifically.
+1. [#expensify-open-source](https://expensify.slack.com/archives/C01GTK53T8Q) -- used to ask **general questions**, facilitate **discussions**, and make **feature requests**.
+2. [#expensify-bugs](https://expensify.slack.com/archives/C049HHMV9SM) -- used to discuss or report **bugs** specifically.
 
 Before requesting an invite to Slack please ensure your Upwork account is active, since we only pay via Upwork (see [below](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#payment-for-contributions)). To request an invite to these two Slack channels, email contributors@expensify.com with the subject `Slack Channel Invites`. We'll send you an invite! 
 
@@ -47,7 +47,7 @@ We hire and pay external contributors via Upwork.com. If you'd like to be paid f
 
 Payment for your contributions will be made no less than 7 days after the pull request is deployed to production to allow for regression testing. If a regression occurs, payment will be issued 7 days after all regressions are fixed. If you have not received payment after 8 days of the PR being deployed to production and there being no regressions, please email contributors@expensify.com referencing the GH issue and your GH handle. 
 
-New contributors are limited to working on one job at a time, however experienced contributors may work on numerous jobs simultaneously. 
+New contributors are limited to working on one job at a time, however experienced contributors may work on numerous jobs simultaneously.
 
 Please be aware that compensation for any support in solving an issue is provided **entirely at Expensify’s discretion**. Personal time or resources applied towards investigating a proposal **will not guarantee compensation**. Compensation is only guaranteed to those who **[propose a solution and get hired for that job](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#propose-a-solution-for-the-job)**. We understand there may be cases where a selected proposal may take inspiration from a previous proposal. Unfortunately, it’s not possible for us to evaluate every individual case and we have no process that can efficiently do so. Issues with higher rewards come with higher risk factors so try to keep things civil and make the best proposal you can. Once again, **any information provided may not necessarily lead to you getting hired for that issue or compensated in any way.**
 
@@ -70,7 +70,7 @@ This is the most common scenario for contributors. The Expensify team posts new 
 #### Proposing a job that Expensify hasn't posted
 It’s possible that you found a new bug or new feature that we haven’t posted as a job to the [GitHub repository](https://github.com/Expensify/App/issues?q=is%3Aissue). This is an opportunity to propose a job. If it's a valid job proposal that we choose to implement by deploying it to production — either internally or via an external contributor — then we will compensate you $250 for identifying and proposing the bug or feature. If the bug or feature is fixed by a PR that is not associated with your proposal, then you will not be eligible for the corresponding compensation unless you can find the PR that fixed it and prove your proposal came first.
 - Note: If you get assigned the job you proposed **and** you complete the job, this $250 for identifying the improvement is *in addition to* the reward you will be paid for completing the job.
-- Note about proposed bugs or features: Expensify has the right not to pay the $250 reward if the suggested bug has already been reported or the feature request is already planned. Following, if more than one contributor proposes the same bug, the contributor who posted it first is the one who is eligible for the bonus.
+- Note about proposed bugs or features: Expensify has the right not to pay the $250 reward if the suggested bug has already been reported or the feature request is already planned. Following, if more than one contributor proposes the same bug, the contributor who posted it first in the [#expensify-bugs](https://expensify.slack.com/archives/C049HHMV9SM) Slack channel is the one who is eligible for the bonus.
 - Note: whilst you may optionally propose a solution for that job on Slack, solutions are ultimately reviewed in GitHub. The onus is on you to propose the solution on GitHub, and/or ensure the issue creator will include a link to your proposal.
 
 Please follow these steps to propose a job:

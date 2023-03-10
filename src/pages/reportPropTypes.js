@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import CONST from '../CONST';
+import avatarPropTypes from '../components/avatarPropTypes';
 
 export default PropTypes.shape({
 
@@ -11,7 +12,7 @@ export default PropTypes.shape({
     hasOutstandingIOU: PropTypes.bool,
 
     /** List of icons for report participants */
-    icons: PropTypes.arrayOf(PropTypes.string),
+    icons: PropTypes.arrayOf(avatarPropTypes),
 
     /** Are we loading more report actions? */
     isLoadingMoreReportActions: PropTypes.bool,

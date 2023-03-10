@@ -47,6 +47,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withDrawerState from '../../../components/withDrawerState';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
+import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 
 const propTypes = {
     /** Beta features list */
@@ -74,7 +75,7 @@ const propTypes = {
     report: reportPropTypes,
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Is the report view covered by the drawer */
     isDrawerOpen: PropTypes.bool.isRequired,
@@ -108,7 +109,7 @@ const defaultProps = {
     comment: '',
     modal: {},
     report: {},
-    reportActions: {},
+    reportActions: [],
     blockedFromConcierge: {},
     personalDetails: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -132,6 +133,7 @@ class ReportActionCompose extends React.Component {
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
         this.getIOUOptions = this.getIOUOptions.bind(this);
         this.addAttachment = this.addAttachment.bind(this);
+        this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
         this.comment = props.comment;
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
@@ -153,6 +155,7 @@ class ReportActionCompose extends React.Component {
 
             // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
             conciergePlaceholderRandomIndex: _.random(this.props.translate('reportActionCompose.conciergePlaceholderOptions').length - (this.props.isSmallScreenWidth ? 4 : 1)),
+            hasExceededMaxCommentLength: false,
         };
     }
 
@@ -166,6 +169,16 @@ class ReportActionCompose extends React.Component {
 
             this.focus(false);
         });
+
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
+            if (!this.state.isFocused || this.comment.length === 0) {
+                return;
+            }
+
+            this.updateComment('');
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+
         this.setMaxLines();
         this.updateComment(this.comment);
     }
@@ -188,9 +201,13 @@ class ReportActionCompose extends React.Component {
             this.setMaxLines();
         }
 
+        // Value state does not have the same value as comment props when the comment gets changed from another tab.
+        // In this case, we should synchronize the value between tabs.
+        const shouldSyncComment = prevProps.comment !== this.props.comment && this.state.value !== this.props.comment;
+
         // As the report IDs change, make sure to update the composer comment as we need to make sure
         // we do not show incorrect data in there (ie. draft of message from other report).
-        if (this.props.report.reportID === prevProps.report.reportID) {
+        if (this.props.report.reportID === prevProps.report.reportID && !shouldSyncComment) {
             return;
         }
 
@@ -199,6 +216,10 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         ReportActionComposeFocusManager.clear();
+
+        if (this.unsubscribeEscapeKey) {
+            this.unsubscribeEscapeKey();
+        }
     }
 
     onSelectionChange(e) {
@@ -300,6 +321,16 @@ class ReportActionCompose extends React.Component {
             maxLines = CONST.COMPOSER.MAX_LINES_FULL;
         }
         this.setState({maxLines});
+    }
+
+    /**
+     * Updates the composer when the comment length is exceeded
+     * Shows red borders and prevents the comment from being sent
+     *
+     * @param {Boolean} hasExceededMaxCommentLength
+     */
+    setExceededMaxCommentLength(hasExceededMaxCommentLength) {
+        this.setState({hasExceededMaxCommentLength});
     }
 
     isEmptyChat() {
@@ -431,14 +462,13 @@ class ReportActionCompose extends React.Component {
         if (e.key === 'ArrowUp' && this.textInput.selectionStart === 0 && this.state.isCommentEmpty && !ReportUtils.chatIncludesChronos(this.props.report)) {
             e.preventDefault();
 
-            const reportActionKey = _.find(
-                _.keys(this.props.reportActions).reverse(),
-                key => ReportUtils.canEditReportAction(this.props.reportActions[key]),
+            const lastReportAction = _.find(
+                this.props.reportActions,
+                action => ReportUtils.canEditReportAction(action),
             );
 
-            if (reportActionKey !== -1 && this.props.reportActions[reportActionKey]) {
-                const {reportActionID, message} = this.props.reportActions[reportActionKey];
-                Report.saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).html);
+            if (lastReportAction !== -1 && lastReportAction) {
+                Report.saveReportActionDraft(this.props.reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
             }
         }
     }
@@ -513,8 +543,7 @@ class ReportActionCompose extends React.Component {
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
-        const encodedCommentLength = ReportUtils.getCommentLength(this.comment);
-        const hasExceededMaxCommentLength = encodedCommentLength > CONST.MAX_COMMENT_LENGTH;
+        const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
 
         return (
             <View style={[
@@ -680,17 +709,18 @@ class ReportActionCompose extends React.Component {
                             onEmojiSelected={this.addEmojiToTextBox}
                         />
                     )}
-                    <View style={[styles.justifyContentEnd]}>
+                    <View
+                        style={[styles.justifyContentEnd]}
+
+                        // Keep focus on the composer when Send message is clicked.
+                        onMouseDown={e => e.preventDefault()}
+                    >
                         <Tooltip text={this.props.translate('common.send')}>
                             <TouchableOpacity
                                 style={[styles.chatItemSubmitButton,
                                     (this.state.isCommentEmpty || hasExceededMaxCommentLength) ? undefined : styles.buttonSuccess,
                                 ]}
                                 onPress={this.submitForm}
-
-                                // Keep focus on the composer when Send message is clicked.
-                                // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                                onMouseDown={e => e.preventDefault()}
                                 disabled={this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength}
                                 hitSlop={{
                                     top: 3, right: 3, bottom: 3, left: 3,
@@ -709,7 +739,7 @@ class ReportActionCompose extends React.Component {
                 >
                     {!this.props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                     <ReportTypingIndicator reportID={this.props.reportID} />
-                    <ExceededCommentLength commentLength={encodedCommentLength} />
+                    <ExceededCommentLength comment={this.comment} onExceededMaxCommentLength={this.setExceededMaxCommentLength} />
                 </View>
                 {this.state.isDraggingOver && <ReportDropUI />}
             </View>

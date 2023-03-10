@@ -98,9 +98,19 @@ import Zoom from '../../../assets/images/zoom.svg';
 import FallbackAvatar from '../../../assets/images/avatars/fallback-avatar.svg';
 import FallbackWorkspaceAvatar from '../../../assets/images/avatars/fallback-workspace-avatar.svg';
 import DragAndDrop from '../../../assets/images/drag-and-drop.svg';
+import ExpensifyFooterLogo from '../../../assets/images/expensify-footer-logo.svg';
+import ExpensifyFooterLogoVertical from '../../../assets/images/expensify-footer-logo-vertical.svg';
+import Twitter from '../../../assets/images/social-twitter.svg';
+import Youtube from '../../../assets/images/social-youtube.svg';
+import Facebook from '../../../assets/images/social-facebook.svg';
+import Podcast from '../../../assets/images/social-podcast.svg';
+import Linkedin from '../../../assets/images/social-linkedin.svg';
+import Instagram from '../../../assets/images/social-instagram.svg';
+import AddReaction from '../../../assets/images/add-reaction.svg';
 
 export {
     ActiveRoomAvatar,
+    AddReaction,
     AdminRoomAvatar,
     Android,
     AnnounceRoomAvatar,
@@ -140,6 +150,8 @@ export {
     Exit,
     ExpensifyCard,
     ExpensifyWordmark,
+    ExpensifyFooterLogo,
+    ExpensifyFooterLogoVertical,
     Expand,
     Eye,
     EyeDisabled,
@@ -200,4 +212,10 @@ export {
     Wallet,
     Workspace,
     Zoom,
+    Twitter,
+    Youtube,
+    Facebook,
+    Podcast,
+    Linkedin,
+    Instagram,
 };
