@@ -99,7 +99,7 @@ class ReimbursementAccountPage extends React.Component {
         }
         if (prevProps.reimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
             && this.props.reimbursementAccount.pendingAction !== prevProps.reimbursementAccount.pendingAction) {
-            // We are here after the use tried to delete the bank account. We will want to set
+            // We are here after the user tried to delete the bank account. We will want to set
             // this.state.shouldHideContinueSetupButton to `true` if the bank account was deleted.
             this.setState({shouldHideContinueSetupButton: !this.hasInProgressVBBA()});
         }
@@ -174,7 +174,7 @@ class ReimbursementAccountPage extends React.Component {
     }
 
     /**
-     * Returns true a VBBA exists in any state other than OPEN or LOCKED
+     * Returns true if a VBBA exists in any state other than OPEN or LOCKED
      * @returns {Boolean}
      */
     hasInProgressVBBA() {
