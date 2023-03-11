@@ -100,7 +100,7 @@ class ReportActionItem extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.draftMessage || !this.props.draftMessage) {
+        if (prevProps.draftMessage || !this.props.draftMessage || !this.props.isEditComposerFullSize) {
             return;
         }
 
