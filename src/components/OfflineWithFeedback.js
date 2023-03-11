@@ -100,7 +100,11 @@ const OfflineWithFeedback = (props) => {
             {!hideChildren && (
                 <View
                     style={[needsOpacity ? styles.offlineFeedback.pending : {}, props.contentContainerStyle]}
-                    needsOffscreenAlphaCompositing={shouldRenderOffscreen && needsOpacity && props.needsOffscreenAlphaCompositing}
+                    needsOffscreenAlphaCompositing={
+                        shouldRenderOffscreen
+                            ? (needsOpacity && props.needsOffscreenAlphaCompositing)
+                            : undefined
+                    }
                 >
                     {children}
                 </View>
