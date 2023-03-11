@@ -289,7 +289,7 @@ function signIn(password, validateCode, twoFactorAuthCode) {
     API.write('SigninUser', params, {optimisticData, successData, failureData});
 }
 
-function signInWithValidateCode(accountID, validateCode) {
+function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -330,8 +330,9 @@ function signInWithValidateCode(accountID, validateCode) {
     ];
 
     API.write('SigninUserWithLink', {
-        validateCode,
         accountID,
+        validateCode,
+        twoFactorAuthCode,
     }, {optimisticData, successData, failureData});
 }
 
