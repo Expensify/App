@@ -92,7 +92,7 @@ function getCountryISO(countryName) {
     if (_.isEmpty(countryName) || countryName.length === 2) {
         return countryName;
     }
-    return _.findKey(CONST.ALL_COUNTRIES, country => country === countryName) || '';
+    return _.findKey(CONST.ALL_COUNTRIES, country => country.countryName === countryName) || '';
 }
 
 /**

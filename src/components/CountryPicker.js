@@ -39,7 +39,7 @@ const defaultProps = {
 };
 
 const CountryPicker = forwardRef((props, ref) => {
-    const COUNTRIES = _.map(props.translate('allCountries'), (countryName, countryISO) => ({
+    const COUNTRIES = _.map(props.translate('allCountries'), ({countryName}, countryISO) => ({
         value: countryISO,
         label: countryName,
     }));
