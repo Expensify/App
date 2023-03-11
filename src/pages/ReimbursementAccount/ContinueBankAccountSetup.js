@@ -76,7 +76,7 @@ const ContinueBankAccountSetup = (props) => {
                                 shouldShowRightIcon
                                 large
                                 success
-                                isDisabled={Boolean(pendingAction)}
+                                isDisabled={Boolean(pendingAction) || !_.isEmpty(errors)}
                             />
                             <MenuItem
                                 title={props.translate('workspace.bankAccount.startOver')}
@@ -84,7 +84,7 @@ const ContinueBankAccountSetup = (props) => {
                                 onPress={() => BankAccounts.requestResetFreePlanBankAccount()}
                                 shouldShowRightIcon
                                 wrapperStyle={[styles.cardMenuItem]}
-                                disabled={Boolean(pendingAction)}
+                                disabled={Boolean(pendingAction) || !_.isEmpty(errors)}
                             />
                         </OfflineWithFeedback>
                     </Section>

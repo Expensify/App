@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'underscore';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -105,7 +106,7 @@ const EnableStep = (props) => {
                             icon={Expensicons.Close}
                             onPress={BankAccounts.requestResetFreePlanBankAccount}
                             wrapperStyle={[styles.cardMenuItem, styles.mv3]}
-                            disabled={Boolean(pendingAction)}
+                            disabled={Boolean(pendingAction) || !_.isEmpty(errors)}
                         />
                     </OfflineWithFeedback>
                 </Section>
