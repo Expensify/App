@@ -34,7 +34,7 @@ function WindowDimensionsProvider(props) {
     const dimensions = useMemo(() => {
         const isSmallScreenWidth = frame.width <= variables.mobileResponsiveWidthBreakpoint;
         const isMediumScreenWidth = frame.width > variables.mobileResponsiveWidthBreakpoint
-      && frame.width <= variables.tabletResponsiveWidthBreakpoint;
+            && frame.width <= variables.tabletResponsiveWidthBreakpoint;
         const isLargeScreenWidth = !isSmallScreenWidth && !isMediumScreenWidth;
         return {
             windowHeight: frame.height,
