@@ -830,7 +830,7 @@ class ReportActionCompose extends React.Component {
                                                 }
                                                 this.setState({composerHeight});
                                             }}
-                                            onScroll={this.setShouldShowSuggestionMenuToFalse}
+                                            onScroll={() => this.setShouldShowSuggestionMenuToFalse()}
                                         />
                                     </DragAndDrop>
                                 </View>
