@@ -124,7 +124,7 @@ class AddressPage extends Component {
         // If no country is selected, default value is "-"
         const countryDetails = lodashGet(CONST.ALL_COUNTRIES, values.country);
 
-        // The zip code might not exist for the country
+        // The postal code system might not exist for a country, so no regex either for them.
         const countrySpecificZipRegex = lodashGet(countryDetails, 'zipRegex');
         const zipFormat = lodashGet(countryDetails, 'zipSample');
 
