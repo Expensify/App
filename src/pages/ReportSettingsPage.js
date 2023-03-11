@@ -67,16 +67,28 @@ class ReportSettingsPage extends Component {
     }
 
     /**
-     * @param {Object} report - the given report we're viewing settings for
-     * @param {Object|null} policy - the workspace the report is on, null if the user isn't a member of the workspace
+     * @param {Object|null} linkedWorkspace - the workspace the report is on, null if the user isn't a member of the workspace
      * @returns {Boolean}
      */
-    shouldDisablePublicRoomRename(report, policy) {
-        if (!policy || !ReportUtils.isPublicRoom(report)) {
+    shouldDisableRename(linkedWorkspace) {
+        if (ReportUtils.isDefaultRoom(this.props.report) || ReportUtils.isArchivedRoom(this.props.report)) {
             return true;
         }
 
-        return !Policy.isPolicyOwner(policy) && policy.role !== CONST.POLICY.ROLE.ADMIN;
+        // The remaining checks only apply to public rooms
+        if (!ReportUtils.isPublicRoom(this.props.report)) {
+            return false;
+        }
+
+        // if the linked workspace is null, that means the person isn't a member of the workspace the report is in
+        // which means this has to be a public room we want to disable renaming for
+        if (!linkedWorkspace) {
+            return true;
+        }
+
+        // If there is a linked workspace, that means the user is a member of the workspace the report is in.
+        // Still, we only want policy owners and admins to be able to modify the name.
+        return !Policy.isPolicyOwner(linkedWorkspace) && linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN;
     }
 
     /**
@@ -125,9 +137,7 @@ class ReportSettingsPage extends Component {
     render() {
         const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, policy => policy && policy.id === this.props.report.policyID);
-        const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report)
-            || ReportUtils.isArchivedRoom(this.props.report)
-            || this.shouldDisablePublicRoomRename(this.props.report, linkedWorkspace);
+        const shouldDisableRename = this.shouldDisableRename(linkedWorkspace);
 
         return (
             <ScreenWrapper>
