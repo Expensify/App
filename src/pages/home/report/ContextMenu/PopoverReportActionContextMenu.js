@@ -56,6 +56,12 @@ class PopoverReportActionContextMenu extends React.Component {
         this.isActiveReportAction = this.isActiveReportAction.bind(this);
 
         this.dimensionsEventListener = null;
+
+        this.contentRef = React.createRef();
+        this.setContentRef = (ref) => {
+            this.contentRef.current = ref;
+        };
+        this.setContentRef = this.setContentRef.bind(this);
     }
 
     componentDidMount() {
@@ -238,6 +244,7 @@ class PopoverReportActionContextMenu extends React.Component {
                 isArchivedRoom={this.state.isArchivedRoom}
                 isChronosReport={this.state.isChronosReport}
                 anchor={this.contextMenuTargetNode}
+                contentRef={this.setContentRef}
             />
         );
     }
@@ -314,6 +321,7 @@ class PopoverReportActionContextMenu extends React.Component {
                         isArchivedRoom={this.state.isArchivedRoom}
                         isChronosReport={this.state.isChronosReport}
                         anchor={this.contextMenuTargetNode}
+                        contentRef={this.contentRef}
                     />
                 </PopoverWithMeasuredContent>
                 <ConfirmModal

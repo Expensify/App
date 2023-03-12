@@ -28,7 +28,7 @@ const padNumbers = [
     ['.', '0', '<'],
 ];
 
-class BigNumberPad extends React.Component {
+class BigNumberPad extends React.PureComponent {
     constructor(props) {
         super(props);
 

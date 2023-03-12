@@ -15,7 +15,6 @@ import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
 import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
-import emojiHeaderContainerPlatformStyles from './emojiHeaderContainerPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
@@ -163,6 +162,33 @@ const styles = {
         margin: 0,
         padding: 0,
         flexBasis: '48%',
+    },
+
+    emojiSuggestionsContainer: {
+        backgroundColor: themeColors.appBG,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: themeColors.border,
+        justifyContent: 'center',
+        boxShadow: variables.popoverMenuShadow,
+        position: 'absolute',
+        left: 0,
+        right: 0,
+    },
+    emojiSuggestionContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+
+    emojiSuggestionsEmoji: {
+        fontFamily: fontFamily.EMOJI_TEXT_FONT,
+        fontSize: variables.fontSizeMedium,
+        width: 51,
+        textAlign: 'center',
+    },
+    emojiSuggestionsText: {
+        fontFamily: fontFamily.EMOJI_TEXT_FONT,
+        fontSize: variables.fontSizeMedium,
     },
 
     unitCol: {
@@ -1003,18 +1029,35 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
-    statusIndicator: (backgroundColor = themeColors.danger) => ({
+    statusIndicator: {
         borderColor: themeColors.sidebar,
-        backgroundColor,
+        backgroundColor: themeColors.danger,
+        borderRadius: 6,
+        borderWidth: 2,
+        position: 'absolute',
+        right: -1,
+        bottom: -1,
+        height: 12,
+        width: 12,
+        zIndex: 10,
+    },
+
+    statusIndicatorLarge: {
+        borderColor: themeColors.componentBG,
+        backgroundColor: themeColors.danger,
         borderRadius: 8,
         borderWidth: 2,
         position: 'absolute',
-        right: -2,
-        top: -1,
+        right: 4,
+        bottom: 4,
         height: 16,
         width: 16,
         zIndex: 10,
-    }),
+    },
+
+    statusIndicatorOnline: {
+        backgroundColor: themeColors.success,
+    },
 
     avatarWithIndicator: {
         errorDot: {
@@ -1381,7 +1424,6 @@ const styles = {
 
     chatItemFullComposeBox: {
         ...flex.flex1,
-        ...spacing.mt4,
         ...sizing.h100,
     },
 
@@ -1394,8 +1436,6 @@ const styles = {
 
     chatFooterFullCompose: {
         flex: 1,
-        flexShrink: 1,
-        flexBasis: '100%',
     },
 
     // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
@@ -1469,7 +1509,6 @@ const styles = {
         height: CONST.EMOJI_PICKER_HEADER_HEIGHT,
         justifyContent: 'center',
         width: '100%',
-        ...emojiHeaderContainerPlatformStyles,
     },
 
     emojiSkinToneTitle: {
@@ -1571,6 +1610,8 @@ const styles = {
     },
 
     navigationModalOverlay: {
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
         position: 'absolute',
         width: '100%',
         height: '100%',
@@ -2136,6 +2177,31 @@ const styles = {
 
     detailsPageSectionContainer: {
         alignSelf: 'flex-start',
+    },
+
+    attachmentModalArrowsContainer: {
+        display: 'flex',
+        justifyContent: 'center',
+        cursor: 'unset',
+        height: '100%',
+        width: '100%',
+    },
+
+    leftAttachmentArrow: {
+        zIndex: 23,
+        position: 'absolute',
+        left: 32,
+    },
+
+    rightAttachmentArrow: {
+        zIndex: 23,
+        position: 'absolute',
+        right: 32,
+    },
+
+    arrowIcon: {
+        height: 52,
+        width: 52,
     },
 
     detailsPageSectionVersion: {
@@ -2890,6 +2956,52 @@ const styles = {
     deeplinkWrapperFooter: {
         paddingTop: 80,
         paddingBottom: 45,
+    },
+
+    emojiReactionBubble: {
+        paddingVertical: 2,
+        paddingHorizontal: 8,
+        borderRadius: 28,
+        backgroundColor: themeColors.border,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        alignSelf: 'flex-start',
+        marginTop: 8,
+        marginRight: 4,
+    },
+
+    emojiReactionText: {
+        fontSize: 12,
+        lineHeight: 20,
+        textAlignVertical: 'center',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+    },
+    reactionCounterText: {
+        fontSize: 11,
+        marginLeft: 4,
+        fontWeight: 'bold',
+        color: themeColors.textLight,
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+    },
+
+    fontColorReactionLabel: {
+        color: '#586A64',
+    },
+
+    reactionEmojiTitle: {
+        fontSize: variables.iconSizeLarge,
+        lineHeight: variables.iconSizeXLarge,
+    },
+
+    quickReactionsContainer: {
+        gap: 12,
+        flexDirection: 'row',
+        paddingHorizontal: 25,
+        paddingVertical: 12,
+        justifyContent: 'space-between',
     },
 
     magicCodeDigits: {

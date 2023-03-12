@@ -6,9 +6,10 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import CONST from '../../CONST';
-import CONFIG from '../../CONFIG';
 import asyncOpenURL from '../asyncOpenURL';
 import * as API from '../API';
+import * as Environment from '../Environment/Environment';
+import * as Url from '../Url';
 
 let isNetworkOffline = false;
 Onyx.connect({
@@ -38,7 +39,7 @@ function showGrowlIfOffline() {
 function openOldDotLink(url) {
     /**
      * @param {String} [shortLivedAuthToken]
-     * @returns {String}
+     * @returns {Promise<string>}
      */
     function buildOldDotURL(shortLivedAuthToken) {
         const hasHashParams = url.indexOf('#') !== -1;
@@ -49,8 +50,13 @@ function openOldDotLink(url) {
 
         const params = _.compact([authTokenParam, emailParam]).join('&');
 
-        // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
-        return `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${url}${hasHashParams || hasURLParams ? '&' : '?'}${params}`;
+        return Environment.getOldDotEnvironmentURL()
+            .then((environmentURL) => {
+                const oldDotDomain = Url.addTrailingForwardSlash(environmentURL);
+
+                // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
+                return `${oldDotDomain}${url}${hasHashParams || hasURLParams ? '&' : '?'}${params}`;
+            });
     }
 
     if (isNetworkOffline) {
@@ -63,9 +69,13 @@ function openOldDotLink(url) {
     API.makeRequestWithSideEffects(
         'OpenOldDotLink', {}, {},
     ).then((response) => {
-        Linking.openURL(buildOldDotURL(response.shortLivedAuthToken));
+        buildOldDotURL(response.shortLivedAuthToken).then((oldDotUrl) => {
+            Linking.openURL(oldDotUrl);
+        });
     }).catch(() => {
-        Linking.openURL(buildOldDotURL());
+        buildOldDotURL().then((oldDotUrl) => {
+            Linking.openURL(oldDotUrl);
+        });
     });
 }
 

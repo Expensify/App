@@ -62,6 +62,7 @@ const darkTheme = {
     pickerOptionsTextColor: colors.white,
     imageCropBackgroundColor: colors.greenIcons,
     fallbackIconColor: colors.green700,
+    reactionActive: '#003C73',
 };
 
 const oldTheme = {
