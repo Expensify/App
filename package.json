@@ -85,6 +85,7 @@
     "pusher-js": "^7.0.6",
     "react": "18.1.0",
     "react-collapse": "^5.1.0",
+    "react-confetti": "^6.1.0",
     "react-content-loader": "^6.1.0",
     "react-dom": "18.1.0",
     "react-native": "npm:@expensify/react-native@0.70.4-alpha.2",
