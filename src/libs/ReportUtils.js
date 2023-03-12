@@ -568,11 +568,13 @@ function getFullSizeAvatar(avatarURL, login) {
  */
 function getSmallSizeAvatar(avatarURL, login) {
     const source = getAvatar(avatarURL, login);
-    const lastPeriodIndex = source.lastIndexOf('.');
+    if (!_.isString(source)) {
+        return source;
+    }
 
-    // If image source is not a String (so wouldn't have _128) or already has _128 at the end,
-    // given avatar URL is already what we want to use here.
-    if (!_.isString(source) || source.substring(lastPeriodIndex - 4, lastPeriodIndex) === '_128') {
+    // If image source already has _128 at the end, the given avatar URL is already what we want to use here.
+    const lastPeriodIndex = source.lastIndexOf('.');
+    if (source.substring(lastPeriodIndex - 4, lastPeriodIndex) === '_128') {
         return source;
     }
     return `${source.substring(0, lastPeriodIndex)}_128${source.substring(lastPeriodIndex)}`;
