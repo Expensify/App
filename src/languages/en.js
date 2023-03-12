@@ -159,10 +159,18 @@ export default {
         openLinkInBrowser: 'open this link in your browser',
     },
     validateCodeModal: {
-        successfulSignInTitle: 'Abracadabra,\nyou are signed in!',
-        successfulSignInDescription: 'Head back to your original tab to continue.',
-        title: 'Here is your magic code',
-        description: 'Please enter the code using the device\nwhere it was originally requested',
+        initial: {
+            title: 'Here is your magic code',
+            description: 'Please enter the code using the device\nwhere it was originally requested',
+        },
+        twoFactorAuthRequired: {
+            title: 'Two factor authentication required',
+            description: 'Please enter the two-factor authentication code where you are trying to sign in',
+        },
+        success: {
+            title: 'Abracadabra,\nyou are signed in!',
+            description: 'Head back to your original tab to continue.',
+        },
         or: ', or',
         signInHere: 'just sign in here',
     },

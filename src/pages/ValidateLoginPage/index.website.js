@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import CONST from '../../CONST';
 import {
     propTypes as validateLinkPropTypes,
     defaultProps as validateLinkDefaultProps,
@@ -34,7 +35,12 @@ class ValidateLoginPage extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {justSignedIn: false};
+        const authToken = lodashGet(this.props, 'session.authToken');
+        this.state = {
+            authState: authToken
+                ? CONST.VALIDATE_LOGIN_PAGE.AUTH_STATE.COMPLETE
+                : CONST.VALIDATE_LOGIN_PAGE.AUTH_STATE.NOT_STARTED,
+        };
     }
 
     componentDidMount() {
@@ -55,10 +61,16 @@ class ValidateLoginPage extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (!(prevProps.credentials && !prevProps.credentials.validateCode && this.props.credentials.validateCode)) {
+        if (lodashGet(this.props, 'account.requiresTwoFactorAuth') && !lodashGet(prevProps, 'account.requiresTwoFactorAuth')) {
+            this.setState({authState: CONST.VALIDATE_LOGIN_PAGE.AUTH_STATE.TWO_FACTOR_AUTH});
             return;
         }
-        this.setState({justSignedIn: true});
+
+        if (!lodashGet(prevProps, 'session.authToken') || lodashGet(prevProps, 'session.authToken')) {
+            return;
+        }
+
+        this.setState({authState: CONST.VALIDATE_LOGIN_PAGE.AUTH_STATE.COMPLETE});
     }
 
     /**
@@ -87,12 +99,18 @@ class ValidateLoginPage extends Component {
      */
     isSignInInitiated = () => !this.isAuthenticated() && lodashGet(this.props, 'credentials.login', null);
 
+    /**
+     * @returns {Boolean}
+     */
+    requiresTwoFactorAuth = () => lodashGet(this.props, 'account.requiresTwoFactorAuth', false);
+
     render() {
         return (
-            this.isOnPasswordlessBeta() && !this.isSignInInitiated() && !lodashGet(this.props, 'account.isLoading', true)
+            this.isOnPasswordlessBeta() && !lodashGet(this.props, 'account.isLoading', true) && (!this.isSignInInitiated() || (this.requiresTwoFactorAuth() && !this.isAuthenticated()))
                 ? (
                     <ValidateCodeModal
-                        isSuccessfullySignedIn={this.state.justSignedIn}
+                        isSuccessfullySignedIn={this.state.authState === CONST.VALIDATE_LOGIN_PAGE.AUTH_STATE.COMPLETE}
+                        isTwoFactorAuthRequired={this.state.authState === CONST.VALIDATE_LOGIN_PAGE.AUTH_STATE.TWO_FACTOR_AUTH}
                         code={this.validateCode()}
                         shouldShowSignInHere={!this.isAuthenticated() && !this.isSignInInitiated()}
                         onSignInHereClick={() => Session.signInWithValidateCodeAndNavigate(this.accountID(), this.validateCode())}

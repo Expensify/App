@@ -512,6 +512,14 @@ const CONST = {
         },
     },
 
+    VALIDATE_LOGIN_PAGE: {
+        AUTH_STATE: {
+            NOT_STARTED: 'not-started',
+            TWO_FACTOR_AUTH: 'two-factor-auth',
+            COMPLETE: 'complete',
+        },
+    },
+
     PUSHER: {
         PRIVATE_USER_CHANNEL_PREFIX: 'private-encrypted-user-accountID-',
         PRIVATE_REPORT_CHANNEL_PREFIX: 'private-report-reportID-',
