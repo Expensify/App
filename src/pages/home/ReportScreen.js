@@ -287,7 +287,6 @@ class ReportScreen extends React.Component {
                         <PortalHost name={CONST.REPORT.DROP_HOST_NAME} />
                     </View>
                 </FullPageNotFoundView>
-                {/* </Freeze> */}
             </ScreenWrapper>
         );
     }

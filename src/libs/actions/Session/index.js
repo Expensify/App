@@ -277,14 +277,7 @@ function signIn(password, validateCode, twoFactorAuthCode) {
         },
     ];
 
-    const params = {twoFactorAuthCode};
-    if (credentials.login) {
-        // The user initiated the sign in operation on the current device, sign in with the email
-        params.email = credentials.login;
-    } else {
-        // The user is signing in with the accountID and validateCode from the magic link
-        params.accountID = credentials.accountID;
-    }
+    const params = {twoFactorAuthCode, email: credentials.login};
 
     // Conditionally pass a password or validateCode to command since we temporarily allow both flows
     if (validateCode) {
@@ -296,7 +289,7 @@ function signIn(password, validateCode, twoFactorAuthCode) {
     API.write('SigninUser', params, {optimisticData, successData, failureData});
 }
 
-function signInWithValidateCode(accountID, validateCode) {
+function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -336,10 +329,10 @@ function signInWithValidateCode(accountID, validateCode) {
         },
     ];
 
-    // This is temporary for now. Server should login with the accountID and validateCode
-    API.write('SigninUser', {
-        validateCode,
+    API.write('SigninUserWithLink', {
         accountID,
+        validateCode,
+        twoFactorAuthCode,
     }, {optimisticData, successData, failureData});
 }
 

@@ -36,6 +36,20 @@ Onyx.connect({
     },
 });
 
+let preferredSkinTone;
+Onyx.connect({
+    key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+    callback: (val) => {
+        // the preferred skin tone is sometimes still "default", although it
+        // was changed that "default" has become -1.
+        if (!_.isNull(val) && Number.isInteger(Number(val))) {
+            preferredSkinTone = val;
+        } else {
+            preferredSkinTone = -1;
+        }
+    },
+});
+
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
@@ -855,14 +869,15 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     // Optimistically update the reportAction with the new message
     const reportActionID = originalReportAction.reportActionID;
+    const originalMessage = lodashGet(originalReportAction, ['message', 0]);
     const optimisticReportActions = {
         [reportActionID]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             message: [{
+                ...originalMessage,
                 isEdited: true,
                 html: htmlForNewComment,
                 text: markdownForNewComment,
-                type: originalReportAction.message[0].type,
             }],
         },
     };
@@ -1186,6 +1201,171 @@ function clearIOUError(reportID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errorFields: {iou: null}});
 }
 
+/**
+ * Internal function to help with updating the onyx state of a message of a report action.
+ * @param {Object} originalReportAction
+ * @param {Object} message
+ * @param {String} reportID
+ * @return {Object[]}
+ */
+function getOptimisticDataForReportActionUpdate(originalReportAction, message, reportID) {
+    const reportActionID = originalReportAction.reportActionID;
+
+    return [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportActionID]: {
+                    message: [message],
+                },
+            },
+        },
+    ];
+}
+
+/**
+ * Returns true if the accountID has reacted to the report action (with the given skin tone).
+ * @param {String} accountID
+ * @param {Array<Object | String | number>} users
+ * @param {Number} [skinTone]
+ * @returns {boolean}
+ */
+function hasAccountIDReacted(accountID, users, skinTone) {
+    return _.find(users, (user) => {
+        let userAccountID;
+        if (typeof user === 'object') {
+            userAccountID = `${user.accountID}`;
+        } else {
+            userAccountID = `${user}`;
+        }
+
+        return userAccountID === `${accountID}` && (skinTone == null ? true : user.skinTone === skinTone);
+    }) !== undefined;
+}
+
+/**
+ * Adds a reaction to the report action.
+ * @param {String} reportID
+ * @param {Object} originalReportAction
+ * @param {{ name: string, code: string, types: string[] }} emoji
+ * @param {number} [skinTone] Optional.
+ */
+function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = preferredSkinTone) {
+    const message = originalReportAction.message[0];
+    let reactionObject = message.reactions && _.find(message.reactions, reaction => reaction.emoji === emoji.name);
+    const needToInsertReactionObject = !reactionObject;
+    if (needToInsertReactionObject) {
+        reactionObject = {
+            emoji: emoji.name,
+            users: [],
+        };
+    } else {
+        // Make a copy of the reaction object so that we can modify it without mutating the original
+        reactionObject = {...reactionObject};
+    }
+
+    if (hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone)) {
+        return;
+    }
+
+    reactionObject.users = [...reactionObject.users, {accountID: currentUserAccountID, skinTone}];
+    let updatedReactions = [...(message.reactions || [])];
+    if (needToInsertReactionObject) {
+        updatedReactions = [...updatedReactions, reactionObject];
+    } else {
+        updatedReactions = _.map(updatedReactions, reaction => (reaction.emoji === emoji.name ? reactionObject : reaction));
+    }
+
+    const updatedMessage = {
+        ...message,
+        reactions: updatedReactions,
+    };
+
+    // Optimistically update the reportAction with the reaction
+    const optimisticData = getOptimisticDataForReportActionUpdate(originalReportAction, updatedMessage, reportID);
+
+    const parameters = {
+        reportID,
+        skinTone,
+        emojiCode: emoji.name,
+        sequenceNumber: originalReportAction.sequenceNumber,
+        reportActionID: originalReportAction.reportActionID,
+    };
+    API.write('AddEmojiReaction', parameters, {optimisticData});
+}
+
+/**
+ * Removes a reaction to the report action.
+ * @param {String} reportID
+ * @param {Object} originalReportAction
+ * @param {{ name: string, code: string, types: string[] }} emoji
+ */
+function removeEmojiReaction(reportID, originalReportAction, emoji) {
+    const message = originalReportAction.message[0];
+    const reactionObject = message.reactions && _.find(message.reactions, reaction => reaction.emoji === emoji.name);
+    if (!reactionObject) {
+        return;
+    }
+
+    const updatedReactionObject = {
+        ...reactionObject,
+    };
+    updatedReactionObject.users = _.filter(reactionObject.users, sender => sender.accountID !== currentUserAccountID);
+    const updatedReactions = _.filter(
+
+        // Replace the reaction object either with the updated one or null if there are no users
+        _.map(message.reactions, (reaction) => {
+            if (reaction.emoji === emoji.name) {
+                if (updatedReactionObject.users.length === 0) {
+                    return null;
+                }
+                return updatedReactionObject;
+            }
+            return reaction;
+        }),
+
+        // Remove any null reactions
+        reportObject => reportObject !== null,
+    );
+
+    const updatedMessage = {
+        ...message,
+        reactions: updatedReactions,
+    };
+
+    // Optimistically update the reportAction with the reaction
+    const optimisticData = getOptimisticDataForReportActionUpdate(originalReportAction, updatedMessage, reportID);
+
+    const parameters = {
+        reportID,
+        sequenceNumber: originalReportAction.sequenceNumber,
+        reportActionID: originalReportAction.reportActionID,
+        emojiCode: emoji.name,
+    };
+    API.write('RemoveEmojiReaction', parameters, {optimisticData});
+}
+
+/**
+ * Calls either addEmojiReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
+ * @param {String} reportID
+ * @param {Object} reportAction
+ * @param {Object} emoji
+ * @param {number} paramSkinTone
+ * @returns {Promise}
+ */
+function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = preferredSkinTone) {
+    const message = reportAction.message[0];
+    const reactionObject = message.reactions && _.find(message.reactions, reaction => reaction.emoji === emoji.name);
+    const skinTone = emoji.types === undefined ? null : paramSkinTone; // only use skin tone if emoji supports it
+    if (reactionObject) {
+        if (hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone)) {
+            return removeEmojiReaction(reportID, reportAction, emoji, skinTone);
+        }
+    }
+    return addEmojiReaction(reportID, reportAction, emoji, skinTone);
+}
+
 export {
     addComment,
     addAttachment,
@@ -1217,4 +1397,8 @@ export {
     clearIOUError,
     subscribeToNewActionEvent,
     showReportActionNotification,
+    addEmojiReaction,
+    removeEmojiReaction,
+    toggleEmojiReaction,
+    hasAccountIDReacted,
 };

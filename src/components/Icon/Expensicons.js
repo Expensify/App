@@ -106,9 +106,11 @@ import Facebook from '../../../assets/images/social-facebook.svg';
 import Podcast from '../../../assets/images/social-podcast.svg';
 import Linkedin from '../../../assets/images/social-linkedin.svg';
 import Instagram from '../../../assets/images/social-instagram.svg';
+import AddReaction from '../../../assets/images/add-reaction.svg';
 
 export {
     ActiveRoomAvatar,
+    AddReaction,
     AdminRoomAvatar,
     Android,
     AnnounceRoomAvatar,
