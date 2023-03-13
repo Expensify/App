@@ -29,7 +29,6 @@ class NewDatePicker extends React.Component {
         this.setDate = this.setDate.bind(this);
         this.showPicker = this.showPicker.bind(this);
         this.hidePicker = this.hidePicker.bind(this);
-        this.handleMouseDown = this.handleMouseDown.bind(this);
 
         this.opacity = new Animated.Value(0);
 
@@ -39,21 +38,6 @@ class NewDatePicker extends React.Component {
         this.defaultValue = props.defaultValue
             ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
             : '';
-    }
-
-    componentDidMount() {
-        if (!this.props.autoFocus) {
-            return;
-        }
-        this.showPicker();
-        this.textInputRef.focus();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.defaultYear === this.props.defaultYear) {
-            return;
-        }
-        this.textInputRef.focus();
     }
 
     /**
@@ -97,15 +81,6 @@ class NewDatePicker extends React.Component {
         });
     }
 
-    /**
-     * Handle the mouse down event, prevent the default behavior of the event.
-     *
-     * @param {MouseEvent} event - The mouse event object.
-     */
-    handleMouseDown(event) {
-        event.preventDefault();
-    }
-
     render() {
         return (
             <>
@@ -120,6 +95,7 @@ class NewDatePicker extends React.Component {
                             this.props.innerRef(el);
                         }}
                         onPress={this.showPicker}
+                        onBlur={this.hidePicker}
                         label={this.props.label}
                         value={this.props.value}
                         defaultValue={this.defaultValue}
@@ -133,7 +109,10 @@ class NewDatePicker extends React.Component {
                 {
                     this.state.isPickerVisible && (
                     <Animated.View
-                        onMouseDown={this.handleMouseDown}
+                        onMouseDown={(e) => {
+                            // To prevent focus stealing
+                            e.preventDefault();
+                        }}
                         style={[styles.datePickerPopoverWeb, styles.border, {opacity: this.opacity}]}
                     >
                         <CalendarPicker

@@ -31,6 +31,7 @@ class YearPickerPage extends React.Component {
         const maxYear = Number(params.max);
         const currentYear = Number(params.year);
 
+        this.currentYear = currentYear;
         this.yearList = _.map(Array.from({length: (maxYear - minYear) + 1}, (v, i) => i + minYear), value => ({
             text: value.toString(),
             value,
@@ -80,7 +81,7 @@ class YearPickerPage extends React.Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('yearPickerPage.year')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(this.props.route.params.backTo || ROUTES.HOME)}
+                    onBackButtonPress={() => Navigation.navigate(`${this.props.route.params.backTo}?year=${this.currentYear}` || ROUTES.HOME)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <OptionsSelector

@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
+import _ from 'underscore';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -64,6 +65,10 @@ class DateOfBirthPage extends Component {
         const {params} = this.props.route;
         if (params && params.year) {
             this.setState({defaultYear: params.year});
+            this.datePicker.focus();
+            if (_.isFunction(this.datePicker.click)) {
+                this.datePicker.click();
+            }
         }
     }
 
@@ -119,7 +124,7 @@ class DateOfBirthPage extends Component {
                     enabledWhenOffline
                 >
                     <NewDatePicker
-                        autoFocus
+                        ref={ref => this.datePicker = ref}
                         inputID="dob"
                         label={this.props.translate('common.date')}
                         defaultValue={privateDetails.dob || ''}
