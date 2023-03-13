@@ -65,8 +65,7 @@ class NewDatePicker extends React.Component {
     }
 
     /**
-     * Function to animate and hide the picker when the user clicks outside of it.
-     * @param {Event} event - The event that triggered the hide action.
+     * Function to animate and hide the picker.
      */
     hidePicker() {
         Animated.timing(this.opacity, {
@@ -84,8 +83,9 @@ class NewDatePicker extends React.Component {
     render() {
         return (
             <View
+                ref={ref => this.wrapperRef = ref}
                 onBlur={(event) => {
-                    if (this.calendarWrapper && event.relatedTarget && this.calendarWrapper.contains(event.relatedTarget)) {
+                    if (this.wrapperRef && event.relatedTarget && this.wrapperRef.contains(event.relatedTarget)) {
                         return;
                     }
                     this.hidePicker();
@@ -117,7 +117,6 @@ class NewDatePicker extends React.Component {
                 {
                     this.state.isPickerVisible && (
                     <Animated.View
-                        ref={ref => this.calendarWrapper = ref}
                         onMouseDown={(e) => {
                             // To prevent focus stealing
                             e.preventDefault();
