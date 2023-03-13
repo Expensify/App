@@ -28,28 +28,20 @@ const defaultProps = {
 
 class ValidateLoginPage extends Component {
     componentDidMount() {
+        const accountID = lodashGet(this.props.route.params, 'accountID', '');
+        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
         if (Permissions.canUsePasswordlessLogins(this.props.betas)) {
-            if (lodashGet(this.props, 'session.authToken', null)) {
+            if (lodashGet(this.props, 'session.authToken')) {
                 // If already signed in, do not show the validate code if not on web,
                 // because we don't want to block the user with the interstitial page.
                 Navigation.goBack(false);
             } else {
-                Session.signInWithValidateCodeAndNavigate(this.accountID(), this.validateCode());
+                Session.signInWithValidateCodeAndNavigate(accountID, validateCode);
             }
         } else {
-            User.validateLogin(this.accountID(), this.validateCode());
+            User.validateLogin(accountID, validateCode);
         }
     }
-
-    /**
-     * @returns {String}
-     */
-    accountID = () => lodashGet(this.props.route.params, 'accountID', '');
-
-    /**
-     * @returns {String}
-     */
-    validateCode = () => lodashGet(this.props.route.params, 'validateCode', '');
 
     render() {
         return <FullScreenLoadingIndicator />;
