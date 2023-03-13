@@ -26,7 +26,7 @@ class DatePicker extends React.Component {
 
         this.state = {
             isPickerVisible: false,
-            selectedDate: moment(props.value || props.defaultValue).toDate(),
+            selectedDate: props.value || props.defaultValue ? moment(props.value || props.defaultValue).toDate() : new Date(),
         };
 
         this.showPicker = this.showPicker.bind(this);
