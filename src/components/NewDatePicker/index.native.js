@@ -90,7 +90,6 @@ class NewDatePicker extends React.Component {
             <View style={styles.flex2}>
                 <TextInput
                     forceActiveLabel
-                    autoFocus={this.props.autoFocus}
                     label={this.props.label}
                     value={dateAsText}
                     placeholder={this.props.placeholder}

@@ -41,6 +41,14 @@ class NewDatePicker extends React.Component {
             : '';
     }
 
+    componentDidMount() {
+        if (!this.props.autoFocus) {
+            return;
+        }
+        this.showPicker();
+        this.textInputRef.focus();
+    }
+
     componentDidUpdate(prevProps) {
         if (prevProps.defaultYear === this.props.defaultYear) {
             return;
@@ -103,7 +111,7 @@ class NewDatePicker extends React.Component {
             <>
                 <View style={[this.props.isSmallScreenWidth ? styles.flex2 : {}]}>
                     <TextInput
-                        autoFocus={this.props.autoFocus}
+                        forceActiveLabel
                         ref={(el) => {
                             this.textInputRef = el;
                             if (!_.isFunction(this.props.innerRef)) {
@@ -111,7 +119,7 @@ class NewDatePicker extends React.Component {
                             }
                             this.props.innerRef(el);
                         }}
-                        onFocus={this.showPicker}
+                        onPress={this.showPicker}
                         label={this.props.label}
                         value={this.props.value}
                         defaultValue={this.defaultValue}
