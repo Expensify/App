@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.2.81-0",
+  "version": "1.2.83-1",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -194,7 +194,7 @@
     "style-loader": "^2.0.0",
     "time-analytics-webpack-plugin": "^0.1.17",
     "wait-port": "^0.2.9",
-    "webpack": "^5.74.0",
+    "webpack": "^5.76.0",
     "webpack-bundle-analyzer": "^4.5.0",
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.9.3",

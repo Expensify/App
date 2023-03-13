@@ -9,6 +9,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as FormActions from '../libs/actions/FormActions';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import styles from '../styles/styles';
+import CONST from '../CONST';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 import FormSubmit from './FormSubmit';
 import SafeAreaConsumer from './SafeAreaConsumer';
@@ -172,7 +173,20 @@ class Form extends React.Component {
     validate(values) {
         FormActions.setErrors(this.props.formID, null);
         FormActions.setErrorFields(this.props.formID, null);
+
+        // Run any validations passed as a prop
         const validationErrors = this.props.validate(values);
+
+        // Validate the input for html tags. It should supercede any other error
+        _.each(values, (inputValue, inputID) => {
+            // Return early if there is no value OR the value is not a string OR there are no HTML characters
+            if (!inputValue || !_.isString(inputValue) || inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX) === -1) {
+                return;
+            }
+
+            // Add a validation error here because it is a string value that contains HTML characters
+            validationErrors[inputID] = this.props.translate('common.error.invalidCharacter');
+        });
 
         if (!_.isObject(validationErrors)) {
             throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');

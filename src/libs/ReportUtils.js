@@ -221,6 +221,17 @@ function isChatRoom(report) {
 }
 
 /**
+ * Whether the provided report is a public room
+ * @param {Object} report
+ * @param {String} report.visibility
+ * @returns {Boolean}
+ */
+function isPublicRoom(report) {
+    const visibility = lodashGet(report, 'visibility', '');
+    return visibility === CONST.REPORT.VISIBILITY.PUBLIC || visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE;
+}
+
+/**
  * Get the policy type from a given report
  * @param {Object} report
  * @param {String} report.policyID
@@ -416,12 +427,12 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
     const reportRecipient = personalDetails[participantsWithoutExpensifyEmails[0]];
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
     const isReportParticipantValidated = lodashGet(reportRecipient, 'validated', false);
-    return !hasMultipleParticipants
+    return Boolean(!hasMultipleParticipants
         && !isChatRoom(report)
         && reportRecipient
         && reportRecipientTimezone
         && reportRecipientTimezone.selected
-        && isReportParticipantValidated;
+        && isReportParticipantValidated);
 }
 
 /**
@@ -1634,6 +1645,7 @@ export {
     getPolicyName,
     getPolicyType,
     isArchivedRoom,
+    isPublicRoom,
     isConciergeChatReport,
     hasAutomatedExpensifyEmails,
     hasExpensifyGuidesEmails,
