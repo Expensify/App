@@ -72,6 +72,9 @@ const AvatarCropModal = (props) => {
     const rotation = useSharedValue(0);
     const translateSlider = useSharedValue(0);
     const isPressableEnabled = useSharedValue(true);
+
+    // The previous offset values are maintained to recalculate the offset value in proportion
+    // to the container size, especially when the window size is first decreased and then increased
     const prevMaxOffsetX = useSharedValue(0);
     const prevMaxOffsetY = useSharedValue(0);
 
@@ -211,8 +214,7 @@ const AvatarCropModal = (props) => {
     // This effect is needed to recalculate the maximum offset values
     // when the browser window is resized.
     useEffect(() => {
-        // If no panning has happened already, the value is 0 and
-        // we do an early return.
+        // If no panning has happened and the value is 0, do an early return.
         if (!prevMaxOffsetX.value && !prevMaxOffsetY.value) {
             return;
         }
