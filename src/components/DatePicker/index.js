@@ -3,7 +3,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import TextInput from '../TextInput';
 import CONST from '../../CONST';
-import {propTypes, defaultProps} from './datePickerPropTypes';
+import {propTypes, defaultProps} from './_datepickerPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import './styles.css';
 
