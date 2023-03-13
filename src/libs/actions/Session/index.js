@@ -332,8 +332,8 @@ function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.CREDENTIALS,
-            value: {signedWithLink: true},
+            key: ONYXKEYS.SESSION,
+            value: {autoAuthState: CONST.AUTO_AUTH_STATE.SIGNING_IN},
         },
     ];
 
@@ -351,6 +351,11 @@ function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
                 validateCode,
             },
         },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN},
+        },
     ];
 
     const failureData = [
@@ -361,8 +366,8 @@ function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.CREDENTIALS,
-            value: {signedWithLink: null},
+            key: ONYXKEYS.SESSION,
+            value: {autoAuthState: CONST.AUTO_AUTH_STATE.FAILED},
         },
     ];
 
@@ -371,6 +376,10 @@ function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
         validateCode,
         twoFactorAuthCode,
     }, {optimisticData, successData, failureData});
+}
+
+function initAutoAuthState() {
+    Onyx.merge(ONYXKEYS.SESSION, {autoAuthState: CONST.AUTO_AUTH_STATE.NOT_STARTED});
 }
 
 /**
@@ -592,6 +601,7 @@ export {
     updatePasswordAndSignin,
     signIn,
     signInWithValidateCode,
+    initAutoAuthState,
     signInWithShortLivedAuthToken,
     cleanupSession,
     signOut,
