@@ -106,7 +106,7 @@ Once a user has “touched” an input, i.e. blurred the input, we will also sta
 
 All form fields will additionally be validated when the form is submitted. Although we are validating on blur this additional step is necessary to cover edge cases where forms are auto-filled or when a form is submitted by pressing enter (i.e. there will be only a ‘submit’ event and no ‘blur’ event to hook into).
 
-The Form component takes care of validation internally and the only requirement is that we pass a validate callback prop. The validate callback takes in the input values as argument and should return an object with shape `{[inputID]: errorMessage}` if only one validation method is used to validate the value, or `{[inputID]" [errorMessage1, errorMessage2]}` if more than one method is used to validate the value. 
+The Form component takes care of validation internally and the only requirement is that we pass a validate callback prop. The validate callback takes in the input values as argument and should return an object with shape `{[inputID]: errorMessage}`. 
 
 Here's an example for a form that has two inputs, `routingNumber` and `accountNumber`:
 

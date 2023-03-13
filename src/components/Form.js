@@ -46,7 +46,7 @@ const propTypes = {
         isLoading: PropTypes.bool,
 
         /** Server side errors keyed by microtime */
-        errors: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)])),
+        errors: PropTypes.objectOf(PropTypes.string),
 
         /** Field-specific server side errors keyed by microtime */
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
@@ -254,15 +254,10 @@ class Form extends React.Component {
                 .first()
                 .value() || '';
 
-            const inputError = this.state.errors[inputID];
-            const errorText = _.isString(inputError)
-                ? inputError
-                : _.reduce(inputError, (allMessages, currentMessage) => (!_.isEmpty(allMessages) ? `${allMessages}\n${currentMessage}` : currentMessage), '');
-
             return React.cloneElement(child, {
                 ref: node => this.inputRefs[inputID] = node,
                 value: this.state.inputValues[inputID],
-                errorText: errorText || fieldErrorMessage,
+                errorText: this.state.errors[inputID] || fieldErrorMessage,
                 onBlur: () => {
                     this.setTouchedInput(inputID);
                     this.validate(this.state.inputValues);

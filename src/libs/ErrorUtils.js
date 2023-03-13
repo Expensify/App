@@ -55,21 +55,19 @@ function getLatestErrorMessage(onyxData) {
 }
 
 /**
-     *
-     * @param {Object} errors - An object containing current errors in the form
-     * @param {String} key - inputID of the field
-     * @param {String} message - Message to assign to the inputID errors
-     * @returns {Object} - An object containing the errors for each inputID
-     */
-function addErrorMessage(errors, key, message) {
+ * Method used to generate error message for given inputID
+ * @param {Object} errors - An object containing current errors in the form
+ * @param {String} inputID
+ * @param {String} message - Message to assign to the inputID errors
+ * @returns {Object} - An object containing the errors for each inputID
+ */
+function addErrorMessage(errors, inputID, message) {
     const errorList = errors;
 
-    if (_.isEmpty(errorList[key])) {
-        errorList[key] = message;
-    } else if (_.isString(errorList[key])) {
-        errorList[key] = [errorList[key], message];
+    if (_.isEmpty(errorList[inputID])) {
+        errorList[inputID] = message;
     } else {
-        errorList[key].push(message);
+        errorList[inputID] = `${errorList[inputID]}\n${message}`;
     }
 
     return errorList;
