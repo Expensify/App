@@ -4,7 +4,6 @@ import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-// import {Freeze} from 'react-freeze';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -183,26 +182,24 @@ class SidebarLinks extends React.Component {
                         </OfflineWithFeedback>
                     </TouchableOpacity>
                 </View>
-                {/* <Freeze freeze={this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded}> */}
-                    <LHNOptionsList
-                        contentContainerStyles={[
-                            styles.sidebarListContainer,
-                            {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
-                        ]}
-                        data={optionListItems}
-                        focusedIndex={_.findIndex(optionListItems, (
-                            option => option.toString() === this.props.reportIDFromRoute
-                        ))}
-                        onSelectRow={this.showReportPage}
-                        shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                        optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
-                        onLayout={() => {
-                            this.props.onLayout();
-                            App.setSidebarLoaded();
-                            this.isSidebarLoaded = true;
-                        }}
-                    />
-                {/* </Freeze> */}
+                <LHNOptionsList
+                    contentContainerStyles={[
+                        styles.sidebarListContainer,
+                        {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
+                    ]}
+                    data={optionListItems}
+                    focusedIndex={_.findIndex(optionListItems, (
+                        option => option.toString() === this.props.reportIDFromRoute
+                    ))}
+                    onSelectRow={this.showReportPage}
+                    shouldDisableFocusOptions={this.props.isSmallScreenWidth}
+                    optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
+                    onLayout={() => {
+                        this.props.onLayout();
+                        App.setSidebarLoaded();
+                        this.isSidebarLoaded = true;
+                    }}
+                />
             </View>
         );
     }
