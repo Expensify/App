@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import useSound from 'use-sound';
 import EmojiReactionBubble from '../EmojiReactionBubble';
 import AddReactionBubble from '../AddReactionBubble';
 import CONST from '../../../CONST';
@@ -10,6 +11,8 @@ import styles from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import getPreferredEmojiCode from '../getPreferredEmojiCode';
 import Tooltip from '../../Tooltip';
+
+import fartSound from '../../../../assets/sounds/short_fart.wav';
 
 const EMOJI_BUBBLE_SCALE = 1.5;
 
@@ -37,31 +40,41 @@ const propTypes = {
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
 };
 
-const BaseQuickEmojiReactions = props => (
-    <View style={styles.quickReactionsContainer}>
-        {_.map(CONST.QUICK_REACTIONS, emoji => (
+const BaseQuickEmojiReactions = (props) => {
+    const [playOn] = useSound(
+        fartSound,
+        {volume: 1},
+    );
+    return (
+        <View style={styles.quickReactionsContainer}>
+            {_.map(CONST.QUICK_REACTIONS, emoji => (
 
-            // Note: focus is handled by the Pressable component in EmojiReactionBubble
-            <Tooltip text={`:${emoji.name}:`} key={emoji.name} focusable={false}>
-                <EmojiReactionBubble
-                    emojiName={emoji.name}
-                    emojiCodes={[getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
-                    sizeScale={EMOJI_BUBBLE_SCALE}
-                    onPress={() => {
-                        props.onEmojiSelected(emoji);
-                    }}
-                />
-            </Tooltip>
-        ))}
-        <AddReactionBubble
-            iconSizeScale={1.2}
-            sizeScale={EMOJI_BUBBLE_SCALE}
-            onPressOpenPicker={props.onPressOpenPicker}
-            onWillShowPicker={props.onWillShowPicker}
-            onSelectEmoji={props.onEmojiSelected}
-        />
-    </View>
-);
+                // Note: focus is handled by the Pressable component in EmojiReactionBubble
+                <Tooltip text={`:${emoji.name}:`} key={emoji.name} focusable={false}>
+                    <EmojiReactionBubble
+                        emojiName={emoji.name}
+                        emojiCodes={[getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
+                        sizeScale={EMOJI_BUBBLE_SCALE}
+                        onPress={() => {
+                            playOn();
+                            props.onEmojiSelected(emoji);
+                        }}
+                    />
+                </Tooltip>
+            ))}
+            <AddReactionBubble
+                iconSizeScale={1.2}
+                sizeScale={EMOJI_BUBBLE_SCALE}
+                onPressOpenPicker={props.onPressOpenPicker}
+                onWillShowPicker={props.onWillShowPicker}
+                onSelectEmoji={(emojiObject) => {
+                    playOn();
+                    props.onEmojiSelected(emojiObject);
+                }}
+            />
+        </View>
+    );
+};
 
 BaseQuickEmojiReactions.displayName = 'BaseQuickEmojiReactions';
 BaseQuickEmojiReactions.propTypes = propTypes;

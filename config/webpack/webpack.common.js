@@ -201,6 +201,14 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 resourceQuery: /raw/,
                 type: 'asset/source',
             },
+            {
+                test: /\.(png|jpe?g|gif|mp3|wav)$/i,
+                use: [
+                    {
+                        loader: 'file-loader',
+                    },
+                ],
+            },
         ],
     },
     resolve: {
@@ -211,6 +219,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             'react-native-web': '@expensify/react-native-web',
             'react-content-loader/native': 'react-content-loader',
             'lottie-react-native': 'react-native-web-lottie',
+            'react-native-sound': 'react-native-web-sound',
         },
 
         // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
