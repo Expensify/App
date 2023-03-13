@@ -8,7 +8,7 @@ import * as Environment from './Environment/Environment';
 // To avoid rebuilding native apps, native apps use production config for both staging and prod
 // We use the async environment check because it works on all platforms
 let ENV_NAME = CONST.ENVIRONMENT.PRODUCTION;
-let stagingServerToggleState = false;
+let shouldUseStagingServer = false;
 Environment.getEnvironment()
     .then((envName) => {
         ENV_NAME = envName;
@@ -17,23 +17,17 @@ Environment.getEnvironment()
         Onyx.connect({
             key: ONYXKEYS.USER,
             callback: (val) => {
+                // Toggling between APIs is not allowed on staging
+                if (ENV_NAME === CONST.ENVIRONMENT.PRODUCTION) {
+                    shouldUseStagingServer = false;
+                    return;
+                }
+
                 const defaultToggleState = ENV_NAME === CONST.ENVIRONMENT.STAGING;
-                stagingServerToggleState = lodashGet(val, 'shouldUseStagingServer', defaultToggleState);
+                shouldUseStagingServer = lodashGet(val, 'shouldUseStagingServer', defaultToggleState);
             },
         });
     });
-
-/**
- * Helper method used to decide which API endpoint to call
- * Non PROD environments allow API switching via the {@link stagingServerToggleState}
- *
- * @returns {Boolean}
- */
-function canUseStagingServer() {
-    return ENV_NAME === CONST.ENVIRONMENT.PRODUCTION
-        ? false
-        : stagingServerToggleState;
-}
 
 /**
  * Get the currently used API endpoint
@@ -46,7 +40,7 @@ function canUseStagingServer() {
 function getApiRoot(request) {
     const shouldUseSecure = lodashGet(request, 'shouldUseSecure', false);
 
-    if (canUseStagingServer()) {
+    if (shouldUseStagingServer) {
         return shouldUseSecure
             ? CONFIG.EXPENSIFY.STAGING_SECURE_API_ROOT
             : CONFIG.EXPENSIFY.STAGING_API_ROOT;
@@ -75,7 +69,7 @@ function getCommandURL(request) {
  * @returns {Boolean}
  */
 function isUsingStagingApi() {
-    return getApiRoot() === CONFIG.EXPENSIFY.STAGING_API_ROOT;
+    return shouldUseStagingServer;
 }
 
 export {
