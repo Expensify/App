@@ -26,7 +26,7 @@ const propTypes = {
 
 const ReactionTooltipContent = (props) => {
     const users = PersonalDetailsUtils.getPersonalDetailsByIDs(props.accountIDs);
-    const namesString = _.filter(_.map(users, user => user.displayName), n => n).join(', ');
+    const namesString = _.filter(_.map(users, user => user && user.displayName), n => n).join(', ');
 
     return (
         <View style={[styles.alignItemsCenter, styles.ph2]}>
