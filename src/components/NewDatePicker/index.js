@@ -41,12 +41,18 @@ class NewDatePicker extends React.Component {
             : '';
     }
 
+    componentDidMount() {
+        if (!this.props.autoFocus) {
+            return;
+        }
+        this.showPicker();
+    }
+
     componentDidUpdate(prevProps) {
         if (prevProps.defaultYear === this.props.defaultYear) {
             return;
         }
         this.textInputRef.focus();
-        this.showPicker();
     }
 
     /**
@@ -91,11 +97,7 @@ class NewDatePicker extends React.Component {
     }
 
     /**
-     * Handle the mouse down event.
-     *
-     * If the target element is contained within the calendarWrapperRef, prevent
-     * the default behavior of the event. If the target element is not contained
-     * within the calendarWrapperRef, hide the picker.
+     * Handle the mouse down event, prevent the default behavior of the event.
      *
      * @param {MouseEvent} event - The mouse event object.
      */
@@ -108,7 +110,7 @@ class NewDatePicker extends React.Component {
             <>
                 <View style={[this.props.isSmallScreenWidth ? styles.flex2 : {}]}>
                     <TextInput
-                        forceActiveLabel
+                        autoFocus={this.props.autoFocus}
                         ref={(el) => {
                             this.textInputRef = el;
                             if (!_.isFunction(this.props.innerRef)) {
@@ -117,7 +119,6 @@ class NewDatePicker extends React.Component {
                             this.props.innerRef(el);
                         }}
                         onPress={this.showPicker}
-                        onBlur={this.hidePicker}
                         label={this.props.label}
                         value={this.props.value}
                         defaultValue={this.defaultValue}

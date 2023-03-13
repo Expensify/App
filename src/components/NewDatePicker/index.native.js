@@ -33,6 +33,13 @@ class NewDatePicker extends React.Component {
         this.setDate = this.setDate.bind(this);
     }
 
+    componentDidMount() {
+        if (!this.props.autoFocus) {
+            return;
+        }
+        this.showPicker();
+    }
+
     /**
      * Trigger the `onInputChange` handler when the user input has a complete date or is cleared
      * @param {Date} selectedDate
@@ -83,6 +90,7 @@ class NewDatePicker extends React.Component {
             <View style={styles.flex2}>
                 <TextInput
                     forceActiveLabel
+                    autoFocus={this.props.autoFocus}
                     label={this.props.label}
                     value={dateAsText}
                     placeholder={this.props.placeholder}
