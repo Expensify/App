@@ -15,7 +15,6 @@ import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
 import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
-import emojiHeaderContainerPlatformStyles from './emojiHeaderContainerPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
@@ -163,6 +162,33 @@ const styles = {
         margin: 0,
         padding: 0,
         flexBasis: '48%',
+    },
+
+    emojiSuggestionsContainer: {
+        backgroundColor: themeColors.appBG,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: themeColors.border,
+        justifyContent: 'center',
+        boxShadow: variables.popoverMenuShadow,
+        position: 'absolute',
+        left: 0,
+        right: 0,
+    },
+    emojiSuggestionContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+
+    emojiSuggestionsEmoji: {
+        fontFamily: fontFamily.EMOJI_TEXT_FONT,
+        fontSize: variables.fontSizeMedium,
+        width: 51,
+        textAlign: 'center',
+    },
+    emojiSuggestionsText: {
+        fontFamily: fontFamily.EMOJI_TEXT_FONT,
+        fontSize: variables.fontSizeMedium,
     },
 
     unitCol: {
@@ -1385,7 +1411,6 @@ const styles = {
 
     chatItemFullComposeBox: {
         ...flex.flex1,
-        ...spacing.mt4,
         ...sizing.h100,
     },
 
@@ -1398,8 +1423,6 @@ const styles = {
 
     chatFooterFullCompose: {
         flex: 1,
-        flexShrink: 1,
-        flexBasis: '100%',
     },
 
     // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
@@ -1473,7 +1496,6 @@ const styles = {
         height: CONST.EMOJI_PICKER_HEADER_HEIGHT,
         justifyContent: 'center',
         width: '100%',
-        ...emojiHeaderContainerPlatformStyles,
     },
 
     emojiSkinToneTitle: {

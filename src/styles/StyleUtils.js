@@ -809,6 +809,63 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth) {
     };
 }
 
+/**
+ * Gets styles for Emoji Suggestion row
+ *
+ * @param {Number} highlightedEmojiIndex
+ * @param {Number} rowHeight
+ * @param {Boolean} hovered
+ * @param {Number} currentEmojiIndex
+ * @returns {Object}
+ */
+function getEmojiSuggestionItemStyle(
+    highlightedEmojiIndex,
+    rowHeight,
+    hovered,
+    currentEmojiIndex,
+) {
+    return [
+        {
+            height: rowHeight,
+            justifyContent: 'center',
+        },
+        (currentEmojiIndex === highlightedEmojiIndex && !hovered) || hovered
+            ? {
+                backgroundColor: themeColors.highlightBG,
+            }
+            : {},
+    ];
+}
+
+/**
+ * Gets the correct position for emoji suggestion container
+ *
+ * @param {Number} itemsHeight
+ * @param {Boolean} shouldIncludeReportRecipientLocalTimeHeight
+ * @returns {Object}
+ */
+function getEmojiSuggestionContainerStyle(
+    itemsHeight,
+    shouldIncludeReportRecipientLocalTimeHeight,
+) {
+    const optionalPadding = shouldIncludeReportRecipientLocalTimeHeight ? CONST.RECIPIENT_LOCAL_TIME_HEIGHT : 0;
+    const padding = CONST.EMOJI_SUGGESTER.SUGGESTER_PADDING - optionalPadding;
+
+    // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
+    // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
+    return {
+        overflow: 'hidden',
+        top: -(itemsHeight + padding),
+    };
+}
+
+/**
+ * Select the correct color for text.
+ * @param {Boolean} isColored
+ * @returns {String | null}
+ */
+const getColoredBackgroundStyle = isColored => ({backgroundColor: isColored ? colors.blueLink : null});
+
 function getEmojiReactionBubbleStyle(isHovered, hasUserReacted, sizeScale = 1) {
     const sizeStyles = {
         paddingVertical: styles.emojiReactionBubble.paddingVertical * sizeScale,
@@ -888,6 +945,9 @@ export {
     getReportWelcomeBackgroundImageStyle,
     getReportWelcomeTopMarginStyle,
     getReportWelcomeContainerStyle,
+    getEmojiSuggestionItemStyle,
+    getEmojiSuggestionContainerStyle,
+    getColoredBackgroundStyle,
     getDefaultWorspaceAvatarColor,
     getAvatarBorderRadius,
     getEmojiReactionBubbleStyle,
