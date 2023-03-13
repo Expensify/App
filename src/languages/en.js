@@ -128,7 +128,7 @@ export default {
         yesContinue: 'Yes, continue',
         zipCodeExample: 'e.g. 12345, 12345-1234, 12345 1234',
         websiteExample: 'e.g. https://www.expensify.com',
-        format: 'Format:',
+        format: ({zipSampleFormat}) => (zipSampleFormat ? `Format: ${zipSampleFormat}` : ''),
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
@@ -651,6 +651,7 @@ export default {
             dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,
             hasInvalidCharacter: 'Name can only include letters and numbers.',
             incorrectZipFormat: ({zipFormat}) => `Incorrect zip code format. Acceptable format: ${zipFormat}`,
+            incorrectZipFormat: ({zipFormat}) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
     resendValidationForm: {

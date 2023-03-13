@@ -61,10 +61,10 @@ class AddressPage extends Component {
         this.onCountryUpdate = this.onCountryUpdate.bind(this);
 
         const currentCountry = lodashGet(props.privatePersonalDetails, 'address.country') || '';
-        const zipSampleFormat = lodashGet(CONST.ALL_COUNTRIES, `${currentCountry}.zipSample`, '');
+        const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_VALIDATION_REGEX, `${currentCountry}.zipFormat`, '');
         this.state = {
             isUsaForm: (currentCountry === CONST.COUNTRY.US || currentCountry === CONST.USA_COUNTRY_NAME),
-            zipFormat: zipSampleFormat ? `${this.props.translate('common.format')} ${zipSampleFormat}` : '',
+            zipFormat: this.props.translate('common.format', {zipSampleFormat}),
         };
     }
 
@@ -72,10 +72,10 @@ class AddressPage extends Component {
      * @param {String} newCountry - new country selected in form
      */
     onCountryUpdate(newCountry) {
-        const zipSampleFormat = lodashGet(CONST.ALL_COUNTRIES, `${newCountry}.zipSample`, '');
+        const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_VALIDATION_REGEX, `${newCountry}.zipFormat`, '');
         this.setState({
             isUsaForm: newCountry === CONST.COUNTRY.US,
-            zipFormat: zipSampleFormat ? `${this.props.translate('common.format')} ${zipSampleFormat}` : '',
+            zipFormat: this.props.translate('common.format', {zipSampleFormat}),
         });
     }
 
@@ -122,16 +122,16 @@ class AddressPage extends Component {
         });
 
         // If no country is selected, default value is "-"
-        const countryDetails = lodashGet(CONST.ALL_COUNTRIES, values.country);
+        const countryDetails = lodashGet(CONST.COUNTRY_ZIP_VALIDATION_REGEX, values.country, {});
 
         // The postal code system might not exist for a country, so no regex either for them.
         const countrySpecificZipRegex = lodashGet(countryDetails, 'zipRegex');
-        const zipFormat = lodashGet(countryDetails, 'zipSample');
+        const zipFormat = lodashGet(countryDetails, 'zipFormat');
 
-        if (countrySpecificZipRegex) {
-            if (!countrySpecificZipRegex.test(values.zipPostCode.trim())) {
-                errors.zipPostCode = this.props.translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat});
-            }
+        if (countrySpecificZipRegex && !countrySpecificZipRegex.test(values.zipPostCode.trim())) {
+            errors.zipPostCode = this.props.translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat});
+        } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values.zipPostCode.trim())) {
+            errors.zipPostCode = this.props.translate('privatePersonalDetails.error.incorrectZipFormat');
         }
 
         return errors;
