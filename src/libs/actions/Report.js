@@ -347,6 +347,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         value: {
+            isLoadingReport: true,
             isLoadingReportActions: true,
             isLoadingMoreReportActions: false,
             lastReadTime: DateUtils.getDBTime(),
@@ -357,6 +358,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         value: {
+            isLoadingReport: false,
             isLoadingReportActions: false,
             pendingFields: {
                 createChat: null,
