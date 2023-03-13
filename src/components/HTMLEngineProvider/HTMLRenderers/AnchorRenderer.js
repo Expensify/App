@@ -14,7 +14,7 @@ import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
 import AnchorForCommentsOnly from '../../AnchorForCommentsOnly';
 import AnchorForAttachmentsOnly from '../../AnchorForAttachmentsOnly';
-import {openReport} from '../../../libs/actions/Report';
+import * as Report from '../../../libs/actions/Report';
 import * as Url from '../../../libs/Url';
 import ROUTES from '../../../ROUTES';
 
@@ -49,7 +49,7 @@ const AnchorRenderer = (props) => {
         // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
         if (internalNewExpensifyPath) {
             const reportID = attrPath.split('r/').pop();
-            openReport(reportID);
+            Report.openReport(reportID);
             Navigation.navigate(internalNewExpensifyPath);
             return;
         }
