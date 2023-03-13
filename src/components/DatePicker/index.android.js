@@ -5,7 +5,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import TextInput from '../TextInput';
 import CONST from '../../CONST';
-import {propTypes, defaultProps} from './_datepickerPropTypes';
+import {propTypes, defaultProps} from './datepickerPropTypes';
 import styles from '../../styles/styles';
 
 class DatePicker extends React.Component {
