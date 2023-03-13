@@ -52,14 +52,15 @@ class IOUAmountPage extends React.Component {
         super(props);
 
         this.updateAmountNumberPad = this.updateAmountNumberPad.bind(this);
+        this.updateLongPressHandlerState = this.updateLongPressHandlerState.bind(this);
         this.updateAmount = this.updateAmount.bind(this);
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
         this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
-        this.shouldUpdateSelection = true;
 
         this.state = {
             amount: props.selectedAmount,
+            shouldUpdateSelection: true,
             selection: {
                 start: props.selectedAmount.length,
                 end: props.selectedAmount.length,
@@ -197,6 +198,15 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
+     * Update long press value, to remove items pressing on <
+     *
+     * @param {Boolean} value - Changed text from user input
+     */
+    updateLongPressHandlerState(value) {
+        this.setState({shouldUpdateSelection: value});
+    }
+
+    /**
      * Update amount on amount change
      * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit
      *
@@ -263,7 +273,7 @@ class IOUAmountPage extends React.Component {
                         selectedCurrencyCode={this.props.iou.selectedCurrencyCode || CONST.CURRENCY.USD}
                         selection={this.state.selection}
                         onSelectionChange={(e) => {
-                            if (!this.shouldUpdateSelection) {
+                            if (!this.state.shouldUpdateSelection) {
                                 return;
                             }
                             this.setState({selection: e.nativeEvent.selection});
@@ -275,7 +285,7 @@ class IOUAmountPage extends React.Component {
                         ? (
                             <BigNumberPad
                                 numberPressed={this.updateAmountNumberPad}
-                                longPressHandlerStateChanged={state => this.shouldUpdateSelection = !state}
+                                longPressHandlerStateChanged={this.updateLongPressHandlerState}
                             />
                         ) : <View />}
 
