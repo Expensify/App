@@ -225,8 +225,7 @@ export default {
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
-        addEmojiReaction: 'Add emoji reaction',
-        addReactionTooltip: 'Add Reaction…',
+        addReactionTooltip: 'Add Reaction',
     },
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'You missed the party in ',
@@ -642,6 +641,7 @@ export default {
         notHere: "Hmm... it's not here",
         pageNotFound: 'That page is nowhere to be found.',
         noAccess: 'You don\'t have access to this chat',
+        goBackHome: 'Go back to Home page',
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
@@ -1158,6 +1158,10 @@ export default {
     },
     report: {
         genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
+    },
+    chronos: {
+        oooEventSummaryFullDay: ({summary, dayCount, date}) => `${summary} for ${dayCount} ${dayCount === 1 ? 'day' : 'days'} until ${date}`,
+        oooEventSummaryPartialDay: ({summary, timePeriod, date}) => `${summary} from ${timePeriod} on ${date}`,
     },
     footer: {
         features: 'Features',

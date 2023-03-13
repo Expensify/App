@@ -13,7 +13,7 @@ export default {
         new: 'Nuevo',
         search: 'Buscar',
         next: 'Siguiente',
-        goBack: 'Regresar',
+        goBack: 'Volver',
         add: 'Agregar',
         resend: 'Reenviar',
         save: 'Guardar',
@@ -224,8 +224,7 @@ export default {
         editComment: 'Editar commentario',
         deleteComment: 'Eliminar comentario',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
-        addEmojiReaction: 'Añadir una reacción emoji',
-        addReactionTooltip: 'Añadir una reacción…',
+        addReactionTooltip: 'Añadir una reacción',
     },
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'Te perdiste la fiesta en ',
@@ -641,6 +640,7 @@ export default {
         notHere: 'Hmm… no está aquí',
         pageNotFound: 'La página que buscas no existe.',
         noAccess: 'No tienes acceso a este chat',
+        goBackHome: 'Volver a la página principal',
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
@@ -664,7 +664,7 @@ export default {
         toGetStarted: 'Añade una cuenta bancaria y emite tarjetas corporativas, reembolsa gastos y cobra y paga facturas, todo desde un mismo lugar.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
         checkHelpLine: 'Su número de ruta y número de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
-        validateAccountError: 'Para terminar de configurar tu cuenta bancaria, debes validar tu cuenta de Expensify. Por favor revisa tu correo electrónico para validar tu cuenta y regresa aquí para continuar.',
+        validateAccountError: 'Para terminar de configurar tu cuenta bancaria, debes validar tu cuenta de Expensify. Por favor, revisa tu correo electrónico para validar tu cuenta y vuelve aquí para continuar.',
         hasPhoneLoginError: 'Para agregar una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes agregar tu número de teléfono como nombre de usuario secundario.',
         hasBeenThrottledError: 'Se produjo un error al intentar agregar tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
         buttonConfirm: 'OK',
@@ -1159,6 +1159,10 @@ export default {
     },
     report: {
         genericAddCommentFailureMessage: 'Error inesperado al agregar el comentario, por favor inténtalo más tarde',
+    },
+    chronos: {
+        oooEventSummaryFullDay: ({summary, dayCount, date}) => `${summary} por ${dayCount} ${dayCount === 1 ? 'día' : 'días'} hasta el ${date}`,
+        oooEventSummaryPartialDay: ({summary, timePeriod, date}) => `${summary} de ${timePeriod} del ${date}`,
     },
     footer: {
         features: 'Características',
