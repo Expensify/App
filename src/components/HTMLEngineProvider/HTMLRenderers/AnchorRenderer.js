@@ -48,7 +48,7 @@ const AnchorRenderer = (props) => {
         // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
         // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
         if (internalNewExpensifyPath) {
-            if (attrPath.indexOf('r/') !== -1) {
+            if (attrPath.indexOf('r/') === 0) {
                 const reportID = attrPath.split('/')[1];
                 Report.openReport(reportID);
             }
