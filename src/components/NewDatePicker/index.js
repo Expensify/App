@@ -67,9 +67,14 @@ class NewDatePicker extends React.Component {
     }
 
     /**
-     * Function to animate and hide the picker.
+     * Function to animate and hide the picker when the user clicks outside of it.
+     * @param {Event} event - The event that triggered the hide action.
      */
-    hidePicker() {
+    hidePicker(event) {
+        // Check if the event target is within the wrapper element, fixes focusing buttons inside calendar by pressing tab.
+        if (this.wrapperRef && event && event.relatedTarget && this.wrapperRef.contains(event.relatedTarget)) {
+            return;
+        }
         Animated.timing(this.opacity, {
             toValue: 0,
             duration: 100,
@@ -84,7 +89,7 @@ class NewDatePicker extends React.Component {
 
     render() {
         return (
-            <View style={styles.datePickerRoot}>
+            <View ref={ref => this.wrapperRef = ref} style={styles.datePickerRoot}>
                 <View style={[this.props.isSmallScreenWidth ? styles.flex2 : {}]}>
                     <TextInput
                         forceActiveLabel
