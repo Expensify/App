@@ -41,13 +41,6 @@ class NewDatePicker extends React.Component {
             : '';
     }
 
-    componentDidMount() {
-        if (!this.props.autoFocus) {
-            return;
-        }
-        this.showPicker();
-    }
-
     componentDidUpdate(prevProps) {
         if (prevProps.defaultYear === this.props.defaultYear) {
             return;
@@ -118,7 +111,7 @@ class NewDatePicker extends React.Component {
                             }
                             this.props.innerRef(el);
                         }}
-                        onPress={this.showPicker}
+                        onFocus={this.showPicker}
                         label={this.props.label}
                         value={this.props.value}
                         defaultValue={this.defaultValue}
