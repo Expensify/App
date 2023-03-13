@@ -66,9 +66,7 @@ class DateOfBirthPage extends Component {
         if (params && params.year) {
             this.setState({selectedYear: params.year});
             if (this.datePicker) {
-                if (_.isFunction(this.datePicker.focus)) {
-                    this.datePicker.focus();
-                }
+                this.datePicker.focus();
                 if (_.isFunction(this.datePicker.click)) {
                     this.datePicker.click();
                 }
