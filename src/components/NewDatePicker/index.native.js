@@ -28,7 +28,6 @@ class NewDatePicker extends React.Component {
         };
 
         this.showPicker = this.showPicker.bind(this);
-        this.reset = this.reset.bind(this);
         this.hidePicker = this.hidePicker.bind(this);
         this.setDate = this.setDate.bind(this);
     }
@@ -55,8 +54,6 @@ class NewDatePicker extends React.Component {
      * displays calendar picker on the screen
      */
     showPicker() {
-        this.initialValue = this.state.selectedDate;
-
         // Opens the popover only after the keyboard is hidden to avoid a "blinking" effect where the keyboard was on iOS
         // See https://github.com/Expensify/App/issues/14084 for more context
         if (!this.props.isKeyboardShown) {
@@ -75,13 +72,6 @@ class NewDatePicker extends React.Component {
      */
     hidePicker() {
         this.setState({isPickerVisible: false});
-    }
-
-    /**
-     * Reset the date picker to the initial value.
-     */
-    reset() {
-        this.setState({selectedDate: this.initialValue});
     }
 
     render() {

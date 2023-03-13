@@ -20,14 +20,13 @@ class CalendarPicker extends React.PureComponent {
         this.daysOfWeek = moment.localeData(props.preferredLocale).weekdays();
 
         let currentDateView = props.value;
+        if (props.defaultYear) {
+            currentDateView = moment(currentDateView).set('year', props.defaultYear).toDate();
+        }
         if (props.maxDate < currentDateView) {
             currentDateView = props.maxDate;
         } else if (props.minDate > currentDateView) {
             currentDateView = props.minDate;
-        }
-
-        if (props.defaultYear) {
-            currentDateView = moment(currentDateView).set('year', props.defaultYear).toDate();
         }
 
         this.state = {
