@@ -7,11 +7,9 @@ import CalendarPicker from '../CalendarPicker';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import {propTypes as datePickerPropTypes, defaultProps as defaultDatePickerProps} from './datePickerPropTypes';
-import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 
 const propTypes = {
     ...datePickerPropTypes,
-    ...keyboardStatePropTypes,
 };
 
 const datePickerDefaultProps = {
@@ -70,11 +68,7 @@ class NewDatePicker extends React.Component {
      * Function to animate and hide the picker when the user clicks outside of it.
      * @param {Event} event - The event that triggered the hide action.
      */
-    hidePicker(event) {
-        // Check if the event target is within the wrapper element, fixes focusing buttons inside calendar by pressing tab.
-        if (this.wrapperRef && event && event.relatedTarget && this.wrapperRef.contains(event.relatedTarget)) {
-            return;
-        }
+    hidePicker() {
         Animated.timing(this.opacity, {
             toValue: 0,
             duration: 100,
@@ -89,7 +83,15 @@ class NewDatePicker extends React.Component {
 
     render() {
         return (
-            <View ref={ref => this.wrapperRef = ref} style={styles.datePickerRoot}>
+            <View
+                onBlur={(event) => {
+                    if (this.calendarWrapper && event.relatedTarget && this.calendarWrapper.contains(event.relatedTarget)) {
+                        return;
+                    }
+                    this.hidePicker();
+                }}
+                style={styles.datePickerRoot}
+            >
                 <View style={[this.props.isSmallScreenWidth ? styles.flex2 : {}]}>
                     <TextInput
                         forceActiveLabel
@@ -101,7 +103,6 @@ class NewDatePicker extends React.Component {
                             this.props.innerRef(el);
                         }}
                         onPress={this.showPicker}
-                        onBlur={this.hidePicker}
                         label={this.props.label}
                         value={this.props.value}
                         defaultValue={this.defaultValue}
@@ -116,6 +117,7 @@ class NewDatePicker extends React.Component {
                 {
                     this.state.isPickerVisible && (
                     <Animated.View
+                        ref={ref => this.calendarWrapper = ref}
                         onMouseDown={(e) => {
                             // To prevent focus stealing
                             e.preventDefault();
@@ -140,7 +142,7 @@ class NewDatePicker extends React.Component {
 NewDatePicker.propTypes = propTypes;
 NewDatePicker.defaultProps = datePickerDefaultProps;
 
-export default withKeyboardState(React.forwardRef((props, ref) => (
+export default React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <NewDatePicker {...props} innerRef={ref} />
-)));
+));
