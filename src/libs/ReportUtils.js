@@ -221,6 +221,17 @@ function isChatRoom(report) {
 }
 
 /**
+ * Whether the provided report is a public room
+ * @param {Object} report
+ * @param {String} report.visibility
+ * @returns {Boolean}
+ */
+function isPublicRoom(report) {
+    const visibility = lodashGet(report, 'visibility', '');
+    return visibility === CONST.REPORT.VISIBILITY.PUBLIC || visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE;
+}
+
+/**
  * Get the policy type from a given report
  * @param {Object} report
  * @param {String} report.policyID
@@ -1634,6 +1645,7 @@ export {
     getPolicyName,
     getPolicyType,
     isArchivedRoom,
+    isPublicRoom,
     isConciergeChatReport,
     hasAutomatedExpensifyEmails,
     hasExpensifyGuidesEmails,
