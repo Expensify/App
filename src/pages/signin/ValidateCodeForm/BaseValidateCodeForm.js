@@ -5,6 +5,7 @@ import {
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import styles from '../../../styles/styles';
 import Button from '../../../components/Button';
 import Text from '../../../components/Text';
@@ -175,7 +176,12 @@ class BaseValidateCodeForm extends React.Component {
             formError: {},
         });
 
-        Session.signIn('', this.state.validateCode, this.state.twoFactorAuthCode);
+        const accountID = lodashGet(this.props, 'credentials.accountID');
+        if (accountID) {
+            Session.signInWithValidateCode(accountID, this.state.validateCode, this.state.twoFactorAuthCode);
+        } else {
+            Session.signIn('', this.state.validateCode, this.state.twoFactorAuthCode);
+        }
     }
 
     render() {
