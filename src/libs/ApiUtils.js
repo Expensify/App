@@ -17,7 +17,7 @@ Environment.getEnvironment()
         Onyx.connect({
             key: ONYXKEYS.USER,
             callback: (val) => {
-                // Toggling between APIs is not allowed on staging
+                // Toggling between APIs is not allowed on production
                 if (ENV_NAME === CONST.ENVIRONMENT.PRODUCTION) {
                     shouldUseStagingServer = false;
                     return;
