@@ -125,10 +125,7 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.report.isLoadingReportActions) {
-            return;
-        }
-        if (this.props.report.reportID && this.props.route.params.reportID === prevProps.route.params.reportID) {
+        if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
 
@@ -224,7 +221,7 @@ class ReportScreen extends React.Component {
                     )}
                 >
                     <FullPageNotFoundView
-                        shouldShow={!this.props.report.reportID}
+                        shouldShow={!this.props.report.reportID && !this.props.report.isLoadingReportActions}
                         subtitleKey="notFound.noAccess"
                         shouldShowCloseButton={false}
                         shouldShowBackButton={this.props.isSmallScreenWidth}
