@@ -45,7 +45,7 @@ class DateOfBirthPage extends Component {
         this.maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'Y').toDate();
 
         this.state = {
-            defaultYear: '',
+            selectedYear: '',
         };
     }
 
@@ -64,7 +64,7 @@ class DateOfBirthPage extends Component {
     getYearFromRouteParams() {
         const {params} = this.props.route;
         if (params && params.year) {
-            this.setState({defaultYear: params.year});
+            this.setState({selectedYear: params.year});
             if (this.datePicker) {
                 if (_.isFunction(this.datePicker.focus)) {
                     this.datePicker.focus();
@@ -135,7 +135,7 @@ class DateOfBirthPage extends Component {
                         shouldSaveDraft
                         minDate={this.minDate}
                         maxDate={this.maxDate}
-                        defaultYear={this.state.defaultYear}
+                        selectedYear={this.state.selectedYear}
                     />
                 </Form>
             </ScreenWrapper>

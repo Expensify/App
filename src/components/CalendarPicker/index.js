@@ -20,8 +20,8 @@ class CalendarPicker extends React.PureComponent {
         this.daysOfWeek = moment.localeData(props.preferredLocale).weekdays();
 
         let currentDateView = props.value;
-        if (props.defaultYear) {
-            currentDateView = moment(currentDateView).set('year', props.defaultYear).toDate();
+        if (props.selectedYear) {
+            currentDateView = moment(currentDateView).set('year', props.selectedYear).toDate();
         }
         if (props.maxDate < currentDateView) {
             currentDateView = props.maxDate;
@@ -47,13 +47,13 @@ class CalendarPicker extends React.PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        // Check if defaultYear has changed
-        if (this.props.defaultYear === prevProps.defaultYear) {
+        // Check if selectedYear has changed
+        if (this.props.selectedYear === prevProps.selectedYear) {
             return;
         }
 
-        // If only the defaultYear prop has changed, update the currentDateView state with the new year value
-        this.setState(prev => ({currentDateView: moment(prev.currentDateView).set('year', this.props.defaultYear).toDate()}));
+        // If only the selectedYear prop has changed, update the currentDateView state with the new year value
+        this.setState(prev => ({currentDateView: moment(prev.currentDateView).set('year', this.props.selectedYear).toDate()}));
     }
 
     /**

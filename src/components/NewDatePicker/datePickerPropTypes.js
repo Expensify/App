@@ -28,7 +28,7 @@ const propTypes = {
     maxDate: PropTypes.objectOf(Date),
 
     /** Default year to be set in the calendar picker */
-    defaultYear: PropTypes.string,
+    selectedYear: PropTypes.string,
 };
 
 const defaultProps = {

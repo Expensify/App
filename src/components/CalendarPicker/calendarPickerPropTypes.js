@@ -13,7 +13,7 @@ const propTypes = {
     maxDate: PropTypes.objectOf(Date),
 
     /** Default year to be set in the calendar picker. Used with navigation to set the correct year after going back to the view with calendar */
-    defaultYear: PropTypes.string,
+    selectedYear: PropTypes.string,
 
     /** A function that is called when the date changed inside the calendar component */
     onChanged: PropTypes.func,
@@ -26,7 +26,7 @@ const defaultProps = {
     value: new Date(),
     minDate: moment().year(CONST.CALENDAR_PICKER.MIN_YEAR).toDate(),
     maxDate: moment().year(CONST.CALENDAR_PICKER.MAX_YEAR).toDate(),
-    defaultYear: null,
+    selectedYear: null,
     onChanged: () => {},
     onSelected: () => {},
 };

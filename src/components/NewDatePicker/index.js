@@ -7,10 +7,11 @@ import CalendarPicker from '../CalendarPicker';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import {propTypes as datePickerPropTypes, defaultProps as defaultDatePickerProps} from './datePickerPropTypes';
-import './styles.css';
+import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 
 const propTypes = {
     ...datePickerPropTypes,
+    ...keyboardStatePropTypes,
 };
 
 const datePickerDefaultProps = {
@@ -83,7 +84,7 @@ class NewDatePicker extends React.Component {
 
     render() {
         return (
-            <>
+            <View style={styles.datePickerRoot}>
                 <View style={[this.props.isSmallScreenWidth ? styles.flex2 : {}]}>
                     <TextInput
                         forceActiveLabel
@@ -102,6 +103,7 @@ class NewDatePicker extends React.Component {
                         placeholder={this.props.placeholder || CONST.DATE.MOMENT_FORMAT_STRING}
                         errorText={this.props.errorText}
                         containerStyles={this.props.containerStyles}
+                        textInputContainerStyles={this.state.isPickerVisible ? [styles.borderColorFocus] : []}
                         disabled={this.props.disabled}
                         editable={false}
                     />
@@ -113,19 +115,19 @@ class NewDatePicker extends React.Component {
                             // To prevent focus stealing
                             e.preventDefault();
                         }}
-                        style={[styles.datePickerPopoverWeb, styles.border, {opacity: this.opacity}]}
+                        style={[styles.datePickerPopover, styles.border, {opacity: this.opacity}]}
                     >
                         <CalendarPicker
                             minDate={this.props.minDate}
                             maxDate={this.props.maxDate}
                             value={this.state.selectedDate}
                             onSelected={this.setDate}
-                            defaultYear={this.props.defaultYear}
+                            selectedYear={this.props.selectedYear}
                         />
                     </Animated.View>
                     )
                 }
-            </>
+            </View>
         );
     }
 }
@@ -133,7 +135,7 @@ class NewDatePicker extends React.Component {
 NewDatePicker.propTypes = propTypes;
 NewDatePicker.defaultProps = datePickerDefaultProps;
 
-export default React.forwardRef((props, ref) => (
+export default withKeyboardState(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <NewDatePicker {...props} innerRef={ref} />
-));
+)));
