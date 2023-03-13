@@ -1,3 +1,5 @@
+import Str from 'expensify-common/lib/str';
+
 /**
  * Render a suggestion menu item component.
  * @param {String} name
@@ -6,7 +8,7 @@
  */
 const getStyledTextArray = (name, prefix) => {
     const texts = [];
-    const prefixLocation = name.search(prefix);
+    const prefixLocation = name.search(Str.escapeForRegExp(prefix));
 
     if (prefixLocation === 0 && prefix.length === name.length) {
         texts.push({text: prefix, isColored: true});
