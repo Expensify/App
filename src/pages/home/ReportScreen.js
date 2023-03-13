@@ -125,7 +125,10 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.route.params.reportID === prevProps.route.params.reportID) {
+        if (this.props.report.isLoadingReportActions) {
+            return;
+        }
+        if (this.props.report.reportID && this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
 
