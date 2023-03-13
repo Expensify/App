@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
@@ -249,7 +250,16 @@ function getOptionData(reportID) {
         lastMessageTextFromReport = Str.htmlDecode(report ? report.lastMessageText : '');
     }
 
-    const lastActorDetails = personalDetails[report.lastActorEmail] || null;
+    // If the last actor details is not in currently saved in the existing details in Onyx,
+    // then we need to get them from the last report info
+    let lastActorDetails = personalDetails[report.lastActorEmail] || null;
+    if (!lastActorDetails && lastReportActions[report.reportID]) {
+        const lastActorDisplayName = lodashGet(lastReportActions[report.reportID], 'person[0].text');
+        lastActorDetails = lastActorDisplayName ? {
+            displayName: lastActorDisplayName,
+            login: lastReportActions[report.reportID].actorEmail,
+        } : null;
+    }
     let lastMessageText = hasMultipleParticipants && lastActorDetails && (lastActorDetails.login !== currentUserLogin.email)
         ? `${lastActorDetails.displayName}: `
         : '';
