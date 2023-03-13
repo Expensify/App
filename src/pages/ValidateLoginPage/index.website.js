@@ -47,7 +47,7 @@ class ValidateLoginPage extends Component {
         // Validate login if
         // - The user is not on passwordless beta
         if (!Permissions.canUsePasswordlessLogins(this.props.betas)) {
-            User.validateLogin(this.accountID(), this.validateCode());
+            User.validateLogin(this.getAccountID(), this.getValidateCode());
             return;
         }
 
@@ -58,7 +58,7 @@ class ValidateLoginPage extends Component {
         // - AND the user is not authenticated
         // - AND the user has initiated the sign in process in another tab
         if (!lodashGet(this.props, 'session.authToken',null) && lodashGet(this.props, 'credentials.login', null)) {
-            Session.signInWithValidateCode(this.accountID(), this.validateCode());
+            Session.signInWithValidateCode(this.getAccountID(), this.getValidateCode());
             return;
         }
     }
@@ -78,12 +78,16 @@ class ValidateLoginPage extends Component {
     /**
      * @returns {String}
      */
-    accountID = () => lodashGet(this.props.route.params, 'accountID', '');
+    getAccountID() {
+        return lodashGet(this.props.route.params, 'accountID', '');
+    }
 
     /**
      * @returns {String}
      */
-    validateCode = () => lodashGet(this.props.route.params, 'validateCode', '');
+    getValidateCode(){
+        return lodashGet(this.props.route.params, 'validateCode', '');
+    }
 
     render() {
         return (
@@ -92,7 +96,7 @@ class ValidateLoginPage extends Component {
                 {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && <AbracadabraModal />}
                 {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.NOT_STARTED  && (
                     <ValidateCodeModal
-                        code={this.validateCode()}
+                        code={this.getValidateCode()}
                     />
                 )}
             </>
