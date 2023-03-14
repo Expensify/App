@@ -152,6 +152,16 @@ function isAdminOfFreePolicy(policies) {
 }
 
 /**
+ * Is the user the owner of the given policy?
+ *
+ * @param {Object} policy
+ * @returns {Boolean}
+ */
+function isPolicyOwner(policy) {
+    return policy.owner === sessionEmail;
+}
+
+/**
 * Check if the user has any active free policies (aka workspaces)
 *
 * @param {Array} policies
@@ -1060,5 +1070,6 @@ export {
     openWorkspaceMembersPage,
     openWorkspaceInvitePage,
     removeWorkspace,
+    isPolicyOwner,
     leaveRoom,
 };

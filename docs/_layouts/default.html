@@ -66,15 +66,15 @@
         </div>
 
         <!-- Concierge button at the bottom of the page -->
-        <a class="card get-help" href="{{ CONCIERGE_CHAT_URL }}" target="_blank">
-            <div class="body">
-                <h3 class="title with-margin">Didn't find what you were looking for?</h3>
-                <p class="description">Concierge is here to answer all your questions.</p>
-            </div>
-            <div class="submit-button">
-                <button class="success">Send a message</button>
-            </div>
-        </a>
+        <div class="get-help">
+            <h2 class="title with-margin">Didn't find what you were looking for?</h2>
+            <p class="description">Concierge is here to answer all your questions.</p>
+            <a href="{{ CONCIERGE_CHAT_URL }}" target="_blank">
+                <div class="submit-button">
+                    <button class="success">Send a message</button>
+                </div>
+            </a>
+        </div>
 
         <div id="footer">
             {% include footer.html %}
