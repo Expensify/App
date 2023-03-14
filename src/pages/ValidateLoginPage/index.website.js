@@ -20,6 +20,7 @@ import ExpiredValidateCodeModal from '../../components/ValidateCode/ExpiredValid
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
+import TfaRequiredModal from '../../components/ValidateCode/TfaRequiredModal';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
@@ -97,10 +98,12 @@ class ValidateLoginPage extends Component {
     }
 
     render() {
+        const isTfaRequired = lodashGet(this.props, 'account.requiresTwoFactorAuth', false);
         return (
             <>
                 {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
-                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && <AbracadabraModal />}
+                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && !isTfaRequired && <AbracadabraModal />}
+                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isTfaRequired && <TfaRequiredModal />}
                 {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.NOT_STARTED  && <ValidateCodeModal accountID={this.getAccountID()} code={this.getValidateCode()} />}
                 {this.getAutoAuthState() == CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
             </>
