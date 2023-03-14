@@ -10,6 +10,7 @@ import Navigation from '../libs/Navigation/Navigation';
 import OptionsSelector from '../components/OptionsSelector';
 import themeColors from '../styles/themes/default';
 import * as Expensicons from '../components/Icon/Expensicons';
+import CONST from '../CONST';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -87,7 +88,7 @@ class YearPickerPage extends React.Component {
                 <OptionsSelector
                     textInputLabel={this.props.translate('yearPickerPage.selectYear')}
                     onChangeText={this.filterYearList}
-                    keyboardType="number-pad"
+                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                     value={this.state.inputText}
                     sections={[{data: this.state.yearOptions, indexOffset: 0}]}
                     onSelectRow={option => this.updateSelectedYear(option.value)}
