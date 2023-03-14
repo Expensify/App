@@ -378,8 +378,14 @@ function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
     }, {optimisticData, successData, failureData});
 }
 
-function initAutoAuthState() {
-    Onyx.merge(ONYXKEYS.SESSION, {autoAuthState: CONST.AUTO_AUTH_STATE.NOT_STARTED});
+function initAutoAuthState(cachedAutoAuthState) {
+    Onyx.merge(
+        ONYXKEYS.SESSION,
+        {
+            autoAuthState: cachedAutoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN ?
+                CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN : CONST.AUTO_AUTH_STATE.NOT_STARTED
+        }
+    );
 }
 
 /**

@@ -51,7 +51,7 @@ class ValidateLoginPage extends Component {
             return;
         }
 
-        Session.initAutoAuthState();
+        Session.initAutoAuthState(lodashGet(this.props, 'session.autoAuthState', null));
 
         // Sign in if
         // - The user is on the passwordless beta
@@ -99,6 +99,7 @@ class ValidateLoginPage extends Component {
                         code={this.getValidateCode()}
                     />
                 )}
+                {this.getAutoAuthState() == CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
             </>
         );
     }
