@@ -633,6 +633,7 @@ export default {
         toValidateLogin: ({primaryLogin, secondaryLogin}) => `To validate ${secondaryLogin}, please resend the magic code from the Account Settings of ${primaryLogin}.`,
         noLongerHaveAccess: ({primaryLogin}) => `If you no longer have access to ${primaryLogin}, please unlink your accounts.`,
         unlink: 'Unlink',
+        linkSent: 'Link sent!',
     },
     detailsPage: {
         localTime: 'Local time',
