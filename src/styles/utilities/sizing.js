@@ -8,6 +8,10 @@ export default {
         height: '100%',
     },
 
+    w15: {
+        width: '15%',
+    },
+
     w20: {
         width: '20%',
     },

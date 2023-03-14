@@ -25,6 +25,7 @@ import {withNetwork} from '../../../components/OnyxProvider';
 import networkPropTypes from '../../../components/networkPropTypes';
 import * as User from '../../../libs/actions/User';
 import FormHelpMessage from '../../../components/FormHelpMessage';
+import MagicCodeInput from '../../../components/MagicCodeInput';
 import Terms from '../Terms';
 
 const propTypes = {
@@ -206,7 +207,7 @@ class BaseValidateCodeForm extends React.Component {
                     </View>
                 ) : (
                     <View style={[styles.mv3]}>
-                        <TextInput
+                        <MagicCodeInput
                             autoComplete={this.props.autoComplete}
                             textContentType="oneTimeCode"
                             ref={el => this.inputValidateCode = el}
@@ -216,8 +217,6 @@ class BaseValidateCodeForm extends React.Component {
                             value={this.state.validateCode}
                             onChangeText={text => this.onTextInput(text, 'validateCode')}
                             onSubmitEditing={this.validateAndSubmitForm}
-                            blurOnSubmit={false}
-                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             errorText={this.state.formError.validateCode ? this.props.translate(this.state.formError.validateCode) : ''}
                             autoFocus
                         />

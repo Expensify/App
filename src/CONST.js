@@ -537,6 +537,8 @@ const CONST = {
         EMAIL: 'email',
     },
 
+    MAGIC_CODE_NUMBERS: 6,
+
     KEYBOARD_TYPE: {
         PHONE_PAD: 'phone-pad',
         NUMBER_PAD: 'number-pad',
