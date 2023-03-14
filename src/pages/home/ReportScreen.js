@@ -33,6 +33,7 @@ import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -51,7 +52,7 @@ const propTypes = {
     report: reportPropTypes,
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
@@ -224,7 +225,7 @@ class ReportScreen extends React.Component {
                     )}
                 >
                     <FullPageNotFoundView
-                        shouldShow={!this.props.report.reportID && !isLoading}
+                        shouldShow={!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading}
                         subtitleKey="notFound.noAccess"
                         shouldShowCloseButton={false}
                         shouldShowBackButton={this.props.isSmallScreenWidth}
@@ -332,6 +333,7 @@ export default compose(
         reportActions: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
             canEvict: false,
+            selector: ReportActionsUtils.getSortedReportActionsForDisplay,
         },
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,

@@ -4,6 +4,7 @@ import BankAccount from './models/BankAccount';
 import * as Expensicons from '../components/Icon/Expensicons';
 import getBankIcon from '../components/Icon/BankIcons';
 import CONST from '../CONST';
+import * as Localize from './Localize';
 
 /**
  * Check to see if user has either a debit card or personal bank account added
@@ -25,6 +26,24 @@ function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
 }
 
 /**
+ * @param {String} [accountType] - one of {'bankAccount', 'debitCard', 'payPalMe'}
+ * @param {Object} account
+ * @returns {String}
+ */
+function getPaymentMethodDescription(accountType, account) {
+    if (accountType === CONST.PAYMENT_METHODS.PAYPAL) {
+        return account.username;
+    }
+    if (accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+        return `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber.slice(-4)}`;
+    }
+    if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+        return `${Localize.translateLocal('paymentMethodList.cardLastFour')} ${account.cardNumber.slice(-4)}`;
+    }
+    return '';
+}
+
+/**
  * Get the PaymentMethods list
  * @param {Array} bankAccountList
  * @param {Array} cardList
@@ -43,6 +62,7 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null) {
         const {icon, iconSize} = getBankIcon(lodashGet(bankAccount, 'accountData.additionalData.bankName', ''));
         combinedPaymentMethods.push({
             ...bankAccount,
+            description: getPaymentMethodDescription(bankAccount.accountType, bankAccount.accountData),
             icon,
             iconSize,
             errors: bankAccount.errors,
@@ -54,6 +74,7 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null) {
         const {icon, iconSize} = getBankIcon(lodashGet(card, 'accountData.bank', ''), true);
         combinedPaymentMethods.push({
             ...card,
+            description: getPaymentMethodDescription(card.accountType, card.accountData),
             icon,
             iconSize,
             errors: card.errors,
@@ -64,6 +85,7 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null) {
     if (!_.isEmpty(payPalMeData)) {
         combinedPaymentMethods.push({
             ...payPalMeData,
+            description: getPaymentMethodDescription(payPalMeData.accountType, payPalMeData.accountData),
             icon: Expensicons.PayPal,
         });
     }
@@ -86,6 +108,7 @@ function calculateWalletTransferBalanceFee(currentBalance, methodType) {
 
 export {
     hasExpensifyPaymentMethod,
+    getPaymentMethodDescription,
     formatPaymentMethods,
     calculateWalletTransferBalanceFee,
 };

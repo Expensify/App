@@ -117,7 +117,15 @@ const AddressSearch = (props) => {
             sublocality: 'long_name',
             postal_code: 'long_name',
             administrative_area_level_1: 'short_name',
-            country: 'long_name',
+            country: 'short_name',
+        });
+
+        // The state's iso code (short_name) is needed for the StatePicker component but we also
+        // need the state's full name (long_name) when we render the state in a TextInput.
+        const {
+            administrative_area_level_1: longStateName,
+        } = GooglePlacesUtils.getAddressComponents(addressComponents, {
+            administrative_area_level_1: 'long_name',
         });
 
         const values = {
@@ -128,6 +136,12 @@ const AddressSearch = (props) => {
             country: '',
         };
 
+        // If the address is not in the US, use the full length state name since we're displaying the address's
+        // state / province in a TextInput instead of in a picker.
+        if (country !== CONST.COUNTRY.US) {
+            values.state = longStateName;
+        }
+
         const street = `${streetNumber} ${streetName}`.trim();
         if (street && street.length >= values.street.length) {
             // We are only passing the street number and name if the combined length is longer than the value
@@ -137,7 +151,8 @@ const AddressSearch = (props) => {
             values.street = street;
         }
 
-        if (_.includes(CONST.ALL_COUNTRIES, country)) {
+        const isValidCountryCode = lodashGet(CONST.ALL_COUNTRIES, country);
+        if (isValidCountryCode) {
             values.country = country;
         }
 
