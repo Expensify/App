@@ -195,7 +195,7 @@ class DebitCardPage extends Component {
                             <Text>
                                 {`${this.props.translate('common.iAcceptThe')}`}
                                 <TextLink href="https://use.expensify.com/terms">
-                                    {`${this.props.translate('addDebitCardPage.expensifyTermsOfService')}`}
+                                    {`${this.props.translate('common.expensifyTermsOfService')}`}
                                 </TextLink>
                             </Text>
                         )}
