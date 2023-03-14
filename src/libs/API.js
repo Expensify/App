@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import {Platform} from 'react-native';
 import * as Request from './Request';
 import * as SequentialQueue from './Network/SequentialQueue';
 import pkg from '../../package.json';
@@ -79,6 +80,7 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
         ...apiCommandParameters,
         appversion: pkg.version,
         apiRequestType,
+        ecashPlatform: Platform.OS,
     };
 
     // Assemble all the request data we'll be storing
