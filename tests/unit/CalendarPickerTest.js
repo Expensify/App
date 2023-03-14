@@ -79,8 +79,8 @@ describe('CalendarPicker', () => {
 
     test('should block the back arrow when there is no available dates in the previous month', () => {
         const minDate = new Date('2003-02-01');
-        const maxDate = new Date('2003-02-17');
-        const {getByTestId} = render(<MockedCalendarPicker minDate={minDate} value={maxDate} />);
+        const value = new Date('2003-02-17');
+        const {getByTestId} = render(<MockedCalendarPicker minDate={minDate} value={value} />);
 
         expect(getByTestId('prev-month-arrow')).toBeDisabled();
     });
@@ -111,7 +111,7 @@ describe('CalendarPicker', () => {
     });
 
     test('should open the calendar on a month from min date if it is later than current month', () => {
-        const minDate = new Date('2023-02-16');
+        const minDate = new Date('2035-02-16');
         const maxDate = new Date('2040-02-16');
         const {getByTestId} = render(<MockedCalendarPicker minDate={minDate} maxDate={maxDate} />);
 
