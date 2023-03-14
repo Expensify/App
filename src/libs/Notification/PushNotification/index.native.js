@@ -6,6 +6,7 @@ import Log from '../../Log';
 import NotificationType from './NotificationType';
 import * as PushNotification from '../../actions/PushNotification';
 import ONYXKEYS from '../../../ONYXKEYS';
+import * as Report from '../../actions/Report';
 
 let isUserOptedInToPushNotifications = false;
 Onyx.connect({
@@ -105,6 +106,26 @@ function init() {
         iOS.ForegroundPresentationOption.Sound,
         iOS.ForegroundPresentationOption.Badge,
     ]);
+
+    // Control when we should show notifications
+    Airship.push.android.setForegroundDisplayPredicate((payload) => {
+        let pushData = {};
+        try {
+            pushData = JSON.parse(payload.extras.payload);
+        } catch (error) {
+            Log.hmmm('[PushNotification] Failed to parse payload for push notification', {error, payload: payload.extras.payload});
+            return;
+        }
+
+        if (!pushData.reportID || !pushData.reportAction) {
+            Log.info('[PushNotification] Not a report action notification. Showing...', {reportID: pushData.reportID, reportAction: pushData.reportAction});
+            return Promise.resolve(true);
+        }
+
+        const shouldShow = Report.shouldShowReportActionNotification(String(pushData.reportID), pushData.reportAction);
+        Log.info(`[PushNotification] ${shouldShow ? 'Showing' : 'Not showing'} notification`);
+        return Promise.resolve(shouldShow);
+    });
 }
 
 /**
