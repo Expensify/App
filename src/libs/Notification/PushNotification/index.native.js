@@ -31,21 +31,21 @@ function pushNotificationEventCallback(eventType, notification) {
         payload = JSON.parse(payload);
     }
 
-    Log.info(`[PUSH_NOTIFICATION] Callback triggered for ${eventType}`);
+    Log.info(`[PushNotification] Callback triggered for ${eventType}`);
 
     if (!payload) {
-        Log.warn('[PUSH_NOTIFICATION] Notification has null or undefined payload, not executing any callback.');
+        Log.warn('[PushNotification] Notification has null or undefined payload, not executing any callback.');
         return;
     }
 
     if (!payload.type) {
-        Log.warn('[PUSH_NOTIFICATION] No type value provided in payload, not executing any callback.');
+        Log.warn('[PushNotification] No type value provided in payload, not executing any callback.');
         return;
     }
 
     const action = actionMap[payload.type];
     if (!action) {
-        Log.warn('[PUSH_NOTIFICATION] No callback set up: ', {
+        Log.warn('[PushNotification] No callback set up: ', {
             event: eventType,
             notificationType: payload.type,
         });
@@ -146,12 +146,12 @@ function register(accountID) {
                 return;
             }
 
-            Log.info('[PUSH_NOTIFICATIONS] User has disabled visible push notifications for this app.');
+            Log.info('[PushNotification] User has disabled visible push notifications for this app.');
         });
 
     // Register this device as a named user in AirshipAPI.
     // Regardless of the user's opt-in status, we still want to receive silent push notifications.
-    Log.info(`[PUSH_NOTIFICATIONS] Subscribing to notifications for account ID ${accountID}`);
+    Log.info(`[PushNotification] Subscribing to notifications for account ID ${accountID}`);
     Airship.contact.identify(accountID.toString());
 
     // Refresh notification opt-in status NVP for the new user.
@@ -162,7 +162,7 @@ function register(accountID) {
  * Deregister this device from push notifications.
  */
 function deregister() {
-    Log.info('[PUSH_NOTIFICATIONS] Unsubscribing from push notifications.');
+    Log.info('[PushNotification] Unsubscribing from push notifications.');
     Airship.contact.reset();
     Airship.removeAllListeners(EventType.PushReceived);
     Airship.removeAllListeners(EventType.NotificationResponse);
