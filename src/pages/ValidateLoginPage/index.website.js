@@ -56,11 +56,9 @@ class ValidateLoginPage extends Component {
         }
         Session.initAutoAuthState(cachedAutoAuthState);
 
-        // Sign in if
-        // - The user is on the passwordless beta
-        // - AND the user is not authenticated
-        // - AND the user has initiated the sign in process in another tab
         if (!isSignedIn && login) {
+
+            // The user has initiated the sign in process on the same browser, in another tab.
             Session.signInWithValidateCode(this.getAccountID(), this.getValidateCode());
         }
     }
