@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/core';
 import {StackRouter} from '@react-navigation/routers';
@@ -13,11 +13,35 @@ const propTypes = {
 // eslint-disable-next-line react/destructuring-assignment
 const CustomRootStackNavigator = ({
     children,
+    screenListeners,
     ...rest
 }) => {
     const {state, navigation, descriptors} = useNavigationBuilder(StackRouter, {
-        children,
+        children, screenListeners,
     });
+    console.log('CustomRootStackNavigator rest', rest);
+    console.log('CustomRootStackNavigator rest', rest);
+
+    useEffect(() => {
+        console.log('CustomRootStackNavigator screenListeners state', navigation);
+        // This navigation doesn't have addListener!!!
+        // const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', (event) => {
+        //     console.log('CustomRootStackNavigator transitionEnd event');
+        // });
+        // const unsubscribeTransitionStart = navigation.addListener('transitionStart', (event) => {
+        //     console.log('CustomRootStackNavigator transitionStart event');
+        // });
+        // return () => {
+        //     if (unsubscribeTransitionEnd) {
+        //         console.log('CustomRootStackNavigator unsuscribing from transitioEnd event');
+        //         unsubscribeTransitionEnd();
+        //     }
+        //     if (unsubscribeTransitionStart) {
+        //         console.log('CustomRootStackNavigator unsuscribing from transitionStart event');
+        //         unsubscribeTransitionStart();
+        //     }
+        // };
+    }, [navigation]);
     const topScreen = _.last(_.values(descriptors));
     const isDisplayingModal = Boolean(topScreen.options.isModal);
     const isDisplayingFullScreenModal = Boolean(topScreen.options.isFullScreenModal);

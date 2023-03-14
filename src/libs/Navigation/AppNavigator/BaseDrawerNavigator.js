@@ -70,6 +70,14 @@ class BaseDrawerNavigator extends Component {
         // When logging into NewDot first, then navigating from OldDot to NewDot with a different account, this component will be remounted.
         // We need to reset the isDrawerReady promise so that we can delay the call to dismissModal until the drawer is really ready.
         Navigation.resetDrawerIsReadyPromise();
+        if (this.unsubscribeTransitionEnd) {
+            console.log('Drawer.Navigator unsuscribing from transitioEnd event');
+            this.unsubscribeTransitionEnd();
+        }
+        if (this.unsubscribeTransitionStart) {
+            console.log('Drawer.Navigator unsuscribing from transitionStart event');
+            this.unsubscribeTransitionStart();
+        }
     }
 
     render() {
@@ -88,6 +96,21 @@ class BaseDrawerNavigator extends Component {
                         this.props.isSmallScreenWidth,
                     ),
                     swipeEdgeWidth: 500,
+                }}
+                screenListeners={({navigation}) => {
+                    console.log('Drawer.Navigator screenListeners navigation');
+                    if (!this.unsubscribeTransitionEnd) {
+                        console.log('Drawer.Navigator adding unsubscribeTransitionEnd');
+                        this.unsubscribeTransitionEnd = navigation.addListener('transitionEnd', (event) => {
+                            console.log('Drawer.Navigator transitionEnd event');
+                        });
+                    }
+                    if (!this.unsubscribeTransitionStart) {
+                        console.log('Drawer.Navigator adding unsubscribeTransitionStart');
+                        this.unsubscribeTransitionStart = navigation.addListener('transitionStart', (event) => {
+                            console.log('Drawer.Navigator transitionStart event');
+                        });
+                    }
                 }}
             >
                 {_.map(this.props.screens, screen => (

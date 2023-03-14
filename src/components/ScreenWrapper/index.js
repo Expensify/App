@@ -39,10 +39,12 @@ class ScreenWrapper extends React.Component {
         }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
 
         this.unsubscribeTransitionStart = this.props.navigation.addListener('transitionStart', () => {
+            console.log('ScreenWrapper processing transitionStart event');
             Navigation.setIsNavigating(true);
         });
 
         this.unsubscribeTransitionEnd = this.props.navigation.addListener('transitionEnd', (event) => {
+            console.log('ScreenWrapper processing transitionEnd event');
             Navigation.setIsNavigating(false);
 
             // Prevent firing the prop callback when user is exiting the page.
@@ -83,9 +85,12 @@ class ScreenWrapper extends React.Component {
             this.unsubscribeEscapeKey();
         }
         if (this.unsubscribeTransitionEnd) {
+            console.log('ScreenWrapper unsuscribing from transitioEnd event');
+            // Navigation.setIsNavigating(false);
             this.unsubscribeTransitionEnd();
         }
         if (this.unsubscribeTransitionStart) {
+            console.log('ScreenWrapper unsuscribing from transitionStart event');
             this.unsubscribeTransitionStart();
         }
         if (this.beforeRemoveSubscription) {
