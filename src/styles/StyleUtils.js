@@ -418,13 +418,13 @@ function getModalPaddingStyles({
     modalContainerStyleMarginBottom,
     modalContainerStylePaddingTop,
     modalContainerStylePaddingBottom,
-    statusBarTranslucent,
+    shouldAddStatusBarPaddingTop,
     statusBarHeight,
 }) {
     let paddingTop = shouldAddTopSafeAreaPadding
         ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
         : modalContainerStylePaddingTop || 0;
-    if (statusBarTranslucent) {
+    if (shouldAddStatusBarPaddingTop) {
         paddingTop += statusBarHeight;
     }
     return {
