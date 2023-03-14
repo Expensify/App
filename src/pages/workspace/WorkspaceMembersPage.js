@@ -153,18 +153,13 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     /**
-     * Add or remove all users from the selectedEmployees list
+     * Add or remove all users passed from the selectedEmployees list
      * @param {Object} memberList
      */
     toggleAllUsers(memberList) {
-        // If a memberList is provided, only select those members. Otherwise, select all the policy ones
-        let policyMemberList = _.isEmpty(memberList) ? lodashGet(this.props, 'policyMemberList', {}) : memberList;
-
-        policyMemberList = _.filter(_.keys(policyMemberList), policyMember => policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
         this.setState(prevState => ({
-            selectedEmployees: !_.every(removableMembers, member => _.contains(prevState.selectedEmployees, member))
-                ? removableMembers
+            selectedEmployees: !_.every(memberList, member => _.contains(prevState.selectedEmployees, member))
+                ? memberList
                 : [],
         }), () => this.validate());
     }
