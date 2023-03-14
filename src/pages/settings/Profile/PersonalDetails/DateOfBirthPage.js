@@ -13,6 +13,7 @@ import styles from '../../../../styles/styles';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
+import * as ErrorUtils from '../../../../libs/ErrorUtils';
 import DatePicker from '../../../../components/DatePicker';
 
 const propTypes = {
@@ -57,16 +58,16 @@ class DateOfBirthPage extends Component {
      * @returns {Object} - An object containing the errors for each inputID
      */
     validate(values) {
-        const errors = {};
+        let errors = {};
         const minimumAge = 5;
         const maximumAge = 150;
 
         if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
-            errors.dob = this.props.translate('common.error.fieldRequired');
+            errors = ErrorUtils.addErrorMessage(errors, 'dob', this.props.translate('common.error.fieldRequired'));
         }
         const dateError = ValidationUtils.getAgeRequirementError(values.dob, minimumAge, maximumAge);
         if (dateError) {
-            errors.dob = dateError;
+            errors = ErrorUtils.addErrorMessage(errors, 'dob', dateError);
         }
 
         return errors;

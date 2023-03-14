@@ -12,6 +12,7 @@ import TextLink from '../../components/TextLink';
 import IdentityForm from './IdentityForm';
 import withLocalize from '../../components/withLocalize';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import * as ValidationUtils from '../../libs/ValidationUtils';
@@ -48,7 +49,7 @@ class ACHContractStep extends React.Component {
      * @returns {Object}
      */
     validate(values) {
-        const errors = {};
+        let errors = {};
 
         const errorKeys = {
             street: 'address',
@@ -62,24 +63,24 @@ class ACHContractStep extends React.Component {
                 _.each(requiredFields, (inputKey) => {
                     if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner_${ownerKey}_${inputKey}`])) {
                         const errorKey = errorKeys[inputKey] || inputKey;
-                        errors[`beneficialOwner_${ownerKey}_${inputKey}`] = this.props.translate(`bankAccount.error.${errorKey}`);
+                        errors = ErrorUtils.addErrorMessage(errors, `beneficialOwner_${ownerKey}_${inputKey}`, this.props.translate(`bankAccount.error.${errorKey}`));
                     }
                 });
 
                 if (values[`beneficialOwner_${ownerKey}_dob`] && !ValidationUtils.meetsAgeRequirements(values[`beneficialOwner_${ownerKey}_dob`])) {
-                    errors[`beneficialOwner_${ownerKey}_dob`] = this.props.translate('bankAccount.error.age');
+                    errors = ErrorUtils.addErrorMessage(errors, `beneficialOwner_${ownerKey}_dob`, this.props.translate('bankAccount.error.age'));
                 }
 
                 if (values[`beneficialOwner_${ownerKey}_ssnLast4`] && !ValidationUtils.isValidSSNLastFour(values[`beneficialOwner_${ownerKey}_ssnLast4`])) {
-                    errors[`beneficialOwner_${ownerKey}_ssnLast4`] = this.props.translate('bankAccount.error.ssnLast4');
+                    errors = ErrorUtils.addErrorMessage(errors, `beneficialOwner_${ownerKey}_ssnLast4`, this.props.translate('bankAccount.error.ssnLast4'));
                 }
 
                 if (values[`beneficialOwner_${ownerKey}_street`] && !ValidationUtils.isValidAddress(values[`beneficialOwner_${ownerKey}_street`])) {
-                    errors[`beneficialOwner_${ownerKey}_street`] = this.props.translate('bankAccount.error.addressStreet');
+                    errors = ErrorUtils.addErrorMessage(errors, `beneficialOwner_${ownerKey}_street`, this.props.translate('bankAccount.error.addressStreet'));
                 }
 
                 if (values[`beneficialOwner_${ownerKey}_zipCode`] && !ValidationUtils.isValidZipCode(values[`beneficialOwner_${ownerKey}_zipCode`])) {
-                    errors[`beneficialOwner_${ownerKey}_zipCode`] = this.props.translate('bankAccount.error.zipCode');
+                    errors = ErrorUtils.addErrorMessage(errors, `beneficialOwner_${ownerKey}_zipCode`, this.props.translate('bankAccount.error.zipCode'));
                 }
             });
         }

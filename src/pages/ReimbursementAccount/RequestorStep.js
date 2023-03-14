@@ -13,6 +13,7 @@ import Text from '../../components/Text';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import IdentityForm from './IdentityForm';
 import * as ValidationUtils from '../../libs/ValidationUtils';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 import ONYXKEYS from '../../ONYXKEYS';
 import RequestorOnfidoStep from './RequestorOnfidoStep';
 import Form from '../../components/Form';
@@ -39,7 +40,7 @@ class RequestorStep extends React.Component {
      * @returns {Object}
      */
     validate(values) {
-        const errors = {};
+        let errors = {};
 
         if (!ValidationUtils.isRequiredFulfilled(values.firstName)) {
             errors.firstName = this.props.translate('bankAccount.error.firstName');
@@ -50,11 +51,11 @@ class RequestorStep extends React.Component {
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.dob)) {
-            errors.dob = this.props.translate('bankAccount.error.dob');
+            errors = ErrorUtils.addErrorMessage(errors, 'dob', this.props.translate('bankAccount.error.dob'));
         }
 
         if (values.dob && !ValidationUtils.meetsAgeRequirements(values.dob)) {
-            errors.dob = this.props.translate('bankAccount.error.age');
+            errors = ErrorUtils.addErrorMessage(errors, 'dob', this.props.translate('bankAccount.error.age'));
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.ssnLast4) || !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
@@ -62,11 +63,11 @@ class RequestorStep extends React.Component {
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressStreet)) {
-            errors.requestorAddressStreet = this.props.translate('bankAccount.error.address');
+            errors = ErrorUtils.addErrorMessage(errors, 'requestorAddressStreet', this.props.translate('bankAccount.error.address'));
         }
 
         if (values.requestorAddressStreet && !ValidationUtils.isValidAddress(values.requestorAddressStreet)) {
-            errors.requestorAddressStreet = this.props.translate('bankAccount.error.addressStreet');
+            errors = ErrorUtils.addErrorMessage(errors, 'requestorAddressStreet', this.props.translate('bankAccount.error.addressStreet'));
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressCity)) {

@@ -19,6 +19,7 @@ import Text from '../components/Text';
 import RoomNameInput from '../components/RoomNameInput';
 import Picker from '../components/Picker';
 import * as ValidationUtils from '../libs/ValidationUtils';
+import * as ErrorUtils from '../libs/ErrorUtils';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import reportPropTypes from './reportPropTypes';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
@@ -109,7 +110,7 @@ class ReportSettingsPage extends Component {
      * @returns {Boolean}
      */
     validate(values) {
-        const errors = {};
+        let errors = {};
 
         // We should skip validation hence we return an empty errors and we skip Form submission on the onSubmit method
         if (values.newRoomName === this.props.report.reportName) {
@@ -119,16 +120,22 @@ class ReportSettingsPage extends Component {
         // The following validations are ordered by precedence.
         // First priority: We error if the user doesn't enter a room name or left blank
         if (!values.newRoomName || values.newRoomName === CONST.POLICY.ROOM_PREFIX) {
-            errors.newRoomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
-        } else if (ValidationUtils.isReservedRoomName(values.newRoomName)) {
+            errors = ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.pleaseEnterRoomName'));
+        }
+
+        if (ValidationUtils.isReservedRoomName(values.newRoomName)) {
             // Second priority: Certain names are reserved for default rooms and should not be used for policy rooms.
-            errors.newRoomName = this.props.translate('newRoomPage.roomNameReservedError');
-        } else if (ValidationUtils.isExistingRoomName(values.newRoomName, this.props.reports, this.props.report.policyID)) {
+            errors = ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomNameReservedError'));
+        }
+
+        if (ValidationUtils.isExistingRoomName(values.newRoomName, this.props.reports, this.props.report.policyID)) {
             // Third priority: Show error if the room name already exists
-            errors.newRoomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
-        } else if (!ValidationUtils.isValidRoomName(values.newRoomName)) {
+            errors = ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomAlreadyExistsError'));
+        }
+
+        if (!ValidationUtils.isValidRoomName(values.newRoomName)) {
             // Fourth priority: We error if the room name has invalid characters
-            errors.newRoomName = this.props.translate('newRoomPage.roomNameInvalidError');
+            errors = ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomNameInvalidError'));
         }
 
         return errors;

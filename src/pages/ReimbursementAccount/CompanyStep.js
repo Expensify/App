@@ -19,6 +19,7 @@ import withLocalize from '../../components/withLocalize';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
 import compose from '../../libs/compose';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 import ONYXKEYS from '../../ONYXKEYS';
 import Picker from '../../components/Picker';
 import AddressForm from './AddressForm';
@@ -63,7 +64,7 @@ class CompanyStep extends React.Component {
      * @returns {Object} - Object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
     validate(values) {
-        const errors = {};
+        let errors = {};
 
         if (!values.companyName) {
             errors.companyName = this.props.translate('bankAccount.error.companyName');
@@ -102,9 +103,11 @@ class CompanyStep extends React.Component {
         }
 
         if (!values.incorporationDate || !ValidationUtils.isValidDate(values.incorporationDate)) {
-            errors.incorporationDate = this.props.translate('common.error.dateInvalid');
-        } else if (!values.incorporationDate || !ValidationUtils.isValidPastDate(values.incorporationDate)) {
-            errors.incorporationDate = this.props.translate('bankAccount.error.incorporationDateFuture');
+            errors = ErrorUtils.addErrorMessage(errors, 'incorporationDate', this.props.translate('common.error.dateInvalid'));
+        }
+
+        if (!values.incorporationDate || !ValidationUtils.isValidPastDate(values.incorporationDate)) {
+            errors = ErrorUtils.addErrorMessage(errors, 'incorporationDate', this.props.translate('bankAccount.error.incorporationDateFuture'));
         }
 
         if (!values.incorporationState) {

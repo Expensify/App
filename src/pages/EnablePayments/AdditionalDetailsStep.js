@@ -18,6 +18,7 @@ import TextInput from '../../components/TextInput';
 import * as Wallet from '../../libs/actions/Wallet';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 import AddressForm from '../ReimbursementAccount/AddressForm';
 import DatePicker from '../../components/DatePicker';
 import Form from '../../components/Form';
@@ -114,7 +115,7 @@ class AdditionalDetailsStep extends React.Component {
      * @returns {Object}
      */
     validate(values) {
-        const errors = {};
+        let errors = {};
 
         if (_.isEmpty(values[INPUT_IDS.LEGAL_FIRST_NAME])) {
             errors[INPUT_IDS.LEGAL_FIRST_NAME] = this.props.translate(this.errorTranslationKeys.legalFirstName);
@@ -125,11 +126,11 @@ class AdditionalDetailsStep extends React.Component {
         }
 
         if (!ValidationUtils.isValidPastDate(values[INPUT_IDS.DOB])) {
-            errors[INPUT_IDS.DOB] = this.props.translate(this.errorTranslationKeys.dob);
+            errors = ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, this.props.translate(this.errorTranslationKeys.dob));
         }
 
         if (!ValidationUtils.meetsAgeRequirements(values[INPUT_IDS.DOB])) {
-            errors[INPUT_IDS.DOB] = this.props.translate(this.errorTranslationKeys.age);
+            errors = ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, this.props.translate(this.errorTranslationKeys.age));
         }
 
         if (!ValidationUtils.isValidAddress(values[INPUT_IDS.ADDRESS.street]) || _.isEmpty(values[INPUT_IDS.ADDRESS.street])) {
@@ -156,10 +157,10 @@ class AdditionalDetailsStep extends React.Component {
         // then the user needs to provide the full 9 digit SSN.
         if (this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
             if (!ValidationUtils.isValidSSNFullNine(values[INPUT_IDS.SSN])) {
-                errors[INPUT_IDS.SSN] = this.props.translate(this.errorTranslationKeys.ssnFull9);
+                errors = ErrorUtils.addErrorMessage(errors, INPUT_IDS.SSN, this.props.translate(this.errorTranslationKeys.ssnFull9));
             }
         } else if (!ValidationUtils.isValidSSNLastFour(values[INPUT_IDS.SSN])) {
-            errors[INPUT_IDS.SSN] = this.props.translate(this.errorTranslationKeys.ssn);
+            errors = ErrorUtils.addErrorMessage(errors, INPUT_IDS.SSN, this.props.translate(this.errorTranslationKeys.ssn));
         }
 
         return errors;
