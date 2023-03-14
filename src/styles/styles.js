@@ -3052,6 +3052,9 @@ const styles = {
         width: '100%',
     },
 
+    illustratedPageHeader: {
+        height: 220,
+    },
 };
 
 export default styles;
