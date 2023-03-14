@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {
@@ -50,18 +49,18 @@ class ValidateLoginPage extends Component {
         const cachedAutoAuthState = lodashGet(this.props, 'session.autoAuthState', null);
         const login = lodashGet(this.props, 'credentials.login', null);
         if (!login && isSignedIn && cachedAutoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN) {
-
             // The user clicked the option to sign in the current tab
             Navigation.navigate(ROUTES.REPORT);
             return;
         }
         Session.initAutoAuthState(cachedAutoAuthState);
 
-        if (!isSignedIn && login) {
-
-            // The user has initiated the sign in process on the same browser, in another tab.
-            Session.signInWithValidateCode(this.getAccountID(), this.getValidateCode());
+        if (isSignedIn || !login) {
+            return;
         }
+
+        // The user has initiated the sign in process on the same browser, in another tab.
+        Session.signInWithValidateCode(this.getAccountID(), this.getValidateCode());
     }
 
     componentDidUpdate() {
@@ -70,7 +69,6 @@ class ValidateLoginPage extends Component {
             && lodashGet(this.props, 'credentials.accountID', null)
             && lodashGet(this.props, 'account.requiresTwoFactorAuth', false)
         ) {
-
             // The user clicked the option to sign in the current tab
             Navigation.navigate(ROUTES.REPORT);
         }
@@ -93,7 +91,7 @@ class ValidateLoginPage extends Component {
     /**
      * @returns {String}
      */
-    getValidateCode(){
+    getValidateCode() {
         return lodashGet(this.props.route.params, 'validateCode', '');
     }
 
@@ -104,8 +102,8 @@ class ValidateLoginPage extends Component {
                 {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
                 {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && !isTfaRequired && <AbracadabraModal />}
                 {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isTfaRequired && <TfaRequiredModal />}
-                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.NOT_STARTED  && <ValidateCodeModal accountID={this.getAccountID()} code={this.getValidateCode()} />}
-                {this.getAutoAuthState() == CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
+                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.NOT_STARTED && <ValidateCodeModal accountID={this.getAccountID()} code={this.getValidateCode()} />}
+                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
             </>
         );
     }

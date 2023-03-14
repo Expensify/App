@@ -3004,52 +3004,6 @@ const styles = {
         justifyContent: 'space-between',
     },
 
-    emojiReactionBubble: {
-        paddingVertical: 2,
-        paddingHorizontal: 8,
-        borderRadius: 28,
-        backgroundColor: themeColors.border,
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'row',
-        alignSelf: 'flex-start',
-        marginTop: 8,
-        marginRight: 4,
-    },
-
-    emojiReactionText: {
-        fontSize: 12,
-        lineHeight: 20,
-        textAlignVertical: 'center',
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
-    },
-    reactionCounterText: {
-        fontSize: 11,
-        marginLeft: 4,
-        fontWeight: 'bold',
-        color: themeColors.textLight,
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
-    },
-
-    fontColorReactionLabel: {
-        color: '#586A64',
-    },
-
-    reactionEmojiTitle: {
-        fontSize: variables.iconSizeLarge,
-        lineHeight: variables.iconSizeXLarge,
-    },
-
-    quickReactionsContainer: {
-        gap: 12,
-        flexDirection: 'row',
-        paddingHorizontal: 25,
-        paddingVertical: 12,
-        justifyContent: 'space-between',
-    },
-
     validateCodeDigits: {
         color: themeColors.text,
         fontFamily: fontFamily.EXP_NEUE,
