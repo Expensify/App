@@ -20,7 +20,6 @@ import ExpiredValidateCodeModal from '../../components/ValidateCode/ExpiredValid
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
-import { InteractionManager } from 'react-native';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
@@ -48,7 +47,8 @@ class ValidateLoginPage extends Component {
 
         const isSignedIn = Boolean(lodashGet(this.props, 'session.authToken', null));
         const cachedAutoAuthState = lodashGet(this.props, 'session.autoAuthState', null);
-        if (isSignedIn && cachedAutoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN) {
+        const login = lodashGet(this.props, 'credentials.login', null);
+        if (!login && isSignedIn && cachedAutoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN) {
 
             // The user clicked the option to sign in the current tab
             Navigation.navigate(ROUTES.REPORT);
@@ -60,7 +60,7 @@ class ValidateLoginPage extends Component {
         // - The user is on the passwordless beta
         // - AND the user is not authenticated
         // - AND the user has initiated the sign in process in another tab
-        if (!isSignedIn && lodashGet(this.props, 'credentials.login', null)) {
+        if (!isSignedIn && login) {
             Session.signInWithValidateCode(this.getAccountID(), this.getValidateCode());
         }
     }
@@ -101,7 +101,7 @@ class ValidateLoginPage extends Component {
     render() {
         return (
             <>
-                {this.getAutoAuthState === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
+                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
                 {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && <AbracadabraModal />}
                 {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.NOT_STARTED  && <ValidateCodeModal accountID={this.getAccountID()} code={this.getValidateCode()} />}
                 {this.getAutoAuthState() == CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}

@@ -1,5 +1,4 @@
 import React, {PureComponent} from 'react';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _, {compose} from 'underscore';
 import lodashGet from 'lodash/get';
@@ -15,24 +14,28 @@ import variables from '../../styles/variables';
 import TextLink from '../TextLink';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ErrorUtils from '../../libs/ErrorUtils';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
-
-    /** Whether the user can a new validate code from the current page */
-    shouldShowRequestCodeLink: PropTypes.bool,
-
-    /** Callback to be called when user clicks the request code link */
-    onRequestCodeClick: PropTypes.func,
 
     ...withLocalizePropTypes,
 };
 
-const defaultProps = {
-    shouldShowRequestCodeLink: false,
-    onRequestCodeClick: () => {},
-};
-
 class ExpiredValidateCodeModal extends PureComponent {
+    constructor(props) {
+        super(props);
+
+        this.requestNewCode = this.requestNewCode.bind(this);
+    }
+
+    shouldShowRequestCodeLink() {
+        return Boolean(lodashGet(this.props, 'credentials.login', null));
+    }
+
+    requestNewCode() {
+        Session.resendValidateCode();
+    }
+
     render() {
         const codeRequestedMessage = lodashGet(this.props, 'account.message', null);
         const accountErrors = lodashGet(this.props, 'account.errors', {});
@@ -56,20 +59,20 @@ class ExpiredValidateCodeModal extends PureComponent {
                     <View style={[styles.mt2, styles.mb2]}>
                         <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
                             {this.props.translate('validateCodeModal.expiredCodeDescription')}
-                            {this.props.shouldShowRequestCodeLink && !codeRequestedMessage
+                            {this.shouldShowRequestCodeLink() && !codeRequestedMessage
                                 && (
                                     <>
                                         <br />
                                         {this.props.translate('validateCodeModal.requestNewCode')}
                                         {' '}
-                                        <TextLink onPress={this.props.onRequestCodeClick}>
+                                        <TextLink onPress={this.requestNewCode}>
                                             {this.props.translate('validateCodeModal.requestNewCodeLink')}
                                         </TextLink>
                                         !
                                     </>
                                 )}
                         </Text>
-                        {this.props.shouldShowRequestCodeLink && codeRequestedErrors
+                        {this.shouldShowRequestCodeLink() && codeRequestedErrors
                             && (
                                 <Text style={[styles.textDanger, styles.validateCodeMessage]}>
                                     <br />
@@ -79,7 +82,7 @@ class ExpiredValidateCodeModal extends PureComponent {
 
                                 </Text>
                             )}
-                        {this.props.shouldShowRequestCodeLink && codeRequestedMessage
+                        {this.shouldShowRequestCodeLink() && codeRequestedMessage
                             && (
                                 <Text style={styles.validateCodeMessage}>
                                     <br />
@@ -103,10 +106,10 @@ class ExpiredValidateCodeModal extends PureComponent {
 }
 
 ExpiredValidateCodeModal.propTypes = propTypes;
-ExpiredValidateCodeModal.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
+        credentials: {key: ONYXKEYS.CREDENTIALS},
     }),
 )(ExpiredValidateCodeModal);
