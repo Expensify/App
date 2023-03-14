@@ -20,6 +20,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, innerContain
     let shouldAddBottomSafeAreaPadding = false;
     let shouldAddTopSafeAreaPadding = false;
     let shouldAddStatusBarPaddingTop = false;
+    let shouldAddStatusBarMarginTop = false;
 
     switch (type) {
         case CONST.MODAL.MODAL_TYPE.CONFIRM:
@@ -91,6 +92,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, innerContain
             shouldAddTopSafeAreaPadding = isSmallScreenWidth;
             shouldAddBottomSafeAreaPadding = false;
             shouldAddStatusBarPaddingTop = isSmallScreenWidth;
+            shouldAddStatusBarMarginTop = !isSmallScreenWidth;
             break;
         case CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE:
             // A centered modal that cannot be dismissed with a swipe.
@@ -126,6 +128,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, innerContain
             shouldAddTopSafeAreaPadding = isSmallScreenWidth;
             shouldAddBottomSafeAreaPadding = false;
             shouldAddStatusBarPaddingTop = isSmallScreenWidth;
+            shouldAddStatusBarMarginTop = !isSmallScreenWidth;
             break;
         case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
             modalStyle = {
@@ -208,7 +211,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, innerContain
             swipeDirection = undefined;
             shouldAddBottomSafeAreaPadding = true;
             shouldAddTopSafeAreaPadding = true;
-            shouldAddStatusBarPaddingTop = isSmallScreenWidth;
+            shouldAddStatusBarPaddingTop = true;
             break;
         default:
             modalStyle = {};
@@ -232,5 +235,6 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, innerContain
         shouldAddBottomSafeAreaPadding,
         shouldAddTopSafeAreaPadding,
         shouldAddStatusBarPaddingTop,
+        shouldAddStatusBarMarginTop,
     };
 };

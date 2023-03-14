@@ -80,6 +80,7 @@ class BaseModal extends PureComponent {
             shouldAddBottomSafeAreaPadding,
             hideBackdrop,
             shouldAddStatusBarPaddingTop,
+            shouldAddStatusBarMarginTop,
         } = getModalStyles(
             this.props.type,
             {
@@ -157,6 +158,7 @@ class BaseModal extends PureComponent {
                             modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
                             modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
                             shouldAddStatusBarPaddingTop,
+                            shouldAddStatusBarMarginTop,
                             statusBarHeight,
                         });
                         return (

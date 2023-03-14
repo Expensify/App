@@ -419,16 +419,21 @@ function getModalPaddingStyles({
     modalContainerStylePaddingTop,
     modalContainerStylePaddingBottom,
     shouldAddStatusBarPaddingTop,
+    shoudlAddStatusBarMarginTop,
     statusBarHeight,
 }) {
     let paddingTop = shouldAddTopSafeAreaPadding
         ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
         : modalContainerStylePaddingTop || 0;
+    let marginTop = (modalContainerStyleMarginTop || 0) + (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0);
+    if (shoudlAddStatusBarMarginTop) {
+        marginTop += statusBarHeight;
+    }
     if (shouldAddStatusBarPaddingTop) {
         paddingTop += statusBarHeight;
     }
     return {
-        marginTop: (modalContainerStyleMarginTop || 0) + (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0),
+        marginTop,
         marginBottom: (modalContainerStyleMarginBottom || 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottom : 0),
         paddingTop,
         paddingBottom: shouldAddBottomSafeAreaPadding
