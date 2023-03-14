@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {
     propTypes as validateLinkPropTypes,
@@ -20,6 +20,7 @@ import ExpiredValidateCodeModal from '../../components/ValidateCode/ExpiredValid
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
+import { InteractionManager } from 'react-native';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
@@ -37,12 +38,6 @@ const defaultProps = {
 };
 
 class ValidateLoginPage extends Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {autoAuth: null};
-    }
-
     componentDidMount() {
         // Validate login if
         // - The user is not on passwordless beta
@@ -51,26 +46,40 @@ class ValidateLoginPage extends Component {
             return;
         }
 
-        Session.initAutoAuthState(lodashGet(this.props, 'session.autoAuthState', null));
+        const isSignedIn = Boolean(lodashGet(this.props, 'session.authToken', null));
+        const cachedAutoAuthState = lodashGet(this.props, 'session.autoAuthState', null);
+        if (isSignedIn && cachedAutoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN) {
+
+            // The user clicked the option to sign in the current tab
+            Navigation.navigate(ROUTES.REPORT);
+            return;
+        }
+        Session.initAutoAuthState(cachedAutoAuthState);
 
         // Sign in if
         // - The user is on the passwordless beta
         // - AND the user is not authenticated
         // - AND the user has initiated the sign in process in another tab
-        if (!lodashGet(this.props, 'session.authToken',null) && lodashGet(this.props, 'credentials.login', null)) {
+        if (!isSignedIn && lodashGet(this.props, 'credentials.login', null)) {
             Session.signInWithValidateCode(this.getAccountID(), this.getValidateCode());
-            return;
         }
     }
 
-    componentDidUpdate(prevProps) {
-        if (!lodashGet(this.props, 'credentials.login', null) && lodashGet(this.props, 'credentials.accountID', null)) {
-            
+    componentDidUpdate() {
+        if (
+            !lodashGet(this.props, 'credentials.login', null)
+            && lodashGet(this.props, 'credentials.accountID', null)
+            && lodashGet(this.props, 'account.requiresTwoFactorAuth', false)
+        ) {
+
             // The user clicked the option to sign in the current tab
-            Navigation.navigate(ROUTES.HOME);
+            Navigation.navigate(ROUTES.REPORT);
         }
     }
 
+    /**
+     * @returns {String}
+     */
     getAutoAuthState() {
         return lodashGet(this.props, 'session.autoAuthState', CONST.AUTO_AUTH_STATE.NOT_STARTED);
     }
@@ -94,11 +103,7 @@ class ValidateLoginPage extends Component {
             <>
                 {this.getAutoAuthState === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
                 {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && <AbracadabraModal />}
-                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.NOT_STARTED  && (
-                    <ValidateCodeModal
-                        code={this.getValidateCode()}
-                    />
-                )}
+                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.NOT_STARTED  && <ValidateCodeModal accountID={this.getAccountID()} code={this.getValidateCode()} />}
                 {this.getAutoAuthState() == CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
             </>
         );
@@ -111,6 +116,7 @@ ValidateLoginPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
+        account: {key: ONYXKEYS.ACCOUNT},
         betas: {key: ONYXKEYS.BETAS},
         credentials: {key: ONYXKEYS.CREDENTIALS},
         session: {key: ONYXKEYS.SESSION},
