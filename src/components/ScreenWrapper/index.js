@@ -1,4 +1,4 @@
-import {Keyboard, View} from 'react-native';
+import {Keyboard, Platform, View} from 'react-native';
 import React from 'react';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -133,6 +133,18 @@ class ScreenWrapper extends React.Component {
                                     <OfflineIndicator />
                                 )}
                             </KeyboardAvoidingView>
+                            {Platform.OS === 'android' && Platform.Version < 29 && (
+                                <View
+                                    style={[{
+                                        position: 'absolute',
+                                        left: 0,
+                                        right: 0,
+                                        bottom: 0,
+                                        height: insets.bottom,
+                                        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                                    }]}
+                                />
+                            )}
                         </View>
                     );
                 }}

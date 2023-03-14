@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import {Platform} from 'react-native';
 import CONST from '../CONST';
 import fontFamily from './fontFamily';
 import themeColors from './themes/default';
@@ -387,6 +388,21 @@ function getAnimatedFABStyle(rotate, backgroundColor) {
     return {
         transform: [{rotate}],
         backgroundColor,
+    };
+}
+
+/**
+  * @param {Object} insets
+  * @returns {Object}
+  */
+function getFABContainerStyle(insets) {
+    return {
+        position: 'absolute',
+        right: insets.right + 20,
+
+        // On web the bottom of the floating action button should align with the bottom of the compose box.
+        // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
+        bottom: Platform.OS === 'web' ? 25 : insets.bottom + 20,
     };
 }
 
@@ -867,6 +883,7 @@ export {
     getButtonBackgroundColorStyle,
     getIconFillColor,
     getAnimatedFABStyle,
+    getFABContainerStyle,
     getWidthAndHeightStyle,
     getModalPaddingStyles,
     getFontFamilyMonospace,

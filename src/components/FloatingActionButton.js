@@ -2,6 +2,7 @@ import React, {PureComponent} from 'react';
 import {
     Pressable, Animated, Easing, View,
 } from 'react-native';
+import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -10,6 +11,7 @@ import * as StyleUtils from '../styles/StyleUtils';
 import themeColors from '../styles/themes/default';
 import Tooltip from './Tooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import compose from '../libs/compose';
 
 const AnimatedIcon = Animated.createAnimatedComponent(Icon);
 AnimatedIcon.displayName = 'AnimatedIcon';
@@ -74,7 +76,7 @@ class FloatingActionButton extends PureComponent {
 
         return (
             <Tooltip absolute text={this.props.translate('common.new')}>
-                <View style={styles.floatingActionButtonContainer}>
+                <View style={StyleUtils.getFABContainerStyle(this.props.insets)}>
                     <AnimatedPressable
                         ref={el => this.fabPressable = el}
                         accessibilityLabel={this.props.accessibilityLabel}
@@ -99,4 +101,4 @@ class FloatingActionButton extends PureComponent {
 
 FloatingActionButton.propTypes = propTypes;
 
-export default withLocalize(FloatingActionButton);
+export default compose(withLocalize, withSafeAreaInsets)(FloatingActionButton);

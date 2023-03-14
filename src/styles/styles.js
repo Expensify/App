@@ -1047,15 +1047,6 @@ const styles = {
         },
     },
 
-    floatingActionButtonContainer: {
-        position: 'absolute',
-        right: 20,
-
-        // The bottom of the floating action button should align with the bottom of the compose box.
-        // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
-        bottom: 25,
-    },
-
     floatingActionButton: {
         backgroundColor: themeColors.success,
         height: variables.componentSizeLarge,

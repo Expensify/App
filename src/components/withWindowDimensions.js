@@ -1,7 +1,7 @@
 import React, {forwardRef, createContext, useMemo} from 'react';
 import {Platform, useWindowDimensions} from 'react-native';
 import PropTypes from 'prop-types';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useSafeAreaFrame} from 'react-native-safe-area-context';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import variables from '../styles/variables';
 
@@ -29,26 +29,20 @@ const windowDimensionsProviderPropTypes = {
 };
 
 function WindowDimensionsProvider(props) {
-    const window = useWindowDimensions();
-    const insets = useSafeAreaInsets();
-
+    const window = useSafeAreaFrame();
     const dimensions = useMemo(() => {
-        // On Android the window height does not include the status bar height, so we need to add it manually.
-        const windowHeight = Platform.OS === 'android'
-            ? window.height + insets.top
-            : window.height;
         const isSmallScreenWidth = window.width <= variables.mobileResponsiveWidthBreakpoint;
         const isMediumScreenWidth = window.width > variables.mobileResponsiveWidthBreakpoint
             && window.width <= variables.tabletResponsiveWidthBreakpoint;
         const isLargeScreenWidth = !isSmallScreenWidth && !isMediumScreenWidth;
         return {
-            windowHeight,
+            windowHeight: window.height,
             windowWidth: window.width,
             isSmallScreenWidth,
             isMediumScreenWidth,
             isLargeScreenWidth,
         };
-    }, [window.width, window.height, insets.top]);
+    }, [window.width, window.height]);
 
     return (
         <WindowDimensionsContext.Provider value={dimensions}>
