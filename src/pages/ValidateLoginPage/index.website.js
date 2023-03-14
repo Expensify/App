@@ -65,13 +65,15 @@ class ValidateLoginPage extends Component {
 
     componentDidUpdate() {
         if (
-            !lodashGet(this.props, 'credentials.login', null)
-            && lodashGet(this.props, 'credentials.accountID', null)
-            && lodashGet(this.props, 'account.requiresTwoFactorAuth', false)
+            lodashGet(this.props, 'credentials.login', null)
+            || !lodashGet(this.props, 'credentials.accountID', null)
+            || !lodashGet(this.props, 'account.requiresTwoFactorAuth', false)
         ) {
-            // The user clicked the option to sign in the current tab
-            Navigation.navigate(ROUTES.REPORT);
+            return;
         }
+
+        // The user clicked the option to sign in the current tab
+        Navigation.navigate(ROUTES.REPORT);
     }
 
     /**
