@@ -250,14 +250,14 @@ function getOptionData(reportID) {
         lastMessageTextFromReport = Str.htmlDecode(report ? report.lastMessageText : '');
     }
 
-    // If the last actor details is not in currently saved in the existing details in Onyx,
-    // then we need to get them from the last report info
+    // If the last actor's details are not currently saved in Onyx Collection,
+    // then try to get that from the last report action.
     let lastActorDetails = personalDetails[report.lastActorEmail] || null;
     if (!lastActorDetails && lastReportActions[report.reportID]) {
         const lastActorDisplayName = lodashGet(lastReportActions[report.reportID], 'person[0].text');
         lastActorDetails = lastActorDisplayName ? {
             displayName: lastActorDisplayName,
-            login: lastReportActions[report.reportID].actorEmail,
+            login: report.lastActorEmail,
         } : null;
     }
     let lastMessageText = hasMultipleParticipants && lastActorDetails && (lastActorDetails.login !== currentUserLogin.email)
