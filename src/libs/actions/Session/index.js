@@ -378,6 +378,16 @@ function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
     }, {optimisticData, successData, failureData});
 }
 
+/**
+ * Initializes the state of the automatic authentication when the user clicks on a magic link.
+ * 
+ * This method is called in componentDidMount event of the lifecycle.
+ * When the user gets authenticated, the component is unmounted and then remounted
+ * when AppNavigator switches from PublicScreens to AuthScreens.
+ * That's the reason why autoAuthState initialization is skipped while the last state is SIGNING_IN.
+ * 
+ * @param {string} cachedAutoAuthState 
+ */
 function initAutoAuthState(cachedAutoAuthState) {
     Onyx.merge(
         ONYXKEYS.SESSION,
