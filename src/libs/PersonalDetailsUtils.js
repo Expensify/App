@@ -16,7 +16,7 @@ Onyx.connect({
  * @param {Array<string>} accountIDs  - Array of accountIDs
  * @returns {Array} - Array of personal detail objects
  */
-function getPersonalDetailsByIDs(accountIDs) {
+function getPersonalDetailsByIDs(accountIDs, shouldChangeUserDisplayName = false) {
     const result = [];
     const currentAccountID = Report.getCurrentUserAccountID();
     _.each(personalDetails, (detail) => {
