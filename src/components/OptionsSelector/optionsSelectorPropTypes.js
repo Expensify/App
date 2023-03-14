@@ -101,7 +101,7 @@ const defaultProps = {
     onSelectRow: () => {},
     textInputLabel: '',
     placeholderText: '',
-    keyboardType: undefined,
+    keyboardType: 'default',
     selectedOptions: [],
     headerMessage: '',
     canSelectMultipleOptions: false,
