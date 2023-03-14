@@ -1,7 +1,7 @@
-/* eslint-disable react/no-unused-state */
 import React, {forwardRef, createContext, useMemo} from 'react';
+import {Platform, useWindowDimensions} from 'react-native';
 import PropTypes from 'prop-types';
-import {useSafeAreaFrame} from 'react-native-safe-area-context';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import variables from '../styles/variables';
 
@@ -29,21 +29,26 @@ const windowDimensionsProviderPropTypes = {
 };
 
 function WindowDimensionsProvider(props) {
-    const frame = useSafeAreaFrame();
+    const window = useWindowDimensions();
+    const insets = useSafeAreaInsets();
 
     const dimensions = useMemo(() => {
-        const isSmallScreenWidth = frame.width <= variables.mobileResponsiveWidthBreakpoint;
-        const isMediumScreenWidth = frame.width > variables.mobileResponsiveWidthBreakpoint
-            && frame.width <= variables.tabletResponsiveWidthBreakpoint;
+        // On Android the window height does not include the status bar height, so we need to add it manually.
+        const windowHeight = Platform.OS === 'android'
+            ? window.height + insets.top
+            : window.height;
+        const isSmallScreenWidth = window.width <= variables.mobileResponsiveWidthBreakpoint;
+        const isMediumScreenWidth = window.width > variables.mobileResponsiveWidthBreakpoint
+            && window.width <= variables.tabletResponsiveWidthBreakpoint;
         const isLargeScreenWidth = !isSmallScreenWidth && !isMediumScreenWidth;
         return {
-            windowHeight: frame.height,
-            windowWidth: frame.width,
+            windowHeight,
+            windowWidth: window.width,
             isSmallScreenWidth,
             isMediumScreenWidth,
             isLargeScreenWidth,
         };
-    }, [frame.width, frame.height]);
+    }, [window.width, window.height, insets.top]);
 
     return (
         <WindowDimensionsContext.Provider value={dimensions}>
@@ -68,11 +73,10 @@ export default function withWindowDimensions(WrappedComponent) {
         </WindowDimensionsContext.Consumer>
     ));
 
-    WithWindowDimensions.displayName = `withWindowDimensions(${getComponentDisplayName(WrappedComponent)})`;
+    WithWindowDimensions.displayName = `withWindowDimensions(${getComponentDisplayName(
+        WrappedComponent,
+    )})`;
     return WithWindowDimensions;
 }
 
-export {
-    WindowDimensionsProvider,
-    windowDimensionsPropTypes,
-};
+export {WindowDimensionsProvider, windowDimensionsPropTypes};
