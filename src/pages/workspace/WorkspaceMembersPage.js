@@ -157,9 +157,10 @@ class WorkspaceMembersPage extends React.Component {
      * @param {Object} memberList
      */
     toggleAllUsers(memberList) {
+        const emailList = _.keys(memberList);
         this.setState(prevState => ({
-            selectedEmployees: !_.every(memberList, member => _.contains(prevState.selectedEmployees, member))
-                ? memberList
+            selectedEmployees: !_.every(emailList, member => _.contains(prevState.selectedEmployees, member))
+                ? emailList
                 : [],
         }), () => this.validate());
     }
