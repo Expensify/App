@@ -41,6 +41,7 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
             // This should be removed once we are no longer using deprecatedAPI https://github.com/Expensify/Expensify/issues/215650
             shouldRetry: true,
             canCancel: true,
+            ecashPlatform: Platform.OS,
         },
         ..._.omit(onyxData, 'optimisticData'),
     };
