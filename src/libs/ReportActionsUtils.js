@@ -41,7 +41,7 @@ function isDeletedAction(reportAction) {
 }
 
 /**
- * @param reportAction
+ * @param {Object} reportAction
  * @returns {Boolean}
  */
 function isOptimisticAction(reportAction) {
