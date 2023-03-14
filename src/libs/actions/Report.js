@@ -1166,11 +1166,6 @@ function shouldShowReportActionNotification(reportID, action) {
         return false;
     }
 
-    // If the comment came from Concierge let's not show a notification since we already show one for expensify.com
-    if (lodashGet(action, 'actorEmail') === CONST.EMAIL.CONCIERGE) {
-        return false;
-    }
-
     // Don't show a notification if no comment exists
     if (!_.some(action.message, f => f.type === 'COMMENT')) {
         Log.info('[Notification] No notification because no comments exist for the current action');
