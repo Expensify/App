@@ -13,9 +13,7 @@ const additionalPickerEvents = (onMouseDown, onChange) => ({
     },
 });
 
-const Picker = forwardRef((props, ref) => (
+export default forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <BasePicker {...props} additionalPickerEvents={additionalPickerEvents} innerRef={ref} />
+    <BasePicker {...props} additionalPickerEvents={additionalPickerEvents} ref={ref} />
 ));
-
-export default Picker;

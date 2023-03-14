@@ -1,9 +1,7 @@
 import React, {forwardRef} from 'react';
 import BasePicker from './Picker';
 
-const Picker = forwardRef((props, ref) => (
+export default forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <BasePicker {...props} innerRef={ref} />
+    <BasePicker {...props} ref={ref} />
 ));
-
-export default Picker;
