@@ -32,7 +32,7 @@ const propTypes = {
 };
 
 const ReactionTooltipContent = (props) => {
-    const users = PersonalDetailsUtils.getPersonalDetailsByIDs(props.accountIDs);
+    const users = PersonalDetailsUtils.getPersonalDetailsByIDs(props.accountIDs, true);
     const namesString = _.filter(_.map(users, user => user && user.displayName), n => n).join(', ');
 
     return (
