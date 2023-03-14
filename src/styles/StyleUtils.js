@@ -129,7 +129,10 @@ function getDefaultWorspaceAvatarColor(workspaceName) {
  * @param {Number} [insetsPercentage] - Percentage of the insets to use for sides and bottom padding
  * @returns {Object}
  */
-function getSafeAreaPadding(insets, insetsPercentage = variables.safeInsertPercentage) {
+function getSafeAreaPadding(
+    insets,
+    insetsPercentage = Platform.OS === 'ios' ? variables.safeInsertPercentage : 1,
+) {
     return {
         paddingTop: insets.top,
         paddingBottom: insets.bottom * insetsPercentage,
