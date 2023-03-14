@@ -6,6 +6,7 @@ import TextInput from '../TextInput';
 import CalendarPicker from '../CalendarPicker';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
+import * as Expensicons from '../Icon/Expensicons';
 import {propTypes as datePickerPropTypes, defaultProps as defaultDatePickerProps} from './datePickerPropTypes';
 
 const propTypes = {
@@ -102,6 +103,7 @@ class NewDatePicker extends React.Component {
                             }
                             this.props.innerRef(el);
                         }}
+                        icon={Expensicons.Calendar}
                         onPress={this.showPicker}
                         label={this.props.label}
                         value={this.props.value}

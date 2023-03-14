@@ -821,7 +821,7 @@ const styles = {
 
     textInputDesktop: addOutlineWidth({}, 0),
 
-    secureInputShowPasswordButton: {
+    textInputIconContainer: {
         paddingHorizontal: 11,
         justifyContent: 'center',
         margin: 1,
