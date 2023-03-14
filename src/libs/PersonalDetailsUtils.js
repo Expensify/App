@@ -22,7 +22,7 @@ function getPersonalDetailsByIDs(accountIDs, shouldChangeUserDisplayName = false
     _.each(personalDetails, (detail) => {
         for (let i = 0; i < accountIDs.length; i++) {
             if (detail.accountID === accountIDs[i]) {
-                if (currentAccountID.toString() === detail.accountID.toString()) {
+                if (shouldChangeUserDisplayName && currentAccountID.toString() === detail.accountID.toString()) {
                     result[i] = {
                         ...detail,
                         displayName: Localize.translateLocal('common.you'),
