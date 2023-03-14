@@ -110,4 +110,6 @@ export default {
     signInHeroImageDesktop: 265,
     signInHeroImageDesktopLarge: 372,
     signInDesktopBreakpoint: 1025,
+    signInHeroContentMaxWidth: 1360,
+    signInContentMinHeight: 700,
 };

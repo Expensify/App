@@ -945,7 +945,7 @@ const styles = {
     },
 
     signInPage: {
-        backgroundColor: themeColors.sidebar,
+        backgroundColor: themeColors.signInSidebar,
         minHeight: '100%',
         flex: 1,
     },

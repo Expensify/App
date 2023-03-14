@@ -350,6 +350,10 @@ export default {
         paddingLeft: 20,
     },
 
+    pl10: {
+        paddingLeft: 40,
+    },
+
     pt0: {
         paddingTop: 0,
     },

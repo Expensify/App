@@ -4,27 +4,30 @@ import React from 'react';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import styles from '../../styles/styles';
-
-// import Icon from '../../components/Icon';
-// import variables from '../../styles/variables';
-// import SVGImage from '../../components/SVGImage';
+import variables from '../../styles/variables';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const SignInHeroImage = () => (
-    <View style={[{backgroundColor: 'transparent'}, {flex: 1}, styles.alignSelfCenter]}>
-        {/* <Icon
-            width={props.isMediumScreenWidth ? variables.signInHeroImageDesktop : variables.signInHeroImageDesktopLarge}
-            height={props.isMediumScreenWidth ? variables.signInHeroImageDesktop : variables.signInHeroImageDesktopLarge}
-            src={props.isSmallScreenWidth ? Illustrations.HandsMobile : Illustrations.HandsDesktop}
-            additionalStyles={[{width: '100%'}]}
-        /> */}
-        <Illustrations.HandsMobile
-            width="100%"
-            height="100%"
-        />
+const SignInHeroImage = props => (
+    <View style={[{backgroundColor: 'transparent'}, styles.alignSelfCenter, styles.flex1, props.isSmallScreenWidth
+        ? {
+            width: props.windowHeight > variables.signInContentMinHeight ? props.windowWidth : 350,
+            height: props.windowHeight > variables.signInContentMinHeight ? props.windowWidth : 350,
+        } : styles.flex1]}
+    >
+        {props.isSmallScreenWidth ? (
+            <Illustrations.HandsMobile
+                width="100%"
+                height="100%"
+            />
+        ) : (
+            <Illustrations.HandsDesktop
+                width="100%"
+                height="100%"
+            />
+        )}
     </View>
 );
 

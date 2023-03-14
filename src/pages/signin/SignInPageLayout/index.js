@@ -14,6 +14,9 @@ import themeColors from '../../../styles/themes/default';
 
 // import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_background-fade.png';
 import SignInHeroBackgroundImage from '../../../../assets/images/home-background--desktop.svg';
+import SignInHeroBackgroundImageMobile from '../../../../assets/images/home-background--mobile.svg';
+import SignInHeroImage from '../SignInHeroImage';
+import variables from '../../../styles/variables';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -80,13 +83,26 @@ const SignInPageLayout = (props) => {
                         contentContainerStyle={scrollViewContentContainerStyles}
                         keyboardShouldPersistTaps="handled"
                     >
-                        <View style={[styles.flex1, StyleUtils.getMinimumHeight(containerHeight)]}>
+                        <View style={[styles.flex1, styles.flexColumn, StyleUtils.getMinimumHeight(Math.max(variables.signInContentMinHeight, containerHeight))]}>
+                            <SignInHeroBackgroundImageMobile
+                                pointerEvents="none"
+                                height="100%"
+                                width={props.windowWidth * 2}
+                                style={{
+                                    position: 'absolute',
+                                    alignSelf: 'center',
+                                    bottom: '-35%',
+                                }}
+                            />
                             <SignInPageContent
                                 welcomeText={props.welcomeText}
                                 shouldShowWelcomeText={props.shouldShowWelcomeText}
                             >
                                 {props.children}
                             </SignInPageContent>
+                            <View style={[styles.flex1, {width: props.windowWidth}]}>
+                                <SignInHeroImage />
+                            </View>
                         </View>
                         <View style={[styles.flex0]}>
                             <Footer />
