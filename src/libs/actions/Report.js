@@ -1134,49 +1134,62 @@ function setIsComposerFullSize(reportID, isComposerFullSize) {
 /**
  * @param {String} reportID
  * @param {Object} action
+ * @returns {Boolean}
  */
-function showReportActionNotification(reportID, action) {
+function shouldShowReportActionNotification(reportID, action) {
     if (ReportActionsUtils.isDeletedAction(action)) {
-        Log.info('[LOCAL_NOTIFICATION] Skipping notification because the action was deleted', false, {reportID, action});
-        return;
+        Log.info('[Notification] Skipping notification because the action was deleted', false, {reportID, action});
+        return false;
     }
 
     if (!ActiveClientManager.isClientTheLeader()) {
-        Log.info('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
-        return;
+        Log.info('[Notification] Skipping notification because this client is not the leader');
+        return false;
     }
 
     // We don't want to send a local notification if the user preference is daily or mute
     const notificationPreference = lodashGet(allReports, [reportID, 'notificationPreference'], CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
     if (notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY) {
-        Log.info(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
-        return;
+        Log.info(`[Notification] No notification because user preference is to be notified: ${notificationPreference}`);
+        return false;
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
     if (action.actorAccountID === currentUserAccountID) {
-        Log.info('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
-        return;
+        Log.info('[Notification] No notification because comment is from the currently logged in user');
+        return false;
     }
 
     // If we are currently viewing this report do not show a notification.
     if (reportID === Navigation.getReportIDFromRoute() && Visibility.isVisible()) {
-        Log.info('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report', false, {currentReport: Navigation.getReportIDFromRoute(), reportID, action});
-        return;
+        Log.info('[Notification] No notification because it was a comment for the current report', false, {currentReport: Navigation.getReportIDFromRoute(), reportID, action});
+        return false;
     }
 
     // If the comment came from Concierge let's not show a notification since we already show one for expensify.com
     if (lodashGet(action, 'actorEmail') === CONST.EMAIL.CONCIERGE) {
-        return;
+        return false;
     }
 
     // Don't show a notification if no comment exists
     if (!_.some(action.message, f => f.type === 'COMMENT')) {
-        Log.info('[LOCAL_NOTIFICATION] No notification because no comments exist for the current action');
+        Log.info('[Notification] No notification because no comments exist for the current action');
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * @param {String} reportID
+ * @param {Object} action
+ */
+function showReportActionNotification(reportID, action) {
+    if (!shouldShowReportActionNotification(reportID, action)) {
         return;
     }
 
-    Log.info('[LOCAL_NOTIFICATION] Creating notification');
+    Log.info('[LocalNotification] Creating notification');
     LocalNotification.showCommentNotification({
         reportAction: action,
         onClick: () => {
@@ -1401,4 +1414,5 @@ export {
     removeEmojiReaction,
     toggleEmojiReaction,
     hasAccountIDReacted,
+    shouldShowReportActionNotification,
 };
