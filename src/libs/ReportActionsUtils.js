@@ -41,6 +41,14 @@ function isDeletedAction(reportAction) {
 }
 
 /**
+ * @param reportAction
+ * @returns {Boolean}
+ */
+function isOptimisticAction(reportAction) {
+    return lodashGet(reportAction, 'pendingAction') === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+}
+
+/**
  * Sort an array of reportActions by their created timestamp first, and reportActionID second
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
@@ -57,6 +65,11 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
     return _.chain(reportActions)
         .compact()
         .sort((first, second) => {
+            // First, make sure that optimistic reportActions appear at the end
+            if (isOptimisticAction(second) && !isOptimisticAction(first)) {
+                return -1 * invertedMultiplier;
+            }
+
             // First sort by timestamp
             if (first.created !== second.created) {
                 return (first.created < second.created ? -1 : 1) * invertedMultiplier;
