@@ -2,11 +2,14 @@ import React from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import useSound from 'use-sound';
 import styles from '../../styles/styles';
 import EmojiReactionBubble from './EmojiReactionBubble';
 import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
 import getPreferredEmojiCode from './getPreferredEmojiCode';
+
+import fartSound from '../../../assets/sounds/short_fart.wav';
 
 /**
  * Given an emoji object and a list of senders it will return an
@@ -53,6 +56,10 @@ const propTypes = {
 };
 
 const ReportActionItemReactions = (props) => {
+    const [playOn] = useSound(
+        fartSound,
+        {volume: 1},
+    );
     const reactionsWithCount = _.filter(props.reactions, reaction => reaction.users.length > 0);
 
     return (
@@ -68,6 +75,7 @@ const ReportActionItemReactions = (props) => {
                 const emojiCodes = getUniqueEmojiCodes(emoji, reaction.users);
 
                 const onPress = () => {
+                    playOn();
                     props.toggleReaction(emoji);
                 };
 
@@ -82,7 +90,13 @@ const ReportActionItemReactions = (props) => {
                     />
                 );
             })}
-            {reactionsWithCount.length > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}
+            {reactionsWithCount.length > 0 && (
+            <AddReactionBubble onSelectEmoji={(emojiObject) => {
+                playOn();
+                props.toggleReaction(emojiObject);
+            }}
+            />
+            )}
         </View>
     );
 };

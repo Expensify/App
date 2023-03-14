@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import useSound from 'use-sound';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import Text from '../Text';
@@ -19,6 +20,8 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import getPreferredEmojiCode from './getPreferredEmojiCode';
+
+import fartSound from '../../../assets/sounds/short_fart.wav';
 
 const ICON_SIZE_SCALE_FACTOR = 1.3;
 
@@ -49,6 +52,10 @@ const defaultProps = {
  * @returns {JSX.Element}
  */
 const MiniQuickEmojiReactions = (props) => {
+    const [playOn] = useSound(
+        fartSound,
+        {volume: 1},
+    );
     const ref = React.createRef();
 
     const openEmojiPicker = () => {
@@ -56,6 +63,7 @@ const MiniQuickEmojiReactions = (props) => {
         EmojiPickerAction.showEmojiPicker(
             props.onEmojiPickerClosed,
             (emojiCode, emojiObject) => {
+                playOn();
                 props.onEmojiSelected(emojiObject);
             },
             ref.current,
@@ -69,7 +77,7 @@ const MiniQuickEmojiReactions = (props) => {
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${emoji.name}:`}
-                    onPress={() => props.onEmojiSelected(emoji)}
+                    onPress={() => { playOn(); props.onEmojiSelected(emoji); }}
                 >
                     <Text style={[
                         styles.emojiReactionText,
