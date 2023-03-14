@@ -60,9 +60,9 @@ const EmojiReactionBubble = (props) => {
     const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, props.reactionUsers);
     return (
         <Pressable
-            style={({hovered}) => [
+            style={({hovered, pressed}) => [
                 styles.emojiReactionBubble,
-                StyleUtils.getEmojiReactionBubbleStyle(hovered, hasUserReacted, props.sizeScale),
+                StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, hasUserReacted, props.sizeScale),
             ]}
             onPress={props.onPress}
             onLongPress={props.onReactionListOpen}
