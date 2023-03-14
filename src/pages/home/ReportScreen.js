@@ -200,25 +200,25 @@ class ReportScreen extends React.Component {
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
 
         // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
-        const freeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
+        const shouldFreeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
 
         const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails);
 
         // the moment the ReportScreen becomes unfrozen we want to start the animation of the placeholder skeleton content
         // (which is shown, until all the actual views of the ReportScreen have been rendered)
-        const animatePlaceholder = !freeze;
+        const shouldAnimate = !shouldFreeze;
 
         return (
             <ScreenWrapper
                 style={screenWrapperStyle}
             >
                 <Freeze
-                    freeze={freeze}
+                    freeze={shouldFreeze}
                     placeholder={(
                         <>
-                            <ReportHeaderSkeletonView animate={animatePlaceholder} />
+                            <ReportHeaderSkeletonView shouldAnimate={shouldAnimate} />
                             <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
-                                <ReportActionsSkeletonView animate={animatePlaceholder} containerHeight={this.state.skeletonViewContainerHeight} />
+                                <ReportActionsSkeletonView shouldAnimate={shouldAnimate} containerHeight={this.state.skeletonViewContainerHeight} />
                                 <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
                             </View>
                         </>
@@ -233,7 +233,7 @@ class ReportScreen extends React.Component {
                             Navigation.navigate(ROUTES.HOME);
                         }}
                     >
-                        {isLoading ? <ReportHeaderSkeletonView animate={animatePlaceholder} /> : (
+                        {isLoading ? <ReportHeaderSkeletonView shouldAnimate={shouldAnimate} /> : (
                             <>
                                 <OfflineWithFeedback
                                     pendingAction={addWorkspaceRoomOrChatPendingAction}

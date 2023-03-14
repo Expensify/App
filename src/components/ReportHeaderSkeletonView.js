@@ -12,11 +12,11 @@ import themeColors from '../styles/themes/default';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
-    animate: PropTypes.bool,
+    shouldAnimate: PropTypes.bool,
 };
 
 const defaultProps = {
-    animate: true,
+    shouldAnimate: true,
 };
 
 const ReportHeaderSkeletonView = props => (
@@ -31,7 +31,7 @@ const ReportHeaderSkeletonView = props => (
                 </Pressable>
             )}
             <SkeletonViewContentLoader
-                animate={props.animate}
+                animate={props.shouldAnimate}
                 width={styles.w100.width}
                 height={variables.contentHeaderHeight}
                 backgroundColor={themeColors.highlightBG}
