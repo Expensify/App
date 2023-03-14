@@ -87,6 +87,7 @@ class YearPickerPage extends React.Component {
                 <OptionsSelector
                     textInputLabel={this.props.translate('yearPickerPage.selectYear')}
                     onChangeText={this.filterYearList}
+                    keyboardType="number-pad"
                     value={this.state.inputText}
                     sections={[{data: this.state.yearOptions, indexOffset: 0}]}
                     onSelectRow={option => this.updateSelectedYear(option.value)}

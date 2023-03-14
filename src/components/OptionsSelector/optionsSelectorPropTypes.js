@@ -33,6 +33,9 @@ const propTypes = {
     /** Label to display for the text input */
     textInputLabel: PropTypes.string,
 
+    /** Optional keyboard type for the input */
+    keyboardType: PropTypes.string,
+
     /** Optional placeholder text for the selector */
     placeholderText: PropTypes.string,
 
@@ -98,6 +101,7 @@ const defaultProps = {
     onSelectRow: () => {},
     textInputLabel: '',
     placeholderText: '',
+    keyboardType: undefined,
     selectedOptions: [],
     headerMessage: '',
     canSelectMultipleOptions: false,
