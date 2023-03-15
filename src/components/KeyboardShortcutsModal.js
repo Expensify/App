@@ -9,7 +9,9 @@ import Modal from './Modal';
 import CONST from '../CONST';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from './withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
@@ -35,10 +37,16 @@ const defaultProps = {
 class KeyboardShortcutsModal extends React.Component {
     componentDidMount() {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUT_MODAL;
-        this.unsubscribeShortcutModal = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
-            ModalActions.close();
-            KeyboardShortcutsActions.showKeyboardShortcutModal();
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+        this.unsubscribeShortcutModal = KeyboardShortcut.subscribe(
+            shortcutConfig.shortcutKey,
+            () => {
+                ModalActions.close();
+                KeyboardShortcutsActions.showKeyboardShortcutModal();
+            },
+            shortcutConfig.descriptionKey,
+            shortcutConfig.modifiers,
+            true,
+        );
     }
 
     componentWillUnmount() {
@@ -63,11 +71,23 @@ class KeyboardShortcutsModal extends React.Component {
                 ]}
                 key={shortcut.displayName}
             >
-                <View style={[styles.dFlex, styles.p2, styles.keyboardShortcutTablePrefix]}>
+                <View
+                    style={[
+                        styles.dFlex,
+                        styles.p2,
+                        styles.keyboardShortcutTablePrefix,
+                    ]}
+                >
                     <Text>{shortcut.displayName}</Text>
                 </View>
-                <View style={[styles.flex1, styles.p2, styles.alignSelfStretch]}>
-                    <Text>{this.props.translate(`keyboardShortcutModal.shortcuts.${shortcut.descriptionKey}`)}</Text>
+                <View
+                    style={[styles.flex1, styles.p2, styles.alignSelfStretch]}
+                >
+                    <Text>
+                        {this.props.translate(
+                            `keyboardShortcutModal.shortcuts.${shortcut.descriptionKey}`,
+                        )}
+                    </Text>
                 </View>
             </View>
         );
@@ -75,20 +95,39 @@ class KeyboardShortcutsModal extends React.Component {
 
     render() {
         const shortcuts = KeyboardShortcut.getDocumentedShortcuts();
-        const modalType = this.props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE;
+        const modalType = this.props.isSmallScreenWidth
+            ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
+            : CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE;
 
         return (
             <Modal
                 isVisible={this.props.isShortcutsModalOpen}
                 type={modalType}
-                innerContainerStyle={{...styles.keyboardShortcutModalContainer, ...StyleUtils.getKeyboardShortcutsModalWidth(this.props.isSmallScreenWidth)}}
+                innerContainerStyle={{
+                    ...styles.keyboardShortcutModalContainer,
+                    ...StyleUtils.getKeyboardShortcutsModalWidth(
+                        this.props.isSmallScreenWidth,
+                    ),
+                }}
                 onClose={KeyboardShortcutsActions.hideKeyboardShortcutModal}
             >
-                <HeaderWithCloseButton title={this.props.translate('keyboardShortcutModal.title')} onCloseButtonPress={KeyboardShortcutsActions.hideKeyboardShortcutModal} />
+                <HeaderWithCloseButton
+                    title={this.props.translate('keyboardShortcutModal.title')}
+                    onCloseButtonPress={
+                        KeyboardShortcutsActions.hideKeyboardShortcutModal
+                    }
+                />
                 <View style={[styles.p5, styles.pt0]}>
-                    <Text style={styles.mb5}>{this.props.translate('keyboardShortcutModal.subtitle')}</Text>
+                    <Text style={styles.mb5}>
+                        {this.props.translate('keyboardShortcutModal.subtitle')}
+                    </Text>
                     <View style={[styles.keyboardShortcutTableWrapper]}>
-                        <View style={[styles.alignItemsCenter, styles.keyboardShortcutTableContainer]}>
+                        <View
+                            style={[
+                                styles.alignItemsCenter,
+                                styles.keyboardShortcutTableContainer,
+                            ]}
+                        >
                             {_.map(shortcuts, (shortcut, index) => {
                                 const isFirstRow = index === 0;
                                 return this.renderRow(shortcut, isFirstRow);

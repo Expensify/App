@@ -1,7 +1,5 @@
 import React, {Component} from 'react';
-import {
-    View, Pressable,
-} from 'react-native';
+import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from '../Icon';
 import PopoverMenu from '../PopoverMenu';
@@ -74,7 +72,9 @@ class ThreeDotsMenu extends Component {
         return (
             <>
                 <View>
-                    <Tooltip text={this.props.translate(this.props.iconTooltip)}>
+                    <Tooltip
+                        text={this.props.translate(this.props.iconTooltip)}
+                    >
                         <Pressable
                             onPress={() => {
                                 this.showPopoverMenu();
@@ -82,8 +82,11 @@ class ThreeDotsMenu extends Component {
                                     this.props.onIconPress();
                                 }
                             }}
-                            ref={el => this.button = el}
-                            style={[styles.touchableButtonImage, ...this.props.iconStyles]}
+                            ref={(el) => (this.button = el)}
+                            style={[
+                                styles.touchableButtonImage,
+                                ...this.props.iconStyles,
+                            ]}
                         >
                             <Icon
                                 src={this.props.icon}

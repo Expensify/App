@@ -10,8 +10,12 @@ import RenderHTML from '../../../components/RenderHTML';
 import Text from '../../../components/Text';
 import Tooltip from '../../../components/Tooltip';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../../../components/withWindowDimensions';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import compose from '../../../libs/compose';
 import * as StyleUtils from '../../../styles/StyleUtils';
@@ -28,7 +32,6 @@ const propTypes = {
 
     /** If this fragment is attachment than has info? */
     attachmentInfo: PropTypes.shape({
-
         /** The file name of attachment */
         name: PropTypes.string,
 
@@ -46,7 +49,15 @@ const propTypes = {
     loading: PropTypes.bool,
 
     /** The reportAction's source */
-    source: PropTypes.oneOf(['Chronos', 'email', 'ios', 'android', 'web', 'email', '']),
+    source: PropTypes.oneOf([
+        'Chronos',
+        'email',
+        'ios',
+        'android',
+        'web',
+        'email',
+        '',
+    ]),
 
     /** Should this fragment be contained in a single line? */
     isSingleLine: PropTypes.bool,
@@ -83,19 +94,18 @@ const ReportActionItemFragment = (props) => {
         case 'COMMENT': {
             // If this is an attachment placeholder, return the placeholder component
             if (props.isAttachment && props.loading) {
-                return (
-                    Str.isImage(props.attachmentInfo.name)
-                        ? (
-                            <RenderHTML html={`<comment><img src="${props.attachmentInfo.source}" data-expensify-preview-modal-disabled="true"/></comment>`} />
-                        ) : (
-                            <View style={[styles.chatItemAttachmentPlaceholder]}>
-                                <ActivityIndicator
-                                    size="large"
-                                    color={themeColors.textSupporting}
-                                    style={[styles.flex1]}
-                                />
-                            </View>
-                        )
+                return Str.isImage(props.attachmentInfo.name) ? (
+                    <RenderHTML
+                        html={`<comment><img src="${props.attachmentInfo.source}" data-expensify-preview-modal-disabled="true"/></comment>`}
+                    />
+                ) : (
+                    <View style={[styles.chatItemAttachmentPlaceholder]}>
+                        <ActivityIndicator
+                            size="large"
+                            color={themeColors.textSupporting}
+                            style={[styles.flex1]}
+                        />
+                    </View>
                 );
             }
             const {html, text} = props.fragment;
@@ -103,34 +113,50 @@ const ReportActionItemFragment = (props) => {
             // If the only difference between fragment.text and fragment.html is <br /> tags
             // we render it as text, not as html.
             // This is done to render emojis with line breaks between them as text.
-            const differByLineBreaksOnly = Str.replaceAll(html, '<br />', '\n') === text;
+            const differByLineBreaksOnly =
+                Str.replaceAll(html, '<br />', '\n') === text;
 
             // Only render HTML if we have html in the fragment
             if (!differByLineBreaksOnly) {
-                const editedTag = props.fragment.isEdited ? '<edited></edited>' : '';
+                const editedTag = props.fragment.isEdited
+                    ? '<edited></edited>'
+                    : '';
                 const htmlContent = html + editedTag;
                 return (
                     <RenderHTML
-                        html={props.source === 'email'
-                            ? `<email-comment>${htmlContent}</email-comment>`
-                            : `<comment>${htmlContent}</comment>`}
+                        html={
+                            props.source === 'email'
+                                ? `<email-comment>${htmlContent}</email-comment>`
+                                : `<comment>${htmlContent}</comment>`
+                        }
                     />
                 );
             }
             return (
                 <Text
                     family="EMOJI_TEXT_FONT"
-                    selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
-                    style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
+                    selectable={
+                        !DeviceCapabilities.canUseTouchScreen() ||
+                        !props.isSmallScreenWidth
+                    }
+                    style={[
+                        EmojiUtils.containsOnlyEmojis(text)
+                            ? styles.onlyEmojisText
+                            : undefined,
+                        styles.ltr,
+                        ...props.style,
+                    ]}
                 >
                     {StyleUtils.convertToLTR(Str.htmlDecode(text))}
                     {props.fragment.isEdited && (
-                    <Text
-                        fontSize={variables.fontSizeSmall}
-                        color={themeColors.textSupporting}
-                    >
-                        {` ${props.translate('reportActionCompose.edited')}`}
-                    </Text>
+                        <Text
+                            fontSize={variables.fontSizeSmall}
+                            color={themeColors.textSupporting}
+                        >
+                            {` ${props.translate(
+                                'reportActionCompose.edited',
+                            )}`}
+                        </Text>
                     )}
                 </Text>
             );

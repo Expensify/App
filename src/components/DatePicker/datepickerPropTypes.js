@@ -17,7 +17,10 @@ const propTypes = {
      * The datepicker supports any defaultValue that `moment` can parse.
      * `onInputChange` would always be called with a Date (or null)
      */
-    defaultValue: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
+    defaultValue: PropTypes.oneOfType([
+        PropTypes.instanceOf(Date),
+        PropTypes.string,
+    ]),
 };
 
 const defaultProps = {

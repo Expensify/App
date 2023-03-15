@@ -7,14 +7,16 @@ import CONST from '../../CONST';
  */
 function getBrowser() {
     const {userAgent} = window.navigator;
-    let match = userAgent.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))/i) || [];
+    let match =
+        userAgent.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))/i) ||
+        [];
     let temp;
 
     if (/trident/i.test(match[1])) {
         return 'IE';
     }
 
-    if (match[1] && (match[1].toLowerCase() === 'chrome')) {
+    if (match[1] && match[1].toLowerCase() === 'chrome') {
         temp = userAgent.match(/\b(OPR)/);
         if (temp !== null) {
             return 'Opera';
@@ -37,7 +39,9 @@ function getBrowser() {
  * @returns {Boolean}
  */
 function isMobile() {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Silk|Opera Mini/i.test(navigator.userAgent);
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Silk|Opera Mini/i.test(
+        navigator.userAgent,
+    );
 }
 
 /**
@@ -47,11 +51,11 @@ function isMobile() {
  */
 function isMobileSafari() {
     const userAgent = navigator.userAgent;
-    return /iP(ad|od|hone)/i.test(userAgent) && /WebKit/i.test(userAgent) && !(/(CriOS|FxiOS|OPiOS|mercury)/i.test(userAgent));
+    return (
+        /iP(ad|od|hone)/i.test(userAgent) &&
+        /WebKit/i.test(userAgent) &&
+        !/(CriOS|FxiOS|OPiOS|mercury)/i.test(userAgent)
+    );
 }
 
-export {
-    getBrowser,
-    isMobile,
-    isMobileSafari,
-};
+export {getBrowser, isMobile, isMobileSafari};

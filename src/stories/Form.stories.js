@@ -105,10 +105,7 @@ const Template = (args) => {
                 ]}
             />
             <View style={styles.mt4}>
-                <StatePicker
-                    inputID="state"
-                    shouldSaveDraft
-                />
+                <StatePicker inputID="state" shouldSaveDraft />
             </View>
             <CheckboxWithLabel
                 inputID="checkbox"
@@ -144,9 +141,7 @@ const WithNativeEventHandler = (args) => {
                 onChangeText={setLog}
                 shouldSaveDraft
             />
-            <Text>
-                {`Entered routing number: ${log}`}
-            </Text>
+            <Text>{`Entered routing number: ${log}`}</Text>
         </Form>
     );
 };
@@ -185,13 +180,20 @@ const defaultArgs = {
             errors.state = 'Please select a state';
         }
         if (!values.checkbox) {
-            errors.checkbox = 'You must accept the Terms of Service to continue';
+            errors.checkbox =
+                'You must accept the Terms of Service to continue';
         }
         return errors;
     },
     onSubmit: (values) => {
         setTimeout(() => {
-            alert(`Form submitted!\n\nInput values: ${JSON.stringify(values, null, 4)}`);
+            alert(
+                `Form submitted!\n\nInput values: ${JSON.stringify(
+                    values,
+                    null,
+                    4,
+                )}`,
+            );
             FormActions.setIsLoading('TestForm', false);
         }, 1000);
     },
@@ -213,7 +215,13 @@ const defaultArgs = {
 
 Default.args = defaultArgs;
 Loading.args = {...defaultArgs, formState: {isLoading: true}};
-ServerError.args = {...defaultArgs, formState: {isLoading: false, error: 'There was an unexpected error. Please try again later.'}};
+ServerError.args = {
+    ...defaultArgs,
+    formState: {
+        isLoading: false,
+        error: 'There was an unexpected error. Please try again later.',
+    },
+};
 InputError.args = {
     ...defaultArgs,
     draftValues: {
@@ -228,13 +236,10 @@ InputError.args = {
     },
 };
 
-WithNativeEventHandler.args = {...defaultArgs, draftValues: {routingNumber: '', accountNumber: ''}};
+WithNativeEventHandler.args = {
+    ...defaultArgs,
+    draftValues: {routingNumber: '', accountNumber: ''},
+};
 
 export default story;
-export {
-    Default,
-    Loading,
-    ServerError,
-    InputError,
-    WithNativeEventHandler,
-};
+export {Default, Loading, ServerError, InputError, WithNativeEventHandler};

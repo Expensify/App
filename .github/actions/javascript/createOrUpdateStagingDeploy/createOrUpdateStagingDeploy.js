@@ -31,57 +31,101 @@ const run = function () {
         }),
     ])
         .then(([stagingDeployResponse, deployBlockerResponse]) => {
-            if (!stagingDeployResponse || !stagingDeployResponse.data || _.isEmpty(stagingDeployResponse.data)) {
-                console.error('Failed fetching StagingDeployCash issues from Github!', stagingDeployResponse);
-                throw new Error('Failed fetching StagingDeployCash issues from Github');
+            if (
+                !stagingDeployResponse ||
+                !stagingDeployResponse.data ||
+                _.isEmpty(stagingDeployResponse.data)
+            ) {
+                console.error(
+                    'Failed fetching StagingDeployCash issues from Github!',
+                    stagingDeployResponse,
+                );
+                throw new Error(
+                    'Failed fetching StagingDeployCash issues from Github',
+                );
             }
 
             if (!deployBlockerResponse || !deployBlockerResponse.data) {
-                console.log('Failed fetching DeployBlockerCash issues from Github, continuing...');
+                console.log(
+                    'Failed fetching DeployBlockerCash issues from Github, continuing...',
+                );
             }
 
-            newDeployBlockers = _.map(deployBlockerResponse.data, ({html_url}) => ({
-                url: html_url,
-                number: GithubUtils.getIssueOrPullRequestNumberFromURL(html_url),
-                isResolved: false,
-            }));
+            newDeployBlockers = _.map(
+                deployBlockerResponse.data,
+                ({html_url}) => ({
+                    url: html_url,
+                    number: GithubUtils.getIssueOrPullRequestNumberFromURL(
+                        html_url,
+                    ),
+                    isResolved: false,
+                }),
+            );
 
             // Look at the state of the most recent StagingDeployCash,
             // if it is open then we'll update the existing one, otherwise, we'll create a new one.
-            shouldCreateNewStagingDeployCash = Boolean(stagingDeployResponse.data[0].state !== 'open');
+            shouldCreateNewStagingDeployCash = Boolean(
+                stagingDeployResponse.data[0].state !== 'open',
+            );
             if (shouldCreateNewStagingDeployCash) {
-                console.log('Latest StagingDeployCash is closed, creating a new one.', stagingDeployResponse.data[0]);
+                console.log(
+                    'Latest StagingDeployCash is closed, creating a new one.',
+                    stagingDeployResponse.data[0],
+                );
             } else {
                 console.log(
                     'Latest StagingDeployCash is open, updating it instead of creating a new one.',
-                    'Current:', stagingDeployResponse.data[0],
-                    'Previous:', stagingDeployResponse.data[1],
+                    'Current:',
+                    stagingDeployResponse.data[0],
+                    'Previous:',
+                    stagingDeployResponse.data[1],
                 );
             }
 
             // Parse the data from the previous StagingDeployCash
             // (newest if there are none open, otherwise second-newest)
             previousStagingDeployCashData = shouldCreateNewStagingDeployCash
-                ? GithubUtils.getStagingDeployCashData(stagingDeployResponse.data[0])
-                : GithubUtils.getStagingDeployCashData(stagingDeployResponse.data[1]);
+                ? GithubUtils.getStagingDeployCashData(
+                      stagingDeployResponse.data[0],
+                  )
+                : GithubUtils.getStagingDeployCashData(
+                      stagingDeployResponse.data[1],
+                  );
 
-            console.log('Found tag of previous StagingDeployCash:', previousStagingDeployCashData.tag);
+            console.log(
+                'Found tag of previous StagingDeployCash:',
+                previousStagingDeployCashData.tag,
+            );
 
             // Find the list of PRs merged between the last StagingDeployCash and the new version
             if (shouldCreateNewStagingDeployCash) {
-                return GitUtils.getPullRequestsMergedBetween(previousStagingDeployCashData.tag, newTag);
+                return GitUtils.getPullRequestsMergedBetween(
+                    previousStagingDeployCashData.tag,
+                    newTag,
+                );
             }
 
-            currentStagingDeployCashData = GithubUtils.getStagingDeployCashData(stagingDeployResponse.data[0]);
-            console.log('Parsed the following data from the current StagingDeployCash:', currentStagingDeployCashData);
+            currentStagingDeployCashData = GithubUtils.getStagingDeployCashData(
+                stagingDeployResponse.data[0],
+            );
+            console.log(
+                'Parsed the following data from the current StagingDeployCash:',
+                currentStagingDeployCashData,
+            );
 
             // If we aren't sent a tag, then use the existing tag
             newTag = newTag || currentStagingDeployCashData.tag;
 
-            return GitUtils.getPullRequestsMergedBetween(previousStagingDeployCashData.tag, newTag);
+            return GitUtils.getPullRequestsMergedBetween(
+                previousStagingDeployCashData.tag,
+                newTag,
+            );
         })
         .then((mergedPRs) => {
-            console.log(`The following PRs have been merged between the previous StagingDeployCash (${previousStagingDeployCashData.tag}) and new version (${newVersion}):`, mergedPRs);
+            console.log(
+                `The following PRs have been merged between the previous StagingDeployCash (${previousStagingDeployCashData.tag}) and new version (${newVersion}):`,
+                mergedPRs,
+            );
 
             if (shouldCreateNewStagingDeployCash) {
                 return GithubUtils.generateStagingDeployCashBody(
@@ -90,23 +134,30 @@ const run = function () {
                 );
             }
 
-            const didVersionChange = newVersion ? newVersion !== currentStagingDeployCashData.tag : false;
+            const didVersionChange = newVersion
+                ? newVersion !== currentStagingDeployCashData.tag
+                : false;
 
             // Generate the PR list, preserving the previous state of `isVerified` for existing PRs
             const PRList = _.sortBy(
                 _.unique(
-                    _.union(currentStagingDeployCashData.PRList, _.map(mergedPRs, number => ({
-                        number: Number.parseInt(number, 10),
-                        url: GithubUtils.getPullRequestURLFromNumber(number),
+                    _.union(
+                        currentStagingDeployCashData.PRList,
+                        _.map(mergedPRs, (number) => ({
+                            number: Number.parseInt(number, 10),
+                            url: GithubUtils.getPullRequestURLFromNumber(
+                                number,
+                            ),
 
-                        // Since this is the second argument to _.union,
-                        // it will appear later in the array than any duplicate.
-                        // Since it is later in the array, it will be truncated by _.unique,
-                        // and the original value of isVerified will be preserved.
-                        isVerified: false,
-                    }))),
+                            // Since this is the second argument to _.union,
+                            // it will appear later in the array than any duplicate.
+                            // Since it is later in the array, it will be truncated by _.unique,
+                            // and the original value of isVerified will be preserved.
+                            isVerified: false,
+                        })),
+                    ),
                     false,
-                    item => item.number,
+                    (item) => item.number,
                 ),
                 'number',
             );
@@ -114,9 +165,12 @@ const run = function () {
             // Generate the deploy blocker list, preserving the previous state of `isResolved`
             const deployBlockers = _.sortBy(
                 _.unique(
-                    _.union(currentStagingDeployCashData.deployBlockers, newDeployBlockers),
+                    _.union(
+                        currentStagingDeployCashData.deployBlockers,
+                        newDeployBlockers,
+                    ),
                     false,
-                    item => item.number,
+                    (item) => item.number,
                 ),
                 'number',
             );
@@ -134,8 +188,12 @@ const run = function () {
                 _.pluck(deployBlockers, 'url'),
                 _.pluck(_.where(deployBlockers, {isResolved: true}), 'url'),
                 _.pluck(_.where(internalQAPRList, {isResolved: true}), 'url'),
-                didVersionChange ? false : currentStagingDeployCashData.isTimingDashboardChecked,
-                didVersionChange ? false : currentStagingDeployCashData.isFirebaseChecked,
+                didVersionChange
+                    ? false
+                    : currentStagingDeployCashData.isTimingDashboardChecked,
+                didVersionChange
+                    ? false
+                    : currentStagingDeployCashData.isFirebaseChecked,
             );
         })
         .then((body) => {
@@ -148,7 +206,9 @@ const run = function () {
             if (shouldCreateNewStagingDeployCash) {
                 return GithubUtils.octokit.issues.create({
                     ...defaultPayload,
-                    title: `Deploy Checklist: New Expensify ${moment().format('YYYY-MM-DD')}`,
+                    title: `Deploy Checklist: New Expensify ${moment().format(
+                        'YYYY-MM-DD',
+                    )}`,
                     labels: [GithubUtils.STAGING_DEPLOY_CASH_LABEL],
                     assignees: [GithubUtils.APPLAUSE_BOT],
                 });
@@ -161,7 +221,11 @@ const run = function () {
         })
         .then(({data}) => {
             // eslint-disable-next-line max-len
-            console.log(`Successfully ${shouldCreateNewStagingDeployCash ? 'created new' : 'updated'} StagingDeployCash! 🎉 ${data.html_url}`);
+            console.log(
+                `Successfully ${
+                    shouldCreateNewStagingDeployCash ? 'created new' : 'updated'
+                } StagingDeployCash! 🎉 ${data.html_url}`,
+            );
             return data;
         })
         .catch((err) => {

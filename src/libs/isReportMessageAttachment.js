@@ -8,5 +8,8 @@ import CONST from '../CONST';
  * @returns {Boolean}
  */
 export default function isReportMessageAttachment({text, html}) {
-    return text === CONST.ATTACHMENT_MESSAGE_TEXT && html !== CONST.ATTACHMENT_MESSAGE_TEXT;
+    return (
+        text === CONST.ATTACHMENT_MESSAGE_TEXT &&
+        html !== CONST.ATTACHMENT_MESSAGE_TEXT
+    );
 }

@@ -48,8 +48,14 @@ const defaultProps = {
 };
 
 function TextInputWithCurrencySymbol(props) {
-    const currencySymbol = CurrencySymbolUtils.getLocalizedCurrencySymbol(props.preferredLocale, props.selectedCurrencyCode);
-    const isCurrencySymbolLTR = CurrencySymbolUtils.isCurrencySymbolLTR(props.preferredLocale, props.selectedCurrencyCode);
+    const currencySymbol = CurrencySymbolUtils.getLocalizedCurrencySymbol(
+        props.preferredLocale,
+        props.selectedCurrencyCode,
+    );
+    const isCurrencySymbolLTR = CurrencySymbolUtils.isCurrencySymbolLTR(
+        props.preferredLocale,
+        props.selectedCurrencyCode,
+    );
 
     const currencySymbolButton = (
         <CurrencySymbolButton

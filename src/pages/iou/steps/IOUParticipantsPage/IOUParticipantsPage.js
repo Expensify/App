@@ -20,25 +20,26 @@ const propTypes = {
     onAddParticipants: PropTypes.func.isRequired,
 
     /** Selected participants from IOUModal with login */
-    participants: PropTypes.arrayOf(PropTypes.shape({
-        login: PropTypes.string.isRequired,
-        alternateText: PropTypes.string,
-        hasDraftComment: PropTypes.bool,
-        icons: PropTypes.arrayOf(avatarPropTypes),
-        searchText: PropTypes.string,
-        text: PropTypes.string,
-        keyForList: PropTypes.string,
-        isPinned: PropTypes.bool,
-        reportID: PropTypes.string,
-        phoneNumber: PropTypes.string,
-        payPalMeAddress: PropTypes.string,
-    })),
+    participants: PropTypes.arrayOf(
+        PropTypes.shape({
+            login: PropTypes.string.isRequired,
+            alternateText: PropTypes.string,
+            hasDraftComment: PropTypes.bool,
+            icons: PropTypes.arrayOf(avatarPropTypes),
+            searchText: PropTypes.string,
+            text: PropTypes.string,
+            keyForList: PropTypes.string,
+            isPinned: PropTypes.bool,
+            reportID: PropTypes.string,
+            phoneNumber: PropTypes.string,
+            payPalMeAddress: PropTypes.string,
+        }),
+    ),
 
     /* Onyx Props */
 
     /** Holds data related to IOU view state, rather than the underlying IOU data. */
     iou: PropTypes.shape({
-
         /** Whether or not the IOU step is loading (retrieving participants) */
         loading: PropTypes.bool,
     }),
@@ -65,22 +66,19 @@ const IOUParticipantsPage = (props) => {
         );
     }
 
-    return (props.hasMultipleParticipants
-        ? (
-            <IOUParticipantsSplit
-                onStepComplete={props.onStepComplete}
-                participants={props.participants}
-                onAddParticipants={props.onAddParticipants}
-                safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle}
-            />
-        )
-        : (
-            <IOUParticipantsRequest
-                onStepComplete={props.onStepComplete}
-                onAddParticipants={props.onAddParticipants}
-                safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle}
-            />
-        )
+    return props.hasMultipleParticipants ? (
+        <IOUParticipantsSplit
+            onStepComplete={props.onStepComplete}
+            participants={props.participants}
+            onAddParticipants={props.onAddParticipants}
+            safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle}
+        />
+    ) : (
+        <IOUParticipantsRequest
+            onStepComplete={props.onStepComplete}
+            onAddParticipants={props.onAddParticipants}
+            safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle}
+        />
     );
 };
 

@@ -1,11 +1,12 @@
-const replacer = str => ({
-    '\\': '\\\\',
-    '\t': '\\t',
-    '\n': '\\n',
-    '\r': '\\r',
-    '\f': '\\f',
-    '"': '\\"',
-}[str]);
+const replacer = (str) =>
+    ({
+        '\\': '\\\\',
+        '\t': '\\t',
+        '\n': '\\n',
+        '\r': '\\r',
+        '\f': '\\f',
+        '"': '\\"',
+    }[str]);
 
 /**
  * Replace any characters in the string that will break JSON.parse for our Git Log output

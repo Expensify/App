@@ -122,7 +122,11 @@ class AvatarWithImagePicker extends React.Component {
      * @param {String} prompt
      */
     showErrorModal(title, prompt) {
-        this.setState({isErrorModalVisible: true, errorModalTitle: title, errorModalPrompt: prompt});
+        this.setState({
+            isErrorModalVisible: true,
+            errorModalTitle: title,
+            errorModalPrompt: prompt,
+        });
     }
 
     hideErrorModal() {
@@ -136,8 +140,13 @@ class AvatarWithImagePicker extends React.Component {
      * @returns {Boolean}
      */
     isValidExtension(image) {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(image, 'name', ''));
-        return _.contains(CONST.AVATAR_ALLOWED_EXTENSIONS, fileExtension.toLowerCase());
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(
+            lodashGet(image, 'name', ''),
+        );
+        return _.contains(
+            CONST.AVATAR_ALLOWED_EXTENSIONS,
+            fileExtension.toLowerCase(),
+        );
     }
 
     /**
@@ -147,7 +156,10 @@ class AvatarWithImagePicker extends React.Component {
      * @returns {Boolean}
      */
     isValidSize(image) {
-        return image && lodashGet(image, 'size', 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE;
+        return (
+            image &&
+            lodashGet(image, 'size', 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE
+        );
     }
 
     /**
@@ -157,10 +169,13 @@ class AvatarWithImagePicker extends React.Component {
      * @returns {Promise}
      */
     isValidResolution(image) {
-        return getImageResolution(image).then(resolution => (
-            (resolution.height >= CONST.AVATAR_MIN_HEIGHT_PX && resolution.width >= CONST.AVATAR_MIN_WIDTH_PX)
-            && (resolution.height <= CONST.AVATAR_MAX_HEIGHT_PX && resolution.width <= CONST.AVATAR_MAX_WIDTH_PX)
-        ));
+        return getImageResolution(image).then(
+            (resolution) =>
+                resolution.height >= CONST.AVATAR_MIN_HEIGHT_PX &&
+                resolution.width >= CONST.AVATAR_MIN_WIDTH_PX &&
+                resolution.height <= CONST.AVATAR_MAX_HEIGHT_PX &&
+                resolution.width <= CONST.AVATAR_MAX_WIDTH_PX,
+        );
     }
 
     /**
@@ -172,40 +187,50 @@ class AvatarWithImagePicker extends React.Component {
         if (!this.isValidExtension(image)) {
             this.showErrorModal(
                 this.props.translate('avatarWithImagePicker.imageUploadFailed'),
-                this.props.translate('avatarWithImagePicker.notAllowedExtension', {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS}),
+                this.props.translate(
+                    'avatarWithImagePicker.notAllowedExtension',
+                    {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS},
+                ),
             );
             return;
         }
         if (!this.isValidSize(image)) {
             this.showErrorModal(
                 this.props.translate('avatarWithImagePicker.imageUploadFailed'),
-                this.props.translate('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)}),
+                this.props.translate('avatarWithImagePicker.sizeExceeded', {
+                    maxUploadSizeInMB:
+                        CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024),
+                }),
             );
             return;
         }
 
-        this.isValidResolution(image)
-            .then((isValidResolution) => {
-                if (!isValidResolution) {
-                    this.showErrorModal(
-                        this.props.translate('avatarWithImagePicker.imageUploadFailed'),
-                        this.props.translate('avatarWithImagePicker.resolutionConstraints', {
+        this.isValidResolution(image).then((isValidResolution) => {
+            if (!isValidResolution) {
+                this.showErrorModal(
+                    this.props.translate(
+                        'avatarWithImagePicker.imageUploadFailed',
+                    ),
+                    this.props.translate(
+                        'avatarWithImagePicker.resolutionConstraints',
+                        {
                             minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
                             minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
                             maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
                             maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
-                        }),
-                    );
-                    return;
-                }
+                        },
+                    ),
+                );
+                return;
+            }
 
-                this.setState({
-                    isAvatarCropModalOpen: true,
-                    imageUri: image.uri,
-                    imageName: image.name,
-                    imageType: image.type,
-                });
+            this.setState({
+                isAvatarCropModalOpen: true,
+                imageUri: image.uri,
+                imageName: image.name,
+                imageType: image.type,
             });
+        });
     }
 
     hideAvatarCropModal() {
@@ -246,33 +271,46 @@ class AvatarWithImagePicker extends React.Component {
 
     render() {
         const DefaultAvatar = this.props.DefaultAvatar;
-        const additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
+        const additionalStyles = _.isArray(this.props.style)
+            ? this.props.style
+            : [this.props.style];
 
         return (
             <View style={[styles.alignItemsCenter, ...additionalStyles]}>
-                <Pressable
-                    onPress={() => this.setState({isMenuVisible: true})}
-                >
+                <Pressable onPress={() => this.setState({isMenuVisible: true})}>
                     <View style={[styles.pRelative, styles.avatarLarge]}>
-                        {this.props.source
-                            ? (
-                                <Avatar
-                                    containerStyles={styles.avatarLarge}
-                                    imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                    source={this.props.source}
-                                    fallbackIcon={this.props.fallbackIcon}
-                                    size={this.props.size}
-                                    type={this.props.type}
-                                />
-                            )
-                            : (
-                                <DefaultAvatar />
-                            )}
-                        <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
+                        {this.props.source ? (
+                            <Avatar
+                                containerStyles={styles.avatarLarge}
+                                imageStyles={[
+                                    styles.avatarLarge,
+                                    styles.alignSelfCenter,
+                                ]}
+                                source={this.props.source}
+                                fallbackIcon={this.props.fallbackIcon}
+                                size={this.props.size}
+                                type={this.props.type}
+                            />
+                        ) : (
+                            <DefaultAvatar />
+                        )}
+                        <AttachmentPicker
+                            type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
+                        >
                             {({openPicker}) => (
                                 <>
-                                    <Tooltip absolute text={this.props.translate('avatarWithImagePicker.editImage')}>
-                                        <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
+                                    <Tooltip
+                                        absolute
+                                        text={this.props.translate(
+                                            'avatarWithImagePicker.editImage',
+                                        )}
+                                    >
+                                        <View
+                                            style={[
+                                                styles.smallEditIcon,
+                                                styles.smallAvatarEditIcon,
+                                            ]}
+                                        >
                                             <Icon
                                                 src={Expensicons.Camera}
                                                 width={variables.iconSizeSmall}
@@ -283,10 +321,22 @@ class AvatarWithImagePicker extends React.Component {
                                     </Tooltip>
                                     <PopoverMenu
                                         isVisible={this.state.isMenuVisible}
-                                        onClose={() => this.setState({isMenuVisible: false})}
-                                        onItemSelected={() => this.setState({isMenuVisible: false})}
-                                        menuItems={this.createMenuItems(openPicker)}
-                                        anchorPosition={this.props.anchorPosition}
+                                        onClose={() =>
+                                            this.setState({
+                                                isMenuVisible: false,
+                                            })
+                                        }
+                                        onItemSelected={() =>
+                                            this.setState({
+                                                isMenuVisible: false,
+                                            })
+                                        }
+                                        menuItems={this.createMenuItems(
+                                            openPicker,
+                                        )}
+                                        anchorPosition={
+                                            this.props.anchorPosition
+                                        }
                                     />
                                 </>
                             )}

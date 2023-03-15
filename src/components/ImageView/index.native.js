@@ -1,13 +1,13 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {
-    View, InteractionManager, PanResponder,
-} from 'react-native';
+import {View, InteractionManager, PanResponder} from 'react-native';
 import ImageZoom from 'react-native-image-pan-zoom';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../withWindowDimensions';
 import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import Image from '../Image';
 
@@ -52,7 +52,8 @@ class ImageView extends PureComponent {
 
         // PanResponder used to capture how many touches are active on the attachment image
         this.panResponder = PanResponder.create({
-            onStartShouldSetPanResponder: this.updatePanResponderTouches.bind(this),
+            onStartShouldSetPanResponder:
+                this.updatePanResponderTouches.bind(this),
         });
 
         this.configureImageZoom = this.configureImageZoom.bind(this);
@@ -103,26 +104,41 @@ class ImageView extends PureComponent {
      */
     configureImageZoom({nativeEvent}) {
         // Wait till animations are over to prevent stutter in navigation animation
-        this.state.interactionPromise = InteractionManager.runAfterInteractions(() => {
-            let imageWidth = nativeEvent.width;
-            let imageHeight = nativeEvent.height;
-            const containerWidth = Math.round(this.props.windowWidth);
-            const containerHeight = Math.round(this.state.containerHeight ? this.state.containerHeight : this.props.windowHeight);
+        this.state.interactionPromise = InteractionManager.runAfterInteractions(
+            () => {
+                let imageWidth = nativeEvent.width;
+                let imageHeight = nativeEvent.height;
+                const containerWidth = Math.round(this.props.windowWidth);
+                const containerHeight = Math.round(
+                    this.state.containerHeight
+                        ? this.state.containerHeight
+                        : this.props.windowHeight,
+                );
 
-            const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
+                const aspectRatio = Math.min(
+                    containerHeight / imageHeight,
+                    containerWidth / imageWidth,
+                );
 
-            if (imageHeight > imageWidth) {
-                imageHeight *= aspectRatio;
-            } else {
-                imageWidth *= aspectRatio;
-            }
+                if (imageHeight > imageWidth) {
+                    imageHeight *= aspectRatio;
+                } else {
+                    imageWidth *= aspectRatio;
+                }
 
-            // Resize the image to max dimensions possible on the Native platforms to prevent crashes on Android. To keep the same behavior, apply to IOS as well.
-            const maxDimensionsScale = 11;
-            imageWidth = Math.min(imageWidth, (containerWidth * maxDimensionsScale));
-            imageHeight = Math.min(imageHeight, (containerHeight * maxDimensionsScale));
-            this.setState({imageHeight, imageWidth, isLoading: false});
-        });
+                // Resize the image to max dimensions possible on the Native platforms to prevent crashes on Android. To keep the same behavior, apply to IOS as well.
+                const maxDimensionsScale = 11;
+                imageWidth = Math.min(
+                    imageWidth,
+                    containerWidth * maxDimensionsScale,
+                );
+                imageHeight = Math.min(
+                    imageHeight,
+                    containerHeight * maxDimensionsScale,
+                );
+                this.setState({imageHeight, imageWidth, isLoading: false});
+            },
+        );
     }
 
     /**
@@ -154,9 +170,12 @@ class ImageView extends PureComponent {
 
     render() {
         // Default windowHeight accounts for the modal header height
-        const windowHeight = this.props.windowHeight - variables.contentHeaderHeight;
-        const hasImageDimensions = this.state.imageWidth !== 0 && this.state.imageHeight !== 0;
-        const shouldShowLoadingIndicator = this.state.isLoading || !hasImageDimensions;
+        const windowHeight =
+            this.props.windowHeight - variables.contentHeaderHeight;
+        const hasImageDimensions =
+            this.state.imageWidth !== 0 && this.state.imageHeight !== 0;
+        const shouldShowLoadingIndicator =
+            this.state.isLoading || !hasImageDimensions;
 
         // Zoom view should be loaded only after measuring actual image dimensions, otherwise it causes blurred images on Android
         return (
@@ -177,18 +196,23 @@ class ImageView extends PureComponent {
             >
                 {this.state.containerHeight && (
                     <ImageZoom
-                        ref={el => this.zoom = el}
+                        ref={(el) => (this.zoom = el)}
                         onClick={() => this.props.onPress()}
                         cropWidth={this.props.windowWidth}
                         cropHeight={windowHeight}
                         imageWidth={this.state.imageWidth}
                         imageHeight={this.state.imageHeight}
                         onStartShouldSetPanResponder={() => {
-                            const isDoubleClick = new Date().getTime() - this.lastClickTime <= this.doubleClickInterval;
+                            const isDoubleClick =
+                                new Date().getTime() - this.lastClickTime <=
+                                this.doubleClickInterval;
                             this.lastClickTime = new Date().getTime();
 
                             // Let ImageZoom handle the event if the tap is more than one touchPoint or if we are zoomed in
-                            if (this.amountOfTouches === 2 || this.imageZoomScale !== 1) {
+                            if (
+                                this.amountOfTouches === 2 ||
+                                this.imageZoomScale !== 1
+                            ) {
                                 return true;
                             }
 
@@ -219,7 +243,9 @@ class ImageView extends PureComponent {
                                 // Hide image while loading so ImageZoom can get the image
                                 // size before presenting - preventing visual glitches or shift
                                 // due to ImageZoom
-                                shouldShowLoadingIndicator ? styles.opacity0 : styles.opacity1,
+                                shouldShowLoadingIndicator
+                                    ? styles.opacity0
+                                    : styles.opacity1,
                             ]}
                             source={{uri: this.props.url}}
                             isAuthTokenRequired={this.props.isAuthTokenRequired}
@@ -235,11 +261,7 @@ class ImageView extends PureComponent {
                         <View
                             /* eslint-disable-next-line react/jsx-props-no-spreading */
                             {...this.panResponder.panHandlers}
-                            style={[
-                                styles.w100,
-                                styles.h100,
-                                styles.invisible,
-                            ]}
+                            style={[styles.w100, styles.h100, styles.invisible]}
                         />
                     </ImageZoom>
                 )}

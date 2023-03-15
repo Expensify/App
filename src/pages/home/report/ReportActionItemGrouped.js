@@ -8,11 +8,9 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-const ReportActionItemGrouped = props => (
+const ReportActionItemGrouped = (props) => (
     <View style={[styles.chatItem]}>
-        <View style={[styles.chatItemRightGrouped]}>
-            {props.children}
-        </View>
+        <View style={[styles.chatItemRightGrouped]}>{props.children}</View>
     </View>
 );
 

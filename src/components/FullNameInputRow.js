@@ -42,7 +42,9 @@ const defaultProps = {
 };
 
 const FullNameInputRow = (props) => {
-    const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
+    const additionalStyles = _.isArray(props.style)
+        ? props.style
+        : [props.style];
     return (
         <View style={[styles.flexRow, ...additionalStyles]}>
             <View style={styles.flex1}>

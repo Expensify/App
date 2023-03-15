@@ -18,7 +18,10 @@ function sizeFromAngle(width, height, angle) {
     if (sine < 0) {
         sine = -sine;
     }
-    return {width: (height * cosine) + (width * sine), height: (height * sine) + (width * cosine)};
+    return {
+        width: height * cosine + width * sine,
+        height: height * sine + width * cosine,
+    };
 }
 
 /**
@@ -45,7 +48,13 @@ function rotateCanvas(canvas, degrees) {
     const radians = (degrees * Math.PI) / 180;
     context.rotate(radians);
 
-    context.drawImage(canvas, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+    context.drawImage(
+        canvas,
+        -canvas.width / 2,
+        -canvas.height / 2,
+        canvas.width,
+        canvas.height,
+    );
 
     return result;
 }
@@ -58,9 +67,7 @@ function rotateCanvas(canvas, degrees) {
  * @returns {Object}
  */
 function cropCanvas(canvas, options) {
-    let {
-        originX = 0, originY = 0, width = 0, height = 0,
-    } = options;
+    let {originX = 0, originY = 0, width = 0, height = 0} = options;
     const clamp = (value, max) => Math.max(0, Math.min(max, value));
 
     width = clamp(width, canvas.width);
@@ -76,7 +83,17 @@ function cropCanvas(canvas, options) {
     result.height = height;
 
     const context = result.getContext('2d');
-    context.drawImage(canvas, originX, originY, width, height, 0, 0, width, height);
+    context.drawImage(
+        canvas,
+        originX,
+        originY,
+        width,
+        height,
+        0,
+        0,
+        width,
+        height,
+    );
 
     return result;
 }
@@ -89,7 +106,9 @@ function cropCanvas(canvas, options) {
 function convertCanvasToFile(canvas, options = {}) {
     return new Promise((resolve) => {
         canvas.toBlob((blob) => {
-            const file = new File([blob], options.name || 'fileName.jpeg', {type: options.type || 'image/jpeg'});
+            const file = new File([blob], options.name || 'fileName.jpeg', {
+                type: options.type || 'image/jpeg',
+            });
             file.uri = URL.createObjectURL(file);
             resolve(file);
         });
@@ -112,7 +131,13 @@ function loadImageAsync(uri) {
             canvas.height = imageSource.naturalHeight;
 
             const context = canvas.getContext('2d');
-            context.drawImage(imageSource, 0, 0, imageSource.naturalWidth, imageSource.naturalHeight);
+            context.drawImage(
+                imageSource,
+                0,
+                0,
+                imageSource.naturalWidth,
+                imageSource.naturalHeight,
+            );
 
             resolve(canvas);
         };
@@ -131,15 +156,19 @@ function loadImageAsync(uri) {
  */
 function cropOrRotateImage(uri, actions, options) {
     return loadImageAsync(uri).then((originalCanvas) => {
-        const resultCanvas = _.reduce(actions, (canvas, action) => {
-            if ('crop' in action) {
-                return cropCanvas(canvas, action.crop);
-            }
-            if ('rotate' in action) {
-                return rotateCanvas(canvas, action.rotate);
-            }
-            return canvas;
-        }, originalCanvas);
+        const resultCanvas = _.reduce(
+            actions,
+            (canvas, action) => {
+                if ('crop' in action) {
+                    return cropCanvas(canvas, action.crop);
+                }
+                if ('rotate' in action) {
+                    return rotateCanvas(canvas, action.rotate);
+                }
+                return canvas;
+            },
+            originalCanvas,
+        );
 
         return convertCanvasToFile(resultCanvas, options);
     });

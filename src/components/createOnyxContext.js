@@ -11,7 +11,7 @@ const propTypes = {
 
 export default (onyxKeyName) => {
     const Context = createContext();
-    const Provider = props => (
+    const Provider = (props) => (
         <Context.Provider value={props[onyxKeyName]}>
             {props.children}
         </Context.Provider>
@@ -26,25 +26,31 @@ export default (onyxKeyName) => {
         },
     })(Provider);
 
-    const withOnyxKey = ({propName = onyxKeyName, transformValue} = {}) => (WrappedComponent) => {
-        const Consumer = forwardRef((props, ref) => (
-            <Context.Consumer>
-                {(value) => {
-                    const propsToPass = {
-                        ...props,
-                        [propName]: transformValue ? transformValue(value, props) : value,
-                    };
-                    return (
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        <WrappedComponent {...propsToPass} ref={ref} />
-                    );
-                }}
-            </Context.Consumer>
-        ));
+    const withOnyxKey =
+        ({propName = onyxKeyName, transformValue} = {}) =>
+        (WrappedComponent) => {
+            const Consumer = forwardRef((props, ref) => (
+                <Context.Consumer>
+                    {(value) => {
+                        const propsToPass = {
+                            ...props,
+                            [propName]: transformValue
+                                ? transformValue(value, props)
+                                : value,
+                        };
+                        return (
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            <WrappedComponent {...propsToPass} ref={ref} />
+                        );
+                    }}
+                </Context.Consumer>
+            ));
 
-        Consumer.displayName = `with${Str.UCFirst(onyxKeyName)}(${getComponentDisplayName(WrappedComponent)})`;
-        return Consumer;
-    };
+            Consumer.displayName = `with${Str.UCFirst(
+                onyxKeyName,
+            )}(${getComponentDisplayName(WrappedComponent)})`;
+            return Consumer;
+        };
 
     return [withOnyxKey, ProviderWithOnyx];
 };

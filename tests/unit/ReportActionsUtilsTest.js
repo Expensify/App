@@ -103,13 +103,19 @@ describe('ReportActionsUtils', () => {
             ],
         ];
 
-        test.each(cases)('sorts by created, then actionName, then reportActionID', (input, expectedOutput) => {
-            const result = ReportActionsUtils.getSortedReportActions(input);
-            expect(result).toStrictEqual(expectedOutput);
-        });
+        test.each(cases)(
+            'sorts by created, then actionName, then reportActionID',
+            (input, expectedOutput) => {
+                const result = ReportActionsUtils.getSortedReportActions(input);
+                expect(result).toStrictEqual(expectedOutput);
+            },
+        );
 
         test.each(cases)('in descending order', (input, expectedOutput) => {
-            const result = ReportActionsUtils.getSortedReportActions(input, true);
+            const result = ReportActionsUtils.getSortedReportActions(
+                input,
+                true,
+            );
             expect(result).toStrictEqual(expectedOutput.reverse());
         });
     });
@@ -148,7 +154,8 @@ describe('ReportActionsUtils', () => {
                     message: [{html: 'Hello world'}],
                 },
             ];
-            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
+            const result =
+                ReportActionsUtils.getSortedReportActionsForDisplay(input);
             input.pop();
             expect(result).toStrictEqual(input);
         });
@@ -185,7 +192,8 @@ describe('ReportActionsUtils', () => {
                     message: [{html: 'Hello world'}],
                 },
             ];
-            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
+            const result =
+                ReportActionsUtils.getSortedReportActionsForDisplay(input);
             input.pop();
             expect(result).toStrictEqual(input);
         });
@@ -212,7 +220,8 @@ describe('ReportActionsUtils', () => {
                     message: [{html: ''}],
                 },
             ];
-            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
+            const result =
+                ReportActionsUtils.getSortedReportActionsForDisplay(input);
             input.pop();
             expect(result).toStrictEqual(input);
         });

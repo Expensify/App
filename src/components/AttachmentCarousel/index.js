@@ -70,7 +70,10 @@ class AttachmentCarousel extends React.Component {
     getAttachment(attachmentItem) {
         const source = _.get(attachmentItem, 'source', '');
         const file = _.get(attachmentItem, 'file', {name: ''});
-        this.props.onNavigate({source: addEncryptedAuthTokenToURL(source), file});
+        this.props.onNavigate({
+            source: addEncryptedAuthTokenToURL(source),
+            file,
+        });
 
         return {
             source,
@@ -91,7 +94,10 @@ class AttachmentCarousel extends React.Component {
      */
     makeStateWithReports() {
         let page;
-        const actions = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions), true);
+        const actions = ReportActionsUtils.getSortedReportActions(
+            _.values(this.props.reportActions),
+            true,
+        );
 
         /**
          * Looping to filter out attachments and retrieve the src URL and name of attachments.
@@ -99,14 +105,20 @@ class AttachmentCarousel extends React.Component {
         const attachments = [];
         _.forEach(actions, ({originalMessage, message}) => {
             // Check for attachment which hasn't been deleted
-            if (!originalMessage || !originalMessage.html || _.some(message, m => m.isEdited)) {
+            if (
+                !originalMessage ||
+                !originalMessage.html ||
+                _.some(message, (m) => m.isEdited)
+            ) {
                 return;
             }
-            const matches = [...originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA)];
+            const matches = [
+                ...originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA),
+            ];
 
             // matchAll captured both source url and name of the attachment
             if (matches.length === 2) {
-                const [originalSource, name] = _.map(matches, m => m[2]);
+                const [originalSource, name] = _.map(matches, (m) => m[2]);
 
                 // Update the image URL so the images can be accessed depending on the config environment.
                 // Eg: while using Ngrok the image path is from an Ngrok URL and not an Expensify URL.
@@ -132,9 +144,12 @@ class AttachmentCarousel extends React.Component {
     /**
      * Increments or decrements the index to get another selected item
      * @param {Number} deltaSlide
-    */
+     */
     cycleThroughAttachments(deltaSlide) {
-        if ((deltaSlide > 0 && this.state.isForwardDisabled) || (deltaSlide < 0 && this.state.isBackDisabled)) {
+        if (
+            (deltaSlide > 0 && this.state.isForwardDisabled) ||
+            (deltaSlide < 0 && this.state.isBackDisabled)
+        ) {
             return;
         }
 
@@ -160,7 +175,7 @@ class AttachmentCarousel extends React.Component {
                 onMouseEnter={() => this.toggleArrowsVisibility(true)}
                 onMouseLeave={() => this.toggleArrowsVisibility(false)}
             >
-                {(isPageSet && this.state.shouldShowArrow) && (
+                {isPageSet && this.state.shouldShowArrow && (
                     <>
                         {!this.state.isBackDisabled && (
                             <Button
@@ -190,11 +205,18 @@ class AttachmentCarousel extends React.Component {
                     styles={[styles.attachmentModalArrowsContainer]}
                     canSwipeLeft={!this.state.isBackDisabled}
                     canSwipeRight={!this.state.isForwardDisabled}
-                    onPress={() => this.canUseTouchScreen && this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
+                    onPress={() =>
+                        this.canUseTouchScreen &&
+                        this.toggleArrowsVisibility(!this.state.shouldShowArrow)
+                    }
                     onCycleThroughAttachments={this.cycleThroughAttachments}
                 >
                     <AttachmentView
-                        onPress={() => this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
+                        onPress={() =>
+                            this.toggleArrowsVisibility(
+                                !this.state.shouldShowArrow,
+                            )
+                        }
                         source={authSource}
                         file={this.state.file}
                     />

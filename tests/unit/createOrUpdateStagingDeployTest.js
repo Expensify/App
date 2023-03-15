@@ -19,18 +19,23 @@ beforeAll(() => {
     const moctokit = {
         rest: {
             issues: {
-                create: jest.fn().mockImplementation(arg => Promise.resolve({
-                    data: {
-                        ...arg,
-                        html_url: 'https://github.com/Expensify/App/issues/29',
-                    },
-                })),
-                update: jest.fn().mockImplementation(arg => Promise.resolve({
-                    data: {
-                        ...arg,
-                        html_url: `https://github.com/Expensify/App/issues/${arg.issue_number}`,
-                    },
-                })),
+                create: jest.fn().mockImplementation((arg) =>
+                    Promise.resolve({
+                        data: {
+                            ...arg,
+                            html_url:
+                                'https://github.com/Expensify/App/issues/29',
+                        },
+                    }),
+                ),
+                update: jest.fn().mockImplementation((arg) =>
+                    Promise.resolve({
+                        data: {
+                            ...arg,
+                            html_url: `https://github.com/Expensify/App/issues/${arg.issue_number}`,
+                        },
+                    }),
+                ),
                 listForRepo: mockListIssues,
             },
             pulls: {
@@ -39,7 +44,11 @@ beforeAll(() => {
                 list: jest.fn().mockResolvedValue([]),
             },
         },
-        paginate: jest.fn().mockImplementation(objectMethod => objectMethod().then(({data}) => data)),
+        paginate: jest
+            .fn()
+            .mockImplementation((objectMethod) =>
+                objectMethod().then(({data}) => data),
+            ),
     };
     GithubUtils.internalOctokit = moctokit;
 
@@ -98,14 +107,17 @@ const baseIssueList = [
     'https://github.com/Expensify/App/issues/12',
 ];
 // eslint-disable-next-line max-len
-const baseExpectedOutput = (tag = '1.0.2-1') => `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
+const baseExpectedOutput = (tag = '1.0.2-1') =>
+    `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
 const openCheckbox = '- [ ] ';
 const closedCheckbox = '- [x] ';
 const deployerVerificationsHeader = '**Deployer verifications:**';
 // eslint-disable-next-line max-len
-const timingDashboardVerification = 'I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.';
+const timingDashboardVerification =
+    'I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.';
 // eslint-disable-next-line max-len
-const firebaseVerification = 'I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).';
+const firebaseVerification =
+    'I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).';
 const ccApplauseLeads = 'cc @Expensify/applauseleads\r\n';
 const deployBlockerHeader = '**Deploy Blockers:**';
 const lineBreak = '\r\n';
@@ -119,15 +131,16 @@ describe('createOrUpdateStagingDeployCash', () => {
         labels: [LABELS.STAGING_DEPLOY_CASH],
         html_url: 'https://github.com/Expensify/App/issues/29',
         // eslint-disable-next-line max-len
-        body: `${baseExpectedOutput('1.0.1-0')}`
-            + `${closedCheckbox}${basePRList[0]}`
-            + `${lineBreak}${closedCheckbox}${basePRList[1]}`
-            + `${lineBreak}${closedCheckbox}${basePRList[2]}${lineBreak}`
-            + `${lineBreakDouble}${deployBlockerHeader}`
-            + `${lineBreak}${closedCheckbox}${basePRList[0]}`
-            + `${lineBreak}${closedCheckbox}${basePRList[3]}`
-            + `${lineBreak}${closedCheckbox}${basePRList[4]}`
-            + `${lineBreakDouble}${ccApplauseLeads}`,
+        body:
+            `${baseExpectedOutput('1.0.1-0')}` +
+            `${closedCheckbox}${basePRList[0]}` +
+            `${lineBreak}${closedCheckbox}${basePRList[1]}` +
+            `${lineBreak}${closedCheckbox}${basePRList[2]}${lineBreak}` +
+            `${lineBreakDouble}${deployBlockerHeader}` +
+            `${lineBreak}${closedCheckbox}${basePRList[0]}` +
+            `${lineBreak}${closedCheckbox}${basePRList[3]}` +
+            `${lineBreak}${closedCheckbox}${basePRList[4]}` +
+            `${lineBreakDouble}${ccApplauseLeads}`,
     };
 
     const baseNewPullRequests = ['6', '7', '8'];
@@ -143,14 +156,14 @@ describe('createOrUpdateStagingDeployCash', () => {
             }
         });
 
-        mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
-            if (fromRef === '1.0.1-0' && toRef === '1.0.2-1') {
-                return [
-                    ...baseNewPullRequests,
-                ];
-            }
-            return [];
-        });
+        mockGetPullRequestsMergedBetween.mockImplementation(
+            (fromRef, toRef) => {
+                if (fromRef === '1.0.1-0' && toRef === '1.0.2-1') {
+                    return [...baseNewPullRequests];
+                }
+                return [];
+            },
+        );
 
         mockListIssues.mockImplementation((args) => {
             if (args.labels === GithubUtils.STAGING_DEPLOY_CASH_LABEL) {
@@ -164,18 +177,21 @@ describe('createOrUpdateStagingDeployCash', () => {
             expect(result).toStrictEqual({
                 owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.APP_REPO,
-                title: `Deploy Checklist: New Expensify ${moment().format('YYYY-MM-DD')}`,
+                title: `Deploy Checklist: New Expensify ${moment().format(
+                    'YYYY-MM-DD',
+                )}`,
                 labels: [GithubUtils.STAGING_DEPLOY_CASH_LABEL],
                 html_url: 'https://github.com/Expensify/App/issues/29',
                 assignees: [GithubUtils.APPLAUSE_BOT],
-                body: `${baseExpectedOutput()}`
-                    + `${openCheckbox}${basePRList[5]}`
-                    + `${lineBreak}${openCheckbox}${basePRList[6]}`
-                    + `${lineBreak}${openCheckbox}${basePRList[7]}${lineBreak}`
-                    + `${lineBreakDouble}${deployerVerificationsHeader}`
-                    + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
-                    + `${lineBreak}${openCheckbox}${firebaseVerification}`
-                    + `${lineBreakDouble}${ccApplauseLeads}`,
+                body:
+                    `${baseExpectedOutput()}` +
+                    `${openCheckbox}${basePRList[5]}` +
+                    `${lineBreak}${openCheckbox}${basePRList[6]}` +
+                    `${lineBreak}${openCheckbox}${basePRList[7]}${lineBreak}` +
+                    `${lineBreakDouble}${deployerVerificationsHeader}` +
+                    `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
+                    `${lineBreak}${openCheckbox}${firebaseVerification}` +
+                    `${lineBreakDouble}${ccApplauseLeads}`,
             });
         });
     });
@@ -187,18 +203,19 @@ describe('createOrUpdateStagingDeployCash', () => {
             number: 29,
             labels: [LABELS.STAGING_DEPLOY_CASH],
             // eslint-disable-next-line max-len
-            body: `${baseExpectedOutput()}`
-                + `${openCheckbox}${basePRList[5]}`
-                + `${lineBreak}${closedCheckbox}${basePRList[6]}`
-                + `${lineBreak}${openCheckbox}${basePRList[7]}${lineBreak}`
-                + `${lineBreakDouble}${deployBlockerHeader}`
-                + `${lineBreak}${openCheckbox}${basePRList[5]}`
-                + `${lineBreak}${openCheckbox}${basePRList[8]}`
-                + `${lineBreak}${closedCheckbox}${basePRList[9]}${lineBreak}`
-                + `${lineBreakDouble}${deployerVerificationsHeader}`
-                + `${lineBreak}${closedCheckbox}${timingDashboardVerification}`
-                + `${lineBreak}${closedCheckbox}${firebaseVerification}`
-                + `${lineBreakDouble}${ccApplauseLeads}`,
+            body:
+                `${baseExpectedOutput()}` +
+                `${openCheckbox}${basePRList[5]}` +
+                `${lineBreak}${closedCheckbox}${basePRList[6]}` +
+                `${lineBreak}${openCheckbox}${basePRList[7]}${lineBreak}` +
+                `${lineBreakDouble}${deployBlockerHeader}` +
+                `${lineBreak}${openCheckbox}${basePRList[5]}` +
+                `${lineBreak}${openCheckbox}${basePRList[8]}` +
+                `${lineBreak}${closedCheckbox}${basePRList[9]}${lineBreak}` +
+                `${lineBreakDouble}${deployerVerificationsHeader}` +
+                `${lineBreak}${closedCheckbox}${timingDashboardVerification}` +
+                `${lineBreak}${closedCheckbox}${firebaseVerification}` +
+                `${lineBreakDouble}${ccApplauseLeads}`,
             state: 'open',
         };
 
@@ -236,19 +253,23 @@ describe('createOrUpdateStagingDeployCash', () => {
 
             // New pull requests to add to open StagingDeployCash
             const newPullRequests = ['9', '10'];
-            mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
-                if (fromRef === '1.0.1-0' && toRef === '1.0.2-2') {
-                    return [
-                        ...baseNewPullRequests,
-                        ...newPullRequests,
-                    ];
-                }
-                return [];
-            });
+            mockGetPullRequestsMergedBetween.mockImplementation(
+                (fromRef, toRef) => {
+                    if (fromRef === '1.0.1-0' && toRef === '1.0.2-2') {
+                        return [...baseNewPullRequests, ...newPullRequests];
+                    }
+                    return [];
+                },
+            );
 
             mockListIssues.mockImplementation((args) => {
                 if (args.labels === GithubUtils.STAGING_DEPLOY_CASH_LABEL) {
-                    return {data: [openStagingDeployCashBefore, closedStagingDeployCash]};
+                    return {
+                        data: [
+                            openStagingDeployCashBefore,
+                            closedStagingDeployCash,
+                        ],
+                    };
                 }
 
                 if (args.labels === GithubUtils.DEPLOY_BLOCKER_CASH_LABEL) {
@@ -256,13 +277,15 @@ describe('createOrUpdateStagingDeployCash', () => {
                         data: [
                             ...currentDeployBlockers,
                             {
-                                html_url: 'https://github.com/Expensify/App/issues/11', // New
+                                html_url:
+                                    'https://github.com/Expensify/App/issues/11', // New
                                 number: 11,
                                 state: 'open',
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
                             },
                             {
-                                html_url: 'https://github.com/Expensify/App/issues/12', // New
+                                html_url:
+                                    'https://github.com/Expensify/App/issues/12', // New
                                 number: 12,
                                 state: 'open',
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
@@ -282,24 +305,24 @@ describe('createOrUpdateStagingDeployCash', () => {
                     // eslint-disable-next-line max-len
                     html_url: `https://github.com/Expensify/App/issues/${openStagingDeployCashBefore.number}`,
                     // eslint-disable-next-line max-len
-                    body: `${baseExpectedOutput('1.0.2-2')}`
-                        + `${openCheckbox}${basePRList[5]}`
-                        + `${lineBreak}${closedCheckbox}${basePRList[6]}`
-                        + `${lineBreak}${openCheckbox}${basePRList[7]}`
-                        + `${lineBreak}${openCheckbox}${basePRList[8]}`
-                        + `${lineBreak}${openCheckbox}${basePRList[9]}${lineBreak}`
-                        + `${lineBreakDouble}${deployBlockerHeader}`
-                        + `${lineBreak}${openCheckbox}${basePRList[5]}`
-                        + `${lineBreak}${openCheckbox}${basePRList[8]}`
-                        + `${lineBreak}${closedCheckbox}${basePRList[9]}`
-                        + `${lineBreak}${openCheckbox}${basePRList[10]}`
-                        + `${lineBreak}${openCheckbox}${basePRList[11]}${lineBreak}`
-                        + `${lineBreakDouble}${deployerVerificationsHeader}`
-
+                    body:
+                        `${baseExpectedOutput('1.0.2-2')}` +
+                        `${openCheckbox}${basePRList[5]}` +
+                        `${lineBreak}${closedCheckbox}${basePRList[6]}` +
+                        `${lineBreak}${openCheckbox}${basePRList[7]}` +
+                        `${lineBreak}${openCheckbox}${basePRList[8]}` +
+                        `${lineBreak}${openCheckbox}${basePRList[9]}${lineBreak}` +
+                        `${lineBreakDouble}${deployBlockerHeader}` +
+                        `${lineBreak}${openCheckbox}${basePRList[5]}` +
+                        `${lineBreak}${openCheckbox}${basePRList[8]}` +
+                        `${lineBreak}${closedCheckbox}${basePRList[9]}` +
+                        `${lineBreak}${openCheckbox}${basePRList[10]}` +
+                        `${lineBreak}${openCheckbox}${basePRList[11]}${lineBreak}` +
+                        `${lineBreakDouble}${deployerVerificationsHeader}` +
                         // Note: these will be unchecked with a new app version, and that's intentional
-                        + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
-                        + `${lineBreak}${openCheckbox}${firebaseVerification}`
-                        + `${lineBreakDouble}${ccApplauseLeads}`,
+                        `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
+                        `${lineBreak}${openCheckbox}${firebaseVerification}` +
+                        `${lineBreakDouble}${ccApplauseLeads}`,
                 });
             });
         });
@@ -311,17 +334,22 @@ describe('createOrUpdateStagingDeployCash', () => {
                 }
                 return 'fake_token';
             });
-            mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
-                if (fromRef === '1.0.1-0' && toRef === '1.0.2-2') {
-                    return [
-                        ...baseNewPullRequests,
-                    ];
-                }
-                return [];
-            });
+            mockGetPullRequestsMergedBetween.mockImplementation(
+                (fromRef, toRef) => {
+                    if (fromRef === '1.0.1-0' && toRef === '1.0.2-2') {
+                        return [...baseNewPullRequests];
+                    }
+                    return [];
+                },
+            );
             mockListIssues.mockImplementation((args) => {
                 if (args.labels === GithubUtils.STAGING_DEPLOY_CASH_LABEL) {
-                    return {data: [openStagingDeployCashBefore, closedStagingDeployCash]};
+                    return {
+                        data: [
+                            openStagingDeployCashBefore,
+                            closedStagingDeployCash,
+                        ],
+                    };
                 }
 
                 if (args.labels === GithubUtils.DEPLOY_BLOCKER_CASH_LABEL) {
@@ -329,13 +357,15 @@ describe('createOrUpdateStagingDeployCash', () => {
                         data: [
                             ...currentDeployBlockers,
                             {
-                                html_url: 'https://github.com/Expensify/App/issues/11', // New
+                                html_url:
+                                    'https://github.com/Expensify/App/issues/11', // New
                                 number: 11,
                                 state: 'open',
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
                             },
                             {
-                                html_url: 'https://github.com/Expensify/App/issues/12', // New
+                                html_url:
+                                    'https://github.com/Expensify/App/issues/12', // New
                                 number: 12,
                                 state: 'open',
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
@@ -355,20 +385,21 @@ describe('createOrUpdateStagingDeployCash', () => {
                     // eslint-disable-next-line max-len
                     html_url: `https://github.com/Expensify/App/issues/${openStagingDeployCashBefore.number}`,
                     // eslint-disable-next-line max-len
-                    body: `${baseExpectedOutput('1.0.2-1')}`
-                        + `${openCheckbox}${basePRList[5]}`
-                        + `${lineBreak}${closedCheckbox}${basePRList[6]}`
-                        + `${lineBreak}${openCheckbox}${basePRList[7]}${lineBreak}`
-                        + `${lineBreakDouble}${deployBlockerHeader}`
-                        + `${lineBreak}${openCheckbox}${basePRList[5]}`
-                        + `${lineBreak}${openCheckbox}${basePRList[8]}`
-                        + `${lineBreak}${closedCheckbox}${basePRList[9]}`
-                        + `${lineBreak}${openCheckbox}${baseIssueList[0]}`
-                        + `${lineBreak}${openCheckbox}${baseIssueList[1]}${lineBreak}`
-                        + `${lineBreakDouble}${deployerVerificationsHeader}`
-                        + `${lineBreak}${closedCheckbox}${timingDashboardVerification}`
-                        + `${lineBreak}${closedCheckbox}${firebaseVerification}`
-                        + `${lineBreakDouble}${ccApplauseLeads}`,
+                    body:
+                        `${baseExpectedOutput('1.0.2-1')}` +
+                        `${openCheckbox}${basePRList[5]}` +
+                        `${lineBreak}${closedCheckbox}${basePRList[6]}` +
+                        `${lineBreak}${openCheckbox}${basePRList[7]}${lineBreak}` +
+                        `${lineBreakDouble}${deployBlockerHeader}` +
+                        `${lineBreak}${openCheckbox}${basePRList[5]}` +
+                        `${lineBreak}${openCheckbox}${basePRList[8]}` +
+                        `${lineBreak}${closedCheckbox}${basePRList[9]}` +
+                        `${lineBreak}${openCheckbox}${baseIssueList[0]}` +
+                        `${lineBreak}${openCheckbox}${baseIssueList[1]}${lineBreak}` +
+                        `${lineBreakDouble}${deployerVerificationsHeader}` +
+                        `${lineBreak}${closedCheckbox}${timingDashboardVerification}` +
+                        `${lineBreak}${closedCheckbox}${firebaseVerification}` +
+                        `${lineBreakDouble}${ccApplauseLeads}`,
                 });
             });
         });

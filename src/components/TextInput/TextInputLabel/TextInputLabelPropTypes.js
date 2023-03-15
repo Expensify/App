@@ -19,7 +19,4 @@ const defaultProps = {
     for: '',
 };
 
-export {
-    propTypes,
-    defaultProps,
-};
+export {propTypes, defaultProps};

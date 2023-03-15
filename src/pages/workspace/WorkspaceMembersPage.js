@@ -1,9 +1,7 @@
 import React from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {
-    View, FlatList, TouchableOpacity,
-} from 'react-native';
+import {View, FlatList, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
@@ -12,7 +10,9 @@ import ONYXKEYS from '../../ONYXKEYS';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
 import Button from '../../components/Button';
@@ -21,7 +21,9 @@ import Text from '../../components/Text';
 import ROUTES from '../../ROUTES';
 import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../../components/withWindowDimensions';
 import OptionRow from '../../components/OptionRow';
 import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import CONST from '../../CONST';
@@ -70,7 +72,8 @@ class WorkspaceMembersPage extends React.Component {
         this.inviteUser = this.inviteUser.bind(this);
         this.addUser = this.addUser.bind(this);
         this.removeUser = this.removeUser.bind(this);
-        this.askForConfirmationToRemove = this.askForConfirmationToRemove.bind(this);
+        this.askForConfirmationToRemove =
+            this.askForConfirmationToRemove.bind(this);
         this.hideConfirmModal = this.hideConfirmModal.bind(this);
     }
 
@@ -83,7 +86,8 @@ class WorkspaceMembersPage extends React.Component {
             this.validate();
         }
 
-        const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
+        const isReconnecting =
+            prevProps.network.isOffline && !this.props.network.isOffline;
         if (!isReconnecting) {
             return;
         }
@@ -99,8 +103,15 @@ class WorkspaceMembersPage extends React.Component {
          * We filter clientMemberEmails to only pass members without errors
          * Otherwise, the members with errors would immediately be removed before the user has a chance to read the error
          */
-        const clientMemberEmails = _.keys(_.pick(this.props.policyMemberList, member => _.isEmpty(member.errors)));
-        Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
+        const clientMemberEmails = _.keys(
+            _.pick(this.props.policyMemberList, (member) =>
+                _.isEmpty(member.errors),
+            ),
+        );
+        Policy.openWorkspaceMembersPage(
+            this.props.route.params.policyID,
+            clientMemberEmails,
+        );
     }
 
     /**
@@ -114,7 +125,9 @@ class WorkspaceMembersPage extends React.Component {
      * Open the modal to invite a user
      */
     inviteUser() {
-        Navigation.navigate(ROUTES.getWorkspaceInviteRoute(this.props.route.params.policyID));
+        Navigation.navigate(
+            ROUTES.getWorkspaceInviteRoute(this.props.route.params.policyID),
+        );
     }
 
     /**
@@ -126,7 +139,10 @@ class WorkspaceMembersPage extends React.Component {
         }
 
         // Remove the admin from the list
-        const membersToRemove = _.without(this.state.selectedEmployees, this.props.session.email);
+        const membersToRemove = _.without(
+            this.state.selectedEmployees,
+            this.props.session.email,
+        );
         Policy.removeMembers(membersToRemove, this.props.route.params.policyID);
         this.setState({
             selectedEmployees: [],
@@ -157,13 +173,27 @@ class WorkspaceMembersPage extends React.Component {
      */
     toggleAllUsers() {
         let policyMemberList = lodashGet(this.props, 'policyMemberList', {});
-        policyMemberList = _.filter(_.keys(policyMemberList), policyMember => policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
-        this.setState(prevState => ({
-            selectedEmployees: !_.every(removableMembers, member => _.contains(prevState.selectedEmployees, member))
-                ? removableMembers
-                : [],
-        }), () => this.validate());
+        policyMemberList = _.filter(
+            _.keys(policyMemberList),
+            (policyMember) =>
+                policyMemberList[policyMember].pendingAction !==
+                CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+        const removableMembers = _.without(
+            policyMemberList,
+            this.props.session.email,
+            this.props.policy.owner,
+        );
+        this.setState(
+            (prevState) => ({
+                selectedEmployees: !_.every(removableMembers, (member) =>
+                    _.contains(prevState.selectedEmployees, member),
+                )
+                    ? removableMembers
+                    : [],
+            }),
+            () => this.validate(),
+        );
     }
 
     /**
@@ -192,9 +222,12 @@ class WorkspaceMembersPage extends React.Component {
      * @param {String} login
      */
     addUser(login) {
-        this.setState(prevState => ({
-            selectedEmployees: [...prevState.selectedEmployees, login],
-        }), () => this.validate());
+        this.setState(
+            (prevState) => ({
+                selectedEmployees: [...prevState.selectedEmployees, login],
+            }),
+            () => this.validate(),
+        );
     }
 
     /**
@@ -203,9 +236,15 @@ class WorkspaceMembersPage extends React.Component {
      * @param {String} login
      */
     removeUser(login) {
-        this.setState(prevState => ({
-            selectedEmployees: _.without(prevState.selectedEmployees, login),
-        }), () => this.validate());
+        this.setState(
+            (prevState) => ({
+                selectedEmployees: _.without(
+                    prevState.selectedEmployees,
+                    login,
+                ),
+            }),
+            () => this.validate(),
+        );
     }
 
     /**
@@ -215,20 +254,31 @@ class WorkspaceMembersPage extends React.Component {
      */
     dismissError(item) {
         if (item.pendingAction === 'delete') {
-            Policy.clearDeleteMemberError(this.props.route.params.policyID, item.login);
+            Policy.clearDeleteMemberError(
+                this.props.route.params.policyID,
+                item.login,
+            );
         } else {
-            Policy.clearAddMemberError(this.props.route.params.policyID, item.login);
+            Policy.clearAddMemberError(
+                this.props.route.params.policyID,
+                item.login,
+            );
         }
     }
 
     validate() {
         const errors = {};
         _.each(this.state.selectedEmployees, (member) => {
-            if (member !== this.props.policy.owner && member !== this.props.session.email) {
+            if (
+                member !== this.props.policy.owner &&
+                member !== this.props.session.email
+            ) {
                 return;
             }
 
-            errors[member] = this.props.translate('workspace.people.error.cannotRemove');
+            errors[member] = this.props.translate(
+                'workspace.people.error.cannotRemove',
+            );
         });
 
         this.setState({errors});
@@ -255,39 +305,62 @@ class WorkspaceMembersPage extends React.Component {
      *
      * @returns {React.Component}
      */
-    renderItem({
-        item,
-    }) {
+    renderItem({item}) {
         return (
-            <OfflineWithFeedback errorRowStyles={[styles.peopleRowBorderBottom]} onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors}>
+            <OfflineWithFeedback
+                errorRowStyles={[styles.peopleRowBorderBottom]}
+                onClose={() => this.dismissError(item)}
+                pendingAction={item.pendingAction}
+                errors={item.errors}
+            >
                 <TouchableOpacity
-                    style={[styles.peopleRow, (_.isEmpty(item.errors) || this.state.errors[item.login]) && styles.peopleRowBorderBottom]}
-                    onPress={() => this.toggleUser(item.login, item.pendingAction)}
+                    style={[
+                        styles.peopleRow,
+                        (_.isEmpty(item.errors) ||
+                            this.state.errors[item.login]) &&
+                            styles.peopleRowBorderBottom,
+                    ]}
+                    onPress={() =>
+                        this.toggleUser(item.login, item.pendingAction)
+                    }
                     activeOpacity={0.7}
                 >
                     <Checkbox
                         style={[styles.peopleRowCell]}
-                        isChecked={_.contains(this.state.selectedEmployees, item.login)}
-                        onPress={() => this.toggleUser(item.login, item.pendingAction)}
+                        isChecked={_.contains(
+                            this.state.selectedEmployees,
+                            item.login,
+                        )}
+                        onPress={() =>
+                            this.toggleUser(item.login, item.pendingAction)
+                        }
                     />
                     <View style={styles.flex1}>
                         <OptionRow
-                            onSelectRow={() => this.toggleUser(item.login, item.pendingAction)}
+                            onSelectRow={() =>
+                                this.toggleUser(item.login, item.pendingAction)
+                            }
                             boldStyle
                             option={{
                                 text: Str.removeSMSDomain(item.displayName),
                                 alternateText: Str.removeSMSDomain(item.login),
                                 participantsList: [item],
-                                icons: [{
-                                    source: ReportUtils.getAvatar(item.avatar, item.login),
-                                    name: item.login,
-                                    type: CONST.ICON_TYPE_AVATAR,
-                                }],
+                                icons: [
+                                    {
+                                        source: ReportUtils.getAvatar(
+                                            item.avatar,
+                                            item.login,
+                                        ),
+                                        name: item.login,
+                                        type: CONST.ICON_TYPE_AVATAR,
+                                    },
+                                ],
                                 keyForList: item.login,
                             }}
                         />
                     </View>
-                    {(this.props.session.email === item.login || item.role === 'admin') && (
+                    {(this.props.session.email === item.login ||
+                        item.role === 'admin') && (
                         <View style={styles.peopleRowCell}>
                             <View style={[styles.badge, styles.peopleBadge]}>
                                 <Text style={[styles.peopleBadgeText]}>
@@ -298,7 +371,10 @@ class WorkspaceMembersPage extends React.Component {
                     )}
                 </TouchableOpacity>
                 {!_.isEmpty(this.state.errors[item.login]) && (
-                    <FormHelpMessage isError message={this.state.errors[item.login]} />
+                    <FormHelpMessage
+                        isError
+                        message={this.state.errors[item.login]}
+                    />
                 )}
             </OfflineWithFeedback>
         );
@@ -309,22 +385,34 @@ class WorkspaceMembersPage extends React.Component {
         const removableMembers = [];
         let data = [];
         _.each(policyMemberList, (policyMember, email) => {
-            if (email !== this.props.session.email && email !== this.props.policy.owner && policyMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            if (
+                email !== this.props.session.email &&
+                email !== this.props.policy.owner &&
+                policyMember.pendingAction !==
+                    CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+            ) {
                 removableMembers.push(email);
             }
-            const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email});
+            const details = lodashGet(this.props.personalDetails, email, {
+                displayName: email,
+                login: email,
+            });
             data.push({
                 ...policyMember,
                 ...details,
             });
         });
-        data = _.sortBy(data, value => value.displayName.toLowerCase());
+        data = _.sortBy(data, (value) => value.displayName.toLowerCase());
         const searchValue = this.state.searchValue.trim().toLowerCase();
-        data = _.filter(data, member => this.isKeywordMatch(member.displayName, searchValue)
-            || this.isKeywordMatch(member.login, searchValue)
-            || this.isKeywordMatch(member.phoneNumber, searchValue)
-            || this.isKeywordMatch(member.firstName, searchValue)
-            || this.isKeywordMatch(member.lastName, searchValue));
+        data = _.filter(
+            data,
+            (member) =>
+                this.isKeywordMatch(member.displayName, searchValue) ||
+                this.isKeywordMatch(member.login, searchValue) ||
+                this.isKeywordMatch(member.phoneNumber, searchValue) ||
+                this.isKeywordMatch(member.firstName, searchValue) ||
+                this.isKeywordMatch(member.lastName, searchValue),
+        );
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
 
@@ -336,31 +424,52 @@ class WorkspaceMembersPage extends React.Component {
                 {({safeAreaPaddingBottomStyle}) => (
                     <FullPageNotFoundView
                         shouldShow={_.isEmpty(this.props.policy)}
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                        onBackButtonPress={() =>
+                            Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)
+                        }
                     >
                         <HeaderWithCloseButton
-                            title={this.props.translate('workspace.common.members')}
+                            title={this.props.translate(
+                                'workspace.common.members',
+                            )}
                             subtitle={policyName}
                             onCloseButtonPress={() => Navigation.dismissModal()}
                             onBackButtonPress={() => {
-                                Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+                                Navigation.navigate(
+                                    ROUTES.getWorkspaceInitialRoute(policyID),
+                                );
                             }}
                             shouldShowGetAssistanceButton
-                            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+                            guidesCallTaskID={
+                                CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS
+                            }
                             shouldShowBackButton
                         />
                         <ConfirmModal
                             danger
-                            title={this.props.translate('workspace.people.removeMembersTitle')}
-                            isVisible={this.state.isRemoveMembersConfirmModalVisible}
+                            title={this.props.translate(
+                                'workspace.people.removeMembersTitle',
+                            )}
+                            isVisible={
+                                this.state.isRemoveMembersConfirmModalVisible
+                            }
                             onConfirm={() => this.removeUsers()}
                             onCancel={this.hideConfirmModal}
-                            prompt={this.props.translate('workspace.people.removeMembersPrompt')}
+                            prompt={this.props.translate(
+                                'workspace.people.removeMembersPrompt',
+                            )}
                             confirmText={this.props.translate('common.remove')}
                             cancelText={this.props.translate('common.cancel')}
                         />
                         <View style={[styles.w100, styles.flex1]}>
-                            <View style={[styles.w100, styles.flexRow, styles.pt3, styles.ph5]}>
+                            <View
+                                style={[
+                                    styles.w100,
+                                    styles.flexRow,
+                                    styles.pt3,
+                                    styles.ph5,
+                                ]}
+                            >
                                 <Button
                                     medium
                                     success
@@ -371,7 +480,10 @@ class WorkspaceMembersPage extends React.Component {
                                     medium
                                     danger
                                     style={[styles.ml2]}
-                                    isDisabled={this.state.selectedEmployees.length === 0}
+                                    isDisabled={
+                                        this.state.selectedEmployees.length ===
+                                        0
+                                    }
                                     text={this.props.translate('common.remove')}
                                     onPress={this.askForConfirmationToRemove}
                                 />
@@ -380,39 +492,88 @@ class WorkspaceMembersPage extends React.Component {
                                 <TextInput
                                     value={this.state.searchValue}
                                     onChangeText={this.updateSearchValue}
-                                    placeholder={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                    placeholder={this.props.translate(
+                                        'optionsSelector.nameEmailOrPhoneNumber',
+                                    )}
                                 />
                             </View>
                             {data.length > 0 ? (
-                                <View style={[styles.w100, styles.mt4, styles.flex1]}>
-                                    <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
+                                <View
+                                    style={[
+                                        styles.w100,
+                                        styles.mt4,
+                                        styles.flex1,
+                                    ]}
+                                >
+                                    <View
+                                        style={[
+                                            styles.peopleRow,
+                                            styles.ph5,
+                                            styles.pb3,
+                                        ]}
+                                    >
                                         <View style={[styles.peopleRowCell]}>
                                             <Checkbox
-                                                isChecked={removableMembers.length !== 0 && _.every(removableMembers, member => _.contains(this.state.selectedEmployees, member))}
-                                                onPress={() => this.toggleAllUsers()}
+                                                isChecked={
+                                                    removableMembers.length !==
+                                                        0 &&
+                                                    _.every(
+                                                        removableMembers,
+                                                        (member) =>
+                                                            _.contains(
+                                                                this.state
+                                                                    .selectedEmployees,
+                                                                member,
+                                                            ),
+                                                    )
+                                                }
+                                                onPress={() =>
+                                                    this.toggleAllUsers()
+                                                }
                                             />
                                         </View>
-                                        <View style={[styles.peopleRowCell, styles.flex1]}>
-                                            <Text style={[styles.textStrong, styles.ph5]}>
-                                                {this.props.translate('workspace.people.selectAll')}
+                                        <View
+                                            style={[
+                                                styles.peopleRowCell,
+                                                styles.flex1,
+                                            ]}
+                                        >
+                                            <Text
+                                                style={[
+                                                    styles.textStrong,
+                                                    styles.ph5,
+                                                ]}
+                                            >
+                                                {this.props.translate(
+                                                    'workspace.people.selectAll',
+                                                )}
                                             </Text>
                                         </View>
                                     </View>
                                     <FlatList
                                         renderItem={this.renderItem}
                                         data={data}
-                                        keyExtractor={item => item.login}
+                                        keyExtractor={(item) => item.login}
                                         showsVerticalScrollIndicator
                                         style={[styles.ph5, styles.pb5]}
-                                        contentContainerStyle={safeAreaPaddingBottomStyle}
+                                        contentContainerStyle={
+                                            safeAreaPaddingBottomStyle
+                                        }
                                         keyboardShouldPersistTaps="handled"
                                     />
                                 </View>
                             ) : (
                                 !_.isEmpty(policyMemberList) && (
                                     <View style={[styles.ph5]}>
-                                        <Text style={[styles.textLabel, styles.colorMuted]}>
-                                            {this.props.translate('common.noResultsFound')}
+                                        <Text
+                                            style={[
+                                                styles.textLabel,
+                                                styles.colorMuted,
+                                            ]}
+                                        >
+                                            {this.props.translate(
+                                                'common.noResultsFound',
+                                            )}
                                         </Text>
                                     </View>
                                 )

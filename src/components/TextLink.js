@@ -35,11 +35,13 @@ const defaultProps = {
 };
 
 const TextLink = (props) => {
-    const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
+    const additionalStyles = _.isArray(props.style)
+        ? props.style
+        : [props.style];
 
     /**
-   * @param {Event} event
-   */
+     * @param {Event} event
+     */
     const openLink = (event) => {
         event.preventDefault();
         if (props.onPress) {
@@ -51,8 +53,8 @@ const TextLink = (props) => {
     };
 
     /**
-   * @param {Event} event
-   */
+     * @param {Event} event
+     */
     const openLinkIfEnterKeyPressed = (event) => {
         if (event.key !== 'Enter') {
             return;

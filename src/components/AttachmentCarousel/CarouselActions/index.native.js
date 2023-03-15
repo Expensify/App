@@ -28,9 +28,16 @@ class Carousel extends Component {
         this.panResponder = PanResponder.create({
             onStartShouldSetPanResponder: () => true,
 
-            onPanResponderMove: (event, gestureState) => Animated.event([null, {
-                dx: this.pan,
-            }], {useNativeDriver: false})(event, gestureState),
+            onPanResponderMove: (event, gestureState) =>
+                Animated.event(
+                    [
+                        null,
+                        {
+                            dx: this.pan,
+                        },
+                    ],
+                    {useNativeDriver: false},
+                )(event, gestureState),
 
             onPanResponderRelease: (event, gestureState) => {
                 if (gestureState.dx === 0 && gestureState.dy === 0) {
@@ -38,20 +45,35 @@ class Carousel extends Component {
                 }
 
                 const deltaSlide = gestureState.dx > 0 ? 1 : -1;
-                if (Math.abs(gestureState.vx) < 1 || (deltaSlide === 1 && !this.props.canSwipeLeft) || (deltaSlide === -1 && !this.props.canSwipeRight)) {
-                    return Animated.spring(this.pan, {useNativeDriver: false, toValue: 0}).start();
+                if (
+                    Math.abs(gestureState.vx) < 1 ||
+                    (deltaSlide === 1 && !this.props.canSwipeLeft) ||
+                    (deltaSlide === -1 && !this.props.canSwipeRight)
+                ) {
+                    return Animated.spring(this.pan, {
+                        useNativeDriver: false,
+                        toValue: 0,
+                    }).start();
                 }
 
                 const width = Dimensions.get('window').width;
                 const slideLength = deltaSlide * (width * 1.1);
-                Animated.timing(this.pan, {useNativeDriver: false, duration: 100, toValue: slideLength}).start(({finished}) => {
+                Animated.timing(this.pan, {
+                    useNativeDriver: false,
+                    duration: 100,
+                    toValue: slideLength,
+                }).start(({finished}) => {
                     if (!finished) {
                         return;
                     }
 
                     this.props.onCycleThroughAttachments(-deltaSlide);
                     this.pan.setValue(-slideLength);
-                    Animated.timing(this.pan, {useNativeDriver: false, duration: 100, toValue: 0}).start();
+                    Animated.timing(this.pan, {
+                        useNativeDriver: false,
+                        duration: 100,
+                        toValue: 0,
+                    }).start();
                 });
             },
         });

@@ -30,7 +30,13 @@ export default {
         option: {
             text: 'Test Option',
             alternateText: 'Alternate text',
-            icons: [{source: Expensicons.ActiveRoomAvatar, name: 'Test Option', type: 'avatar'}],
+            icons: [
+                {
+                    source: Expensicons.ActiveRoomAvatar,
+                    name: 'Test Option',
+                    type: 'avatar',
+                },
+            ],
             login: 'test@expensify.com',
             reportID: null,
             isChatRoom: false,
@@ -41,7 +47,7 @@ export default {
     },
 };
 
-const Template = args => (
+const Template = (args) => (
     <OnyxProvider>
         <OptionRow {...args} />
     </OnyxProvider>
@@ -51,6 +57,4 @@ const Template = args => (
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Default = Template.bind({});
 
-export {
-    Default,
-};
+export {Default};

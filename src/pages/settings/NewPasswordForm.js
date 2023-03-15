@@ -33,7 +33,7 @@ class NewPasswordForm extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const passwordChanged = (this.props.password !== prevProps.password);
+        const passwordChanged = this.props.password !== prevProps.password;
         if (passwordChanged) {
             this.props.updateIsFormValid(this.isValidForm());
         }
@@ -49,15 +49,21 @@ class NewPasswordForm extends React.Component {
     }
 
     isValidPassword() {
-        return this.props.password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
+        return this.props.password.match(
+            CONST.PASSWORD_COMPLEXITY_REGEX_STRING,
+        );
     }
 
     /**
      * checks if the password invalid
      * @returns {Boolean}
-    */
+     */
     isInvalidPassword() {
-        return this.state.passwordHintError && this.props.password && !this.isValidPassword();
+        return (
+            this.state.passwordHintError &&
+            this.props.password &&
+            !this.isValidPassword()
+        );
     }
 
     isValidForm() {
@@ -69,12 +75,16 @@ class NewPasswordForm extends React.Component {
             <View style={styles.mb6}>
                 <TextInput
                     autoFocus
-                    label={`${this.props.translate('setPasswordPage.enterPassword')}`}
+                    label={`${this.props.translate(
+                        'setPasswordPage.enterPassword',
+                    )}`}
                     secureTextEntry
                     autoComplete={ComponentUtils.NEW_PASSWORD_AUTOCOMPLETE_TYPE}
                     textContentType="newPassword"
                     value={this.props.password}
-                    onChangeText={password => this.props.updatePassword(password)}
+                    onChangeText={(password) =>
+                        this.props.updatePassword(password)
+                    }
                     onBlur={() => this.onBlurNewPassword()}
                 />
                 <Text

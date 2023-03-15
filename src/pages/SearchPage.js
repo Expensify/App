@@ -9,7 +9,9 @@ import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../components/withWindowDimensions';
 import * as Report from '../libs/actions/Report';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -54,18 +56,18 @@ class SearchPage extends Component {
         this.searchRendered = this.searchRendered.bind(this);
         this.selectReport = this.selectReport.bind(this);
         this.onChangeText = this.onChangeText.bind(this);
-        this.debouncedUpdateOptions = _.debounce(this.updateOptions.bind(this), 75);
-
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = OptionsListUtils.getSearchOptions(
-            props.reports,
-            props.personalDetails,
-            '',
-            props.betas,
+        this.debouncedUpdateOptions = _.debounce(
+            this.updateOptions.bind(this),
+            75,
         );
+
+        const {recentReports, personalDetails, userToInvite} =
+            OptionsListUtils.getSearchOptions(
+                props.reports,
+                props.personalDetails,
+                '',
+                props.betas,
+            );
 
         this.state = {
             searchValue: '',
@@ -89,29 +91,29 @@ class SearchPage extends Component {
         let indexOffset = 0;
 
         if (this.state.recentReports.length > 0) {
-            sections.push(({
+            sections.push({
                 data: this.state.recentReports,
                 shouldShow: true,
                 indexOffset,
-            }));
+            });
             indexOffset += this.state.recentReports.length;
         }
 
         if (this.state.personalDetails.length > 0) {
-            sections.push(({
+            sections.push({
                 data: this.state.personalDetails,
                 shouldShow: true,
                 indexOffset,
-            }));
+            });
             indexOffset += this.state.recentReports.length;
         }
 
         if (this.state.userToInvite) {
-            sections.push(({
+            sections.push({
                 data: [this.state.userToInvite],
                 shouldShow: true,
                 indexOffset,
-            }));
+            });
         }
 
         return sections;
@@ -123,16 +125,13 @@ class SearchPage extends Component {
     }
 
     updateOptions() {
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = OptionsListUtils.getSearchOptions(
-            this.props.reports,
-            this.props.personalDetails,
-            this.state.searchValue.trim(),
-            this.props.betas,
-        );
+        const {recentReports, personalDetails, userToInvite} =
+            OptionsListUtils.getSearchOptions(
+                this.props.reports,
+                this.props.personalDetails,
+                this.state.searchValue.trim(),
+                this.props.betas,
+            );
         this.setState({
             userToInvite,
             recentReports,
@@ -151,11 +150,14 @@ class SearchPage extends Component {
         }
 
         if (option.reportID) {
-            this.setState({
-                searchValue: '',
-            }, () => {
-                Navigation.navigate(ROUTES.getReportRoute(option.reportID));
-            });
+            this.setState(
+                {
+                    searchValue: '',
+                },
+                () => {
+                    Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+                },
+            );
         } else {
             Report.navigateToAndOpenReport([option.login]);
         }
@@ -164,7 +166,9 @@ class SearchPage extends Component {
     render() {
         const sections = this.getSections();
         const headerMessage = OptionsListUtils.getHeaderMessage(
-            (this.state.recentReports.length + this.state.personalDetails.length) !== 0,
+            this.state.recentReports.length +
+                this.state.personalDetails.length !==
+                0,
             Boolean(this.state.userToInvite),
             this.state.searchValue,
         );
@@ -174,9 +178,17 @@ class SearchPage extends Component {
                     <>
                         <HeaderWithCloseButton
                             title={this.props.translate('common.search')}
-                            onCloseButtonPress={() => Navigation.dismissModal(true)}
+                            onCloseButtonPress={() =>
+                                Navigation.dismissModal(true)
+                            }
                         />
-                        <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                        <View
+                            style={[
+                                styles.flex1,
+                                styles.w100,
+                                styles.pRelative,
+                            ]}
+                        >
                             <OptionsSelector
                                 sections={sections}
                                 value={this.state.searchValue}
@@ -186,9 +198,13 @@ class SearchPage extends Component {
                                 hideSectionHeaders
                                 showTitleTooltip
                                 shouldShowOptions={didScreenTransitionEnd}
-                                placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                placeholderText={this.props.translate(
+                                    'optionsSelector.nameEmailOrPhoneNumber',
+                                )}
                                 onLayout={this.searchRendered}
-                                safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                                safeAreaPaddingBottomStyle={
+                                    safeAreaPaddingBottomStyle
+                                }
                             />
                         </View>
                     </>

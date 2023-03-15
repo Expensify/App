@@ -9,9 +9,9 @@ const propTypes = {
     ...growlNotificationContainerPropTypes,
 };
 
-const GrowlNotificationContainer = props => (
+const GrowlNotificationContainer = (props) => (
     <SafeAreaInsetsContext.Consumer>
-        {insets => (
+        {(insets) => (
             <Animated.View
                 style={[
                     StyleUtils.getSafeAreaPadding(insets),

@@ -109,21 +109,29 @@ class Checkbox extends React.Component {
                     checked: this.props.isChecked,
                 }}
             >
-                {this.props.children
-                    ? this.props.children
-                    : (
-                        <View
-                            style={[
-                                styles.checkboxContainer,
-                                this.props.isChecked && styles.checkedContainer,
-                                this.props.hasError && styles.borderColorDanger,
-                                this.props.disabled && styles.cursorDisabled,
-                                (this.state.isFocused || this.props.isChecked) && styles.borderColorFocus,
-                            ]}
-                        >
-                            {this.props.isChecked && <Icon src={Expensicons.Checkmark} fill={themeColors.textLight} height={14} width={14} />}
-                        </View>
-                    )}
+                {this.props.children ? (
+                    this.props.children
+                ) : (
+                    <View
+                        style={[
+                            styles.checkboxContainer,
+                            this.props.isChecked && styles.checkedContainer,
+                            this.props.hasError && styles.borderColorDanger,
+                            this.props.disabled && styles.cursorDisabled,
+                            (this.state.isFocused || this.props.isChecked) &&
+                                styles.borderColorFocus,
+                        ]}
+                    >
+                        {this.props.isChecked && (
+                            <Icon
+                                src={Expensicons.Checkmark}
+                                fill={themeColors.textLight}
+                                height={14}
+                                width={14}
+                            />
+                        )}
+                    </View>
+                )}
             </Pressable>
         );
     }

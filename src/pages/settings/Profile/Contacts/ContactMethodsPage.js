@@ -7,8 +7,13 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../../components/withCurrentUserPersonalDetails';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import withCurrentUserPersonalDetails, {
+    withCurrentUserPersonalDetailsDefaultProps,
+    withCurrentUserPersonalDetailsPropTypes,
+} from '../../../../components/withCurrentUserPersonalDetails';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../../components/withLocalize';
 import CONST from '../../../../CONST';
 import compose from '../../../../libs/compose';
 import Navigation from '../../../../libs/Navigation/Navigation';
@@ -55,7 +60,10 @@ class ContactMethodsPage extends Component {
         let stateToUpdate = {};
 
         // Recalculate logins if loginList has changed
-        if (_.keys(this.props.loginList).length !== _.keys(prevProps.loginList).length) {
+        if (
+            _.keys(this.props.loginList).length !==
+            _.keys(prevProps.loginList).length
+        ) {
             stateToUpdate = {logins: this.getLogins()};
         }
 
@@ -73,27 +81,42 @@ class ContactMethodsPage extends Component {
      * @returns {Object}
      */
     getLogins() {
-        return _.reduce(_.values(this.props.loginList), (logins, currentLogin) => {
-            const type = Str.isSMSLogin(currentLogin.partnerUserID) ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL;
-            const login = Str.removeSMSDomain(currentLogin.partnerUserID);
+        return _.reduce(
+            _.values(this.props.loginList),
+            (logins, currentLogin) => {
+                const type = Str.isSMSLogin(currentLogin.partnerUserID)
+                    ? CONST.LOGIN_TYPE.PHONE
+                    : CONST.LOGIN_TYPE.EMAIL;
+                const login = Str.removeSMSDomain(currentLogin.partnerUserID);
 
-            // If there's already a login type that's validated and/or currentLogin isn't valid then return early
-            if ((login !== lodashGet(this.props.currentUserPersonalDetails, 'login')) && !_.isEmpty(logins[type])
-                && (logins[type].validatedDate || !currentLogin.validatedDate)) {
-                return logins;
-            }
-            return {
-                ...logins,
-                [type]: {
-                    ...currentLogin,
-                    type,
-                    partnerUserID: Str.removeSMSDomain(currentLogin.partnerUserID),
-                },
-            };
-        }, {
-            phone: {},
-            email: {},
-        });
+                // If there's already a login type that's validated and/or currentLogin isn't valid then return early
+                if (
+                    login !==
+                        lodashGet(
+                            this.props.currentUserPersonalDetails,
+                            'login',
+                        ) &&
+                    !_.isEmpty(logins[type]) &&
+                    (logins[type].validatedDate || !currentLogin.validatedDate)
+                ) {
+                    return logins;
+                }
+                return {
+                    ...logins,
+                    [type]: {
+                        ...currentLogin,
+                        type,
+                        partnerUserID: Str.removeSMSDomain(
+                            currentLogin.partnerUserID,
+                        ),
+                    },
+                };
+            },
+            {
+                phone: {},
+                email: {},
+            },
+        );
     }
 
     render() {
@@ -102,7 +125,9 @@ class ContactMethodsPage extends Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('contacts.contactMethods')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
+                    onBackButtonPress={() =>
+                        Navigation.navigate(ROUTES.SETTINGS_PROFILE)
+                    }
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <ScrollView>

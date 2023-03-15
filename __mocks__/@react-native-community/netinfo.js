@@ -12,7 +12,7 @@ const RNCNetInfoMock = {
     configure: () => {},
     fetch: () => Promise.resolve(defaultState),
     refresh: () => Promise.resolve(defaultState),
-    addEventListener: () => (() => {}),
+    addEventListener: () => () => {},
     useNetInfo: () => {},
 };
 

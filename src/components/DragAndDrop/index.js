@@ -43,8 +43,14 @@ export default class DragAndDrop extends React.Component {
     constructor(props) {
         super(props);
 
-        this.throttledDragOverHandler = _.throttle(this.dragOverHandler.bind(this), 100);
-        this.throttledDragNDropWindowResizeListener = _.throttle(this.dragNDropWindowResizeListener.bind(this), 100);
+        this.throttledDragOverHandler = _.throttle(
+            this.dragOverHandler.bind(this),
+            100,
+        );
+        this.throttledDragNDropWindowResizeListener = _.throttle(
+            this.dragNDropWindowResizeListener.bind(this),
+            100,
+        );
         this.dropZoneDragHandler = this.dropZoneDragHandler.bind(this);
         this.dropZoneDragListener = this.dropZoneDragListener.bind(this);
 
@@ -88,7 +94,10 @@ export default class DragAndDrop extends React.Component {
         document.addEventListener('dragenter', this.dropZoneDragListener);
         document.addEventListener('dragleave', this.dropZoneDragListener);
         document.addEventListener('drop', this.dropZoneDragListener);
-        window.addEventListener('resize', this.throttledDragNDropWindowResizeListener);
+        window.addEventListener(
+            'resize',
+            this.throttledDragNDropWindowResizeListener,
+        );
     }
 
     removeEventListeners() {
@@ -96,7 +105,10 @@ export default class DragAndDrop extends React.Component {
         document.removeEventListener('dragenter', this.dropZoneDragListener);
         document.removeEventListener('dragleave', this.dropZoneDragListener);
         document.removeEventListener('drop', this.dropZoneDragListener);
-        window.removeEventListener('resize', this.throttledDragNDropWindowResizeListener);
+        window.removeEventListener(
+            'resize',
+            this.throttledDragNDropWindowResizeListener,
+        );
     }
 
     /**
@@ -117,9 +129,14 @@ export default class DragAndDrop extends React.Component {
         // Handle edge case when we are under responsive breakpoint the browser doesn't normalize rect.left to 0 and rect.right to window.innerWidth
         return {
             width: boundingClientRect.width,
-            left: window.innerWidth <= variables.mobileResponsiveWidthBreakpoint ? 0 : boundingClientRect.left,
-            right: window.innerWidth <= variables.mobileResponsiveWidthBreakpoint
-                ? window.innerWidth : boundingClientRect.right,
+            left:
+                window.innerWidth <= variables.mobileResponsiveWidthBreakpoint
+                    ? 0
+                    : boundingClientRect.left,
+            right:
+                window.innerWidth <= variables.mobileResponsiveWidthBreakpoint
+                    ? window.innerWidth
+                    : boundingClientRect.right,
             top: boundingClientRect.top,
             bottom: boundingClientRect.bottom,
         };
@@ -149,13 +166,14 @@ export default class DragAndDrop extends React.Component {
             case 'dragleave':
                 if (this.dropZoneDragState === 'dragenter') {
                     if (
-                        event.clientY <= this.dropZoneRect.top
-                                || event.clientY >= this.dropZoneRect.bottom
-                                || event.clientX <= this.dropZoneRect.left
-                                || event.clientX >= this.dropZoneRect.right
-
-                                // Cancel drag when file manager is on top of the drop zone area - works only on chromium
-                                || (event.target.getAttribute('id') === this.props.activeDropZoneId && !event.relatedTarget)
+                        event.clientY <= this.dropZoneRect.top ||
+                        event.clientY >= this.dropZoneRect.bottom ||
+                        event.clientX <= this.dropZoneRect.left ||
+                        event.clientX >= this.dropZoneRect.right ||
+                        // Cancel drag when file manager is on top of the drop zone area - works only on chromium
+                        (event.target.getAttribute('id') ===
+                            this.props.activeDropZoneId &&
+                            !event.relatedTarget)
                     ) {
                         this.dropZoneDragState = 'dragleave';
                         this.props.onDragLeave(event);
@@ -166,7 +184,8 @@ export default class DragAndDrop extends React.Component {
                 this.dropZoneDragState = 'dragleave';
                 this.props.onDrop(event);
                 break;
-            default: break;
+            default:
+                break;
         }
     }
 
@@ -178,7 +197,10 @@ export default class DragAndDrop extends React.Component {
     dropZoneDragListener(event) {
         event.preventDefault();
 
-        if (this.dropZone.contains(event.target) && this.props.shouldAcceptDrop(event)) {
+        if (
+            this.dropZone.contains(event.target) &&
+            this.props.shouldAcceptDrop(event)
+        ) {
             this.dropZoneDragHandler(event);
         } else {
             // eslint-disable-next-line no-param-reassign
@@ -193,4 +215,3 @@ export default class DragAndDrop extends React.Component {
 
 DragAndDrop.propTypes = propTypes;
 DragAndDrop.defaultProps = defaultProps;
-

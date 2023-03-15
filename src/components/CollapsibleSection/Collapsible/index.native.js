@@ -14,10 +14,8 @@ const defaultProps = {
     isOpened: false,
 };
 
-const Collapsible = props => (
-    <CollapsibleRN collapsed={!props.isOpened}>
-        {props.children}
-    </CollapsibleRN>
+const Collapsible = (props) => (
+    <CollapsibleRN collapsed={!props.isOpened}>{props.children}</CollapsibleRN>
 );
 
 Collapsible.displayName = 'Collapsible';

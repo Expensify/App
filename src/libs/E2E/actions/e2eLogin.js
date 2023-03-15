@@ -13,18 +13,21 @@ import * as Session from '../../actions/Session';
  * @return {Promise<boolean>} Resolved true when the user was actually signed in. Returns false if the user was already logged in.
  */
 export default function (email = 'fake@email.com', password = 'Password123') {
-    const waitForBeginSignInToFinish = () => new Promise((resolve) => {
-        const id = Onyx.connect({
-            key: ONYXKEYS.CREDENTIALS,
-            callback: (credentials) => {
-                // beginSignUp writes to credentials.login once the API call is complete
-                if (!credentials.login) { return; }
+    const waitForBeginSignInToFinish = () =>
+        new Promise((resolve) => {
+            const id = Onyx.connect({
+                key: ONYXKEYS.CREDENTIALS,
+                callback: (credentials) => {
+                    // beginSignUp writes to credentials.login once the API call is complete
+                    if (!credentials.login) {
+                        return;
+                    }
 
-                resolve();
-                Onyx.disconnect(id);
-            },
+                    resolve();
+                    Onyx.disconnect(id);
+                },
+            });
         });
-    });
 
     let neededLogin = false;
 
@@ -33,7 +36,10 @@ export default function (email = 'fake@email.com', password = 'Password123') {
         const connectionId = Onyx.connect({
             key: ONYXKEYS.SESSION,
             callback: (session) => {
-                if (session.authToken == null || session.authToken.length === 0) {
+                if (
+                    session.authToken == null ||
+                    session.authToken.length === 0
+                ) {
                     neededLogin = true;
 
                     // authenticate with a predefined user

@@ -43,9 +43,16 @@ const defaultProps = {
 // eslint-disable-next-line react/prefer-stateless-function
 class Icon extends PureComponent {
     render() {
-        const width = this.props.small ? variables.iconSizeSmall : this.props.width;
-        const height = this.props.small ? variables.iconSizeSmall : this.props.height;
-        const iconStyles = [StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute,
+        const width = this.props.small
+            ? variables.iconSizeSmall
+            : this.props.width;
+        const height = this.props.small
+            ? variables.iconSizeSmall
+            : this.props.height;
+        const iconStyles = [
+            StyleUtils.getWidthAndHeightStyle(width, height),
+            IconWrapperStyles,
+            styles.pAbsolute,
             ...this.props.additionalStyles,
         ];
 
@@ -53,7 +60,11 @@ class Icon extends PureComponent {
             return (
                 <View
                     accessibilityHint={`${this.props.src.name} Icon`}
-                    style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible]}
+                    style={[
+                        StyleUtils.getWidthAndHeightStyle(width, height),
+                        styles.bgTransparent,
+                        styles.overflowVisible,
+                    ]}
                 >
                     <View style={iconStyles}>
                         <this.props.src

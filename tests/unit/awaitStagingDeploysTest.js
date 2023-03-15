@@ -106,9 +106,7 @@ describe('awaitStagingDeploys', () => {
         });
         mockListPreDeploys.mockResolvedValueOnce({
             data: {
-                workflow_runs: [
-                    INCOMPLETE_WORKFLOW,
-                ],
+                workflow_runs: [INCOMPLETE_WORKFLOW],
             },
         });
 
@@ -124,20 +122,28 @@ describe('awaitStagingDeploys', () => {
         });
         mockListPreDeploys.mockResolvedValueOnce({
             data: {
-                workflow_runs: [
-                    COMPLETED_WORKFLOW,
-                ],
+                workflow_runs: [COMPLETED_WORKFLOW],
             },
         });
 
-        return run()
-            .then(() => {
-                expect(consoleSpy).toHaveBeenCalledTimes(4);
-                expect(consoleSpy).toHaveBeenNthCalledWith(1, 'Found 2 staging deploys still running...');
-                expect(consoleSpy).toHaveBeenNthCalledWith(2, 'Found 1 staging deploy still running...');
-                expect(consoleSpy).toHaveBeenNthCalledWith(3, 'Found 1 staging deploy still running...');
-                expect(consoleSpy).toHaveBeenLastCalledWith('No current staging deploys found');
-            });
+        return run().then(() => {
+            expect(consoleSpy).toHaveBeenCalledTimes(4);
+            expect(consoleSpy).toHaveBeenNthCalledWith(
+                1,
+                'Found 2 staging deploys still running...',
+            );
+            expect(consoleSpy).toHaveBeenNthCalledWith(
+                2,
+                'Found 1 staging deploy still running...',
+            );
+            expect(consoleSpy).toHaveBeenNthCalledWith(
+                3,
+                'Found 1 staging deploy still running...',
+            );
+            expect(consoleSpy).toHaveBeenLastCalledWith(
+                'No current staging deploys found',
+            );
+        });
     });
 
     test('Should only wait for a specific staging deploy to finish', () => {
@@ -146,59 +152,41 @@ describe('awaitStagingDeploys', () => {
         // First ping
         mockListPlatformDeploysForTag.mockResolvedValueOnce({
             data: {
-                workflow_runs: [
-                    INCOMPLETE_WORKFLOW,
-                ],
+                workflow_runs: [INCOMPLETE_WORKFLOW],
             },
         });
         mockListPlatformDeploys.mockResolvedValueOnce({
             data: {
-                workflow_runs: [
-                    INCOMPLETE_WORKFLOW,
-                    INCOMPLETE_WORKFLOW,
-                ],
+                workflow_runs: [INCOMPLETE_WORKFLOW, INCOMPLETE_WORKFLOW],
             },
         });
         mockListPreDeploys.mockResolvedValueOnce({
             data: {
-                workflow_runs: [
-                    INCOMPLETE_WORKFLOW,
-                    INCOMPLETE_WORKFLOW,
-                ],
+                workflow_runs: [INCOMPLETE_WORKFLOW, INCOMPLETE_WORKFLOW],
             },
         });
 
         // Second ping
         mockListPlatformDeploysForTag.mockResolvedValueOnce({
             data: {
-                workflow_runs: [
-                    INCOMPLETE_WORKFLOW,
-                ],
+                workflow_runs: [INCOMPLETE_WORKFLOW],
             },
         });
         mockListPlatformDeploys.mockResolvedValueOnce({
             data: {
-                workflow_runs: [
-                    INCOMPLETE_WORKFLOW,
-                    COMPLETED_WORKFLOW,
-                ],
+                workflow_runs: [INCOMPLETE_WORKFLOW, COMPLETED_WORKFLOW],
             },
         });
         mockListPreDeploys.mockResolvedValueOnce({
             data: {
-                workflow_runs: [
-                    COMPLETED_WORKFLOW,
-                    COMPLETED_WORKFLOW,
-                ],
+                workflow_runs: [COMPLETED_WORKFLOW, COMPLETED_WORKFLOW],
             },
         });
 
         // Third ping
         mockListPlatformDeploysForTag.mockResolvedValueOnce({
             data: {
-                workflow_runs: [
-                    COMPLETED_WORKFLOW,
-                ],
+                workflow_runs: [COMPLETED_WORKFLOW],
             },
         });
         mockListPlatformDeploys.mockResolvedValueOnce({
@@ -220,12 +208,19 @@ describe('awaitStagingDeploys', () => {
             },
         });
 
-        return run()
-            .then(() => {
-                expect(consoleSpy).toHaveBeenCalledTimes(3);
-                expect(consoleSpy).toHaveBeenNthCalledWith(1, 'Found 1 staging deploy still running...');
-                expect(consoleSpy).toHaveBeenNthCalledWith(2, 'Found 1 staging deploy still running...');
-                expect(consoleSpy).toHaveBeenLastCalledWith('No current staging deploys found');
-            });
+        return run().then(() => {
+            expect(consoleSpy).toHaveBeenCalledTimes(3);
+            expect(consoleSpy).toHaveBeenNthCalledWith(
+                1,
+                'Found 1 staging deploy still running...',
+            );
+            expect(consoleSpy).toHaveBeenNthCalledWith(
+                2,
+                'Found 1 staging deploy still running...',
+            );
+            expect(consoleSpy).toHaveBeenLastCalledWith(
+                'No current staging deploys found',
+            );
+        });
     });
 });

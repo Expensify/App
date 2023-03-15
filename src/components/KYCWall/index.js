@@ -2,7 +2,7 @@ import React from 'react';
 import {propTypes, defaultProps} from './kycWallPropTypes';
 import BaseKYCWall from './BaseKYCWall';
 
-const KYCWall = props => (
+const KYCWall = (props) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <BaseKYCWall {...props} shouldListenForResize />
 );

@@ -26,25 +26,26 @@ const propTypes = {
     isUsingKeyboardMovement: PropTypes.bool,
 };
 
-const EmojiPickerMenuItem = props => (
+const EmojiPickerMenuItem = (props) => (
     <Pressable
         onPress={() => props.onPress(props.emoji)}
         onHoverIn={props.onHoverIn}
         onHoverOut={props.onHoverOut}
-        style={({
-            pressed,
-        }) => ([
-            StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
-            props.isHighlighted && props.isUsingKeyboardMovement ? styles.emojiItemKeyboardHighlighted : {},
-            props.isHighlighted && !props.isUsingKeyboardMovement ? styles.emojiItemHighlighted : {},
+        style={({pressed}) => [
+            StyleUtils.getButtonBackgroundColorStyle(
+                getButtonState(false, pressed),
+            ),
+            props.isHighlighted && props.isUsingKeyboardMovement
+                ? styles.emojiItemKeyboardHighlighted
+                : {},
+            props.isHighlighted && !props.isUsingKeyboardMovement
+                ? styles.emojiItemHighlighted
+                : {},
             styles.emojiItem,
-        ])}
+        ]}
     >
-        <Text style={[styles.emojiText]}>
-            {props.emoji}
-        </Text>
+        <Text style={[styles.emojiText]}>{props.emoji}</Text>
     </Pressable>
-
 );
 EmojiPickerMenuItem.propTypes = propTypes;
 EmojiPickerMenuItem.displayName = 'EmojiPickerMenuItem';
@@ -59,7 +60,8 @@ EmojiPickerMenuItem.defaultProps = {
 // by only re-rendering at most two EmojiPickerMenuItems that are highlighted/un-highlighted per user action.
 export default React.memo(
     EmojiPickerMenuItem,
-    (prevProps, nextProps) => prevProps.isHighlighted === nextProps.isHighlighted
-        && prevProps.emoji === nextProps.emoji
-        && prevProps.isUsingKeyboardMovement === nextProps.isUsingKeyboardMovement,
+    (prevProps, nextProps) =>
+        prevProps.isHighlighted === nextProps.isHighlighted &&
+        prevProps.emoji === nextProps.emoji &&
+        prevProps.isUsingKeyboardMovement === nextProps.isUsingKeyboardMovement,
 );

@@ -5,7 +5,9 @@
 import React from 'react';
 import {StatusBar} from 'react-native';
 import BaseKeyboardSpacer from './BaseKeyboardSpacer';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../withWindowDimensions';
 
 const KeyboardSpacer = () => (
     <BaseKeyboardSpacer

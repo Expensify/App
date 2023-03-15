@@ -29,7 +29,10 @@ const propTypes = {
     onInputChange: PropTypes.func.isRequired,
 
     /** Container styles */
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+    style: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
 
     /** Text that appears next to check box */
     label: requiredPropsCheck,
@@ -113,11 +116,9 @@ class CheckboxWithLabel extends React.Component {
                         ]}
                     >
                         {this.props.label && (
-                            <Text style={[styles.ml1]}>
-                                {this.props.label}
-                            </Text>
+                            <Text style={[styles.ml1]}>{this.props.label}</Text>
                         )}
-                        {this.LabelComponent && (<this.LabelComponent />)}
+                        {this.LabelComponent && <this.LabelComponent />}
                     </TouchableOpacity>
                 </View>
                 <FormHelpMessage message={this.props.errorText} />

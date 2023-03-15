@@ -2,10 +2,15 @@ import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import moment from 'moment-timezone';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {
+    withCurrentUserPersonalDetailsPropTypes,
+    withCurrentUserPersonalDetailsDefaultProps,
+} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
 import ROUTES from '../../../ROUTES';
 import CONST from '../../../CONST';
 import Text from '../../../components/Text';
@@ -26,7 +31,11 @@ const defaultProps = {
 };
 
 const TimezoneInitialPage = (props) => {
-    const timezone = lodashGet(props.currentUserPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
+    const timezone = lodashGet(
+        props.currentUserPersonalDetails,
+        'timezone',
+        CONST.DEFAULT_TIME_ZONE,
+    );
 
     /**
      * Updates setting for automatic timezone selection.
@@ -46,7 +55,9 @@ const TimezoneInitialPage = (props) => {
             <HeaderWithCloseButton
                 title={props.translate('timezonePage.timezone')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
+                onBackButtonPress={() =>
+                    Navigation.navigate(ROUTES.SETTINGS_PROFILE)
+                }
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <View style={styles.flex1}>
@@ -54,9 +65,19 @@ const TimezoneInitialPage = (props) => {
                     <Text style={[styles.mb5]}>
                         {props.translate('timezonePage.isShownOnProfile')}
                     </Text>
-                    <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                    <View
+                        style={[
+                            styles.flexRow,
+                            styles.mb5,
+                            styles.mr2,
+                            styles.alignItemsCenter,
+                            styles.justifyContentBetween,
+                        ]}
+                    >
                         <Text>
-                            {props.translate('timezonePage.getLocationAutomatically')}
+                            {props.translate(
+                                'timezonePage.getLocationAutomatically',
+                            )}
                         </Text>
                         <Switch
                             isOn={timezone.automatic}
@@ -69,7 +90,9 @@ const TimezoneInitialPage = (props) => {
                     description={props.translate('timezonePage.timezone')}
                     shouldShowRightIcon
                     disabled={timezone.automatic}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE_SELECT)}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.SETTINGS_TIMEZONE_SELECT)
+                    }
                 />
             </View>
         </ScreenWrapper>

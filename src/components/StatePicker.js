@@ -39,10 +39,13 @@ const defaultProps = {
 };
 
 const StatePicker = forwardRef((props, ref) => {
-    const STATES = _.map(props.translate('allStates'), ({stateISO, stateName}) => ({
-        value: stateISO,
-        label: stateName,
-    }));
+    const STATES = _.map(
+        props.translate('allStates'),
+        ({stateISO, stateName}) => ({
+            value: stateISO,
+            label: stateName,
+        }),
+    );
 
     return (
         <Picker

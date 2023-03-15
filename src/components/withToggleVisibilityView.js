@@ -10,7 +10,7 @@ const toggleVisibilityViewPropTypes = {
 };
 
 export default function (WrappedComponent) {
-    const WithToggleVisibilityView = props => (
+    const WithToggleVisibilityView = (props) => (
         <View style={!props.isVisible && styles.visuallyHidden}>
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -21,7 +21,9 @@ export default function (WrappedComponent) {
         </View>
     );
 
-    WithToggleVisibilityView.displayName = `WithToggleVisibilityView(${getComponentDisplayName(WrappedComponent)})`;
+    WithToggleVisibilityView.displayName = `WithToggleVisibilityView(${getComponentDisplayName(
+        WrappedComponent,
+    )})`;
     WithToggleVisibilityView.propTypes = {
         forwardedRef: PropTypes.oneOfType([
             PropTypes.func,
@@ -41,6 +43,4 @@ export default function (WrappedComponent) {
     ));
 }
 
-export {
-    toggleVisibilityViewPropTypes,
-};
+export {toggleVisibilityViewPropTypes};

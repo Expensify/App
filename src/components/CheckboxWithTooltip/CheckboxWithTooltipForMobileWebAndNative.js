@@ -8,7 +8,8 @@ import withWindowDimensions from '../withWindowDimensions';
 class CheckboxWithTooltipForMobileWebAndNative extends React.Component {
     constructor(props) {
         super(props);
-        this.showGrowlOrTriggerOnPress = this.showGrowlOrTriggerOnPress.bind(this);
+        this.showGrowlOrTriggerOnPress =
+            this.showGrowlOrTriggerOnPress.bind(this);
     }
 
     componentDidUpdate(prevProps) {

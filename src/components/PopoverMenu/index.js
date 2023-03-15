@@ -3,7 +3,9 @@ import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import Popover from '../Popover';
 import styles from '../../styles/styles';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../withWindowDimensions';
 import MenuItem from '../MenuItem';
 import {
     propTypes as createMenuPropTypes,
@@ -58,13 +60,19 @@ class PopoverMenu extends PureComponent {
 
     attachKeyboardListener() {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-        this.unsubscribeEnterKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
-            if (this.state.focusedIndex === -1) {
-                return;
-            }
-            this.selectItem(this.props.menuItems[this.state.focusedIndex]);
-            this.setState({focusedIndex: -1}); // Reset the focusedIndex on selecting any menu
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+        this.unsubscribeEnterKey = KeyboardShortcut.subscribe(
+            shortcutConfig.shortcutKey,
+            () => {
+                if (this.state.focusedIndex === -1) {
+                    return;
+                }
+                this.selectItem(this.props.menuItems[this.state.focusedIndex]);
+                this.setState({focusedIndex: -1}); // Reset the focusedIndex on selecting any menu
+            },
+            shortcutConfig.descriptionKey,
+            shortcutConfig.modifiers,
+            true,
+        );
     }
 
     removeKeyboardListener() {
@@ -96,11 +104,20 @@ class PopoverMenu extends PureComponent {
                 disableAnimation={this.props.disableAnimation}
                 fromSidebarMediumScreen={this.props.fromSidebarMediumScreen}
             >
-                <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
+                <View
+                    style={
+                        this.props.isSmallScreenWidth
+                            ? {}
+                            : styles.createMenuContainer
+                    }
+                >
                     {!_.isEmpty(this.props.headerText) && (
                         <View style={styles.createMenuItem}>
                             <Text
-                                style={[styles.createMenuHeaderText, styles.ml3]}
+                                style={[
+                                    styles.createMenuHeaderText,
+                                    styles.ml3,
+                                ]}
                             >
                                 {this.props.headerText}
                             </Text>
@@ -109,7 +126,9 @@ class PopoverMenu extends PureComponent {
                     <ArrowKeyFocusManager
                         focusedIndex={this.state.focusedIndex}
                         maxIndex={this.props.menuItems.length - 1}
-                        onFocusedIndexChanged={index => this.setState({focusedIndex: index})}
+                        onFocusedIndexChanged={(index) =>
+                            this.setState({focusedIndex: index})
+                        }
                     >
                         {_.map(this.props.menuItems, (item, menuIndex) => (
                             <MenuItem

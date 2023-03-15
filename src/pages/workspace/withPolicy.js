@@ -53,7 +53,7 @@ const policyPropTypes = {
          *        [DateUtils.getMicroseconds()]: 'Sorry, there was an unexpected problem updating your workspace name.',
          *     }
          * }
-        */
+         */
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
@@ -72,7 +72,7 @@ const policyDefaultProps = {
 export default function (WrappedComponent) {
     const propTypes = {
         /** The HOC takes an optional ref as a prop and passes it as a ref to the wrapped component.
-          * That way, if a ref is passed to a component wrapped in the HOC, the ref is a reference to the wrapped component, not the HOC. */
+         * That way, if a ref is passed to a component wrapped in the HOC, the ref is a reference to the wrapped component, not the HOC. */
         forwardedRef: PropTypes.func,
 
         ...policyPropTypes,
@@ -85,7 +85,9 @@ export default function (WrappedComponent) {
     };
 
     const WithPolicy = (props) => {
-        const currentRoute = _.last(useNavigationState(state => state.routes || []));
+        const currentRoute = _.last(
+            useNavigationState((state) => state.routes || []),
+        );
         const policyID = getPolicyIDFromRoute(currentRoute);
 
         if (_.isString(policyID) && !_.isEmpty(policyID)) {
@@ -104,7 +106,9 @@ export default function (WrappedComponent) {
 
     WithPolicy.propTypes = propTypes;
     WithPolicy.defaultProps = defaultProps;
-    WithPolicy.displayName = `withPolicy(${getComponentDisplayName(WrappedComponent)})`;
+    WithPolicy.displayName = `withPolicy(${getComponentDisplayName(
+        WrappedComponent,
+    )})`;
     const withPolicy = React.forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
         <WithPolicy {...props} forwardedRef={ref} />
@@ -112,15 +116,18 @@ export default function (WrappedComponent) {
 
     return withOnyx({
         policy: {
-            key: props => `${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDFromRoute(props.route)}`,
+            key: (props) =>
+                `${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDFromRoute(
+                    props.route,
+                )}`,
         },
         policyMemberList: {
-            key: props => `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${getPolicyIDFromRoute(props.route)}`,
+            key: (props) =>
+                `${
+                    ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST
+                }${getPolicyIDFromRoute(props.route)}`,
         },
     })(withPolicy);
 }
 
-export {
-    policyPropTypes,
-    policyDefaultProps,
-};
+export {policyPropTypes, policyDefaultProps};

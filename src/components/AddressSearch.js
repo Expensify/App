@@ -122,11 +122,10 @@ const AddressSearch = (props) => {
 
         // The state's iso code (short_name) is needed for the StatePicker component but we also
         // need the state's full name (long_name) when we render the state in a TextInput.
-        const {
-            administrative_area_level_1: longStateName,
-        } = GooglePlacesUtils.getAddressComponents(addressComponents, {
-            administrative_area_level_1: 'long_name',
-        });
+        const {administrative_area_level_1: longStateName} =
+            GooglePlacesUtils.getAddressComponents(addressComponents, {
+                administrative_area_level_1: 'long_name',
+            });
 
         const values = {
             street: props.value ? props.value.trim() : '',
@@ -167,7 +166,6 @@ const AddressSearch = (props) => {
     };
 
     return (
-
         /*
          * The GooglePlacesAutocomplete component uses a VirtualizedList internally,
          * and VirtualizedLists cannot be directly nested within other VirtualizedLists of the same orientation.
@@ -178,7 +176,6 @@ const AddressSearch = (props) => {
             horizontal
             contentContainerStyle={styles.flex1}
             scrollEnabled={false}
-
             // keyboardShouldPersistTaps="always" is required for Android native,
             // otherwise tapping on a result doesn't do anything. More information
             // here: https://github.com/FaridSafi/react-native-google-places-autocomplete#use-inside-a-scrollview-or-flatlist
@@ -251,11 +248,7 @@ const AddressSearch = (props) => {
                             styles.borderLeft,
                             styles.borderRight,
                         ],
-                        row: [
-                            styles.pv4,
-                            styles.ph3,
-                            styles.overflowAuto,
-                        ],
+                        row: [styles.pv4, styles.ph3, styles.overflowAuto],
                         description: [styles.googleSearchText],
                         separator: [styles.googleSearchSeparator],
                     }}
@@ -265,7 +258,9 @@ const AddressSearch = (props) => {
                         // We use the height of the element to determine if we should hide the border of the listView dropdown
                         // to prevent a lingering border when there are no address suggestions.
                         // The height of the empty element is 2px (1px height for each top and bottom borders)
-                        setDisplayListViewBorder(event.nativeEvent.layout.height > 2);
+                        setDisplayListViewBorder(
+                            event.nativeEvent.layout.height > 2,
+                        );
                     }}
                 />
             </View>
@@ -277,7 +272,9 @@ AddressSearch.propTypes = propTypes;
 AddressSearch.defaultProps = defaultProps;
 AddressSearch.displayName = 'AddressSearch';
 
-export default withLocalize(React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <AddressSearch {...props} innerRef={ref} />
-)));
+export default withLocalize(
+    React.forwardRef((props, ref) => (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <AddressSearch {...props} innerRef={ref} />
+    )),
+);

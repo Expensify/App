@@ -21,7 +21,10 @@ const getStyledTextArray = (name, prefix) => {
         texts.push(
             {text: name.slice(0, prefixLocation), isColored: false},
             {
-                text: name.slice(prefixLocation, prefixLocation + prefix.length),
+                text: name.slice(
+                    prefixLocation,
+                    prefixLocation + prefix.length,
+                ),
                 isColored: true,
             },
             {

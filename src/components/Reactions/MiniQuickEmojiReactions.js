@@ -12,9 +12,7 @@ import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
-import {
-    baseQuickEmojiReactionsPropTypes,
-} from './QuickEmojiReactions/BaseQuickEmojiReactions';
+import {baseQuickEmojiReactionsPropTypes} from './QuickEmojiReactions/BaseQuickEmojiReactions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -32,8 +30,8 @@ const propTypes = {
     onEmojiPickerClosed: PropTypes.func,
 
     ...withLocalizePropTypes,
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
-
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string])
+        .isRequired,
 };
 
 const defaultProps = {
@@ -64,17 +62,20 @@ const MiniQuickEmojiReactions = (props) => {
 
     return (
         <View style={styles.flexRow}>
-            {_.map(CONST.QUICK_REACTIONS, emoji => (
+            {_.map(CONST.QUICK_REACTIONS, (emoji) => (
                 <BaseMiniContextMenuItem
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${emoji.name}:`}
                     onPress={() => props.onEmojiSelected(emoji)}
                 >
-                    <Text style={[
-                        styles.emojiReactionText,
-                        StyleUtils.getEmojiReactionTextStyle(ICON_SIZE_SCALE_FACTOR),
-                    ]}
+                    <Text
+                        style={[
+                            styles.emojiReactionText,
+                            StyleUtils.getEmojiReactionTextStyle(
+                                ICON_SIZE_SCALE_FACTOR,
+                            ),
+                        ]}
                     >
                         {getPreferredEmojiCode(emoji, props.preferredSkinTone)}
                     </Text>
@@ -84,13 +85,17 @@ const MiniQuickEmojiReactions = (props) => {
                 ref={ref}
                 onPress={openEmojiPicker}
                 isDelayButtonStateComplete={false}
-                tooltipText={props.translate('reportActionContextMenu.addReactionTooltip')}
+                tooltipText={props.translate(
+                    'reportActionContextMenu.addReactionTooltip',
+                )}
             >
                 {({hovered, pressed}) => (
                     <Icon
                         small
                         src={Expensicons.AddReaction}
-                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false))}
+                        fill={StyleUtils.getIconFillColor(
+                            getButtonState(hovered, pressed, false),
+                        )}
                     />
                 )}
             </BaseMiniContextMenuItem>

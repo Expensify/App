@@ -16,18 +16,21 @@ export default function () {
 
                 // Fail early here because there is nothing to migrate
                 if (_.isEmpty(oldPriorityMode)) {
-                    Log.info('[Migrate Onyx] Skipped migration RenamePriorityModeKey');
+                    Log.info(
+                        '[Migrate Onyx] Skipped migration RenamePriorityModeKey',
+                    );
                     return resolve();
                 }
 
                 Onyx.multiSet({
                     priorityMode: null,
                     [ONYXKEYS.NVP_PRIORITY_MODE]: oldPriorityMode,
-                })
-                    .then(() => {
-                        Log.info('[Migrate Onyx] Ran migration RenamePriorityModeKey');
-                        resolve();
-                    });
+                }).then(() => {
+                    Log.info(
+                        '[Migrate Onyx] Ran migration RenamePriorityModeKey',
+                    );
+                    resolve();
+                });
             },
         });
     });

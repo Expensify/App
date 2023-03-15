@@ -11,7 +11,9 @@ import LoginForm from './LoginForm';
 import PasswordForm from './PasswordForm';
 import ValidateCodeForm from './ValidateCodeForm';
 import ResendValidationForm from './ResendValidationForm';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../components/withLocalize';
 import Performance from '../../libs/Performance';
 import Permissions from '../../libs/Permissions';
 
@@ -55,7 +57,9 @@ class SignInPage extends Component {
         // Show the login form if
         // - A login has not been entered yet
         // - AND a validateCode has not been cached with sign in link
-        const showLoginForm = !this.props.credentials.login && !this.props.credentials.validateCode;
+        const showLoginForm =
+            !this.props.credentials.login &&
+            !this.props.credentials.validateCode;
 
         // Show the old password form if
         // - A login has been entered
@@ -63,37 +67,51 @@ class SignInPage extends Component {
         // - AND a password hasn't been entered yet
         // - AND haven't forgotten password
         // - AND the user is NOT on the passwordless beta
-        const showPasswordForm = this.props.credentials.login
-            && this.props.account.validated
-            && !this.props.credentials.password
-            && !this.props.account.forgotPassword
-            && !Permissions.canUsePasswordlessLogins(this.props.betas);
+        const showPasswordForm =
+            this.props.credentials.login &&
+            this.props.account.validated &&
+            !this.props.credentials.password &&
+            !this.props.account.forgotPassword &&
+            !Permissions.canUsePasswordlessLogins(this.props.betas);
 
         // Show the new magic code / validate code form if
         // - A login has been entered or a validateCode has been cached from sign in link
         // - AND the user is on the 'passwordless' beta
-        const showValidateCodeForm = (this.props.credentials.login
-            || this.props.credentials.validateCode)
-            && Permissions.canUsePasswordlessLogins(this.props.betas);
+        const showValidateCodeForm =
+            (this.props.credentials.login ||
+                this.props.credentials.validateCode) &&
+            Permissions.canUsePasswordlessLogins(this.props.betas);
 
         // Show the resend validation link form if
         // - A login has been entered
         // - AND is not validated or password is forgotten
         // - AND user is not on 'passwordless' beta
-        const showResendValidationForm = this.props.credentials.login
-            && (!this.props.account.validated || this.props.account.forgotPassword)
-            && !Permissions.canUsePasswordlessLogins(this.props.betas);
+        const showResendValidationForm =
+            this.props.credentials.login &&
+            (!this.props.account.validated ||
+                this.props.account.forgotPassword) &&
+            !Permissions.canUsePasswordlessLogins(this.props.betas);
 
         let welcomeText = '';
         if (showValidateCodeForm) {
             if (this.props.account.requiresTwoFactorAuth) {
                 // We will only know this after a user signs in successfully, without their 2FA code
-                welcomeText = this.props.translate('validateCodeForm.enterAuthenticatorCode');
+                welcomeText = this.props.translate(
+                    'validateCodeForm.enterAuthenticatorCode',
+                );
             } else {
-                const userLogin = Str.removeSMSDomain(this.props.credentials.login);
+                const userLogin = Str.removeSMSDomain(
+                    this.props.credentials.login,
+                );
                 welcomeText = this.props.account.validated
-                    ? this.props.translate('welcomeText.welcomeBackEnterMagicCode', {login: userLogin})
-                    : this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLogin});
+                    ? this.props.translate(
+                          'welcomeText.welcomeBackEnterMagicCode',
+                          {login: userLogin},
+                      )
+                    : this.props.translate(
+                          'welcomeText.welcomeEnterMagicCode',
+                          {login: userLogin},
+                      );
             }
         } else if (showPasswordForm) {
             welcomeText = this.props.translate('welcomeText.welcomeBack');
@@ -105,11 +123,19 @@ class SignInPage extends Component {
             <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout
                     welcomeText={welcomeText}
-                    shouldShowWelcomeText={showLoginForm || showPasswordForm || showValidateCodeForm || !showResendValidationForm}
+                    shouldShowWelcomeText={
+                        showLoginForm ||
+                        showPasswordForm ||
+                        showValidateCodeForm ||
+                        !showResendValidationForm
+                    }
                 >
                     {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
                     so that password managers can access the values. Conditionally rendering these components will break this feature. */}
-                    <LoginForm isVisible={showLoginForm} blurOnSubmit={this.props.account.validated === false} />
+                    <LoginForm
+                        isVisible={showLoginForm}
+                        blurOnSubmit={this.props.account.validated === false}
+                    />
                     {showValidateCodeForm ? (
                         <ValidateCodeForm isVisible={showValidateCodeForm} />
                     ) : (

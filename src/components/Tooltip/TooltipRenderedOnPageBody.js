@@ -74,11 +74,14 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
         };
 
         if (props.renderTooltipContent && props.text) {
-            Log.warn('Developer error: Cannot use both text and renderTooltipContent props at the same time in <TooltipRenderedOnPageBody />!');
+            Log.warn(
+                'Developer error: Cannot use both text and renderTooltipContent props at the same time in <TooltipRenderedOnPageBody />!',
+            );
         }
 
         this.measureTooltip = this.measureTooltip.bind(this);
-        this.updateTooltipContentWidth = this.updateTooltipContentWidth.bind(this);
+        this.updateTooltipContentWidth =
+            this.updateTooltipContentWidth.bind(this);
     }
 
     componentDidMount() {
@@ -86,13 +89,19 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.text === this.props.text && prevProps.renderTooltipContent === this.props.renderTooltipContent) {
+        if (
+            prevProps.text === this.props.text &&
+            prevProps.renderTooltipContent === this.props.renderTooltipContent
+        ) {
             return;
         }
 
         // Reset the tooltip text width to 0 so that we can measure it again.
         // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({tooltipContentWidth: undefined}, this.updateTooltipContentWidth);
+        this.setState(
+            {tooltipContentWidth: undefined},
+            this.updateTooltipContentWidth,
+        );
     }
 
     updateTooltipContentWidth() {
@@ -159,7 +168,10 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
             );
         } else {
             content = (
-                <Text numberOfLines={this.props.numberOfLines} style={tooltipTextStyle}>
+                <Text
+                    numberOfLines={this.props.numberOfLines}
+                    style={tooltipTextStyle}
+                >
                     <Text style={tooltipTextStyle} ref={contentRef}>
                         {this.props.text}
                     </Text>

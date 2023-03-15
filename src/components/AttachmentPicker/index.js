@@ -30,12 +30,14 @@ class AttachmentPicker extends React.Component {
                 <input
                     hidden
                     type="file"
-                    ref={el => this.fileInput = el}
+                    ref={(el) => (this.fileInput = el)}
                     onChange={(e) => {
                         let file = e.target.files[0];
 
                         if (file) {
-                            const cleanName = FileUtils.cleanFileName(file.name);
+                            const cleanName = FileUtils.cleanFileName(
+                                file.name,
+                            );
                             if (file.name !== cleanName) {
                                 file = new File([file], cleanName);
                             }
@@ -46,10 +48,9 @@ class AttachmentPicker extends React.Component {
                         // Cleanup after selecting a file to start from a fresh state
                         this.fileInput.value = null;
                     }}
-
                     // We are stopping the event propagation because triggering the `click()` on the hidden input
                     // causes the event to unexpectedly bubble up to anything wrapping this component e.g. Pressable
-                    onClick={e => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
                     accept={getAcceptableFileTypes(this.props.type)}
                 />
                 {this.props.children({

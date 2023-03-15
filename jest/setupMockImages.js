@@ -6,7 +6,9 @@ import _ from 'underscore';
  * @param {String} imagePath
  */
 function mockImages(imagePath) {
-    const imageFilenames = fs.readdirSync(path.resolve(__dirname, `../assets/${imagePath}/`));
+    const imageFilenames = fs.readdirSync(
+        path.resolve(__dirname, `../assets/${imagePath}/`),
+    );
     // eslint-disable-next-line rulesdir/prefer-early-return
     _.each(imageFilenames, (fileName) => {
         if (/\.svg/.test(fileName)) {

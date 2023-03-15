@@ -10,6 +10,4 @@ function getPopoverDescription(selection) {
     return selection;
 }
 
-export {
-    getPopoverDescription,
-};
+export {getPopoverDescription};

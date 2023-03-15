@@ -39,7 +39,14 @@ const Default = (args) => {
                     style={[styles.textInputCompose, styles.w100]}
                 />
             </View>
-            <View style={[styles.flexRow, styles.mv5, styles.flexWrap, styles.w100]}>
+            <View
+                style={[
+                    styles.flexRow,
+                    styles.mv5,
+                    styles.flexWrap,
+                    styles.w100,
+                ]}
+            >
                 <View
                     style={[
                         styles.border,
@@ -50,7 +57,9 @@ const Default = (args) => {
                     ]}
                     nativeID={CONST.REPORT.DROP_NATIVE_ID}
                 >
-                    <Text style={[styles.mb2, styles.textLabelSupporting]}>Entered Comment (Drop Enabled)</Text>
+                    <Text style={[styles.mb2, styles.textLabelSupporting]}>
+                        Entered Comment (Drop Enabled)
+                    </Text>
                     <Text>{comment}</Text>
                 </View>
                 <View
@@ -62,14 +71,21 @@ const Default = (args) => {
                         styles.flex1,
                     ]}
                 >
-                    <Text style={[styles.mb2, styles.textLabelSupporting]}>Rendered Comment</Text>
-                    {Boolean(renderedHTML) && <RenderHTML html={renderedHTML} />}
+                    <Text style={[styles.mb2, styles.textLabelSupporting]}>
+                        Rendered Comment
+                    </Text>
+                    {Boolean(renderedHTML) && (
+                        <RenderHTML html={renderedHTML} />
+                    )}
                     {pastedFile && (
                         <View style={styles.mv3}>
                             <Image
                                 source={{uri: URL.createObjectURL(pastedFile)}}
                                 resizeMode="contain"
-                                style={StyleUtils.getWidthAndHeightStyle(250, 250)}
+                                style={StyleUtils.getWidthAndHeightStyle(
+                                    250,
+                                    250,
+                                )}
                             />
                         </View>
                     )}
@@ -92,6 +108,4 @@ Default.args = {
 };
 
 export default story;
-export {
-    Default,
-};
+export {Default};

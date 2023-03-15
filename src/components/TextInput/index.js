@@ -16,7 +16,8 @@ class TextInput extends React.Component {
     }
 
     render() {
-        const isLabeledMultiline = Boolean(this.props.label.length) && this.props.multiline;
+        const isLabeledMultiline =
+            Boolean(this.props.label.length) && this.props.multiline;
 
         return (
             <BaseTextInput

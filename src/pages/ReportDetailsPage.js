@@ -69,15 +69,30 @@ class ReportDetailsPage extends Component {
             translationKey: 'common.members',
             icon: Expensicons.Users,
             subtitle: lodashGet(this.props.report, 'participants', []).length,
-            action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(this.props.report.reportID)); },
+            action: () => {
+                Navigation.navigate(
+                    ROUTES.getReportParticipantsRoute(
+                        this.props.report.reportID,
+                    ),
+                );
+            },
         });
 
-        if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report)) {
+        if (
+            ReportUtils.isPolicyExpenseChat(this.props.report) ||
+            ReportUtils.isChatRoom(this.props.report)
+        ) {
             menuItems.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
                 translationKey: 'common.settings',
                 icon: Expensicons.Gear,
-                action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(this.props.report.reportID)); },
+                action: () => {
+                    Navigation.navigate(
+                        ROUTES.getReportSettingsRoute(
+                            this.props.report.reportID,
+                        ),
+                    );
+                },
             });
         }
 
@@ -86,12 +101,20 @@ class ReportDetailsPage extends Component {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
                 icon: Expensicons.Plus,
-                action: () => { /* Placeholder for when inviting other users is built in */ },
+                action: () => {
+                    /* Placeholder for when inviting other users is built in */
+                },
             });
         }
 
-        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
-        if (ReportUtils.isUserCreatedPolicyRoom(this.props.report) || ReportUtils.canLeaveRoom(this.props.report, !_.isEmpty(policy))) {
+        const policy =
+            this.props.policies[
+                `${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`
+            ];
+        if (
+            ReportUtils.isUserCreatedPolicyRoom(this.props.report) ||
+            ReportUtils.canLeaveRoom(this.props.report, !_.isEmpty(policy))
+        ) {
             menuItems.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: 'common.leaveRoom',
@@ -104,15 +127,24 @@ class ReportDetailsPage extends Component {
     }
 
     render() {
-        const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(this.props.report);
+        const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(
+            this.props.report,
+        );
         const isChatRoom = ReportUtils.isChatRoom(this.props.report);
-        const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(this.props.report, this.props.policies);
+        const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(
+            this.props.report,
+            this.props.policies,
+        );
         const participants = lodashGet(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
-        const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
-            OptionsListUtils.getPersonalDetailsForLogins(participants, this.props.personalDetails),
-            isMultipleParticipant,
-        );
+        const displayNamesWithTooltips =
+            ReportUtils.getDisplayNamesWithTooltips(
+                OptionsListUtils.getPersonalDetailsForLogins(
+                    participants,
+                    this.props.personalDetails,
+                ),
+                isMultipleParticipant,
+            );
         const menuItems = this.getMenuItems();
         return (
             <ScreenWrapper>
@@ -124,23 +156,47 @@ class ReportDetailsPage extends Component {
                     />
                     <ScrollView style={[styles.flex1]}>
                         <View style={[styles.m5]}>
-                            <View
-                                style={styles.reportDetailsTitleContainer}
-                            >
+                            <View style={styles.reportDetailsTitleContainer}>
                                 <View style={styles.mb4}>
                                     <RoomHeaderAvatars
-                                        icons={ReportUtils.getIcons(this.props.report, this.props.personalDetails, this.props.policies)}
+                                        icons={ReportUtils.getIcons(
+                                            this.props.report,
+                                            this.props.personalDetails,
+                                            this.props.policies,
+                                        )}
                                     />
                                 </View>
-                                <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
-                                    <View style={[styles.alignSelfCenter, styles.w100]}>
+                                <View
+                                    style={[
+                                        styles.reportDetailsRoomInfo,
+                                        styles.mw100,
+                                    ]}
+                                >
+                                    <View
+                                        style={[
+                                            styles.alignSelfCenter,
+                                            styles.w100,
+                                        ]}
+                                    >
                                         <DisplayNames
-                                            fullTitle={ReportUtils.getReportName(this.props.report, this.props.policies)}
-                                            displayNamesWithTooltips={displayNamesWithTooltips}
+                                            fullTitle={ReportUtils.getReportName(
+                                                this.props.report,
+                                                this.props.policies,
+                                            )}
+                                            displayNamesWithTooltips={
+                                                displayNamesWithTooltips
+                                            }
                                             tooltipEnabled
                                             numberOfLines={1}
-                                            textStyles={[styles.textHeadline, styles.mb2, styles.textAlignCenter]}
-                                            shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
+                                            textStyles={[
+                                                styles.textHeadline,
+                                                styles.mb2,
+                                                styles.textAlignCenter,
+                                            ]}
+                                            shouldUseFullTitle={
+                                                isChatRoom ||
+                                                isPolicyExpenseChat
+                                            }
                                         />
                                     </View>
                                     <Text
@@ -158,16 +214,20 @@ class ReportDetailsPage extends Component {
                             </View>
                         </View>
                         {_.map(menuItems, (item) => {
-                            const brickRoadIndicator = (
-                                ReportUtils.hasReportNameError(this.props.report)
-                                && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS
-                            )
-                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                : '';
+                            const brickRoadIndicator =
+                                ReportUtils.hasReportNameError(
+                                    this.props.report,
+                                ) &&
+                                item.key ===
+                                    CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS
+                                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                    : '';
                             return (
                                 <MenuItem
                                     key={item.key}
-                                    title={this.props.translate(item.translationKey)}
+                                    title={this.props.translate(
+                                        item.translationKey,
+                                    )}
                                     subtitle={item.subtitle}
                                     icon={item.icon}
                                     onPress={item.action}

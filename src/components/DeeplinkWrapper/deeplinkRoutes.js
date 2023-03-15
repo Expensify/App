@@ -25,7 +25,7 @@ export default [
 
         // Disable deep linking in desktop App when passwordless is enabled because
         // we want to open the magic link in its own tab
-        isDisabled: betas => Permissions.canUsePasswordlessLogins(betas),
+        isDisabled: (betas) => Permissions.canUsePasswordlessLogins(betas),
     },
     {
         // /bank-account/*
@@ -48,4 +48,3 @@ export default [
         pattern: `/${ROUTES.CONCIERGE}($|(//*))`,
     },
 ];
-

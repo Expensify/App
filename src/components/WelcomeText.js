@@ -5,7 +5,6 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Text from './Text';
 
 const propTypes = {
-
     /** Fontsize */
     smallFontSize: PropTypes.bool,
 
@@ -24,8 +23,7 @@ const WelcomeText = (props) => {
                 {props.translate('welcomeText.welcome')}
             </Text>
             <Text style={[textSize]}>
-                {props.translate('welcomeText.phrase2')}
-                {' '}
+                {props.translate('welcomeText.phrase2')}{' '}
                 {props.translate('welcomeText.phrase3')}
             </Text>
         </>

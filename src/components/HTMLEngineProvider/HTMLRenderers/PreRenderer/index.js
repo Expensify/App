@@ -11,19 +11,23 @@ class PreRenderer extends React.Component {
         super(props);
 
         this.scrollNode = this.scrollNode.bind(this);
-        this.debouncedIsScrollingVertically = _.debounce(this.isScrollingVertically.bind(this), 100, true);
+        this.debouncedIsScrollingVertically = _.debounce(
+            this.isScrollingVertically.bind(this),
+            100,
+            true,
+        );
     }
 
     componentDidMount() {
         if (!this.ref) {
             return;
         }
-        this.ref.getScrollableNode()
-            .addEventListener('wheel', this.scrollNode);
+        this.ref.getScrollableNode().addEventListener('wheel', this.scrollNode);
     }
 
     componentWillUnmount() {
-        this.ref.getScrollableNode()
+        this.ref
+            .getScrollableNode()
             .removeEventListener('wheel', this.scrollNode);
     }
 
@@ -36,7 +40,7 @@ class PreRenderer extends React.Component {
     isScrollingVertically(event) {
         // Mark as vertical scrolling only when absolute value of deltaY is more than the double of absolute
         // value of deltaX, so user can use trackpad scroll on the code block horizontally at a wide angle.
-        return Math.abs(event.deltaY) > (Math.abs(event.deltaX) * 2);
+        return Math.abs(event.deltaY) > Math.abs(event.deltaX) * 2;
     }
 
     /**
@@ -46,8 +50,13 @@ class PreRenderer extends React.Component {
     scrollNode(event) {
         const node = this.ref.getScrollableNode();
         const horizontalOverflow = node.scrollWidth > node.offsetWidth;
-        const isScrollingVertically = this.debouncedIsScrollingVertically(event);
-        if ((event.currentTarget === node) && horizontalOverflow && !isScrollingVertically) {
+        const isScrollingVertically =
+            this.debouncedIsScrollingVertically(event);
+        if (
+            event.currentTarget === node &&
+            horizontalOverflow &&
+            !isScrollingVertically
+        ) {
             node.scrollLeft += event.deltaX;
             event.preventDefault();
             event.stopPropagation();
@@ -59,8 +68,11 @@ class PreRenderer extends React.Component {
             <BasePreRenderer
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
-                ref={el => this.ref = el}
-                onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                ref={(el) => (this.ref = el)}
+                onPressIn={() =>
+                    DeviceCapabilities.canUseTouchScreen() &&
+                    ControlSelection.block()
+                }
                 onPressOut={() => ControlSelection.unblock()}
             />
         );

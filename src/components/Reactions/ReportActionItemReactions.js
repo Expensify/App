@@ -53,14 +53,19 @@ const propTypes = {
 };
 
 const ReportActionItemReactions = (props) => {
-    const reactionsWithCount = _.filter(props.reactions, reaction => reaction.users.length > 0);
+    const reactionsWithCount = _.filter(
+        props.reactions,
+        (reaction) => reaction.users.length > 0,
+    );
 
     return (
         <View style={[styles.flexRow, styles.flexWrap]}>
             {_.map(reactionsWithCount, (reaction) => {
                 const reactionCount = reaction.users.length;
-                const reactionUsers = _.map(reaction.users, sender => sender.accountID.toString());
-                const emoji = _.find(emojis, e => e.name === reaction.emoji);
+                const reactionUsers = _.map(reaction.users, (sender) =>
+                    sender.accountID.toString(),
+                );
+                const emoji = _.find(emojis, (e) => e.name === reaction.emoji);
                 const emojiCodes = getUniqueEmojiCodes(emoji, reaction.users);
 
                 const onPress = () => {
@@ -78,7 +83,9 @@ const ReportActionItemReactions = (props) => {
                     />
                 );
             })}
-            {reactionsWithCount.length > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}
+            {reactionsWithCount.length > 0 && (
+                <AddReactionBubble onSelectEmoji={props.toggleReaction} />
+            )}
         </View>
     );
 };

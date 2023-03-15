@@ -2,10 +2,15 @@ import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import _ from 'underscore';
 import moment from 'moment-timezone';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {
+    withCurrentUserPersonalDetailsPropTypes,
+    withCurrentUserPersonalDetailsDefaultProps,
+} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
 import ROUTES from '../../../ROUTES';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
@@ -37,7 +42,7 @@ class TimezoneSelectPage extends Component {
 
         this.timezone = this.getUserTimezone(props.currentUserPersonalDetails);
         this.allTimezones = _.chain(moment.tz.names())
-            .filter(timezone => !timezone.startsWith('Etc/GMT'))
+            .filter((timezone) => !timezone.startsWith('Etc/GMT'))
             .map(this.getTimezoneOption)
             .value();
 
@@ -50,7 +55,9 @@ class TimezoneSelectPage extends Component {
     componentDidUpdate() {
         // componentDidUpdate is added in order to update the timezone options when automatic is toggled on/off as
         // navigating back doesn't unmount the page, thus it won't update the timezone options & stay disabled without this.
-        const newTimezone = this.getUserTimezone(this.props.currentUserPersonalDetails);
+        const newTimezone = this.getUserTimezone(
+            this.props.currentUserPersonalDetails,
+        );
         if (_.isEqual(this.timezone, newTimezone)) {
             return;
         }
@@ -72,7 +79,7 @@ class TimezoneSelectPage extends Component {
      * @return {string} key for list item
      */
     getKey(text) {
-        return `${text}-${(new Date()).getTime()}`;
+        return `${text}-${new Date().getTime()}`;
     }
 
     /**
@@ -86,7 +93,8 @@ class TimezoneSelectPage extends Component {
             keyForList: this.getKey(text),
 
             // Include the green checkmark icon to indicate the currently selected value
-            customIcon: text === this.timezone.selected ? greenCheckmark : undefined,
+            customIcon:
+                text === this.timezone.selected ? greenCheckmark : undefined,
 
             // This property will make the currently selected value have bold text
             boldStyle: text === this.timezone.selected,
@@ -98,7 +106,11 @@ class TimezoneSelectPage extends Component {
      * @return {Object} user's timezone data
      */
     getUserTimezone(currentUserPersonalDetails) {
-        return lodashGet(currentUserPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
+        return lodashGet(
+            currentUserPersonalDetails,
+            'timezone',
+            CONST.DEFAULT_TIME_ZONE,
+        );
     }
 
     /**
@@ -115,7 +127,9 @@ class TimezoneSelectPage extends Component {
     filterShownTimezones(searchText) {
         this.setState({
             timezoneInputText: searchText,
-            timezoneOptions: _.filter(this.allTimezones, (tz => tz.text.toLowerCase().includes(searchText.trim().toLowerCase()))),
+            timezoneOptions: _.filter(this.allTimezones, (tz) =>
+                tz.text.toLowerCase().includes(searchText.trim().toLowerCase()),
+            ),
         });
     }
 
@@ -125,21 +139,39 @@ class TimezoneSelectPage extends Component {
                 {({safeAreaPaddingBottomStyle}) => (
                     <>
                         <HeaderWithCloseButton
-                            title={this.props.translate('timezonePage.timezone')}
+                            title={this.props.translate(
+                                'timezonePage.timezone',
+                            )}
                             shouldShowBackButton
-                            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE)}
-                            onCloseButtonPress={() => Navigation.dismissModal(true)}
+                            onBackButtonPress={() =>
+                                Navigation.navigate(ROUTES.SETTINGS_TIMEZONE)
+                            }
+                            onCloseButtonPress={() =>
+                                Navigation.dismissModal(true)
+                            }
                         />
                         <OptionsSelector
-                            textInputLabel={this.props.translate('timezonePage.timezone')}
+                            textInputLabel={this.props.translate(
+                                'timezonePage.timezone',
+                            )}
                             value={this.state.timezoneInputText}
                             onChangeText={this.filterShownTimezones}
                             onSelectRow={this.saveSelectedTimezone}
                             optionHoveredStyle={styles.hoveredComponentBG}
-                            sections={[{data: this.state.timezoneOptions, indexOffset: 0, isDisabled: this.timezone.automatic}]}
+                            sections={[
+                                {
+                                    data: this.state.timezoneOptions,
+                                    indexOffset: 0,
+                                    isDisabled: this.timezone.automatic,
+                                },
+                            ]}
                             shouldHaveOptionSeparator
-                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                            initiallyFocusedOptionKey={this.currentSelectedTimezone}
+                            safeAreaPaddingBottomStyle={
+                                safeAreaPaddingBottomStyle
+                            }
+                            initiallyFocusedOptionKey={
+                                this.currentSelectedTimezone
+                            }
                         />
                     </>
                 )}

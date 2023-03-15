@@ -1,13 +1,12 @@
-import {
-    getStateFromPath,
-    getActionFromState,
-} from '@react-navigation/core';
+import {getStateFromPath, getActionFromState} from '@react-navigation/core';
 import linkingConfig from './linkingConfig';
 
 export default function linkTo(navigation, path) {
     const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
     if (navigation === undefined) {
-        throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
+        throw new Error(
+            "Couldn't find a navigation object. Is your component inside a screen in a navigator?",
+        );
     }
 
     const state = linkingConfig.getStateFromPath

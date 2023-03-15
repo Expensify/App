@@ -18,12 +18,17 @@ import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import MenuItem from '../../components/MenuItem';
 import ROUTES from '../../ROUTES';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import Permissions from '../../libs/Permissions';
 import * as App from '../../libs/actions/App';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {
+    withCurrentUserPersonalDetailsPropTypes,
+    withCurrentUserPersonalDetailsDefaultProps,
+} from '../../components/withCurrentUserPersonalDetails';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
@@ -45,22 +50,26 @@ const propTypes = {
     }),
 
     /** The list of this user's policies */
-    policies: PropTypes.objectOf(PropTypes.shape({
-        /** The ID of the policy */
-        ID: PropTypes.string,
+    policies: PropTypes.objectOf(
+        PropTypes.shape({
+            /** The ID of the policy */
+            ID: PropTypes.string,
 
-        /** The name of the policy */
-        name: PropTypes.string,
+            /** The name of the policy */
+            name: PropTypes.string,
 
-        /** The type of the policy */
-        type: PropTypes.string,
+            /** The type of the policy */
+            type: PropTypes.string,
 
-        /** The user's role in the policy */
-        role: PropTypes.string,
+            /** The user's role in the policy */
+            role: PropTypes.string,
 
-        /** The current action that is waiting to happen on the policy */
-        pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
-    })),
+            /** The current action that is waiting to happen on the policy */
+            pendingAction: PropTypes.oneOf(
+                _.values(CONST.RED_BRICK_ROAD_PENDING_ACTION),
+            ),
+        }),
+    ),
 
     /** The user's wallet account */
     userWallet: PropTypes.shape({
@@ -102,7 +111,8 @@ class InitialSettingsPage extends React.Component {
         this.getWalletBalance = this.getWalletBalance.bind(this);
         this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
         this.getMenuItem = this.getMenuItem.bind(this);
-        this.toggleSignoutConfirmModal = this.toggleSignoutConfirmModal.bind(this);
+        this.toggleSignoutConfirmModal =
+            this.toggleSignoutConfirmModal.bind(this);
         this.signout = this.signOut.bind(this);
 
         this.state = {
@@ -119,11 +129,12 @@ class InitialSettingsPage extends React.Component {
      * @returns {Number} the user wallet balance
      */
     getWalletBalance(isPaymentItem) {
-        return (isPaymentItem && Permissions.canUseWallet(this.props.betas))
+        return isPaymentItem && Permissions.canUseWallet(this.props.betas)
             ? this.props.numberFormat(
-                this.props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
-                {style: 'currency', currency: 'USD'},
-            ) : undefined;
+                  this.props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
+                  {style: 'currency', currency: 'USD'},
+              )
+            : undefined;
     }
 
     /**
@@ -132,25 +143,48 @@ class InitialSettingsPage extends React.Component {
      */
     getDefaultMenuItems() {
         const policiesAvatars = _.chain(this.props.policies)
-            .filter(policy => PolicyUtils.shouldShowPolicy(policy, this.props.network.isOffline))
-            .sortBy(policy => policy.name)
-            .map(policy => ({
-                source: policy.avatar || ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+            .filter((policy) =>
+                PolicyUtils.shouldShowPolicy(
+                    policy,
+                    this.props.network.isOffline,
+                ),
+            )
+            .sortBy((policy) => policy.name)
+            .map((policy) => ({
+                source:
+                    policy.avatar ||
+                    ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                 name: policy.name,
                 type: CONST.ICON_TYPE_WORKSPACE,
             }))
             .value();
 
         const policyBrickRoadIndicator = _.chain(this.props.policies)
-            .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-            .find(policy => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers))
-            .value() ? 'error' : null;
+            .filter(
+                (policy) =>
+                    policy &&
+                    policy.type === CONST.POLICY.TYPE.FREE &&
+                    policy.role === CONST.POLICY.ROLE.ADMIN,
+            )
+            .find(
+                (policy) =>
+                    PolicyUtils.hasPolicyError(policy) ||
+                    PolicyUtils.getPolicyBrickRoadIndicatorStatus(
+                        policy,
+                        this.props.policyMembers,
+                    ),
+            )
+            .value()
+            ? 'error'
+            : null;
 
-        return ([
+        return [
             {
                 translationKey: 'common.workspaces',
                 icon: Expensicons.Building,
-                action: () => { Navigation.navigate(ROUTES.SETTINGS_WORKSPACES); },
+                action: () => {
+                    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+                },
                 floatRightAvatars: policiesAvatars,
                 shouldStackHorizontally: true,
                 brickRoadIndicator: policyBrickRoadIndicator,
@@ -158,47 +192,70 @@ class InitialSettingsPage extends React.Component {
             {
                 translationKey: 'common.profile',
                 icon: Expensicons.Profile,
-                action: () => { App.openProfile(); },
+                action: () => {
+                    App.openProfile();
+                },
             },
             {
                 translationKey: 'common.preferences',
                 icon: Expensicons.Gear,
-                action: () => { Navigation.navigate(ROUTES.SETTINGS_PREFERENCES); },
+                action: () => {
+                    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+                },
             },
             {
                 translationKey: 'initialSettingsPage.security',
                 icon: Expensicons.Lock,
-                action: () => { Navigation.navigate(ROUTES.SETTINGS_SECURITY); },
+                action: () => {
+                    Navigation.navigate(ROUTES.SETTINGS_SECURITY);
+                },
             },
             {
                 translationKey: 'common.payments',
                 icon: Expensicons.Wallet,
-                action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
-                brickRoadIndicator: PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList) || !_.isEmpty(this.props.userWallet.errors)
-                    || !_.isEmpty(this.props.walletTerms.errors) ? 'error' : null,
+                action: () => {
+                    Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
+                },
+                brickRoadIndicator:
+                    PaymentMethods.hasPaymentMethodError(
+                        this.props.bankAccountList,
+                        this.props.cardList,
+                    ) ||
+                    !_.isEmpty(this.props.userWallet.errors) ||
+                    !_.isEmpty(this.props.walletTerms.errors)
+                        ? 'error'
+                        : null,
             },
             {
                 translationKey: 'initialSettingsPage.help',
                 icon: Expensicons.QuestionMark,
-                action: () => { Link.openExternalLink(CONST.NEWHELP_URL); },
+                action: () => {
+                    Link.openExternalLink(CONST.NEWHELP_URL);
+                },
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
             },
             {
                 translationKey: 'initialSettingsPage.about',
                 icon: Expensicons.Info,
-                action: () => { Navigation.navigate(ROUTES.SETTINGS_ABOUT); },
+                action: () => {
+                    Navigation.navigate(ROUTES.SETTINGS_ABOUT);
+                },
             },
             {
                 translationKey: 'initialSettingsPage.signOut',
                 icon: Expensicons.Exit,
-                action: () => { this.signout(false); },
+                action: () => {
+                    this.signout(false);
+                },
             },
-        ]);
+        ];
     }
 
     getMenuItem(item, index) {
-        const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
+        const keyTitle = item.translationKey
+            ? this.props.translate(item.translationKey)
+            : item.title;
         const isPaymentItem = item.translationKey === 'common.payments';
 
         return (
@@ -253,54 +310,120 @@ class InitialSettingsPage extends React.Component {
                     <>
                         <HeaderWithCloseButton
                             title={this.props.translate('common.settings')}
-                            onCloseButtonPress={() => Navigation.dismissModal(true)}
+                            onCloseButtonPress={() =>
+                                Navigation.dismissModal(true)
+                            }
                         />
-                        <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle} style={[styles.settingsPageBackground]}>
+                        <ScrollView
+                            contentContainerStyle={safeAreaPaddingBottomStyle}
+                            style={[styles.settingsPageBackground]}
+                        >
                             <View style={styles.w100}>
                                 <View style={styles.avatarSectionWrapper}>
-                                    <Pressable style={[styles.mb3]} onPress={this.openProfileSettings}>
-                                        <Tooltip text={this.props.translate('common.profile')}>
+                                    <Pressable
+                                        style={[styles.mb3]}
+                                        onPress={this.openProfileSettings}
+                                    >
+                                        <Tooltip
+                                            text={this.props.translate(
+                                                'common.profile',
+                                            )}
+                                        >
                                             <OfflineWithFeedback
-                                                pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
+                                                pendingAction={lodashGet(
+                                                    this.props
+                                                        .currentUserPersonalDetails,
+                                                    'pendingFields.avatar',
+                                                    null,
+                                                )}
                                             >
                                                 <Avatar
-                                                    imageStyles={[styles.avatarLarge]}
-                                                    source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.email)}
-                                                    size={CONST.AVATAR_SIZE.LARGE}
+                                                    imageStyles={[
+                                                        styles.avatarLarge,
+                                                    ]}
+                                                    source={ReportUtils.getAvatar(
+                                                        this.props
+                                                            .currentUserPersonalDetails
+                                                            .avatar,
+                                                        this.props.session
+                                                            .email,
+                                                    )}
+                                                    size={
+                                                        CONST.AVATAR_SIZE.LARGE
+                                                    }
                                                 />
                                             </OfflineWithFeedback>
                                         </Tooltip>
                                     </Pressable>
 
-                                    <Pressable style={[styles.mt1, styles.mw100]} onPress={this.openProfileSettings}>
-                                        <Tooltip text={this.props.translate('common.profile')}>
-                                            <Text style={[styles.textHeadline]} numberOfLines={1}>
-                                                {this.props.currentUserPersonalDetails.displayName
-                                                    ? this.props.currentUserPersonalDetails.displayName
-                                                    : Str.removeSMSDomain(this.props.session.email)}
+                                    <Pressable
+                                        style={[styles.mt1, styles.mw100]}
+                                        onPress={this.openProfileSettings}
+                                    >
+                                        <Tooltip
+                                            text={this.props.translate(
+                                                'common.profile',
+                                            )}
+                                        >
+                                            <Text
+                                                style={[styles.textHeadline]}
+                                                numberOfLines={1}
+                                            >
+                                                {this.props
+                                                    .currentUserPersonalDetails
+                                                    .displayName
+                                                    ? this.props
+                                                          .currentUserPersonalDetails
+                                                          .displayName
+                                                    : Str.removeSMSDomain(
+                                                          this.props.session
+                                                              .email,
+                                                      )}
                                             </Text>
                                         </Tooltip>
                                     </Pressable>
-                                    {this.props.currentUserPersonalDetails.displayName && (
+                                    {this.props.currentUserPersonalDetails
+                                        .displayName && (
                                         <Text
-                                            style={[styles.textLabelSupporting, styles.mt1]}
+                                            style={[
+                                                styles.textLabelSupporting,
+                                                styles.mt1,
+                                            ]}
                                             numberOfLines={1}
                                         >
-                                            {Str.removeSMSDomain(this.props.session.email)}
+                                            {Str.removeSMSDomain(
+                                                this.props.session.email,
+                                            )}
                                         </Text>
                                     )}
                                 </View>
-                                {_.map(this.getDefaultMenuItems(), (item, index) => this.getMenuItem(item, index))}
+                                {_.map(
+                                    this.getDefaultMenuItems(),
+                                    (item, index) =>
+                                        this.getMenuItem(item, index),
+                                )}
 
                                 <ConfirmModal
                                     danger
-                                    title={this.props.translate('common.areYouSure')}
-                                    prompt={this.props.translate('initialSettingsPage.signOutConfirmationText')}
-                                    confirmText={this.props.translate('initialSettingsPage.signOut')}
-                                    cancelText={this.props.translate('common.cancel')}
-                                    isVisible={this.state.shouldShowSignoutConfirmModal}
+                                    title={this.props.translate(
+                                        'common.areYouSure',
+                                    )}
+                                    prompt={this.props.translate(
+                                        'initialSettingsPage.signOutConfirmationText',
+                                    )}
+                                    confirmText={this.props.translate(
+                                        'initialSettingsPage.signOut',
+                                    )}
+                                    cancelText={this.props.translate(
+                                        'common.cancel',
+                                    )}
+                                    isVisible={
+                                        this.state.shouldShowSignoutConfirmModal
+                                    }
                                     onConfirm={() => this.signOut(true)}
-                                    onCancel={() => this.toggleSignoutConfirmModal(false)}
+                                    onCancel={() =>
+                                        this.toggleSignoutConfirmModal(false)
+                                    }
                                 />
                             </View>
                         </ScrollView>

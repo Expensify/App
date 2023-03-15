@@ -8,21 +8,32 @@ import * as FileUtils from './FileUtils';
  */
 function hasAndroidPermission() {
     // Read and write permission
-    const writePromise = PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE);
-    const readPromise = PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE);
+    const writePromise = PermissionsAndroid.check(
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+    );
+    const readPromise = PermissionsAndroid.check(
+        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+    );
 
-    return Promise.all([writePromise, readPromise]).then(([hasWritePermission, hasReadPermission]) => {
-        if (hasWritePermission && hasReadPermission) {
-            return true; // Return true if permission is already given
-        }
+    return Promise.all([writePromise, readPromise]).then(
+        ([hasWritePermission, hasReadPermission]) => {
+            if (hasWritePermission && hasReadPermission) {
+                return true; // Return true if permission is already given
+            }
 
-        // Ask for permission if not given
-        return PermissionsAndroid.requestMultiple([
-            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-        ]).then(status => status['android.permission.READ_EXTERNAL_STORAGE'] === 'granted'
-                    && status['android.permission.WRITE_EXTERNAL_STORAGE'] === 'granted');
-    });
+            // Ask for permission if not given
+            return PermissionsAndroid.requestMultiple([
+                PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+                PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+            ]).then(
+                (status) =>
+                    status['android.permission.READ_EXTERNAL_STORAGE'] ===
+                        'granted' &&
+                    status['android.permission.WRITE_EXTERNAL_STORAGE'] ===
+                        'granted',
+            );
+        },
+    );
 }
 
 /**
@@ -51,15 +62,18 @@ function handleDownload(url, fileName) {
         }).fetch('GET', url);
 
         // Resolving the fetched attachment
-        fetchedAttachment.then((attachment) => {
-            if (!attachment || !attachment.info()) {
-                return;
-            }
+        fetchedAttachment
+            .then((attachment) => {
+                if (!attachment || !attachment.info()) {
+                    return;
+                }
 
-            FileUtils.showSuccessAlert();
-        }).catch(() => {
-            FileUtils.showGeneralErrorAlert();
-        }).finally(() => resolve());
+                FileUtils.showSuccessAlert();
+            })
+            .catch(() => {
+                FileUtils.showGeneralErrorAlert();
+            })
+            .finally(() => resolve());
     });
 }
 
@@ -71,13 +85,16 @@ function handleDownload(url, fileName) {
  */
 export default function fileDownload(url, fileName) {
     return new Promise((resolve) => {
-        hasAndroidPermission().then((hasPermission) => {
-            if (hasPermission) {
-                return handleDownload(url, fileName);
-            }
-            FileUtils.showPermissionErrorAlert();
-        }).catch(() => {
-            FileUtils.showPermissionErrorAlert();
-        }).finally(() => resolve());
+        hasAndroidPermission()
+            .then((hasPermission) => {
+                if (hasPermission) {
+                    return handleDownload(url, fileName);
+                }
+                FileUtils.showPermissionErrorAlert();
+            })
+            .catch(() => {
+                FileUtils.showPermissionErrorAlert();
+            })
+            .finally(() => resolve());
     });
 }

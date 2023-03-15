@@ -34,7 +34,7 @@ const socialsList = [
 
 const Socials = () => (
     <Text>
-        {_.map(socialsList, social => (
+        {_.map(socialsList, (social) => (
             <Pressable
                 onPress={() => {
                     Linking.openURL(social.link);
@@ -47,7 +47,9 @@ const Socials = () => (
                         src={social.iconURL}
                         height={variables.iconSizeLarge}
                         width={variables.iconSizeLarge}
-                        fill={hovered ? themeColors.link : themeColors.textLight}
+                        fill={
+                            hovered ? themeColors.link : themeColors.textLight
+                        }
                     />
                 )}
             </Pressable>

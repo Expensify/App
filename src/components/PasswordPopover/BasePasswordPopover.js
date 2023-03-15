@@ -9,7 +9,10 @@ import compose from '../../libs/compose';
 import withWindowDimensions from '../withWindowDimensions';
 import TextInput from '../TextInput';
 import KeyboardSpacer from '../KeyboardSpacer';
-import {propTypes as passwordPopoverPropTypes, defaultProps as passwordPopoverDefaultProps} from './passwordPopoverPropTypes';
+import {
+    propTypes as passwordPopoverPropTypes,
+    defaultProps as passwordPopoverDefaultProps,
+} from './passwordPopoverPropTypes';
 import Button from '../Button';
 import withViewportOffsetTop from '../withViewportOffsetTop';
 
@@ -56,31 +59,36 @@ class BasePasswordPopover extends Component {
                 onClose={this.props.onClose}
                 anchorPosition={this.props.anchorPosition}
                 onModalShow={this.focusInput}
-                outerStyle={{maxHeight: this.props.windowHeight, marginTop: this.props.viewportOffsetTop}}
+                outerStyle={{
+                    maxHeight: this.props.windowHeight,
+                    marginTop: this.props.viewportOffsetTop,
+                }}
             >
                 <View
                     style={[
                         styles.m5,
-                        !this.props.isSmallScreenWidth ? styles.sidebarPopover : '',
+                        !this.props.isSmallScreenWidth
+                            ? styles.sidebarPopover
+                            : '',
                     ]}
                 >
-                    <Text
-                        style={[
-                            styles.mb3,
-                        ]}
-                    >
-                        {this.props.translate('passwordForm.pleaseFillPassword')}
+                    <Text style={[styles.mb3]}>
+                        {this.props.translate(
+                            'passwordForm.pleaseFillPassword',
+                        )}
                     </Text>
                     <TextInput
                         label={this.props.translate('common.password')}
-                        ref={el => this.passwordInput = el}
+                        ref={(el) => (this.passwordInput = el)}
                         secureTextEntry
                         autoCompleteType="password"
                         textContentType="password"
                         value={this.state.currentPassword}
-                        onChangeText={password => this.setState({password})}
+                        onChangeText={(password) => this.setState({password})}
                         returnKeyType="done"
-                        onSubmitEditing={() => this.props.onSubmit(this.state.password)}
+                        onSubmitEditing={() =>
+                            this.props.onSubmit(this.state.password)
+                        }
                         style={styles.mt3}
                         autoFocus
                         shouldDelayFocus={this.props.shouldDelayFocus}

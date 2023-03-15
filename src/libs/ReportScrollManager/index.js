@@ -31,8 +31,4 @@ function scrollToBottom() {
     flatListRef.current.scrollToOffset({animated: false, offset: 0});
 }
 
-export {
-    flatListRef,
-    scrollToIndex,
-    scrollToBottom,
-};
+export {flatListRef, scrollToIndex, scrollToBottom};

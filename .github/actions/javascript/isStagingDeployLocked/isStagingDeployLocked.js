@@ -5,8 +5,16 @@ const GithubUtils = require('../../../libs/GithubUtils');
 const run = function () {
     return GithubUtils.getStagingDeployCash()
         .then(({labels, number}) => {
-            console.log(`Found StagingDeployCash with labels: ${_.pluck(labels, 'name')}`);
-            core.setOutput('IS_LOCKED', _.contains(_.pluck(labels, 'name'), '🔐 LockCashDeploys 🔐'));
+            console.log(
+                `Found StagingDeployCash with labels: ${_.pluck(
+                    labels,
+                    'name',
+                )}`,
+            );
+            core.setOutput(
+                'IS_LOCKED',
+                _.contains(_.pluck(labels, 'name'), '🔐 LockCashDeploys 🔐'),
+            );
             core.setOutput('NUMBER', number);
         })
         .catch((err) => {

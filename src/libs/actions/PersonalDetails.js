@@ -12,13 +12,13 @@ import ROUTES from '../../ROUTES';
 let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: val => currentUserEmail = val ? val.email : '',
+    callback: (val) => (currentUserEmail = val ? val.email : ''),
 });
 
 let personalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
-    callback: val => personalDetails = val,
+    callback: (val) => (personalDetails = val),
 });
 
 /**
@@ -40,7 +40,7 @@ function getDisplayName(login, personalDetail) {
 
     const firstName = userDetails.firstName || '';
     const lastName = userDetails.lastName || '';
-    const fullName = (`${firstName} ${lastName}`).trim();
+    const fullName = `${firstName} ${lastName}`.trim();
 
     return fullName || userLogin;
 }
@@ -92,24 +92,33 @@ function getCountryISO(countryName) {
     if (_.isEmpty(countryName) || countryName.length === 2) {
         return countryName;
     }
-    return _.findKey(CONST.ALL_COUNTRIES, country => country === countryName) || '';
+    return (
+        _.findKey(CONST.ALL_COUNTRIES, (country) => country === countryName) ||
+        ''
+    );
 }
 
 /**
  * @param {String} pronouns
  */
 function updatePronouns(pronouns) {
-    API.write('UpdatePronouns', {pronouns}, {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {
-                [currentUserEmail]: {
-                    pronouns,
+    API.write(
+        'UpdatePronouns',
+        {pronouns},
+        {
+            optimisticData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    value: {
+                        [currentUserEmail]: {
+                            pronouns,
+                        },
+                    },
                 },
-            },
-        }],
-    });
+            ],
+        },
+    );
     Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
@@ -118,22 +127,28 @@ function updatePronouns(pronouns) {
  * @param {String} lastName
  */
 function updateDisplayName(firstName, lastName) {
-    API.write('UpdateDisplayName', {firstName, lastName}, {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {
-                [currentUserEmail]: {
-                    firstName,
-                    lastName,
-                    displayName: getDisplayName(currentUserEmail, {
-                        firstName,
-                        lastName,
-                    }),
+    API.write(
+        'UpdateDisplayName',
+        {firstName, lastName},
+        {
+            optimisticData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    value: {
+                        [currentUserEmail]: {
+                            firstName,
+                            lastName,
+                            displayName: getDisplayName(currentUserEmail, {
+                                firstName,
+                                lastName,
+                            }),
+                        },
+                    },
                 },
-            },
-        }],
-    });
+            ],
+        },
+    );
     Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
@@ -142,16 +157,22 @@ function updateDisplayName(firstName, lastName) {
  * @param {String} legalLastName
  */
 function updateLegalName(legalFirstName, legalLastName) {
-    API.write('UpdateLegalName', {legalFirstName, legalLastName}, {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-            value: {
-                legalFirstName,
-                legalLastName,
-            },
-        }],
-    });
+    API.write(
+        'UpdateLegalName',
+        {legalFirstName, legalLastName},
+        {
+            optimisticData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                    value: {
+                        legalFirstName,
+                        legalLastName,
+                    },
+                },
+            ],
+        },
+    );
     Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
@@ -159,15 +180,21 @@ function updateLegalName(legalFirstName, legalLastName) {
  * @param {String} dob - date of birth
  */
 function updateDateOfBirth(dob) {
-    API.write('UpdateDateOfBirth', {dob}, {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-            value: {
-                dob,
-            },
-        }],
-    });
+    API.write(
+        'UpdateDateOfBirth',
+        {dob},
+        {
+            optimisticData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                    value: {
+                        dob,
+                    },
+                },
+            ],
+        },
+    );
     Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
@@ -180,28 +207,34 @@ function updateDateOfBirth(dob) {
  * @param {String} country
  */
 function updateAddress(street, street2, city, state, zip, country) {
-    API.write('UpdateHomeAddress', {
-        addressStreet: street,
-        addressStreet2: street2,
-        addressCity: city,
-        addressState: state,
-        addressZipCode: zip,
-        addressCountry: country,
-    }, {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-            value: {
-                address: {
-                    street: `${street}\n${street2}`,
-                    city,
-                    state,
-                    zip,
-                    country,
+    API.write(
+        'UpdateHomeAddress',
+        {
+            addressStreet: street,
+            addressStreet2: street2,
+            addressCity: city,
+            addressState: state,
+            addressZipCode: zip,
+            addressCountry: country,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                    value: {
+                        address: {
+                            street: `${street}\n${street2}`,
+                            city,
+                            state,
+                            zip,
+                            country,
+                        },
+                    },
                 },
-            },
-        }],
-    });
+            ],
+        },
+    );
     Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
@@ -214,19 +247,25 @@ function updateAddress(street, street2, city, state, zip, country) {
  * @param {String} timezone.selected
  */
 function updateAutomaticTimezone(timezone) {
-    API.write('UpdateAutomaticTimezone', {
-        timezone: JSON.stringify(timezone),
-    }, {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {
-                [currentUserEmail]: {
-                    timezone,
+    API.write(
+        'UpdateAutomaticTimezone',
+        {
+            timezone: JSON.stringify(timezone),
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    value: {
+                        [currentUserEmail]: {
+                            timezone,
+                        },
+                    },
                 },
-            },
-        }],
-    });
+            ],
+        },
+    );
 }
 
 /**
@@ -239,19 +278,25 @@ function updateSelectedTimezone(selectedTimezone) {
     const timezone = {
         selected: selectedTimezone,
     };
-    API.write('UpdateSelectedTimezone', {
-        timezone: JSON.stringify(timezone),
-    }, {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {
-                [currentUserEmail]: {
-                    timezone,
+    API.write(
+        'UpdateSelectedTimezone',
+        {
+            timezone: JSON.stringify(timezone),
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    value: {
+                        [currentUserEmail]: {
+                            timezone,
+                        },
+                    },
                 },
-            },
-        }],
-    });
+            ],
+        },
+    );
     Navigation.navigate(ROUTES.SETTINGS_TIMEZONE);
 }
 
@@ -275,48 +320,60 @@ function openPersonalDetailsPage() {
  * @param {File|Object} file
  */
 function updateAvatar(file) {
-    const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.PERSONAL_DETAILS,
-        value: {
-            [currentUserEmail]: {
-                avatar: file.uri,
-                avatarThumbnail: file.uri,
-                errorFields: {
-                    avatar: null,
-                },
-                pendingFields: {
-                    avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                },
-            },
-        },
-    }];
-    const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.PERSONAL_DETAILS,
-        value: {
-            [currentUserEmail]: {
-                pendingFields: {
-                    avatar: null,
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    avatar: file.uri,
+                    avatarThumbnail: file.uri,
+                    errorFields: {
+                        avatar: null,
+                    },
+                    pendingFields: {
+                        avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
                 },
             },
         },
-    }];
-    const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.PERSONAL_DETAILS,
-        value: {
-            [currentUserEmail]: {
-                avatar: personalDetails[currentUserEmail].avatar,
-                avatarThumbnail: personalDetails[currentUserEmail].avatarThumbnail || personalDetails[currentUserEmail].avatar,
-                pendingFields: {
-                    avatar: null,
+    ];
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    pendingFields: {
+                        avatar: null,
+                    },
                 },
             },
         },
-    }];
+    ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    avatar: personalDetails[currentUserEmail].avatar,
+                    avatarThumbnail:
+                        personalDetails[currentUserEmail].avatarThumbnail ||
+                        personalDetails[currentUserEmail].avatar,
+                    pendingFields: {
+                        avatar: null,
+                    },
+                },
+            },
+        },
+    ];
 
-    API.write('UpdateUserAvatar', {file}, {optimisticData, successData, failureData});
+    API.write(
+        'UpdateUserAvatar',
+        {file},
+        {optimisticData, successData, failureData},
+    );
 }
 
 /**
@@ -326,26 +383,34 @@ function deleteAvatar() {
     // We want to use the old dot avatar here as this affects both platforms.
     const defaultAvatar = ReportUtils.getOldDotDefaultAvatar(currentUserEmail);
 
-    API.write('DeleteUserAvatar', {}, {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {
-                [currentUserEmail]: {
-                    avatar: defaultAvatar,
+    API.write(
+        'DeleteUserAvatar',
+        {},
+        {
+            optimisticData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    value: {
+                        [currentUserEmail]: {
+                            avatar: defaultAvatar,
+                        },
+                    },
                 },
-            },
-        }],
-        failureData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {
-                [currentUserEmail]: {
-                    avatar: personalDetails[currentUserEmail].avatar,
+            ],
+            failureData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    value: {
+                        [currentUserEmail]: {
+                            avatar: personalDetails[currentUserEmail].avatar,
+                        },
+                    },
                 },
-            },
-        }],
-    });
+            ],
+        },
+    );
 }
 
 /**

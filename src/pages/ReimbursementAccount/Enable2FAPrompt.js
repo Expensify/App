@@ -2,7 +2,9 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../components/withLocalize';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import Section from '../../components/Section';
@@ -13,7 +15,7 @@ import themeColors from '../../styles/themes/default';
 const propTypes = {
     ...withLocalizePropTypes,
 };
-const Enable2FAPrompt = props => (
+const Enable2FAPrompt = (props) => (
     <Section
         title={props.translate('validationStep.enable2FATitle')}
         icon={Illustrations.ShieldYellow}
@@ -21,7 +23,11 @@ const Enable2FAPrompt = props => (
             {
                 title: props.translate('validationStep.secureYourAccount'),
                 onPress: () => {
-                    Link.openOldDotLink(encodeURI(`settings?param={"section":"account","action":"enableTwoFactorAuth","exitTo":"${ROUTES.getBankAccountRoute()}","isFromNewDot":"true"}`));
+                    Link.openOldDotLink(
+                        encodeURI(
+                            `settings?param={"section":"account","action":"enableTwoFactorAuth","exitTo":"${ROUTES.getBankAccountRoute()}","isFromNewDot":"true"}`,
+                        ),
+                    );
                 },
                 icon: Expensicons.Shield,
                 shouldShowRightIcon: true,
@@ -32,9 +38,7 @@ const Enable2FAPrompt = props => (
         ]}
     >
         <View style={[styles.mv3]}>
-            <Text>
-                {props.translate('validationStep.enable2FAText')}
-            </Text>
+            <Text>{props.translate('validationStep.enable2FAText')}</Text>
         </View>
     </Section>
 );

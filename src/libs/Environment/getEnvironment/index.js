@@ -8,7 +8,9 @@ import CONST from '../../../CONST';
  * @returns {Promise}
  */
 function getEnvironment() {
-    return Promise.resolve(lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV));
+    return Promise.resolve(
+        lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV),
+    );
 }
 
 export default getEnvironment;

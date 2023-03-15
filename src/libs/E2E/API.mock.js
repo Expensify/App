@@ -60,7 +60,11 @@ function write(command, apiCommandParameters = {}) {
  * @returns {Promise}
  */
 function makeRequestWithSideEffects(command, apiCommandParameters = {}) {
-    return mockCall(command, apiCommandParameters, 'API.makeRequestWithSideEffects');
+    return mockCall(
+        command,
+        apiCommandParameters,
+        'API.makeRequestWithSideEffects',
+    );
 }
 
 /**
@@ -75,8 +79,4 @@ function read(command, apiCommandParameters) {
     return mockCall(command, apiCommandParameters, 'API.read');
 }
 
-export {
-    write,
-    makeRequestWithSideEffects,
-    read,
-};
+export {write, makeRequestWithSideEffects, read};

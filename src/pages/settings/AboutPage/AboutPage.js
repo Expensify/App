@@ -10,8 +10,12 @@ import TextLink from '../../../components/TextLink';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../../../components/withWindowDimensions';
 import MenuItem from '../../../components/MenuItem';
 import Logo from '../../../../assets/images/new-expensify.svg';
 import pkg from '../../../../package.json';
@@ -26,7 +30,9 @@ const propTypes = {
 };
 
 const AboutPage = (props) => {
-    const platformSpecificMenuItems = getPlatformSpecificMenuItems(props.isSmallScreenWidth);
+    const platformSpecificMenuItems = getPlatformSpecificMenuItems(
+        props.isSmallScreenWidth,
+    );
 
     const menuItems = [
         {
@@ -67,7 +73,9 @@ const AboutPage = (props) => {
                     <HeaderWithCloseButton
                         title={props.translate('initialSettingsPage.about')}
                         shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                        onBackButtonPress={() =>
+                            Navigation.navigate(ROUTES.SETTINGS)
+                        }
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <ScrollView
@@ -80,7 +88,13 @@ const AboutPage = (props) => {
                     >
                         <View style={[styles.flex1]}>
                             <View style={styles.pageWrapper}>
-                                <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter]}>
+                                <View
+                                    style={[
+                                        styles.settingsPageBody,
+                                        styles.mb6,
+                                        styles.alignItemsCenter,
+                                    ]}
+                                >
                                     <Logo height={80} width={80} />
                                     <Text
                                         selectable
@@ -92,15 +106,21 @@ const AboutPage = (props) => {
                                             styles.colorMuted,
                                         ]}
                                     >
-                                        v
-                                        {pkg.version}
+                                        v{pkg.version}
                                     </Text>
-                                    <Text style={[styles.baseFontStyle, styles.mv5]}>
-                                        {props.translate('initialSettingsPage.aboutPage.description')}
+                                    <Text
+                                        style={[
+                                            styles.baseFontStyle,
+                                            styles.mv5,
+                                        ]}
+                                    >
+                                        {props.translate(
+                                            'initialSettingsPage.aboutPage.description',
+                                        )}
                                     </Text>
                                 </View>
                             </View>
-                            {_.map(menuItems, item => (
+                            {_.map(menuItems, (item) => (
                                 <MenuItem
                                     key={item.translationKey}
                                     title={props.translate(item.translationKey)}
@@ -118,19 +138,28 @@ const AboutPage = (props) => {
                             >
                                 {props.translate(
                                     'initialSettingsPage.readTheTermsAndPrivacy.phrase1',
-                                )}
-                                {' '}
-                                <TextLink style={[styles.textMicroSupporting, styles.link]} href={CONST.TERMS_URL}>
+                                )}{' '}
+                                <TextLink
+                                    style={[
+                                        styles.textMicroSupporting,
+                                        styles.link,
+                                    ]}
+                                    href={CONST.TERMS_URL}
+                                >
                                     {props.translate(
                                         'initialSettingsPage.readTheTermsAndPrivacy.phrase2',
                                     )}
-                                </TextLink>
-                                {' '}
+                                </TextLink>{' '}
                                 {props.translate(
                                     'initialSettingsPage.readTheTermsAndPrivacy.phrase3',
-                                )}
-                                {' '}
-                                <TextLink style={[styles.textMicroSupporting, styles.link]} href={CONST.PRIVACY_URL}>
+                                )}{' '}
+                                <TextLink
+                                    style={[
+                                        styles.textMicroSupporting,
+                                        styles.link,
+                                    ]}
+                                    href={CONST.PRIVACY_URL}
+                                >
                                     {props.translate(
                                         'initialSettingsPage.readTheTermsAndPrivacy.phrase4',
                                     )}
@@ -148,7 +177,4 @@ const AboutPage = (props) => {
 AboutPage.propTypes = propTypes;
 AboutPage.displayName = 'AboutPage';
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-)(AboutPage);
+export default compose(withLocalize, withWindowDimensions)(AboutPage);

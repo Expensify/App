@@ -12,7 +12,9 @@ import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFull
 import getNumberOfLines from '../../libs/ComposerUtils/index';
 import * as Browser from '../../libs/Browser';
 import Clipboard from '../../libs/Clipboard';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../withWindowDimensions';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 
@@ -128,7 +130,8 @@ class Composer extends React.Component {
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
         this.putSelectionInClipboard = this.putSelectionInClipboard.bind(this);
-        this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
+        this.shouldCallUpdateNumberOfLines =
+            this.shouldCallUpdateNumberOfLines.bind(this);
     }
 
     componentDidMount() {
@@ -147,7 +150,10 @@ class Composer extends React.Component {
         if (this.textInput) {
             this.textInput.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
-            this.textInput.addEventListener('keydown', this.putSelectionInClipboard);
+            this.textInput.addEventListener(
+                'keydown',
+                this.putSelectionInClipboard,
+            );
         }
     }
 
@@ -159,10 +165,12 @@ class Composer extends React.Component {
             this.props.onClear();
         }
 
-        if (prevProps.value !== this.props.value
-            || prevProps.defaultValue !== this.props.defaultValue
-            || prevProps.isComposerFullSize !== this.props.isComposerFullSize
-            || prevProps.windowWidth !== this.props.windowWidth) {
+        if (
+            prevProps.value !== this.props.value ||
+            prevProps.defaultValue !== this.props.defaultValue ||
+            prevProps.isComposerFullSize !== this.props.isComposerFullSize ||
+            prevProps.windowWidth !== this.props.windowWidth
+        ) {
             this.updateNumberOfLines();
         }
 
@@ -193,7 +201,7 @@ class Composer extends React.Component {
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
             this.textInput.blur();
             this.textInput.focus();
-        // eslint-disable-next-line no-empty
+            // eslint-disable-next-line no-empty
         } catch (e) {}
     }
 
@@ -231,40 +239,54 @@ class Composer extends React.Component {
             const pastedHTML = event.clipboardData.getData(TEXT_HTML);
 
             const domparser = new DOMParser();
-            const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
+            const embeddedImages = domparser.parseFromString(
+                pastedHTML,
+                TEXT_HTML,
+            ).images;
 
             // If HTML has img tag, then fetch images from it.
             if (embeddedImages.length > 0 && embeddedImages[0].src) {
                 // If HTML has emoji, then treat this as plain text.
-                if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
+                if (
+                    embeddedImages[0].dataset &&
+                    embeddedImages[0].dataset.stringifyType === 'emoji'
+                ) {
                     const plainText = event.clipboardData.getData('text/plain');
                     this.paste(Str.htmlDecode(plainText));
                     return;
                 }
                 fetch(embeddedImages[0].src)
                     .then((response) => {
-                        if (!response.ok) { throw Error(response.statusText); }
+                        if (!response.ok) {
+                            throw Error(response.statusText);
+                        }
                         return response.blob();
                     })
                     .then((x) => {
                         const extension = IMAGE_EXTENSIONS[x.type];
                         if (!extension) {
-                            throw new Error(this.props.translate('composer.noExtensionFoundForMimeType'));
+                            throw new Error(
+                                this.props.translate(
+                                    'composer.noExtensionFoundForMimeType',
+                                ),
+                            );
                         }
 
                         return new File([x], `pasted_image.${extension}`, {});
                     })
                     .then(this.props.onPasteFile)
                     .catch(() => {
-                        const errorDesc = this.props.translate('composer.problemGettingImageYouPasted');
+                        const errorDesc = this.props.translate(
+                            'composer.problemGettingImageYouPasted',
+                        );
                         Growl.error(errorDesc);
 
                         /*
-                        * Since we intercepted the user-triggered paste event to check for attachments,
-                        * we need to manually set the value and call the `onChangeText` handler.
-                        * Synthetically-triggered paste events do not affect the document's contents.
-                        * See https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event for more details.
-                        */
+                         * Since we intercepted the user-triggered paste event to check for attachments,
+                         * we need to manually set the value and call the `onChangeText` handler.
+                         * Synthetically-triggered paste events do not affect the document's contents.
+                         * See https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event for more details.
+                         */
                         this.handlePastedHTML(pastedHTML);
                     });
                 return;
@@ -301,7 +323,10 @@ class Composer extends React.Component {
 
         // The user might have only highlighted a portion of the message to copy, so using the selection will ensure that
         // the only stuff put into the clipboard is what the user selected.
-        const selectedText = event.target.value.substring(this.state.selection.start, this.state.selection.end);
+        const selectedText = event.target.value.substring(
+            this.state.selection.start,
+            this.state.selection.end,
+        );
 
         Clipboard.setHtml(selectedText, selectedText);
     }
@@ -332,9 +357,15 @@ class Composer extends React.Component {
         this.setState({numberOfLines: 1}, () => {
             const computedStyle = window.getComputedStyle(this.textInput);
             const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
-            const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
-            + parseInt(computedStyle.paddingTop, 10);
-            const numberOfLines = getNumberOfLines(this.props.maxLines, lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
+            const paddingTopAndBottom =
+                parseInt(computedStyle.paddingBottom, 10) +
+                parseInt(computedStyle.paddingTop, 10);
+            const numberOfLines = getNumberOfLines(
+                this.props.maxLines,
+                lineHeight,
+                paddingTopAndBottom,
+                this.textInput.scrollHeight,
+            );
             updateIsFullComposerAvailable(this.props, numberOfLines);
             this.setState({
                 numberOfLines,
@@ -353,7 +384,7 @@ class Composer extends React.Component {
                 autoComplete="off"
                 autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={themeColors.placeholderText}
-                ref={el => this.textInput = el}
+                ref={(el) => (this.textInput = el)}
                 selection={this.state.selection}
                 onChange={this.shouldCallUpdateNumberOfLines}
                 onSelectionChange={this.onSelectionChange}
@@ -363,7 +394,9 @@ class Composer extends React.Component {
 
                     // We are hiding the scrollbar to prevent it from reducing the text input width,
                     // so we can get the correct scroll height while calculating the number of lines.
-                    this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
+                    this.state.numberOfLines < this.props.maxLines
+                        ? styles.overflowHidden
+                        : {},
                 ]}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsWithoutStyles}
@@ -379,7 +412,9 @@ Composer.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
-)(React.forwardRef((props, ref) => (
-    /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <Composer {...props} forwardedRef={ref} />
-)));
+)(
+    React.forwardRef((props, ref) => (
+        /* eslint-disable-next-line react/jsx-props-no-spreading */
+        <Composer {...props} forwardedRef={ref} />
+    )),
+);

@@ -20,10 +20,9 @@ export default function (WrappedComponent) {
         }
 
         componentDidMount() {
-            Environment.getEnvironment()
-                .then((environment) => {
-                    this.setState({environment});
-                });
+            Environment.getEnvironment().then((environment) => {
+                this.setState({environment});
+            });
         }
 
         render() {
@@ -38,7 +37,9 @@ export default function (WrappedComponent) {
         }
     }
 
-    WithEnvironment.displayName = `withEnvironment(${getComponentDisplayName(WrappedComponent)})`;
+    WithEnvironment.displayName = `withEnvironment(${getComponentDisplayName(
+        WrappedComponent,
+    )})`;
     WithEnvironment.propTypes = {
         forwardedRef: PropTypes.oneOfType([
             PropTypes.func,
@@ -54,6 +55,4 @@ export default function (WrappedComponent) {
     ));
 }
 
-export {
-    environmentPropTypes,
-};
+export {environmentPropTypes};

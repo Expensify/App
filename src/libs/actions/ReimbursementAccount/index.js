@@ -3,7 +3,10 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import resetFreePlanBankAccount from './resetFreePlanBankAccount';
 import deleteFromBankAccountList from './deleteFromBankAccountList';
 
-export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute} from './navigation';
+export {
+    goToWithdrawalAccountSetupStep,
+    navigateToBankAccountRoute,
+} from './navigation';
 export {
     setBankAccountFormValidationErrors,
     setPersonalBankAccountFormValidationErrorFields,

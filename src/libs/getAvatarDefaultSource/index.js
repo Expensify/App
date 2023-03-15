@@ -4,4 +4,4 @@
  * @param {String|Function} source The source of avatar image
  * @return {Object} The image source
  */
-export default source => ({uri: source});
+export default (source) => ({uri: source});

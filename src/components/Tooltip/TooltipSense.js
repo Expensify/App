@@ -5,7 +5,7 @@ let active = false;
 
 /**
  * Debounced function to deactive the TooltipSense after a specific time
-*/
+ */
 const debouncedDeactivate = _.debounce(() => {
     active = false;
 }, CONST.TIMING.TOOLTIP_SENSE);

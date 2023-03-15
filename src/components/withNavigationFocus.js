@@ -20,7 +20,9 @@ export default function withNavigationFocus(WrappedComponent) {
         );
     };
 
-    WithNavigationFocus.displayName = `withNavigationFocus(${getComponentDisplayName(WrappedComponent)})`;
+    WithNavigationFocus.displayName = `withNavigationFocus(${getComponentDisplayName(
+        WrappedComponent,
+    )})`;
     WithNavigationFocus.propTypes = {
         forwardedRef: PropTypes.oneOfType([
             PropTypes.func,
@@ -36,6 +38,4 @@ export default function withNavigationFocus(WrappedComponent) {
     ));
 }
 
-export {
-    withNavigationFocusPropTypes,
-};
+export {withNavigationFocusPropTypes};

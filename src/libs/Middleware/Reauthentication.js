@@ -51,7 +51,9 @@ function Reauthentication(response, request, isFromSequentialQueue) {
 
             if (NetworkStore.isOffline()) {
                 // If we are offline and somehow handling this response we do not want to reauthenticate
-                throw new Error('Unable to reauthenticate because we are offline');
+                throw new Error(
+                    'Unable to reauthenticate because we are offline',
+                );
             }
 
             if (data.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
@@ -59,7 +61,10 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                 // creating and deleting logins. In those cases, they should handle the original response instead
                 // of the new response created by handleExpiredAuthToken.
                 const shouldRetry = lodashGet(request, 'data.shouldRetry');
-                const apiRequestType = lodashGet(request, 'data.apiRequestType');
+                const apiRequestType = lodashGet(
+                    request,
+                    'data.apiRequestType',
+                );
                 if (!shouldRetry && !apiRequestType) {
                     if (isFromSequentialQueue) {
                         return data;
@@ -79,12 +84,22 @@ function Reauthentication(response, request, isFromSequentialQueue) {
 
                 return reauthenticate(request.commandName)
                     .then((authenticateResponse) => {
-                        if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
-                            return Request.processWithMiddleware(request, isFromSequentialQueue);
+                        if (
+                            isFromSequentialQueue ||
+                            apiRequestType ===
+                                CONST.API_REQUEST_TYPE
+                                    .MAKE_REQUEST_WITH_SIDE_EFFECTS
+                        ) {
+                            return Request.processWithMiddleware(
+                                request,
+                                isFromSequentialQueue,
+                            );
                         }
 
                         if (apiRequestType === CONST.API_REQUEST_TYPE.READ) {
-                            NetworkConnection.triggerReconnectionCallbacks('read request made with expired authToken');
+                            NetworkConnection.triggerReconnectionCallbacks(
+                                'read request made with expired authToken',
+                            );
                             return Promise.resolve();
                         }
 

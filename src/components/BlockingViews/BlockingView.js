@@ -36,9 +36,14 @@ const defaultProps = {
     link: 'notFound.goBackHome',
 };
 
-const BlockingView = props => (
+const BlockingView = (props) => (
     <View
-        style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}
+        style={[
+            styles.flex1,
+            styles.alignItemsCenter,
+            styles.justifyContentCenter,
+            styles.ph10,
+        ]}
     >
         <Icon
             src={props.icon}
@@ -48,15 +53,14 @@ const BlockingView = props => (
         />
         <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>
         <Text style={[styles.textAlignCenter]}>{props.subtitle}</Text>
-        {props.shouldShowBackHomeLink
-            ? (
-                <TextLink
-                    onPress={() => Navigation.navigate(ROUTES.REPORT)}
-                    style={[styles.link, styles.mt2]}
-                >
-                    {props.link}
-                </TextLink>
-            ) : null}
+        {props.shouldShowBackHomeLink ? (
+            <TextLink
+                onPress={() => Navigation.navigate(ROUTES.REPORT)}
+                style={[styles.link, styles.mt2]}
+            >
+                {props.link}
+            </TextLink>
+        ) : null}
     </View>
 );
 

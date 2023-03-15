@@ -242,9 +242,12 @@ export default {
             IOU_Details: {
                 screens: {
                     IOU_Details_Root: ROUTES.IOU_DETAILS_WITH_IOU_REPORT_ID,
-                    IOU_Details_Enable_Payments: ROUTES.IOU_DETAILS_ENABLE_PAYMENTS,
-                    IOU_Details_Add_Bank_Account: ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT,
-                    IOU_Details_Add_Debit_Card: ROUTES.IOU_DETAILS_ADD_DEBIT_CARD,
+                    IOU_Details_Enable_Payments:
+                        ROUTES.IOU_DETAILS_ENABLE_PAYMENTS,
+                    IOU_Details_Add_Bank_Account:
+                        ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT,
+                    IOU_Details_Add_Debit_Card:
+                        ROUTES.IOU_DETAILS_ADD_DEBIT_CARD,
                 },
             },
             AddPersonalBankAccount: {

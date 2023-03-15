@@ -13,7 +13,10 @@ import TextInput from '../TextInput';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDefaultProps} from './optionsSelectorPropTypes';
+import {
+    propTypes as optionsSelectorPropTypes,
+    defaultProps as optionsSelectorDefaultProps,
+} from './optionsSelectorPropTypes';
 import setSelection from '../../libs/setSelection';
 
 const propTypes = {
@@ -59,7 +62,8 @@ class BaseOptionsSelector extends Component {
         this.unsubscribeEnter = KeyboardShortcut.subscribe(
             enterConfig.shortcutKey,
             () => {
-                const focusedOption = this.state.allOptions[this.state.focusedIndex];
+                const focusedOption =
+                    this.state.allOptions[this.state.focusedIndex];
                 if (!focusedOption) {
                     return;
                 }
@@ -81,7 +85,8 @@ class BaseOptionsSelector extends Component {
                     return;
                 }
 
-                const focusedOption = this.state.allOptions[this.state.focusedIndex];
+                const focusedOption =
+                    this.state.allOptions[this.state.focusedIndex];
                 if (!focusedOption) {
                     return;
                 }
@@ -100,7 +105,10 @@ class BaseOptionsSelector extends Component {
         }
 
         if (this.props.shouldDelayFocus) {
-            this.focusTimeout = setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
+            this.focusTimeout = setTimeout(
+                () => this.textInput.focus(),
+                CONST.ANIMATED_TRANSITION,
+            );
         } else {
             this.textInput.focus();
         }
@@ -114,22 +122,29 @@ class BaseOptionsSelector extends Component {
         const newOptions = this.flattenSections();
         const newFocusedIndex = this.props.selectedOptions.length;
         // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({
-            allOptions: newOptions,
-            focusedIndex: newFocusedIndex,
-        }, () => {
-            // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
-            if (this.props.selectedOptions.length !== prevProps.selectedOptions.length || this.props.value === '') {
-                this.scrollToIndex(0);
-                return;
-            }
+        this.setState(
+            {
+                allOptions: newOptions,
+                focusedIndex: newFocusedIndex,
+            },
+            () => {
+                // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
+                if (
+                    this.props.selectedOptions.length !==
+                        prevProps.selectedOptions.length ||
+                    this.props.value === ''
+                ) {
+                    this.scrollToIndex(0);
+                    return;
+                }
 
-            // Otherwise, scroll to the focused index (as long as it's in range)
-            if (this.state.allOptions.length <= this.state.focusedIndex) {
-                return;
-            }
-            this.scrollToIndex(this.state.focusedIndex);
-        });
+                // Otherwise, scroll to the focused index (as long as it's in range)
+                if (this.state.allOptions.length <= this.state.focusedIndex) {
+                    return;
+                }
+                this.scrollToIndex(this.state.focusedIndex);
+            },
+        );
     }
 
     componentWillUnmount() {
@@ -151,12 +166,18 @@ class BaseOptionsSelector extends Component {
      * @returns {Number}
      */
     getInitiallyFocusedIndex(allOptions) {
-        const defaultIndex = this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0;
+        const defaultIndex = this.props.shouldTextInputAppearBelowOptions
+            ? allOptions.length
+            : 0;
         if (_.isUndefined(this.props.initiallyFocusedOptionKey)) {
             return defaultIndex;
         }
 
-        const indexOfInitiallyFocusedOption = _.findIndex(allOptions, option => option.keyForList === this.props.initiallyFocusedOptionKey);
+        const indexOfInitiallyFocusedOption = _.findIndex(
+            allOptions,
+            (option) =>
+                option.keyForList === this.props.initiallyFocusedOptionKey,
+        );
 
         if (indexOfInitiallyFocusedOption >= 0) {
             return indexOfInitiallyFocusedOption;
@@ -226,7 +247,11 @@ class BaseOptionsSelector extends Component {
             }
         }
 
-        this.list.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
+        this.list.scrollToLocation({
+            sectionIndex: adjustedSectionIndex,
+            itemIndex,
+            animated,
+        });
     }
 
     /**
@@ -262,15 +287,22 @@ class BaseOptionsSelector extends Component {
     }
 
     render() {
-        const shouldShowFooter = (this.props.shouldShowConfirmButton || this.props.footerContent)
-            && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
-        const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText)
+        const shouldShowFooter =
+            (this.props.shouldShowConfirmButton || this.props.footerContent) &&
+            !(
+                this.props.canSelectMultipleOptions &&
+                _.isEmpty(this.props.selectedOptions)
+            );
+        const defaultConfirmButtonText = _.isUndefined(
+            this.props.confirmButtonText,
+        )
             ? this.props.translate('common.confirm')
             : this.props.confirmButtonText;
-        const shouldShowDefaultConfirmButton = !this.props.footerContent && defaultConfirmButtonText;
+        const shouldShowDefaultConfirmButton =
+            !this.props.footerContent && defaultConfirmButtonText;
         const textInput = (
             <TextInput
-                ref={el => this.textInput = el}
+                ref={(el) => (this.textInput = el)}
                 value={this.props.value}
                 label={this.props.textInputLabel}
                 onChangeText={this.props.onChangeText}
@@ -287,7 +319,7 @@ class BaseOptionsSelector extends Component {
         );
         const optionsList = this.props.shouldShowOptions ? (
             <OptionsList
-                ref={el => this.list = el}
+                ref={(el) => (this.list = el)}
                 optionHoveredStyle={this.props.optionHoveredStyle}
                 onSelectRow={this.selectRow}
                 sections={this.props.sections}
@@ -307,37 +339,59 @@ class BaseOptionsSelector extends Component {
                         this.props.onLayout();
                     }
                 }}
-                contentContainerStyles={shouldShowFooter ? undefined : [this.props.safeAreaPaddingBottomStyle]}
+                contentContainerStyles={
+                    shouldShowFooter
+                        ? undefined
+                        : [this.props.safeAreaPaddingBottomStyle]
+                }
             />
-        ) : <FullScreenLoadingIndicator />;
+        ) : (
+            <FullScreenLoadingIndicator />
+        );
         return (
             <ArrowKeyFocusManager
                 disabledIndexes={this.disabledOptionsIndexes}
                 focusedIndex={this.state.focusedIndex}
                 maxIndex={this.state.allOptions.length - 1}
-                onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
+                onFocusedIndexChanged={
+                    this.props.disableArrowKeysActions
+                        ? () => {}
+                        : this.updateFocusedIndex
+                }
             >
                 <View style={[styles.flex1]}>
-                    {
-                        this.props.shouldTextInputAppearBelowOptions
-                            ? (
-                                <>
-                                    <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>
-                                        {optionsList}
-                                    </View>
-                                    <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0]}>
-                                        {textInput}
-                                    </View>
-                                </>
-                            ) : (
-                                <>
-                                    <View style={[styles.ph5, styles.pv3]}>
-                                        {textInput}
-                                    </View>
-                                    {optionsList}
-                                </>
-                            )
-                    }
+                    {this.props.shouldTextInputAppearBelowOptions ? (
+                        <>
+                            <View
+                                style={[
+                                    styles.flexGrow0,
+                                    styles.flexShrink1,
+                                    styles.flexBasisAuto,
+                                    styles.w100,
+                                    styles.flexRow,
+                                ]}
+                            >
+                                {optionsList}
+                            </View>
+                            <View
+                                style={[
+                                    styles.ph5,
+                                    styles.pv5,
+                                    styles.flexGrow1,
+                                    styles.flexShrink0,
+                                ]}
+                            >
+                                {textInput}
+                            </View>
+                        </>
+                    ) : (
+                        <>
+                            <View style={[styles.ph5, styles.pv3]}>
+                                {textInput}
+                            </View>
+                            {optionsList}
+                        </>
+                    )}
                 </View>
                 {shouldShowFooter && (
                     <FixedFooter>

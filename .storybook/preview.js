@@ -12,7 +12,7 @@ Onyx.init({
 });
 
 const decorators = [
-    Story => (
+    (Story) => (
         <ComposeProviders
             components={[
                 OnyxProvider,
@@ -33,7 +33,4 @@ const parameters = {
     },
 };
 
-export {
-    decorators,
-    parameters,
-};
+export {decorators, parameters};

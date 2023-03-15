@@ -12,6 +12,4 @@ function getPopoverDescription(selection, isSmallScreenWidth) {
     return isSmallScreenWidth ? selection : '';
 }
 
-export {
-    getPopoverDescription,
-};
+export {getPopoverDescription};

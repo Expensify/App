@@ -13,10 +13,7 @@ const propTypes = {
     styles: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
 
     /** Children to render */
-    children: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.node,
-    ]).isRequired,
+    children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
 };
 
 class Carousel extends React.Component {

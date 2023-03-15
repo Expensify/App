@@ -6,14 +6,23 @@ const GithubUtils = require('../../../libs/GithubUtils');
  * @returns {String}
  */
 function getTestBuildMessage() {
-    console.log('Input for android', core.getInput('ANDROID', {required: true}));
-    const androidSuccess = core.getInput('ANDROID', {required: true}) === 'success';
-    const desktopSuccess = core.getInput('DESKTOP', {required: true}) === 'success';
+    console.log(
+        'Input for android',
+        core.getInput('ANDROID', {required: true}),
+    );
+    const androidSuccess =
+        core.getInput('ANDROID', {required: true}) === 'success';
+    const desktopSuccess =
+        core.getInput('DESKTOP', {required: true}) === 'success';
     const iOSSuccess = core.getInput('IOS', {required: true}) === 'success';
     const webSuccess = core.getInput('WEB', {required: true}) === 'success';
 
-    const androidLink = androidSuccess ? core.getInput('ANDROID_LINK') : '❌ FAILED ❌';
-    const desktopLink = desktopSuccess ? core.getInput('DESKTOP_LINK') : '❌ FAILED ❌';
+    const androidLink = androidSuccess
+        ? core.getInput('ANDROID_LINK')
+        : '❌ FAILED ❌';
+    const desktopLink = desktopSuccess
+        ? core.getInput('DESKTOP_LINK')
+        : '❌ FAILED ❌';
     const iOSLink = iOSSuccess ? core.getInput('IOS_LINK') : '❌ FAILED ❌';
     const webLink = webSuccess ? core.getInput('WEB_LINK') : '❌ FAILED ❌';
 
@@ -61,7 +70,9 @@ function commentPR(PR, message) {
 
 const run = function () {
     const PR_NUMBER = core.getInput('PR_NUMBER', {required: true});
-    return commentPR(PR_NUMBER, getTestBuildMessage()).then(() => Promise.resolve());
+    return commentPR(PR_NUMBER, getTestBuildMessage()).then(() =>
+        Promise.resolve(),
+    );
 };
 
 if (require.main === module) {

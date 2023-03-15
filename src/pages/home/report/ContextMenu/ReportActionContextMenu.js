@@ -92,11 +92,23 @@ function hideDeleteModal() {
  * @param {Function} [onConfirm]
  * @param {Function} [onCancel]
  */
-function showDeleteModal(reportID, reportAction, shouldSetModalVisibility, onConfirm, onCancel) {
+function showDeleteModal(
+    reportID,
+    reportAction,
+    shouldSetModalVisibility,
+    onConfirm,
+    onCancel,
+) {
     if (!contextMenuRef.current) {
         return;
     }
-    contextMenuRef.current.showDeleteModal(reportID, reportAction, shouldSetModalVisibility, onConfirm, onCancel);
+    contextMenuRef.current.showDeleteModal(
+        reportID,
+        reportAction,
+        shouldSetModalVisibility,
+        onConfirm,
+        onCancel,
+    );
 }
 
 /**

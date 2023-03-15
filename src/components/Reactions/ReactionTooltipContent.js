@@ -32,36 +32,36 @@ const propTypes = {
 };
 
 const ReactionTooltipContent = (props) => {
-    const users = PersonalDetailsUtils.getPersonalDetailsByIDs(props.accountIDs, true);
-    const namesString = _.filter(_.map(users, user => user && user.displayName), n => n).join(', ');
+    const users = PersonalDetailsUtils.getPersonalDetailsByIDs(
+        props.accountIDs,
+        true,
+    );
+    const namesString = _.filter(
+        _.map(users, (user) => user && user.displayName),
+        (n) => n,
+    ).join(', ');
 
     return (
         <View style={[styles.alignItemsCenter, styles.ph2]}>
             <View style={styles.flexRow}>
-                {_.map(props.emojiCodes, emojiCode => (
-                    <Text
-                        key={emojiCode}
-                        style={styles.reactionEmojiTitle}
-                    >
+                {_.map(props.emojiCodes, (emojiCode) => (
+                    <Text key={emojiCode} style={styles.reactionEmojiTitle}>
                         {emojiCode}
                     </Text>
                 ))}
             </View>
 
-            <Text style={[
-                styles.mt1,
-                styles.textMicroBold,
-                styles.textReactionSenders,
-            ]}
+            <Text
+                style={[
+                    styles.mt1,
+                    styles.textMicroBold,
+                    styles.textReactionSenders,
+                ]}
             >
                 {namesString}
             </Text>
 
-            <Text style={[
-                styles.textMicro,
-                styles.fontColorReactionLabel,
-            ]}
-            >
+            <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>
                 {`reacted with :${props.emojiName}:`}
             </Text>
         </View>
@@ -71,7 +71,6 @@ const ReactionTooltipContent = (props) => {
 ReactionTooltipContent.propTypes = propTypes;
 ReactionTooltipContent.defaultProps = withCurrentUserPersonalDetails;
 ReactionTooltipContent.displayName = 'ReactionTooltipContent';
-export default React.memo(compose(
-    withPersonalDetails(),
-    withLocalize,
-)(ReactionTooltipContent));
+export default React.memo(
+    compose(withPersonalDetails(), withLocalize)(ReactionTooltipContent),
+);

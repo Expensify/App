@@ -8,7 +8,9 @@ import styles from '../../../../styles/styles';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import * as OptionsListUtils from '../../../../libs/OptionsListUtils';
 import CONST from '../../../../CONST';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import Text from '../../../../components/Text';
 import personalDetailsPropType from '../../../personalDetailsPropType';
@@ -26,16 +28,18 @@ const propTypes = {
     onAddParticipants: PropTypes.func.isRequired,
 
     /** Selected participants from IOUModal with login */
-    participants: PropTypes.arrayOf(PropTypes.shape({
-        login: PropTypes.string.isRequired,
-        alternateText: PropTypes.string,
-        hasDraftComment: PropTypes.bool,
-        icons: PropTypes.arrayOf(avatarPropTypes),
-        searchText: PropTypes.string,
-        text: PropTypes.string,
-        keyForList: PropTypes.string,
-        reportID: PropTypes.string,
-    })),
+    participants: PropTypes.arrayOf(
+        PropTypes.shape({
+            login: PropTypes.string.isRequired,
+            alternateText: PropTypes.string,
+            hasDraftComment: PropTypes.bool,
+            icons: PropTypes.arrayOf(avatarPropTypes),
+            searchText: PropTypes.string,
+            text: PropTypes.string,
+            keyForList: PropTypes.string,
+            reportID: PropTypes.string,
+        }),
+    ),
 
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
@@ -63,20 +67,18 @@ class IOUParticipantsSplit extends Component {
 
         this.toggleOption = this.toggleOption.bind(this);
         this.finalizeParticipants = this.finalizeParticipants.bind(this);
-        this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
+        this.updateOptionsWithSearchTerm =
+            this.updateOptionsWithSearchTerm.bind(this);
 
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = OptionsListUtils.getNewChatOptions(
-            props.reports,
-            props.personalDetails,
-            props.betas,
-            '',
-            props.participants,
-            CONST.EXPENSIFY_EMAILS,
-        );
+        const {recentReports, personalDetails, userToInvite} =
+            OptionsListUtils.getNewChatOptions(
+                props.reports,
+                props.personalDetails,
+                props.betas,
+                '',
+                props.participants,
+                CONST.EXPENSIFY_EMAILS,
+            );
 
         this.state = {
             searchTerm: '',
@@ -124,31 +126,31 @@ class IOUParticipantsSplit extends Component {
         });
         indexOffset += this.state.personalDetails.length;
 
-        if (this.state.userToInvite && !OptionsListUtils.isCurrentUser(this.state.userToInvite)) {
-            sections.push(({
+        if (
+            this.state.userToInvite &&
+            !OptionsListUtils.isCurrentUser(this.state.userToInvite)
+        ) {
+            sections.push({
                 undefined,
                 data: [this.state.userToInvite],
                 shouldShow: true,
                 indexOffset,
-            }));
+            });
         }
 
         return sections;
     }
 
     updateOptionsWithSearchTerm(searchTerm = '') {
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = OptionsListUtils.getNewChatOptions(
-            this.props.reports,
-            this.props.personalDetails,
-            this.props.betas,
-            searchTerm,
-            this.props.participants,
-            CONST.EXPENSIFY_EMAILS,
-        );
+        const {recentReports, personalDetails, userToInvite} =
+            OptionsListUtils.getNewChatOptions(
+                this.props.reports,
+                this.props.personalDetails,
+                this.props.betas,
+                searchTerm,
+                this.props.participants,
+                CONST.EXPENSIFY_EMAILS,
+            );
         this.setState({
             searchTerm,
             userToInvite,
@@ -169,16 +171,18 @@ class IOUParticipantsSplit extends Component {
      * @param {Object} option
      */
     toggleOption(option) {
-        const isOptionInList = _.some(this.props.participants, selectedOption => (
-            selectedOption.login === option.login
-        ));
+        const isOptionInList = _.some(
+            this.props.participants,
+            (selectedOption) => selectedOption.login === option.login,
+        );
 
         let newSelectedOptions;
 
         if (isOptionInList) {
-            newSelectedOptions = _.reject(this.props.participants, selectedOption => (
-                selectedOption.login === option.login
-            ));
+            newSelectedOptions = _.reject(
+                this.props.participants,
+                (selectedOption) => selectedOption.login === option.login,
+            );
         } else {
             newSelectedOptions = [...this.props.participants, option];
         }
@@ -186,18 +190,15 @@ class IOUParticipantsSplit extends Component {
         this.props.onAddParticipants(newSelectedOptions);
 
         this.setState((prevState) => {
-            const {
-                recentReports,
-                personalDetails,
-                userToInvite,
-            } = OptionsListUtils.getNewChatOptions(
-                this.props.reports,
-                this.props.personalDetails,
-                this.props.betas,
-                isOptionInList ? prevState.searchTerm : '',
-                newSelectedOptions,
-                CONST.EXPENSIFY_EMAILS,
-            );
+            const {recentReports, personalDetails, userToInvite} =
+                OptionsListUtils.getNewChatOptions(
+                    this.props.reports,
+                    this.props.personalDetails,
+                    this.props.betas,
+                    isOptionInList ? prevState.searchTerm : '',
+                    newSelectedOptions,
+                    CONST.EXPENSIFY_EMAILS,
+                );
             return {
                 recentReports,
                 personalDetails,
@@ -208,17 +209,31 @@ class IOUParticipantsSplit extends Component {
     }
 
     render() {
-        const maxParticipantsReached = this.props.participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+        const maxParticipantsReached =
+            this.props.participants.length ===
+            CONST.REPORT.MAXIMUM_PARTICIPANTS;
         const sections = this.getSections(maxParticipantsReached);
         const headerMessage = OptionsListUtils.getHeaderMessage(
-            this.state.personalDetails.length + this.state.recentReports.length !== 0,
+            this.state.personalDetails.length +
+                this.state.recentReports.length !==
+                0,
             Boolean(this.state.userToInvite),
             this.state.searchTerm,
             maxParticipantsReached,
         );
         return (
-            <View style={[styles.flex1, styles.w100, (this.props.participants.length > 0 ? this.props.safeAreaPaddingBottomStyle : {})]}>
-                <Text style={[styles.textLabelSupporting, styles.pt3, styles.ph5]}>
+            <View
+                style={[
+                    styles.flex1,
+                    styles.w100,
+                    this.props.participants.length > 0
+                        ? this.props.safeAreaPaddingBottomStyle
+                        : {},
+                ]}
+            >
+                <Text
+                    style={[styles.textLabelSupporting, styles.pt3, styles.ph5]}
+                >
                     {this.props.translate('common.to')}
                 </Text>
                 <OptionsSelector
@@ -233,8 +248,12 @@ class IOUParticipantsSplit extends Component {
                     shouldShowConfirmButton
                     confirmButtonText={this.props.translate('common.next')}
                     onConfirmSelection={this.finalizeParticipants}
-                    placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                    safeAreaPaddingBottomStyle={this.props.safeAreaPaddingBottomStyle}
+                    placeholderText={this.props.translate(
+                        'optionsSelector.nameEmailOrPhoneNumber',
+                    )}
+                    safeAreaPaddingBottomStyle={
+                        this.props.safeAreaPaddingBottomStyle
+                    }
                 />
             </View>
         );

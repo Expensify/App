@@ -16,7 +16,10 @@ export default function () {
     });
 
     // Trigger action to show keyboard shortcuts
-    window.electron.on(ELECTRON_EVENTS.SHOW_KEYBOARD_SHORTCUTS_MODAL, KeyboardShortcuts.showKeyboardShortcutModal);
+    window.electron.on(
+        ELECTRON_EVENTS.SHOW_KEYBOARD_SHORTCUTS_MODAL,
+        KeyboardShortcuts.showKeyboardShortcutModal,
+    );
 
     // Start current date updater
     DateUtils.startCurrentDateUpdater();

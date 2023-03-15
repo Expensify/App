@@ -8,14 +8,20 @@ import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../components/withLocalize';
 import TextInput from '../../components/TextInput';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
-import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
+import withToggleVisibilityView, {
+    toggleVisibilityViewPropTypes,
+} from '../../components/withToggleVisibilityView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
@@ -80,7 +86,11 @@ class LoginForm extends React.Component {
     }
 
     componentDidMount() {
-        if (!canFocusInputOnScreenFocus() || !this.input || !this.props.isVisible) {
+        if (
+            !canFocusInputOnScreenFocus() ||
+            !this.input ||
+            !this.props.isVisible
+        ) {
             return;
         }
         this.input.focus();
@@ -150,7 +160,9 @@ class LoginForm extends React.Component {
             if (ValidationUtils.isNumericWithSpecialChars(login)) {
                 this.setState({formError: 'common.error.phoneNumber'});
             } else {
-                this.setState({formError: 'loginForm.error.invalidFormatEmailLogin'});
+                this.setState({
+                    formError: 'loginForm.error.invalidFormatEmailLogin',
+                });
             }
             return;
         }
@@ -164,13 +176,17 @@ class LoginForm extends React.Component {
     }
 
     render() {
-        const formErrorText = this.state.formError ? this.props.translate(this.state.formError) : '';
-        const serverErrorText = ErrorUtils.getLatestErrorMessage(this.props.account);
+        const formErrorText = this.state.formError
+            ? this.props.translate(this.state.formError)
+            : '';
+        const serverErrorText = ErrorUtils.getLatestErrorMessage(
+            this.props.account,
+        );
         return (
             <>
                 <View accessibilityLabel="Login form" style={[styles.mt3]}>
                     <TextInput
-                        ref={el => this.input = el}
+                        ref={(el) => (this.input = el)}
                         label={this.props.translate('loginForm.phoneOrEmail')}
                         value={this.state.login}
                         autoCompleteType="username"
@@ -191,16 +207,22 @@ class LoginForm extends React.Component {
                     </Text>
                 )}
                 {!_.isEmpty(this.props.closeAccount.success) && (
-
                     // DotIndicatorMessage mostly expects onyxData errors, so we need to mock an object so that the messages looks similar to prop.account.errors
-                    <DotIndicatorMessage style={[styles.mv2]} type="success" messages={{0: this.props.closeAccount.success}} />
+                    <DotIndicatorMessage
+                        style={[styles.mv2]}
+                        type="success"
+                        messages={{0: this.props.closeAccount.success}}
+                    />
                 )}
-                { // We need to unmount the submit button when the component is not visible so that the Enter button
-                  // key handler gets unsubscribed and does not conflict with the Password Form
+                {
+                    // We need to unmount the submit button when the component is not visible so that the Enter button
+                    // key handler gets unsubscribed and does not conflict with the Password Form
                     this.props.isVisible && (
                         <View style={[styles.mt5]}>
                             <FormAlertWithSubmitButton
-                                buttonText={this.props.translate('common.continue')}
+                                buttonText={this.props.translate(
+                                    'common.continue',
+                                )}
                                 isLoading={this.props.account.isLoading}
                                 onSubmit={this.validateAndSubmitForm}
                                 message={serverErrorText}

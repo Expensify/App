@@ -51,10 +51,8 @@ const localeProviderPropTypes = {
 
     /** The current user's personalDetails */
     currentUserPersonalDetails: PropTypes.shape({
-
         /** Timezone of the current user */
         timezone: PropTypes.shape({
-
             /** Value of the selected timezone */
             selected: PropTypes.string,
         }),
@@ -91,7 +89,11 @@ class LocaleContextProvider extends React.Component {
      * @returns {String}
      */
     translate(phrase, variables) {
-        return Localize.translate(this.props.preferredLocale, phrase, variables);
+        return Localize.translate(
+            this.props.preferredLocale,
+            phrase,
+            variables,
+        );
     }
 
     /**
@@ -100,7 +102,11 @@ class LocaleContextProvider extends React.Component {
      * @returns {String}
      */
     numberFormat(number, options) {
-        return NumberFormatUtils.format(this.props.preferredLocale, number, options);
+        return NumberFormatUtils.format(
+            this.props.preferredLocale,
+            number,
+            options,
+        );
     }
 
     /**
@@ -108,7 +114,10 @@ class LocaleContextProvider extends React.Component {
      * @returns {String}
      */
     datetimeToRelative(datetime) {
-        return DateUtils.datetimeToRelative(this.props.preferredLocale, datetime);
+        return DateUtils.datetimeToRelative(
+            this.props.preferredLocale,
+            datetime,
+        );
     }
 
     /**
@@ -121,7 +130,10 @@ class LocaleContextProvider extends React.Component {
             this.props.preferredLocale,
             datetime,
             includeTimezone,
-            lodashGet(this.props, 'currentUserPersonalDetails.timezone.selected'),
+            lodashGet(
+                this.props,
+                'currentUserPersonalDetails.timezone.selected',
+            ),
         );
     }
 
@@ -130,7 +142,10 @@ class LocaleContextProvider extends React.Component {
      * @returns {String}
      */
     toLocalPhone(number) {
-        return LocalePhoneNumber.toLocalPhone(this.props.preferredLocale, number);
+        return LocalePhoneNumber.toLocalPhone(
+            this.props.preferredLocale,
+            number,
+        );
     }
 
     /**
@@ -138,7 +153,10 @@ class LocaleContextProvider extends React.Component {
      * @returns {String}
      */
     fromLocalPhone(number) {
-        return LocalePhoneNumber.fromLocalPhone(this.props.preferredLocale, number);
+        return LocalePhoneNumber.fromLocalPhone(
+            this.props.preferredLocale,
+            number,
+        );
     }
 
     /**
@@ -146,7 +164,10 @@ class LocaleContextProvider extends React.Component {
      * @returns {String}
      */
     toLocaleDigit(digit) {
-        return LocaleDigitUtils.toLocaleDigit(this.props.preferredLocale, digit);
+        return LocaleDigitUtils.toLocaleDigit(
+            this.props.preferredLocale,
+            digit,
+        );
     }
 
     /**
@@ -154,7 +175,10 @@ class LocaleContextProvider extends React.Component {
      * @returns {String}
      */
     fromLocaleDigit(localeDigit) {
-        return LocaleDigitUtils.fromLocaleDigit(this.props.preferredLocale, localeDigit);
+        return LocaleDigitUtils.fromLocaleDigit(
+            this.props.preferredLocale,
+            localeDigit,
+        );
     }
 
     render() {
@@ -183,17 +207,18 @@ Provider.displayName = 'withOnyx(LocaleContextProvider)';
 export default function withLocalize(WrappedComponent) {
     const WithLocalize = forwardRef((props, ref) => (
         <LocaleContext.Consumer>
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-            {translateUtils => <WrappedComponent {...translateUtils} {...props} ref={ref} />}
+            {(translateUtils) => (
+                /* eslint-disable-next-line react/jsx-props-no-spreading */
+                <WrappedComponent {...translateUtils} {...props} ref={ref} />
+            )}
         </LocaleContext.Consumer>
     ));
 
-    WithLocalize.displayName = `withLocalize(${getComponentDisplayName(WrappedComponent)})`;
+    WithLocalize.displayName = `withLocalize(${getComponentDisplayName(
+        WrappedComponent,
+    )})`;
 
     return WithLocalize;
 }
 
-export {
-    withLocalizePropTypes,
-    Provider as LocaleContextProvider,
-};
+export {withLocalizePropTypes, Provider as LocaleContextProvider};

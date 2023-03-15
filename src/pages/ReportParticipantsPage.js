@@ -1,8 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
-import {
-    View,
-} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
@@ -54,61 +52,90 @@ const getAllParticipants = (report, personalDetails) => {
     const {participants} = report;
 
     return _.map(participants, (login) => {
-        const userPersonalDetail = lodashGet(personalDetails, login, {displayName: login, avatar: ''});
+        const userPersonalDetail = lodashGet(personalDetails, login, {
+            displayName: login,
+            avatar: '',
+        });
         const userLogin = Str.removeSMSDomain(login);
 
-        return ({
+        return {
             alternateText: userLogin,
             displayName: userPersonalDetail.displayName,
-            icons: [{
-                source: ReportUtils.getAvatar(userPersonalDetail.avatar, login),
-                name: login,
-                type: CONST.ICON_TYPE_AVATAR,
-            }],
+            icons: [
+                {
+                    source: ReportUtils.getAvatar(
+                        userPersonalDetail.avatar,
+                        login,
+                    ),
+                    name: login,
+                    type: CONST.ICON_TYPE_AVATAR,
+                },
+            ],
             keyForList: userLogin,
             login,
             text: userPersonalDetail.displayName,
             tooltipText: userLogin,
-            participantsList: [{login: userLogin, displayName: userPersonalDetail.displayName}],
-        });
+            participantsList: [
+                {login: userLogin, displayName: userPersonalDetail.displayName},
+            ],
+        };
     });
 };
 
 const ReportParticipantsPage = (props) => {
-    const participants = getAllParticipants(props.report, props.personalDetails);
+    const participants = getAllParticipants(
+        props.report,
+        props.personalDetails,
+    );
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                     <HeaderWithCloseButton
-                        title={props.translate((ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report)) ? 'common.members' : 'common.details')}
+                        title={props.translate(
+                            ReportUtils.isChatRoom(props.report) ||
+                                ReportUtils.isPolicyExpenseChat(props.report)
+                                ? 'common.members'
+                                : 'common.details',
+                        )}
                         onCloseButtonPress={Navigation.dismissModal}
                         onBackButtonPress={Navigation.goBack}
-                        shouldShowBackButton={ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report)}
+                        shouldShowBackButton={
+                            ReportUtils.isChatRoom(props.report) ||
+                            ReportUtils.isPolicyExpenseChat(props.report)
+                        }
                     />
                     <View
                         pointerEvents="box-none"
-                        style={[
-                            styles.containerWithSpaceBetween,
-                        ]}
+                        style={[styles.containerWithSpaceBetween]}
                     >
                         {Boolean(participants.length) && (
                             <OptionsList
-                                sections={[{
-                                    title: '', data: participants, shouldShow: true, indexOffset: 0,
-                                }]}
+                                sections={[
+                                    {
+                                        title: '',
+                                        data: participants,
+                                        shouldShow: true,
+                                        indexOffset: 0,
+                                    },
+                                ]}
                                 onSelectRow={(option) => {
-                                    Navigation.navigate(ROUTES.getReportParticipantRoute(
-                                        props.route.params.reportID, option.login,
-                                    ));
+                                    Navigation.navigate(
+                                        ROUTES.getReportParticipantRoute(
+                                            props.route.params.reportID,
+                                            option.login,
+                                        ),
+                                    );
                                 }}
                                 hideSectionHeaders
                                 showTitleTooltip
                                 disableFocusOptions
                                 boldStyle
                                 optionHoveredStyle={styles.hoveredComponentBG}
-                                contentContainerStyles={[safeAreaPaddingBottomStyle]}
+                                contentContainerStyles={[
+                                    safeAreaPaddingBottomStyle,
+                                ]}
                             />
                         )}
                     </View>

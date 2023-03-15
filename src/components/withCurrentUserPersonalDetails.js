@@ -22,12 +22,16 @@ export default function (WrappedComponent) {
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 ref={props.forwardedRef}
-                currentUserPersonalDetails={props.personalDetails[currentUserEmail]}
+                currentUserPersonalDetails={
+                    props.personalDetails[currentUserEmail]
+                }
             />
         );
     };
 
-    WithCurrentUserPersonalDetails.displayName = `WithCurrentUserPersonalDetails(${getComponentDisplayName(WrappedComponent)})`;
+    WithCurrentUserPersonalDetails.displayName = `WithCurrentUserPersonalDetails(${getComponentDisplayName(
+        WrappedComponent,
+    )})`;
     WithCurrentUserPersonalDetails.propTypes = {
         forwardedRef: PropTypes.oneOfType([
             PropTypes.func,

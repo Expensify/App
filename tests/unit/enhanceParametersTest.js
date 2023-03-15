@@ -12,17 +12,16 @@ test('Enhance parameters adds correct parameters for Log command with no authTok
     const email = 'test-user@test.com';
     const authToken = 'test-token';
     Onyx.merge(ONYXKEYS.SESSION, {email, authToken});
-    return waitForPromisesToResolve()
-        .then(() => {
-            const finalParameters = enhanceParameters(command, parameters);
-            expect(finalParameters).toEqual({
-                testParameter: 'test',
-                api_setCookie: false,
-                email,
-                platform: 'ios',
-                referer: CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER,
-            });
+    return waitForPromisesToResolve().then(() => {
+        const finalParameters = enhanceParameters(command, parameters);
+        expect(finalParameters).toEqual({
+            testParameter: 'test',
+            api_setCookie: false,
+            email,
+            platform: 'ios',
+            referer: CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER,
         });
+    });
 });
 
 test('Enhance parameters adds correct parameters for a command that requires authToken', () => {
@@ -31,16 +30,15 @@ test('Enhance parameters adds correct parameters for a command that requires aut
     const email = 'test-user@test.com';
     const authToken = 'test-token';
     Onyx.merge(ONYXKEYS.SESSION, {email, authToken});
-    return waitForPromisesToResolve()
-        .then(() => {
-            const finalParameters = enhanceParameters(command, parameters);
-            expect(finalParameters).toEqual({
-                testParameter: 'test',
-                api_setCookie: false,
-                email,
-                platform: 'ios',
-                authToken,
-                referer: CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER,
-            });
+    return waitForPromisesToResolve().then(() => {
+        const finalParameters = enhanceParameters(command, parameters);
+        expect(finalParameters).toEqual({
+            testParameter: 'test',
+            api_setCookie: false,
+            email,
+            platform: 'ios',
+            authToken,
+            referer: CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER,
         });
+    });
 });

@@ -10,14 +10,20 @@ const SidebarScreen = (props) => {
      * Method create event listener
      */
     const createDragoverListener = () => {
-        document.addEventListener('dragover', popoverModal.current.hideCreateMenu);
+        document.addEventListener(
+            'dragover',
+            popoverModal.current.hideCreateMenu,
+        );
     };
 
     /**
      * Method remove event listener.
      */
     const removeDragoverListener = () => {
-        document.removeEventListener('dragover', popoverModal.current.hideCreateMenu);
+        document.removeEventListener(
+            'dragover',
+            popoverModal.current.hideCreateMenu,
+        );
     };
 
     return (

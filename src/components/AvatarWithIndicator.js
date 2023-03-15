@@ -66,23 +66,35 @@ const AvatarWithIndicator = (props) => {
 
     // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
     // those should be cleaned out before doing any error checking
-    const cleanPolicies = _.pick(props.policies, policy => policy);
-    const cleanPolicyMembers = _.pick(props.policiesMemberList, member => member);
+    const cleanPolicies = _.pick(props.policies, (policy) => policy);
+    const cleanPolicyMembers = _.pick(
+        props.policiesMemberList,
+        (member) => member,
+    );
 
     // All of the error-checking methods are put into an array. This is so that using _.some() will return
     // early as soon as the first error is returned. This makes the error checking very efficient since
     // we only care if a single error exists anywhere.
     const errorCheckingMethods = [
         () => !_.isEmpty(props.userWallet.errors),
-        () => PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList),
+        () =>
+            PaymentMethods.hasPaymentMethodError(
+                props.bankAccountList,
+                props.cardList,
+            ),
         () => _.some(cleanPolicies, PolicyUtils.hasPolicyError),
         () => _.some(cleanPolicies, PolicyUtils.hasCustomUnitsError),
         () => _.some(cleanPolicyMembers, PolicyUtils.hasPolicyMemberError),
 
         // Wallet term errors that are not caused by an IOU (we show the red brick indicator for those in the LHN instead)
-        () => !_.isEmpty(props.walletTerms.errors) && !props.walletTerms.chatReportID,
+        () =>
+            !_.isEmpty(props.walletTerms.errors) &&
+            !props.walletTerms.chatReportID,
     ];
-    const shouldShowIndicator = _.some(errorCheckingMethods, errorCheckingMethod => errorCheckingMethod());
+    const shouldShowIndicator = _.some(
+        errorCheckingMethods,
+        (errorCheckingMethod) => errorCheckingMethod(),
+    );
 
     return (
         <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>

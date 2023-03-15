@@ -16,7 +16,7 @@ class TextInputLabel extends PureComponent {
             <Animated.Text
                 pointerEvents="none"
                 accessibilityRole="label"
-                ref={el => this.label = el}
+                ref={(el) => (this.label = el)}
                 style={[
                     styles.textInputLabel,
                     styles.textInputLabelDesktop,

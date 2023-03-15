@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
 import WorkspacePageWithSections from '../WorkspacePageWithSections';
 import WorkspaceInvoicesNoVBAView from './WorkspaceInvoicesNoVBAView';
 import WorkspaceInvoicesVBAView from './WorkspaceInvoicesVBAView';
@@ -19,7 +21,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceInvoicesPage = props => (
+const WorkspaceInvoicesPage = (props) => (
     <WorkspacePageWithSections
         shouldUseScrollView
         headerText={props.translate('workspace.common.invoices')}
@@ -28,12 +30,8 @@ const WorkspaceInvoicesPage = props => (
     >
         {(hasVBA, policyID) => (
             <>
-                {!hasVBA && (
-                    <WorkspaceInvoicesNoVBAView policyID={policyID} />
-                )}
-                {hasVBA && (
-                    <WorkspaceInvoicesVBAView policyID={policyID} />
-                )}
+                {!hasVBA && <WorkspaceInvoicesNoVBAView policyID={policyID} />}
+                {hasVBA && <WorkspaceInvoicesVBAView policyID={policyID} />}
             </>
         )}
     </WorkspacePageWithSections>

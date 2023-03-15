@@ -40,13 +40,19 @@ class Tooltip extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.windowWidth === prevProps.windowWidth && this.props.windowHeight === prevProps.windowHeight) {
+        if (
+            this.props.windowWidth === prevProps.windowWidth &&
+            this.props.windowHeight === prevProps.windowHeight
+        ) {
             return;
         }
 
-        this.getWrapperPositionPromise = makeCancellablePromise(this.getWrapperPosition());
-        this.getWrapperPositionPromise.promise
-            .then(({x, y}) => this.setState({xOffset: x, yOffset: y}));
+        this.getWrapperPositionPromise = makeCancellablePromise(
+            this.getWrapperPosition(),
+        );
+        this.getWrapperPositionPromise.promise.then(({x, y}) =>
+            this.setState({xOffset: x, yOffset: y}),
+        );
     }
 
     componentWillUnmount() {
@@ -63,18 +69,29 @@ class Tooltip extends PureComponent {
      * @returns {Promise}
      */
     getWrapperPosition() {
-        return new Promise(((resolve) => {
+        return new Promise((resolve) => {
             // Make sure the wrapper is mounted before attempting to measure it.
-            if (this.wrapperView && _.isFunction(this.wrapperView.measureInWindow)) {
-                this.wrapperView.measureInWindow((x, y, width, height) => resolve({
-                    x, y, width, height,
-                }));
+            if (
+                this.wrapperView &&
+                _.isFunction(this.wrapperView.measureInWindow)
+            ) {
+                this.wrapperView.measureInWindow((x, y, width, height) =>
+                    resolve({
+                        x,
+                        y,
+                        width,
+                        height,
+                    }),
+                );
             } else {
                 resolve({
-                    x: 0, y: 0, width: 0, height: 0,
+                    x: 0,
+                    y: 0,
+                    width: 0,
+                    height: 0,
                 });
             }
-        }));
+        });
     }
 
     /**
@@ -89,36 +106,35 @@ class Tooltip extends PureComponent {
 
         // We have to dynamically calculate the position here as tooltip could have been rendered on some elments
         // that has changed its position
-        this.getWrapperPositionPromise = makeCancellablePromise(this.getWrapperPosition());
-        this.getWrapperPositionPromise.promise
-            .then(({
-                x, y, width, height,
-            }) => {
-                this.setState({
-                    wrapperWidth: width,
-                    wrapperHeight: height,
-                    xOffset: x,
-                    yOffset: y,
-                });
-
-                // We may need this check due to the reason that the animation start will fire async
-                // and hideTooltip could fire before it thus keeping the Tooltip visible
-                if (this.shouldStartShowAnimation) {
-                    // When TooltipSense is active, immediately show the tooltip
-                    if (TooltipSense.isActive()) {
-                        this.animation.setValue(1);
-                    } else {
-                        this.isTooltipSenseInitiator = true;
-                        Animated.timing(this.animation, {
-                            toValue: 1,
-                            duration: 140,
-                            delay: 500,
-                            useNativeDriver: false,
-                        }).start();
-                    }
-                    TooltipSense.activate();
-                }
+        this.getWrapperPositionPromise = makeCancellablePromise(
+            this.getWrapperPosition(),
+        );
+        this.getWrapperPositionPromise.promise.then(({x, y, width, height}) => {
+            this.setState({
+                wrapperWidth: width,
+                wrapperHeight: height,
+                xOffset: x,
+                yOffset: y,
             });
+
+            // We may need this check due to the reason that the animation start will fire async
+            // and hideTooltip could fire before it thus keeping the Tooltip visible
+            if (this.shouldStartShowAnimation) {
+                // When TooltipSense is active, immediately show the tooltip
+                if (TooltipSense.isActive()) {
+                    this.animation.setValue(1);
+                } else {
+                    this.isTooltipSenseInitiator = true;
+                    Animated.timing(this.animation, {
+                        toValue: 1,
+                        duration: 140,
+                        delay: 500,
+                        useNativeDriver: false,
+                    }).start();
+                }
+                TooltipSense.activate();
+            }
+        });
     }
 
     /**
@@ -144,12 +160,16 @@ class Tooltip extends PureComponent {
     render() {
         // Skip the tooltip and return the children if the text is empty,
         // we don't have a render function or the device does not support hovering
-        if ((_.isEmpty(this.props.text) && this.props.renderTooltipContent == null) || !this.hasHoverSupport) {
+        if (
+            (_.isEmpty(this.props.text) &&
+                this.props.renderTooltipContent == null) ||
+            !this.hasHoverSupport
+        ) {
             return this.props.children;
         }
         let child = (
             <View
-                ref={el => this.wrapperView = el}
+                ref={(el) => (this.wrapperView = el)}
                 onBlur={this.hideTooltip}
                 focusable={this.props.focusable}
                 style={this.props.containerStyles}
@@ -159,27 +179,30 @@ class Tooltip extends PureComponent {
         );
 
         if (this.props.absolute && React.isValidElement(this.props.children)) {
-            child = React.cloneElement(React.Children.only(this.props.children), {
-                ref: (el) => {
-                    this.wrapperView = el;
+            child = React.cloneElement(
+                React.Children.only(this.props.children),
+                {
+                    ref: (el) => {
+                        this.wrapperView = el;
 
-                    // Call the original ref, if any
-                    const {ref} = this.props.children;
-                    if (_.isFunction(ref)) {
-                        ref(el);
-                    }
-                },
-                onBlur: (el) => {
-                    this.hideTooltip();
+                        // Call the original ref, if any
+                        const {ref} = this.props.children;
+                        if (_.isFunction(ref)) {
+                            ref(el);
+                        }
+                    },
+                    onBlur: (el) => {
+                        this.hideTooltip();
 
-                    // Call the original onBlur, if any
-                    const {onBlur} = this.props.children;
-                    if (_.isFunction(onBlur)) {
-                        onBlur(el);
-                    }
+                        // Call the original onBlur, if any
+                        const {onBlur} = this.props.children;
+                        if (_.isFunction(onBlur)) {
+                            onBlur(el);
+                        }
+                    },
+                    focusable: true,
                 },
-                focusable: true,
-            });
+            );
         }
 
         return (
@@ -192,7 +215,10 @@ class Tooltip extends PureComponent {
                         yOffset={this.state.yOffset}
                         wrapperWidth={this.state.wrapperWidth}
                         wrapperHeight={this.state.wrapperHeight}
-                        shiftHorizontal={_.result(this.props, 'shiftHorizontal')}
+                        shiftHorizontal={_.result(
+                            this.props,
+                            'shiftHorizontal',
+                        )}
                         shiftVertical={_.result(this.props, 'shiftVertical')}
                         text={this.props.text}
                         maxWidth={this.props.maxWidth}

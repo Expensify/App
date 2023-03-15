@@ -14,7 +14,9 @@ import PopoverMenu from '../../../../components/PopoverMenu';
 import CONST from '../../../../CONST';
 import FloatingActionButton from '../../../../components/FloatingActionButton';
 import compose from '../../../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../../components/withLocalize';
 import withWindowDimensions from '../../../../components/withWindowDimensions';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import withNavigation from '../../../../components/withNavigation';
@@ -26,10 +28,11 @@ import withDrawerState from '../../../../components/withDrawerState';
  * @param {Object} [policy]
  * @returns {Object|undefined}
  */
-const policySelector = policy => policy && ({
-    type: policy.type,
-    role: policy.role,
-});
+const policySelector = (policy) =>
+    policy && {
+        type: policy.type,
+        role: policy.role,
+    };
 
 const propTypes = {
     /* Callback function when the menu is shown */
@@ -73,7 +76,11 @@ class FloatingActionButtonAndPopover extends React.Component {
     }
 
     componentDidMount() {
-        const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
+        const routes = lodashGet(
+            this.props.navigation.getState(),
+            'routes',
+            [],
+        );
         Welcome.show({routes, showCreateMenu: this.showCreateMenu});
     }
 
@@ -158,7 +165,10 @@ class FloatingActionButtonAndPopover extends React.Component {
 
     render() {
         // Workspaces are policies with type === 'free'
-        const workspaces = _.filter(this.props.allPolicies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
+        const workspaces = _.filter(
+            this.props.allPolicies,
+            (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE,
+        );
 
         return (
             <View>
@@ -172,55 +182,93 @@ class FloatingActionButtonAndPopover extends React.Component {
                         {
                             icon: Expensicons.ChatBubble,
                             text: this.props.translate('sidebarScreen.newChat'),
-                            onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
+                            onSelected: () =>
+                                Navigation.navigate(ROUTES.NEW_CHAT),
                         },
                         {
                             icon: Expensicons.Users,
-                            text: this.props.translate('sidebarScreen.newGroup'),
-                            onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
+                            text: this.props.translate(
+                                'sidebarScreen.newGroup',
+                            ),
+                            onSelected: () =>
+                                Navigation.navigate(ROUTES.NEW_GROUP),
                         },
-                        ...(Permissions.canUsePolicyRooms(this.props.betas) && workspaces.length ? [
-                            {
-                                icon: Expensicons.Hashtag,
-                                text: this.props.translate('sidebarScreen.newRoom'),
-                                onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_NEW_ROOM),
-                            },
-                        ] : []),
-                        ...(Permissions.canUseIOUSend(this.props.betas) ? [
-                            {
-                                icon: Expensicons.Send,
-                                text: this.props.translate('iou.sendMoney'),
-                                onSelected: () => Navigation.navigate(ROUTES.IOU_SEND),
-                            },
-                        ] : []),
-                        ...(Permissions.canUseIOU(this.props.betas) ? [
-                            {
-                                icon: Expensicons.MoneyCircle,
-                                text: this.props.translate('iou.requestMoney'),
-                                onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
-                            },
-                        ] : []),
-                        ...(Permissions.canUseIOU(this.props.betas) ? [
-                            {
-                                icon: Expensicons.Receipt,
-                                text: this.props.translate('iou.splitBill'),
-                                onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
-                            },
-                        ] : []),
-                        ...(!Policy.hasActiveFreePolicy(this.props.allPolicies) ? [
-                            {
-                                icon: Expensicons.NewWorkspace,
-                                iconWidth: 46,
-                                iconHeight: 40,
-                                text: this.props.translate('workspace.new.newWorkspace'),
-                                description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                onSelected: () => Policy.createWorkspace(),
-                            },
-                        ] : []),
+                        ...(Permissions.canUsePolicyRooms(this.props.betas) &&
+                        workspaces.length
+                            ? [
+                                  {
+                                      icon: Expensicons.Hashtag,
+                                      text: this.props.translate(
+                                          'sidebarScreen.newRoom',
+                                      ),
+                                      onSelected: () =>
+                                          Navigation.navigate(
+                                              ROUTES.WORKSPACE_NEW_ROOM,
+                                          ),
+                                  },
+                              ]
+                            : []),
+                        ...(Permissions.canUseIOUSend(this.props.betas)
+                            ? [
+                                  {
+                                      icon: Expensicons.Send,
+                                      text: this.props.translate(
+                                          'iou.sendMoney',
+                                      ),
+                                      onSelected: () =>
+                                          Navigation.navigate(ROUTES.IOU_SEND),
+                                  },
+                              ]
+                            : []),
+                        ...(Permissions.canUseIOU(this.props.betas)
+                            ? [
+                                  {
+                                      icon: Expensicons.MoneyCircle,
+                                      text: this.props.translate(
+                                          'iou.requestMoney',
+                                      ),
+                                      onSelected: () =>
+                                          Navigation.navigate(
+                                              ROUTES.IOU_REQUEST,
+                                          ),
+                                  },
+                              ]
+                            : []),
+                        ...(Permissions.canUseIOU(this.props.betas)
+                            ? [
+                                  {
+                                      icon: Expensicons.Receipt,
+                                      text: this.props.translate(
+                                          'iou.splitBill',
+                                      ),
+                                      onSelected: () =>
+                                          Navigation.navigate(ROUTES.IOU_BILL),
+                                  },
+                              ]
+                            : []),
+                        ...(!Policy.hasActiveFreePolicy(this.props.allPolicies)
+                            ? [
+                                  {
+                                      icon: Expensicons.NewWorkspace,
+                                      iconWidth: 46,
+                                      iconHeight: 40,
+                                      text: this.props.translate(
+                                          'workspace.new.newWorkspace',
+                                      ),
+                                      description: this.props.translate(
+                                          'workspace.new.getTheExpensifyCardAndMore',
+                                      ),
+                                      onSelected: () =>
+                                          Policy.createWorkspace(),
+                                  },
+                              ]
+                            : []),
                     ]}
                 />
                 <FloatingActionButton
-                    accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
+                    accessibilityLabel={this.props.translate(
+                        'sidebarScreen.fabNewChat',
+                    )}
                     accessibilityRole="button"
                     isActive={this.state.isCreateMenuActive}
                     onPress={this.showCreateMenu}

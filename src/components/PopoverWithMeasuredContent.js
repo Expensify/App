@@ -4,16 +4,24 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import Popover from './Popover';
-import {propTypes as popoverPropTypes, defaultProps as defaultPopoverProps} from './Popover/popoverPropTypes';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import {
+    propTypes as popoverPropTypes,
+    defaultProps as defaultPopoverProps,
+} from './Popover/popoverPropTypes';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from './withWindowDimensions';
 import CONST from '../CONST';
 import styles from '../styles/styles';
-import {computeHorizontalShift, computeVerticalShift} from '../styles/getPopoverWithMeasuredContentStyles';
+import {
+    computeHorizontalShift,
+    computeVerticalShift,
+} from '../styles/getPopoverWithMeasuredContentStyles';
 
 const propTypes = {
     // All popover props except:
     // 1) anchorPosition (which is overridden for this component)
-    ...(_.omit(popoverPropTypes, ['anchorPosition'])),
+    ..._.omit(popoverPropTypes, ['anchorPosition']),
 
     /** The horizontal and vertical anchors points for the popover */
     anchorPosition: PropTypes.shape({
@@ -23,7 +31,9 @@ const propTypes = {
 
     /** Where the popover should be positioned relative to the anchor points. */
     anchorOrigin: PropTypes.shape({
-        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
+        horizontal: PropTypes.oneOf(
+            _.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL),
+        ),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
 
@@ -67,7 +77,11 @@ class PopoverWithMeasuredContent extends Component {
         super(props);
 
         this.popoverWidth = lodashGet(this.props, 'popoverDimensions.width', 0);
-        this.popoverHeight = lodashGet(this.props, 'popoverDimensions.height', 0);
+        this.popoverHeight = lodashGet(
+            this.props,
+            'popoverDimensions.height',
+            0,
+        );
 
         this.state = {
             isContentMeasured: this.popoverWidth > 0 && this.popoverHeight > 0,
@@ -89,7 +103,12 @@ class PopoverWithMeasuredContent extends Component {
     static getDerivedStateFromProps(props, state) {
         // When Popover is shown recalculate
         if (!state.isVisible && props.isVisible) {
-            return {isContentMeasured: lodashGet(props, 'popoverDimensions.width', 0) > 0 && lodashGet(props, 'popoverDimensions.height', 0) > 0, isVisible: true};
+            return {
+                isContentMeasured:
+                    lodashGet(props, 'popoverDimensions.width', 0) > 0 &&
+                    lodashGet(props, 'popoverDimensions.height', 0) > 0,
+                isVisible: true,
+            };
         }
         if (!props.isVisible) {
             return {isVisible: false};
@@ -98,18 +117,22 @@ class PopoverWithMeasuredContent extends Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        if (this.props.isVisible
-            && (nextProps.windowWidth !== this.props.windowWidth
-            || nextProps.windowHeight !== this.props.windowHeight)) {
+        if (
+            this.props.isVisible &&
+            (nextProps.windowWidth !== this.props.windowWidth ||
+                nextProps.windowHeight !== this.props.windowHeight)
+        ) {
             return true;
         }
 
         // This component does not require re-render until any prop or state changes as we get the necessary info
         // at first render. This component is attached to each message on the Chat list thus we prevent its re-renders
-        return !_.isEqual(
-            _.omit(this.props, ['windowWidth', 'windowHeight']),
-            _.omit(nextProps, ['windowWidth', 'windowHeight']),
-        ) || !_.isEqual(this.state, nextState);
+        return (
+            !_.isEqual(
+                _.omit(this.props, ['windowWidth', 'windowHeight']),
+                _.omit(nextProps, ['windowWidth', 'windowHeight']),
+            ) || !_.isEqual(this.state, nextState)
+        );
     }
 
     /**
@@ -132,26 +155,41 @@ class PopoverWithMeasuredContent extends Component {
         let horizontalConstraint;
         switch (this.props.anchorOrigin.horizontal) {
             case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT:
-                horizontalConstraint = {left: this.props.anchorPosition.horizontal - this.popoverWidth};
+                horizontalConstraint = {
+                    left:
+                        this.props.anchorPosition.horizontal -
+                        this.popoverWidth,
+                };
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER:
                 horizontalConstraint = {
-                    left: Math.floor(this.props.anchorPosition.horizontal - (this.popoverWidth / 2)),
+                    left: Math.floor(
+                        this.props.anchorPosition.horizontal -
+                            this.popoverWidth / 2,
+                    ),
                 };
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT:
             default:
-                horizontalConstraint = {left: this.props.anchorPosition.horizontal};
+                horizontalConstraint = {
+                    left: this.props.anchorPosition.horizontal,
+                };
         }
 
         let verticalConstraint;
         switch (this.props.anchorOrigin.vertical) {
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM:
-                verticalConstraint = {top: this.props.anchorPosition.vertical - this.popoverHeight};
+                verticalConstraint = {
+                    top:
+                        this.props.anchorPosition.vertical - this.popoverHeight,
+                };
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.CENTER:
                 verticalConstraint = {
-                    top: Math.floor(this.props.anchorPosition.vertical - (this.popoverHeight / 2)),
+                    top: Math.floor(
+                        this.props.anchorPosition.vertical -
+                            this.popoverHeight / 2,
+                    ),
                 };
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP:
@@ -181,27 +219,25 @@ class PopoverWithMeasuredContent extends Component {
             left: adjustedAnchorPosition.left + horizontalShift,
             top: adjustedAnchorPosition.top + verticalShift,
         };
-        return this.state.isContentMeasured
-            ? (
-                <Popover
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...this.props}
-                    anchorPosition={shifedAnchorPosition}
-                >
-                    {this.props.measureContent()}
-                </Popover>
-            ) : (
-
-                /*
+        return this.state.isContentMeasured ? (
+            <Popover
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...this.props}
+                anchorPosition={shifedAnchorPosition}
+            >
+                {this.props.measureContent()}
+            </Popover>
+        ) : (
+            /*
                     This is an invisible view used to measure the size of the popover,
                     before it ever needs to be displayed.
                     We do this because we need to know its dimensions in order to correctly animate the popover,
                     but we can't measure its dimensions without first rendering it.
                 */
-                <View style={styles.invisible} onLayout={this.measurePopover}>
-                    {this.props.children}
-                </View>
-            );
+            <View style={styles.invisible} onLayout={this.measurePopover}>
+                {this.props.children}
+            </View>
+        );
     }
 }
 

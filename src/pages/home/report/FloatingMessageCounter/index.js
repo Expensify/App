@@ -7,7 +7,9 @@ import Text from '../../../../components/Text';
 import Icon from '../../../../components/Icon';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import themeColors from '../../../../styles/themes/default';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../../components/withLocalize';
 import FloatingMessageCounterContainer from './FloatingMessageCounterContainer';
 
 const propTypes = {
@@ -64,22 +66,36 @@ class FloatingMessageCounter extends PureComponent {
         return (
             <FloatingMessageCounterContainer
                 accessibilityHint="Scroll to newest messages"
-                containerStyles={[styles.floatingMessageCounterTransformation(this.translateY)]}
+                containerStyles={[
+                    styles.floatingMessageCounterTransformation(
+                        this.translateY,
+                    ),
+                ]}
             >
                 <View style={styles.floatingMessageCounter}>
-                    <View style={[
-                        styles.flexRow,
-                        styles.justifyContentBetween,
-                        styles.alignItemsCenter,
-                    ]}
+                    <View
+                        style={[
+                            styles.flexRow,
+                            styles.justifyContentBetween,
+                            styles.alignItemsCenter,
+                        ]}
                     >
                         <Button
                             success
                             small
                             onPress={this.props.onClick}
                             ContentComponent={() => (
-                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                    <Icon small src={Expensicons.DownArrow} fill={themeColors.textLight} />
+                                <View
+                                    style={[
+                                        styles.flexRow,
+                                        styles.alignItemsCenter,
+                                    ]}
+                                >
+                                    <Icon
+                                        small
+                                        src={Expensicons.DownArrow}
+                                        fill={themeColors.textLight}
+                                    />
                                     <Text
                                         selectable={false}
                                         style={[

@@ -12,7 +12,7 @@ const story = {
 };
 
 // eslint-disable-next-line react/jsx-props-no-spreading
-const Template = args => <Header {...args} />;
+const Template = (args) => <Header {...args} />;
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
@@ -23,6 +23,4 @@ Default.args = {
 };
 
 export default story;
-export {
-    Default,
-};
+export {Default};

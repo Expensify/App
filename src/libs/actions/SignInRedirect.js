@@ -38,15 +38,19 @@ function clearStorageAndRedirect(errorMessage) {
         keysToPreserve.push(ONYXKEYS.NETWORK);
     }
 
-    Onyx.clear(keysToPreserve)
-        .then(() => {
-            if (!errorMessage) {
-                return;
-            }
+    Onyx.clear(keysToPreserve).then(() => {
+        if (!errorMessage) {
+            return;
+        }
 
-            // `Onyx.clear` reinitializes the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`
-            Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal(errorMessage)}});
+        // `Onyx.clear` reinitializes the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`
+        Onyx.merge(ONYXKEYS.SESSION, {
+            errors: {
+                [DateUtils.getMicroseconds()]:
+                    Localize.translateLocal(errorMessage),
+            },
         });
+    });
 }
 
 /**

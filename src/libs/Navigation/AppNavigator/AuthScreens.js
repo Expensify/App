@@ -4,7 +4,9 @@ import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
 import * as PersonalDetails from '../../actions/PersonalDetails';
@@ -58,7 +60,11 @@ Onyx.connect({
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
         // then update their timezone.
-        if (_.isObject(timezone) && timezone.automatic && timezone.selected !== currentTimezone) {
+        if (
+            _.isObject(timezone) &&
+            timezone.automatic &&
+            timezone.selected !== currentTimezone
+        ) {
             timezone.selected = currentTimezone;
             PersonalDetails.updateAutomaticTimezone(timezone);
         }
@@ -114,14 +120,26 @@ class AuthScreens extends React.Component {
         // Listen for the key K being pressed so that focus can be given to
         // the chat switcher, or new group chat
         // based on the key modifiers pressed and the operating system
-        this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe(searchShortcutConfig.shortcutKey, () => {
-            Modal.close();
-            Navigation.navigate(ROUTES.SEARCH);
-        }, searchShortcutConfig.descriptionKey, searchShortcutConfig.modifiers, true);
-        this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe(groupShortcutConfig.shortcutKey, () => {
-            Modal.close();
-            Navigation.navigate(ROUTES.NEW_GROUP);
-        }, groupShortcutConfig.descriptionKey, groupShortcutConfig.modifiers, true);
+        this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
+            searchShortcutConfig.shortcutKey,
+            () => {
+                Modal.close();
+                Navigation.navigate(ROUTES.SEARCH);
+            },
+            searchShortcutConfig.descriptionKey,
+            searchShortcutConfig.modifiers,
+            true,
+        );
+        this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe(
+            groupShortcutConfig.shortcutKey,
+            () => {
+                Modal.close();
+                Navigation.navigate(ROUTES.NEW_GROUP);
+            },
+            groupShortcutConfig.descriptionKey,
+            groupShortcutConfig.modifiers,
+            true,
+        );
     }
 
     shouldComponentUpdate(nextProps) {
@@ -152,8 +170,15 @@ class AuthScreens extends React.Component {
         };
         const modalScreenOptions = {
             ...commonModalScreenOptions,
-            cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
-            cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, false, props),
+            cardStyle: getNavigationModalCardStyle(
+                this.props.isSmallScreenWidth,
+            ),
+            cardStyleInterpolator: (props) =>
+                modalCardStyleInterpolator(
+                    this.props.isSmallScreenWidth,
+                    false,
+                    props,
+                ),
             cardOverlayEnabled: true,
 
             // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
@@ -161,12 +186,13 @@ class AuthScreens extends React.Component {
             isModal: true,
         };
         const url = getCurrentUrl();
-        const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : '';
+        const openOnAdminRoom = url
+            ? new URL(url).searchParams.get('openOnAdminRoom')
+            : '';
 
         return (
             <RootStack.Navigator
                 mode="modal"
-
                 // We are disabling the default keyboard handling here since the automatic behavior is to close a
                 // keyboard that's open when swiping to dismiss a modal. In those cases, pressing the back button on
                 // a header will briefly open and close the keyboard and crash Android.
@@ -187,10 +213,13 @@ class AuthScreens extends React.Component {
                         },
                     }}
                     getComponent={() => {
-                        const MainDrawerNavigator = require('./MainDrawerNavigator').default;
+                        const MainDrawerNavigator =
+                            require('./MainDrawerNavigator').default;
                         return MainDrawerNavigator;
                     }}
-                    initialParams={{openOnAdminRoom: openOnAdminRoom === 'true'}}
+                    initialParams={{
+                        openOnAdminRoom: openOnAdminRoom === 'true',
+                    }}
                 />
                 <RootStack.Screen
                     name="ValidateLogin"
@@ -199,7 +228,8 @@ class AuthScreens extends React.Component {
                         title: 'New Expensify',
                     }}
                     getComponent={() => {
-                        const ValidateLoginPage = require('../../../pages/ValidateLoginPage').default;
+                        const ValidateLoginPage =
+                            require('../../../pages/ValidateLoginPage').default;
                         return ValidateLoginPage;
                     }}
                 />
@@ -207,7 +237,8 @@ class AuthScreens extends React.Component {
                     name={SCREENS.TRANSITION_FROM_OLD_DOT}
                     options={defaultScreenOptions}
                     getComponent={() => {
-                        const LogOutPreviousUserPage = require('../../../pages/LogOutPreviousUserPage').default;
+                        const LogOutPreviousUserPage =
+                            require('../../../pages/LogOutPreviousUserPage').default;
                         return LogOutPreviousUserPage;
                     }}
                 />
@@ -215,7 +246,8 @@ class AuthScreens extends React.Component {
                     name="Concierge"
                     options={defaultScreenOptions}
                     getComponent={() => {
-                        const ConciergePage = require('../../../pages/ConciergePage').default;
+                        const ConciergePage =
+                            require('../../../pages/ConciergePage').default;
                         return ConciergePage;
                     }}
                 />
@@ -258,25 +290,33 @@ class AuthScreens extends React.Component {
                 <RootStack.Screen
                     name="Report_Details"
                     options={modalScreenOptions}
-                    component={ModalStackNavigators.ReportDetailsModalStackNavigator}
+                    component={
+                        ModalStackNavigators.ReportDetailsModalStackNavigator
+                    }
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="Report_Settings"
                     options={modalScreenOptions}
-                    component={ModalStackNavigators.ReportSettingsModalStackNavigator}
+                    component={
+                        ModalStackNavigators.ReportSettingsModalStackNavigator
+                    }
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="Participants"
                     options={modalScreenOptions}
-                    component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
+                    component={
+                        ModalStackNavigators.ReportParticipantsModalStackNavigator
+                    }
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="IOU_Request"
                     options={modalScreenOptions}
-                    component={ModalStackNavigators.IOURequestModalStackNavigator}
+                    component={
+                        ModalStackNavigators.IOURequestModalStackNavigator
+                    }
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
@@ -288,19 +328,25 @@ class AuthScreens extends React.Component {
                 <RootStack.Screen
                     name="EnablePayments"
                     options={modalScreenOptions}
-                    component={ModalStackNavigators.EnablePaymentsStackNavigator}
+                    component={
+                        ModalStackNavigators.EnablePaymentsStackNavigator
+                    }
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="IOU_Details"
                     options={modalScreenOptions}
-                    component={ModalStackNavigators.IOUDetailsModalStackNavigator}
+                    component={
+                        ModalStackNavigators.IOUDetailsModalStackNavigator
+                    }
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="AddPersonalBankAccount"
                     options={modalScreenOptions}
-                    component={ModalStackNavigators.AddPersonalBankAccountModalStackNavigator}
+                    component={
+                        ModalStackNavigators.AddPersonalBankAccountModalStackNavigator
+                    }
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
@@ -312,7 +358,9 @@ class AuthScreens extends React.Component {
                 <RootStack.Screen
                     name="Wallet_Statement"
                     options={modalScreenOptions}
-                    component={ModalStackNavigators.WalletStatementStackNavigator}
+                    component={
+                        ModalStackNavigators.WalletStatementStackNavigator
+                    }
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen

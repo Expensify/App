@@ -17,12 +17,13 @@ class SwipeableView extends PureComponent {
         const minimumPixelDistance = CONST.COMPOSER_MAX_HEIGHT;
         this.oldY = 0;
         this.panResponder = PanResponder.create({
-
             // The PanResponder gets focus only when the y-axis movement is over minimumPixelDistance
             // & swip direction is downwards
-            onMoveShouldSetPanResponderCapture:
-            (_event, gestureState) => {
-                if ((gestureState.dy - this.oldY) > 0 && gestureState.dy > minimumPixelDistance) {
+            onMoveShouldSetPanResponderCapture: (_event, gestureState) => {
+                if (
+                    gestureState.dy - this.oldY > 0 &&
+                    gestureState.dy > minimumPixelDistance
+                ) {
                     return true;
                 }
                 this.oldY = gestureState.dy;

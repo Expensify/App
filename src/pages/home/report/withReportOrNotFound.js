@@ -10,7 +10,7 @@ import reportPropTypes from '../../reportPropTypes';
 export default function (WrappedComponent) {
     const propTypes = {
         /** The HOC takes an optional ref as a prop and passes it as a ref to the wrapped component.
-          * That way, if a ref is passed to a component wrapped in the HOC, the ref is a reference to the wrapped component, not the HOC. */
+         * That way, if a ref is passed to a component wrapped in the HOC, the ref is a reference to the wrapped component, not the HOC. */
         forwardedRef: PropTypes.func,
 
         /** The report currently being looked at */
@@ -42,7 +42,9 @@ export default function (WrappedComponent) {
 
     WithReportOrNotFound.propTypes = propTypes;
     WithReportOrNotFound.defaultProps = defaultProps;
-    WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
+    WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(
+        WrappedComponent,
+    )})`;
     // eslint-disable-next-line rulesdir/no-negated-variables
     const withReportOrNotFound = React.forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
@@ -51,7 +53,8 @@ export default function (WrappedComponent) {
 
     return withOnyx({
         report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+            key: ({route}) =>
+                `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
         },
     })(withReportOrNotFound);
 }

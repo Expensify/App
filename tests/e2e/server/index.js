@@ -78,7 +78,8 @@ const createListenerState = () => {
  *  It returns an instance to which you can add listeners for the test results, and test done events.
  */
 const createServerInstance = () => {
-    const [testStartedListeners, addTestStartedListener] = createListenerState();
+    const [testStartedListeners, addTestStartedListener] =
+        createListenerState();
     const [testResultListeners, addTestResultListener] = createListenerState();
     const [testDoneListeners, addTestDoneListener] = createListenerState();
 
@@ -95,7 +96,9 @@ const createServerInstance = () => {
         res.statusCode = 200;
         switch (req.url) {
             case Routes.testConfig: {
-                testStartedListeners.forEach(listener => listener(activeTestConfig));
+                testStartedListeners.forEach((listener) =>
+                    listener(activeTestConfig),
+                );
                 if (activeTestConfig == null) {
                     throw new Error('No test config set');
                 }
@@ -136,8 +139,8 @@ const createServerInstance = () => {
         addTestStartedListener,
         addTestResultListener,
         addTestDoneListener,
-        start: () => new Promise(resolve => server.listen(PORT, resolve)),
-        stop: () => new Promise(resolve => server.close(resolve)),
+        start: () => new Promise((resolve) => server.listen(PORT, resolve)),
+        stop: () => new Promise((resolve) => server.close(resolve)),
     };
 };
 

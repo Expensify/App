@@ -55,33 +55,40 @@ const defaultProps = {
     isSubmitActionDangerous: false,
 };
 
-const FormAlertWithSubmitButton = props => (
+const FormAlertWithSubmitButton = (props) => (
     <FormAlertWrapper
-        containerStyles={[styles.mh5, styles.mb5, styles.justifyContentEnd, ...props.containerStyles]}
+        containerStyles={[
+            styles.mh5,
+            styles.mb5,
+            styles.justifyContentEnd,
+            ...props.containerStyles,
+        ]}
         isAlertVisible={props.isAlertVisible}
         isMessageHtml={props.isMessageHtml}
         message={props.message}
         onFixTheErrorsLinkPressed={props.onFixTheErrorsLinkPressed}
     >
-        {isOffline => ((isOffline && !props.enabledWhenOffline) ? (
-            <Button
-                success
-                isDisabled
-                text={props.buttonText}
-                style={[styles.mb3]}
-                danger={props.isSubmitActionDangerous}
-            />
-        ) : (
-            <Button
-                success
-                pressOnEnter={!props.disablePressOnEnter}
-                text={props.buttonText}
-                onPress={props.onSubmit}
-                isDisabled={props.isDisabled}
-                isLoading={props.isLoading}
-                danger={props.isSubmitActionDangerous}
-            />
-        ))}
+        {(isOffline) =>
+            isOffline && !props.enabledWhenOffline ? (
+                <Button
+                    success
+                    isDisabled
+                    text={props.buttonText}
+                    style={[styles.mb3]}
+                    danger={props.isSubmitActionDangerous}
+                />
+            ) : (
+                <Button
+                    success
+                    pressOnEnter={!props.disablePressOnEnter}
+                    text={props.buttonText}
+                    onPress={props.onSubmit}
+                    isDisabled={props.isDisabled}
+                    isLoading={props.isLoading}
+                    danger={props.isSubmitActionDangerous}
+                />
+            )
+        }
     </FormAlertWrapper>
 );
 

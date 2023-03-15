@@ -11,7 +11,9 @@ import ReportActionItemDate from './ReportActionItemDate';
 import Avatar from '../../../components/Avatar';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import compose from '../../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
@@ -52,20 +54,26 @@ const showUserDetails = (email) => {
 };
 
 const ReportActionItemSingle = (props) => {
-    const actorEmail = props.action.actorEmail.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    const {
-        avatar,
-        displayName,
-        login,
-        pendingFields,
-    } = props.personalDetails[actorEmail] || {};
+    const actorEmail = props.action.actorEmail.replace(
+        CONST.REGEX.MERGED_ACCOUNT_PREFIX,
+        '',
+    );
+    const {avatar, displayName, login, pendingFields} =
+        props.personalDetails[actorEmail] || {};
     const avatarSource = ReportUtils.getAvatar(avatar, actorEmail);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
     // we should stop referring to the report history items entirely for this information.
     const personArray = displayName
-        ? [{type: 'TEXT', text: Str.isSMSLogin(login) ? props.toLocalPhone(displayName) : displayName}]
+        ? [
+              {
+                  type: 'TEXT',
+                  text: Str.isSMSLogin(login)
+                      ? props.toLocalPhone(displayName)
+                      : displayName,
+              },
+          ]
         : props.action.person;
 
     return (

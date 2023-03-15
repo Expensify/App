@@ -13,7 +13,11 @@ const propTypes = {
 };
 
 const EditedRenderer = (props) => {
-    const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style', 'tnode']);
+    const defaultRendererProps = _.omit(props, [
+        'TDefaultRenderer',
+        'style',
+        'tnode',
+    ]);
     return (
         <Text
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -22,7 +26,7 @@ const EditedRenderer = (props) => {
             color={themeColors.textSupporting}
         >
             {/* Native devices do not support margin between nested text */}
-            <Text style={styles.w1}>{' '}</Text>
+            <Text style={styles.w1}> </Text>
             {props.translate('reportActionCompose.edited')}
         </Text>
     );

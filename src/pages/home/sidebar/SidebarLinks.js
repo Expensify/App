@@ -19,7 +19,9 @@ import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import Tooltip from '../../../components/Tooltip';
 import CONST from '../../../CONST';
 import participantPropTypes from '../../../components/participantPropTypes';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
@@ -44,7 +46,9 @@ const propTypes = {
 
     /** All report actions for all reports */
     // eslint-disable-next-line react/no-unused-prop-types
-    reportActions: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes))),
+    reportActions: PropTypes.objectOf(
+        PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
+    ),
 
     /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -133,11 +137,15 @@ class SidebarLinks extends React.Component {
         if (_.isEmpty(this.props.personalDetails)) {
             return null;
         }
-        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
+        const optionListItems = SidebarUtils.getOrderedReportIDs(
+            this.props.reportIDFromRoute,
+        );
 
         return (
             <View
-                accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
+                accessibilityElementsHidden={
+                    this.props.isSmallScreenWidth && !this.props.isDrawerOpen
+                }
                 accessibilityLabel="List of chats"
                 style={[styles.flex1, styles.h100]}
             >
@@ -153,14 +161,18 @@ class SidebarLinks extends React.Component {
                 >
                     <Header
                         title={this.props.translate('sidebarScreen.headerChat')}
-                        accessibilityLabel={this.props.translate('sidebarScreen.headerChat')}
+                        accessibilityLabel={this.props.translate(
+                            'sidebarScreen.headerChat',
+                        )}
                         accessibilityRole="text"
                         shouldShowEnvironmentBadge
                         textStyles={[styles.textHeadline]}
                     />
                     <Tooltip text={this.props.translate('common.search')}>
                         <TouchableOpacity
-                            accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
+                            accessibilityLabel={this.props.translate(
+                                'sidebarScreen.buttonSearch',
+                            )}
                             accessibilityRole="button"
                             style={[styles.flexRow, styles.ph5]}
                             onPress={this.showSearchPage}
@@ -169,33 +181,64 @@ class SidebarLinks extends React.Component {
                         </TouchableOpacity>
                     </Tooltip>
                     <TouchableOpacity
-                        accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
+                        accessibilityLabel={this.props.translate(
+                            'sidebarScreen.buttonMySettings',
+                        )}
                         accessibilityRole="button"
                         onPress={this.showSettingsPage}
                     >
                         <OfflineWithFeedback
-                            pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
+                            pendingAction={lodashGet(
+                                this.props.currentUserPersonalDetails,
+                                'pendingFields.avatar',
+                                null,
+                            )}
                         >
                             <AvatarWithIndicator
-                                source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
-                                tooltipText={this.props.translate('common.settings')}
+                                source={ReportUtils.getAvatar(
+                                    this.props.currentUserPersonalDetails
+                                        .avatar,
+                                    this.props.currentUserPersonalDetails.login,
+                                )}
+                                tooltipText={this.props.translate(
+                                    'common.settings',
+                                )}
                             />
                         </OfflineWithFeedback>
                     </TouchableOpacity>
                 </View>
-                <Freeze freeze={this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded}>
+                <Freeze
+                    freeze={
+                        this.props.isSmallScreenWidth &&
+                        !this.props.isDrawerOpen &&
+                        this.isSidebarLoaded
+                    }
+                >
                     <LHNOptionsList
                         contentContainerStyles={[
                             styles.sidebarListContainer,
-                            {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
+                            {
+                                paddingBottom: StyleUtils.getSafeAreaMargins(
+                                    this.props.insets,
+                                ).marginBottom,
+                            },
                         ]}
                         data={optionListItems}
-                        focusedIndex={_.findIndex(optionListItems, (
-                            option => option.toString() === this.props.reportIDFromRoute
-                        ))}
+                        focusedIndex={_.findIndex(
+                            optionListItems,
+                            (option) =>
+                                option.toString() ===
+                                this.props.reportIDFromRoute,
+                        )}
                         onSelectRow={this.showReportPage}
-                        shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                        optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
+                        shouldDisableFocusOptions={
+                            this.props.isSmallScreenWidth
+                        }
+                        optionMode={
+                            this.props.priorityMode === CONST.PRIORITY_MODE.GSD
+                                ? 'compact'
+                                : 'default'
+                        }
                         onLayout={() => {
                             this.props.onLayout();
                             App.setSidebarLoaded();
@@ -221,59 +264,73 @@ const chatReportSelector = (report) => {
     if (ReportUtils.isIOUReport(report)) {
         return null;
     }
-    return report && ({
-        reportID: report.reportID,
-        participants: report.participants,
-        hasDraft: report.hasDraft,
-        isPinned: report.isPinned,
-        errorFields: {
-            addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
-        },
-        lastReadTime: report.lastReadTime,
-        lastMessageText: report.lastMessageText,
-        lastVisibleActionCreated: report.lastVisibleActionCreated,
-        iouReportID: report.iouReportID,
-        hasOutstandingIOU: report.hasOutstandingIOU,
-        statusNum: report.statusNum,
-        stateNum: report.stateNum,
-        chatType: report.chatType,
-        policyID: report.policyID,
-        reportName: report.reportName,
-    });
+    return (
+        report && {
+            reportID: report.reportID,
+            participants: report.participants,
+            hasDraft: report.hasDraft,
+            isPinned: report.isPinned,
+            errorFields: {
+                addWorkspaceRoom:
+                    report.errorFields && report.errorFields.addWorkspaceRoom,
+            },
+            lastReadTime: report.lastReadTime,
+            lastMessageText: report.lastMessageText,
+            lastVisibleActionCreated: report.lastVisibleActionCreated,
+            iouReportID: report.iouReportID,
+            hasOutstandingIOU: report.hasOutstandingIOU,
+            statusNum: report.statusNum,
+            stateNum: report.stateNum,
+            chatType: report.chatType,
+            policyID: report.policyID,
+            reportName: report.reportName,
+        }
+    );
 };
 
 /**
  * @param {Object} [personalDetails]
  * @returns {Object|undefined}
  */
-const personalDetailsSelector = personalDetails => _.reduce(personalDetails, (finalPersonalDetails, personalData, login) => {
-    // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
-    // eslint-disable-next-line no-param-reassign
-    finalPersonalDetails[login] = {
-        login: personalData.login,
-        displayName: personalData.displayName,
-        firstName: personalData.firstName,
-        avatar: ReportUtils.getAvatar(personalData.avatar, personalData.login),
-    };
-    return finalPersonalDetails;
-}, {});
+const personalDetailsSelector = (personalDetails) =>
+    _.reduce(
+        personalDetails,
+        (finalPersonalDetails, personalData, login) => {
+            // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
+            // eslint-disable-next-line no-param-reassign
+            finalPersonalDetails[login] = {
+                login: personalData.login,
+                displayName: personalData.displayName,
+                firstName: personalData.firstName,
+                avatar: ReportUtils.getAvatar(
+                    personalData.avatar,
+                    personalData.login,
+                ),
+            };
+            return finalPersonalDetails;
+        },
+        {},
+    );
 
 /**
  * @param {Object} [reportActions]
  * @returns {Object|undefined}
  */
-const reportActionsSelector = reportActions => reportActions && _.map(reportActions, reportAction => ({
-    errors: reportAction.errors,
-}));
+const reportActionsSelector = (reportActions) =>
+    reportActions &&
+    _.map(reportActions, (reportAction) => ({
+        errors: reportAction.errors,
+    }));
 
 /**
  * @param {Object} [policy]
  * @returns {Object|undefined}
  */
-const policySelector = policy => policy && ({
-    type: policy.type,
-    name: policy.name,
-});
+const policySelector = (policy) =>
+    policy && {
+        type: policy.type,
+        name: policy.name,
+    };
 
 export default compose(
     withLocalize,

@@ -7,7 +7,9 @@ import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
 import MenuItem from '../../../components/MenuItem';
 
 const propTypes = {
@@ -48,7 +50,7 @@ const SecuritySettingsPage = (props) => {
                 ]}
             >
                 <View style={[styles.flex1]}>
-                    {_.map(menuItems, item => (
+                    {_.map(menuItems, (item) => (
                         <MenuItem
                             key={item.translationKey}
                             title={props.translate(item.translationKey)}

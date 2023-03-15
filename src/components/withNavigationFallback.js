@@ -24,12 +24,19 @@ export default function (WrappedComponent) {
                 );
             }
 
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            return <WrappedComponent {...this.props} ref={this.props.forwardedRef} />;
+            return (
+                <WrappedComponent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...this.props}
+                    ref={this.props.forwardedRef}
+                />
+            );
         }
     }
     WithNavigationFallback.contextType = NavigationContext;
-    WithNavigationFallback.displayName = `WithNavigationFocusWithFallback(${getComponentDisplayName(WrappedComponent)})`;
+    WithNavigationFallback.displayName = `WithNavigationFocusWithFallback(${getComponentDisplayName(
+        WrappedComponent,
+    )})`;
     WithNavigationFallback.propTypes = {
         forwardedRef: PropTypes.oneOfType([
             PropTypes.func,

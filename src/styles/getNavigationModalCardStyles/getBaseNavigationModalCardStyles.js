@@ -1,6 +1,6 @@
 import variables from '../variables';
 
-export default isSmallScreenWidth => ({
+export default (isSmallScreenWidth) => ({
     position: 'absolute',
     top: 0,
     right: 0,

@@ -10,8 +10,4 @@ function isMobileSafari() {
     return false;
 }
 
-export {
-    getBrowser,
-    isMobile,
-    isMobileSafari,
-};
+export {getBrowser, isMobile, isMobileSafari};

@@ -125,7 +125,11 @@ class BaseInvertedFlatList extends Component {
     renderItem({item, index}) {
         if (this.props.shouldMeasureItems) {
             return (
-                <View onLayout={({nativeEvent}) => this.measureItemLayout(nativeEvent, index)}>
+                <View
+                    onLayout={({nativeEvent}) =>
+                        this.measureItemLayout(nativeEvent, index)
+                    }
+                >
                     {this.props.renderItem({item, index})}
                 </View>
             );
@@ -141,15 +145,20 @@ class BaseInvertedFlatList extends Component {
                 {...this.props}
                 ref={this.props.innerRef}
                 renderItem={this.renderItem}
-
                 // Native platforms do not need to measure items and work fine without this.
                 // Web requires that items be measured or else crazy things happen when scrolling.
-                getItemLayout={this.props.shouldMeasureItems ? this.getItemLayout : undefined}
-
+                getItemLayout={
+                    this.props.shouldMeasureItems
+                        ? this.getItemLayout
+                        : undefined
+                }
                 // We keep this property very low so that chat switching remains fast
                 maxToRenderPerBatch={1}
                 windowSize={15}
-                maintainVisibleContentPosition={{minIndexForVisible: 0, autoscrollToTopThreshold: 0}}
+                maintainVisibleContentPosition={{
+                    minIndexForVisible: 0,
+                    autoscrollToTopThreshold: 0,
+                }}
             />
         );
     }

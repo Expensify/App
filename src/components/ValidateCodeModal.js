@@ -12,7 +12,6 @@ import variables from '../styles/variables';
 import TextLink from './TextLink';
 
 const propTypes = {
-
     /** Whether the user has been signed in with the link. */
     isSuccessfullySignedIn: PropTypes.bool,
 
@@ -42,26 +41,57 @@ class ValidateCodeModal extends PureComponent {
                     <View style={styles.mb2}>
                         <Icon
                             width={variables.modalTopIconWidth}
-                            height={this.props.isSuccessfullySignedIn ? variables.modalTopBigIconHeight : variables.modalTopIconHeight}
-                            src={this.props.isSuccessfullySignedIn ? Illustrations.Abracadabra : Illustrations.MagicCode}
+                            height={
+                                this.props.isSuccessfullySignedIn
+                                    ? variables.modalTopBigIconHeight
+                                    : variables.modalTopIconHeight
+                            }
+                            src={
+                                this.props.isSuccessfullySignedIn
+                                    ? Illustrations.Abracadabra
+                                    : Illustrations.MagicCode
+                            }
                         />
                     </View>
-                    <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
-                        {this.props.translate(this.props.isSuccessfullySignedIn ? 'validateCodeModal.successfulSignInTitle' : 'validateCodeModal.title')}
+                    <Text
+                        style={[
+                            styles.textHeadline,
+                            styles.textXXLarge,
+                            styles.textAlignCenter,
+                        ]}
+                    >
+                        {this.props.translate(
+                            this.props.isSuccessfullySignedIn
+                                ? 'validateCodeModal.successfulSignInTitle'
+                                : 'validateCodeModal.title',
+                        )}
                     </Text>
                     <View style={[styles.mt2, styles.mb2]}>
-                        <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
-                            {this.props.translate(this.props.isSuccessfullySignedIn ? 'validateCodeModal.successfulSignInDescription' : 'validateCodeModal.description')}
-                            {this.props.shouldShowSignInHere
-                                && (
-                                    <>
-                                        {this.props.translate('validateCodeModal.or')}
-                                        {' '}
-                                        <TextLink onPress={this.props.onSignInHereClick}>
-                                            {this.props.translate('validateCodeModal.signInHere')}
-                                        </TextLink>
-                                    </>
-                                )}
+                        <Text
+                            style={[
+                                styles.fontSizeNormal,
+                                styles.textAlignCenter,
+                            ]}
+                        >
+                            {this.props.translate(
+                                this.props.isSuccessfullySignedIn
+                                    ? 'validateCodeModal.successfulSignInDescription'
+                                    : 'validateCodeModal.description',
+                            )}
+                            {this.props.shouldShowSignInHere && (
+                                <>
+                                    {this.props.translate(
+                                        'validateCodeModal.or',
+                                    )}{' '}
+                                    <TextLink
+                                        onPress={this.props.onSignInHereClick}
+                                    >
+                                        {this.props.translate(
+                                            'validateCodeModal.signInHere',
+                                        )}
+                                    </TextLink>
+                                </>
+                            )}
                             {this.props.shouldShowSignInHere ? '!' : '.'}
                         </Text>
                     </View>

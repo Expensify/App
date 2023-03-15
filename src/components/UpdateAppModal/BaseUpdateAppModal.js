@@ -30,8 +30,12 @@ class BaseUpdateAppModal extends PureComponent {
                     isVisible={this.state.isModalOpen}
                     onConfirm={this.submitAndClose}
                     onCancel={() => this.setState({isModalOpen: false})}
-                    prompt={this.props.translate('baseUpdateAppModal.updatePrompt')}
-                    confirmText={this.props.translate('baseUpdateAppModal.updateApp')}
+                    prompt={this.props.translate(
+                        'baseUpdateAppModal.updatePrompt',
+                    )}
+                    confirmText={this.props.translate(
+                        'baseUpdateAppModal.updateApp',
+                    )}
                     cancelText={this.props.translate('common.cancel')}
                 />
             </>

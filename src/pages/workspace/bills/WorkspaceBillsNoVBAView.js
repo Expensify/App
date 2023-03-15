@@ -3,7 +3,9 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import Section from '../../../components/Section';
@@ -18,7 +20,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceBillsNoVBAView = props => (
+const WorkspaceBillsNoVBAView = (props) => (
     <>
         <WorkspaceBillsFirstSection policyID={props.policyID} />
 
@@ -28,11 +30,17 @@ const WorkspaceBillsNoVBAView = props => (
             containerStyles={[styles.cardSection]}
         >
             <View style={[styles.mv3]}>
-                <Text>{props.translate('workspace.bills.unlockNoVBACopy')}</Text>
+                <Text>
+                    {props.translate('workspace.bills.unlockNoVBACopy')}
+                </Text>
             </View>
             <Button
                 text={props.translate('workspace.common.bankAccount')}
-                onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID)}
+                onPress={() =>
+                    ReimbursementAccount.navigateToBankAccountRoute(
+                        props.policyID,
+                    )
+                }
                 icon={Expensicons.Bank}
                 style={[styles.mt4]}
                 iconStyles={[styles.buttonCTAIcon]}

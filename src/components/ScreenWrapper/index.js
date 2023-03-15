@@ -30,39 +30,54 @@ class ScreenWrapper extends React.Component {
 
     componentDidMount() {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
-            if (this.props.modal.willAlertModalBecomeVisible) {
-                return;
-            }
+        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(
+            shortcutConfig.shortcutKey,
+            () => {
+                if (this.props.modal.willAlertModalBecomeVisible) {
+                    return;
+                }
 
-            Navigation.dismissModal();
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+                Navigation.dismissModal();
+            },
+            shortcutConfig.descriptionKey,
+            shortcutConfig.modifiers,
+            true,
+        );
 
-        this.unsubscribeTransitionStart = this.props.navigation.addListener('transitionStart', () => {
-            Navigation.setIsNavigating(true);
-        });
+        this.unsubscribeTransitionStart = this.props.navigation.addListener(
+            'transitionStart',
+            () => {
+                Navigation.setIsNavigating(true);
+            },
+        );
 
-        this.unsubscribeTransitionEnd = this.props.navigation.addListener('transitionEnd', (event) => {
-            Navigation.setIsNavigating(false);
+        this.unsubscribeTransitionEnd = this.props.navigation.addListener(
+            'transitionEnd',
+            (event) => {
+                Navigation.setIsNavigating(false);
 
-            // Prevent firing the prop callback when user is exiting the page.
-            if (lodashGet(event, 'data.closing')) {
-                return;
-            }
-            this.setState({didScreenTransitionEnd: true});
-            this.props.onEntryTransitionEnd();
-        });
+                // Prevent firing the prop callback when user is exiting the page.
+                if (lodashGet(event, 'data.closing')) {
+                    return;
+                }
+                this.setState({didScreenTransitionEnd: true});
+                this.props.onEntryTransitionEnd();
+            },
+        );
 
         // We need to have this prop to remove keyboard before going away from the screen, to avoid previous screen look weird for a brief moment,
         // also we need to have generic control in future - to prevent closing keyboard for some rare cases in which beforeRemove has limitations
         // described here https://reactnavigation.org/docs/preventing-going-back/#limitations
         if (this.props.shouldDismissKeyboardBeforeClose) {
-            this.beforeRemoveSubscription = this.props.navigation.addListener('beforeRemove', () => {
-                if (!this.props.isKeyboardShown) {
-                    return;
-                }
-                Keyboard.dismiss();
-            });
+            this.beforeRemoveSubscription = this.props.navigation.addListener(
+                'beforeRemove',
+                () => {
+                    if (!this.props.isKeyboardShown) {
+                        return;
+                    }
+                    Keyboard.dismiss();
+                },
+            );
         }
     }
 
@@ -74,8 +89,10 @@ class ScreenWrapper extends React.Component {
      * @returns {boolean}
      */
     shouldComponentUpdate(nextProps, nextState) {
-        return !_.isEqual(this.state, nextState)
-            || !_.isEqual(_.omit(this.props, 'modal'), _.omit(nextProps, 'modal'));
+        return (
+            !_.isEqual(this.state, nextState) ||
+            !_.isEqual(_.omit(this.props, 'modal'), _.omit(nextProps, 'modal'))
+        );
     }
 
     componentWillUnmount() {
@@ -97,7 +114,10 @@ class ScreenWrapper extends React.Component {
         return (
             <SafeAreaConsumer>
                 {({
-                    insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle,
+                    insets,
+                    paddingTop,
+                    paddingBottom,
+                    safeAreaPaddingBottomStyle,
                 }) => {
                     const paddingStyle = {};
 
@@ -106,7 +126,10 @@ class ScreenWrapper extends React.Component {
                     }
 
                     // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-                    if (this.props.includeSafeAreaPaddingBottom || this.props.network.isOffline) {
+                    if (
+                        this.props.includeSafeAreaPaddingBottom ||
+                        this.props.network.isOffline
+                    ) {
                         paddingStyle.paddingBottom = paddingBottom;
                     }
 
@@ -118,15 +141,27 @@ class ScreenWrapper extends React.Component {
                                 paddingStyle,
                             ]}
                         >
-                            <KeyboardAvoidingView style={[styles.w100, styles.h100, {maxHeight: this.props.windowHeight}]} behavior={this.props.keyboardAvoidingViewBehavior}>
+                            <KeyboardAvoidingView
+                                style={[
+                                    styles.w100,
+                                    styles.h100,
+                                    {maxHeight: this.props.windowHeight},
+                                ]}
+                                behavior={
+                                    this.props.keyboardAvoidingViewBehavior
+                                }
+                            >
                                 <HeaderGap />
-                                {// If props.children is a function, call it to provide the insets to the children.
+                                {
+                                    // If props.children is a function, call it to provide the insets to the children.
                                     _.isFunction(this.props.children)
                                         ? this.props.children({
-                                            insets,
-                                            safeAreaPaddingBottomStyle,
-                                            didScreenTransitionEnd: this.state.didScreenTransitionEnd,
-                                        })
+                                              insets,
+                                              safeAreaPaddingBottomStyle,
+                                              didScreenTransitionEnd:
+                                                  this.state
+                                                      .didScreenTransitionEnd,
+                                          })
                                         : this.props.children
                                 }
                                 {this.props.isSmallScreenWidth && (

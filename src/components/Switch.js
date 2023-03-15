@@ -16,7 +16,9 @@ class Switch extends Component {
         super(props);
         this.offPosition = 0;
         this.onPosition = 20;
-        this.offsetX = new Animated.Value(props.isOn ? this.onPosition : this.offPosition);
+        this.offsetX = new Animated.Value(
+            props.isOn ? this.onPosition : this.offPosition,
+        );
 
         this.toggleSwitch = this.toggleSwitch.bind(this);
     }
@@ -41,7 +43,10 @@ class Switch extends Component {
         const switchTransform = {transform: [{translateX: this.offsetX}]};
         return (
             <TouchableOpacity
-                style={[styles.switchTrack, !this.props.isOn && styles.switchInactive]}
+                style={[
+                    styles.switchTrack,
+                    !this.props.isOn && styles.switchInactive,
+                ]}
                 activeOpacity={0.8}
                 onPress={() => this.props.onToggle(!this.props.isOn)}
             >

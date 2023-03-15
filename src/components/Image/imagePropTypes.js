@@ -37,7 +37,6 @@ const imagePropTypes = {
     /* Onyx Props */
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
-
         /** Currently logged in user authToken */
         authToken: PropTypes.string,
     }),

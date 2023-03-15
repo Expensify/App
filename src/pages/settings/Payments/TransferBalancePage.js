@@ -8,7 +8,9 @@ import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
@@ -31,19 +33,21 @@ const propTypes = {
     userWallet: userWalletPropTypes,
 
     /** List of bank accounts */
-    bankAccountList: PropTypes.objectOf(PropTypes.shape({
-        /** The name of the institution (bank of america, etc) */
-        addressName: PropTypes.string,
+    bankAccountList: PropTypes.objectOf(
+        PropTypes.shape({
+            /** The name of the institution (bank of america, etc) */
+            addressName: PropTypes.string,
 
-        /** The masked bank account number */
-        accountNumber: PropTypes.string,
+            /** The masked bank account number */
+            accountNumber: PropTypes.string,
 
-        /** The bankAccountID in the bankAccounts db */
-        bankAccountID: PropTypes.number,
+            /** The bankAccountID in the bankAccounts db */
+            bankAccountID: PropTypes.number,
 
-        /** The bank account type */
-        type: PropTypes.string,
-    })),
+            /** The bank account type */
+            type: PropTypes.string,
+        }),
+    ),
 
     /** List of card objects */
     cardList: PropTypes.objectOf(cardPropTypes),
@@ -69,20 +73,28 @@ class TransferBalancePage extends React.Component {
             {
                 key: CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT,
                 title: this.props.translate('transferAmountPage.instant'),
-                description: this.props.translate('transferAmountPage.instantSummary', {
-                    rate: this.props.numberFormat(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.RATE),
-                    minAmount: this.props.numberFormat(
-                        CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE / 100,
-                        {style: 'currency', currency: 'USD'},
-                    ),
-                }),
+                description: this.props.translate(
+                    'transferAmountPage.instantSummary',
+                    {
+                        rate: this.props.numberFormat(
+                            CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.RATE,
+                        ),
+                        minAmount: this.props.numberFormat(
+                            CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT
+                                .MINIMUM_FEE / 100,
+                            {style: 'currency', currency: 'USD'},
+                        ),
+                    },
+                ),
                 icon: Expensicons.Bolt,
                 type: CONST.PAYMENT_METHODS.DEBIT_CARD,
             },
             {
                 key: CONST.WALLET.TRANSFER_METHOD_TYPE.ACH,
                 title: this.props.translate('transferAmountPage.ach'),
-                description: this.props.translate('transferAmountPage.achSummary'),
+                description: this.props.translate(
+                    'transferAmountPage.achSummary',
+                ),
                 icon: Expensicons.Bank,
                 type: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
             },
@@ -113,11 +125,16 @@ class TransferBalancePage extends React.Component {
             this.props.cardList,
         );
 
-        const defaultAccount = _.find(paymentMethods, method => method.isDefault);
+        const defaultAccount = _.find(
+            paymentMethods,
+            (method) => method.isDefault,
+        );
         const selectedAccount = _.find(
             paymentMethods,
-            method => method.accountType === this.props.walletTransfer.selectedAccountType
-                && method.methodID === this.props.walletTransfer.selectedAccountID,
+            (method) =>
+                method.accountType ===
+                    this.props.walletTransfer.selectedAccountType &&
+                method.methodID === this.props.walletTransfer.selectedAccountID,
         );
         return selectedAccount || defaultAccount;
     }
@@ -134,7 +151,11 @@ class TransferBalancePage extends React.Component {
             this.props.cardList,
         );
 
-        const filteredMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === filterPaymentMethodType);
+        const filteredMethods = _.filter(
+            combinedPaymentMethods,
+            (paymentMethod) =>
+                paymentMethod.accountType === filterPaymentMethodType,
+        );
         if (filteredMethods.length === 1) {
             const account = _.first(filteredMethods);
             PaymentMethods.saveWalletTransferAccountTypeAndID(
@@ -148,35 +169,59 @@ class TransferBalancePage extends React.Component {
     }
 
     render() {
-        if (this.props.walletTransfer.shouldShowSuccess && !this.props.walletTransfer.loading) {
+        if (
+            this.props.walletTransfer.shouldShowSuccess &&
+            !this.props.walletTransfer.loading
+        ) {
             return (
                 <ScreenWrapper>
                     <HeaderWithCloseButton
                         title={this.props.translate('common.transferBalance')}
-                        onCloseButtonPress={PaymentMethods.dismissSuccessfulTransferBalancePage}
+                        onCloseButtonPress={
+                            PaymentMethods.dismissSuccessfulTransferBalancePage
+                        }
                     />
                     <ConfirmationPage
-                        heading={this.props.translate('transferAmountPage.transferSuccess')}
-                        description={this.props.walletTransfer.paymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
-                            ? this.props.translate('transferAmountPage.transferDetailBankAccount')
-                            : this.props.translate('transferAmountPage.transferDetailDebitCard')}
+                        heading={this.props.translate(
+                            'transferAmountPage.transferSuccess',
+                        )}
+                        description={
+                            this.props.walletTransfer.paymentMethodType ===
+                            CONST.PAYMENT_METHODS.BANK_ACCOUNT
+                                ? this.props.translate(
+                                      'transferAmountPage.transferDetailBankAccount',
+                                  )
+                                : this.props.translate(
+                                      'transferAmountPage.transferDetailDebitCard',
+                                  )
+                        }
                         shouldShowButton
                         buttonText={this.props.translate('common.done')}
-                        onButtonPress={PaymentMethods.dismissSuccessfulTransferBalancePage}
+                        onButtonPress={
+                            PaymentMethods.dismissSuccessfulTransferBalancePage
+                        }
                     />
                 </ScreenWrapper>
             );
         }
         const selectedAccount = this.getSelectedPaymentMethodAccount();
-        const selectedPaymentType = selectedAccount && selectedAccount.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
-            ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH
-            : CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT;
+        const selectedPaymentType =
+            selectedAccount &&
+            selectedAccount.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
+                ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH
+                : CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT;
 
-        const calculatedFee = PaymentUtils.calculateWalletTransferBalanceFee(this.props.userWallet.currentBalance, selectedPaymentType);
-        const transferAmount = this.props.userWallet.currentBalance - calculatedFee;
+        const calculatedFee = PaymentUtils.calculateWalletTransferBalanceFee(
+            this.props.userWallet.currentBalance,
+            selectedPaymentType,
+        );
+        const transferAmount =
+            this.props.userWallet.currentBalance - calculatedFee;
         const isTransferable = transferAmount > 0;
         const isButtonDisabled = !isTransferable || !selectedAccount;
-        const errorMessage = !_.isEmpty(this.props.walletTransfer.errors) ? _.chain(this.props.walletTransfer.errors).values().first().value() : this.props.walletTransfer.error;
+        const errorMessage = !_.isEmpty(this.props.walletTransfer.errors)
+            ? _.chain(this.props.walletTransfer.errors).values().first().value()
+            : this.props.walletTransfer.error;
 
         return (
             <ScreenWrapper>
@@ -186,12 +231,24 @@ class TransferBalancePage extends React.Component {
                     onBackButtonPress={() => Navigation.goBack()}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto, styles.justifyContentCenter]}>
-                    <CurrentWalletBalance balanceStyles={[styles.transferBalanceBalance]} />
+                <View
+                    style={[
+                        styles.flexGrow1,
+                        styles.flexShrink1,
+                        styles.flexBasisAuto,
+                        styles.justifyContentCenter,
+                    ]}
+                >
+                    <CurrentWalletBalance
+                        balanceStyles={[styles.transferBalanceBalance]}
+                    />
                 </View>
-                <ScrollView style={styles.flexGrow0} contentContainerStyle={styles.pv5}>
+                <ScrollView
+                    style={styles.flexGrow0}
+                    contentContainerStyle={styles.pv5}
+                >
                     <View style={styles.ph5}>
-                        {_.map(this.paymentTypes, paymentType => (
+                        {_.map(this.paymentTypes, (paymentType) => (
                             <MenuItem
                                 key={paymentType.key}
                                 title={paymentType.title}
@@ -199,35 +256,51 @@ class TransferBalancePage extends React.Component {
                                 iconWidth={variables.iconSizeXLarge}
                                 iconHeight={variables.iconSizeXLarge}
                                 icon={paymentType.icon}
-                                success={selectedPaymentType === paymentType.key}
+                                success={
+                                    selectedPaymentType === paymentType.key
+                                }
                                 wrapperStyle={{
                                     ...styles.mt3,
                                     ...styles.pv4,
                                     ...styles.transferBalancePayment,
-                                    ...(selectedPaymentType === paymentType.key
-                                        && styles.transferBalanceSelectedPayment),
+                                    ...(selectedPaymentType ===
+                                        paymentType.key &&
+                                        styles.transferBalanceSelectedPayment),
                                 }}
-                                onPress={() => this.navigateToChooseTransferAccount(paymentType.type)}
+                                onPress={() =>
+                                    this.navigateToChooseTransferAccount(
+                                        paymentType.type,
+                                    )
+                                }
                             />
                         ))}
                     </View>
                     <Text
-                        style={[styles.p5, styles.textLabelSupporting, styles.justifyContentStart]}
+                        style={[
+                            styles.p5,
+                            styles.textLabelSupporting,
+                            styles.justifyContentStart,
+                        ]}
                     >
-                        {this.props.translate('transferAmountPage.whichAccount')}
-                    </Text>
-                    {Boolean(selectedAccount)
-                        && (
-                            <MenuItem
-                                title={selectedAccount.title}
-                                description={selectedAccount.description}
-                                shouldShowRightIcon
-                                iconWidth={selectedAccount.iconSize}
-                                iconHeight={selectedAccount.iconSize}
-                                icon={selectedAccount.icon}
-                                onPress={() => this.navigateToChooseTransferAccount(selectedAccount.accountType)}
-                            />
+                        {this.props.translate(
+                            'transferAmountPage.whichAccount',
                         )}
+                    </Text>
+                    {Boolean(selectedAccount) && (
+                        <MenuItem
+                            title={selectedAccount.title}
+                            description={selectedAccount.description}
+                            shouldShowRightIcon
+                            iconWidth={selectedAccount.iconSize}
+                            iconHeight={selectedAccount.iconSize}
+                            icon={selectedAccount.icon}
+                            onPress={() =>
+                                this.navigateToChooseTransferAccount(
+                                    selectedAccount.accountType,
+                                )
+                            }
+                        />
+                    )}
                     <View style={styles.ph5}>
                         <Text
                             style={[
@@ -239,13 +312,11 @@ class TransferBalancePage extends React.Component {
                         >
                             {this.props.translate('transferAmountPage.fee')}
                         </Text>
-                        <Text
-                            style={[styles.justifyContentStart]}
-                        >
-                            {this.props.numberFormat(
-                                calculatedFee / 100,
-                                {style: 'currency', currency: 'USD'},
-                            )}
+                        <Text style={[styles.justifyContentStart]}>
+                            {this.props.numberFormat(calculatedFee / 100, {
+                                style: 'currency',
+                                currency: 'USD',
+                            })}
                         </Text>
                     </View>
                 </ScrollView>
@@ -256,14 +327,21 @@ class TransferBalancePage extends React.Component {
                             {
                                 amount: isTransferable
                                     ? this.props.numberFormat(
-                                        transferAmount / 100,
-                                        {style: 'currency', currency: 'USD'},
-                                    ) : '',
+                                          transferAmount / 100,
+                                          {style: 'currency', currency: 'USD'},
+                                      )
+                                    : '',
                             },
                         )}
                         isLoading={this.props.walletTransfer.loading}
-                        onSubmit={() => PaymentMethods.transferWalletBalance(selectedAccount)}
-                        isDisabled={isButtonDisabled || this.props.network.isOffline}
+                        onSubmit={() =>
+                            PaymentMethods.transferWalletBalance(
+                                selectedAccount,
+                            )
+                        }
+                        isDisabled={
+                            isButtonDisabled || this.props.network.isOffline
+                        }
                         message={errorMessage}
                         isAlertVisible={!_.isEmpty(errorMessage)}
                     />

@@ -12,7 +12,10 @@ import AttachmentView from '../AttachmentView';
 import * as Download from '../../libs/actions/Download';
 import fileDownload from '../../libs/fileDownload';
 import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
-import {ShowContextMenuContext, showContextMenuForReport} from '../ShowContextMenuContext';
+import {
+    ShowContextMenuContext,
+    showContextMenuForReport,
+} from '../ShowContextMenuContext';
 
 const propTypes = {
     /** Press in handler for the link */
@@ -40,12 +43,7 @@ const BaseAnchorForAttachmentsOnly = (props) => {
 
     return (
         <ShowContextMenuContext.Consumer>
-            {({
-                anchor,
-                reportID,
-                action,
-                checkIfContextMenuActive,
-            }) => (
+            {({anchor, reportID, action, checkIfContextMenuActive}) => (
                 <Pressable
                     style={props.style}
                     onPress={() => {
@@ -53,17 +51,21 @@ const BaseAnchorForAttachmentsOnly = (props) => {
                             return;
                         }
                         Download.setDownload(sourceID, true);
-                        fileDownload(sourceURLWithAuth, fileName).then(() => Download.setDownload(sourceID, false));
+                        fileDownload(sourceURLWithAuth, fileName).then(() =>
+                            Download.setDownload(sourceID, false),
+                        );
                     }}
                     onPressIn={props.onPressIn}
                     onPressOut={props.onPressOut}
-                    onLongPress={event => showContextMenuForReport(
-                        event,
-                        anchor,
-                        reportID,
-                        action,
-                        checkIfContextMenuActive,
-                    )}
+                    onLongPress={(event) =>
+                        showContextMenuForReport(
+                            event,
+                            anchor,
+                            reportID,
+                            action,
+                            checkIfContextMenuActive,
+                        )
+                    }
                 >
                     <AttachmentView
                         source={sourceURLWithAuth}

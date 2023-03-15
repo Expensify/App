@@ -20,7 +20,9 @@ export default function withNavigation(WrappedComponent) {
         );
     };
 
-    WithNavigation.displayName = `withNavigation(${getComponentDisplayName(WrappedComponent)})`;
+    WithNavigation.displayName = `withNavigation(${getComponentDisplayName(
+        WrappedComponent,
+    )})`;
     WithNavigation.propTypes = {
         forwardedRef: PropTypes.oneOfType([
             PropTypes.func,
@@ -36,6 +38,4 @@ export default function withNavigation(WrappedComponent) {
     ));
 }
 
-export {
-    withNavigationPropTypes,
-};
+export {withNavigationPropTypes};

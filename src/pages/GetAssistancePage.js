@@ -31,21 +31,23 @@ const propTypes = {
 };
 
 const GetAssistancePage = (props) => {
-    const menuItems = [{
-        title: props.translate('getAssistancePage.chatWithConcierge'),
-        onPress: () => Report.navigateToConciergeChat(),
-        icon: Expensicons.ChatBubble,
-        shouldShowRightIcon: true,
-        wrapperStyle: [styles.cardMenuItem],
-    },
-    {
-        title: props.translate('getAssistancePage.exploreHelpDocs'),
-        onPress: () => Link.openExternalLink(CONST.NEWHELP_URL),
-        icon: Expensicons.QuestionMark,
-        shouldShowRightIcon: true,
-        iconRight: Expensicons.NewWindow,
-        wrapperStyle: [styles.cardMenuItem],
-    }];
+    const menuItems = [
+        {
+            title: props.translate('getAssistancePage.chatWithConcierge'),
+            onPress: () => Report.navigateToConciergeChat(),
+            icon: Expensicons.ChatBubble,
+            shouldShowRightIcon: true,
+            wrapperStyle: [styles.cardMenuItem],
+        },
+        {
+            title: props.translate('getAssistancePage.exploreHelpDocs'),
+            onPress: () => Link.openExternalLink(CONST.NEWHELP_URL),
+            icon: Expensicons.QuestionMark,
+            shouldShowRightIcon: true,
+            iconRight: Expensicons.NewWindow,
+            wrapperStyle: [styles.cardMenuItem],
+        },
+    ];
 
     // If the user is eligible for calls with their Guide, add the 'Schedule a setup call' item at the second position in the list
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
@@ -75,7 +77,9 @@ const GetAssistancePage = (props) => {
                     menuItems={menuItems}
                 >
                     <View style={styles.mv3}>
-                        <Text>{props.translate('getAssistancePage.description')}</Text>
+                        <Text>
+                            {props.translate('getAssistancePage.description')}
+                        </Text>
                     </View>
                 </Section>
             </ScrollView>
@@ -91,7 +95,8 @@ export default compose(
     withOnyx({
         account: {
             key: ONYXKEYS.ACCOUNT,
-            selector: account => account && ({guideCalendarLink: account.guideCalendarLink}),
+            selector: (account) =>
+                account && {guideCalendarLink: account.guideCalendarLink},
         },
     }),
 )(GetAssistancePage);

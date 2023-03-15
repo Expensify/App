@@ -58,14 +58,24 @@ const AttachmentView = (props) => {
     // Handles case where source is a component (ex: SVG)
     if (_.isFunction(props.source)) {
         return (
-            <Icon src={props.source} height={variables.defaultAvatarPreviewSize} width={variables.defaultAvatarPreviewSize} />
+            <Icon
+                src={props.source}
+                height={variables.defaultAvatarPreviewSize}
+                width={variables.defaultAvatarPreviewSize}
+            />
         );
     }
 
     // Check both source and file.name since PDFs dragged into the the text field
     // will appear with a source that is a blob
-    if (Str.isPDF(props.source)
-        || (props.file && Str.isPDF(props.file.name || props.translate('attachmentView.unknownFilename')))) {
+    if (
+        Str.isPDF(props.source) ||
+        (props.file &&
+            Str.isPDF(
+                props.file.name ||
+                    props.translate('attachmentView.unknownFilename'),
+            ))
+    ) {
         const sourceURL = props.isAuthTokenRequired
             ? addEncryptedAuthTokenToURL(props.source)
             : props.source;
@@ -81,28 +91,44 @@ const AttachmentView = (props) => {
 
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the the text field
-    if (Str.isImage(props.source) || (props.file && Str.isImage(props.file.name))) {
+    if (
+        Str.isImage(props.source) ||
+        (props.file && Str.isImage(props.file.name))
+    ) {
         return (
-            <ImageView onPress={props.onPress} url={props.source} isAuthTokenRequired={props.isAuthTokenRequired} />
+            <ImageView
+                onPress={props.onPress}
+                url={props.source}
+                isAuthTokenRequired={props.isAuthTokenRequired}
+            />
         );
     }
 
     return (
-        <View
-            style={styles.defaultAttachmentView}
-        >
+        <View style={styles.defaultAttachmentView}>
             <View style={styles.mr2}>
                 <Icon src={Expensicons.Paperclip} />
             </View>
 
-            <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{props.file && props.file.name}</Text>
-            {!props.shouldShowLoadingSpinnerIcon && props.shouldShowDownloadIcon && (
-                <View style={styles.ml2}>
-                    <Tooltip text={props.translate('common.download')}>
-                        <Icon src={Expensicons.Download} />
-                    </Tooltip>
-                </View>
-            )}
+            <Text
+                style={[
+                    styles.textStrong,
+                    styles.flexShrink1,
+                    styles.breakAll,
+                    styles.flexWrap,
+                    styles.mw100,
+                ]}
+            >
+                {props.file && props.file.name}
+            </Text>
+            {!props.shouldShowLoadingSpinnerIcon &&
+                props.shouldShowDownloadIcon && (
+                    <View style={styles.ml2}>
+                        <Tooltip text={props.translate('common.download')}>
+                            <Icon src={Expensicons.Download} />
+                        </Tooltip>
+                    </View>
+                )}
             {props.shouldShowLoadingSpinnerIcon && (
                 <View style={styles.ml2}>
                     <Tooltip text={props.translate('common.downloading')}>
@@ -121,7 +147,4 @@ AttachmentView.propTypes = propTypes;
 AttachmentView.defaultProps = defaultProps;
 AttachmentView.displayName = 'AttachmentView';
 
-export default compose(
-    memo,
-    withLocalize,
-)(AttachmentView);
+export default compose(memo, withLocalize)(AttachmentView);

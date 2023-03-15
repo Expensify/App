@@ -24,11 +24,8 @@ const defaultProps = {
     disabled: false,
 };
 
-const RadioButton = props => (
-    <Pressable
-        disabled={props.disabled}
-        onPress={props.onPress}
-    >
+const RadioButton = (props) => (
+    <Pressable disabled={props.disabled} onPress={props.onPress}>
         <View
             style={[
                 styles.radioButtonContainer,
@@ -37,7 +34,12 @@ const RadioButton = props => (
                 props.disabled && styles.cursorDisabled,
             ]}
         >
-            <Icon src={Expensicons.Checkmark} fill="white" height={14} width={14} />
+            <Icon
+                src={Expensicons.Checkmark}
+                fill="white"
+                height={14}
+                width={14}
+            />
         </View>
     </Pressable>
 );

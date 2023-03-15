@@ -69,7 +69,11 @@ const propTypes = {
     subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
     /** Flag to choose between avatar image or an icon */
-    iconType: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_ICON, CONST.ICON_TYPE_WORKSPACE]),
+    iconType: PropTypes.oneOf([
+        CONST.ICON_TYPE_AVATAR,
+        CONST.ICON_TYPE_ICON,
+        CONST.ICON_TYPE_WORKSPACE,
+    ]),
 
     /** Whether the menu item should be interactive at all */
     interactive: PropTypes.bool,
@@ -81,7 +85,11 @@ const propTypes = {
     floatRightAvatars: PropTypes.arrayOf(avatarPropTypes),
 
     /** The type of brick road indicator to show. */
-    brickRoadIndicator: PropTypes.oneOf([CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, CONST.BRICK_ROAD_INDICATOR_STATUS.INFO, '']),
+    brickRoadIndicator: PropTypes.oneOf([
+        CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+        CONST.BRICK_ROAD_INDICATOR_STATUS.INFO,
+        '',
+    ]),
 
     /** Prop to identify if we should load avatars vertically instead of diagonally */
     shouldStackHorizontally: PropTypes.bool,

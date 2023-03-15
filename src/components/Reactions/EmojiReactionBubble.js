@@ -61,7 +61,10 @@ const defaultProps = {
 };
 
 const EmojiReactionBubble = (props) => {
-    const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, props.reactionUsers);
+    const hasUserReacted = Report.hasAccountIDReacted(
+        props.currentUserPersonalDetails.accountID,
+        props.reactionUsers,
+    );
     return (
         <Tooltip
             renderTooltipContent={() => (
@@ -75,26 +78,35 @@ const EmojiReactionBubble = (props) => {
             <Pressable
                 style={({hovered, pressed}) => [
                     styles.emojiReactionBubble,
-                    StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, hasUserReacted, props.sizeScale),
+                    StyleUtils.getEmojiReactionBubbleStyle(
+                        hovered || pressed,
+                        hasUserReacted,
+                        props.sizeScale,
+                    ),
                 ]}
                 onPress={props.onPress}
                 onLongPress={props.onReactionListOpen}
             >
-                <Text style={[
-                    styles.emojiReactionText,
-                    StyleUtils.getEmojiReactionTextStyle(props.sizeScale),
-                ]}
+                <Text
+                    style={[
+                        styles.emojiReactionText,
+                        StyleUtils.getEmojiReactionTextStyle(props.sizeScale),
+                    ]}
                 >
                     {props.emojiCodes.join('')}
                 </Text>
                 {props.count > 0 && (
-                <Text style={[
-                    styles.reactionCounterText,
-                    StyleUtils.getEmojiReactionCounterTextStyle(hasUserReacted, props.sizeScale),
-                ]}
-                >
-                    {props.count}
-                </Text>
+                    <Text
+                        style={[
+                            styles.reactionCounterText,
+                            StyleUtils.getEmojiReactionCounterTextStyle(
+                                hasUserReacted,
+                                props.sizeScale,
+                            ),
+                        ]}
+                    >
+                        {props.count}
+                    </Text>
                 )}
             </Pressable>
         </Tooltip>

@@ -21,7 +21,9 @@ export default function withDrawerState(WrappedComponent) {
         );
     };
 
-    WithDrawerState.displayName = `withDrawerState(${getComponentDisplayName(WrappedComponent)})`;
+    WithDrawerState.displayName = `withDrawerState(${getComponentDisplayName(
+        WrappedComponent,
+    )})`;
     WithDrawerState.propTypes = {
         forwardedRef: PropTypes.oneOfType([
             PropTypes.func,
@@ -37,6 +39,4 @@ export default function withDrawerState(WrappedComponent) {
     ));
 }
 
-export {
-    withDrawerPropTypes,
-};
+export {withDrawerPropTypes};

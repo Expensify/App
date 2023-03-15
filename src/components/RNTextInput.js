@@ -13,7 +13,7 @@ const defaultProps = {
     forwardedRef: () => {},
 };
 
-const RNTextInput = props => (
+const RNTextInput = (props) => (
     <TextInput
         allowFontScaling={false}
         ref={(ref) => {

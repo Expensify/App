@@ -10,7 +10,6 @@ const reimbursementAccountPropTypes = PropTypes.shape({
 
     /** Additional data for the account in setup */
     achData: PropTypes.shape({
-
         /** Step of the setup flow that we are on. Determines which view is presented. */
         currentStep: PropTypes.string,
 
@@ -19,7 +18,6 @@ const reimbursementAccountPropTypes = PropTypes.shape({
 
         /** Bank account ID of the VBA that we are validating is required */
         bankAccountID: PropTypes.number,
-
     }),
 
     /** Disable validation button if max attempts exceeded */
@@ -29,7 +27,9 @@ const reimbursementAccountPropTypes = PropTypes.shape({
     error: PropTypes.string,
 
     /** Which field needs attention? */
-    errorFields: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.bool, PropTypes.array])),
+    errorFields: PropTypes.objectOf(
+        PropTypes.oneOfType([PropTypes.bool, PropTypes.array]),
+    ),
 
     /** Any additional error message to show */
     errors: PropTypes.objectOf(PropTypes.string),

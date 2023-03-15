@@ -10,7 +10,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 let isUserOptedInToPushNotifications = false;
 Onyx.connect({
     key: ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED,
-    callback: val => isUserOptedInToPushNotifications = val,
+    callback: (val) => (isUserOptedInToPushNotifications = val),
 });
 
 const notificationEventActionMap = {};
@@ -33,12 +33,16 @@ function pushNotificationEventCallback(eventType, notification) {
     Log.info(`[PUSH_NOTIFICATION] Callback triggered for ${eventType}`);
 
     if (!payload) {
-        Log.warn('[PUSH_NOTIFICATION] Notification has null or undefined payload, not executing any callback.');
+        Log.warn(
+            '[PUSH_NOTIFICATION] Notification has null or undefined payload, not executing any callback.',
+        );
         return;
     }
 
     if (!payload.type) {
-        Log.warn('[PUSH_NOTIFICATION] No type value provided in payload, not executing any callback.');
+        Log.warn(
+            '[PUSH_NOTIFICATION] No type value provided in payload, not executing any callback.',
+        );
         return;
     }
 
@@ -57,16 +61,20 @@ function pushNotificationEventCallback(eventType, notification) {
  * Check if a user is opted-in to push notifications on this device and update the `pushNotificationsEnabled` NVP accordingly.
  */
 function refreshNotificationOptInStatus() {
-    UrbanAirship.getNotificationStatus()
-        .then((notificationStatus) => {
-            const isOptedIn = notificationStatus.airshipOptIn && notificationStatus.systemEnabled;
-            if (isOptedIn === isUserOptedInToPushNotifications) {
-                return;
-            }
+    UrbanAirship.getNotificationStatus().then((notificationStatus) => {
+        const isOptedIn =
+            notificationStatus.airshipOptIn && notificationStatus.systemEnabled;
+        if (isOptedIn === isUserOptedInToPushNotifications) {
+            return;
+        }
 
-            Log.info('[PUSH_NOTIFICATION] Push notification opt-in status changed.', false, {isOptedIn});
-            PushNotification.setPushNotificationOptInStatus(isOptedIn);
-        });
+        Log.info(
+            '[PUSH_NOTIFICATION] Push notification opt-in status changed.',
+            false,
+            {isOptedIn},
+        );
+        PushNotification.setPushNotificationOptInStatus(isOptedIn);
+    });
 }
 
 /**
@@ -90,11 +98,17 @@ function init() {
     // Note: the NotificationResponse event has a nested PushReceived event,
     // so event.notification refers to the same thing as notification above ^
     UrbanAirship.addListener(EventType.NotificationResponse, (event) => {
-        pushNotificationEventCallback(EventType.NotificationResponse, event.notification);
+        pushNotificationEventCallback(
+            EventType.NotificationResponse,
+            event.notification,
+        );
     });
 
     // Keep track of which users have enabled push notifications via an NVP.
-    UrbanAirship.addListener(EventType.NotificationOptInStatus, refreshNotificationOptInStatus);
+    UrbanAirship.addListener(
+        EventType.NotificationOptInStatus,
+        refreshNotificationOptInStatus,
+    );
 
     // This statement has effect on iOS only.
     // It enables the App to display push notifications when the App is in foreground.
@@ -119,18 +133,21 @@ function register(accountID) {
     }
 
     // Get permissions to display push notifications (prompts user on iOS, but not Android)
-    UrbanAirship.enableUserPushNotifications()
-        .then((isEnabled) => {
-            if (isEnabled) {
-                return;
-            }
+    UrbanAirship.enableUserPushNotifications().then((isEnabled) => {
+        if (isEnabled) {
+            return;
+        }
 
-            Log.info('[PUSH_NOTIFICATIONS] User has disabled visible push notifications for this app.');
-        });
+        Log.info(
+            '[PUSH_NOTIFICATIONS] User has disabled visible push notifications for this app.',
+        );
+    });
 
     // Register this device as a named user in AirshipAPI.
     // Regardless of the user's opt-in status, we still want to receive silent push notifications.
-    Log.info(`[PUSH_NOTIFICATIONS] Subscribing to notifications for account ID ${accountID}`);
+    Log.info(
+        `[PUSH_NOTIFICATIONS] Subscribing to notifications for account ID ${accountID}`,
+    );
     UrbanAirship.setNamedUser(accountID.toString());
 
     // Refresh notification opt-in status NVP for the new user.

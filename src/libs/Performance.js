@@ -27,9 +27,10 @@ function diffObject(object, base) {
             }
 
             // eslint-disable-next-line no-param-reassign
-            result[key] = (_.isObject(value) && _.isObject(comparisonObject[key]))
-                ? changes(value, comparisonObject[key])
-                : value;
+            result[key] =
+                _.isObject(value) && _.isObject(comparisonObject[key])
+                    ? changes(value, comparisonObject[key])
+                    : value;
         });
     }
     return changes(object, base);
@@ -46,7 +47,7 @@ const Performance = {
     measureFailSafe: () => {},
     measureTTI: () => {},
     traceRender: () => {},
-    withRenderTrace: () => Component => Component,
+    withRenderTrace: () => (Component) => Component,
     subscribeToMeasurements: () => {},
 };
 
@@ -55,7 +56,11 @@ if (Metrics.canCapturePerformanceMetrics()) {
     perfModule.setResourceLoggingEnabled(true);
     rnPerformance = perfModule.default;
 
-    Performance.measureFailSafe = (measureName, startOrMeasureOptions, endMark) => {
+    Performance.measureFailSafe = (
+        measureName,
+        startOrMeasureOptions,
+        endMark,
+    ) => {
         try {
             rnPerformance.measure(measureName, startOrMeasureOptions, endMark);
         } catch (error) {
@@ -72,7 +77,11 @@ if (Metrics.canCapturePerformanceMetrics()) {
         // Make sure TTI is captured when the app is really usable
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
-                Performance.measureFailSafe('TTI', 'nativeLaunchStart', endMark);
+                Performance.measureFailSafe(
+                    'TTI',
+                    'nativeLaunchStart',
+                    endMark,
+                );
 
                 // we don't want the alert to show on an e2e test session
                 if (!isE2ETestSession()) {
@@ -91,62 +100,78 @@ if (Metrics.canCapturePerformanceMetrics()) {
 
         // Monitor some native marks that we want to put on the timeline
         new perfModule.PerformanceObserver((list, observer) => {
-            list.getEntries()
-                .forEach((entry) => {
-                    if (entry.name === 'nativeLaunchEnd') {
-                        Performance.measureFailSafe('nativeLaunch', 'nativeLaunchStart', 'nativeLaunchEnd');
-                    }
-                    if (entry.name === 'downloadEnd') {
-                        Performance.measureFailSafe('jsBundleDownload', 'downloadStart', 'downloadEnd');
-                    }
-                    if (entry.name === 'runJsBundleEnd') {
-                        Performance.measureFailSafe('runJsBundle', 'runJsBundleStart', 'runJsBundleEnd');
-                    }
+            list.getEntries().forEach((entry) => {
+                if (entry.name === 'nativeLaunchEnd') {
+                    Performance.measureFailSafe(
+                        'nativeLaunch',
+                        'nativeLaunchStart',
+                        'nativeLaunchEnd',
+                    );
+                }
+                if (entry.name === 'downloadEnd') {
+                    Performance.measureFailSafe(
+                        'jsBundleDownload',
+                        'downloadStart',
+                        'downloadEnd',
+                    );
+                }
+                if (entry.name === 'runJsBundleEnd') {
+                    Performance.measureFailSafe(
+                        'runJsBundle',
+                        'runJsBundleStart',
+                        'runJsBundleEnd',
+                    );
+                }
 
-                    // We don't need to keep the observer past this point
-                    if (entry.name === 'runJsBundleEnd' || entry.name === 'downloadEnd') {
-                        observer.disconnect();
-                    }
-                });
+                // We don't need to keep the observer past this point
+                if (
+                    entry.name === 'runJsBundleEnd' ||
+                    entry.name === 'downloadEnd'
+                ) {
+                    observer.disconnect();
+                }
+            });
         }).observe({type: 'react-native-mark', buffered: true});
 
         // Monitor for "_end" marks and capture "_start" to "_end" measures
         new perfModule.PerformanceObserver((list) => {
-            list.getEntriesByType('mark')
-                .forEach((mark) => {
-                    if (mark.name.endsWith('_end')) {
-                        const end = mark.name;
-                        const name = end.replace(/_end$/, '');
-                        const start = `${name}_start`;
-                        Performance.measureFailSafe(name, start, end);
-                    }
+            list.getEntriesByType('mark').forEach((mark) => {
+                if (mark.name.endsWith('_end')) {
+                    const end = mark.name;
+                    const name = end.replace(/_end$/, '');
+                    const start = `${name}_start`;
+                    Performance.measureFailSafe(name, start, end);
+                }
 
-                    // Capture any custom measures or metrics below
-                    if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
-                        Performance.measureTTI(mark.name);
-                    }
-                });
+                // Capture any custom measures or metrics below
+                if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
+                    Performance.measureTTI(mark.name);
+                }
+            });
         }).observe({type: 'mark', buffered: true});
     };
 
-    Performance.getPerformanceMetrics = () => _.chain([
-        ...rnPerformance.getEntriesByName('nativeLaunch'),
-        ...rnPerformance.getEntriesByName('runJsBundle'),
-        ...rnPerformance.getEntriesByName('jsBundleDownload'),
-        ...rnPerformance.getEntriesByName('TTI'),
-        ...rnPerformance.getEntriesByName('regularAppStart'),
-        ...rnPerformance.getEntriesByName('appStartedToReady'),
-    ])
-        .filter(entry => entry.duration > 0)
-        .value();
+    Performance.getPerformanceMetrics = () =>
+        _.chain([
+            ...rnPerformance.getEntriesByName('nativeLaunch'),
+            ...rnPerformance.getEntriesByName('runJsBundle'),
+            ...rnPerformance.getEntriesByName('jsBundleDownload'),
+            ...rnPerformance.getEntriesByName('TTI'),
+            ...rnPerformance.getEntriesByName('regularAppStart'),
+            ...rnPerformance.getEntriesByName('appStartedToReady'),
+        ])
+            .filter((entry) => entry.duration > 0)
+            .value();
 
     /**
      * Outputs performance stats. We alert these so that they are easy to access in release builds.
      */
     Performance.printPerformanceMetrics = () => {
         const stats = Performance.getPerformanceMetrics();
-        const statsAsText = _.map(stats, entry => `\u2022 ${entry.name}: ${entry.duration.toFixed(1)}ms`)
-            .join('\n');
+        const statsAsText = _.map(
+            stats,
+            (entry) => `\u2022 ${entry.name}: ${entry.duration.toFixed(1)}ms`,
+        ).join('\n');
 
         if (stats.length > 0) {
             Alert.alert('Performance', statsAsText);
@@ -165,7 +190,8 @@ if (Metrics.canCapturePerformanceMetrics()) {
      * @param {Object} [detail]
      * @returns {PerformanceMark}
      */
-    Performance.markStart = (name, detail) => rnPerformance.mark(`${name}_start`, {detail});
+    Performance.markStart = (name, detail) =>
+        rnPerformance.mark(`${name}_start`, {detail});
 
     /**
      * Add an end mark to the performance entries
@@ -174,7 +200,8 @@ if (Metrics.canCapturePerformanceMetrics()) {
      * @param {Object} [detail]
      * @returns {PerformanceMark}
      */
-    Performance.markEnd = (name, detail) => rnPerformance.mark(`${name}_end`, {detail});
+    Performance.markEnd = (name, detail) =>
+        rnPerformance.mark(`${name}_end`, {detail});
 
     /**
      * Put data emitted by Profiler components on the timeline
@@ -195,16 +222,17 @@ if (Metrics.canCapturePerformanceMetrics()) {
         startTime,
         commitTime,
         interactions,
-    ) => rnPerformance.measure(id, {
-        start: startTime,
-        duration: actualDuration,
-        detail: {
-            phase,
-            baseDuration,
-            commitTime,
-            interactions,
-        },
-    });
+    ) =>
+        rnPerformance.measure(id, {
+            start: startTime,
+            duration: actualDuration,
+            detail: {
+                phase,
+                baseDuration,
+                commitTime,
+                interactions,
+            },
+        });
 
     /**
      * A HOC that captures render timings of the Wrapped component
@@ -212,17 +240,21 @@ if (Metrics.canCapturePerformanceMetrics()) {
      * @param {string} config.id
      * @returns {function(React.Component): React.FunctionComponent}
      */
-    Performance.withRenderTrace = ({id}) => (WrappedComponent) => {
-        const WithRenderTrace = forwardRef((props, ref) => (
-            <Profiler id={id} onRender={Performance.traceRender}>
-                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                <WrappedComponent {...props} ref={ref} />
-            </Profiler>
-        ));
+    Performance.withRenderTrace =
+        ({id}) =>
+        (WrappedComponent) => {
+            const WithRenderTrace = forwardRef((props, ref) => (
+                <Profiler id={id} onRender={Performance.traceRender}>
+                    {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                    <WrappedComponent {...props} ref={ref} />
+                </Profiler>
+            ));
 
-        WithRenderTrace.displayName = `withRenderTrace(${getComponentDisplayName(WrappedComponent)})`;
-        return WithRenderTrace;
-    };
+            WithRenderTrace.displayName = `withRenderTrace(${getComponentDisplayName(
+                WrappedComponent,
+            )})`;
+            return WithRenderTrace;
+        };
 }
 
 export default Performance;

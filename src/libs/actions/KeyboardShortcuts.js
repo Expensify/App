@@ -4,7 +4,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 let isShortcutsModalOpen;
 Onyx.connect({
     key: ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN,
-    callback: flag => isShortcutsModalOpen = flag,
+    callback: (flag) => (isShortcutsModalOpen = flag),
 });
 
 /**
@@ -27,7 +27,4 @@ function hideKeyboardShortcutModal() {
     Onyx.set(ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN, false);
 }
 
-export {
-    showKeyboardShortcutModal,
-    hideKeyboardShortcutModal,
-};
+export {showKeyboardShortcutModal, hideKeyboardShortcutModal};

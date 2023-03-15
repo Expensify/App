@@ -5,7 +5,9 @@ import PropTypes from 'prop-types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from './withWindowDimensions';
 
 const propTypes = {
     /** Source URL for the preview image */
@@ -38,7 +40,11 @@ class ThumbnailImage extends PureComponent {
         super(props);
 
         this.updateImageSize = this.updateImageSize.bind(this);
-        const {thumbnailWidth, thumbnailHeight} = this.calculateThumbnailImageSize(props.imageWidth, props.imageHeight);
+        const {thumbnailWidth, thumbnailHeight} =
+            this.calculateThumbnailImageSize(
+                props.imageWidth,
+                props.imageHeight,
+            );
         this.state = {
             thumbnailWidth,
             thumbnailHeight,
@@ -62,17 +68,28 @@ class ThumbnailImage extends PureComponent {
         // Note: Clamp minimum width 40px to support touch device
         let thumbnailScreenWidth = lodashClamp(width, 40, 250);
         const imageHeight = height / (width / thumbnailScreenWidth);
-        let thumbnailScreenHeight = lodashClamp(imageHeight, 40, this.props.windowHeight * 0.40);
+        let thumbnailScreenHeight = lodashClamp(
+            imageHeight,
+            40,
+            this.props.windowHeight * 0.4,
+        );
         const aspectRatio = height / width;
 
         // If thumbnail height is greater than its width, then the image is portrait otherwise landscape.
         // For portrait images, we need to adjust the width of the image to keep the aspect ratio and vice-versa.
         if (thumbnailScreenHeight > thumbnailScreenWidth) {
-            thumbnailScreenWidth = Math.round(thumbnailScreenHeight * (1 / aspectRatio));
+            thumbnailScreenWidth = Math.round(
+                thumbnailScreenHeight * (1 / aspectRatio),
+            );
         } else {
-            thumbnailScreenHeight = Math.round(thumbnailScreenWidth * aspectRatio);
+            thumbnailScreenHeight = Math.round(
+                thumbnailScreenWidth * aspectRatio,
+            );
         }
-        return {thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: Math.max(40, thumbnailScreenHeight)};
+        return {
+            thumbnailWidth: thumbnailScreenWidth,
+            thumbnailHeight: Math.max(40, thumbnailScreenHeight),
+        };
     }
 
     /**
@@ -81,7 +98,8 @@ class ThumbnailImage extends PureComponent {
      * @param {{ width: number, height: number }} Params - width and height of the original image.
      */
     updateImageSize({width, height}) {
-        const {thumbnailWidth, thumbnailHeight} = this.calculateThumbnailImageSize(width, height);
+        const {thumbnailWidth, thumbnailHeight} =
+            this.calculateThumbnailImageSize(width, height);
         this.setState({thumbnailWidth, thumbnailHeight});
     }
 
@@ -90,7 +108,10 @@ class ThumbnailImage extends PureComponent {
             <View style={[this.props.style, styles.overflowHidden]}>
                 <View
                     style={[
-                        StyleUtils.getWidthAndHeightStyle(this.state.thumbnailWidth, this.state.thumbnailHeight),
+                        StyleUtils.getWidthAndHeightStyle(
+                            this.state.thumbnailWidth,
+                            this.state.thumbnailHeight,
+                        ),
                         styles.alignItemsCenter,
                         styles.justifyContentCenter,
                     ]}

@@ -14,7 +14,9 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import Button from '../../../../components/Button';
 import ROUTES from '../../../../ROUTES';
 import CONST from '../../../../CONST';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import FixedFooter from '../../../../components/FixedFooter';
 import TextInput from '../../../../components/TextInput';
@@ -73,9 +75,10 @@ class AddSecondaryLoginPage extends Component {
      * Add a secondary login to a user's account
      */
     submitForm() {
-        const login = this.formType === CONST.LOGIN_TYPE.PHONE
-            ? LoginUtils.getPhoneNumberWithoutSpecialChars(this.state.login)
-            : this.state.login;
+        const login =
+            this.formType === CONST.LOGIN_TYPE.PHONE
+                ? LoginUtils.getPhoneNumberWithoutSpecialChars(this.state.login)
+                : this.state.login;
         User.setSecondaryLoginAndNavigate(login, this.state.password);
     }
 
@@ -85,16 +88,23 @@ class AddSecondaryLoginPage extends Component {
      * @returns {Boolean}
      */
     validateForm() {
-        const login = this.formType === CONST.LOGIN_TYPE.PHONE
-            ? LoginUtils.getPhoneNumberWithoutSpecialChars(this.state.login)
-            : this.state.login;
+        const login =
+            this.formType === CONST.LOGIN_TYPE.PHONE
+                ? LoginUtils.getPhoneNumberWithoutSpecialChars(this.state.login)
+                : this.state.login;
 
-        const validationMethod = this.formType === CONST.LOGIN_TYPE.PHONE ? Str.isValidPhone : Str.isValidEmail;
+        const validationMethod =
+            this.formType === CONST.LOGIN_TYPE.PHONE
+                ? Str.isValidPhone
+                : Str.isValidEmail;
         if (!validationMethod(login)) {
             return false;
         }
 
-        return !Permissions.canUsePasswordlessLogins(this.props.betas) && !this.state.password;
+        return (
+            !Permissions.canUsePasswordlessLogins(this.props.betas) &&
+            !this.state.password
+        );
     }
 
     render() {
@@ -109,39 +119,58 @@ class AddSecondaryLoginPage extends Component {
                 }}
             >
                 <HeaderWithCloseButton
-                    title={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
-                        ? 'addSecondaryLoginPage.addPhoneNumber'
-                        : 'addSecondaryLoginPage.addEmailAddress')}
+                    title={this.props.translate(
+                        this.formType === CONST.LOGIN_TYPE.PHONE
+                            ? 'addSecondaryLoginPage.addPhoneNumber'
+                            : 'addSecondaryLoginPage.addEmailAddress',
+                    )}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
+                    onBackButtonPress={() =>
+                        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)
+                    }
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 {/* We use keyboardShouldPersistTaps="handled" to prevent the keyboard from being hidden when switching focus on input fields  */}
-                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5} keyboardShouldPersistTaps="handled">
+                <ScrollView
+                    style={styles.flex1}
+                    contentContainerStyle={styles.p5}
+                    keyboardShouldPersistTaps="handled"
+                >
                     <Text style={[styles.mb6]}>
-                        {this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
-                            ? 'addSecondaryLoginPage.enterPreferredPhoneNumberToSendValidationLink'
-                            : 'addSecondaryLoginPage.enterPreferredEmailToSendValidationLink')}
+                        {this.props.translate(
+                            this.formType === CONST.LOGIN_TYPE.PHONE
+                                ? 'addSecondaryLoginPage.enterPreferredPhoneNumberToSendValidationLink'
+                                : 'addSecondaryLoginPage.enterPreferredEmailToSendValidationLink',
+                        )}
                     </Text>
                     <View style={styles.mb6}>
                         <TextInput
-                            label={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
-                                ? 'common.phoneNumber'
-                                : 'profilePage.emailAddress')}
-                            ref={el => this.phoneNumberInputRef = el}
+                            label={this.props.translate(
+                                this.formType === CONST.LOGIN_TYPE.PHONE
+                                    ? 'common.phoneNumber'
+                                    : 'profilePage.emailAddress',
+                            )}
+                            ref={(el) => (this.phoneNumberInputRef = el)}
                             value={this.state.login}
                             onChangeText={this.onSecondaryLoginChange}
-                            keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
-                                ? CONST.KEYBOARD_TYPE.PHONE_PAD : CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                            keyboardType={
+                                this.formType === CONST.LOGIN_TYPE.PHONE
+                                    ? CONST.KEYBOARD_TYPE.PHONE_PAD
+                                    : CONST.KEYBOARD_TYPE.EMAIL_ADDRESS
+                            }
                             returnKeyType="done"
                         />
                     </View>
-                    {!Permissions.canUsePasswordlessLogins(this.props.betas) && (
+                    {!Permissions.canUsePasswordlessLogins(
+                        this.props.betas,
+                    ) && (
                         <View style={styles.mb6}>
                             <TextInput
                                 label={this.props.translate('common.password')}
                                 value={this.state.password}
-                                onChangeText={password => this.setState({password})}
+                                onChangeText={(password) =>
+                                    this.setState({password})
+                                }
                                 secureTextEntry
                                 autoCompleteType="password"
                                 textContentType="password"
@@ -160,7 +189,9 @@ class AddSecondaryLoginPage extends Component {
                         success
                         isDisabled={this.validateForm()}
                         isLoading={this.props.user.loading}
-                        text={this.props.translate('addSecondaryLoginPage.sendValidation')}
+                        text={this.props.translate(
+                            'addSecondaryLoginPage.sendValidation',
+                        )}
                         onPress={this.submitForm}
                         pressOnEnter
                     />

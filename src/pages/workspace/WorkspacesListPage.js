@@ -12,7 +12,9 @@ import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../components/withLocalize';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import themeColors from '../../styles/themes/default';
 import * as PolicyUtils from '../../libs/PolicyUtils';
@@ -30,22 +32,26 @@ const propTypes = {
     /* Onyx Props */
 
     /** The list of this user's policies */
-    policies: PropTypes.objectOf(PropTypes.shape({
-        /** The ID of the policy */
-        ID: PropTypes.string,
+    policies: PropTypes.objectOf(
+        PropTypes.shape({
+            /** The ID of the policy */
+            ID: PropTypes.string,
 
-        /** The name of the policy */
-        name: PropTypes.string,
+            /** The name of the policy */
+            name: PropTypes.string,
 
-        /** The type of the policy */
-        type: PropTypes.string,
+            /** The type of the policy */
+            type: PropTypes.string,
 
-        /** The user's role in the policy */
-        role: PropTypes.string,
+            /** The user's role in the policy */
+            role: PropTypes.string,
 
-        /** The current action that is waiting to happen on the policy */
-        pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
-    })),
+            /** The current action that is waiting to happen on the policy */
+            pendingAction: PropTypes.oneOf(
+                _.values(CONST.RED_BRICK_ROAD_PENDING_ACTION),
+            ),
+        }),
+    ),
 
     /** List of policy members */
     policyMembers: PropTypes.objectOf(policyMemberPropType),
@@ -104,11 +110,12 @@ class WorkspacesListPage extends Component {
      * @returns {Number} the user wallet balance
      */
     getWalletBalance(isPaymentItem) {
-        return (isPaymentItem && Permissions.canUseWallet(this.props.betas))
+        return isPaymentItem && Permissions.canUseWallet(this.props.betas)
             ? this.props.numberFormat(
-                this.props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
-                {style: 'currency', currency: 'USD'},
-            ) : undefined;
+                  this.props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
+                  {style: 'currency', currency: 'USD'},
+              )
+            : undefined;
     }
 
     /**
@@ -117,22 +124,43 @@ class WorkspacesListPage extends Component {
      */
     getWorkspaces() {
         return _.chain(this.props.policies)
-            .filter(policy => PolicyUtils.shouldShowPolicy(policy, this.props.network.isOffline))
-            .map(policy => ({
+            .filter((policy) =>
+                PolicyUtils.shouldShowPolicy(
+                    policy,
+                    this.props.network.isOffline,
+                ),
+            )
+            .map((policy) => ({
                 title: policy.name,
-                icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
-                iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
-                iconStyles: policy.avatar ? [] : [styles.popoverMenuIconEmphasized],
+                icon: policy.avatar
+                    ? policy.avatar
+                    : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+                iconType: policy.avatar
+                    ? CONST.ICON_TYPE_AVATAR
+                    : CONST.ICON_TYPE_ICON,
+                action: () =>
+                    Navigation.navigate(
+                        ROUTES.getWorkspaceInitialRoute(policy.id),
+                    ),
+                iconStyles: policy.avatar
+                    ? []
+                    : [styles.popoverMenuIconEmphasized],
                 iconFill: themeColors.textLight,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
+                brickRoadIndicator:
+                    PolicyUtils.getPolicyBrickRoadIndicatorStatus(
+                        policy,
+                        this.props.policyMembers,
+                    ),
                 pendingAction: policy.pendingAction,
                 errors: policy.errors,
-                dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
-                disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                dismissError: () =>
+                    dismissWorkspaceError(policy.id, policy.pendingAction),
+                disabled:
+                    policy.pendingAction ===
+                    CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
-            .sortBy(policy => policy.title)
+            .sortBy((policy) => policy.title)
             .value();
     }
 
@@ -144,7 +172,9 @@ class WorkspacesListPage extends Component {
      * @returns {JSX}
      */
     getMenuItem(item, index) {
-        const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
+        const keyTitle = item.translationKey
+            ? this.props.translate(item.translationKey)
+            : item.title;
         const isPaymentItem = item.translationKey === 'common.payments';
 
         return (
@@ -179,24 +209,34 @@ class WorkspacesListPage extends Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('common.workspaces')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                    onBackButtonPress={() =>
+                        Navigation.navigate(ROUTES.SETTINGS)
+                    }
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 {_.isEmpty(workspaces) ? (
                     <BlockingView
                         icon={Expensicons.Building}
-                        title={this.props.translate('workspace.emptyWorkspace.title')}
-                        subtitle={this.props.translate('workspace.emptyWorkspace.subtitle')}
+                        title={this.props.translate(
+                            'workspace.emptyWorkspace.title',
+                        )}
+                        subtitle={this.props.translate(
+                            'workspace.emptyWorkspace.subtitle',
+                        )}
                     />
                 ) : (
                     <ScrollView style={styles.flex1}>
-                        {_.map(workspaces, (item, index) => this.getMenuItem(item, index))}
+                        {_.map(workspaces, (item, index) =>
+                            this.getMenuItem(item, index),
+                        )}
                     </ScrollView>
                 )}
                 <FixedFooter style={[styles.flexGrow0]}>
                     <Button
                         success
-                        text={this.props.translate('workspace.new.newWorkspace')}
+                        text={this.props.translate(
+                            'workspace.new.newWorkspace',
+                        )}
                         onPress={() => Policy.createWorkspace()}
                     />
                 </FixedFooter>

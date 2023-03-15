@@ -10,7 +10,9 @@ import Navigation from '../../Navigation/Navigation';
  * @param {Object} newAchData
  */
 function goToWithdrawalAccountSetupStep(stepID, newAchData) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...newAchData, currentStep: stepID}});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+        achData: {...newAchData, currentStep: stepID},
+    });
 }
 
 /**
@@ -20,7 +22,4 @@ function navigateToBankAccountRoute() {
     Navigation.navigate(ROUTES.getBankAccountRoute());
 }
 
-export {
-    goToWithdrawalAccountSetupStep,
-    navigateToBankAccountRoute,
-};
+export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute};

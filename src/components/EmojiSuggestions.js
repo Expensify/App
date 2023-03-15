@@ -17,13 +17,15 @@ const propTypes = {
     highlightedEmojiIndex: PropTypes.number,
 
     /** Array of suggested emoji */
-    emojis: PropTypes.arrayOf(PropTypes.shape({
-        /** The emoji code */
-        code: PropTypes.string,
+    emojis: PropTypes.arrayOf(
+        PropTypes.shape({
+            /** The emoji code */
+            code: PropTypes.string,
 
-        /** The name of the emoji */
-        name: PropTypes.string,
-    })).isRequired,
+            /** The name of the emoji */
+            name: PropTypes.string,
+        }),
+    ).isRequired,
 
     /** Fired when the user selects an emoji */
     onSelect: PropTypes.func.isRequired,
@@ -58,7 +60,10 @@ const measureHeightOfEmojiRows = (numRows, isEmojiPickerLarge) => {
     }
     if (numRows > 2) {
         // on small screens, we display a scrollable window with a height of 2.5 items, indicating that there are more items available beyond what is currently visible
-        return CONST.EMOJI_SUGGESTER.SMALL_CONTAINER_HEIGHT_FACTOR * CONST.EMOJI_SUGGESTER.ITEM_HEIGHT;
+        return (
+            CONST.EMOJI_SUGGESTER.SMALL_CONTAINER_HEIGHT_FACTOR *
+            CONST.EMOJI_SUGGESTER.ITEM_HEIGHT
+        );
     }
     return numRows * CONST.EMOJI_SUGGESTER.ITEM_HEIGHT;
 };
@@ -83,21 +88,33 @@ const EmojiSuggestions = (props) => {
 
         return (
             <Pressable
-                style={({hovered}) => StyleUtils.getEmojiSuggestionItemStyle(
-                    props.highlightedEmojiIndex,
-                    CONST.EMOJI_SUGGESTER.ITEM_HEIGHT,
-                    hovered,
-                    index,
-                )}
-                onMouseDown={e => e.preventDefault()}
+                style={({hovered}) =>
+                    StyleUtils.getEmojiSuggestionItemStyle(
+                        props.highlightedEmojiIndex,
+                        CONST.EMOJI_SUGGESTER.ITEM_HEIGHT,
+                        hovered,
+                        index,
+                    )
+                }
+                onMouseDown={(e) => e.preventDefault()}
                 onPress={() => props.onSelect(index)}
             >
                 <View style={styles.emojiSuggestionContainer}>
-                    <Text style={styles.emojiSuggestionsEmoji}>{EmojiUtils.getEmojiCodeWithSkinColor(item, props.preferredSkinToneIndex)}</Text>
+                    <Text style={styles.emojiSuggestionsEmoji}>
+                        {EmojiUtils.getEmojiCodeWithSkinColor(
+                            item,
+                            props.preferredSkinToneIndex,
+                        )}
+                    </Text>
                     <Text style={styles.emojiSuggestionsText}>
                         :
                         {_.map(styledTextArray, ({text, isColored}, i) => (
-                            <Text key={`${text}+${i}`} style={StyleUtils.getColoredBackgroundStyle(isColored)}>
+                            <Text
+                                key={`${text}+${i}`}
+                                style={StyleUtils.getColoredBackgroundStyle(
+                                    isColored,
+                                )}
+                            >
                                 {text}
                             </Text>
                         ))}

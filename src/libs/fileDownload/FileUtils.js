@@ -65,7 +65,11 @@ function getAttachmentName(url) {
     if (!url) {
         return '';
     }
-    return `${moment().format('DDMMYYYYHHmmss')}.${url.split(/[#?]/)[0].split('.').pop().trim()}`;
+    return `${moment().format('DDMMYYYYHHmmss')}.${url
+        .split(/[#?]/)[0]
+        .split('.')
+        .pop()
+        .trim()}`;
 }
 
 /**

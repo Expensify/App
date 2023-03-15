@@ -7,7 +7,10 @@ import variables from '../../styles/variables';
 import OptionRow from '../OptionRow';
 import SectionList from '../SectionList';
 import Text from '../Text';
-import {propTypes as optionsListPropTypes, defaultProps as optionsListDefaultProps} from './optionsListPropTypes';
+import {
+    propTypes as optionsListPropTypes,
+    defaultProps as optionsListDefaultProps,
+} from './optionsListPropTypes';
 
 const propTypes = {
     /** Determines whether the keyboard gets dismissed in response to a drag */
@@ -45,11 +48,14 @@ class BaseOptionsList extends Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        return nextProps.focusedIndex !== this.props.focusedIndex
-            || nextProps.selectedOptions.length !== this.props.selectedOptions.length
-            || nextProps.headerMessage !== this.props.headerMessage
-            || !_.isEqual(nextProps.sections, this.props.sections)
-            || !_.isEqual(nextProps.sections, this.props.sections);
+        return (
+            nextProps.focusedIndex !== this.props.focusedIndex ||
+            nextProps.selectedOptions.length !==
+                this.props.selectedOptions.length ||
+            nextProps.headerMessage !== this.props.headerMessage ||
+            !_.isEqual(nextProps.sections, this.props.sections) ||
+            !_.isEqual(nextProps.sections, this.props.sections)
+        );
     }
 
     componentDidUpdate(prevProps) {
@@ -110,11 +116,18 @@ class BaseOptionsList extends Component {
         const flatArray = [{length: 0, offset}];
 
         // Build the flat array
-        for (let sectionIndex = 0; sectionIndex < this.props.sections.length; sectionIndex++) {
+        for (
+            let sectionIndex = 0;
+            sectionIndex < this.props.sections.length;
+            sectionIndex++
+        ) {
             const section = this.props.sections[sectionIndex];
 
             // Add the section header
-            const sectionHeaderHeight = section.title && !this.props.hideSectionHeaders ? variables.optionsListSectionHeaderHeight : 0;
+            const sectionHeaderHeight =
+                section.title && !this.props.hideSectionHeaders
+                    ? variables.optionsListSectionHeaderHeight
+                    : 0;
             flatArray.push({length: sectionHeaderHeight, offset});
             offset += sectionHeaderHeight;
 
@@ -163,16 +176,27 @@ class BaseOptionsList extends Component {
                 option={item}
                 showTitleTooltip={this.props.showTitleTooltip}
                 hoverStyle={this.props.optionHoveredStyle}
-                optionIsFocused={!this.props.disableFocusOptions
-                    && !isDisabled
-                    && this.props.focusedIndex === (index + section.indexOffset)}
+                optionIsFocused={
+                    !this.props.disableFocusOptions &&
+                    !isDisabled &&
+                    this.props.focusedIndex === index + section.indexOffset
+                }
                 onSelectRow={this.props.onSelectRow}
-                isSelected={Boolean(_.find(this.props.selectedOptions, option => option.login === item.login))}
+                isSelected={Boolean(
+                    _.find(
+                        this.props.selectedOptions,
+                        (option) => option.login === item.login,
+                    ),
+                )}
                 showSelectedState={this.props.canSelectMultipleOptions}
                 boldStyle={this.props.boldStyle}
                 isDisabled={isDisabled}
-                shouldHaveOptionSeparator={index > 0 && this.props.shouldHaveOptionSeparator}
-                shouldDisableRowInnerPadding={this.props.shouldDisableRowInnerPadding}
+                shouldHaveOptionSeparator={
+                    index > 0 && this.props.shouldHaveOptionSeparator
+                }
+                shouldDisableRowInnerPadding={
+                    this.props.shouldDisableRowInnerPadding
+                }
             />
         );
     }
@@ -190,7 +214,6 @@ class BaseOptionsList extends Component {
     renderSectionHeader({section: {title, shouldShow}}) {
         if (title && shouldShow && !this.props.hideSectionHeaders) {
             return (
-
                 // Note: The `optionsListSectionHeader` style provides an explicit height to section headers.
                 // We do this so that we can reference the height in `getItemLayout` –
                 // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.

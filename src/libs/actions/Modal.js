@@ -13,7 +13,9 @@ function setCloseModal(onClose) {
 }
 
 function close() {
-    if (!closeModal) { return; }
+    if (!closeModal) {
+        return;
+    }
     closeModal();
 }
 
@@ -36,9 +38,4 @@ function willAlertModalBecomeVisible(isVisible) {
     Onyx.merge(ONYXKEYS.MODAL, {willAlertModalBecomeVisible: isVisible});
 }
 
-export {
-    setCloseModal,
-    close,
-    setModalVisibility,
-    willAlertModalBecomeVisible,
-};
+export {setCloseModal, close, setModalVisibility, willAlertModalBecomeVisible};

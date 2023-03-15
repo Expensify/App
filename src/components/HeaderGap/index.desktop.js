@@ -4,6 +4,6 @@ import styles from '../../styles/styles';
 
 export default class HeaderGap extends PureComponent {
     render() {
-        return (<View style={styles.headerGap} />);
+        return <View style={styles.headerGap} />;
     }
 }

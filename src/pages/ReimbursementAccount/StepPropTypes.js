@@ -5,7 +5,8 @@ import {withLocalizePropTypes} from '../../components/withLocalize';
 
 export default {
     /** The bank account currently in setup */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount:
+        ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
     /** The draft values of the bank account being setup */
     reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,

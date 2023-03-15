@@ -1,6 +1,9 @@
 const path = require('path');
 const {
-    IgnorePlugin, DefinePlugin, ProvidePlugin, EnvironmentPlugin,
+    IgnorePlugin,
+    DefinePlugin,
+    ProvidePlugin,
+    EnvironmentPlugin,
 } = require('webpack');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -50,10 +53,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     mode: 'production',
     devtool: 'source-map',
     entry: {
-        main: [
-            'babel-polyfill',
-            './index.js',
-        ],
+        main: ['babel-polyfill', './index.js'],
         splash: ['./web/splash/splash.js'],
     },
     output: {
@@ -95,10 +95,20 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'web/og-preview-image.png'},
                 {from: 'assets/css', to: 'css'},
                 {from: 'assets/fonts/web', to: 'fonts'},
-                {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
+                {
+                    from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css',
+                    to: 'css/AnnotationLayer.css',
+                },
                 {from: 'assets/images/shadow.png', to: 'images/shadow.png'},
-                {from: '.well-known/apple-app-site-association', to: '.well-known/apple-app-site-association', toType: 'file'},
-                {from: '.well-known/assetlinks.json', to: '.well-known/assetlinks.json'},
+                {
+                    from: '.well-known/apple-app-site-association',
+                    to: '.well-known/apple-app-site-association',
+                    toType: 'file',
+                },
+                {
+                    from: '.well-known/assetlinks.json',
+                    to: '.well-known/assetlinks.json',
+                },
 
                 // These files are copied over as per instructions here
                 // https://github.com/wojtekmaj/react-pdf#copying-cmaps
@@ -124,7 +134,9 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         }),
 
         // This allows us to interactively inspect JS bundle contents
-        ...(process.env.ANALYZE_BUNDLE === 'true' ? [new BundleAnalyzerPlugin()] : []),
+        ...(process.env.ANALYZE_BUNDLE === 'true'
+            ? [new BundleAnalyzerPlugin()]
+            : []),
     ],
     module: {
         rules: [
@@ -142,14 +154,18 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                  * use JSX/JS that needs to be transformed by babel.
                  */
                 exclude: [
-                    new RegExp(`node_modules/(?!(${includeModules})/).*|.native.js$`),
+                    new RegExp(
+                        `node_modules/(?!(${includeModules})/).*|.native.js$`,
+                    ),
                 ],
             },
 
             // We are importing this worker as a string by using asset/source otherwise it will default to loading via an HTTPS request later.
             // This causes issues if we have gone offline before the pdfjs web worker is set up as we won't be able to load it from the server.
             {
-                test: new RegExp('node_modules/pdfjs-dist/legacy/build/pdf.worker.js'),
+                test: new RegExp(
+                    'node_modules/pdfjs-dist/legacy/build/pdf.worker.js',
+                ),
                 type: 'asset/source',
             },
 
@@ -181,13 +197,15 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             },
             {
                 test: /splash.css$/i,
-                use: [{
-                    loader: 'style-loader',
-                    options: {
-                        insert: 'head',
-                        injectType: 'singletonStyleTag',
+                use: [
+                    {
+                        loader: 'style-loader',
+                        options: {
+                            insert: 'head',
+                            injectType: 'singletonStyleTag',
+                        },
                     },
-                }],
+                ],
             },
             {
                 test: /\.css$/i,
@@ -205,7 +223,12 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     },
     resolve: {
         alias: {
-            logo$: path.resolve(__dirname, `../../assets/images/new-expensify${mapEnvToLogoSuffix(envFile)}.svg`),
+            logo$: path.resolve(
+                __dirname,
+                `../../assets/images/new-expensify${mapEnvToLogoSuffix(
+                    envFile,
+                )}.svg`,
+            ),
             'react-native-config': 'react-web-config',
             'react-native$': '@expensify/react-native-web',
             'react-native-web': '@expensify/react-native-web',
@@ -218,7 +241,12 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         // This is also why we have to use .website.js for our own web-specific files...
         // Because desktop also relies on "web-specific" module implementations
         // This also skips packing web only dependencies to desktop and vice versa
-        extensions: ['.web.js', (platform === 'web') ? '.website.js' : '.desktop.js', '.js', '.jsx'],
+        extensions: [
+            '.web.js',
+            platform === 'web' ? '.website.js' : '.desktop.js',
+            '.js',
+            '.jsx',
+        ],
         fallback: {
             'process/browser': require.resolve('process/browser'),
         },

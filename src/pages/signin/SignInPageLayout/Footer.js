@@ -6,8 +6,12 @@ import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import TextLink from '../../../components/TextLink';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
 import Licenses from '../Licenses';
 import Socials from '../Socials';
@@ -139,9 +143,15 @@ const Footer = (props) => {
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
     const columnDirection = isVertical ? styles.flexColumn : styles.flexRow;
-    const pageFooterWrapper = [styles.footerWrapper, imageDirection, imageStyle];
+    const pageFooterWrapper = [
+        styles.footerWrapper,
+        imageDirection,
+        imageStyle,
+    ];
     const footerColumns = [styles.footerColumnsContainer, columnDirection];
-    const footerColumn = isVertical ? [styles.p4] : [styles.p4, props.isMediumScreenWidth ? styles.w50 : styles.w25];
+    const footerColumn = isVertical
+        ? [styles.p4]
+        : [styles.p4, props.isMediumScreenWidth ? styles.w50 : styles.w25];
 
     return (
         <View style={[styles.flex1]}>
@@ -153,30 +163,40 @@ const Footer = (props) => {
                                 key={column.translationPath}
                                 style={footerColumn}
                             >
-                                <Text style={[styles.textHeadline, styles.footerTitle]}>
+                                <Text
+                                    style={[
+                                        styles.textHeadline,
+                                        styles.footerTitle,
+                                    ]}
+                                >
                                     {props.translate(column.translationPath)}
                                 </Text>
                                 <View style={[styles.footerRow]}>
-                                    {_.map(column.rows, row => (
-                                        <Hoverable
-                                            key={row.translationPath}
-                                        >
-                                            {hovered => (
+                                    {_.map(column.rows, (row) => (
+                                        <Hoverable key={row.translationPath}>
+                                            {(hovered) => (
                                                 <TextLink
-                                                    style={[styles.footerRow, hovered ? styles.textBlue : {}]}
+                                                    style={[
+                                                        styles.footerRow,
+                                                        hovered
+                                                            ? styles.textBlue
+                                                            : {},
+                                                    ]}
                                                     href={row.link}
                                                 >
-                                                    {props.translate(row.translationPath)}
+                                                    {props.translate(
+                                                        row.translationPath,
+                                                    )}
                                                 </TextLink>
                                             )}
                                         </Hoverable>
                                     ))}
-                                    {(i === 2) && (
+                                    {i === 2 && (
                                         <View style={styles.mt5}>
                                             <Socials />
                                         </View>
                                     )}
-                                    {(i === 3) && (
+                                    {i === 3 && (
                                         <View style={styles.mv4}>
                                             <Licenses />
                                         </View>
@@ -186,12 +206,14 @@ const Footer = (props) => {
                         ))}
                     </View>
                     <View style={[!isVertical && styles.footerBottomLogo]}>
-                        {!isVertical
-                            ? (
-                                <Expensicons.ExpensifyFooterLogo />
-                            ) : (
-                                <Expensicons.ExpensifyFooterLogoVertical height={variables.verticalLogoHeight} width={variables.verticalLogoWidth} />
-                            )}
+                        {!isVertical ? (
+                            <Expensicons.ExpensifyFooterLogo />
+                        ) : (
+                            <Expensicons.ExpensifyFooterLogoVertical
+                                height={variables.verticalLogoHeight}
+                                width={variables.verticalLogoWidth}
+                            />
+                        )}
                     </View>
                 </View>
             </View>
@@ -202,7 +224,4 @@ const Footer = (props) => {
 Footer.propTypes = propTypes;
 Footer.displayName = 'Footer';
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-)(Footer);
+export default compose(withLocalize, withWindowDimensions)(Footer);

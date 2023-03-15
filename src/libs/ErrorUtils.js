@@ -49,7 +49,7 @@ function getLatestErrorMessage(onyxData) {
         .keys()
         .sortBy()
         .reverse()
-        .map(key => onyxData.errors[key])
+        .map((key) => onyxData.errors[key])
         .first()
         .value();
 }

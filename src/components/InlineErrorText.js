@@ -23,7 +23,9 @@ const InlineErrorText = (props) => {
     }
 
     return (
-        <Text style={[...props.styles, styles.formError, styles.mt1]}>{props.children}</Text>
+        <Text style={[...props.styles, styles.formError, styles.mt1]}>
+            {props.children}
+        </Text>
     );
 };
 

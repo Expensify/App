@@ -13,7 +13,9 @@ function clearError() {
  * Set default Onyx data
  */
 function setDefaultData() {
-    Onyx.merge(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM, {...CONST.DEFAULT_CLOSE_ACCOUNT_DATA});
+    Onyx.merge(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM, {
+        ...CONST.DEFAULT_CLOSE_ACCOUNT_DATA,
+    });
 }
 
 export {

@@ -28,13 +28,11 @@ const CheckboxWithTooltip = (props) => {
     );
     return (
         <View style={props.style}>
-            {props.toggleTooltip
-                ? (
-                    <Tooltip text={props.text}>
-                        {checkbox}
-                    </Tooltip>
-                )
-                : checkbox}
+            {props.toggleTooltip ? (
+                <Tooltip text={props.text}>{checkbox}</Tooltip>
+            ) : (
+                checkbox
+            )}
         </View>
     );
 };

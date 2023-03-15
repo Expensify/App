@@ -910,12 +910,7 @@ export default () => ({
                 {
                     code: '\ud83e\udd17',
                     count: 91,
-                    keywords: [
-                        'hugs',
-                        'face',
-                        'hug',
-                        'hugging',
-                    ],
+                    keywords: ['hugs', 'face', 'hug', 'hugging'],
                     lastUpdatedAt: 1669660894,
                     name: 'hugs',
                 },
@@ -937,23 +932,14 @@ export default () => ({
                 {
                     code: '\ud83e\udd14',
                     count: 56,
-                    keywords: [
-                        'thinking',
-                        'face',
-                    ],
+                    keywords: ['thinking', 'face'],
                     lastUpdatedAt: 1669661008,
                     name: 'thinking',
                 },
                 {
                     code: '\ud83d\ude02',
                     count: 55,
-                    keywords: [
-                        'tears',
-                        'joy',
-                        'face',
-                        'laugh',
-                        'tear',
-                    ],
+                    keywords: ['tears', 'joy', 'face', 'laugh', 'tear'],
                     lastUpdatedAt: 1670346435,
                     name: 'joy',
                 },
@@ -992,11 +978,7 @@ export default () => ({
                 {
                     code: '\ud83d\ude18',
                     count: 27,
-                    keywords: [
-                        'face',
-                        'heart',
-                        'kiss',
-                    ],
+                    keywords: ['face', 'heart', 'kiss'],
                     lastUpdatedAt: 1670346848,
                     name: 'kissing_heart',
                 },
@@ -1034,13 +1016,7 @@ export default () => ({
                 {
                     code: '\ud83d\ude0a',
                     count: 17,
-                    keywords: [
-                        'proud',
-                        'blush',
-                        'eye',
-                        'face',
-                        'smile',
-                    ],
+                    keywords: ['proud', 'blush', 'eye', 'face', 'smile'],
                     lastUpdatedAt: 1669661018,
                     name: 'blush',
                 },
@@ -1064,11 +1040,7 @@ export default () => ({
                 {
                     code: '\ud83d\ude10',
                     count: 17,
-                    keywords: [
-                        'deadpan',
-                        'face',
-                        'neutral',
-                    ],
+                    keywords: ['deadpan', 'face', 'neutral'],
                     lastUpdatedAt: 1669658922,
                     name: 'neutral_face',
                 },
@@ -1091,10 +1063,7 @@ export default () => ({
                 {
                     code: '\ud83d\ude17',
                     count: 15,
-                    keywords: [
-                        'face',
-                        'kiss',
-                    ],
+                    keywords: ['face', 'kiss'],
                     lastUpdatedAt: 1669639079,
                 },
                 {
@@ -1126,22 +1095,13 @@ export default () => ({
                 {
                     code: '\ud83e\udd10',
                     count: 11,
-                    keywords: [
-                        'face',
-                        'mouth',
-                        'zipper',
-                    ],
+                    keywords: ['face', 'mouth', 'zipper'],
                     lastUpdatedAt: 1670346432,
                 },
                 {
                     code: '\ud83d\ude25',
                     count: 11,
-                    keywords: [
-                        'disappointed',
-                        'face',
-                        'relieved',
-                        'whew',
-                    ],
+                    keywords: ['disappointed', 'face', 'relieved', 'whew'],
                     lastUpdatedAt: 1669660257,
                 },
                 {
@@ -1164,12 +1124,7 @@ export default () => ({
                 {
                     code: '\ud83d\ude36',
                     count: 11,
-                    keywords: [
-                        'face',
-                        'mouth',
-                        'quiet',
-                        'silent',
-                    ],
+                    keywords: ['face', 'mouth', 'quiet', 'silent'],
                     lastUpdatedAt: 1669659075,
                     name: 'no_mouth',
                 },
@@ -1187,19 +1142,13 @@ export default () => ({
                 {
                     code: '\ud83d\ude0f',
                     count: 11,
-                    keywords: [
-                        'face',
-                        'smirk',
-                    ],
+                    keywords: ['face', 'smirk'],
                     lastUpdatedAt: 1666207075,
                 },
                 {
                     code: '\ud83e\udd70',
                     count: 1,
-                    keywords: [
-                        'love',
-                        'smiling_face_with_three_hearts',
-                    ],
+                    keywords: ['love', 'smiling_face_with_three_hearts'],
                     lastUpdatedAt: 1670581230,
                     name: 'smiling_face_with_three_hearts',
                 },
@@ -1208,9 +1157,7 @@ export default () => ({
         {
             onyxMethod: 'merge',
             key: 'private_blockedFromConcierge',
-            value: {
-
-            },
+            value: {},
         },
         {
             onyxMethod: 'merge',
@@ -1227,7 +1174,8 @@ export default () => ({
             value: {
                 'applausetester+perf2@applause.expensifail.com': {
                     partnerName: 'expensify.com',
-                    partnerUserID: 'applausetester+perf2@applause.expensifail.com',
+                    partnerUserID:
+                        'applausetester+perf2@applause.expensifail.com',
                     validatedDate: '2022-08-01 05:00:48',
                 },
             },
@@ -1449,7 +1397,8 @@ export default () => ({
                 'applausetester+pd1005@applause.expensifail.com': {
                     login: 'applausetester+pd1005@applause.expensifail.com',
                     avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/86c9b7dce35aea83b69c6e825a4b3d00a87389b7_128.jpeg',
-                    displayName: 'applausetester+pd1005@applause.expensifail.com',
+                    displayName:
+                        'applausetester+pd1005@applause.expensifail.com',
                     pronouns: '',
                     timezone: {
                         automatic: 'true',
@@ -1479,7 +1428,8 @@ export default () => ({
                 'applausetester+perf2@applause.expensifail.com': {
                     login: 'applausetester+perf2@applause.expensifail.com',
                     avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/1486f9cc6367d8c399ee453ad5b686d157bb4dda_128.jpeg',
-                    displayName: 'applausetester+perf2@applause.expensifail.com',
+                    displayName:
+                        'applausetester+perf2@applause.expensifail.com',
                     pronouns: '',
                     timezone: {
                         automatic: true,
@@ -1704,9 +1654,7 @@ export default () => ({
                     owner: 'applausetester+perf2@applause.expensifail.com',
                     outputCurrency: 'USD',
                     avatar: '',
-                    employeeList: [
-
-                    ],
+                    employeeList: [],
                 },
                 policy_A6511FF8D2EE7661: {
                     isFromFullPolicy: false,
@@ -1717,9 +1665,7 @@ export default () => ({
                     owner: 'applausetester+perf2@applause.expensifail.com',
                     outputCurrency: 'INR',
                     avatar: '',
-                    employeeList: [
-
-                    ],
+                    employeeList: [],
                 },
             },
         },
@@ -1733,15 +1679,14 @@ export default () => ({
                     chatType: '',
                     ownerEmail: '__fake__',
                     policyID: '_FAKE_',
-                    participants: [
-                        'concierge@expensify.com',
-                    ],
+                    participants: ['concierge@expensify.com'],
                     isPinned: true,
                     lastReadTimestamp: 1671126234191,
                     lastReadCreated: '1980-01-01 00:00:00.000',
                     lastVisibleActionCreated: '2022-08-03 06:45:00',
                     lastMessageTimestamp: 1659509100000,
-                    lastMessageText: 'You can easily track, approve, and pay bills in Expensify with your custom compa',
+                    lastMessageText:
+                        'You can easily track, approve, and pay bills in Expensify with your custom compa',
                     lastActorEmail: 'concierge@expensify.com',
                     notificationPreference: 'always',
                     stateNum: 0,
@@ -1749,10 +1694,11 @@ export default () => ({
                     oldPolicyName: '',
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
-                    lastMessageHtml: 'You can easily track, approve, and pay bills in Expensify with your custom company bill pay email address: '
-                        + '<a href="mailto:applause.expensifail.com@expensify.cash" target="_blank" rel="noreferrer noopener">applause.expensifail.com@expensify.cash</a>. Learn more '
-                        + '<a href="https://www.expensify.com/inbox?policyID=C28C2634DD7226B8&amp;taskID=ForwardToExpensifyCash" target="_blank" rel="noreferrer noopener">here.'
-                        + '</a> For questions, just reply to this message.',
+                    lastMessageHtml:
+                        'You can easily track, approve, and pay bills in Expensify with your custom company bill pay email address: ' +
+                        '<a href="mailto:applause.expensifail.com@expensify.cash" target="_blank" rel="noreferrer noopener">applause.expensifail.com@expensify.cash</a>. Learn more ' +
+                        '<a href="https://www.expensify.com/inbox?policyID=C28C2634DD7226B8&amp;taskID=ForwardToExpensifyCash" target="_blank" rel="noreferrer noopener">here.' +
+                        '</a> For questions, just reply to this message.',
                     hasOutstandingIOU: false,
                 },
                 report_98258458: {
@@ -1795,15 +1741,18 @@ export default () => ({
                     lastReadCreated: '1980-01-01 00:00:00.000',
                     lastVisibleActionCreated: '2022-08-02 20:03:42',
                     lastMessageTimestamp: 1659470622000,
-                    lastMessageText: 'Requested \u20b41.67 from applausetester+perf2@applause.expensifail.com',
-                    lastActorEmail: 'applausetester+ihchat4@applause.expensifail.com',
+                    lastMessageText:
+                        'Requested \u20b41.67 from applausetester+perf2@applause.expensifail.com',
+                    lastActorEmail:
+                        'applausetester+ihchat4@applause.expensifail.com',
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
                     oldPolicyName: '',
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
-                    lastMessageHtml: 'Requested \u20b41.67 from applausetester+perf2@applause.expensifail.com',
+                    lastMessageHtml:
+                        'Requested \u20b41.67 from applausetester+perf2@applause.expensifail.com',
                     hasOutstandingIOU: false,
                 },
                 report_98345050: {
@@ -1812,9 +1761,7 @@ export default () => ({
                     chatType: '',
                     ownerEmail: '__fake__',
                     policyID: '_FAKE_',
-                    participants: [
-                        'fake3@gmail.com',
-                    ],
+                    participants: ['fake3@gmail.com'],
                     isPinned: false,
                     lastReadTimestamp: 1671210740419,
                     lastReadCreated: '1980-01-01 00:00:00.000',
@@ -1848,7 +1795,8 @@ export default () => ({
                     lastReadCreated: '1980-01-01 00:00:00.000',
                     lastVisibleActionCreated: '2022-08-01 20:48:16',
                     lastMessageTimestamp: 1659386896000,
-                    lastMessageText: 'applausetester+perf2@applause.expensifail.com',
+                    lastMessageText:
+                        'applausetester+perf2@applause.expensifail.com',
                     lastActorEmail: 'fake3@gmail.com',
                     notificationPreference: 'always',
                     stateNum: 0,
@@ -1856,7 +1804,8 @@ export default () => ({
                     oldPolicyName: '',
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
-                    lastMessageHtml: '<a href="mailto:applausetester+perf2@applause.expensifail.com">applausetester+perf2@applause.expensifail.com</a>',
+                    lastMessageHtml:
+                        '<a href="mailto:applausetester+perf2@applause.expensifail.com">applausetester+perf2@applause.expensifail.com</a>',
                     hasOutstandingIOU: false,
                 },
                 report_98345625: {
@@ -1932,15 +1881,18 @@ export default () => ({
                     lastReadCreated: '1980-01-01 00:00:00.000',
                     lastVisibleActionCreated: '2022-08-02 20:03:41',
                     lastMessageTimestamp: 1659470621000,
-                    lastMessageText: 'Split \u20b45.00 with applausetester+perf2@applause.expensifail.com and applauseteste',
-                    lastActorEmail: 'applausetester+ihchat4@applause.expensifail.com',
+                    lastMessageText:
+                        'Split \u20b45.00 with applausetester+perf2@applause.expensifail.com and applauseteste',
+                    lastActorEmail:
+                        'applausetester+ihchat4@applause.expensifail.com',
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
                     oldPolicyName: '',
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
-                    lastMessageHtml: 'Split \u20b45.00 with applausetester+perf2@applause.expensifail.com and fake6@gmail.com',
+                    lastMessageHtml:
+                        'Split \u20b45.00 with applausetester+perf2@applause.expensifail.com and fake6@gmail.com',
                     hasOutstandingIOU: false,
                 },
                 report_98817646: {
@@ -1949,16 +1901,15 @@ export default () => ({
                     chatType: '',
                     ownerEmail: '__fake__',
                     policyID: '_FAKE_',
-                    participants: [
-                        'fake6@gmail.com',
-                    ],
+                    participants: ['fake6@gmail.com'],
                     isPinned: false,
                     lastReadTimestamp: 1671214557025,
                     lastReadCreated: '1980-01-01 00:00:00.000',
                     lastVisibleActionCreated: '2022-12-09 10:17:18.362',
                     lastMessageTimestamp: 1670581038362,
                     lastMessageText: 'RR',
-                    lastActorEmail: 'applausetester+perf2@applause.expensifail.com',
+                    lastActorEmail:
+                        'applausetester+perf2@applause.expensifail.com',
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
@@ -1983,15 +1934,18 @@ export default () => ({
                     lastReadCreated: '1980-01-01 00:00:00.000',
                     lastVisibleActionCreated: '2022-10-12 17:47:45.228',
                     lastMessageTimestamp: 1665596865228,
-                    lastMessageText: 'STAGING_CHAT_MESSAGE_A2C534B7-3509-416E-A0AD-8463831C29DD',
-                    lastActorEmail: 'applausetester+fachat1@applause.expensifail.com',
+                    lastMessageText:
+                        'STAGING_CHAT_MESSAGE_A2C534B7-3509-416E-A0AD-8463831C29DD',
+                    lastActorEmail:
+                        'applausetester+fachat1@applause.expensifail.com',
                     notificationPreference: 'daily',
                     stateNum: 0,
                     statusNum: 0,
                     oldPolicyName: '',
                     visibility: 'restricted',
                     isOwnPolicyExpenseChat: false,
-                    lastMessageHtml: 'STAGING_CHAT_MESSAGE_A2C534B7-3509-416E-A0AD-8463831C29DD',
+                    lastMessageHtml:
+                        'STAGING_CHAT_MESSAGE_A2C534B7-3509-416E-A0AD-8463831C29DD',
                     hasOutstandingIOU: false,
                 },
                 report_663424408122117: {
@@ -2062,7 +2016,8 @@ export default () => ({
                     lastReadCreated: '1980-01-01 00:00:00.000',
                     lastVisibleActionCreated: '2022-11-03 20:48:58.815',
                     lastMessageTimestamp: 1667508538815,
-                    lastMessageText: 'Hi there, thanks for reaching out! How may I help?',
+                    lastMessageText:
+                        'Hi there, thanks for reaching out! How may I help?',
                     lastActorEmail: 'concierge@expensify.com',
                     notificationPreference: 'always',
                     stateNum: 0,
@@ -2070,7 +2025,8 @@ export default () => ({
                     oldPolicyName: '',
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
-                    lastMessageHtml: '<p>Hi there, thanks for reaching out! How may I help?</p>',
+                    lastMessageHtml:
+                        '<p>Hi there, thanks for reaching out! How may I help?</p>',
                     hasOutstandingIOU: false,
                 },
                 report_2576922422943214: {
@@ -2088,7 +2044,8 @@ export default () => ({
                     lastVisibleActionCreated: '2022-12-01 08:05:11.009',
                     lastMessageTimestamp: 1669881911009,
                     lastMessageText: 'Test',
-                    lastActorEmail: 'applausetester+perf2@applause.expensifail.com',
+                    lastActorEmail:
+                        'applausetester+perf2@applause.expensifail.com',
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
@@ -2104,9 +2061,7 @@ export default () => ({
                     chatType: '',
                     ownerEmail: '__fake__',
                     policyID: '_FAKE_',
-                    participants: [
-                        'fake1@gmail.com',
-                    ],
+                    participants: ['fake1@gmail.com'],
                     isPinned: false,
                     lastReadTimestamp: 1669300587843,
                     lastReadCreated: '1980-01-01 00:00:00.000',
@@ -2138,7 +2093,8 @@ export default () => ({
                     lastVisibleActionCreated: '2022-10-12 12:20:00.668',
                     lastMessageTimestamp: 1665577200668,
                     lastMessageText: 'Room renamed to #jack',
-                    lastActorEmail: 'applausetester+pd1005@applause.expensifail.com',
+                    lastActorEmail:
+                        'applausetester+pd1005@applause.expensifail.com',
                     notificationPreference: 'daily',
                     stateNum: 0,
                     statusNum: 0,
@@ -2154,23 +2110,24 @@ export default () => ({
                     chatType: '',
                     ownerEmail: '__fake__',
                     policyID: '_FAKE_',
-                    participants: [
-                        'christoph+hightraffic@margelo.io',
-                    ],
+                    participants: ['christoph+hightraffic@margelo.io'],
                     isPinned: false,
                     lastReadTimestamp: 1671214566347,
                     lastReadCreated: '1980-01-01 00:00:00.000',
                     lastVisibleActionCreated: '2022-12-16 18:14:00.208',
                     lastMessageTimestamp: 1671214440208,
-                    lastMessageText: 'Requested \u20ac200.00 from Christoph for Essen mit Kunden',
-                    lastActorEmail: 'applausetester+perf2@applause.expensifail.com',
+                    lastMessageText:
+                        'Requested \u20ac200.00 from Christoph for Essen mit Kunden',
+                    lastActorEmail:
+                        'applausetester+perf2@applause.expensifail.com',
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
                     oldPolicyName: '',
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
-                    lastMessageHtml: 'Requested \u20ac200.00 from Christoph for Essen mit Kunden',
+                    lastMessageHtml:
+                        'Requested \u20ac200.00 from Christoph for Essen mit Kunden',
                     hasOutstandingIOU: true,
                     iouReportID: 4249286573496381,
                 },
@@ -2196,8 +2153,9 @@ export default () => ({
                     oldPolicyName: '',
                     visibility: 'restricted',
                     isOwnPolicyExpenseChat: false,
-                    lastMessageHtml: 'fff<br />f<br />f<br />f<br />f<br />f<br />f<br />f<br />f<br /><br />f<br />f<br />f<br />f<br /><br />f<br />'
-                        + 'f<br />f<br />f<br />f<br />f<br /><br />f<br />f<br />f<br />f<br />f<br />ff',
+                    lastMessageHtml:
+                        'fff<br />f<br />f<br />f<br />f<br />f<br />f<br />f<br />f<br /><br />f<br />f<br />f<br />f<br /><br />f<br />' +
+                        'f<br />f<br />f<br />f<br />f<br /><br />f<br />f<br />f<br />f<br />f<br />ff',
                     hasOutstandingIOU: false,
                 },
                 report_5324367938904284: {
@@ -2215,7 +2173,8 @@ export default () => ({
                     lastVisibleActionCreated: '2022-11-29 21:08:00.793',
                     lastMessageTimestamp: 1669756080793,
                     lastMessageText: 'Iviviviv8b',
-                    lastActorEmail: 'applausetester+0901abb@applause.expensifail.com',
+                    lastActorEmail:
+                        'applausetester+0901abb@applause.expensifail.com',
                     notificationPreference: 'daily',
                     stateNum: 0,
                     statusNum: 0,
@@ -2303,7 +2262,8 @@ export default () => ({
                     lastReadCreated: '1980-01-01 00:00:00.000',
                     lastVisibleActionCreated: '2022-09-15 12:57:59.526',
                     lastMessageTimestamp: 1663246679526,
-                    lastMessageText: "\ud83d\udc4b Welcome to Expensify! I'm Concierge. Is there anything I can help with? Click ",
+                    lastMessageText:
+                        "\ud83d\udc4b Welcome to Expensify! I'm Concierge. Is there anything I can help with? Click ",
                     lastActorEmail: 'concierge@expensify.com',
                     notificationPreference: 'always',
                     stateNum: 0,
@@ -2311,8 +2271,9 @@ export default () => ({
                     oldPolicyName: '',
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
-                    lastMessageHtml: "\ud83d\udc4b Welcome to Expensify! I'm Concierge. Is there anything I can help with? Click the + icon on the homescreen to explore the features you"
-                        + ' can use.',
+                    lastMessageHtml:
+                        "\ud83d\udc4b Welcome to Expensify! I'm Concierge. Is there anything I can help with? Click the + icon on the homescreen to explore the features you" +
+                        ' can use.',
                     hasOutstandingIOU: false,
                 },
                 report_7658708888047100: {
@@ -2360,7 +2321,8 @@ export default () => ({
                     lastVisibleActionCreated: '2022-10-12 12:46:43.577',
                     lastMessageTimestamp: 1665578803577,
                     lastMessageText: 'Room renamed to #jackd23',
-                    lastActorEmail: 'applausetester+pd1005@applause.expensifail.com',
+                    lastActorEmail:
+                        'applausetester+pd1005@applause.expensifail.com',
                     notificationPreference: 'daily',
                     stateNum: 0,
                     statusNum: 0,
@@ -2376,9 +2338,7 @@ export default () => ({
                     chatType: '',
                     ownerEmail: '__fake__',
                     policyID: '_FAKE_',
-                    participants: [
-                        'fake5@gmail.com',
-                    ],
+                    participants: ['fake5@gmail.com'],
                     isPinned: false,
                     lastReadTimestamp: 1671205430161,
                     lastReadCreated: '1980-01-01 00:00:00.000',
@@ -2426,5 +2386,4 @@ export default () => ({
     ],
     jsonCode: 200,
     requestID: '783ef7fac81f969a-SJC',
-}
-);
+});

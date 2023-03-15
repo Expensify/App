@@ -38,7 +38,9 @@ describe('isStagingDeployLockedTest', () => {
             };
 
             // Mock the return value of GithubUtils.getStagingDeployCash() to return the correct label
-            GithubUtils.getStagingDeployCash = jest.fn().mockResolvedValue(mockData);
+            GithubUtils.getStagingDeployCash = jest
+                .fn()
+                .mockResolvedValue(mockData);
             const setOutputMock = jest.spyOn(core, 'setOutput');
             const isStagingDeployLocked = run();
             return isStagingDeployLocked.then(() => {

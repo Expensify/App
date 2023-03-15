@@ -29,7 +29,8 @@ function setHTMLSync(html, text) {
     document.body.appendChild(node);
 
     const selection = window.getSelection();
-    const firstAnchorChild = selection.anchorNode && selection.anchorNode.firstChild;
+    const firstAnchorChild =
+        selection.anchorNode && selection.anchorNode.firstChild;
     const isComposer = firstAnchorChild instanceof HTMLTextAreaElement;
     let originalSelection = null;
     if (isComposer) {
@@ -62,9 +63,18 @@ function setHTMLSync(html, text) {
     selection.removeAllRanges();
 
     if (isComposer) {
-        firstAnchorChild.setSelectionRange(originalSelection.start, originalSelection.end, originalSelection.direction);
+        firstAnchorChild.setSelectionRange(
+            originalSelection.start,
+            originalSelection.end,
+            originalSelection.direction,
+        );
     } else {
-        selection.setBaseAndExtent(originalSelection.anchorNode, originalSelection.anchorOffset, originalSelection.focusNode, originalSelection.focusOffset);
+        selection.setBaseAndExtent(
+            originalSelection.anchorNode,
+            originalSelection.anchorOffset,
+            originalSelection.focusNode,
+            originalSelection.focusOffset,
+        );
     }
 
     document.body.removeChild(node);
@@ -81,7 +91,9 @@ const setHtml = (html, text) => {
     }
 
     if (!canSetHtml()) {
-        throw new Error('clipboard.write is not supported on this platform, thus HTML cannot be copied.');
+        throw new Error(
+            'clipboard.write is not supported on this platform, thus HTML cannot be copied.',
+        );
     }
 
     if (CONST.BROWSER.SAFARI === Browser.getBrowser()) {

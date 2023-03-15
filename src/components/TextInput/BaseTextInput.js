@@ -1,7 +1,11 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {
-    Animated, View, TouchableWithoutFeedback, AppState, Keyboard,
+    Animated,
+    View,
+    TouchableWithoutFeedback,
+    AppState,
+    Keyboard,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
@@ -25,12 +29,21 @@ class BaseTextInput extends Component {
         super(props);
 
         const value = props.value || props.defaultValue || '';
-        const activeLabel = props.forceActiveLabel || value.length > 0 || props.prefixCharacter;
+        const activeLabel =
+            props.forceActiveLabel || value.length > 0 || props.prefixCharacter;
 
         this.state = {
             isFocused: false,
-            labelTranslateY: new Animated.Value(activeLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y),
-            labelScale: new Animated.Value(activeLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE),
+            labelTranslateY: new Animated.Value(
+                activeLabel
+                    ? styleConst.ACTIVE_LABEL_TRANSLATE_Y
+                    : styleConst.INACTIVE_LABEL_TRANSLATE_Y,
+            ),
+            labelScale: new Animated.Value(
+                activeLabel
+                    ? styleConst.ACTIVE_LABEL_SCALE
+                    : styleConst.INACTIVE_LABEL_SCALE,
+            ),
             passwordHidden: props.secureTextEntry,
             textInputWidth: 0,
             prefixWidth: 0,
@@ -47,9 +60,12 @@ class BaseTextInput extends Component {
         this.onFocus = this.onFocus.bind(this);
         this.onBlur = this.onBlur.bind(this);
         this.setValue = this.setValue.bind(this);
-        this.togglePasswordVisibility = this.togglePasswordVisibility.bind(this);
-        this.dismissKeyboardWhenBackgrounded = this.dismissKeyboardWhenBackgrounded.bind(this);
-        this.storePrefixLayoutDimensions = this.storePrefixLayoutDimensions.bind(this);
+        this.togglePasswordVisibility =
+            this.togglePasswordVisibility.bind(this);
+        this.dismissKeyboardWhenBackgrounded =
+            this.dismissKeyboardWhenBackgrounded.bind(this);
+        this.storePrefixLayoutDimensions =
+            this.storePrefixLayoutDimensions.bind(this);
     }
 
     componentDidMount() {
@@ -66,7 +82,10 @@ class BaseTextInput extends Component {
         }
 
         if (this.props.shouldDelayFocus) {
-            this.focusTimeout = setTimeout(() => this.input.focus(), CONST.ANIMATED_TRANSITION);
+            this.focusTimeout = setTimeout(
+                () => this.input.focus(),
+                CONST.ANIMATED_TRANSITION,
+            );
             return;
         }
         this.input.focus();
@@ -74,8 +93,13 @@ class BaseTextInput extends Component {
 
     componentDidUpdate(prevProps) {
         // Activate or deactivate the label when value is changed programmatically from outside
-        const inputValue = _.isUndefined(this.props.value) ? this.input.value : this.props.value;
-        if ((_.isUndefined(inputValue) || this.state.value === inputValue) && _.isEqual(prevProps.selection, this.props.selection)) {
+        const inputValue = _.isUndefined(this.props.value)
+            ? this.input.value
+            : this.props.value;
+        if (
+            (_.isUndefined(inputValue) || this.state.value === inputValue) &&
+            _.isEqual(prevProps.selection, this.props.selection)
+        ) {
             return;
         }
 
@@ -121,18 +145,23 @@ class BaseTextInput extends Component {
     }
 
     onFocus(event) {
-        if (this.props.onFocus) { this.props.onFocus(event); }
+        if (this.props.onFocus) {
+            this.props.onFocus(event);
+        }
         this.setState({isFocused: true});
         this.activateLabel();
     }
 
     onBlur(event) {
-        if (this.props.onBlur) { this.props.onBlur(event); }
+        if (this.props.onBlur) {
+            this.props.onBlur(event);
+        }
         this.setState({isFocused: false});
 
         // If the text has been supplied by Chrome autofill, the value state is not synced with the value
         // as Chrome doesn't trigger a change event. When there is autofill text, don't deactivate label.
-        const textWasAutoFilledOnChrome = this.input.matches && this.input.matches(':-webkit-autofill');
+        const textWasAutoFilledOnChrome =
+            this.input.matches && this.input.matches(':-webkit-autofill');
         if (!textWasAutoFilledOnChrome) {
             this.deactivateLabel();
         }
@@ -166,11 +195,18 @@ class BaseTextInput extends Component {
     }
 
     deactivateLabel() {
-        if (this.props.forceActiveLabel || this.state.value.length !== 0 || this.props.prefixCharacter) {
+        if (
+            this.props.forceActiveLabel ||
+            this.state.value.length !== 0 ||
+            this.props.prefixCharacter
+        ) {
             return;
         }
 
-        this.animateLabel(styleConst.INACTIVE_LABEL_TRANSLATE_Y, styleConst.INACTIVE_LABEL_SCALE);
+        this.animateLabel(
+            styleConst.INACTIVE_LABEL_TRANSLATE_Y,
+            styleConst.INACTIVE_LABEL_SCALE,
+        );
         this.isLabelActive = false;
     }
 
@@ -198,7 +234,9 @@ class BaseTextInput extends Component {
     }
 
     togglePasswordVisibility() {
-        this.setState(prevState => ({passwordHidden: !prevState.passwordHidden}));
+        this.setState((prevState) => ({
+            passwordHidden: !prevState.passwordHidden,
+        }));
     }
 
     storePrefixLayoutDimensions(event) {
@@ -206,48 +244,84 @@ class BaseTextInput extends Component {
     }
 
     render() {
-        // eslint-disable-next-line react/forbid-foreign-prop-types
-        const inputProps = _.omit(this.props, _.keys(baseTextInputPropTypes.propTypes));
+        const inputProps = _.omit(
+            this.props,
+            // eslint-disable-next-line react/forbid-foreign-prop-types
+            _.keys(baseTextInputPropTypes.propTypes),
+        );
         const hasLabel = Boolean(this.props.label.length);
         const inputHelpText = this.props.errorText || this.props.hint;
-        const placeholder = (this.props.prefixCharacter || this.state.isFocused || !hasLabel || (hasLabel && this.props.forceActiveLabel)) ? this.props.placeholder : null;
-        const textInputContainerStyles = _.reduce([
-            styles.textInputContainer,
-            ...this.props.textInputContainerStyles,
-            this.props.autoGrow && StyleUtils.getWidthStyle(this.state.textInputWidth),
-            !this.props.hideFocusedState && this.state.isFocused && styles.borderColorFocus,
-            (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
-        ], (finalStyles, s) => ({...finalStyles, ...s}), {});
+        const placeholder =
+            this.props.prefixCharacter ||
+            this.state.isFocused ||
+            !hasLabel ||
+            (hasLabel && this.props.forceActiveLabel)
+                ? this.props.placeholder
+                : null;
+        const textInputContainerStyles = _.reduce(
+            [
+                styles.textInputContainer,
+                ...this.props.textInputContainerStyles,
+                this.props.autoGrow &&
+                    StyleUtils.getWidthStyle(this.state.textInputWidth),
+                !this.props.hideFocusedState &&
+                    this.state.isFocused &&
+                    styles.borderColorFocus,
+                (this.props.hasError || this.props.errorText) &&
+                    styles.borderColorDanger,
+            ],
+            (finalStyles, s) => ({...finalStyles, ...s}),
+            {},
+        );
 
         return (
             <>
                 <View>
                     <View
                         style={[
-                            !this.props.multiline && styles.componentHeightLarge,
+                            !this.props.multiline &&
+                                styles.componentHeightLarge,
                             ...this.props.containerStyles,
                         ]}
                     >
-                        <TouchableWithoutFeedback onPress={this.onPress} focusable={false}>
+                        <TouchableWithoutFeedback
+                            onPress={this.onPress}
+                            focusable={false}
+                        >
                             <View
-
                                 // When multiline is not supplied, calculating textinput height using onLayout
-                                onLayout={event => !this.props.multiline && this.setState({height: event.nativeEvent.layout.height})}
+                                onLayout={(event) =>
+                                    !this.props.multiline &&
+                                    this.setState({
+                                        height: event.nativeEvent.layout.height,
+                                    })
+                                }
                                 style={[
                                     textInputContainerStyles,
 
                                     // When autoGrow is on and minWidth is not supplied, add a minWidth to allow the input to be focusable.
-                                    this.props.autoGrow && !textInputContainerStyles.minWidth && styles.mnw2,
+                                    this.props.autoGrow &&
+                                        !textInputContainerStyles.minWidth &&
+                                        styles.mnw2,
                                 ]}
                             >
                                 {hasLabel ? (
                                     <>
                                         {/* Adding this background to the label only for multiline text input,
                                     to prevent text overlapping with label when scrolling */}
-                                        {this.props.multiline && <View style={styles.textInputLabelBackground} pointerEvents="none" />}
+                                        {this.props.multiline && (
+                                            <View
+                                                style={
+                                                    styles.textInputLabelBackground
+                                                }
+                                                pointerEvents="none"
+                                            />
+                                        )}
                                         <TextInputLabel
                                             label={this.props.label}
-                                            labelTranslateY={this.state.labelTranslateY}
+                                            labelTranslateY={
+                                                this.state.labelTranslateY
+                                            }
                                             labelScale={this.state.labelScale}
                                             for={this.props.nativeID}
                                         />
@@ -256,12 +330,18 @@ class BaseTextInput extends Component {
                                 <View
                                     style={[
                                         styles.textInputAndIconContainer,
-                                        (this.props.multiline && hasLabel) && styles.textInputMultilineContainer,
+                                        this.props.multiline &&
+                                            hasLabel &&
+                                            styles.textInputMultilineContainer,
                                     ]}
                                     pointerEvents="box-none"
                                 >
                                     {Boolean(this.props.prefixCharacter) && (
-                                        <View style={styles.textInputPrefixWrapper}>
+                                        <View
+                                            style={
+                                                styles.textInputPrefixWrapper
+                                            }
+                                        >
                                             <Text
                                                 pointerEvents="none"
                                                 selectable={false}
@@ -269,7 +349,10 @@ class BaseTextInput extends Component {
                                                     styles.textInputPrefix,
                                                     !hasLabel && styles.pv0,
                                                 ]}
-                                                onLayout={this.storePrefixLayoutDimensions}
+                                                onLayout={
+                                                    this
+                                                        .storePrefixLayoutDimensions
+                                                }
                                             >
                                                 {this.props.prefixCharacter}
                                             </Text>
@@ -277,53 +360,98 @@ class BaseTextInput extends Component {
                                     )}
                                     <RNTextInput
                                         ref={(ref) => {
-                                            if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
+                                            if (
+                                                typeof this.props.innerRef ===
+                                                'function'
+                                            ) {
+                                                this.props.innerRef(ref);
+                                            }
                                             this.input = ref;
                                         }}
                                         // eslint-disable-next-line
                                         {...inputProps}
-                                        autoCorrect={this.props.secureTextEntry ? false : this.props.autoCorrect}
+                                        autoCorrect={
+                                            this.props.secureTextEntry
+                                                ? false
+                                                : this.props.autoCorrect
+                                        }
                                         placeholder={placeholder}
-                                        placeholderTextColor={themeColors.placeholderText}
+                                        placeholderTextColor={
+                                            themeColors.placeholderText
+                                        }
                                         underlineColorAndroid="transparent"
                                         style={[
                                             styles.flex1,
                                             styles.w100,
                                             this.props.inputStyle,
-                                            (!hasLabel || this.props.multiline) && styles.pv0,
-                                            this.props.prefixCharacter && StyleUtils.getPaddingLeft(this.state.prefixWidth + styles.pl1.paddingLeft),
-                                            this.props.secureTextEntry && styles.secureInput,
+                                            (!hasLabel ||
+                                                this.props.multiline) &&
+                                                styles.pv0,
+                                            this.props.prefixCharacter &&
+                                                StyleUtils.getPaddingLeft(
+                                                    this.state.prefixWidth +
+                                                        styles.pl1.paddingLeft,
+                                                ),
+                                            this.props.secureTextEntry &&
+                                                styles.secureInput,
 
                                             // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
                                             // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
-                                            !this.props.multiline && {height: this.state.height, lineHeight: undefined},
+                                            !this.props.multiline && {
+                                                height: this.state.height,
+                                                lineHeight: undefined,
+                                            },
                                         ]}
                                         multiline={this.props.multiline}
                                         maxLength={this.props.maxLength}
                                         onFocus={this.onFocus}
                                         onBlur={this.onBlur}
                                         onChangeText={this.setValue}
-                                        secureTextEntry={this.state.passwordHidden}
+                                        secureTextEntry={
+                                            this.state.passwordHidden
+                                        }
                                         onPressOut={this.props.onPress}
-                                        showSoftInputOnFocus={!this.props.disableKeyboard}
-                                        keyboardType={getSecureEntryKeyboardType(this.props.keyboardType, this.props.secureTextEntry, this.state.passwordHidden)}
+                                        showSoftInputOnFocus={
+                                            !this.props.disableKeyboard
+                                        }
+                                        keyboardType={getSecureEntryKeyboardType(
+                                            this.props.keyboardType,
+                                            this.props.secureTextEntry,
+                                            this.state.passwordHidden,
+                                        )}
                                         value={this.state.value}
                                         selection={this.state.selection}
-                                        editable={_.isUndefined(this.props.editable) ? !this.props.disabled : this.props.editable}
-
+                                        editable={
+                                            _.isUndefined(this.props.editable)
+                                                ? !this.props.disabled
+                                                : this.props.editable
+                                        }
                                         // FormSubmit Enter key handler does not have access to direct props.
                                         // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
-                                        dataSet={{submitOnEnter: this.props.multiline && this.props.submitOnEnter}}
-
+                                        dataSet={{
+                                            submitOnEnter:
+                                                this.props.multiline &&
+                                                this.props.submitOnEnter,
+                                        }}
                                     />
                                     {this.props.secureTextEntry && (
                                         <Checkbox
-                                            style={styles.secureInputShowPasswordButton}
-                                            onPress={this.togglePasswordVisibility}
-                                            onMouseDown={e => e.preventDefault()}
+                                            style={
+                                                styles.secureInputShowPasswordButton
+                                            }
+                                            onPress={
+                                                this.togglePasswordVisibility
+                                            }
+                                            onMouseDown={(e) =>
+                                                e.preventDefault()
+                                            }
                                         >
                                             <Icon
-                                                src={this.state.passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
+                                                src={
+                                                    this.state.passwordHidden
+                                                        ? Expensicons.Eye
+                                                        : Expensicons.EyeDisabled
+                                                }
                                                 fill={themeColors.icon}
                                             />
                                         </Checkbox>
@@ -333,7 +461,10 @@ class BaseTextInput extends Component {
                         </TouchableWithoutFeedback>
                     </View>
                     {!_.isEmpty(inputHelpText) && (
-                        <FormHelpMessage isError={!_.isEmpty(this.props.errorText)} message={inputHelpText} />
+                        <FormHelpMessage
+                            isError={!_.isEmpty(this.props.errorText)}
+                            message={inputHelpText}
+                        />
                     )}
                 </View>
                 {/*
@@ -343,11 +474,18 @@ class BaseTextInput extends Component {
                     This Text component is intentionally positioned out of the screen.
                 */}
                 {this.props.autoGrow && (
-
                     // Add +2 to width so that the first digit of amount do not cut off on mWeb - https://github.com/Expensify/App/issues/8158.
                     <Text
-                        style={[...this.props.inputStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
-                        onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width + 2})}
+                        style={[
+                            ...this.props.inputStyle,
+                            styles.hiddenElementOutsideOfWindow,
+                            styles.visibilityHidden,
+                        ]}
+                        onLayout={(e) =>
+                            this.setState({
+                                textInputWidth: e.nativeEvent.layout.width + 2,
+                            })
+                        }
                     >
                         {this.state.value || this.props.placeholder}
                     </Text>

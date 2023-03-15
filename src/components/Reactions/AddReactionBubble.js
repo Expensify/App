@@ -79,39 +79,49 @@ const AddReactionBubble = (props) => {
     };
 
     return (
-        <Tooltip text={props.translate('reportActionContextMenu.addReactionTooltip')} focusable={false}>
+        <Tooltip
+            text={props.translate('reportActionContextMenu.addReactionTooltip')}
+            focusable={false}
+        >
             <Pressable
                 ref={ref}
-                style={({
-                    hovered,
-                    pressed,
-                }) => [
+                style={({hovered, pressed}) => [
                     styles.emojiReactionBubble,
-                    StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.sizeScale),
+                    StyleUtils.getEmojiReactionBubbleStyle(
+                        hovered || pressed,
+                        false,
+                        props.sizeScale,
+                    ),
                 ]}
                 onPress={onPress}
             >
-                {({
-                    hovered,
-                    pressed,
-                }) => (
+                {({hovered, pressed}) => (
                     <>
                         {/* This (invisible) text will make the view have the same size as a regular
                             emoji reaction. We make the text invisible and put the
                             icon on top of it. */}
-                        <Text style={[
-                            styles.emojiReactionText,
-                            styles.opacity0,
-                            StyleUtils.getEmojiReactionTextStyle(props.sizeScale),
-                        ]}
+                        <Text
+                            style={[
+                                styles.emojiReactionText,
+                                styles.opacity0,
+                                StyleUtils.getEmojiReactionTextStyle(
+                                    props.sizeScale,
+                                ),
+                            ]}
                         >
                             {'\u2800\u2800'}
                         </Text>
                         <View style={styles.pAbsolute}>
                             <Icon
                                 src={Expensicons.AddReaction}
-                                width={variables.iconSizeSmall * props.iconSizeScale}
-                                height={variables.iconSizeSmall * props.iconSizeScale}
+                                width={
+                                    variables.iconSizeSmall *
+                                    props.iconSizeScale
+                                }
+                                height={
+                                    variables.iconSizeSmall *
+                                    props.iconSizeScale
+                                }
                                 fill={StyleUtils.getIconFillColor(
                                     getButtonState(hovered, pressed),
                                 )}
@@ -120,7 +130,6 @@ const AddReactionBubble = (props) => {
                     </>
                 )}
             </Pressable>
-
         </Tooltip>
     );
 };

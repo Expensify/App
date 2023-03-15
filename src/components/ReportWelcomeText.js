@@ -59,11 +59,21 @@ const ReportWelcomeText = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
-        OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails),
+        OptionsListUtils.getPersonalDetailsForLogins(
+            participants,
+            props.personalDetails,
+        ),
         isMultipleParticipant,
     );
-    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, props.policies);
-    const iouOptions = ReportUtils.getIOUOptions(props.report, participants, props.betas);
+    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(
+        props.report,
+        props.policies,
+    );
+    const iouOptions = ReportUtils.getIOUOptions(
+        props.report,
+        participants,
+        props.betas,
+    );
     return (
         <>
             <View>
@@ -75,59 +85,108 @@ const ReportWelcomeText = (props) => {
                 {isPolicyExpenseChat && (
                     <>
                         <Text>
-                            {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}
+                            {props.translate(
+                                'reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne',
+                            )}
                         </Text>
                         <Text style={[styles.textStrong]}>
                             {/* Use the policyExpenseChat owner's first name or their email if it's undefined or an empty string */}
-                            {lodashGet(props.personalDetails, [props.report.ownerEmail, 'firstName']) || props.report.ownerEmail}
+                            {lodashGet(props.personalDetails, [
+                                props.report.ownerEmail,
+                                'firstName',
+                            ]) || props.report.ownerEmail}
                         </Text>
                         <Text>
-                            {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}
+                            {props.translate(
+                                'reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo',
+                            )}
                         </Text>
                         <Text style={[styles.textStrong]}>
-                            {ReportUtils.getPolicyName(props.report, props.policies)}
+                            {ReportUtils.getPolicyName(
+                                props.report,
+                                props.policies,
+                            )}
                         </Text>
                         <Text>
-                            {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}
+                            {props.translate(
+                                'reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree',
+                            )}
                         </Text>
                     </>
                 )}
                 {isChatRoom && (
                     <>
-                        <Text>
-                            {roomWelcomeMessage.phrase1}
+                        <Text>{roomWelcomeMessage.phrase1}</Text>
+                        <Text
+                            style={[styles.textStrong]}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.getReportDetailsRoute(
+                                        props.report.reportID,
+                                    ),
+                                )
+                            }
+                        >
+                            {ReportUtils.getReportName(
+                                props.report,
+                                props.policies,
+                            )}
                         </Text>
-                        <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}>
-                            {ReportUtils.getReportName(props.report, props.policies)}
-                        </Text>
-                        <Text>
-                            {roomWelcomeMessage.phrase2}
-                        </Text>
+                        <Text>{roomWelcomeMessage.phrase2}</Text>
                     </>
                 )}
                 {isDefault && (
                     <Text>
                         <Text>
-                            {props.translate('reportActionsView.beginningOfChatHistory')}
+                            {props.translate(
+                                'reportActionsView.beginningOfChatHistory',
+                            )}
                         </Text>
-                        {_.map(displayNamesWithTooltips, ({
-                            displayName, pronouns, tooltip,
-                        }, index) => (
-                            <Text key={`${displayName}${pronouns}${index}`}>
-                                <Tooltip text={tooltip} containerStyles={[styles.dInline]}>
-                                    <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(participants[index]))}>
-                                        {displayName}
-                                    </Text>
-                                </Tooltip>
-                                {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
-                                {(index === displayNamesWithTooltips.length - 1) && <Text>.</Text>}
-                                {(index === displayNamesWithTooltips.length - 2) && <Text>{` ${props.translate('common.and')} `}</Text>}
-                                {(index < displayNamesWithTooltips.length - 2) && <Text>, </Text>}
-                            </Text>
-                        ))}
+                        {_.map(
+                            displayNamesWithTooltips,
+                            ({displayName, pronouns, tooltip}, index) => (
+                                <Text key={`${displayName}${pronouns}${index}`}>
+                                    <Tooltip
+                                        text={tooltip}
+                                        containerStyles={[styles.dInline]}
+                                    >
+                                        <Text
+                                            style={[styles.textStrong]}
+                                            onPress={() =>
+                                                Navigation.navigate(
+                                                    ROUTES.getDetailsRoute(
+                                                        participants[index],
+                                                    ),
+                                                )
+                                            }
+                                        >
+                                            {displayName}
+                                        </Text>
+                                    </Tooltip>
+                                    {!_.isEmpty(pronouns) && (
+                                        <Text>{` (${pronouns})`}</Text>
+                                    )}
+                                    {index ===
+                                        displayNamesWithTooltips.length - 1 && (
+                                        <Text>.</Text>
+                                    )}
+                                    {index ===
+                                        displayNamesWithTooltips.length - 2 && (
+                                        <Text>{` ${props.translate(
+                                            'common.and',
+                                        )} `}</Text>
+                                    )}
+                                    {index <
+                                        displayNamesWithTooltips.length - 2 && (
+                                        <Text>, </Text>
+                                    )}
+                                </Text>
+                            ),
+                        )}
                     </Text>
                 )}
-                {(iouOptions.includes(CONST.IOU.IOU_TYPE.SEND) || iouOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)) && (
+                {(iouOptions.includes(CONST.IOU.IOU_TYPE.SEND) ||
+                    iouOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)) && (
                     <Text>
                         {/* Need to confirm copy for the below with marketing, and then add to translations. */}
                         {props.translate('reportActionsView.usePlusButton')}

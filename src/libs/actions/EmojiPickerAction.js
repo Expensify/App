@@ -31,7 +31,4 @@ function showEmojiPicker(
     );
 }
 
-export {
-    emojiPickerRef,
-    showEmojiPicker,
-};
+export {emojiPickerRef, showEmojiPicker};

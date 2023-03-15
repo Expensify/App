@@ -4,7 +4,9 @@ import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
 import Button from '../../../components/Button';
 import styles from '../../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
@@ -19,7 +21,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceCardVBANoECardView = props => (
+const WorkspaceCardVBANoECardView = (props) => (
     <>
         <Section
             title={props.translate('workspace.card.header')}

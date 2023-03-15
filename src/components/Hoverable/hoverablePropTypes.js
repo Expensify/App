@@ -5,10 +5,7 @@ const propTypes = {
     absolute: PropTypes.bool,
 
     /** Children to wrap with Hoverable. */
-    children: PropTypes.oneOfType([
-        PropTypes.node,
-        PropTypes.func,
-    ]).isRequired,
+    children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]).isRequired,
 
     /** Styles to be assigned to the Hoverable Container */
     // eslint-disable-next-line react/forbid-prop-types
@@ -28,7 +25,4 @@ const defaultProps = {
     onHoverOut: () => {},
 };
 
-export {
-    propTypes,
-    defaultProps,
-};
+export {propTypes, defaultProps};

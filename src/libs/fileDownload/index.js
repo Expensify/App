@@ -10,12 +10,10 @@ import * as FileUtils from './FileUtils';
 export default function fileDownload(url, fileName) {
     return new Promise((resolve) => {
         fetch(url)
-            .then(response => response.blob())
+            .then((response) => response.blob())
             .then((blob) => {
                 // Create blob link to download
-                const href = URL.createObjectURL(
-                    new Blob([blob]),
-                );
+                const href = URL.createObjectURL(new Blob([blob]));
 
                 // creating anchor tag to initiate download
                 const link = document.createElement('a');
@@ -38,8 +36,9 @@ export default function fileDownload(url, fileName) {
                 URL.revokeObjectURL(link.href);
                 link.parentNode.removeChild(link);
                 return resolve();
-            }).catch(() => {
-            // file could not be downloaded, open sourceURL in new tab
+            })
+            .catch(() => {
+                // file could not be downloaded, open sourceURL in new tab
                 Linking.openURL(url);
                 return resolve();
             });

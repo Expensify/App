@@ -15,8 +15,14 @@ let middlewares = [];
  */
 function makeXHR(request) {
     const finalParameters = enhanceParameters(request.command, request.data);
-    return NetworkStore.hasReadRequiredDataFromStorage()
-        .then(() => HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure));
+    return NetworkStore.hasReadRequiredDataFromStorage().then(() =>
+        HttpUtils.xhr(
+            request.command,
+            finalParameters,
+            request.type,
+            request.shouldUseSecure,
+        ),
+    );
 }
 
 /**
@@ -43,8 +49,4 @@ function clearMiddlewares() {
     middlewares = [];
 }
 
-export {
-    clearMiddlewares,
-    processWithMiddleware,
-    use,
-};
+export {clearMiddlewares, processWithMiddleware, use};

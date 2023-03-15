@@ -36,7 +36,4 @@ const defaultProps = {
     growlType: CONST.GROWL.WARNING,
 };
 
-export {
-    propTypes,
-    defaultProps,
-};
+export {propTypes, defaultProps};

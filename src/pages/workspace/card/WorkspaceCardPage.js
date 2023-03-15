@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
 import WorkspaceCardNoVBAView from './WorkspaceCardNoVBAView';
 import WorkspaceCardVBANoECardView from './WorkspaceCardVBANoECardView';
 import WorkspaceCardVBAWithECardView from './WorkspaceCardVBAWithECardView';
@@ -20,7 +22,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceCardPage = props => (
+const WorkspaceCardPage = (props) => (
     <WorkspacePageWithSections
         shouldUseScrollView
         headerText={props.translate('workspace.common.card')}
@@ -29,17 +31,11 @@ const WorkspaceCardPage = props => (
     >
         {(hasVBA, policyID, isUsingECard) => (
             <>
-                {!hasVBA && (
-                    <WorkspaceCardNoVBAView policyID={policyID} />
-                )}
+                {!hasVBA && <WorkspaceCardNoVBAView policyID={policyID} />}
 
-                {hasVBA && !isUsingECard && (
-                    <WorkspaceCardVBANoECardView />
-                )}
+                {hasVBA && !isUsingECard && <WorkspaceCardVBANoECardView />}
 
-                {hasVBA && isUsingECard && (
-                    <WorkspaceCardVBAWithECardView />
-                )}
+                {hasVBA && isUsingECard && <WorkspaceCardVBAWithECardView />}
             </>
         )}
     </WorkspacePageWithSections>

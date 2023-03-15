@@ -3,11 +3,15 @@ import * as anchorForAttachmentsOnlyPropTypes from './anchorForAttachmentsOnlyPr
 import BaseAnchorForAttachmentsOnly from './BaseAnchorForAttachmentsOnly';
 import styles from '../../styles/styles';
 
-// eslint-disable-next-line react/jsx-props-no-spreading
-const AnchorForAttachmentsOnly = props => <BaseAnchorForAttachmentsOnly {...props} style={styles.mw100} />;
+const AnchorForAttachmentsOnly = (props) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <BaseAnchorForAttachmentsOnly {...props} style={styles.mw100} />
+);
 
-AnchorForAttachmentsOnly.propTypes = anchorForAttachmentsOnlyPropTypes.propTypes;
-AnchorForAttachmentsOnly.defaultProps = anchorForAttachmentsOnlyPropTypes.defaultProps;
+AnchorForAttachmentsOnly.propTypes =
+    anchorForAttachmentsOnlyPropTypes.propTypes;
+AnchorForAttachmentsOnly.defaultProps =
+    anchorForAttachmentsOnlyPropTypes.defaultProps;
 AnchorForAttachmentsOnly.displayName = 'AnchorForAttachmentsOnly';
 
 export default AnchorForAttachmentsOnly;

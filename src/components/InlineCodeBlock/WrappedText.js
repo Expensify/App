@@ -16,7 +16,7 @@ import Text from '../Text';
  * @returns {Array<String[]>}
  */
 function getTextMatrix(text) {
-    return _.map(text.split('\n'), row => _.without(row.split(/(\s)/), ''));
+    return _.map(text.split('\n'), (row) => _.without(row.split(/(\s)/), ''));
 }
 
 const propTypes = {
@@ -51,7 +51,6 @@ const WrappedText = (props) => {
                     key={`${rowText}-${rowIndex}`}
                 >
                     {_.map(rowText, (colText, colIndex) => (
-
                         // Outer View is important to vertically center the Text
                         <View
                             // eslint-disable-next-line react/no-array-index-key
@@ -62,7 +61,8 @@ const WrappedText = (props) => {
                                 style={[
                                     props.wordStyles,
                                     colIndex === 0 && styles.codeFirstWordStyle,
-                                    colIndex === rowText.length - 1 && styles.codeLastWordStyle,
+                                    colIndex === rowText.length - 1 &&
+                                        styles.codeLastWordStyle,
                                 ]}
                             >
                                 <Text style={props.textStyles}>{colText}</Text>

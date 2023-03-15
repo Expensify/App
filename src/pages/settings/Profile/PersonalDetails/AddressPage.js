@@ -7,7 +7,9 @@ import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../../components/withLocalize';
 import ROUTES from '../../../../ROUTES';
 import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -59,9 +61,12 @@ class AddressPage extends Component {
         this.updateAddress = this.updateAddress.bind(this);
         this.onCountryUpdate = this.onCountryUpdate.bind(this);
 
-        const currentCountry = lodashGet(props.privatePersonalDetails, 'address.country') || '';
+        const currentCountry =
+            lodashGet(props.privatePersonalDetails, 'address.country') || '';
         this.state = {
-            isUsaForm: (currentCountry === CONST.COUNTRY.US || currentCountry === CONST.USA_COUNTRY_NAME),
+            isUsaForm:
+                currentCountry === CONST.COUNTRY.US ||
+                currentCountry === CONST.USA_COUNTRY_NAME,
         };
     }
 
@@ -112,22 +117,29 @@ class AddressPage extends Component {
             if (!_.isEmpty(values[fieldKey])) {
                 return;
             }
-            errors[fieldKey] = this.props.translate('common.error.fieldRequired');
+            errors[fieldKey] = this.props.translate(
+                'common.error.fieldRequired',
+            );
         });
 
         return errors;
     }
 
     render() {
-        const address = lodashGet(this.props.privatePersonalDetails, 'address') || {};
+        const address =
+            lodashGet(this.props.privatePersonalDetails, 'address') || {};
         const [street1, street2] = (address.street || '').split('\n');
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
-                    title={this.props.translate('privatePersonalDetails.homeAddress')}
+                    title={this.props.translate(
+                        'privatePersonalDetails.homeAddress',
+                    )}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
+                    onBackButtonPress={() =>
+                        Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)
+                    }
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <Form
@@ -141,7 +153,9 @@ class AddressPage extends Component {
                     <View style={styles.mb4}>
                         <AddressSearch
                             inputID="addressLine1"
-                            label={this.props.translate('common.addressLine', {lineNumber: 1})}
+                            label={this.props.translate('common.addressLine', {
+                                lineNumber: 1,
+                            })}
                             defaultValue={street1 || ''}
                             isLimitedToUSA={false}
                             renamedInputKeys={{
@@ -157,7 +171,9 @@ class AddressPage extends Component {
                     <View style={styles.mb4}>
                         <TextInput
                             inputID="addressLine2"
-                            label={this.props.translate('common.addressLine', {lineNumber: 2})}
+                            label={this.props.translate('common.addressLine', {
+                                lineNumber: 2,
+                            })}
                             defaultValue={street2 || ''}
                             maxLength={CONST.FORM_CHARACTER_LIMIT}
                         />
@@ -180,7 +196,9 @@ class AddressPage extends Component {
                             ) : (
                                 <TextInput
                                     inputID="state"
-                                    label={this.props.translate('common.stateOrProvince')}
+                                    label={this.props.translate(
+                                        'common.stateOrProvince',
+                                    )}
                                     defaultValue={address.state || ''}
                                     maxLength={CONST.FORM_CHARACTER_LIMIT}
                                 />
@@ -189,10 +207,14 @@ class AddressPage extends Component {
                         <View style={[styles.flex1]}>
                             <TextInput
                                 inputID="zipPostCode"
-                                label={this.props.translate('common.zipPostCode')}
+                                label={this.props.translate(
+                                    'common.zipPostCode',
+                                )}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                 defaultValue={address.zip || ''}
-                                maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+                                maxLength={
+                                    CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE
+                                }
                             />
                         </View>
                     </View>
@@ -200,7 +222,9 @@ class AddressPage extends Component {
                         <CountryPicker
                             inputID="country"
                             onValueChange={this.onCountryUpdate}
-                            defaultValue={PersonalDetails.getCountryISO(address.country)}
+                            defaultValue={PersonalDetails.getCountryISO(
+                                address.country,
+                            )}
                         />
                     </View>
                 </Form>

@@ -24,21 +24,23 @@ const propTypes = {
     iouAmount: PropTypes.string.isRequired,
 
     /** Selected participants from IOUMOdal with login */
-    participants: PropTypes.arrayOf(PropTypes.shape({
-        login: PropTypes.string.isRequired,
-        alternateText: PropTypes.string,
-        hasDraftComment: PropTypes.bool,
-        icons: PropTypes.arrayOf(avatarPropTypes),
-        searchText: PropTypes.string,
-        text: PropTypes.string,
-        keyForList: PropTypes.string,
-        isPinned: PropTypes.bool,
-        reportID: PropTypes.string,
-        // eslint-disable-next-line react/forbid-prop-types
-        participantsList: PropTypes.arrayOf(PropTypes.object),
-        payPalMeAddress: PropTypes.string,
-        phoneNumber: PropTypes.string,
-    })).isRequired,
+    participants: PropTypes.arrayOf(
+        PropTypes.shape({
+            login: PropTypes.string.isRequired,
+            alternateText: PropTypes.string,
+            hasDraftComment: PropTypes.bool,
+            icons: PropTypes.arrayOf(avatarPropTypes),
+            searchText: PropTypes.string,
+            text: PropTypes.string,
+            keyForList: PropTypes.string,
+            isPinned: PropTypes.bool,
+            reportID: PropTypes.string,
+            // eslint-disable-next-line react/forbid-prop-types
+            participantsList: PropTypes.arrayOf(PropTypes.object),
+            payPalMeAddress: PropTypes.string,
+            phoneNumber: PropTypes.string,
+        }),
+    ).isRequired,
 
     /** IOU type */
     iouType: PropTypes.string,
@@ -54,7 +56,7 @@ const defaultProps = {
     canModifyParticipants: false,
 };
 
-const IOUConfirmPage = props => (
+const IOUConfirmPage = (props) => (
     <IOUConfirmationList
         hasMultipleParticipants={props.hasMultipleParticipants}
         participants={props.participants}

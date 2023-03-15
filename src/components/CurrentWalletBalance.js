@@ -23,7 +23,6 @@ const propTypes = {
 
 const defaultProps = {
     userWallet: {
-
         // Default to zero if userWallet and currentBalance is not set yet to avoid NaN
         currentBalance: 0,
     },
@@ -37,7 +36,13 @@ const CurrentWalletBalance = (props) => {
     );
     return (
         <Text
-            style={[styles.pv5, styles.alignSelfCenter, styles.textHeadline, styles.textXXXLarge, ...props.balanceStyles]}
+            style={[
+                styles.pv5,
+                styles.alignSelfCenter,
+                styles.textHeadline,
+                styles.textXXXLarge,
+                ...props.balanceStyles,
+            ]}
         >
             {`${formattedBalance}`}
         </Text>

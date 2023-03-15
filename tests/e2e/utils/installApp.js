@@ -12,12 +12,16 @@ const Logger = require('./logger');
  */
 module.exports = function (platform = 'android', path) {
     if (platform !== 'android') {
-        throw new Error(`installApp() missing implementation for platform: ${platform}`);
+        throw new Error(
+            `installApp() missing implementation for platform: ${platform}`,
+        );
     }
 
     // Uninstall first, then install
-    return execAsync(`adb uninstall ${APP_PACKAGE}`).catch((e) => {
-        // Ignore errors
-        Logger.warn('Failed to uninstall app:', e);
-    }).finally(() => execAsync(`adb install ${path}`));
+    return execAsync(`adb uninstall ${APP_PACKAGE}`)
+        .catch((e) => {
+            // Ignore errors
+            Logger.warn('Failed to uninstall app:', e);
+        })
+        .finally(() => execAsync(`adb install ${path}`));
 };

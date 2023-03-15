@@ -34,7 +34,12 @@ const defaultProps = {
 
 const IOUBadge = (props) => {
     const launchIOUDetailsModal = () => {
-        Navigation.navigate(ROUTES.getIouDetailsRoute(props.iouReport.chatReportID, props.iouReport.reportID));
+        Navigation.navigate(
+            ROUTES.getIouDetailsRoute(
+                props.iouReport.chatReportID,
+                props.iouReport.reportID,
+            ),
+        );
     };
     return (
         <Badge
@@ -42,10 +47,10 @@ const IOUBadge = (props) => {
             onPress={launchIOUDetailsModal}
             success={props.session.email === props.iouReport.ownerEmail}
             error={props.session.email !== props.iouReport.ownerEmail}
-            text={props.numberFormat(
-                props.iouReport.total / 100,
-                {style: 'currency', currency: props.iouReport.currency},
-            )}
+            text={props.numberFormat(props.iouReport.total / 100, {
+                style: 'currency',
+                currency: props.iouReport.currency,
+            })}
         />
     );
 };
@@ -57,7 +62,8 @@ export default compose(
     withLocalize,
     withOnyx({
         iouReport: {
-            key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+            key: ({iouReportID}) =>
+                `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
         },
         session: {
             key: ONYXKEYS.SESSION,

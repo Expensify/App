@@ -66,7 +66,9 @@ const FormAlertWrapper = (props) => {
             </Text>
         );
     } else if (props.isMessageHtml) {
-        children = <RenderHTML html={`<muted-text>${props.message}</muted-text>`} />;
+        children = (
+            <RenderHTML html={`<muted-text>${props.message}</muted-text>`} />
+        );
     }
     return (
         <View style={props.containerStyles}>
@@ -84,7 +86,4 @@ FormAlertWrapper.propTypes = propTypes;
 FormAlertWrapper.defaultProps = defaultProps;
 FormAlertWrapper.displayName = 'FormAlertWrapper';
 
-export default compose(
-    withLocalize,
-    withNetwork(),
-)(FormAlertWrapper);
+export default compose(withLocalize, withNetwork())(FormAlertWrapper);

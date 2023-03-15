@@ -3,7 +3,9 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {View} from 'react-native';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../../../components/withWindowDimensions';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 
@@ -11,17 +13,19 @@ import Navigation from '../Navigation';
 
 const propTypes = {
     /** Screens to be passed in the Drawer */
-    screens: PropTypes.arrayOf(PropTypes.shape({
-        /** Name of the Screen */
-        name: PropTypes.string.isRequired,
+    screens: PropTypes.arrayOf(
+        PropTypes.shape({
+            /** Name of the Screen */
+            name: PropTypes.string.isRequired,
 
-        /** Component for the Screen */
-        component: PropTypes.elementType.isRequired,
+            /** Component for the Screen */
+            component: PropTypes.elementType.isRequired,
 
-        /** Optional params to be passed to the Screen */
-        // eslint-disable-next-line react/forbid-prop-types
-        initialParams: PropTypes.object,
-    })).isRequired,
+            /** Optional params to be passed to the Screen */
+            // eslint-disable-next-line react/forbid-prop-types
+            initialParams: PropTypes.object,
+        }),
+    ).isRequired,
 
     /** Drawer content Component */
     drawerContent: PropTypes.elementType.isRequired,
@@ -45,7 +49,9 @@ class BaseDrawerNavigator extends Component {
             // Calculate the defaultStatus only once on mount to prevent breaking the navigation internal state.
             // Directly passing the dynamically calculated defaultStatus to drawer Navigator breaks the internal state
             // And prevents the drawer actions from reaching to active Drawer Navigator while screen is resized on from Web to mobile Web.
-            defaultStatus: Navigation.getDefaultDrawerState(props.isSmallScreenWidth),
+            defaultStatus: Navigation.getDefaultDrawerState(
+                props.isSmallScreenWidth,
+            ),
         };
     }
 
@@ -62,7 +68,9 @@ class BaseDrawerNavigator extends Component {
 
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({
-            defaultStatus: Navigation.getDefaultDrawerState(this.props.isSmallScreenWidth),
+            defaultStatus: Navigation.getDefaultDrawerState(
+                this.props.isSmallScreenWidth,
+            ),
         });
     }
 
@@ -83,14 +91,16 @@ class BaseDrawerNavigator extends Component {
                 screenOptions={{
                     cardStyle: styles.navigationScreenCardStyle,
                     headerShown: false,
-                    drawerType: StyleUtils.getNavigationDrawerType(this.props.isSmallScreenWidth),
+                    drawerType: StyleUtils.getNavigationDrawerType(
+                        this.props.isSmallScreenWidth,
+                    ),
                     drawerStyle: StyleUtils.getNavigationDrawerStyle(
                         this.props.isSmallScreenWidth,
                     ),
                     swipeEdgeWidth: 500,
                 }}
             >
-                {_.map(this.props.screens, screen => (
+                {_.map(this.props.screens, (screen) => (
                     <Drawer.Screen
                         key={screen.name}
                         name={screen.name}

@@ -37,7 +37,7 @@ class Form extends React.Component {
     render() {
         return (
             <FormElement
-                ref={el => this.form = el}
+                ref={(el) => (this.form = el)}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
             />

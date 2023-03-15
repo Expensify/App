@@ -4,7 +4,9 @@ import _ from 'underscore';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import * as Link from '../../../libs/actions/Link';
 import SVGImage from '../../../components/SVGImage';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../../../components/withWindowDimensions';
 
 const backgroundStyle = StyleUtils.getLoginPagePromoStyle();
 
@@ -12,7 +14,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const SignInPageGraphics = props => (
+const SignInPageGraphics = (props) => (
     <Pressable
         style={[
             StyleUtils.getHeight(props.windowHeight),

@@ -5,7 +5,4 @@ const canCapturePerformanceMetrics = () => false;
 
 const canCaptureOnyxMetrics = () => Boolean(CONFIG.ONYX_METRICS);
 
-export {
-    canCapturePerformanceMetrics,
-    canCaptureOnyxMetrics,
-};
+export {canCapturePerformanceMetrics, canCaptureOnyxMetrics};

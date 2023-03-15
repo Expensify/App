@@ -21,13 +21,10 @@ const UrbanAirship = {
     removeAllListeners: jest.fn(),
     setBadgeNumber: jest.fn(),
     setForegroundPresentationOptions: jest.fn(),
-    getNotificationStatus: () => Promise.resolve({airshipOptIn: false, systemEnabled: false}),
+    getNotificationStatus: () =>
+        Promise.resolve({airshipOptIn: false, systemEnabled: false}),
 };
 
 export default UrbanAirship;
 
-export {
-    EventType,
-    iOS,
-    UrbanAirship,
-};
+export {EventType, iOS, UrbanAirship};

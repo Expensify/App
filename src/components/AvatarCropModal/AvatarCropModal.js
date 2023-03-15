@@ -1,10 +1,6 @@
 import PropTypes from 'prop-types';
-import React, {
-    useCallback, useEffect, useState,
-} from 'react';
-import {
-    ActivityIndicator, Image, View, Pressable,
-} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {ActivityIndicator, Image, View, Pressable} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {
     runOnUI,
@@ -24,7 +20,9 @@ import * as Expensicons from '../Icon/Expensicons';
 import Modal from '../Modal';
 import Text from '../Text';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../withWindowDimensions';
 import ImageCropView from './ImageCropView';
 import Slider from './Slider';
 import cropOrRotateImage from '../../libs/cropOrRotateImage';
@@ -64,8 +62,12 @@ const defaultProps = {
 
 // This component can't be written using class since reanimated API uses hooks.
 const AvatarCropModal = (props) => {
-    const originalImageWidth = useSharedValue(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
-    const originalImageHeight = useSharedValue(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
+    const originalImageWidth = useSharedValue(
+        CONST.AVATAR_CROP_MODAL.INITIAL_SIZE,
+    );
+    const originalImageHeight = useSharedValue(
+        CONST.AVATAR_CROP_MODAL.INITIAL_SIZE,
+    );
     const translateY = useSharedValue(0);
     const translateX = useSharedValue(0);
     const scale = useSharedValue(CONST.AVATAR_CROP_MODAL.MIN_SCALE);
@@ -78,20 +80,31 @@ const AvatarCropModal = (props) => {
     const prevMaxOffsetX = useSharedValue(0);
     const prevMaxOffsetY = useSharedValue(0);
 
-    const [imageContainerSize, setImageContainerSize] = useState(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
-    const [sliderContainerSize, setSliderContainerSize] = useState(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
-    const [isImageContainerInitialized, setIsImageContainerInitialized] = useState(false);
+    const [imageContainerSize, setImageContainerSize] = useState(
+        CONST.AVATAR_CROP_MODAL.INITIAL_SIZE,
+    );
+    const [sliderContainerSize, setSliderContainerSize] = useState(
+        CONST.AVATAR_CROP_MODAL.INITIAL_SIZE,
+    );
+    const [isImageContainerInitialized, setIsImageContainerInitialized] =
+        useState(false);
     const [isImageInitialized, setIsImageInitialized] = useState(false);
 
     // An onLayout callback, that initializes the image container, for proper render of an image
-    const initializeImageContainer = useCallback((event) => {
-        setIsImageContainerInitialized(true);
-        const {height, width} = event.nativeEvent.layout;
+    const initializeImageContainer = useCallback(
+        (event) => {
+            setIsImageContainerInitialized(true);
+            const {height, width} = event.nativeEvent.layout;
 
-        // Even if the browser height is reduced too much, the relative height should not be negative
-        const relativeHeight = Math.max(height - styles.imageCropRotateButton.height, CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
-        setImageContainerSize(Math.floor(Math.min(relativeHeight, width)));
-    }, [props.isSmallScreenWidth]);
+            // Even if the browser height is reduced too much, the relative height should not be negative
+            const relativeHeight = Math.max(
+                height - styles.imageCropRotateButton.height,
+                CONST.AVATAR_CROP_MODAL.INITIAL_SIZE,
+            );
+            setImageContainerSize(Math.floor(Math.min(relativeHeight, width)));
+        },
+        [props.isSmallScreenWidth],
+    );
 
     // An onLayout callback, that initializes the slider container size, for proper render of a slider
     const initializeSliderContainer = useCallback((event) => {
@@ -142,7 +155,11 @@ const AvatarCropModal = (props) => {
      * @param {Array} minMax
      * @returns {Number}
      */
-    const clamp = useWorkletCallback((value, [min, max]) => interpolate(value, [min, max], [min, max], 'clamp'), []);
+    const clamp = useWorkletCallback(
+        (value, [min, max]) =>
+            interpolate(value, [min, max], [min, max], 'clamp'),
+        [],
+    );
 
     /**
      * Returns current image size taking into account scale and rotation.
@@ -170,46 +187,57 @@ const AvatarCropModal = (props) => {
      * @param {Number} newX
      * @param {Number} newY
      */
-    const updateImageOffset = useWorkletCallback((offsetX, offsetY) => {
-        const {height, width} = getDisplayedImageSize();
-        const maxOffsetX = (width - imageContainerSize) / 2;
-        const maxOffsetY = (height - imageContainerSize) / 2;
-        translateX.value = clamp(offsetX, [maxOffsetX * -1, maxOffsetX]);
-        translateY.value = clamp(offsetY, [maxOffsetY * -1, maxOffsetY]);
-        prevMaxOffsetX.value = maxOffsetX;
-        prevMaxOffsetY.value = maxOffsetY;
-    }, [imageContainerSize, scale, clamp]);
+    const updateImageOffset = useWorkletCallback(
+        (offsetX, offsetY) => {
+            const {height, width} = getDisplayedImageSize();
+            const maxOffsetX = (width - imageContainerSize) / 2;
+            const maxOffsetY = (height - imageContainerSize) / 2;
+            translateX.value = clamp(offsetX, [maxOffsetX * -1, maxOffsetX]);
+            translateY.value = clamp(offsetY, [maxOffsetY * -1, maxOffsetY]);
+            prevMaxOffsetX.value = maxOffsetX;
+            prevMaxOffsetY.value = maxOffsetY;
+        },
+        [imageContainerSize, scale, clamp],
+    );
 
     /**
      * @param {Number} newSliderValue
      * @param {Number} containerSize
      * @returns {Number}
      */
-    const newScaleValue = useWorkletCallback((newSliderValue, containerSize) => {
-        const {MAX_SCALE, MIN_SCALE} = CONST.AVATAR_CROP_MODAL;
-        return ((newSliderValue / containerSize) * (MAX_SCALE - MIN_SCALE)) + MIN_SCALE;
-    });
+    const newScaleValue = useWorkletCallback(
+        (newSliderValue, containerSize) => {
+            const {MAX_SCALE, MIN_SCALE} = CONST.AVATAR_CROP_MODAL;
+            return (
+                (newSliderValue / containerSize) * (MAX_SCALE - MIN_SCALE) +
+                MIN_SCALE
+            );
+        },
+    );
 
     /**
      * Calculates new x & y image translate value on image panning
      * and updates image's offset.
      */
-    const panGestureEventHandler = useAnimatedGestureHandler({
-        onStart: (_, context) => {
-            // we have to assign translate values to a context
-            // since that is required for proper work of turbo modules.
-            // eslint-disable-next-line no-param-reassign
-            context.translateX = translateX.value;
-            // eslint-disable-next-line no-param-reassign
-            context.translateY = translateY.value;
-        },
-        onActive: (event, context) => {
-            const newX = event.translationX + context.translateX;
-            const newY = event.translationY + context.translateY;
+    const panGestureEventHandler = useAnimatedGestureHandler(
+        {
+            onStart: (_, context) => {
+                // we have to assign translate values to a context
+                // since that is required for proper work of turbo modules.
+                // eslint-disable-next-line no-param-reassign
+                context.translateX = translateX.value;
+                // eslint-disable-next-line no-param-reassign
+                context.translateY = translateY.value;
+            },
+            onActive: (event, context) => {
+                const newX = event.translationX + context.translateX;
+                const newY = event.translationY + context.translateY;
 
-            updateImageOffset(newX, newY);
+                updateImageOffset(newX, newY);
+            },
         },
-    }, [imageContainerSize, updateImageOffset, translateX, translateY]);
+        [imageContainerSize, updateImageOffset, translateX, translateY],
+    );
 
     // This effect is needed to recalculate the maximum offset values
     // when the browser window is resized.
@@ -247,36 +275,57 @@ const AvatarCropModal = (props) => {
      * Calculates new scale value and updates images offset to ensure
      * that image stays in the center of the container after changing scale.
      */
-    const panSliderGestureEventHandler = useAnimatedGestureHandler({
-        onStart: (_, context) => {
-            // we have to assign this value to a context
-            // since that is required for proper work of turbo modules.
-            // eslint-disable-next-line no-param-reassign
-            context.translateSliderX = translateSlider.value;
-            isPressableEnabled.value = false;
+    const panSliderGestureEventHandler = useAnimatedGestureHandler(
+        {
+            onStart: (_, context) => {
+                // we have to assign this value to a context
+                // since that is required for proper work of turbo modules.
+                // eslint-disable-next-line no-param-reassign
+                context.translateSliderX = translateSlider.value;
+                isPressableEnabled.value = false;
+            },
+            onActive: (event, context) => {
+                const newSliderValue = clamp(
+                    event.translationX + context.translateSliderX,
+                    [0, sliderContainerSize],
+                );
+                const newScale = newScaleValue(
+                    newSliderValue,
+                    sliderContainerSize,
+                );
+
+                const differential = newScale / scale.value;
+
+                scale.value = newScale;
+                translateSlider.value = newSliderValue;
+
+                const newX = translateX.value * differential;
+                const newY = translateY.value * differential;
+                updateImageOffset(newX, newY);
+            },
+            onEnd: () => (isPressableEnabled.value = true),
         },
-        onActive: (event, context) => {
-            const newSliderValue = clamp(event.translationX + context.translateSliderX, [0, sliderContainerSize]);
-            const newScale = newScaleValue(newSliderValue, sliderContainerSize);
-
-            const differential = newScale / scale.value;
-
-            scale.value = newScale;
-            translateSlider.value = newSliderValue;
-
-            const newX = translateX.value * differential;
-            const newY = translateY.value * differential;
-            updateImageOffset(newX, newY);
-        },
-        onEnd: () => isPressableEnabled.value = true,
-    }, [imageContainerSize, clamp, translateX, translateY, translateSlider, scale, sliderContainerSize, isPressableEnabled]);
+        [
+            imageContainerSize,
+            clamp,
+            translateX,
+            translateY,
+            translateSlider,
+            scale,
+            sliderContainerSize,
+            isPressableEnabled,
+        ],
+    );
 
     // This effect is needed to prevent the incorrect position of
     // the slider's knob when the window's layout changes
     useEffect(() => {
         translateSlider.value = interpolate(
             scale.value,
-            [CONST.AVATAR_CROP_MODAL.MIN_SCALE, CONST.AVATAR_CROP_MODAL.MAX_SCALE],
+            [
+                CONST.AVATAR_CROP_MODAL.MIN_SCALE,
+                CONST.AVATAR_CROP_MODAL.MAX_SCALE,
+            ],
             [0, sliderContainerSize],
         );
     }, [sliderContainerSize]);
@@ -287,7 +336,10 @@ const AvatarCropModal = (props) => {
         rotation.value -= 90;
 
         // Rotating 2d coordinates by applying the formula (x, y) → (-y, x).
-        [translateX.value, translateY.value] = [translateY.value, translateX.value * -1];
+        [translateX.value, translateY.value] = [
+            translateY.value,
+            translateX.value * -1,
+        ];
 
         // Since we rotated the image by 90 degrees, now width becomes height and vice versa.
         [originalImageHeight.value, originalImageWidth.value] = [
@@ -299,7 +351,10 @@ const AvatarCropModal = (props) => {
     // Crops an image that was provided in the imageUri prop, using the current position/scale
     // then calls onSave and onClose callbacks
     const cropAndSaveImage = useCallback(() => {
-        const smallerSize = Math.min(originalImageHeight.value, originalImageWidth.value);
+        const smallerSize = Math.min(
+            originalImageHeight.value,
+            originalImageWidth.value,
+        );
         const size = smallerSize / scale.value;
         const imageCenterX = originalImageWidth.value / 2;
         const imageCenterY = originalImageHeight.value / 2;
@@ -307,11 +362,20 @@ const AvatarCropModal = (props) => {
 
         // Since the translate value is only a distance from the image center, we are able to calculate
         // the originX and the originY - start coordinates of cropping view.
-        const originX = imageCenterX - apothem - ((translateX.value / imageContainerSize / scale.value) * smallerSize);
-        const originY = imageCenterY - apothem - ((translateY.value / imageContainerSize / scale.value) * smallerSize);
+        const originX =
+            imageCenterX -
+            apothem -
+            (translateX.value / imageContainerSize / scale.value) * smallerSize;
+        const originY =
+            imageCenterY -
+            apothem -
+            (translateY.value / imageContainerSize / scale.value) * smallerSize;
 
         const crop = {
-            height: size, width: size, originX, originY,
+            height: size,
+            width: size,
+            originX,
+            originY,
         };
 
         // Svg images are converted to a png blob to preserve transparency, so we need to update the
@@ -324,11 +388,10 @@ const AvatarCropModal = (props) => {
             props.imageUri,
             [{rotate: rotation.value % 360}, {crop}],
             {compress: 1, name: imageName, type: imageType},
-        )
-            .then((newImage) => {
-                props.onClose();
-                props.onSave(newImage);
-            });
+        ).then((newImage) => {
+            props.onClose();
+            props.onSave(newImage);
+        });
     }, [props.imageUri, props.imageName, props.imageType, imageContainerSize]);
 
     /**
@@ -366,44 +429,76 @@ const AvatarCropModal = (props) => {
                 title={props.translate('avatarCropModal.title')}
                 onCloseButtonPress={props.onClose}
             />
-            <Text style={[styles.mh5]}>{props.translate('avatarCropModal.description')}</Text>
-            <GestureHandlerRootView onLayout={initializeImageContainer} style={[styles.alignSelfStretch, styles.m5, styles.flex1, styles.alignItemsCenter]}>
-
+            <Text style={[styles.mh5]}>
+                {props.translate('avatarCropModal.description')}
+            </Text>
+            <GestureHandlerRootView
+                onLayout={initializeImageContainer}
+                style={[
+                    styles.alignSelfStretch,
+                    styles.m5,
+                    styles.flex1,
+                    styles.alignItemsCenter,
+                ]}
+            >
                 {/* To avoid layout shift we should hide this component until the image container & image is initialized */}
-                {(!isImageInitialized || !isImageContainerInitialized) ? <ActivityIndicator color={themeColors.spinner} style={[styles.flex1]} size="large" />
-                    : (
-                        <>
-                            <ImageCropView
-                                imageUri={props.imageUri}
-                                containerSize={imageContainerSize}
-                                panGestureEventHandler={panGestureEventHandler}
-                                originalImageHeight={originalImageHeight}
-                                originalImageWidth={originalImageWidth}
-                                scale={scale}
-                                translateY={translateY}
-                                translateX={translateX}
-                                rotation={rotation}
+                {!isImageInitialized || !isImageContainerInitialized ? (
+                    <ActivityIndicator
+                        color={themeColors.spinner}
+                        style={[styles.flex1]}
+                        size="large"
+                    />
+                ) : (
+                    <>
+                        <ImageCropView
+                            imageUri={props.imageUri}
+                            containerSize={imageContainerSize}
+                            panGestureEventHandler={panGestureEventHandler}
+                            originalImageHeight={originalImageHeight}
+                            originalImageWidth={originalImageWidth}
+                            scale={scale}
+                            translateY={translateY}
+                            translateX={translateX}
+                            rotation={rotation}
+                        />
+                        <View
+                            style={[
+                                styles.mt5,
+                                styles.justifyContentBetween,
+                                styles.alignItemsCenter,
+                                styles.flexRow,
+                                StyleUtils.getWidthStyle(imageContainerSize),
+                            ]}
+                        >
+                            <Icon
+                                src={Expensicons.Zoom}
+                                fill={themeColors.icons}
                             />
-                            <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
-                                <Icon src={Expensicons.Zoom} fill={themeColors.icons} />
-                                <Pressable
-                                    style={[styles.mh5, styles.flex1]}
-                                    onLayout={initializeSliderContainer}
-                                    onPressIn={e => runOnUI(sliderOnPress)(e.nativeEvent.locationX)}
-                                >
-                                    <Slider sliderValue={translateSlider} onGesture={panSliderGestureEventHandler} />
-                                </Pressable>
-                                <Button
-                                    medium
-                                    icon={Expensicons.Rotate}
-                                    iconFill={themeColors.inverse}
-                                    iconStyles={[styles.mr0]}
-                                    style={[styles.imageCropRotateButton]}
-                                    onPress={rotateImage}
+                            <Pressable
+                                style={[styles.mh5, styles.flex1]}
+                                onLayout={initializeSliderContainer}
+                                onPressIn={(e) =>
+                                    runOnUI(sliderOnPress)(
+                                        e.nativeEvent.locationX,
+                                    )
+                                }
+                            >
+                                <Slider
+                                    sliderValue={translateSlider}
+                                    onGesture={panSliderGestureEventHandler}
                                 />
-                            </View>
-                        </>
-                    )}
+                            </Pressable>
+                            <Button
+                                medium
+                                icon={Expensicons.Rotate}
+                                iconFill={themeColors.inverse}
+                                iconStyles={[styles.mr0]}
+                                style={[styles.imageCropRotateButton]}
+                                onPress={rotateImage}
+                            />
+                        </View>
+                    </>
+                )}
             </GestureHandlerRootView>
             <Button
                 success
@@ -419,7 +514,4 @@ const AvatarCropModal = (props) => {
 AvatarCropModal.displayName = 'AvatarCropModal';
 AvatarCropModal.propTypes = propTypes;
 AvatarCropModal.defaultProps = defaultProps;
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-)(AvatarCropModal);
+export default compose(withWindowDimensions, withLocalize)(AvatarCropModal);

@@ -132,11 +132,32 @@ const addressComponents = [
 describe('GooglePlacesUtilsTest', () => {
     describe('getAddressComponents', () => {
         it('should find address components by type', () => {
-            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {sublocality: 'long_name'})).toStrictEqual({sublocality: 'Brooklyn'});
-            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {administrative_area_level_1: 'short_name'})).toStrictEqual({administrative_area_level_1: 'NY'});
-            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {postal_code: 'long_name'})).toStrictEqual({postal_code: '11206'});
-            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {'doesnt-exist': 'long_name'})).toStrictEqual({'doesnt-exist': ''});
-            expect(GooglePlacesUtils.getAddressComponents(addressComponents, standardObjectToFind)).toStrictEqual({
+            expect(
+                GooglePlacesUtils.getAddressComponents(addressComponents, {
+                    sublocality: 'long_name',
+                }),
+            ).toStrictEqual({sublocality: 'Brooklyn'});
+            expect(
+                GooglePlacesUtils.getAddressComponents(addressComponents, {
+                    administrative_area_level_1: 'short_name',
+                }),
+            ).toStrictEqual({administrative_area_level_1: 'NY'});
+            expect(
+                GooglePlacesUtils.getAddressComponents(addressComponents, {
+                    postal_code: 'long_name',
+                }),
+            ).toStrictEqual({postal_code: '11206'});
+            expect(
+                GooglePlacesUtils.getAddressComponents(addressComponents, {
+                    'doesnt-exist': 'long_name',
+                }),
+            ).toStrictEqual({'doesnt-exist': ''});
+            expect(
+                GooglePlacesUtils.getAddressComponents(
+                    addressComponents,
+                    standardObjectToFind,
+                ),
+            ).toStrictEqual({
                 sublocality: 'Brooklyn',
                 administrative_area_level_1: 'NY',
                 postal_code: '11206',
@@ -146,12 +167,37 @@ describe('GooglePlacesUtilsTest', () => {
     });
     describe('getAddressComponentsWithCountry', () => {
         it('should find address components by type', () => {
-            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {sublocality: 'long_name'})).toStrictEqual({sublocality: 'Brooklyn'});
-            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {administrative_area_level_1: 'short_name'})).toStrictEqual({administrative_area_level_1: 'NY'});
-            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {postal_code: 'long_name'})).toStrictEqual({postal_code: '11206'});
-            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {'doesnt-exist': 'long_name'})).toStrictEqual({'doesnt-exist': ''});
-            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {country: 'long_name'})).toStrictEqual({country: 'United States'});
-            expect(GooglePlacesUtils.getAddressComponents(addressComponents, objectWithCountryToFind)).toStrictEqual({
+            expect(
+                GooglePlacesUtils.getAddressComponents(addressComponents, {
+                    sublocality: 'long_name',
+                }),
+            ).toStrictEqual({sublocality: 'Brooklyn'});
+            expect(
+                GooglePlacesUtils.getAddressComponents(addressComponents, {
+                    administrative_area_level_1: 'short_name',
+                }),
+            ).toStrictEqual({administrative_area_level_1: 'NY'});
+            expect(
+                GooglePlacesUtils.getAddressComponents(addressComponents, {
+                    postal_code: 'long_name',
+                }),
+            ).toStrictEqual({postal_code: '11206'});
+            expect(
+                GooglePlacesUtils.getAddressComponents(addressComponents, {
+                    'doesnt-exist': 'long_name',
+                }),
+            ).toStrictEqual({'doesnt-exist': ''});
+            expect(
+                GooglePlacesUtils.getAddressComponents(addressComponents, {
+                    country: 'long_name',
+                }),
+            ).toStrictEqual({country: 'United States'});
+            expect(
+                GooglePlacesUtils.getAddressComponents(
+                    addressComponents,
+                    objectWithCountryToFind,
+                ),
+            ).toStrictEqual({
                 sublocality: 'Brooklyn',
                 administrative_area_level_1: 'NY',
                 postal_code: '11206',
@@ -164,7 +210,10 @@ describe('GooglePlacesUtilsTest', () => {
         it('should not be slow when executing', () => {
             const startTime = performance.now();
             for (let i = 100; i > 0; i--) {
-                GooglePlacesUtils.getAddressComponents(addressComponents, standardObjectToFind);
+                GooglePlacesUtils.getAddressComponents(
+                    addressComponents,
+                    standardObjectToFind,
+                );
             }
             const endTime = performance.now();
             const executionTime = endTime - startTime;
@@ -178,7 +227,10 @@ describe('GooglePlacesUtilsTest', () => {
         it('should not be slow when executing', () => {
             const startTime = performance.now();
             for (let i = 100; i > 0; i--) {
-                GooglePlacesUtils.getAddressComponents(addressComponents, bigObjectToFind);
+                GooglePlacesUtils.getAddressComponents(
+                    addressComponents,
+                    bigObjectToFind,
+                );
             }
             const endTime = performance.now();
             const executionTime = endTime - startTime;
@@ -186,7 +238,7 @@ describe('GooglePlacesUtilsTest', () => {
             // When timing this method it was roughly 1.211708999999928ms locally
             // but 3.2214480000000094ms on github actions so using 5ms arbitrarily here for now
             // and we can change if needed later.
-            expect(executionTime).toBeLessThan(5.00);
+            expect(executionTime).toBeLessThan(5.0);
         });
     });
 });

@@ -13,9 +13,9 @@ const defaultProps = {
     items: [],
 };
 
-const UnorderedList = props => (
+const UnorderedList = (props) => (
     <>
-        {_.map(props.items, itemText => (
+        {_.map(props.items, (itemText) => (
             <View
                 key={itemText}
                 style={[styles.flexRow, styles.alignItemsStart, styles.ml2]}

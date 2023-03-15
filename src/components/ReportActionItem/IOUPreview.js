@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-    View,
-    TouchableWithoutFeedback,
-} from 'react-native';
+import {View, TouchableWithoutFeedback} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
@@ -83,11 +80,12 @@ const propTypes = {
     isHovered: PropTypes.bool,
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(PropTypes.shape({
-
-        /** This is either the user's full name, or their login if full name is an empty string */
-        displayName: PropTypes.string.isRequired,
-    })).isRequired,
+    personalDetails: PropTypes.objectOf(
+        PropTypes.shape({
+            /** This is either the user's full name, or their login if full name is an empty string */
+            displayName: PropTypes.string.isRequired,
+        }),
+    ).isRequired,
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
@@ -99,7 +97,9 @@ const propTypes = {
     walletTerms: walletTermsPropTypes,
 
     /** Pending action, if any */
-    pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
+    pendingAction: PropTypes.oneOf(
+        _.values(CONST.RED_BRICK_ROAD_PENDING_ACTION),
+    ),
 
     ...withLocalizePropTypes,
 };
@@ -134,24 +134,41 @@ const IOUPreview = (props) => {
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerEmail === sessionEmail;
 
-    const managerName = ReportUtils.getDisplayNameForParticipant(managerEmail, true);
-    const ownerName = ReportUtils.getDisplayNameForParticipant(ownerEmail, true);
+    const managerName = ReportUtils.getDisplayNameForParticipant(
+        managerEmail,
+        true,
+    );
+    const ownerName = ReportUtils.getDisplayNameForParticipant(
+        ownerEmail,
+        true,
+    );
     const managerAvatar = {
-        source: ReportUtils.getAvatar(lodashGet(props.personalDetails, [managerEmail, 'avatar']), managerEmail),
+        source: ReportUtils.getAvatar(
+            lodashGet(props.personalDetails, [managerEmail, 'avatar']),
+            managerEmail,
+        ),
         type: CONST.ICON_TYPE_AVATAR,
         name: managerEmail,
     };
     const ownerAvatar = {
-        source: ReportUtils.getAvatar(lodashGet(props.personalDetails, [ownerEmail, 'avatar']), ownerEmail),
+        source: ReportUtils.getAvatar(
+            lodashGet(props.personalDetails, [ownerEmail, 'avatar']),
+            ownerEmail,
+        ),
         type: CONST.ICON_TYPE_AVATAR,
         name: ownerEmail,
     };
-    const cachedTotal = props.iouReport.total && props.iouReport.currency
-        ? props.numberFormat(
-            Math.abs(props.iouReport.total) / 100,
-            {style: 'currency', currency: props.iouReport.currency},
-        ) : '';
-    const avatarTooltip = [Str.removeSMSDomain(managerEmail), Str.removeSMSDomain(ownerEmail)];
+    const cachedTotal =
+        props.iouReport.total && props.iouReport.currency
+            ? props.numberFormat(Math.abs(props.iouReport.total) / 100, {
+                  style: 'currency',
+                  currency: props.iouReport.currency,
+              })
+            : '';
+    const avatarTooltip = [
+        Str.removeSMSDomain(managerEmail),
+        Str.removeSMSDomain(ownerEmail),
+    ];
 
     const showContextMenu = (event) => {
         // Use action and shouldHidePayButton props to check if we are in IOUDetailsModal,
@@ -172,7 +189,10 @@ const IOUPreview = (props) => {
     return (
         <TouchableWithoutFeedback
             onPress={props.onPreviewPressed}
-            onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+            onPressIn={() =>
+                DeviceCapabilities.canUseTouchScreen() &&
+                ControlSelection.block()
+            }
             onPressOut={() => ControlSelection.unblock()}
             onLongPress={showContextMenu}
         >
@@ -188,13 +208,20 @@ const IOUPreview = (props) => {
                 >
                     <View>
                         <View style={[styles.flexRow]}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={styles.h1}>
-                                    {cachedTotal}
-                                </Text>
+                            <View
+                                style={[
+                                    styles.flex1,
+                                    styles.flexRow,
+                                    styles.alignItemsCenter,
+                                ]}
+                            >
+                                <Text style={styles.h1}>{cachedTotal}</Text>
                                 {!props.iouReport.hasOutstandingIOU && (
                                     <View style={styles.iouPreviewBoxCheckmark}>
-                                        <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
+                                        <Icon
+                                            src={Expensicons.Checkmark}
+                                            fill={themeColors.iconSuccessFill}
+                                        />
                                     </View>
                                 )}
                             </View>
@@ -211,42 +238,61 @@ const IOUPreview = (props) => {
                                 />
                             </View>
                         </View>
-                        {isCurrentUserManager
-                            ? (
+                        {isCurrentUserManager ? (
+                            <Text>
+                                {props.iouReport.hasOutstandingIOU
+                                    ? props.translate('iou.youowe', {
+                                          owner: ownerName,
+                                      })
+                                    : props.translate('iou.youpaid', {
+                                          owner: ownerName,
+                                      })}
+                            </Text>
+                        ) : (
+                            <>
                                 <Text>
                                     {props.iouReport.hasOutstandingIOU
-                                        ? props.translate('iou.youowe', {owner: ownerName})
-                                        : props.translate('iou.youpaid', {owner: ownerName})}
+                                        ? props.translate('iou.owesyou', {
+                                              manager: managerName,
+                                          })
+                                        : props.translate('iou.paidyou', {
+                                              manager: managerName,
+                                          })}
                                 </Text>
-                            )
-                            : (
-                                <>
-                                    <Text>
-                                        {props.iouReport.hasOutstandingIOU
-                                            ? props.translate('iou.owesyou', {manager: managerName})
-                                            : props.translate('iou.paidyou', {manager: managerName})}
+                                {props.shouldShowPendingConversionMessage && (
+                                    <Text
+                                        style={[
+                                            styles.textLabel,
+                                            styles.colorMuted,
+                                        ]}
+                                    >
+                                        {props.translate(
+                                            'iou.pendingConversionMessage',
+                                        )}
                                     </Text>
-                                    {props.shouldShowPendingConversionMessage && (
-                                        <Text style={[styles.textLabel, styles.colorMuted]}>
-                                            {props.translate('iou.pendingConversionMessage')}
-                                        </Text>
-                                    )}
-                                </>
-                            )}
-                        {(isCurrentUserManager
-                            && !props.shouldHidePayButton
-                            && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
+                                )}
+                            </>
+                        )}
+                        {isCurrentUserManager &&
+                            !props.shouldHidePayButton &&
+                            props.iouReport.stateNum ===
+                                CONST.REPORT.STATE_NUM.PROCESSING && (
                                 <Button
                                     style={styles.mt4}
                                     onPress={props.onPayButtonPressed}
-                                    onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                                    onPressOut={() => ControlSelection.unblock()}
+                                    onPressIn={() =>
+                                        DeviceCapabilities.canUseTouchScreen() &&
+                                        ControlSelection.block()
+                                    }
+                                    onPressOut={() =>
+                                        ControlSelection.unblock()
+                                    }
                                     onLongPress={showContextMenu}
                                     text={props.translate('iou.pay')}
                                     success
                                     medium
                                 />
-                        ))}
+                            )}
                     </View>
                 </OfflineWithFeedback>
             </View>
@@ -265,7 +311,8 @@ export default compose(
             key: ONYXKEYS.PERSONAL_DETAILS,
         },
         iouReport: {
-            key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+            key: ({iouReportID}) =>
+                `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
         },
         session: {
             key: ONYXKEYS.SESSION,
