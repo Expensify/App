@@ -76,6 +76,7 @@ class StatusPage extends Component {
      * @returns {Object} - An object containing the errors for each inputID
      */
     validate(values) {
+        return {};
     }
 
     render() {
