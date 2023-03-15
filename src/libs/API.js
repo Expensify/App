@@ -41,7 +41,7 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
             // This should be removed once we are no longer using deprecatedAPI https://github.com/Expensify/Expensify/issues/215650
             shouldRetry: true,
             canCancel: true,
-            ecashPlatform: Platform.OS,
+            echatPlatform: Platform.OS,
         },
         ..._.omit(onyxData, 'optimisticData'),
     };
@@ -81,7 +81,7 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
         ...apiCommandParameters,
         appversion: pkg.version,
         apiRequestType,
-        ecashPlatform: Platform.OS,
+        echatPlatform: Platform.OS,
     };
 
     // Assemble all the request data we'll be storing
