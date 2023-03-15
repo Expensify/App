@@ -138,6 +138,29 @@ function updateDisplayName(firstName, lastName) {
 }
 
 /**
+ * @param {String} emojiCode
+ * @param {String} text
+ * @param {String} timeout
+ */
+function updateStatus(emojiCode, text, timeout) {
+    API.write('UpdateStatus', {emojiCode, text, timeout}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    status: {
+                        emojiCode,
+                        text,
+                        timeout,
+                    },
+                },
+            },
+        }],
+    });
+}
+
+/**
  * @param {String} legalFirstName
  * @param {String} legalLastName
  */
@@ -372,6 +395,7 @@ export {
     openPersonalDetailsPage,
     extractFirstAndLastNameFromAvailableDetails,
     updateDisplayName,
+    updateStatus,
     updateLegalName,
     updateDateOfBirth,
     updateAddress,
