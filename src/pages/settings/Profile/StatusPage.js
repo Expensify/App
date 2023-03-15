@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
-import {View} from 'react-native';
+import {Pressable, View} from 'react-native';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
@@ -18,6 +18,12 @@ import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
 import * as ErrorUtils from '../../../libs/ErrorUtils';
 import Picker from '../../../components/Picker';
+import * as Expensicons from "../../../components/Icon/Expensicons";
+import variables from "../../../styles/variables";
+import * as StyleUtils from "../../../styles/StyleUtils";
+import getButtonState from "../../../libs/getButtonState";
+import Icon from "../../../components/Icon";
+import * as EmojiPickerAction from "../../../libs/actions/EmojiPickerAction";
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -73,14 +79,31 @@ class StatusPage extends Component {
                     enabledWhenOffline
                 >
                     <Text style={[styles.mb6]}>
-                        
+                        Emoji
                     </Text>
                     <View style={styles.mb4}>
-                        <TextInput
-                            inputID="emoji"
-                            label="Emoji"
-                            placeholder='🇨🇼'
-                        />
+                        <Pressable
+                            onPress={() => {
+                                // EmojiPickerAction.showEmojiPicker(
+                                //     () => {},
+                            }}
+                            style={{
+                            borderWidth: 1,
+                            borderRadius: 5,
+                            width: 30,
+                            height: 30,
+                        }}>
+                            {({hovered, pressed}) => (
+                                <Icon
+                                    src={Expensicons.Emoji}
+                                    width={24}
+                                    height={24}
+                                    fill={StyleUtils.getIconFillColor(
+                                        getButtonState(hovered, pressed),
+                                    )}
+                                />
+                            )}
+                        </Pressable>
                     </View>
                     <View>
                         <TextInput
