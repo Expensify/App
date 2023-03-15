@@ -171,7 +171,7 @@ export default {
         requestNewCodeLink: 'request a new code here',
         successfulNewCodeRequest: 'Code requested. Please check your device.',
         tfaRequiredTitle: 'Two factor authentication required',
-        tfaRequiredDescription: 'Please enter the two-factor authentication code where you are trying to sign in',
+        tfaRequiredDescription: 'Please enter the two-factor authentication code where you are trying to sign in.',
     },
     iOUConfirmationList: {
         whoPaid: 'Who paid?',
