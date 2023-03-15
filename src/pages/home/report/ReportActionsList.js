@@ -64,12 +64,14 @@ const defaultProps = {
     isLoadingMoreReportActions: false,
 };
 
+const EMPTY_UNREAD_MARKER = {id: 'fakeUnreadMarker', index: -1, created: ''};
+
 class ReportActionsList extends React.Component {
     constructor(props) {
         super(props);
         this.renderItem = this.renderItem.bind(this);
         this.keyExtractor = this.keyExtractor.bind(this);
-        this.currentUnreadMarker = React.createRef(null);
+        this.currentUnreadMarker = React.createRef();
         this.currentScrollOffset = 0;
         this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
         this.trackScroll = this.trackScroll.bind(this);
@@ -83,6 +85,20 @@ class ReportActionsList extends React.Component {
 
     componentDidMount() {
         this.fadeIn();
+
+        // subscribe to Pusher to listen to new reportComments
+        // const unReadMessageWasDeleted = this.currentUnreadMarker.current && prevProps.sortedReportActions.length > this.props.sortedReportActions.length;
+        // if (unReadMessageWasDeleted) {}
+    }
+
+    componentDidUpdate() {
+        console.log('<<<<<ReportActionsList componentDidUpdate>>>>>', this.props.report.reportID);
+
+        // This get executed after all the messages are loaded
+        if (!this.currentUnreadMarker.current) {
+            // Set a fake unread marker to the last message
+            this.currentUnreadMarker.current = EMPTY_UNREAD_MARKER;
+        }
     }
 
     /**
@@ -122,7 +138,7 @@ class ReportActionsList extends React.Component {
 
     componentWillUnmount() {
         console.log('<<<<<ReportActionsList componentWillUnmount>>>>>');
-        this.currentUnreadMarker = null;
+        this.currentUnreadMarker.current = null;
     }
 
     /**
@@ -172,21 +188,27 @@ class ReportActionsList extends React.Component {
         // console.log('this.currentUnreadMarker.current', this.currentUnreadMarker.current);
         if (!this.currentUnreadMarker.current) {
             // When the new indicator should not be displayed we explicitly set it to null
-            const lastMessage = this.props.sortedReportActions?.[index + 1];
+            const nextMessage = this.props.sortedReportActions[index + 1];
 
-            // console.log('lastMessage', lastMessage);
-            const showUnreadUnderlay = !!this.isUnreadMsg(reportAction, this.props.report.lastReadTime);
+            // console.log('1) reportAction', reportAction, this.props.report.lastReadTime);
+            const isCurrentMessageUnread = !!this.isUnreadMsg(reportAction, this.props.report.lastReadTime);
 
-            // console.log('showUnreadUnderlay', showUnreadUnderlay);
-            shouldDisplayNewMarker = showUnreadUnderlay && !this.isUnreadMsg(lastMessage, this.props.report.lastReadTime);
+            // console.log('isCurrentMessageUnread', isCurrentMessageUnread);
+            shouldDisplayNewMarker = isCurrentMessageUnread && !this.isUnreadMsg(nextMessage, this.props.report.lastReadTime);
 
             // console.log('shouldDisplayNewMarker', shouldDisplayNewMarker);
 
             if (!this.currentUnreadMarker.current && shouldDisplayNewMarker) {
-                this.currentUnreadMarker.current = {id: reportAction.reportActionID, index};
+                this.currentUnreadMarker.current = {id: reportAction.reportActionID, index, created: reportAction.created};
+
+                // console.log('1) this.currentUnreadMarker.current', this.currentUnreadMarker.current);
             }
         } else {
+            // console.log('2) reportAction', reportAction, this.props.report.lastReadTime, this.currentUnreadMarker.current);
+
             shouldDisplayNewMarker = reportAction.reportActionID === this.currentUnreadMarker.current.id;
+
+            // console.log('2) this.currentUnreadMarker.current', this.currentUnreadMarker.current);
         }
 
         // const shouldDisplayNewMarker = reportAction.reportActionID === this.props.newMarkerReportActionID;
@@ -213,7 +235,7 @@ class ReportActionsList extends React.Component {
                 <FloatingMessageCounter
                     isActive={this.state.isFloatingMessageCounterVisible && this.currentUnreadMarker.current != null}
                     onClick={() => {
-                        console.log('FloatingMessageCounter onClick: ', this.currentUnreadMarker.current);
+                        // console.log('FloatingMessageCounter onClick: ', this.currentUnreadMarker.current);
                         this.setState({isFloatingMessageCounterVisible: false});
                         ReportScrollManager.scrollToIndex(this.currentUnreadMarker.current.index, false);
                     }}

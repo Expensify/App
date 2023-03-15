@@ -64,7 +64,7 @@ class ReportActionsView extends React.Component {
 
         this.state = {
             isFloatingMessageCounterVisible: false,
-            newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, props.reportActions),
+            newMarkerReportActionID: '', // ReportUtils.getNewMarkerReportActionID(this.props.report, props.reportActions),
         };
 
         this.currentScrollOffset = 0;
@@ -89,10 +89,10 @@ class ReportActionsView extends React.Component {
             // e.g. they could have read these messages on another device and only just become active here
             this.openReportIfNecessary();
 
-            const hasUnreadActions = ReportUtils.isUnread(this.props.report);
-            if (!hasUnreadActions) {
-                this.setState({newMarkerReportActionID: ''});
-            }
+            // const hasUnreadActions = ReportUtils.isUnread(this.props.report);
+            // if (!hasUnreadActions) {
+            //     this.setState({newMarkerReportActionID: ''});
+            // }
         });
 
         if (this.getIsReportFullyVisible()) {
@@ -101,32 +101,32 @@ class ReportActionsView extends React.Component {
 
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
-        this.unsubscribeFromNewActionEvent = Report.subscribeToNewActionEvent(this.props.report.reportID, (isFromCurrentUser, newActionID) => {
-            const isNewMarkerReportActionIDSet = !_.isEmpty(this.state.newMarkerReportActionID);
+        // this.unsubscribeFromNewActionEvent = Report.subscribeToNewActionEvent(this.props.report.reportID, (isFromCurrentUser, newActionID) => {
+        //     const isNewMarkerReportActionIDSet = !_.isEmpty(this.state.newMarkerReportActionID);
 
-            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
-            // they are now in the list.
-            if (isFromCurrentUser) {
-                ReportScrollManager.scrollToBottom();
+        //     // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
+        //     // they are now in the list.
+        //     if (isFromCurrentUser) {
+        //         ReportScrollManager.scrollToBottom();
 
-                // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
-                this.setState({newMarkerReportActionID: ''});
-            } else if (this.getIsReportFullyVisible()) {
-                // We use the scroll position to determine whether the report should be marked as read and the new line indicator reset.
-                // If the user is scrolled up and no new line marker is set we will set it otherwise we will do nothing so the new marker
-                // stays in it's previous position.
-                if (this.currentScrollOffset === 0) {
-                    Report.readNewestAction(this.props.report.reportID);
-                    this.setState({newMarkerReportActionID: ''});
-                } else if (!isNewMarkerReportActionIDSet) {
-                    this.setState({newMarkerReportActionID: newActionID});
-                }
-            } else if (!isNewMarkerReportActionIDSet) {
-                // The report is not in view and we received a comment from another user while the new marker is not set
-                // so we will set the new marker now.
-                this.setState({newMarkerReportActionID: newActionID});
-            }
-        });
+        //         // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
+        //         this.setState({newMarkerReportActionID: ''});
+        //     } else if (this.getIsReportFullyVisible()) {
+        //         // We use the scroll position to determine whether the report should be marked as read and the new line indicator reset.
+        //         // If the user is scrolled up and no new line marker is set we will set it otherwise we will do nothing so the new marker
+        //         // stays in it's previous position.
+        //         if (this.currentScrollOffset === 0) {
+        //             Report.readNewestAction(this.props.report.reportID);
+        //             this.setState({newMarkerReportActionID: ''});
+        //         } else if (!isNewMarkerReportActionIDSet) {
+        //             this.setState({newMarkerReportActionID: newActionID});
+        //         }
+        //     } else if (!isNewMarkerReportActionIDSet) {
+        //         // The report is not in view and we received a comment from another user while the new marker is not set
+        //         // so we will set the new marker now.
+        //         this.setState({newMarkerReportActionID: newActionID});
+        //     }
+        // });
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -155,9 +155,9 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (nextState.newMarkerReportActionID !== this.state.newMarkerReportActionID) {
-            return true;
-        }
+        // if (nextState.newMarkerReportActionID !== this.state.newMarkerReportActionID) {
+        //     return true;
+        // }
 
         if (this.props.isSmallScreenWidth !== nextProps.isSmallScreenWidth) {
             return true;
@@ -196,42 +196,42 @@ class ReportActionsView extends React.Component {
         // I THINK THIS WON"T BE IN NEXT RELEASE
         // If the report was previously hidden by the side bar, or the view is expanded from mobile to desktop layout
         // we update the new marker position, mark the report as read, and fetch new report actions
-        const didSidebarClose = prevProps.isDrawerOpen && !this.props.isDrawerOpen;
-        const didScreenSizeIncrease = prevProps.isSmallScreenWidth && !this.props.isSmallScreenWidth;
-        const didReportBecomeVisible = isReportFullyVisible && (didSidebarClose || didScreenSizeIncrease);
-        if (didReportBecomeVisible) {
-            this.setState({
-                newMarkerReportActionID: ReportUtils.isUnread(this.props.report)
-                    ? ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions)
-                    : '',
-            });
-            this.openReportIfNecessary();
-        }
+        // const didSidebarClose = prevProps.isDrawerOpen && !this.props.isDrawerOpen;
+        // const didScreenSizeIncrease = prevProps.isSmallScreenWidth && !this.props.isSmallScreenWidth;
+        // const didReportBecomeVisible = isReportFullyVisible && (didSidebarClose || didScreenSizeIncrease);
+        // if (didReportBecomeVisible) {
+        //     this.setState({
+        //         newMarkerReportActionID: ReportUtils.isUnread(this.props.report)
+        //             ? ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions)
+        //             : '',
+        //     });
+        //     this.openReportIfNecessary();
+        // }
 
-        // THIS CAN BE HANDLE MORE EFFICIENTLY, USING THE INDEX
-        // If the report is unread, we want to check if the number of actions has decreased. If so, then it seems that one of them was deleted. In this case, if the deleted action was the
-        // one marking the unread point, we need to recalculate which action should be the unread marker.
-        if (ReportUtils.isUnread(this.props.report) && prevProps.reportActions.length > this.props.reportActions.length) {
-            this.setState({
-                newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions),
-            });
-        }
+        // // THIS CAN BE HANDLE MORE EFFICIENTLY, USING THE INDEX
+        // // If the report is unread, we want to check if the number of actions has decreased. If so, then it seems that one of them was deleted. In this case, if the deleted action was the
+        // // one marking the unread point, we need to recalculate which action should be the unread marker.
+        // if (ReportUtils.isUnread(this.props.report) && prevProps.reportActions.length > this.props.reportActions.length) {
+        //     this.setState({
+        //         newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions),
+        //     });
+        // }
 
-        // When the user navigates to the LHN the ReportActionsView doesn't unmount and just remains hidden.
-        // The next time we navigate to the same report (e.g. by swiping or tapping the LHN row) we want the new marker to clear.
-        const didSidebarOpen = !prevProps.isDrawerOpen && this.props.isDrawerOpen;
-        const didUserNavigateToSidebarAfterReadingReport = didSidebarOpen && !ReportUtils.isUnread(this.props.report);
-        if (didUserNavigateToSidebarAfterReadingReport) {
-            this.setState({newMarkerReportActionID: ''});
-        }
+        // // When the user navigates to the LHN the ReportActionsView doesn't unmount and just remains hidden.
+        // // The next time we navigate to the same report (e.g. by swiping or tapping the LHN row) we want the new marker to clear.
+        // const didSidebarOpen = !prevProps.isDrawerOpen && this.props.isDrawerOpen;
+        // const didUserNavigateToSidebarAfterReadingReport = didSidebarOpen && !ReportUtils.isUnread(this.props.report);
+        // if (didUserNavigateToSidebarAfterReadingReport) {
+        //     this.setState({newMarkerReportActionID: ''});
+        // }
 
-        // Checks to see if a report comment has been manually "marked as unread". All other times when the lastReadTime
-        // changes it will be because we marked the entire report as read.
-        const didManuallyMarkReportAsUnread = (prevProps.report.lastReadTime !== this.props.report.lastReadTime)
-            && ReportUtils.isUnread(this.props.report);
-        if (didManuallyMarkReportAsUnread) {
-            this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions)});
-        }
+        // // Checks to see if a report comment has been manually "marked as unread". All other times when the lastReadTime
+        // // changes it will be because we marked the entire report as read.
+        // const didManuallyMarkReportAsUnread = (prevProps.report.lastReadTime !== this.props.report.lastReadTime)
+        //     && ReportUtils.isUnread(this.props.report);
+        // if (didManuallyMarkReportAsUnread) {
+        //     this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions)});
+        // }
 
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
         // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
