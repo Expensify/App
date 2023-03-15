@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
-import {Pressable, View} from 'react-native';
+import {Pressable, TouchableOpacity, View} from 'react-native';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
@@ -105,7 +105,7 @@ class StatusPage extends Component {
                         Emoji
                     </Text>
                     <View ref={this.emojiBtnRef} style={styles.mb4}>
-                        <Pressable
+                        <TouchableOpacity
                             onPress={() => {
                                 EmojiPickerAction.showEmojiPicker(
                                     () => {},
@@ -116,29 +116,31 @@ class StatusPage extends Component {
                                 );
                             }}
                             style={{
-                                borderWidth: 1,
+                                borderWidth: 1.5,
                                 borderRadius: 5,
-                                width: 30,
-                                height: 30,
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                height: 35,
+                                width: 35,
+                                borderColor: 'rgb(26, 61, 50)',
                             }}
                         >
-                            {({hovered, pressed}) => (
-                                this.state.emoji === '' ? (
-                                    <Icon
-                                        src={Expensicons.Emoji}
-                                        width={24}
-                                        height={24}
-                                        fill={StyleUtils.getIconFillColor(
-                                            getButtonState(hovered, pressed),
-                                        )}
-                                    />
-                                ) : (
-                                    <Text style={{fontSize: 24}}>
-                                        {this.state.emoji}
-                                    </Text>
-                                )
+
+                            {this.state.emoji === '' ? (
+                                <Icon
+                                    src={Expensicons.Emoji}
+                                    width={24}
+                                    height={24}
+                                    fill={StyleUtils.getIconFillColor(
+                                        getButtonState(false, false),
+                                    )}
+                                />
+                            ) : (
+                                <Text style={{fontSize: 24}}>
+                                    {this.state.emoji}
+                                </Text>
                             )}
-                        </Pressable>
+                        </TouchableOpacity>
                     </View>
                     <View>
                         <TextInput
