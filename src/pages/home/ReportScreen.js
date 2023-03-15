@@ -156,7 +156,8 @@ class ReportScreen extends React.Component {
 
             if (commandParts[0] === 'summarize') {
                 const response = await ChatGPT.summarize(commandParts.join(' '));
-                if (response.data != null && response.data !== '') { reportCommentText = response.data; }
+                const r2 = `!!ISCHATGPT!!${response}`;
+                if (r2 != null && r2 !== '') { reportCommentText = r2; }
             }
         } else {
             reportCommentText = text;

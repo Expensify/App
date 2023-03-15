@@ -13,6 +13,5 @@ export async function summarize(largeMessage) {
     });
     const json = await x.json();
     const reply = json.choices?.[0]?.text ?? 'hm.';
-    console.log('reply:', reply);
     return reply;
 }
