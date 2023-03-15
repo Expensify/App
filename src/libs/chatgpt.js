@@ -1,27 +1,13 @@
-import OpenAI from 'openai-api';
+import {ChatGPTAPI} from 'chatgpt';
 
 const OPENAI_API_TOKEN = process.env.OPENAI_API_TOKEN;
 
-const openai = new OpenAI(OPENAI_API_TOKEN);
+const api = new ChatGPTAPI({
+    apiKey: OPENAI_API_TOKEN,
+});
 
-// eslint-disable-next-line @lwc/lwc/no-async-await
-async function complete(prompt) {
-    const gptResponse = await openai.complete({
-        engine: 'davinci',
-        // eslint-disable-next-line es/no-nullish-coalescing-operators
-        prompt: prompt ?? 'summarize this:',
-        maxTokens: 5,
-        temperature: 0.9,
-        topP: 1,
-        presencePenalty: 0,
-        frequencyPenalty: 0,
-        bestOf: 1,
-        n: 1,
-        stream: false,
-        stop: ['\n', 'testing'],
-    });
-
-    return gptResponse;
+// eslint-disable-next-line rulesdir/no-inline-named-export, import/prefer-default-export, @lwc/lwc/no-async-await
+export async function summarize(largeMessage) {
+    const res = await api.sendMessage(largeMessage);
+    return res;
 }
-
-export {complete};
