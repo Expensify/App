@@ -59,7 +59,7 @@ function getLatestErrorMessage(onyxData) {
  * @param {Object} errors - An object containing current errors in the form
  * @param {String} inputID
  * @param {String} message - Message to assign to the inputID errors
- * @returns {void}
+ *
  */
 function addErrorMessage(errors, inputID, message) {
     const errorList = errors;
