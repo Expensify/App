@@ -94,7 +94,7 @@ class StatusPage extends Component {
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.PERSONAL_DETAILS}
+                    formID={ONYXKEYS.FORMS.STATUS_FORM}
                     validate={this.validate}
                     onSubmit={this.updateStatus}
                     submitButtonText={this.props.translate('common.save')}
