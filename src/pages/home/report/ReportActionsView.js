@@ -105,11 +105,14 @@ class ReportActionsView extends React.Component {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
             if (isFromCurrentUser) {
+                alert('new message');
                 ReportScrollManager.scrollToBottom();
 
                 // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
                 this.setState({newMarkerReportActionID: ''});
             } else if (this.getIsReportFullyVisible()) {
+                alert('new message');
+
                 // We use the scroll position to determine whether the report should be marked as read and the new line indicator reset.
                 // If the user is scrolled up and no new line marker is set we will set it otherwise we will do nothing so the new marker
                 // stays in it's previous position.

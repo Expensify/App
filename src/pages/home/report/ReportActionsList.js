@@ -20,7 +20,6 @@ import CONST from '../../../CONST';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
-import * as ChatMessageAnimationTrigger from '../../../libs/ChatMessageAnimationTrigger';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -132,8 +131,8 @@ class ReportActionsList extends React.Component {
         const shouldDisplayNewMarker = reportAction.reportActionID === this.props.newMarkerReportActionID;
 
         // If this item is unread we check to see if it matches one of our animation trigger words
-        if (ReportUtils.isMessageUnread(this.props.report, reportAction.created) && ReportUtils.isTriggerWord(reportAction)) {
-            ChatMessageAnimationTrigger.trigger();
+        if (ReportUtils.isMessageUnread(this.props.report, reportAction.created) && true) {
+            alert('works');
         }
 
         return (
