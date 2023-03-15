@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import {View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../styles/styles';
@@ -16,6 +16,7 @@ import ROUTES from '../ROUTES';
 import Tooltip from './Tooltip';
 import reportPropTypes from '../pages/reportPropTypes';
 import CONST from '../CONST';
+import themeColors from '../styles/themes/default';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -68,8 +69,10 @@ const ReportWelcomeText = (props) => {
         <>
             <View>
                 <Text style={[styles.textHero]}>
-                    {props.translate('reportActionsView.sayHello')}
+                    {/* {props.translate('reportActionsView.sayHello')} */}
+                    Just wait the moment, you are almost there!
                 </Text>
+                <ActivityIndicator color={themeColors.spinner} size="large" />
             </View>
             <Text style={[styles.mt3, styles.mw100]}>
                 {isPolicyExpenseChat && (
