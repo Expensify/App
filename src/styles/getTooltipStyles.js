@@ -118,6 +118,7 @@ export default function getTooltipStyles(
         },
         tooltipWrapperStyle: {
             position: 'fixed',
+            pointerEvents:"none",
             backgroundColor: themeColors.heading,
             borderRadius: variables.componentBorderRadiusSmall,
             ...tooltipVerticalPadding,
