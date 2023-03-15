@@ -2822,9 +2822,9 @@ const styles = {
     },
 
     imageCropViewBorder: {
-        borderRadius: variables.cropViewBorderRadius,
+        borderRadius: variables.componentBorderRadiusCard,
         borderWidth: 2,
-        borderColor: themeColors.text,
+        borderColor: themeColors.cropMaskOutline,
     },
 
     sliderKnob: {
