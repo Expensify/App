@@ -766,14 +766,14 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 
     const isValidPhone = Str.isValidPhone(LoginUtils.appendCountryCode(searchValue));
 
-    if (searchValue && !isValidPhone) {
+    if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone) {
         return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
     }
 
     // Without a search value, it would be very confusing to see a search validation message.
     // Therefore, this skips the validation when there is no search value.
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
-        if (!isValidPhone) {
+        if (/^\d+$/.test(searchValue) && !isValidPhone) {
             return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
         }
 
