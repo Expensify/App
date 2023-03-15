@@ -123,7 +123,9 @@ const ReportActionItemFragment = (props) => {
                     selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
                     style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >
-                    {StyleUtils.convertToLTR(Str.htmlDecode(text))}
+                    {StyleUtils.convertToLTR(
+                        Str.htmlDecode(text.replace(/^!!ISCHATGPT!!/, '')),
+                    )}
                     {props.fragment.isEdited && (
                     <Text
                         fontSize={variables.fontSizeSmall}
@@ -142,7 +144,9 @@ const ReportActionItemFragment = (props) => {
                         numberOfLines={props.isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessageHeaderSender]}
                     >
-                        {Str.htmlDecode(props.fragment.text)}
+                        {Str.htmlDecode(
+                            props.fragment.text.replace(/^!!ISCHATGPT!!/, ''),
+                        )}
                     </Text>
                 </Tooltip>
             );

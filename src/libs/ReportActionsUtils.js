@@ -123,6 +123,15 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
         return false;
     }
 
+    if (
+        (currentAction.actionName === 'ADDCOMMENT'
+            && currentAction.message[0].text.startsWith('!!ISCHATGPT!!'))
+        || (previousAction.actionName === 'ADDCOMMENT'
+            && previousAction.message[0].text.startsWith('!!ISCHATGPT!!'))
+    ) {
+        return false;
+    }
+
     return currentAction.actorEmail === previousAction.actorEmail;
 }
 

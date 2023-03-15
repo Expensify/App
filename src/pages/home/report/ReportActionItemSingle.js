@@ -59,13 +59,32 @@ const ReportActionItemSingle = (props) => {
         login,
         pendingFields,
     } = props.personalDetails[actorEmail] || {};
-    const avatarSource = ReportUtils.getAvatar(avatar, actorEmail);
+    let avatarSource = ReportUtils.getAvatar(avatar, actorEmail);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
     // we should stop referring to the report history items entirely for this information.
+
+    let isChatGPT = false;
+    if (
+        props.action.actionName === 'ADDCOMMENT'
+        && props.action.message[0].text.startsWith('!!ISCHATGPT!!')
+    ) {
+        isChatGPT = true;
+        avatarSource = 'https://brandlogovector.com/wp-content/uploads/2023/01/ChatGPT-Icon-Logo-PNG.png';
+    }
+
     const personArray = displayName
-        ? [{type: 'TEXT', text: Str.isSMSLogin(login) ? props.toLocalPhone(displayName) : displayName}]
+        ? [
+            {
+                type: 'TEXT',
+                text: isChatGPT
+                    ? 'ChatGPT'
+                    : Str.isSMSLogin(login)
+                        ? props.toLocalPhone(displayName)
+                        : displayName,
+            },
+        ]
         : props.action.person;
 
     return (
@@ -76,7 +95,7 @@ const ReportActionItemSingle = (props) => {
                 onPressOut={ControlSelection.unblock}
                 onPress={() => showUserDetails(actorEmail)}
             >
-                <Tooltip text={actorEmail}>
+                <Tooltip text={isChatGPT ? 'ChatGPT' : actorEmail}>
                     <OfflineWithFeedback
                         pendingAction={lodashGet(pendingFields, 'avatar', null)}
                     >
