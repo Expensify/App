@@ -90,7 +90,6 @@ const defaultProps = {
 };
 
 const ReportActionAuthor = (props) => {
-  console.log(props.fragment);
   return (
     <Tooltip text={props.tooltipText}>
       <Text
@@ -99,7 +98,7 @@ const ReportActionAuthor = (props) => {
         {Str.htmlDecode(props.fragment.text)}
         {' • '}
         <Text style={[styles.chatItemMessageHeaderStatus]}>
-          {props.status || '🇨🇼 WF Curacao'}
+          {props.status || 'No status set'}
         </Text>
       </Text>
     </Tooltip>
