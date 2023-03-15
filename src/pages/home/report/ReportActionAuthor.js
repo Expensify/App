@@ -96,12 +96,14 @@ const ReportActionAuthor = (props) => {
         numberOfLines={props.isSingleLine ? 1 : undefined}
         style={[styles.chatItemMessageHeaderSender]}>
         {Str.htmlDecode(props.fragment.text)}
-        {props.status && ' • '}
-        <Text style={[styles.chatItemMessageHeaderStatus]}>
-          {props.status.emojiCode || ''}
-          {props.status && ' '}
-          {props.status.text || ''}
-        </Text>
+        {!!props.status && (
+          <Text style={[styles.chatItemMessageHeaderStatus]}>
+            {' • '}
+            {props.status.emojiCode || ''}
+            {props.status && ' '}
+            {props.status.text || ''}
+          </Text>
+        )}
       </Text>
     </Tooltip>
   );
