@@ -589,40 +589,6 @@ function requestUnlinkValidationLink() {
     API.write('RequestUnlinkValidationLink', {email: credentials.login}, {optimisticData, successData, failureData});
 }
 
-/**
- * Request a new validate / magic code for user to sign in via passwordless flow
- *
- */
-function requestUnlinkValidationLink() {
-    const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.ACCOUNT,
-        value: {
-            isLoading: true,
-            errors: null,
-            message: null,
-        },
-    }];
-    const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.ACCOUNT,
-        value: {
-            isLoading: false,
-            message: Localize.translateLocal('unlinkLoginForm.linkSent'),
-        },
-    }];
-    const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.ACCOUNT,
-        value: {
-            isLoading: false,
-            message: null,
-        },
-    }];
-
-    API.write('RequestUnlinkValidationLink', {email: credentials.login}, {optimisticData, successData, failureData});
-}
-
 function unlinkLogin(accountID, validateCode) {
     const optimisticData = [
         {

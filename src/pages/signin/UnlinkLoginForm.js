@@ -95,8 +95,8 @@ const UnlinkLoginForm = (props) => {
                     success
                     text={props.translate('unlinkLoginForm.unlink')}
                     isLoading={props.account.isLoading}
-                    onPress={() => { Session.requestUnlinkValidationLink() }}
-                    isDisabled={props.network.isOffline}
+                    onPress={() => Session.requestUnlinkValidationLink()}
+                    isDisabled={props.network.isOffline || !_.isEmpty(props.account.message)}
                 />
             </View>
         </>
