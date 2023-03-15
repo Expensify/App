@@ -1285,6 +1285,15 @@ function isUnread(report) {
 }
 
 /**
+ * @param {Object} report
+ * @param {Number} actionCreated
+ * @returns {Boolean}
+ */
+function isMessageUnread(report, actionCreated) {
+    return report.lastReadTime < actionCreated;
+}
+
+/**
  * Determines if a report has an outstanding IOU that doesn't belong to the currently logged in user
  *
  * @param {Object} report
@@ -1691,4 +1700,5 @@ export {
     openReportFromDeepLink,
     getFullSizeAvatar,
     getIOUOptions,
+    isMessageUnread,
 };
