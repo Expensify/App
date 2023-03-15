@@ -20,6 +20,9 @@ import Permissions from '../../../../libs/Permissions';
 import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReactions';
 import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickEmojiReactions';
 
+import { Howl } from 'howler';
+import fartSound from "../../../../../assets/sounds/short_fart.wav";
+
 /**
  * Gets the HTML version of the message in an action.
  * @param {Object} reportAction
@@ -202,6 +205,8 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
         onPress: (closePopover, {reportAction, reportID}) => {
+            // TODO: write common function to reuse this.
+            new Howl({src: fartSound}).play();
             Report.markCommentAsUnread(reportID, reportAction.created);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);

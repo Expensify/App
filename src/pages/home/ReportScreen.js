@@ -6,6 +6,7 @@ import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {Freeze} from 'react-freeze';
 import {PortalHost} from '@gorhom/portal';
+import Confetti from '../../components/Confetti';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -210,6 +211,11 @@ class ReportScreen extends React.Component {
         // (which is shown, until all the actual views of the ReportScreen have been rendered)
         const animatePlaceholder = !freeze;
 
+        const lastMessage = _.find(this.props.reportActions, action => action.sequenceNumber === lodashGet(this.props.report, 'maxSequenceNumber'));
+        const triggerConfetti = lodashGet(this.props.report, 'lastReadTime') < lodashGet(lastMessage, 'created')
+            && lodashGet(this.props.report, 'lastMessageText').match(/^congrat(s|ulations?[.!]+)$/i)
+            && lodashGet(this.props.report, 'lastActorEmail') !== this.props.session.email;
+
         return (
             <ScreenWrapper
                 style={screenWrapperStyle}
@@ -275,6 +281,7 @@ class ReportScreen extends React.Component {
                         >
                             {(this.isReportReadyForDisplay() && !isLoadingInitialReportActions) && (
                                 <>
+                                    <Confetti trigger={triggerConfetti} />
                                     <ReportActionsView
                                         reportActions={this.props.reportActions}
                                         report={this.props.report}
