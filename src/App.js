@@ -5,7 +5,6 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import Onyx from 'react-native-onyx';
 import {PortalProvider} from '@gorhom/portal';
-import {ChatGptProvider} from 'react-native-chatgpt';
 import CustomStatusBar from './components/CustomStatusBar';
 import ErrorBoundary from './components/ErrorBoundary';
 import Expensify from './Expensify';
@@ -34,25 +33,23 @@ const fill = {flex: 1};
 
 const App = () => (
     <GestureHandlerRootView style={fill}>
-        <ChatGptProvider>
-            <ComposeProviders
-                components={[
-                    OnyxProvider,
-                    SafeAreaProvider,
-                    PortalProvider,
-                    SafeArea,
-                    LocaleContextProvider,
-                    HTMLEngineProvider,
-                    WindowDimensionsProvider,
-                    KeyboardStateProvider,
-                ]}
-            >
-                <CustomStatusBar />
-                <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                    <Expensify />
-                </ErrorBoundary>
-            </ComposeProviders>
-        </ChatGptProvider>
+        <ComposeProviders
+            components={[
+                OnyxProvider,
+                SafeAreaProvider,
+                PortalProvider,
+                SafeArea,
+                LocaleContextProvider,
+                HTMLEngineProvider,
+                WindowDimensionsProvider,
+                KeyboardStateProvider,
+            ]}
+        >
+            <CustomStatusBar />
+            <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                <Expensify />
+            </ErrorBoundary>
+        </ComposeProviders>
     </GestureHandlerRootView>
 );
 
