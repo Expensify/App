@@ -410,7 +410,15 @@ function openReport(reportID, participantList = [], newReportObject = {}, isChat
         params.createdReportActionID = optimisticCreatedAction.reportActionID;
     }
 
-    API.write('OpenReport', params, onyxData);
+    if (isChatroulette) {
+        API.makeRequestWithSideEffects(
+            'OpenRoulette', params, onyxData
+        ).then((response) => {
+            Navigation.navigate(ROUTES.getReportRoute(response.reportID));
+        });
+    } else {
+        API.write('OpenReport', params, onyxData);
+    }
 }
 
 /**
