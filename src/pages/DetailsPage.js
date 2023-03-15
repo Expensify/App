@@ -180,7 +180,7 @@ class DetailsPage extends React.PureComponent {
                                     </View>
                                 ) : null}
                                 {shouldShowLocalTime && <AutoUpdateTime timezone={details.timezone} />}
-                                {details.status && (
+                                {details.status && details.status.emojiCode != null && (
                                     <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                         <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
                                             {this.props.translate('profilePage.status')}
