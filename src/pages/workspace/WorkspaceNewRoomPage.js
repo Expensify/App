@@ -81,27 +81,27 @@ class WorkspaceNewRoomPage extends React.Component {
      * @returns {Boolean}
      */
     validate(values) {
-        let errors = {};
+        const errors = {};
 
         // The following validations are ordered by precedence.
         // First priority: We error if the user doesn't enter a room name or left blank
         if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
-            errors = ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.pleaseEnterRoomName'));
+            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.pleaseEnterRoomName'));
         }
 
         if (ValidationUtils.isReservedRoomName(values.roomName)) {
             // Second priority: Certain names are reserved for default rooms and should not be used for policy rooms.
-            errors = ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomNameReservedError'));
+            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomNameReservedError'));
         }
 
         if (ValidationUtils.isExistingRoomName(values.roomName, this.props.reports, values.policyID)) {
             // Third priority: We error if the room name already exists.
-            errors = ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomAlreadyExistsError'));
+            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomAlreadyExistsError'));
         }
 
         if (!ValidationUtils.isValidRoomName(values.roomName)) {
             // Fourth priority: We error if the room name has invalid characters
-            errors = ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomNameInvalidError'));
+            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomNameInvalidError'));
         }
 
         if (!values.policyID) {

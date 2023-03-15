@@ -115,7 +115,7 @@ class AdditionalDetailsStep extends React.Component {
      * @returns {Object}
      */
     validate(values) {
-        let errors = {};
+        const errors = {};
 
         if (_.isEmpty(values[INPUT_IDS.LEGAL_FIRST_NAME])) {
             errors[INPUT_IDS.LEGAL_FIRST_NAME] = this.props.translate(this.errorTranslationKeys.legalFirstName);
@@ -126,11 +126,11 @@ class AdditionalDetailsStep extends React.Component {
         }
 
         if (!ValidationUtils.isValidPastDate(values[INPUT_IDS.DOB])) {
-            errors = ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, this.props.translate(this.errorTranslationKeys.dob));
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, this.props.translate(this.errorTranslationKeys.dob));
         }
 
         if (!ValidationUtils.meetsAgeRequirements(values[INPUT_IDS.DOB])) {
-            errors = ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, this.props.translate(this.errorTranslationKeys.age));
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, this.props.translate(this.errorTranslationKeys.age));
         }
 
         if (!ValidationUtils.isValidAddress(values[INPUT_IDS.ADDRESS.street]) || _.isEmpty(values[INPUT_IDS.ADDRESS.street])) {
