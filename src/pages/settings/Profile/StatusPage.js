@@ -18,12 +18,12 @@ import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
 import * as ErrorUtils from '../../../libs/ErrorUtils';
 import Picker from '../../../components/Picker';
-import * as Expensicons from "../../../components/Icon/Expensicons";
-import variables from "../../../styles/variables";
-import * as StyleUtils from "../../../styles/StyleUtils";
-import getButtonState from "../../../libs/getButtonState";
-import Icon from "../../../components/Icon";
-import * as EmojiPickerAction from "../../../libs/actions/EmojiPickerAction";
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import variables from '../../../styles/variables';
+import * as StyleUtils from '../../../styles/StyleUtils';
+import getButtonState from '../../../libs/getButtonState';
+import Icon from '../../../components/Icon';
+import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -40,6 +40,7 @@ class StatusPage extends Component {
 
         this.validate = this.validate.bind(this);
         this.updateStatus = this.updateStatus.bind(this);
+        this.emojiBtnRef = React.createRef();
     }
 
     updateStatus(values) {
@@ -83,16 +84,21 @@ class StatusPage extends Component {
                     </Text>
                     <View style={styles.mb4}>
                         <Pressable
+                            ref={this.emojiBtnRef}
                             onPress={() => {
-                                // EmojiPickerAction.showEmojiPicker(
-                                //     () => {},
+                                EmojiPickerAction.showEmojiPicker(
+                                    () => {},
+                                    () => {},
+                                    this.emojiBtnRef.current,
+                                );
                             }}
                             style={{
-                            borderWidth: 1,
-                            borderRadius: 5,
-                            width: 30,
-                            height: 30,
-                        }}>
+                                borderWidth: 1,
+                                borderRadius: 5,
+                                width: 30,
+                                height: 30,
+                            }}
+                        >
                             {({hovered, pressed}) => (
                                 <Icon
                                     src={Expensicons.Emoji}
