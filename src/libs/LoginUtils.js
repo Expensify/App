@@ -31,7 +31,7 @@ function getPhoneNumberWithoutUSCountryCodeAndSpecialChars(phone) {
 
 /**
  * Append user country code to the phone number
- * 
+ *
  * @param {String} phone
  * @return {String}
  */
