@@ -1166,6 +1166,13 @@ function shouldShowReportActionNotification(reportID, action) {
         return false;
     }
 
+    // If this notification was delayed and the user saw the message already, don't show it
+    const report = allReports[reportID];
+    if (report && report.lastReadTime >= action.created) {
+        Log.info('[Notification] No notification because the comment was already read', false, {created: action.created, lastReadTime: report.lastReadTime});
+        return false;
+    }
+
     // Don't show a notification if no comment exists
     if (!_.some(action.message, f => f.type === 'COMMENT')) {
         Log.info('[Notification] No notification because no comments exist for the current action');
