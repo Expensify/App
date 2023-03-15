@@ -28,7 +28,6 @@ LogBox.ignoreLogs([
     // More details here: https://git.io/JJYeb
     'Setting a timer for a long period of time',
 ]);
-
 const fill = {flex: 1};
 
 const App = () => (
