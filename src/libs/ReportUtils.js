@@ -1637,6 +1637,18 @@ function canLeaveRoom(report, isPolicyMember) {
     return true;
 }
 
+function isBirthdayMessage(message, locale) {
+    const messageText = lodashGet(message, [0, 'html']);
+    let regex;
+    if (locale === 'en') {
+        regex = /(happy\s+birthday|hbd|happy bday|happybirthday)/gi;
+    }
+    else if (locale === 'es') {
+        regex = /(feliz cumpleanos|feliz cumple|feliz cumpleaños)/gi;
+    }
+    return regex.test(messageText);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1701,4 +1713,5 @@ export {
     getFullSizeAvatar,
     getIOUOptions,
     isMessageUnread,
+    isBirthdayMessage,
 };

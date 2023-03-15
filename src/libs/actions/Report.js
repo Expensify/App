@@ -308,7 +308,7 @@ function addActions(reportID, text = '', file) {
     // Notify the ReportActionsView that a new comment has arrived
     if (reportID === newActionSubscriber.reportID) {
         const isFromCurrentUser = lastAction.actorAccountID === currentUserAccountID;
-        newActionSubscriber.callback(isFromCurrentUser, lastAction.reportActionID);
+        newActionSubscriber.callback(isFromCurrentUser, lastAction.reportActionID, reportCommentAction.message);
     }
 }
 
@@ -1188,7 +1188,7 @@ function showReportActionNotification(reportID, action) {
     // Notify the ReportActionsView that a new comment has arrived
     if (reportID === newActionSubscriber.reportID) {
         const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
-        newActionSubscriber.callback(isFromCurrentUser, action.reportActionID);
+        newActionSubscriber.callback(isFromCurrentUser, action.reportActionID, action.message);
     }
 }
 

@@ -55,16 +55,4 @@ const App = () => (
 
 App.displayName = 'App';
 
-global.isBirthdayMessage = function (message, locale) {
-    console.log(LocaleContext.getContextValue());
-    let regex;
-    if (locale == 'en') {
-        regex = /(happy\s+birthday|hbd|happy bday|happybirthday)/gi;
-    }
-    else if (locale == 'es') {
-        regex = /(feliz cumpleanos|feliz cumple|feliz cumpleaños)/gi;
-    }
-    return regex.test(message);
-};
-
 export default App;

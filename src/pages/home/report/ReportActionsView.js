@@ -99,14 +99,14 @@ class ReportActionsView extends React.Component {
 
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
-        this.unsubscribeFromNewActionEvent = Report.subscribeToNewActionEvent(this.props.report.reportID, (isFromCurrentUser, newActionID) => {
+        this.unsubscribeFromNewActionEvent = Report.subscribeToNewActionEvent(this.props.report.reportID, (isFromCurrentUser, newActionID, message) => {
             const isNewMarkerReportActionIDSet = !_.isEmpty(this.state.newMarkerReportActionID);
 
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
             if (isFromCurrentUser) {
-                if (isBirthdayMessage('new message', this.props.preferredLocale)) {
-
+                if (ReportUtils.isBirthdayMessage(message, this.props.preferredLocale)) {
+                    alert('makeitrain');
                 }
 
                 ReportScrollManager.scrollToBottom();
@@ -114,7 +114,9 @@ class ReportActionsView extends React.Component {
                 // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
                 this.setState({newMarkerReportActionID: ''});
             } else if (this.getIsReportFullyVisible()) {
-                alert('new message');
+                if (ReportUtils.isBirthdayMessage(message, this.props.preferredLocale)) {
+                    alert('makeitrain');
+                }
 
                 // We use the scroll position to determine whether the report should be marked as read and the new line indicator reset.
                 // If the user is scrolled up and no new line marker is set we will set it otherwise we will do nothing so the new marker
