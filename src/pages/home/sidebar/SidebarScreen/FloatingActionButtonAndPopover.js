@@ -19,6 +19,7 @@ import withWindowDimensions from '../../../../components/withWindowDimensions';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import withNavigation from '../../../../components/withNavigation';
 import * as Welcome from '../../../../libs/actions/Welcome';
+import * as Report from '../../../../libs/actions/Report';
 import withNavigationFocus from '../../../../components/withNavigationFocus';
 import withDrawerState from '../../../../components/withDrawerState';
 
@@ -169,6 +170,11 @@ class FloatingActionButtonAndPopover extends React.Component {
                     onItemSelected={this.hideCreateMenu}
                     fromSidebarMediumScreen={!this.props.isSmallScreenWidth}
                     menuItems={[
+                        {
+                            icon: Expensicons.Megaphone,
+                            text: 'Chatroulette, have some fun!',
+                            onSelected: () => Report.navigateToAndOpenReport([]),
+                        },
                         {
                             icon: Expensicons.ChatBubble,
                             text: this.props.translate('sidebarScreen.newChat'),

@@ -341,8 +341,9 @@ function addComment(reportID, text) {
  * @param {String} reportID
  * @param {Array} participantList The list of users that are included in a new chat, not including the user creating it
  * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
+ * @param {Boolean} isChatroulette
  */
-function openReport(reportID, participantList = [], newReportObject = {}) {
+function openReport(reportID, participantList = [], newReportObject = {}, isChatroulette = false) {
     const optimisticReportData = {
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -369,7 +370,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
     };
 
     const onyxData = {
-        optimisticData: [optimisticReportData],
+        optimisticData: isChatroulette ? [] : [optimisticReportData],
         successData: [reportSuccessData],
     };
 
@@ -416,18 +417,19 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
  * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
  *
  * @param {Array} userLogins list of user logins.
+ * @param {Boolean} isChatroulette list of user logins.
  */
-function navigateToAndOpenReport(userLogins) {
+function navigateToAndOpenReport(userLogins, isChatroulette = false) {
     const formattedUserLogins = _.map(userLogins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
     let newChat = {};
     const chat = ReportUtils.getChatByParticipants(formattedUserLogins);
-    if (!chat) {
+    if (!chat && !isChatroulette) {
         newChat = ReportUtils.buildOptimisticChatReport(formattedUserLogins);
     }
     const reportID = chat ? chat.reportID : newChat.reportID;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(reportID, newChat.participants, newChat);
+    openReport(reportID, newChat.participants, newChat, isChatroulette);
     Navigation.navigate(ROUTES.getReportRoute(reportID));
 }
 
