@@ -210,6 +210,27 @@ function getSortedReportActionsForDisplay(reportActions) {
     });
 }
 
+function getSortedReportActionsForSummary(reportActions) {
+    const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
+    const sortedReportActions = getSortedReportActions(filteredReportActions, true);
+    return _.filter(sortedReportActions, (reportAction) => {
+        // Filter out any unsupported reportAction types
+        if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName)) {
+            return false;
+        }
+
+        // Ignore closed action here since we're already displaying a footer that explains why the report was closed
+        if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT) {
+            return false;
+        }
+
+        // All other actions are displayed except deleted, non-pending actions
+        const isDeleted = isDeletedAction(reportAction);
+        const isPending = !_.isEmpty(reportAction.pendingAction);
+        return !isDeleted || isPending;
+    });
+}
+
 /**
  * In some cases, there can be multiple closed report actions in a chat report.
  * This method returns the last closed report action so we can always show the correct archived report reason.
@@ -223,6 +244,16 @@ function getLastClosedReportAction(reportActions) {
     return lodashFindLast(sortedReportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
 }
 
+function summarizeCommand(reportID, numberOfMessages = 10) {
+   return getSortedReportActionsForSummary(allReportActions[reportID]).slice(0, numberOfMessages);
+}
+
+function composeChatGPTSummarizeMessage(reportActions) {
+    for (report of reportActions) {
+        
+    }
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -232,4 +263,6 @@ export {
     isConsecutiveActionMadeByPreviousActor,
     getSortedReportActionsForDisplay,
     getLastClosedReportAction,
+    summarizeCommand,
+    composeChatGPTSummarizeMessage,
 };

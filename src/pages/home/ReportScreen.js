@@ -181,6 +181,7 @@ class ReportScreen extends React.Component {
     }
 
     render() {
+        console.log('Summarize: ', ReportActionsUtils.summarizeCommand(this.props.report.reportID));
         if (!this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails)) {
             return null;
         }
