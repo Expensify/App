@@ -333,6 +333,9 @@ function addAttachment(reportID, file, text = '') {
 function addComment(reportID, text) {
     addActions(reportID, text);
 }
+function addChatGPTComment(reportID, text) {
+    addActions(reportID, `!!ISCHATGPT!!${text}`);
+}
 
 /**
  * Gets the latest page of report actions and updates the last read message
@@ -1372,6 +1375,7 @@ function getCurrentUserAccountID() {
 
 export {
     addComment,
+    addChatGPTComment,
     addAttachment,
     reconnect,
     updateNotificationPreference,
