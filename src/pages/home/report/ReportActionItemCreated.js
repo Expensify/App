@@ -3,7 +3,9 @@ import {Pressable, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import Animated, {useSharedValue, useAnimatedStyle, useAnimatedSensor, SensorType, withSpring} from 'react-native-reanimated';
+import Animated, {
+    useSharedValue, useAnimatedStyle, useAnimatedSensor, SensorType, withSpring,
+} from 'react-native-reanimated';
 import ONYXKEYS from '../../../ONYXKEYS';
 import RoomHeaderAvatars from '../../../components/RoomHeaderAvatars';
 import ReportWelcomeText from '../../../components/ReportWelcomeText';
@@ -45,19 +47,24 @@ const defaultProps = {
 const ReportActionItemCreated = (props) => {
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
 
+    // Get data from phone rotation sensor and prep other variables for animation
     const animatedSensor = useAnimatedSensor(SensorType.ROTATION);
-
     const offsetX = useSharedValue((-props.windowWidth / 2));
     const offsetY = useSharedValue(0);
 
+    // Apply data to create style object
     const animatedStyles = useAnimatedStyle(() => {
-        const { qx, qy } = animatedSensor.sensor.value;
-        return {
-            transform: [
-                {translateX: withSpring(offsetX.value - (qy * 100))},
-                {translateY: withSpring(offsetY.value - (qx * 100))},
-            ],
-        };
+        const {qx, qy} = animatedSensor.sensor.value;
+        if (props.isSmallScreenWidth) {
+            return {
+                transform: [
+                    // The x vs y here seems wrong but is the way to make it feel right to the user
+                    {translateX: withSpring(offsetX.value - (qy * 100))},
+                    {translateY: withSpring(offsetY.value - (qx * 100))},
+                ],
+            };
+        }
+        return {};
     });
 
     return (
