@@ -622,7 +622,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,
-            hasInvalidCharacter: 'Name contains unsupported character.',
+            hasInvalidCharacter: 'Name can only include include letters and numbers.',
         },
     },
     resendValidationForm: {
