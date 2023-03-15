@@ -1381,6 +1381,10 @@ function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = pref
     return addEmojiReaction(reportID, reportAction, emoji, skinTone);
 }
 
+function getCurrentUserAccountID() {
+    return currentUserAccountID;
+}
+
 export {
     addComment,
     addAttachment,
@@ -1416,5 +1420,6 @@ export {
     removeEmojiReaction,
     toggleEmojiReaction,
     hasAccountIDReacted,
+    getCurrentUserAccountID,
     shouldShowReportActionNotification,
 };
