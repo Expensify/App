@@ -9,8 +9,12 @@ import withCurrentUserPersonalDetails, {
     withCurrentUserPersonalDetailsPropTypes,
 } from '../withCurrentUserPersonalDetails';
 import * as Report from '../../libs/actions/Report';
+import Tooltip from '../Tooltip';
+import ReactionTooltipContent from './ReactionTooltipContent';
 
 const propTypes = {
+    emojiName: PropTypes.string.isRequired,
+
     /**
      * The emoji codes to display in the bubble.
      */
@@ -35,7 +39,7 @@ const propTypes = {
     /**
      * The account ids of the users who reacted.
      */
-    reactionUsers: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number])),
+    reactionUsers: PropTypes.arrayOf(PropTypes.string),
 
     /**
      * The default size of the reaction bubble is defined
@@ -59,22 +63,31 @@ const defaultProps = {
 const EmojiReactionBubble = (props) => {
     const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, props.reactionUsers);
     return (
-        <Pressable
-            style={({hovered}) => [
-                styles.emojiReactionBubble,
-                StyleUtils.getEmojiReactionBubbleStyle(hovered, hasUserReacted, props.sizeScale),
-            ]}
-            onPress={props.onPress}
-            onLongPress={props.onReactionListOpen}
+        <Tooltip
+            renderTooltipContent={() => (
+                <ReactionTooltipContent
+                    emojiName={props.emojiName}
+                    emojiCodes={props.emojiCodes}
+                    accountIDs={props.reactionUsers}
+                />
+            )}
         >
-            <Text style={[
-                styles.emojiReactionText,
-                StyleUtils.getEmojiReactionTextStyle(props.sizeScale),
-            ]}
+            <Pressable
+                style={({hovered, pressed}) => [
+                    styles.emojiReactionBubble,
+                    StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, hasUserReacted, props.sizeScale),
+                ]}
+                onPress={props.onPress}
+                onLongPress={props.onReactionListOpen}
             >
-                {props.emojiCodes.join('')}
-            </Text>
-            {props.count > 0 && (
+                <Text style={[
+                    styles.emojiReactionText,
+                    StyleUtils.getEmojiReactionTextStyle(props.sizeScale),
+                ]}
+                >
+                    {props.emojiCodes.join('')}
+                </Text>
+                {props.count > 0 && (
                 <Text style={[
                     styles.reactionCounterText,
                     StyleUtils.getEmojiReactionCounterTextStyle(hasUserReacted, props.sizeScale),
@@ -82,8 +95,9 @@ const EmojiReactionBubble = (props) => {
                 >
                     {props.count}
                 </Text>
-            )}
-        </Pressable>
+                )}
+            </Pressable>
+        </Tooltip>
     );
 };
 
