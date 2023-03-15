@@ -244,14 +244,22 @@ function getLastClosedReportAction(reportActions) {
     return lodashFindLast(sortedReportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
 }
 
-function summarizeCommand(reportID, numberOfMessages = 10) {
+function summarizeCommand(reportID, numberOfMessages) {
    return getSortedReportActionsForSummary(allReportActions[reportID]).slice(0, numberOfMessages);
 }
 
 function composeChatGPTSummarizeMessage(reportActions) {
-    for (report of reportActions) {
-        
-    }
+    let message = 'Summarize this conversation for me:';
+    _.forEach(reportActions, function (ra) {
+        message += "\n";
+        message += `${ra.person[0].text} said: `;
+        message += `"${ra.message[0].text}"`;
+    })
+    return message;
+}
+
+function getChatGPTSummary(reportID, numberOfMessages = 10) {
+    return composeChatGPTSummarizeMessage(summarizeCommand(reportID, numberOfMessages))
 }
 
 export {
@@ -263,6 +271,5 @@ export {
     isConsecutiveActionMadeByPreviousActor,
     getSortedReportActionsForDisplay,
     getLastClosedReportAction,
-    summarizeCommand,
-    composeChatGPTSummarizeMessage,
+    getChatGPTSummary,
 };
