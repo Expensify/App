@@ -65,7 +65,7 @@ function refreshNotificationOptInStatus() {
                 return;
             }
 
-            Log.info('[PUSH_NOTIFICATION] Push notification opt-in status changed.', false, {isOptedIn});
+            Log.info('[PushNotification] Push notification opt-in status changed.', false, {isOptedIn});
             PushNotification.setPushNotificationOptInStatus(isOptedIn);
         });
 }
@@ -76,6 +76,8 @@ function refreshNotificationOptInStatus() {
  * @returns {Boolean}
  */
 function shouldShowPushNotification(pushPayload) {
+    Log.info('[PushNotification] push notification received', false, {pushPayload});
+
     let pushData = pushPayload.extras.payload;
 
     // The payload is string encoded on Android
@@ -88,7 +90,7 @@ function shouldShowPushNotification(pushPayload) {
         return true;
     }
 
-    const shouldShow = Report.shouldShowReportActionNotification(String(pushData.reportID), pushData.reportAction);
+    const shouldShow = Report.shouldShowReportActionNotification(String(pushData.reportID), pushData.reportAction, true);
     Log.info(`[PushNotification] ${shouldShow ? 'Showing' : 'Not showing'} notification`);
     return shouldShow;
 }

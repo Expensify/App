@@ -1134,48 +1134,51 @@ function setIsComposerFullSize(reportID, isComposerFullSize) {
 /**
  * @param {String} reportID
  * @param {Object} action
+ * @param {Boolean} isRemote
  * @returns {Boolean}
  */
-function shouldShowReportActionNotification(reportID, action) {
+function shouldShowReportActionNotification(reportID, action, isRemote = false) {
+    const tag = isRemote ? '[PushNotification]' : '[LocalNotification]';
+
     if (ReportActionsUtils.isDeletedAction(action)) {
-        Log.info('[Notification] Skipping notification because the action was deleted', false, {reportID, action});
+        Log.info(`${tag} Skipping notification because the action was deleted`, false, {reportID, action});
         return false;
     }
 
     if (!ActiveClientManager.isClientTheLeader()) {
-        Log.info('[Notification] Skipping notification because this client is not the leader');
+        Log.info(`${tag} Skipping notification because this client is not the leader`);
         return false;
     }
 
     // We don't want to send a local notification if the user preference is daily or mute
     const notificationPreference = lodashGet(allReports, [reportID, 'notificationPreference'], CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
     if (notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY) {
-        Log.info(`[Notification] No notification because user preference is to be notified: ${notificationPreference}`);
+        Log.info(`${tag} No notification because user preference is to be notified: ${notificationPreference}`);
         return false;
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
     if (action.actorAccountID === currentUserAccountID) {
-        Log.info('[Notification] No notification because comment is from the currently logged in user');
+        Log.info(`${tag} No notification because comment is from the currently logged in user`);
         return false;
     }
 
     // If we are currently viewing this report do not show a notification.
     if (reportID === Navigation.getReportIDFromRoute() && Visibility.isVisible()) {
-        Log.info('[Notification] No notification because it was a comment for the current report', false, {currentReport: Navigation.getReportIDFromRoute(), reportID, action});
+        Log.info(`${tag} No notification because it was a comment for the current report`);
         return false;
     }
 
     // If this notification was delayed and the user saw the message already, don't show it
     const report = allReports[reportID];
     if (report && report.lastReadTime >= action.created) {
-        Log.info('[Notification] No notification because the comment was already read', false, {created: action.created, lastReadTime: report.lastReadTime});
+        Log.info(`${tag} No notification because the comment was already read`, false, {created: action.created, lastReadTime: report.lastReadTime});
         return false;
     }
 
     // Don't show a notification if no comment exists
     if (!_.some(action.message, f => f.type === 'COMMENT')) {
-        Log.info('[Notification] No notification because no comments exist for the current action');
+        Log.info(`${tag} No notification because no comments exist for the current action`);
         return false;
     }
 
