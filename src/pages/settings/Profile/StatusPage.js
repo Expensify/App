@@ -145,6 +145,7 @@ class StatusPage extends Component {
                             inputID="text"
                             label="Status"
                             placeholder="What's your status?"
+                            defaultValue={this.props.currentUserPersonalDetails?.status?.text}
                         />
                     </View>
                     <View>
