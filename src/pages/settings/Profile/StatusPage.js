@@ -140,7 +140,7 @@ class StatusPage extends Component {
                             )}
                         </TouchableOpacity>
                     </View>
-                    <View>
+                    <View style={[styles.mb6]}>
                         <TextInput
                             inputID="text"
                             label="Status"
@@ -151,9 +151,8 @@ class StatusPage extends Component {
                         <Picker
                             inputID="timeout"
                             label="Clear status after"
-                            // defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
-                            // placeholder={this.props.translate('displayNamePage.doe')}
                             items={this.getTimeoutValues()}
+                            shouldSaveDraft
                         />
                     </View>
                 </Form>
