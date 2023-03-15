@@ -169,8 +169,8 @@ export default {
         requestNewCode: '¡También puedes',
         requestNewCodeLink: 'solicitar un nuevo código aquí',
         successfulNewCodeRequest: 'Código solicitado. Por favor, comprueba su dispositivo.',
-        tfaRequiredTitle: 'Se requiere autenticación de dos factores',
-        tfaRequiredDescription: 'Por favor, introduce el código de autenticación de dos factores donde estás intentando iniciar sesión.',
+        tfaRequiredTitle: 'Se requiere autenticación\nde dos factores',
+        tfaRequiredDescription: 'Por favor, introduce el código de autenticación de dos factores\ndonde estás intentando iniciar sesión.',
     },
     iOUConfirmationList: {
         whoPaid: '¿Quién pago?',

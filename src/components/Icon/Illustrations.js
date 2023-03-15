@@ -17,6 +17,7 @@ import ReceiptsSearchYellow from '../../../assets/images/product-illustrations/r
 import ReceiptYellow from '../../../assets/images/product-illustrations/receipt--yellow.svg';
 import RocketBlue from '../../../assets/images/product-illustrations/rocket--blue.svg';
 import RocketOrange from '../../../assets/images/product-illustrations/rocket--orange.svg';
+import SafeBlue from '../../../assets/images/product-illustrations/safe.svg';
 import TadaYellow from '../../../assets/images/product-illustrations/tada--yellow.svg';
 import TadaBlue from '../../../assets/images/product-illustrations/tada--blue.svg';
 import ToddBehindCloud from '../../../assets/images/product-illustrations/todd-behind-cloud.svg';
@@ -59,6 +60,7 @@ export {
     ReceiptYellow,
     RocketBlue,
     RocketOrange,
+    SafeBlue,
     TadaYellow,
     TadaBlue,
     ToddBehindCloud,

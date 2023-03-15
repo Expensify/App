@@ -23,7 +23,7 @@ class TfaRequiredModal extends PureComponent {
                         <Icon
                             width={variables.modalTopIconWidth}
                             height={variables.modalTopBigIconHeight}
-                            src={Illustrations.Abracadabra}
+                            src={Illustrations.SafeBlue}
                         />
                     </View>
                     <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
