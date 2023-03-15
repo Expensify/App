@@ -226,6 +226,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsStatusPage = require('../../../pages/settings/Profile/StatusPage').default;
+            return SettingsStatusPage;
+        },
+        name: 'Settings_Status',
+    },
+    {
+        getComponent: () => {
             const SettingsDisplayNamePage = require('../../../pages/settings/Profile/DisplayNamePage').default;
             return SettingsDisplayNamePage;
         },

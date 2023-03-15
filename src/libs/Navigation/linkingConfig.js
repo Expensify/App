@@ -100,6 +100,10 @@ export default {
                         path: ROUTES.SETTINGS_PRONOUNS,
                         exact: true,
                     },
+                    Settings_Status: {
+                        path: ROUTES.SETTINGS_STATUS,
+                        exact: true,
+                    },
                     Settings_Display_Name: {
                         path: ROUTES.SETTINGS_DISPLAY_NAME,
                         exact: true,

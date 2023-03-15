@@ -54,7 +54,7 @@ const ProfilePage = (props) => {
         {
             description: props.translate('profilePage.status'),
             title: getProfileStatus(),
-            pageRoute: ROUTES.SETTINGS_PROFILE_STATUS,
+            pageRoute: ROUTES.SETTINGS_STATUS,
         },
         {
             description: props.translate('contacts.contactMethod'),
