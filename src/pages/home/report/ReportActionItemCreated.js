@@ -3,7 +3,7 @@ import {Pressable, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import Animated, {useSharedValue, useAnimatedStyle} from 'react-native-reanimated';
+import Animated, {useSharedValue, useAnimatedStyle, useAnimatedSensor, SensorType, withSpring} from 'react-native-reanimated';
 import ONYXKEYS from '../../../ONYXKEYS';
 import RoomHeaderAvatars from '../../../components/RoomHeaderAvatars';
 import ReportWelcomeText from '../../../components/ReportWelcomeText';
@@ -45,13 +45,20 @@ const defaultProps = {
 const ReportActionItemCreated = (props) => {
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
 
-    const offsetX = useSharedValue(0);
+    const animatedSensor = useAnimatedSensor(SensorType.ROTATION);
+
+    const offsetX = useSharedValue((-props.windowWidth / 2));
     const offsetY = useSharedValue(0);
 
-    const animatedStyles = useAnimatedStyle(() => ({
-        transform: [{translateX: offsetX.value},
-            {translateY: offsetY.value}],
-    }));
+    const animatedStyles = useAnimatedStyle(() => {
+        const { qx, qy } = animatedSensor.sensor.value;
+        return {
+            transform: [
+                {translateX: withSpring(offsetX.value - (qy * 100))},
+                {translateY: withSpring(offsetY.value - (qx * 100))},
+            ],
+        };
+    });
 
     return (
         <OfflineWithFeedback
