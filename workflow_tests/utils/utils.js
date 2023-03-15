@@ -1,13 +1,18 @@
 const yaml = require('yaml');
 const fs = require('fs');
 
-const setUpActParams = (act, event = null, event_options = null, secrets = null, github_token = null, env_vars = null) => {
+const setUpActParams = (act, event = null, eventOptions = null, secrets = null, githubToken = null, envVars = null) => {
     let updated_act = act;
 
-    if (event && event_options) {
-        updated_act = updated_act.setEvent({
-            [event]: event_options,
-        });
+    if (event && eventOptions) {
+        // according to `Act` docs event data should be under the key with the event name (`[event]: eventOptions`), but
+        // for some event types this does not work (like `issues`), but providing the data on the JSON top level does,
+        // hence `...eventOptions` - this seems to cover all options
+        const eventData = {
+            [event]: eventOptions,
+            ...eventOptions,
+        };
+        updated_act = updated_act.setEvent(eventData);
     }
 
     if (secrets) {
@@ -16,12 +21,12 @@ const setUpActParams = (act, event = null, event_options = null, secrets = null,
         }
     }
 
-    if (github_token) {
-        updated_act = updated_act.setGithubToken(github_token);
+    if (githubToken) {
+        updated_act = updated_act.setGithubToken(githubToken);
     }
 
-    if (env_vars) {
-        for (const [key, value] of Object.entries(env_vars)) {
+    if (envVars) {
+        for (const [key, value] of Object.entries(envVars)) {
             updated_act = updated_act.setEnv(key, value);
         }
     }
