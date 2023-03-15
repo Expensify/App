@@ -9,12 +9,20 @@ import Animated, {
 } from 'react-native-reanimated';
 
 export default function Card({index, key, card, onPress}) {
-  return <View style={[styles]}></View>;
+  const handlePress = () => {
+    console.log('flip');
+    if (onPress) onPress();
+  };
+
+  return (
+    <Pressable style={[styles.container]} onPress={handlePress}></Pressable>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     width: 100,
     height: 100,
+    backgroundColor: 'pink',
   },
 });
