@@ -473,7 +473,7 @@ PODS:
     - React-Core
   - react-native-blob-util (0.16.2):
     - React-Core
-  - react-native-cameraroll (4.1.2):
+  - react-native-cameraroll (5.0.4):
     - React-Core
   - react-native-config (1.4.6):
     - react-native-config/App (= 1.4.6)
@@ -712,7 +712,7 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - "react-native-airship (from `../node_modules/@ua/react-native-airship`)"
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
-  - "react-native-cameraroll (from `../node_modules/@react-native-community/cameraroll`)"
+  - "react-native-cameraroll (from `../node_modules/@react-native-camera-roll/camera-roll`)"
   - react-native-config (from `../node_modules/react-native-config`)
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
   - react-native-flipper (from `../node_modules/react-native-flipper`)
@@ -858,7 +858,7 @@ EXTERNAL SOURCES:
   react-native-blob-util:
     :path: "../node_modules/react-native-blob-util"
   react-native-cameraroll:
-    :path: "../node_modules/@react-native-community/cameraroll"
+    :path: "../node_modules/@react-native-camera-roll/camera-roll"
   react-native-config:
     :path: "../node_modules/react-native-config"
   react-native-document-picker:
@@ -1011,7 +1011,7 @@ SPEC CHECKSUMS:
   React-logger: b2c47bb0829c3c45ba3a04add9a2b4aea3f3dd4e
   react-native-airship: 8690a133d791068741855d4f20ea83ec4a7761d1
   react-native-blob-util: c3b0faecd2919db568e9d552084396f3e50b57c7
-  react-native-cameraroll: 2957f2bce63ae896a848fbe0d5352c1bd4d20866
+  react-native-cameraroll: 38b40d9033e4077b6c603f92f95c6d05fa7907df
   react-native-config: 7cd105e71d903104e8919261480858940a6b9c0e
   react-native-document-picker: f68191637788994baed5f57d12994aa32cf8bf88
   react-native-flipper: dc5290261fbeeb2faec1bdc57ae6dd8d562e1de4
