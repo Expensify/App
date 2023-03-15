@@ -1,5 +1,5 @@
 import React from 'react';
-import {Keyboard, View, Switch} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -21,6 +21,7 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import Form from '../../components/Form';
 import * as ReportUtils from '../../libs/ReportUtils';
 import Avatar from '../../components/Avatar';
+import Switch from '../../components/Switch';
 
 const propTypes = {
     ...policyPropTypes,
@@ -40,7 +41,7 @@ class WorkspaceSettingsPage extends React.Component {
         this.validate = this.validate.bind(this);
 
         this.state = {
-            isChatRouletteEnabled: false,
+            isChatRouletteEnabled: this.props.policy.rouletteEnabled || false,
         };
     }
 
@@ -145,14 +146,14 @@ class WorkspaceSettingsPage extends React.Component {
                                 {this.props.translate('workspace.editor.currencyInputHelpText')}
                             </Text>
 
-                            <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                            <View style={[{flexDirection: 'row', justifyContent: 'space-between'}, styles.mt4]}>
                                 <Text>
                                     Enable chat roulette
                                 </Text>
 
                                 <Switch
-                                    value={this.state.isChatRouletteEnabled}
-                                    onValueChange={() => {
+                                    isOn={this.state.isChatRouletteEnabled}
+                                    onToggle={() => {
                                         this.setState(state => ({isChatRouletteEnabled: !state.isChatRouletteEnabled}));
                                     }}
                                 />
