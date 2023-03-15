@@ -1642,9 +1642,10 @@ function isBirthdayMessage(message, locale) {
     let regex;
     if (locale === 'en') {
         regex = /(happy\s+birthday|hbd|happy bday|happybirthday)/gi;
-    }
-    else if (locale === 'es') {
+    } else if (locale === 'es') {
         regex = /(feliz cumpleanos|feliz cumple|feliz cumpleaños)/gi;
+    } else {
+        return false;
     }
     return regex.test(messageText);
 }
