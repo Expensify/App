@@ -1,13 +1,12 @@
-export default function App({ uniqueCardsArray }) {
-    const [cards, setCards] = useState(
-      () => shuffleCards(uniqueCardsArray.concat(uniqueCardsArray))
-    );
-    
-    const handleCardClick = (index) => {
-      // We will handle it later
-    };
-  
-  
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import styles from '../../styles/styles';
+import Button from '../Button';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+
+function App(props) {
+    const [shouldTheGameStart, setShouldTheGameStart] = useState(false);
+
     return (
       <div className="App">
         <header>
@@ -16,18 +15,31 @@ export default function App({ uniqueCardsArray }) {
             Select two cards with same content consecutively to make them vanish
           </div>
         </header>
-        <div className="container">
-          {cards.map((card, index) => {
-            return (
-              <Card
-                key={index}
-                card={card}
-                index={index}
-                onClick={handleCardClick}
-              />
-            );
-          })}
-        </div>
+        <View style={[styles.mt4]}>
+            {shouldTheGameStart ? (
+                <div className="container">
+                {/* {cards.map((card, index) => {
+                  return (
+                    <Card
+                      key={index}
+                      card={card}
+                      index={index}
+                      onClick={handleCardClick}
+                    />
+                  );
+                })} */}
+                The Game
+              </div>
+            ) : (
+                <Button onPress={() => setShouldTheGameStart(true)} text={props.translate('cardMemoryGame.startTheGame')} success large />
+            )}
+        </View>
      </div>
     )
-  }
+};
+
+App.propTypes = {
+    ...withLocalizePropTypes,
+};
+
+export default withLocalize(App);

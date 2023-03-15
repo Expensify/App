@@ -1661,4 +1661,7 @@ export default {
         ZM: 'Zambia',
         ZW: 'Zimbabue',
     },
+    cardMemoryGames: {
+        startTheGame: 'Start the game!',
+    },
 };
