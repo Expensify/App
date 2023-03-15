@@ -344,6 +344,7 @@ function addComment(reportID, text) {
  * @param {Boolean} isChatroulette
  */
 function openReport(reportID, participantList = [], newReportObject = {}, isChatroulette = false) {
+    console.log('over here : '+isChatroulette);
     const optimisticReportData = {
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,

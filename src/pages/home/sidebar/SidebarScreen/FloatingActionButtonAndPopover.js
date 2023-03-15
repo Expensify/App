@@ -173,7 +173,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                         {
                             icon: Expensicons.Roulette,
                             text: 'Chatroulette, have some fun!',
-                            onSelected: () => Report.navigateToAndOpenReport([]),
+                            onSelected: () => Report.navigateToAndOpenReport([], true),
                         },
                         {
                             icon: Expensicons.ChatBubble,
