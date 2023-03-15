@@ -13,7 +13,7 @@ export default function App({ uniqueCardsArray }) {
         <header>
           <h3>Play the Flip card game</h3>
           <div>
-            Select two cards with same content consequtively to make them vanish
+            Select two cards with same content consecutively to make them vanish
           </div>
         </header>
         <div className="container">
