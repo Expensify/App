@@ -1,11 +1,18 @@
-import {ChatGPT} from 'chatgpt-official';
-
-const bot = new ChatGPT(process.env.OPENAI_API_TOKEN);
-
 // eslint-disable-next-line rulesdir/no-inline-named-export, import/prefer-default-export, @lwc/lwc/no-async-await
 export async function summarize(largeMessage) {
-    console.log('Asking ChatGPT:', largeMessage);
-    const response = await bot.ask(largeMessage);
-    console.log('ChatGPT replied:', response);
-    return response;
+    const x = await fetch('https://api.openai.com/v1/completions', {
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${process.env.OPENAI_API_TOKEN}`,
+        },
+        body: JSON.stringify({
+            model: 'text-davinci-003',
+            prompt: largeMessage,
+        }),
+        method: 'POST',
+    });
+    const json = await x.json();
+    const reply = json.choices?.[0]?.text ?? 'hm.';
+    console.log('reply:', reply);
+    return reply;
 }
