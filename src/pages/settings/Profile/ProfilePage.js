@@ -38,12 +38,23 @@ const ProfilePage = (props) => {
         }
         return lodashGet(props.translate('pronouns'), pronounsKey, props.translate('profilePage.selectYourPronouns'));
     };
+    const getProfileStatus = () => {
+        const emoji = '🇨🇼';
+        const timeout = Date.now();
+        const status = 'WF Curaçao';
+        return emoji + ' ' + status;
+    };
     const currentUserDetails = props.currentUserPersonalDetails || {};
     const profileSettingsOptions = [
         {
             description: props.translate('displayNamePage.headerTitle'),
             title: lodashGet(currentUserDetails, 'displayName', ''),
             pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
+        },
+        {
+            description: props.translate('profilePage.status'),
+            title: getProfileStatus(),
+            pageRoute: ROUTES.SETTINGS_PROFILE_STATUS,
         },
         {
             description: props.translate('contacts.contactMethod'),

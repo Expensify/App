@@ -337,6 +337,7 @@ export default {
         online: 'En línea',
         offline: 'Desconectado',
         syncing: 'Sincronizando',
+        status: 'Status',
     },
     pronounsPage: {
         pronouns: 'Pronombres',
