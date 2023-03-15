@@ -106,7 +106,10 @@ class ReimbursementAccountPage extends React.Component {
 
         const currentStep = lodashGet(this.props.reimbursementAccount, 'achData.currentStep') || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
 
-        if (this.getStepToOpenFromRouteParams() === currentStep) {
+        if (this.state.shouldShowContinueSetupButton || this.getStepToOpenFromRouteParams() === currentStep) {
+            // We don't want to update the route if we are showing the "Continue with setup" / "Start over" buttons
+            // in case the user reloads the page. If we update the route and the user reloads, we will take the user to the
+            // step set in the route.
             return;
         }
 
