@@ -34,6 +34,7 @@ class StatusPage extends Component {
 
         this.validate = this.validate.bind(this);
         this.updateStatus = this.updateStatus.bind(this);
+        this.getTimeoutValues = this.getTimeoutValues.bind(this);
     }
 
     updateStatus(values) {
@@ -42,6 +43,19 @@ class StatusPage extends Component {
             values.text,
             values.timeout,
         );
+    }
+
+    getTimeoutValues() {
+        return [
+            {label: '30 seconds', value: Date.now() + this.toMilliseconds(0, 0, 30)},
+            {label: '30 minutes', value: Date.now() + this.toMilliseconds(0, 30, 0)},
+            {label: '6 hours', value: Date.now() + this.toMilliseconds(6, 0, 0)},
+            {label: 'Never', value: Date.now() + this.toMilliseconds(10000, 0, 0)}
+        ];
+    }
+
+    toMilliseconds(hours, minutes, seconds) {
+        return (hours * 60 * 60 + minutes * 60 + seconds) * 1000;
     }
 
     /**
@@ -72,9 +86,6 @@ class StatusPage extends Component {
                     submitButtonText={this.props.translate('common.save')}
                     enabledWhenOffline
                 >
-                    <Text style={[styles.mb6]}>
-                        
-                    </Text>
                     <View style={styles.mb4}>
                         <TextInput
                             inputID="emoji"
@@ -90,14 +101,13 @@ class StatusPage extends Component {
                         />
                     </View>
                     <View>
-                        {/* <Picker
+                        <Picker
                             inputID="timeout"
-                            name="timeout"
-                            label={this.props.translate('common.lastName')}
-                            defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
-                            placeholder={this.props.translate('displayNamePage.doe')}
-                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
-                        /> */}
+                            label="Clear status after"
+                            // defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
+                            // placeholder={this.props.translate('displayNamePage.doe')}
+                            items={this.getTimeoutValues()}
+                        />
                     </View>
                 </Form>
             </ScreenWrapper>
