@@ -148,7 +148,7 @@ class WorkspaceSettingsPage extends React.Component {
 
                             <View style={[{flexDirection: 'row', justifyContent: 'space-between'}, styles.mt4]}>
                                 <Text>
-                                    Enable chat roulette
+                                    {this.props.translate('workspace.editor.chatRouletteText')}
                                 </Text>
 
                                 <Switch
