@@ -22,7 +22,7 @@ class TfaRequiredModal extends PureComponent {
                     <View style={styles.mb2}>
                         <Icon
                             width={variables.modalTopIconWidth}
-                            height={variables.modalTopBigIconHeight}
+                            height={variables.modalTopIconHeight}
                             src={Illustrations.SafeBlue}
                         />
                     </View>

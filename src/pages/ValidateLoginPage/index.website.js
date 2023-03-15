@@ -99,11 +99,12 @@ class ValidateLoginPage extends Component {
 
     render() {
         const isTfaRequired = lodashGet(this.props, 'account.requiresTwoFactorAuth', false);
+        const isSignedIn = Boolean(lodashGet(this.props, 'session.authToken', null));
         return (
             <>
                 {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
-                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && !isTfaRequired && <AbracadabraModal />}
-                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isTfaRequired && <TfaRequiredModal />}
+                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && (!isTfaRequired || isSignedIn) && <AbracadabraModal />}
+                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isTfaRequired && !isSignedIn && <TfaRequiredModal />}
                 {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.NOT_STARTED && <ValidateCodeModal accountID={this.getAccountID()} code={this.getValidateCode()} />}
                 {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
             </>
