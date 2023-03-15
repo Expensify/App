@@ -101,11 +101,12 @@ class ReimbursementAccountPage extends React.Component {
             && this.props.reimbursementAccount.pendingAction !== prevProps.reimbursementAccount.pendingAction) {
             // We are here after the user tried to delete the bank account. We will want to set
             // this.state.shouldShowContinueSetupButton to `false` if the bank account was deleted.
-            this.setState({shouldShowContinueSetupButton: this.getShouldShowContinueSetupButtonInitialValue()});
+            this.setState({shouldShowContinueSetupButton: this.hasInProgressVBBA()});
         }
 
         const currentStep = lodashGet(this.props.reimbursementAccount, 'achData.currentStep') || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-        if (this.state.shouldShowContinueSetupButton || this.getStepToOpenFromRouteParams() === currentStep) {
+
+        if (this.getStepToOpenFromRouteParams() === currentStep) {
             return;
         }
 
