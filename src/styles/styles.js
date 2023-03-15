@@ -3055,6 +3055,14 @@ const styles = {
     illustratedPageHeader: {
         height: 220,
     },
+
+    illustratedPageBottomHalf: (safeAreaPaddingBottomStyle) => [
+        flex.flex1,
+        flex.flexColumn,
+        flex.justifyContentBetween,
+        safeAreaPaddingBottomStyle,
+        {backgroundColor: themeColors.appBG},
+    ],
 };
 
 export default styles;

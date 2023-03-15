@@ -64,6 +64,9 @@ const darkTheme = {
     imageCropBackgroundColor: colors.greenIcons,
     fallbackIconColor: colors.green700,
     reactionActive: '#003C73',
+
+    preferencesPageBackground: colors.ice800,
+    workspaceSettingsPageBackgroundColor: colors.pink800,
 };
 
 const oldTheme = {

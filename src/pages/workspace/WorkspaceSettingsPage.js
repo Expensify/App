@@ -21,6 +21,8 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import Form from '../../components/Form';
 import * as ReportUtils from '../../libs/ReportUtils';
 import Avatar from '../../components/Avatar';
+import FireworksAnimation from '../../../assets/animations/Fireworks.json';
+import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     ...policyPropTypes,
@@ -78,6 +80,8 @@ class WorkspaceSettingsPage extends React.Component {
                 headerText={this.props.translate('workspace.common.settings')}
                 route={this.props.route}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_SETTINGS}
+                backgroundColor={themeColors.workspaceSettingsPageBackgroundColor}
+                illustration={FireworksAnimation}
             >
                 {hasVBA => (
                     <Form

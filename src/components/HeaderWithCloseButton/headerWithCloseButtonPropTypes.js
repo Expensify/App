@@ -64,6 +64,9 @@ const propTypes = {
         total: PropTypes.number,
     }),
 
+    /** The background color to apply in the header */
+    backgroundColor: PropTypes.string,
+
     ...withLocalizePropTypes,
     ...withDelayToggleButtonStatePropTypes,
     ...keyboardStatePropTypes,
@@ -90,6 +93,7 @@ const defaultProps = {
         top: 0,
         left: 0,
     },
+    backgroundColor: undefined,
 };
 
 export {

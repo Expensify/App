@@ -8,8 +8,6 @@ import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import compose from '../../libs/compose';
 import ROUTES from '../../ROUTES';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
@@ -21,9 +19,16 @@ import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ScrollViewWithContext from '../../components/ScrollViewWithContext';
+import IllustratedHeaderPageLayout from '../../components/IllustratedHeaderPageLayout';
 
 const propTypes = {
     shouldSkipVBBACall: PropTypes.bool,
+
+    /** The background color to apply in the upper half of the screen. */
+    backgroundColor: PropTypes.string.isRequired,
+
+    /** The illustration to display in the header. Can be either an SVG component or a JSON object representing a Lottie animation. */
+    illustration: PropTypes.oneOfType([PropTypes.func, PropTypes.object]).isRequired,
 
     /** Information about the network from Onyx */
     network: networkPropTypes.isRequired,
@@ -106,20 +111,21 @@ class WorkspacePageWithSections extends React.Component {
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <IllustratedHeaderPageLayout
+                backgroundColor={this.props.backgroundColor}
+                illustration={this.props.illustration}
+                title={this.props.headerText}
+                subtitle={policyName}
+                shouldShowGetAssistanceButton
+                guidesCallTaskID={this.props.guidesCallTaskID}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
+                onCloseButtonPress={() => Navigation.dismissModal()}
+            >
                 <FullPageNotFoundView
                     shouldShow={_.isEmpty(this.props.policy)}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                 >
-                    <HeaderWithCloseButton
-                        title={this.props.headerText}
-                        subtitle={policyName}
-                        shouldShowGetAssistanceButton
-                        guidesCallTaskID={this.props.guidesCallTaskID}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
-                    />
                     {this.props.shouldUseScrollView
                         ? (
                             <ScrollViewWithContext
@@ -136,7 +142,7 @@ class WorkspacePageWithSections extends React.Component {
                         : this.props.children(hasVBA, policyID, isUsingECard)}
                     {this.props.footer}
                 </FullPageNotFoundView>
-            </ScreenWrapper>
+            </IllustratedHeaderPageLayout>
         );
     }
 }

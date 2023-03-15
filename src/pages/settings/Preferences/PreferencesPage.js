@@ -9,6 +9,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
+import themeColors from '../../../styles/themes/default';
 import Text from '../../../components/Text';
 import CONST from '../../../CONST';
 import * as User from '../../../libs/actions/User';
@@ -19,6 +20,8 @@ import compose from '../../../libs/compose';
 import withEnvironment, {environmentPropTypes} from '../../../components/withEnvironment';
 import TestToolMenu from '../../../components/TestToolMenu';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
+import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
+import FireworksAnimation from '../../../../assets/animations/Fireworks.json';
 
 const propTypes = {
     /** The chat priority mode */
@@ -50,47 +53,46 @@ const PreferencesPage = (props) => {
     const shouldShowTestToolMenu = _.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], props.environment);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithCloseButton
-                title={props.translate('common.preferences')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
-            />
-            <ScrollView style={[styles.flex1, styles.mt3]}>
-                <View style={styles.mb6}>
-                    <Text style={[styles.textLabelSupporting, styles.mb2, styles.ml5, styles.mr8]} numberOfLines={1}>
-                        {props.translate('common.notifications')}
-                    </Text>
-                    <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.ml5, styles.mr8]}>
-                        <View style={styles.flex4}>
-                            <Text>
-                                {props.translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
-                            </Text>
-                        </View>
-                        <View style={[styles.flex1, styles.alignItemsEnd]}>
-                            <Switch
-                                isOn={lodashGet(props.user, 'isSubscribedToNewsletter', true)}
-                                onToggle={User.updateNewsletterSubscription}
-                            />
-                        </View>
+        <IllustratedHeaderPageLayout
+            title={props.translate('common.preferences')}
+            shouldShowBackButton
+            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+            onCloseButtonPress={() => Navigation.dismissModal(true)}
+            backgroundColor={themeColors.preferencesPageBackground}
+            illustration={FireworksAnimation}
+        >
+            <View style={styles.mb6}>
+                <Text style={[styles.textLabelSupporting, styles.mb2, styles.ml5, styles.mr8]} numberOfLines={1}>
+                    {props.translate('common.notifications')}
+                </Text>
+                <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.ml5, styles.mr8]}>
+                    <View style={styles.flex4}>
+                        <Text>
+                            {props.translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
+                        </Text>
                     </View>
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        title={priorityModes[props.priorityMode].label}
-                        description={props.translate('priorityModePage.priorityMode')}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
-                    />
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        title={languages[props.preferredLocale].label}
-                        description={props.translate('languagePage.language')}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
-                    />
-                    {shouldShowTestToolMenu && <View style={[styles.ml5, styles.mr8, styles.mt6]}><TestToolMenu /></View>}
+                    <View style={[styles.flex1, styles.alignItemsEnd]}>
+                        <Switch
+                            isOn={lodashGet(props.user, 'isSubscribedToNewsletter', true)}
+                            onToggle={User.updateNewsletterSubscription}
+                        />
+                    </View>
                 </View>
-            </ScrollView>
-        </ScreenWrapper>
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon
+                    title={priorityModes[props.priorityMode].label}
+                    description={props.translate('priorityModePage.priorityMode')}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
+                />
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon
+                    title={languages[props.preferredLocale].label}
+                    description={props.translate('languagePage.language')}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
+                />
+                {shouldShowTestToolMenu && <View style={[styles.ml5, styles.mr8, styles.mt6]}><TestToolMenu /></View>}
+            </View>
+        </IllustratedHeaderPageLayout>
     );
 };
 
