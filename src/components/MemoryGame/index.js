@@ -1,4 +1,8 @@
 import {Component} from "react";
+import styles from "../../styles/styles";
+import Button from "../Button";
+import * as Cards from './Cards';
+import Card from "./Card";
 
 export default class MemoryGame extends Component {
     state = {
@@ -10,35 +14,35 @@ export default class MemoryGame extends Component {
         super(props);
         const cards = [
             {
-                src: "fontawesome",
+                src: Cards.Mayor,
                 id: 0,
             },
             {
-                src: "fontawesome",
+                src: Cards.BottleGuy,
                 id: 1,
             },
             {
-                src: "fontawesome",
+                src: Cards.BottleGuy,
                 id: 2,
             },
             {
-                src: "fontawesome",
+                src: Cards.BottleGuy,
                 id: 3,
             },
             {
-                src: "fontawesome",
+                src: Cards.BottleGuy,
                 id: 4,
             },
             {
-                src: "fontawesome",
+                src: Cards.BottleGuy,
                 id: 5,
             },
             {
-                src: "fontawesome",
+                src: Cards.BottleGuy,
                 id: 6,
             },
             {
-                src: "fontawesome",
+                src: Cards.BottleGuy,
                 id: 7,
             },
         ];
@@ -71,25 +75,32 @@ export default class MemoryGame extends Component {
   
   render () {
       return (
-          <div className="MemoryGame">
+          <div className="App">
               <header>
                   <h3>Play the Flip card game</h3>
                   <div>
                       Select two cards with same content consecutively to make them vanish
                   </div>
               </header>
-              <div className="container">
-                  {cards.map((card, index) => {
-                      return (
-                          <Card
-                              key={index}
-                              card={card}
-                              index={index}
-                              onClick={handleCardClick}
-                          />
-                      );
-                  })}
-              </div>
+              <View style={[styles.mt4]}>
+                  {shouldTheGameStart ? (
+                      <div className="container">
+                          {/* {cards.map((card, index) => {
+                  return (
+                    <Card
+                      key={index}
+                      card={card}
+                      index={index}
+                      onClick={handleCardClick}
+                    />
+                  );
+                })} */}
+                          The Game
+                      </div>
+                  ) : (
+                      <Button onPress={() => setShouldTheGameStart(true)} text={props.translate('cardMemoryGame.startTheGame')} success large />
+                  )}
+              </View>
           </div>
       )
   }

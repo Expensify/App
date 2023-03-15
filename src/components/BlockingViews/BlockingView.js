@@ -9,6 +9,7 @@ import themeColors from '../../styles/themes/default';
 import TextLink from '../TextLink';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import MemoryGame from '../MemoryGame';
 
 const propTypes = {
     /** Expensicon for the page */
@@ -48,6 +49,7 @@ const BlockingView = props => (
         />
         <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>
         <Text style={[styles.textAlignCenter]}>{props.subtitle}</Text>
+        <MemoryGame />
         {props.shouldShowBackHomeLink
             ? (
                 <TextLink

@@ -1195,4 +1195,7 @@ export default {
     },
     allStates: COMMON_CONST.STATES,
     allCountries: CONST.ALL_COUNTRIES,
+    cardMemoryGame: {
+        startTheGame: 'Start the game!',
+    },
 };
