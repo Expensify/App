@@ -1,5 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import DevMenu from 'react-native-dev-menu';
+import RNShake from 'react-native-shake';
+import Onyx from 'react-native-onyx';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
@@ -16,6 +19,9 @@ import * as BugReportShortcutsActions from '../libs/actions/BugReportShortcuts';
 import * as ModalActions from '../libs/actions/Modal';
 import ONYXKEYS from '../ONYXKEYS';
 import ConfirmModal from './ConfirmModal';
+import * as BugReport from '../libs/actions/BugReport';
+import withNavigation from './withNavigation';
+import withNavigationFocus from './withNavigationFocus';
 
 const propTypes = {
     /** prop to set shortcuts modal visibility */
@@ -34,11 +40,18 @@ const defaultProps = {
 
 class BugReportConfirmationModal extends React.Component {
     componentDidMount() {
-        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.BUG_REPORT_MODAL;
-        this.unsubscribeShortcutModal = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
-            ModalActions.close();
-            BugReportShortcutsActions.showKeyboardShortcutModal();
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+
+        if (!__DEV__) {
+            // For Developers
+            DevMenu.addItem('Report bug', () => {
+                Onyx.merge(ONYXKEYS.IS_BUG_REPORT_SHORTCUTS_MODAL_OPEN, true);
+            });
+        } else {
+            // For the rest of the world
+            RNShake.addListener(() => {
+                Onyx.merge(ONYXKEYS.IS_BUG_REPORT_SHORTCUTS_MODAL_OPEN, true);
+            });
+        }
     }
 
     componentWillUnmount() {
@@ -46,12 +59,14 @@ class BugReportConfirmationModal extends React.Component {
             return;
         }
         this.unsubscribeShortcutModal();
+        RNShake.removeAllListeners();
     }
 
     submitAndClose() {
         // eslint-disable-next-line no-console
         console.log('success');
         BugReportShortcutsActions.hideKeyboardShortcutModal();
+        BugReport.send(BugReport.getSystemDetails(this.props.navigation));
     }
 
     close() {

@@ -5,6 +5,7 @@ import React, {PureComponent} from 'react';
 import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 
+import Config from 'react-native-config';
 import * as ReportUtils from './libs/ReportUtils';
 import BootSplash from './libs/BootSplash';
 import * as ActiveClientManager from './libs/ActiveClientManager';
@@ -32,7 +33,7 @@ import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
 import UnreadIndicatorUpdater from './libs/UnreadIndicatorUpdater';
-import BugReportConfirmationModal from './components/BugReportConfirmationModal';
+import BugReportTrigger from './components/ReportBugTrigger/ReportBugTrigger';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -200,7 +201,6 @@ class Expensify extends PureComponent {
                 {!this.state.isSplashShown && (
                     <>
                         <KeyboardShortcutsModal />
-                        <BugReportConfirmationModal />
                         <GrowlNotification ref={Growl.growlRef} />
                         <PopoverReportActionContextMenu
                             ref={ReportActionContextMenu.contextMenuRef}
@@ -225,6 +225,7 @@ class Expensify extends PureComponent {
                     onReady={this.setNavigationReady}
                     authenticated={this.isAuthenticated()}
                 />
+                <BugReportTrigger onTrigger={() => alert('trigger bug report')} />
             </DeeplinkWrapper>
         );
     }

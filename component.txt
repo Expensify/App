@@ -1,0 +1,270 @@
+commit 9bbf2c303a0af406f3bd59ce61c4d2dbdfe1be7f
+Author: Michał Pierzchała <thymikee@gmail.com>
+Date:   Wed Mar 15 14:27:36 2023 -0400
+
+    create ReportBugTrigger components
+
+diff --git a/ios/Podfile.lock b/ios/Podfile.lock
+index f494e566c7..b8ef425d1c 100644
+--- a/ios/Podfile.lock
++++ b/ios/Podfile.lock
+@@ -503,6 +503,8 @@ PODS:
+     - RCTTypeSafety
+     - React-Core
+     - ReactCommon/turbomodule/core
++  - react-native-shake (5.1.1):
++    - React
+   - react-native-webview (11.23.0):
+     - React-Core
+   - React-perflogger (0.70.4-alpha.2)
+@@ -581,6 +583,10 @@ PODS:
+     - React-Core
+   - RNDeviceInfo (10.3.0):
+     - React-Core
++  - RNDevMenu (4.1.1):
++    - React-Core
++    - React-Core/DevSupport
++    - React-RCTNetwork
+   - RNFastImage (8.6.3):
+     - React-Core
+     - SDWebImage (~> 5.11.1)
+@@ -720,6 +726,7 @@ DEPENDENCIES:
+   - react-native-quick-sqlite (from `../node_modules/react-native-quick-sqlite`)
+   - react-native-render-html (from `../node_modules/react-native-render-html`)
+   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
++  - react-native-shake (from `../node_modules/react-native-shake`)
+   - react-native-webview (from `../node_modules/react-native-webview`)
+   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
+   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
+@@ -738,6 +745,7 @@ DEPENDENCIES:
+   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
+   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
+   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
++  - RNDevMenu (from `../node_modules/react-native-dev-menu`)
+   - RNFastImage (from `../node_modules/react-native-fast-image`)
+   - "RNFBAnalytics (from `../node_modules/@react-native-firebase/analytics`)"
+   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
+@@ -878,6 +886,8 @@ EXTERNAL SOURCES:
+     :path: "../node_modules/react-native-render-html"
+   react-native-safe-area-context:
+     :path: "../node_modules/react-native-safe-area-context"
++  react-native-shake:
++    :path: "../node_modules/react-native-shake"
+   react-native-webview:
+     :path: "../node_modules/react-native-webview"
+   React-perflogger:
+@@ -914,6 +924,8 @@ EXTERNAL SOURCES:
+     :path: "../node_modules/@react-native-community/datetimepicker"
+   RNDeviceInfo:
+     :path: "../node_modules/react-native-device-info"
++  RNDevMenu:
++    :path: "../node_modules/react-native-dev-menu"
+   RNFastImage:
+     :path: "../node_modules/react-native-fast-image"
+   RNFBAnalytics:
+@@ -1017,6 +1029,7 @@ SPEC CHECKSUMS:
+   react-native-quick-sqlite: a7bd4139fb07194ef8534d1cc14c1aec6daa4d84
+   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
+   react-native-safe-area-context: 99b24a0c5acd0d5dcac2b1a7f18c49ea317be99a
++  react-native-shake: 67d43d6af4abfc299400b17fea7d2ec0754c72ac
+   react-native-webview: e771bc375f789ebfa02a26939a57dbc6fa897336
+   React-perflogger: b231fb9993c1b5f74e32f0a3473225f9ebaf73d3
+   React-RCTActionSheet: 9064b3b78118a253f2d6a63153f6dfff0b38f19f
+@@ -1035,6 +1048,7 @@ SPEC CHECKSUMS:
+   RNCPicker: 0b65be85fe7954fbb2062ef079e3d1cde252d888
+   RNDateTimePicker: 7658208086d86d09e1627b5c34ba0cf237c60140
+   RNDeviceInfo: 4701f0bf2a06b34654745053db0ce4cb0c53ada7
++  RNDevMenu: 72807568fe4188bd4c40ce32675d82434b43c45d
+   RNFastImage: 5c9c9fed9c076e521b3f509fe79e790418a544e8
+   RNFBAnalytics: f76bfa164ac235b00505deb9fc1776634056898c
+   RNFBApp: 729c0666395b1953198dc4a1ec6deb8fbe1c302e
+diff --git a/package-lock.json b/package-lock.json
+index 4b1c086416..f95d463dc6 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -60,6 +60,7 @@
+         "react-native-blob-util": "^0.16.2",
+         "react-native-collapsible": "^1.6.0",
+         "react-native-config": "^1.4.5",
++        "react-native-dev-menu": "^4.1.1",
+         "react-native-device-info": "^10.3.0",
+         "react-native-document-picker": "^8.0.0",
+         "react-native-fast-image": "^8.6.3",
+@@ -81,6 +82,7 @@
+         "react-native-render-html": "6.3.1",
+         "react-native-safe-area-context": "4.4.1",
+         "react-native-screens": "3.17.0",
++        "react-native-shake": "^5.1.1",
+         "react-native-svg": "^13.5.0",
+         "react-native-web-lottie": "^1.4.4",
+         "react-native-webview": "^11.17.2",
+@@ -37423,6 +37425,14 @@
+         }
+       }
+     },
++    "node_modules/react-native-dev-menu": {
++      "version": "4.1.1",
++      "resolved": "https://registry.npmjs.org/react-native-dev-menu/-/react-native-dev-menu-4.1.1.tgz",
++      "integrity": "sha512-jdYjoTpFHvGXW12enaTnrgOoEgVF5JVqv4hcO8K0KV66Cvk8YLwD3XHsEiqMat+4C1osa+IG5Yt3qAiMOLBQxQ==",
++      "peerDependencies": {
++        "react-native": ">=0.61.0"
++      }
++    },
+     "node_modules/react-native-device-info": {
+       "version": "10.3.0",
+       "resolved": "https://registry.npmjs.org/react-native-device-info/-/react-native-device-info-10.3.0.tgz",
+@@ -37754,6 +37764,15 @@
+         "react-native": "*"
+       }
+     },
++    "node_modules/react-native-shake": {
++      "version": "5.1.1",
++      "resolved": "https://registry.npmjs.org/react-native-shake/-/react-native-shake-5.1.1.tgz",
++      "integrity": "sha512-h6O8LnFd3LkvoYx7O0afM6rO9fDKomZ1EyomGgKRDyFhinxYIU7Z4uPYtwA4Z1Cd3frEEKTLNKHI1Eu0MOI3Yw==",
++      "peerDependencies": {
++        "react": "*",
++        "react-native": "*"
++      }
++    },
+     "node_modules/react-native-svg": {
+       "version": "13.5.0",
+       "resolved": "https://registry.npmjs.org/react-native-svg/-/react-native-svg-13.5.0.tgz",
+@@ -73428,6 +73447,12 @@
+       "integrity": "sha512-cSLdOfva2IPCxh6HjHN1IDVW9ratAvNnnAUx6ar2Byvr8KQU7++ysdFYPaoNVuJURuYoAKgvjab8ZcnwGZIO6Q==",
+       "requires": {}
+     },
++    "react-native-dev-menu": {
++      "version": "4.1.1",
++      "resolved": "https://registry.npmjs.org/react-native-dev-menu/-/react-native-dev-menu-4.1.1.tgz",
++      "integrity": "sha512-jdYjoTpFHvGXW12enaTnrgOoEgVF5JVqv4hcO8K0KV66Cvk8YLwD3XHsEiqMat+4C1osa+IG5Yt3qAiMOLBQxQ==",
++      "requires": {}
++    },
+     "react-native-device-info": {
+       "version": "10.3.0",
+       "resolved": "https://registry.npmjs.org/react-native-device-info/-/react-native-device-info-10.3.0.tgz",
+@@ -73646,6 +73671,12 @@
+         "warn-once": "^0.1.0"
+       }
+     },
++    "react-native-shake": {
++      "version": "5.1.1",
++      "resolved": "https://registry.npmjs.org/react-native-shake/-/react-native-shake-5.1.1.tgz",
++      "integrity": "sha512-h6O8LnFd3LkvoYx7O0afM6rO9fDKomZ1EyomGgKRDyFhinxYIU7Z4uPYtwA4Z1Cd3frEEKTLNKHI1Eu0MOI3Yw==",
++      "requires": {}
++    },
+     "react-native-svg": {
+       "version": "13.5.0",
+       "resolved": "https://registry.npmjs.org/react-native-svg/-/react-native-svg-13.5.0.tgz",
+diff --git a/package.json b/package.json
+index 2e92a2411d..cfb74e2e14 100644
+--- a/package.json
++++ b/package.json
+@@ -91,6 +91,7 @@
+     "react-native-blob-util": "^0.16.2",
+     "react-native-collapsible": "^1.6.0",
+     "react-native-config": "^1.4.5",
++    "react-native-dev-menu": "^4.1.1",
+     "react-native-device-info": "^10.3.0",
+     "react-native-document-picker": "^8.0.0",
+     "react-native-fast-image": "^8.6.3",
+@@ -112,6 +113,7 @@
+     "react-native-render-html": "6.3.1",
+     "react-native-safe-area-context": "4.4.1",
+     "react-native-screens": "3.17.0",
++    "react-native-shake": "^5.1.1",
+     "react-native-svg": "^13.5.0",
+     "react-native-web-lottie": "^1.4.4",
+     "react-native-webview": "^11.17.2",
+diff --git a/src/Expensify.js b/src/Expensify.js
+index b4a4f34119..23ac4078d3 100644
+--- a/src/Expensify.js
++++ b/src/Expensify.js
+@@ -5,6 +5,7 @@ import React, {PureComponent} from 'react';
+ import {AppState, Linking} from 'react-native';
+ import Onyx, {withOnyx} from 'react-native-onyx';
+ 
++import Config from 'react-native-config';
+ import * as ReportUtils from './libs/ReportUtils';
+ import BootSplash from './libs/BootSplash';
+ import * as ActiveClientManager from './libs/ActiveClientManager';
+@@ -32,6 +33,7 @@ import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
+ // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
+ // eslint-disable-next-line no-unused-vars
+ import UnreadIndicatorUpdater from './libs/UnreadIndicatorUpdater';
++import BugReportTrigger from './components/ReportBugTrigger/ReportBugTrigger';
+ 
+ Onyx.registerLogger(({level, message}) => {
+     if (level === 'alert') {
+@@ -223,6 +225,7 @@ class Expensify extends PureComponent {
+                     onReady={this.setNavigationReady}
+                     authenticated={this.isAuthenticated()}
+                 />
++                <BugReportTrigger onTrigger={() => alert('trigger bug report')} />
+             </DeeplinkWrapper>
+         );
+     }
+diff --git a/src/components/ReportBugTrigger/ReportBugTrigger.native.js b/src/components/ReportBugTrigger/ReportBugTrigger.native.js
+new file mode 100644
+index 0000000000..6d24637100
+--- /dev/null
++++ b/src/components/ReportBugTrigger/ReportBugTrigger.native.js
+@@ -0,0 +1,33 @@
++
++import {useEffect} from 'react';
++
++import DevMenu from 'react-native-dev-menu';
++import RNShake from 'react-native-shake';
++
++/**
++ *
++ * @param {func} onTrigger
++ * @returns null
++ */
++// eslint-disable-next-line react/destructuring-assignment
++const BugReportTrigger = ({onTrigger}) => {
++    useEffect(() => {
++        if (!__DEV__) {
++            // For Developers
++            DevMenu.addItem('Report bug', onTrigger);
++        } else {
++            // For the rest of the world
++            RNShake.addListener(onTrigger);
++
++            return () => {
++                RNShake.removeAllListeners();
++            };
++        }
++    }, []);
++
++    return null;
++};
++
++BugReportTrigger.displayName = 'BugReportTrigger';
++
++export default BugReportTrigger;
+diff --git a/src/components/ReportBugTrigger/ReportBugTrigger.web.js b/src/components/ReportBugTrigger/ReportBugTrigger.web.js
+new file mode 100644
+index 0000000000..fefa47185c
+--- /dev/null
++++ b/src/components/ReportBugTrigger/ReportBugTrigger.web.js
+@@ -0,0 +1,20 @@
++
++import {useEffect} from 'react';
++
++/**
++ *
++ * @param {func} onTrigger
++ * @returns null
++ */
++// eslint-disable-next-line react/destructuring-assignment
++const BugReportTrigger = ({onTrigger}) => {
++    useEffect(() => {
++
++    }, []);
++
++    return null;
++};
++
++BugReportTrigger.displayName = 'BugReportTrigger';
++
++export default BugReportTrigger;
