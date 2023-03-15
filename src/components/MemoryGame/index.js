@@ -7,7 +7,10 @@ import Card from "./Card";
 export default class MemoryGame extends Component {
     state = {
         current_selection: [],
+        foundCards: [],
         cardsInPlay: [],
+        gameWon: false,
+        gameStarted: false,
     };
 
     constructor(props) {
@@ -59,17 +62,25 @@ export default class MemoryGame extends Component {
             return card.id === id;
         });
 
-        let cards = [...this.state.cards];
 
-        if (cards[index].is_open === false) {
-            cards[index].is_open = true;
-            current_selection.push(cards[index]);
+        if (this.state.cardsInPlay[index].is_open === false) {
+            this.state.cardsInPlay[index].is_open = true;
+            current_selection.push({...this.state.cardsInPlay[index], index});
         }
 
         if (current_selection.length === 2) {
-            if (current_selection[0].id !== current_selection[1].id) {
-
+            if (current_selection[0].id === current_selection[1].id) {
+                this.state.foundCards.push(current_selection[0]);
+                this.state.foundCards.push(current_selection[1]);
+            } else {
+                this.state.cardsInPlay[current_selection[0].index].is_open = false;
+                this.state.cardsInPlay[current_selection[1].index].is_open = false;
             }
+        }
+        if (this.state.foundCards.length === this.state.cardsInPlay.length) {
+            this.setState({
+               gameWon: true,
+            });
         }
     }
   
@@ -83,7 +94,7 @@ export default class MemoryGame extends Component {
                   </div>
               </header>
               <View style={[styles.mt4]}>
-                  {shouldTheGameStart ? (
+                  {this.state.gameStarted ? (
                       <div className="container">
                           {/* {cards.map((card, index) => {
                   return (
@@ -98,7 +109,7 @@ export default class MemoryGame extends Component {
                           The Game
                       </div>
                   ) : (
-                      <Button onPress={() => setShouldTheGameStart(true)} text={props.translate('cardMemoryGame.startTheGame')} success large />
+                      <Button onPress={() => this.setState({gameStarted: true})} text={props.translate('cardMemoryGame.startTheGame')} success large />
                   )}
               </View>
           </div>
