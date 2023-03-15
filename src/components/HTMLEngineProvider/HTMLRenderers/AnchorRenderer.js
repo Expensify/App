@@ -14,7 +14,6 @@ import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
 import AnchorForCommentsOnly from '../../AnchorForCommentsOnly';
 import AnchorForAttachmentsOnly from '../../AnchorForAttachmentsOnly';
-import * as Report from '../../../libs/actions/Report';
 import * as Url from '../../../libs/Url';
 import ROUTES from '../../../ROUTES';
 
