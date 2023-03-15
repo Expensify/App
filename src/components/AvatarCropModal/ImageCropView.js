@@ -78,7 +78,7 @@ const ImageCropView = (props) => {
         <PanGestureHandler onGestureEvent={props.panGestureEventHandler}>
             <Animated.View ref={ControlSelection.blockElement} style={[containerStyle, styles.imageCropContainer]}>
                 <Animated.Image style={[imageStyle, styles.h100, styles.w100]} source={{uri: props.imageUri}} resizeMode="contain" />
-                <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute, squareMaskBorderStyle]}>
+                <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute, maskStyles]}>
                     {props.imageCropMaskType === CONST.IMAGE_CROP_MASK_TYPE.CIRCLE
                         && <Icon src={Expensicons.ImageCropMask} width={props.containerSize} height={props.containerSize} />}
                 </View>
