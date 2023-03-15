@@ -70,7 +70,7 @@ const ImageCropView = (props) => {
     }, [props.originalImageHeight, props.originalImageWidth]);
 
     // If image crop mask type is square then apply border around View
-    const squareMaskBorderStyle = props.imageCropMaskType === CONST.IMAGE_CROP_MASK_TYPE.SQUARE ? styles.imageCropViewBorder : {};
+    const maskStyles = props.imageCropMaskType === CONST.IMAGE_CROP_MASK_TYPE.SQUARE ? styles.imageCropViewBorder : {};
 
     // We're preventing text selection with ControlSelection.blockElement to prevent safari
     // default behaviour of cursor - I-beam cursor on drag. See https://github.com/Expensify/App/issues/13688
