@@ -1,6 +1,5 @@
 import React from 'react';
-import {Keyboard, View} from 'react-native';
-import {Switch} from 'react-native-gesture-handler';
+import {Keyboard, View, Switch} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -42,7 +41,7 @@ class WorkspaceSettingsPage extends React.Component {
 
         this.state = {
             isChatRouletteEnabled: false,
-        }
+        };
     }
 
     /**
@@ -151,9 +150,12 @@ class WorkspaceSettingsPage extends React.Component {
                                     Enable chat roulette
                                 </Text>
 
-                                <Switch value={this.state.isChatRouletteEnabled} onValueChange={() => {
-                                    this.setState({isChatRouletteEnabled: !this.state.isChatRouletteEnabled})
-                                }} />
+                                <Switch
+                                    value={this.state.isChatRouletteEnabled}
+                                    onValueChange={() => {
+                                        this.setState(state => ({isChatRouletteEnabled: !state.isChatRouletteEnabled}));
+                                    }}
+                                />
                             </View>
                         </OfflineWithFeedback>
                     </Form>
