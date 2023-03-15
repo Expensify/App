@@ -171,7 +171,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                     fromSidebarMediumScreen={!this.props.isSmallScreenWidth}
                     menuItems={[
                         {
-                            icon: Expensicons.Megaphone,
+                            icon: Expensicons.Roulette,
                             text: 'Chatroulette, have some fun!',
                             onSelected: () => Report.navigateToAndOpenReport([]),
                         },
