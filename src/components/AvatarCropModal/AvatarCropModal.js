@@ -50,6 +50,9 @@ const propTypes = {
     /** Modal visibility */
     isVisible: PropTypes.bool.isRequired,
 
+    /** Type of image crop mask */
+    imageCropMaskType: PropTypes.oneOf([CONST.IMAGE_CROP_MASK_TYPE.CIRCLE, CONST.IMAGE_CROP_MASK_TYPE.SQUARE]),
+
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -60,6 +63,7 @@ const defaultProps = {
     imageType: '',
     onClose: () => {},
     onSave: () => {},
+    imageCropMaskType: CONST.IMAGE_CROP_MASK_TYPE.CIRCLE,
 };
 
 // This component can't be written using class since reanimated API uses hooks.
@@ -339,6 +343,7 @@ const AvatarCropModal = (props) => {
                                 translateY={translateY}
                                 translateX={translateX}
                                 rotation={rotation}
+                                imageCropMaskType={props.imageCropMaskType}
                             />
                             <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
                                 <Icon src={Expensicons.Zoom} fill={themeColors.icons} />

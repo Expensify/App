@@ -800,6 +800,11 @@ const CONST = {
     ICON_TYPE_AVATAR: 'avatar',
     ICON_TYPE_WORKSPACE: 'workspace',
 
+    IMAGE_CROP_MASK_TYPE: {
+        CIRCLE: 'circle',
+        SQUARE: 'square',
+    },
+
     AVATAR_SIZE: {
         LARGE: 'large',
         MEDIUM: 'medium',

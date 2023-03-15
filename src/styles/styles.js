@@ -2821,6 +2821,12 @@ const styles = {
         cursor: 'move',
     },
 
+    imageCropViewBorder: {
+        borderRadius: variables.componentBorderRadiusCard,
+        borderWidth: 2,
+        borderColor: '#ffffff',
+    },
+
     sliderKnob: {
         backgroundColor: themeColors.success,
         position: 'absolute',

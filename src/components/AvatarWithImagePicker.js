@@ -60,6 +60,9 @@ const propTypes = {
     /** Denotes whether it is an avatar or a workspace avatar */
     type: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE]),
 
+    /** Type of image crop mask */
+    imageCropMaskType: PropTypes.oneOf([CONST.IMAGE_CROP_MASK_TYPE.CIRCLE, CONST.IMAGE_CROP_MASK_TYPE.SQUARE]),
+
     ...withLocalizePropTypes,
 };
 
@@ -74,6 +77,7 @@ const defaultProps = {
     size: CONST.AVATAR_SIZE.DEFAULT,
     fallbackIcon: Expensicons.FallbackAvatar,
     type: CONST.ICON_TYPE_AVATAR,
+    imageCropMaskType: CONST.IMAGE_CROP_MASK_TYPE.CIRCLE,
 };
 
 class AvatarWithImagePicker extends React.Component {
@@ -309,6 +313,7 @@ class AvatarWithImagePicker extends React.Component {
                     imageUri={this.state.imageUri}
                     imageName={this.state.imageName}
                     imageType={this.state.imageType}
+                    imageCropMaskType={this.props.imageCropMaskType}
                 />
             </View>
         );
