@@ -365,7 +365,7 @@ function isValidDisplayName(name) {
  * @returns {Boolean}
  */
 function isValidLegalName(name) {
-    return CONST.REGEX.ALPHABETIC_CHARS_ONLY.test(name);
+    return CONST.REGEX.ALPHABETIC_CHARS_WITH_NUMBER.test(name);
 }
 
 /**
