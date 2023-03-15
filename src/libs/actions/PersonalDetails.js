@@ -138,6 +138,29 @@ function updateDisplayName(firstName, lastName) {
 }
 
 /**
+ * @param {String} emojiCode
+ * @param {String} status
+ * @param {String} timeout
+ */
+function updateStatus(emojiCode, status, timeout) {
+    API.write('UpdateStatus', {emojiCode, status, timeout}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    status: {
+                        emojiCode,
+                        text,
+                        timeout,
+                    }
+                },
+            },
+        }],
+    });
+}
+
+/**
  * @param {String} legalFirstName
  * @param {String} legalLastName
  */
