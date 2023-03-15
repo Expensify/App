@@ -85,7 +85,7 @@ class ReimbursementAccountPage extends React.Component {
         this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
         this.goBack = this.goBack.bind(this);
         this.state = {
-            shouldHideContinueSetupButton: !this.hasInProgressVBBA(),
+            shouldShowContinueSetupButton: this.getShouldShowContinueSetupButtonInitialValue(),
         };
     }
 
@@ -100,13 +100,12 @@ class ReimbursementAccountPage extends React.Component {
         if (prevProps.reimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
             && this.props.reimbursementAccount.pendingAction !== prevProps.reimbursementAccount.pendingAction) {
             // We are here after the user tried to delete the bank account. We will want to set
-            // this.state.shouldHideContinueSetupButton to `true` if the bank account was deleted.
-            this.setState({shouldHideContinueSetupButton: !this.hasInProgressVBBA()});
+            // this.state.shouldShowContinueSetupButton to `false` if the bank account was deleted.
+            this.setState({shouldShowContinueSetupButton: this.getShouldShowContinueSetupButtonInitialValue()});
         }
 
         const currentStep = lodashGet(this.props.reimbursementAccount, 'achData.currentStep') || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-        const previousStep = lodashGet(prevProps.reimbursementAccount, 'achData.currentStep') || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-        if (currentStep === previousStep) {
+        if (this.state.shouldShowContinueSetupButton || this.getStepToOpenFromRouteParams() === currentStep) {
             return;
         }
 
@@ -115,6 +114,20 @@ class ReimbursementAccountPage extends React.Component {
         // user left off in the flow.
         BankAccounts.hideBankAccountErrors();
         Navigation.navigate(ROUTES.getBankAccountRoute(this.getRouteForCurrentStep(currentStep)));
+    }
+
+    /*
+     * Calculates the state used to show the "Continue with setup" view. If a bank account setup is already in progress and
+     * no specific further step was passed in the url we'll show the workspace bank account reset modal if the user wishes to start over
+     */
+    getShouldShowContinueSetupButtonInitialValue() {
+        if (!this.hasInProgressVBBA()) {
+            // Since there is no VBBA in progress, we won't need to show the component ContinueBankAccountSetup
+            return false;
+        }
+        const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
+        return achData.state === BankAccount.STATE.PENDING
+            || _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''], this.getStepToOpenFromRouteParams());
     }
 
     /**
@@ -201,7 +214,7 @@ class ReimbursementAccountPage extends React.Component {
 
     continue() {
         this.setState({
-            shouldHideContinueSetupButton: true,
+            shouldShowContinueSetupButton: false,
         });
         this.fetchData(true);
     }
@@ -214,7 +227,7 @@ class ReimbursementAccountPage extends React.Component {
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
                 if (this.hasInProgressVBBA()) {
-                    this.setState({shouldHideContinueSetupButton: false});
+                    this.setState({shouldShowContinueSetupButton: true});
                 }
                 if (subStep) {
                     BankAccounts.setBankAccountSubStep(null);
@@ -241,7 +254,7 @@ class ReimbursementAccountPage extends React.Component {
                     BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT);
                 } else if (achData.state === BankAccount.STATE.PENDING) {
                     this.setState({
-                        shouldHideContinueSetupButton: false,
+                        shouldShowContinueSetupButton: true,
                     });
                 } else {
                     Navigation.goBack();
@@ -275,16 +288,7 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
 
-        // Show the "Continue with setup" button if a bank account setup is already in progress and no specific further step was passed in the url
-        // We'll show the workspace bank account reset modal if the user wishes to start over
-        if (!this.state.shouldHideContinueSetupButton
-            && Boolean(achData.bankAccountID)
-            && achData.state !== BankAccount.STATE.OPEN
-            && achData.state !== BankAccount.STATE.LOCKED
-            && (
-                _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''], this.getStepToOpenFromRouteParams())
-                || achData.state === BankAccount.STATE.PENDING
-            )) {
+        if (this.state.shouldShowContinueSetupButton) {
             return (
                 <ContinueBankAccountSetup
                     reimbursementAccount={this.props.reimbursementAccount}
