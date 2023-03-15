@@ -423,6 +423,13 @@ function updateGeneralSettings(policyID, name, currency, rouletteEnabled) {
                 },
             },
         },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.ACCOUNT}`,
+            value: {
+                rouletteEnabled,
+            },
+        },
     ];
     const failureData = [
         {

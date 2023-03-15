@@ -107,8 +107,10 @@ import Podcast from '../../../assets/images/social-podcast.svg';
 import Linkedin from '../../../assets/images/social-linkedin.svg';
 import Instagram from '../../../assets/images/social-instagram.svg';
 import AddReaction from '../../../assets/images/add-reaction.svg';
+import Roulette from '../../../assets/images/Roulette.svg';
 
 export {
+    Roulette,
     ActiveRoomAvatar,
     AddReaction,
     AdminRoomAvatar,
