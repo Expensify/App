@@ -157,10 +157,10 @@ class AdditionalDetailsStep extends React.Component {
         // then the user needs to provide the full 9 digit SSN.
         if (this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
             if (!ValidationUtils.isValidSSNFullNine(values[INPUT_IDS.SSN])) {
-                errors = ErrorUtils.addErrorMessage(errors, INPUT_IDS.SSN, this.props.translate(this.errorTranslationKeys.ssnFull9));
+                errors[INPUT_IDS.SSN] = this.props.translate(this.errorTranslationKeys.ssnFull9);
             }
         } else if (!ValidationUtils.isValidSSNLastFour(values[INPUT_IDS.SSN])) {
-            errors = ErrorUtils.addErrorMessage(errors, INPUT_IDS.SSN, this.props.translate(this.errorTranslationKeys.ssn));
+            errors[INPUT_IDS.SSN] = this.props.translate(this.errorTranslationKeys.ssn);
         }
 
         return errors;
