@@ -70,7 +70,7 @@ const ImageCropView = (props) => {
     }, [props.originalImageHeight, props.originalImageWidth]);
 
     // If image crop mask type is square then apply border around View
-    const squareMaskBorder = props.imageCropMaskType === CONST.IMAGE_CROP_MASK_TYPE.SQUARE ? styles.imageCropViewBorder : {};
+    const squareMaskBorderStyle = props.imageCropMaskType === CONST.IMAGE_CROP_MASK_TYPE.SQUARE ? styles.imageCropViewBorder : {};
 
     // We're preventing text selection with ControlSelection.blockElement to prevent safari
     // default behaviour of cursor - I-beam cursor on drag. See https://github.com/Expensify/App/issues/13688
@@ -78,7 +78,7 @@ const ImageCropView = (props) => {
         <PanGestureHandler onGestureEvent={props.panGestureEventHandler}>
             <Animated.View ref={ControlSelection.blockElement} style={[containerStyle, styles.imageCropContainer]}>
                 <Animated.Image style={[imageStyle, styles.h100, styles.w100]} source={{uri: props.imageUri}} resizeMode="contain" />
-                <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute, squareMaskBorder]}>
+                <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute, squareMaskBorderStyle]}>
                     {props.imageCropMaskType === CONST.IMAGE_CROP_MASK_TYPE.CIRCLE
                         && <Icon src={Expensicons.ImageCropMask} width={props.containerSize} height={props.containerSize} />}
                 </View>
