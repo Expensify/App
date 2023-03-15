@@ -41,6 +41,10 @@ class StatusPage extends Component {
         this.validate = this.validate.bind(this);
         this.updateStatus = this.updateStatus.bind(this);
         this.emojiBtnRef = React.createRef();
+
+        this.state = {
+            emoji: lodashGet(props.currentUserPersonalDetails, ['status', 'emojiCode'], ''),
+        };
     }
 
     updateStatus(values) {
@@ -82,13 +86,14 @@ class StatusPage extends Component {
                     <Text style={[styles.mb6]}>
                         Emoji
                     </Text>
-                    <View style={styles.mb4}>
+                    <View ref={this.emojiBtnRef} style={styles.mb4}>
                         <Pressable
-                            ref={this.emojiBtnRef}
                             onPress={() => {
                                 EmojiPickerAction.showEmojiPicker(
                                     () => {},
-                                    () => {},
+                                    (emoji) => {
+                                        this.setState({emoji});
+                                    },
                                     this.emojiBtnRef.current,
                                 );
                             }}
@@ -100,14 +105,20 @@ class StatusPage extends Component {
                             }}
                         >
                             {({hovered, pressed}) => (
-                                <Icon
-                                    src={Expensicons.Emoji}
-                                    width={24}
-                                    height={24}
-                                    fill={StyleUtils.getIconFillColor(
-                                        getButtonState(hovered, pressed),
-                                    )}
-                                />
+                                this.state.emoji === '' ? (
+                                    <Icon
+                                        src={Expensicons.Emoji}
+                                        width={24}
+                                        height={24}
+                                        fill={StyleUtils.getIconFillColor(
+                                            getButtonState(hovered, pressed),
+                                        )}
+                                    />
+                                ) : (
+                                    <Text style={{fontSize: 24}}>
+                                        {this.state.emoji}
+                                    </Text>
+                                )
                             )}
                         </Pressable>
                     </View>
