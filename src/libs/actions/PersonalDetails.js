@@ -158,6 +158,7 @@ function updateStatus(emojiCode, text, timeout) {
             },
         }],
     });
+    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
