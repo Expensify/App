@@ -22,7 +22,7 @@ jobs:
           username: ${{ github.actor }}
           team: mobile-deployers
 
-      - name: Reopen and comment on issue
+      - name: Reopen and comment on issue (not a team member)
         if: ${{ !fromJSON(steps.validateActor.outputs.isTeamMember) }}
         uses: Expensify/App/.github/actions/javascript/reopenIssueWithComment@main
         with:
@@ -40,7 +40,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
 
-      - name: Reopen and comment on issue
+      - name: Reopen and comment on issue (has blockers)
         if: ${{ fromJSON(steps.validateActor.outputs.isTeamMember) && fromJSON(steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS) }}
         uses: Expensify/App/.github/actions/javascript/reopenIssueWithComment@main
         with:
@@ -65,14 +65,18 @@ jobs:
 
   # Create a new patch version to prep for next release cycle
   createNewPatchVersion:
+    runs-on: ubuntu-latest
     needs: validate
     if: ${{ fromJSON(needs.validate.outputs.isValid) }}
-    secrets: inherit
+    outputs:
+      NEW_VERSION: ${{ steps.createNewVersion.outputs.NEW_VERSION }}
     steps:
       - name: Create new version
+        id: createNewVersion
         uses: Expensify/App/.github/workflows/createNewVersion.yml@main
         with:
           SEMVER_LEVEL: PATCH
+        secrets: inherit
 
   # Deploy deferred PRs to staging and create a new StagingDeployCash for the next release cycle.
   createNewStagingDeployCash:
