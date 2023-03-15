@@ -50,7 +50,7 @@ const ReportActionItemCreated = (props) => {
     // Get data from phone rotation sensor and prep other variables for animation
     const animatedSensor = useAnimatedSensor(SensorType.ROTATION);
     const offsetX = useSharedValue((-props.windowWidth / 2));
-    const offsetY = useSharedValue(0);
+    const offsetY = useSharedValue(50);
 
     // Apply data to create style object
     const animatedStyles = useAnimatedStyle(() => {
