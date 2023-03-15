@@ -78,7 +78,6 @@ class AttachmentModal extends PureComponent {
 
         this.state = {
             isModalOpen: false,
-            reportID: null,
             shouldLoadAttachment: false,
             isAttachmentInvalid: false,
             attachmentInvalidReasonTitle: null,
