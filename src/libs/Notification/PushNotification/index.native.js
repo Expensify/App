@@ -102,7 +102,8 @@ function init() {
     // By default, the push notifications are silenced on iOS if the App is in foreground.
     // More info here https://developer.apple.com/documentation/usernotifications/unusernotificationcenterdelegate/1649518-usernotificationcenter
     Airship.push.iOS.setForegroundPresentationOptions([
-        iOS.ForegroundPresentationOption.Alert,
+        iOS.ForegroundPresentationOption.List,
+        iOS.ForegroundPresentationOption.Banner,
         iOS.ForegroundPresentationOption.Sound,
         iOS.ForegroundPresentationOption.Badge,
     ]);
