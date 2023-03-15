@@ -212,7 +212,7 @@ const getAssertionsFileContent = (workflowName, jobs) => {
     for (const [jobId, job] of Object.entries(jobs)) {
         let stepAssertionsContent = '';
         for (const step of job.steps) {
-            stepAssertionsContent += stepAssertionTemplate(step.name.replaceAll(' ', ''), jobId.toUpperCase(), step.name, step.inputs, step.envs);
+            stepAssertionsContent += stepAssertionTemplate(step.name, jobId.toUpperCase(), step.name, step.inputs, step.envs);
         }
         const jobAssertionName = `assert${jobId}JobExecuted`;
         jobAssertions.push(jobAssertionName);
