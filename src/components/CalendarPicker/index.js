@@ -52,7 +52,7 @@ class CalendarPicker extends React.PureComponent {
             return;
         }
 
-        // If only the selectedYear prop has changed, update the currentDateView state with the new year value
+        // If the selectedYear prop has changed, update the currentDateView state with the new year value
         this.setState(prev => ({currentDateView: moment(prev.currentDateView).set('year', this.props.selectedYear).toDate()}));
     }
 
@@ -69,8 +69,8 @@ class CalendarPicker extends React.PureComponent {
     }
 
     /**
-     * Calls the onSelected function with the selected date, if it is within the min/max range.
-     * @param {number} day - The day of the month that was selected.
+     * Calls the onSelected function with the selected date.
+     * @param {Number} day - The day of the month that was selected.
      */
     onDayPressed(day) {
         const selectedDate = new Date(this.state.currentDateView.getFullYear(), this.state.currentDateView.getMonth(), day);

@@ -32,9 +32,9 @@ class NewDatePicker extends React.Component {
 
         this.opacity = new Animated.Value(0);
 
-        /* We're using uncontrolled input otherwise it wont be possible to
-        * raise change events with a date value - each change will produce a date
-        * and make us reset the text input */
+        // We're using uncontrolled input otherwise it wont be possible to
+        // raise change events with a date value - each change will produce a date
+        // and make us reset the text input
         this.defaultValue = props.defaultValue
             ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
             : '';
@@ -53,7 +53,7 @@ class NewDatePicker extends React.Component {
     }
 
     /**
-     * Function to show up and animates the picker.
+     * Function to animate showing the picker.
      */
     showPicker() {
         this.setState({isPickerVisible: true}, () => {

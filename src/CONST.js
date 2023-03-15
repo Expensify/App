@@ -59,6 +59,7 @@ const CONST = {
         MAX_AGE: 150,
     },
 
+    // This is used to enable a rotation/transform style to any component.
     DIRECTION: {
         LEFT: 'left',
         RIGHT: 'right',
