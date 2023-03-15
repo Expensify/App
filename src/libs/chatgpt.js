@@ -1,8 +1,8 @@
 import OpenAI from 'openai-api';
 
-const OPENAI_API_KEY = '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';
+const OPENAI_API_TOKEN = process.env.OPENAI_API_TOKEN;
 
-const openai = new OpenAI(OPENAI_API_KEY);
+const openai = new OpenAI(OPENAI_API_TOKEN);
 
 // eslint-disable-next-line @lwc/lwc/no-async-await
 async function complete(prompt) {
