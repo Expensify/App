@@ -468,7 +468,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             return ReimbursementAccountPage;
         },
         name: 'ReimbursementAccount',
-        initialParams: {stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT},
+        initialParams: {stepToOpen: ''},
     },
     {
         getComponent: () => {
