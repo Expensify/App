@@ -83,7 +83,7 @@ class ValidateSecondaryLoginPage extends Component {
                 {/* We use keyboardShouldPersistTaps="handled" to prevent the keyboard from being hidden when switching focus on input fields  */}
                 <ScrollView style={styles.flex1} contentContainerStyle={styles.p5} keyboardShouldPersistTaps="handled">
                     <Text style={[styles.mb6]}>
-                        {`${this.props.translate('validateSecondaryLoginPage.enterMagicCode')} ${this.props.route.params.login} ${this.props.translate('validateSecondaryLoginPage.toValidateLogin')}`}
+                        {`${this.props.translate('validateSecondaryLoginPage.enterMagicCodeToValidate', {login: this.props.route.params.login})}`}
                     </Text>
                     <View style={styles.mb6}>
                         <TextInput

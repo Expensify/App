@@ -388,9 +388,8 @@ export default {
     },
     validateSecondaryLoginPage: {
         validate: 'Validate',
-        enterMagicCode: 'Enter the magic code sent to',
-        toValidateLogin: 'to validate your login.',
-        submit: 'Submit'
+        enterMagicCodeToValidate: ({login}) => `Enter the magic code sent to ${login} to validate your login.`,
+        submit: 'Submit',
     },
     initialSettingsPage: {
         about: 'About',
