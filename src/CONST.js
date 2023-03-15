@@ -217,6 +217,11 @@ const CONST = {
             shortcutKey: 'I',
             modifiers: ['CTRL'],
         },
+        BUG_REPORT_MODAL: {
+            descriptionKey: 'openShortcutDialog',
+            shortcutKey: 'B',
+            modifiers: ['CTRL'],
+        },
         ESCAPE: {
             descriptionKey: 'escape',
             shortcutKey: 'Escape',
