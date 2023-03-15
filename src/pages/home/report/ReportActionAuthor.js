@@ -98,7 +98,9 @@ const ReportActionAuthor = (props) => {
         {Str.htmlDecode(props.fragment.text)}
         {props.status && ' • '}
         <Text style={[styles.chatItemMessageHeaderStatus]}>
-          {props.status || ''}
+          {props.status.emojiCode || ''}
+          {props.status && ' '}
+          {props.status.text || ''}
         </Text>
       </Text>
     </Tooltip>

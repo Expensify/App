@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
-import {View} from 'react-native';
+import {Pressable, View} from 'react-native';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
@@ -18,6 +18,12 @@ import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
 import * as ErrorUtils from '../../../libs/ErrorUtils';
 import Picker from '../../../components/Picker';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import variables from '../../../styles/variables';
+import * as StyleUtils from '../../../styles/StyleUtils';
+import getButtonState from '../../../libs/getButtonState';
+import Icon from '../../../components/Icon';
+import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -34,7 +40,15 @@ class StatusPage extends Component {
 
         this.validate = this.validate.bind(this);
         this.updateStatus = this.updateStatus.bind(this);
+<<<<<<< HEAD
         this.getTimeoutValues = this.getTimeoutValues.bind(this);
+=======
+        this.emojiBtnRef = React.createRef();
+
+        this.state = {
+            emoji: lodashGet(props.currentUserPersonalDetails, ['status', 'emojiCode'], ''),
+        };
+>>>>>>> a53b9766fe788a75336a36b35cedaa51092ad39b
     }
 
     updateStatus(values) {
@@ -86,12 +100,45 @@ class StatusPage extends Component {
                     submitButtonText={this.props.translate('common.save')}
                     enabledWhenOffline
                 >
-                    <View style={styles.mb4}>
-                        <TextInput
-                            inputID="emoji"
-                            label="Emoji"
-                            placeholder='🇨🇼'
-                        />
+
+                    <Text style={[styles.mb6]}>
+                        Emoji
+                    </Text>
+                    <View ref={this.emojiBtnRef} style={styles.mb4}>
+                        <Pressable
+                            onPress={() => {
+                                EmojiPickerAction.showEmojiPicker(
+                                    () => {},
+                                    (emoji) => {
+                                        this.setState({emoji});
+                                    },
+                                    this.emojiBtnRef.current,
+                                );
+                            }}
+                            style={{
+                                borderWidth: 1,
+                                borderRadius: 5,
+                                width: 30,
+                                height: 30,
+                            }}
+                        >
+                            {({hovered, pressed}) => (
+                                this.state.emoji === '' ? (
+                                    <Icon
+                                        src={Expensicons.Emoji}
+                                        width={24}
+                                        height={24}
+                                        fill={StyleUtils.getIconFillColor(
+                                            getButtonState(hovered, pressed),
+                                        )}
+                                    />
+                                ) : (
+                                    <Text style={{fontSize: 24}}>
+                                        {this.state.emoji}
+                                    </Text>
+                                )
+                            )}
+                        </Pressable>
                     </View>
                     <View>
                         <TextInput
