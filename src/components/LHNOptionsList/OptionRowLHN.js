@@ -166,7 +166,7 @@ const OptionRowLHN = (props) => {
                                     )
                                 )
                                 }
-                                    {optionItem.status && (
+                                    {optionItem.status && optionItem.status.emojiCode != null && (
                                     <Tooltip text={`${optionItem.status.emojiCode} ${optionItem.status.text}`}>
                                         <View style={styles.optionRowLHNStatusEmoji}>
                                             <Text>{optionItem.status.emojiCode}</Text>
