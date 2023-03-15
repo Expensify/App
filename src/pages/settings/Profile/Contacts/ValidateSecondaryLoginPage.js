@@ -38,9 +38,6 @@ const propTypes = {
         }),
     }),
 
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     ...withLocalizePropTypes,
 };
 
@@ -54,7 +51,7 @@ class ValidateSecondaryLoginPage extends Component {
     constructor(props) {
         super(props);
 
-        this.state = { validateCode: '' };
+        this.state = {validateCode: ''};
 
         this.formType = props.route.params.type;
         this.submitForm = this.submitForm.bind(this);
@@ -122,9 +119,6 @@ export default compose(
     withOnyx({
         user: {
             key: ONYXKEYS.USER,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
         session: {
             key: ONYXKEYS.SESSION,

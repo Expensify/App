@@ -78,7 +78,7 @@ class LoginField extends Component {
             <View style={[styles.ph8]}>
                 <View>
                     {!this.props.login.partnerUserID || this.props.login.validatedDate ? (
-                        <View style={[styles.mln8, styles.mrn8]}>
+                        <View style={[styles.mln5]}>
                             <MenuItemWithTopDescription
                                 title={this.getTitle()}
                                 description={this.props.login.partnerUserID ? this.props.label : undefined}
