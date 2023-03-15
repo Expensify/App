@@ -41,7 +41,7 @@ class WorkspaceSettingsPage extends React.Component {
         this.validate = this.validate.bind(this);
 
         this.state = {
-            isChatRouletteEnabled: this.props.policy.rouletteEnabled || false,
+            isChatRouletteEnabled: this.props.account.rouletteEnabled || false,
         };
     }
 
@@ -173,6 +173,7 @@ export default compose(
     withPolicy,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
+        account: {key: ONYXKEYS.ACCOUNT},
     }),
     withLocalize,
     withNetwork(),
