@@ -34,7 +34,7 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import * as ChatGPT from '../../libs/chatgpt';
+import * as ChatGPT from '../../libs/chatgpt2';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
