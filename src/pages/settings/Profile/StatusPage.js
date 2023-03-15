@@ -50,7 +50,7 @@ class StatusPage extends Component {
 
     updateStatus(values) {
         PersonalDetails.updateStatus(
-            values.emoji,
+            this.state.emoji,
             values.text,
             values.timeout,
         );
