@@ -59,8 +59,8 @@ const ReportActionItemCreated = (props) => {
             return {
                 transform: [
                     // The x vs y here seems wrong but is the way to make it feel right to the user
-                    {translateX: withSpring(offsetX.value - (qy * 100))},
-                    {translateY: withSpring(offsetY.value - (qx * 100))},
+                    {translateX: withSpring(offsetX.value - (qy * 65))},
+                    {translateY: withSpring(offsetY.value - (qx * 65))},
                 ],
             };
         }
