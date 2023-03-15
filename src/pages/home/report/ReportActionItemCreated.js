@@ -1,8 +1,9 @@
 import React from 'react';
-import {Pressable, View, Image} from 'react-native';
+import {Pressable, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import Animated, {useSharedValue, useAnimatedStyle} from 'react-native-reanimated';
 import ONYXKEYS from '../../../ONYXKEYS';
 import RoomHeaderAvatars from '../../../components/RoomHeaderAvatars';
 import ReportWelcomeText from '../../../components/ReportWelcomeText';
@@ -43,6 +44,15 @@ const defaultProps = {
 
 const ReportActionItemCreated = (props) => {
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
+
+    const offsetX = useSharedValue(0);
+    const offsetY = useSharedValue(0);
+
+    const animatedStyles = useAnimatedStyle(() => ({
+        transform: [{translateX: offsetX.value},
+            {translateY: offsetY.value}],
+    }));
+
     return (
         <OfflineWithFeedback
             pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
@@ -51,10 +61,10 @@ const ReportActionItemCreated = (props) => {
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
-                <Image
+                <Animated.Image
                     pointerEvents="none"
                     source={EmptyStateBackgroundImage}
-                    style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
+                    style={[StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth), animatedStyles]}
                 />
                 <View
                     accessibilityLabel="Chat welcome message"
