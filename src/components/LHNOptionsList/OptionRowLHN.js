@@ -24,7 +24,7 @@ import themeColors from '../../styles/themes/default';
 import SidebarUtils from '../../libs/SidebarUtils';
 import TextPill from '../TextPill';
 import OfflineWithFeedback from '../OfflineWithFeedback';
-import Tooltip from "../Tooltip";
+import Tooltip from '../Tooltip';
 
 const propTypes = {
     /** Style for hovered state */
@@ -166,21 +166,24 @@ const OptionRowLHN = (props) => {
                                     )
                                 )
                                 }
-                                    <Tooltip text={"🌲 Being a tree now"} >
-                                    <View style={{
-                                        position: 'absolute',
-                                        width: 20,
-                                        height: 20,
-                                        right: 5,
-                                        bottom: -5,
-                                        borderRadius: 10,
-                                        backgroundColor: 'white',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                    }}>
-                                        <Text>🌲</Text>
-                                    </View>
+                                    {optionItem.status && (
+                                    <Tooltip text={`${optionItem.status.emojiCode} ${optionItem.status.text}`}>
+                                        <View style={{
+                                            position: 'absolute',
+                                            width: 20,
+                                            height: 20,
+                                            right: 5,
+                                            bottom: -5,
+                                            borderRadius: 10,
+                                            backgroundColor: 'white',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                        }}
+                                        >
+                                            <Text>{optionItem.status.emojiCode}</Text>
+                                        </View>
                                     </Tooltip>
+                                    )}
                                 </View>
                                 <View style={contentContainerStyles}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
