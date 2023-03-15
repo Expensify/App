@@ -34,6 +34,7 @@ const CONTEXT_MENU_TYPES = {
     LINK: 'LINK',
     REPORT_ACTION: 'REPORT_ACTION',
     EMAIL: 'EMAIL',
+    EMAIL: '',
 };
 
 // A list of all the context actions in this menu.
@@ -251,6 +252,18 @@ export default [
 
             // No popover to hide, call showDeleteConfirmModal immediately
             showDeleteModal(reportID, reportAction);
+        },
+        getDescription: () => {},
+    },
+    {
+        textTranslateKey: 'reportActionContextMenu.markAsUnread',
+        icon: Expensicons.Pin,
+        shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
+        onPress: (closePopover, {reportAction, reportID}) => {
+            Report.markCommentAsUnread(reportID, reportAction.created);
+            if (closePopover) {
+                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+            }
         },
         getDescription: () => {},
     },
