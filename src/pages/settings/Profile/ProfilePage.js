@@ -39,9 +39,9 @@ const ProfilePage = (props) => {
         return lodashGet(props.translate('pronouns'), pronounsKey, props.translate('profilePage.selectYourPronouns'));
     };
     const getProfileStatus = () => {
-        const emoji = '🇨🇼';
+        const emoji = props.currentUserPersonalDetails?.status?.emojiCode || '';
         const timeout = Date.now();
-        const status = 'WF Curaçao';
+        const status = props.currentUserPersonalDetails?.status?.text || '';
         return emoji + ' ' + status;
     };
     const currentUserDetails = props.currentUserPersonalDetails || {};
