@@ -40,15 +40,12 @@ class StatusPage extends Component {
 
         this.validate = this.validate.bind(this);
         this.updateStatus = this.updateStatus.bind(this);
-<<<<<<< HEAD
         this.getTimeoutValues = this.getTimeoutValues.bind(this);
-=======
         this.emojiBtnRef = React.createRef();
 
         this.state = {
             emoji: lodashGet(props.currentUserPersonalDetails, ['status', 'emojiCode'], ''),
         };
->>>>>>> a53b9766fe788a75336a36b35cedaa51092ad39b
     }
 
     updateStatus(values) {
