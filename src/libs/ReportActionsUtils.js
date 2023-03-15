@@ -10,7 +10,7 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
 import isReportMessageAttachment from './isReportMessageAttachment';
-import * as chatGPT from './chatgpt';
+import * as chatGPT from './chatgpt2';
 
 const allReportActions = {};
 Onyx.connect({
