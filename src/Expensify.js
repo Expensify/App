@@ -2,7 +2,8 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
-import {AppState, Linking} from 'react-native';
+import {AppState, Linking, View, Text} from 'react-native';
+
 import Onyx, {withOnyx} from 'react-native-onyx';
 
 import * as ReportUtils from './libs/ReportUtils';
@@ -223,6 +224,24 @@ class Expensify extends PureComponent {
                     onReady={this.setNavigationReady}
                     authenticated={this.isAuthenticated()}
                 />
+                <View
+                    style={{
+                        position: 'absolute',
+                        width: '100%',
+                        height: '100%',
+                        backgroundColor: 'transparent'
+                    }}
+                    pointerEvents="none">
+                    <Text
+                        style={{
+                            color: '#000000',
+                            top: '50%',
+                            left: '50%',
+                            fontSize: 80
+                        }}>
+                        😅
+                    </Text>
+                </View>
             </DeeplinkWrapper>
         );
     }
