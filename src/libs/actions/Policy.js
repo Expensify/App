@@ -391,8 +391,9 @@ function clearAvatarErrors(policyID) {
  * @param {String} policyID
  * @param {String} name
  * @param {String} currency
+ * @param {Boolean} roulette
  */
-function updateGeneralSettings(policyID, name, currency) {
+function updateGeneralSettings(policyID, name, currency, roulette) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -408,6 +409,7 @@ function updateGeneralSettings(policyID, name, currency) {
                 },
                 name,
                 outputCurrency: currency,
+                roulette,
             },
         },
     ];
@@ -439,7 +441,9 @@ function updateGeneralSettings(policyID, name, currency) {
         },
     ];
 
-    API.write('UpdateWorkspaceGeneralSettings', {policyID, workspaceName: name, currency}, {optimisticData, successData, failureData});
+    API.write('UpdateWorkspaceGeneralSettings', {
+        policyID, workspaceName: name, currency, roulette,
+    }, {optimisticData, successData, failureData});
 }
 
 /**

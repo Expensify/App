@@ -1,5 +1,6 @@
 import React from 'react';
 import {Keyboard, View} from 'react-native';
+import {Switch} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -38,6 +39,10 @@ class WorkspaceSettingsPage extends React.Component {
         this.getCurrencyItems = this.getCurrencyItems.bind(this);
         this.submit = this.submit.bind(this);
         this.validate = this.validate.bind(this);
+
+        this.state = {
+            isChatRouletteEnabled: false,
+        }
     }
 
     /**
@@ -56,7 +61,7 @@ class WorkspaceSettingsPage extends React.Component {
             return;
         }
         const outputCurrency = values.currency;
-        Policy.updateGeneralSettings(this.props.policy.id, values.name, outputCurrency);
+        Policy.updateGeneralSettings(this.props.policy.id, values.name, outputCurrency, this.state.isChatRouletteEnabled);
         Keyboard.dismiss();
     }
 
@@ -140,6 +145,16 @@ class WorkspaceSettingsPage extends React.Component {
                             <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
                                 {this.props.translate('workspace.editor.currencyInputHelpText')}
                             </Text>
+
+                            <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                                <Text>
+                                    Enable chat roulette
+                                </Text>
+
+                                <Switch value={this.state.isChatRouletteEnabled} onValueChange={() => {
+                                    this.setState({isChatRouletteEnabled: !this.state.isChatRouletteEnabled})
+                                }} />
+                            </View>
                         </OfflineWithFeedback>
                     </Form>
                 )}
