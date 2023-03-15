@@ -1254,6 +1254,18 @@ const styles = {
     bottom: 0,
   },
 
+  optionRowLHNStatusEmoji: {
+    position: 'absolute',
+    width: 20,
+    height: 20,
+    right: 5,
+    bottom: -5,
+    borderRadius: 10,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
   optionAlternateText: {
     minHeight: variables.alternateTextHeight,
     lineHeight: variables.lineHeightXLarge,

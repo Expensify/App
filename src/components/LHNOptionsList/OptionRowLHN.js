@@ -168,18 +168,7 @@ const OptionRowLHN = (props) => {
                                 }
                                     {optionItem.status && (
                                     <Tooltip text={`${optionItem.status.emojiCode} ${optionItem.status.text}`}>
-                                        <View style={{
-                                            position: 'absolute',
-                                            width: 20,
-                                            height: 20,
-                                            right: 5,
-                                            bottom: -5,
-                                            borderRadius: 10,
-                                            backgroundColor: 'white',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                        }}
-                                        >
+                                        <View style={styles.optionRowLHNStatusEmoji}>
                                             <Text>{optionItem.status.emojiCode}</Text>
                                         </View>
                                     </Tooltip>
