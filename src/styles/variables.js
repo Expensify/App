@@ -28,6 +28,7 @@ export default {
     componentBorderRadiusCard: 12,
     componentBorderRadiusRounded: 20,
     buttonBorderRadius: 100,
+    cropViewBorderRadius: 12,
     avatarSizeLarge: 80,
     avatarSizeHeader: 40,
     avatarSizeLargeBordered: 88,

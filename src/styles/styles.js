@@ -2822,7 +2822,7 @@ const styles = {
     },
 
     imageCropViewBorder: {
-        borderRadius: variables.componentBorderRadiusCard,
+        borderRadius: variables.cropViewBorderRadius,
         borderWidth: 2,
         borderColor: themeColors.text,
     },
