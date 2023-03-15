@@ -34,6 +34,7 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import * as ChatGPT from '../../libs/chatgpt';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -142,8 +143,23 @@ class ReportScreen extends React.Component {
     /**
      * @param {String} text
      */
-    onSubmitComment(text) {
-        Report.addComment(getReportID(this.props.route), text);
+    // eslint-disable-next-line @lwc/lwc/no-async-await
+    async onSubmitComment(text) {
+        let reportCommentText;
+
+        const chatGptCommandString = '/chatgpt ';
+        if (text.startsWith(chatGptCommandString)) {
+            const chatGptPrompt = text.slice(chatGptCommandString.length);
+            console.log('ChatGPT prompt: ', chatGptPrompt);
+
+            const response = await ChatGPT.complete(text);
+
+            if (response.data != null && response.data !== '') { reportCommentText = response.data; }
+        } else {
+            reportCommentText = text;
+        }
+
+        if (reportCommentText != null && reportCommentText !== '') { Report.addComment(getReportID(this.props.route), reportCommentText); }
     }
 
     /**
