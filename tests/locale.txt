@@ -1,0 +1,48 @@
+diff --git a/src/App.js b/src/App.js
+index 4336b48a07..c0071cc11f 100644
+--- a/src/App.js
++++ b/src/App.js
+@@ -56,13 +56,14 @@ const App = () => (
+ App.displayName = 'App';
+ 
+ global.isBirthdayMessage = function (message, locale) {
+-    console.log(LocaleContext.getContextValue());
+     let regex;
+     if (locale == 'en') {
+         regex = /(happy\s+birthday|hbd|happy bday|happybirthday)/gi;
+     }
+     else if (locale == 'es') {
+         regex = /(feliz cumpleanos|feliz cumple|feliz cumpleaños)/gi;
++    } else {
++        return false;
+     }
+     return regex.test(message);
+ };
+diff --git a/src/pages/home/report/ReportActionsList.js b/src/pages/home/report/ReportActionsList.js
+index 38d19864ea..1feef04711 100644
+--- a/src/pages/home/report/ReportActionsList.js
++++ b/src/pages/home/report/ReportActionsList.js
+@@ -20,6 +20,7 @@ import CONST from '../../../CONST';
+ import * as StyleUtils from '../../../styles/StyleUtils';
+ import reportPropTypes from '../../reportPropTypes';
+ import networkPropTypes from '../../../components/networkPropTypes';
++import withLocalize from '../../../components/withLocalize';
+ 
+ const propTypes = {
+     /** Position of the "New" line marker */
+@@ -143,6 +144,7 @@ class ReportActionsList extends React.Component {
+     }
+ 
+     render() {
++        console.log(this.props.sortedReportActions.map(a => a.message[0].html).filter(a => isBirthdayMessage(a, this.props.preferredLocale)));
+         // Native mobile does not render updates flatlist the changes even though component did update called.
+         // To notify there something changes we can use extraData prop to flatlist
+         const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.newMarkerReportActionID : undefined;
+@@ -208,6 +210,7 @@ ReportActionsList.defaultProps = defaultProps;
+ export default compose(
+     withDrawerState,
+     withWindowDimensions,
++    withLocalize,
+     withPersonalDetails(),
+     withNetwork(),
+ )(ReportActionsList);

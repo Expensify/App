@@ -29,6 +29,7 @@ import DeeplinkWrapper from './components/DeeplinkWrapper';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
+import { EmojiWaterfallContext, EmojiWaterfallProvider } from './EmojiWaterfall';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
@@ -219,29 +220,12 @@ class Expensify extends PureComponent {
                         ) : null}
                     </>
                 )}
-
-                <NavigationRoot
-                    onReady={this.setNavigationReady}
-                    authenticated={this.isAuthenticated()}
-                />
-                <View
-                    style={{
-                        position: 'absolute',
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: 'transparent'
-                    }}
-                    pointerEvents="none">
-                    <Text
-                        style={{
-                            color: '#000000',
-                            top: '50%',
-                            left: '50%',
-                            fontSize: 80
-                        }}>
-                        😅
-                    </Text>
-                </View>
+                <EmojiWaterfallProvider>
+                    <NavigationRoot
+                        onReady={this.setNavigationReady}
+                        authenticated={this.isAuthenticated()}
+                    />
+                </EmojiWaterfallProvider>
             </DeeplinkWrapper>
         );
     }

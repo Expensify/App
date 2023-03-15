@@ -23,6 +23,7 @@ import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
+import { EmojiWaterfallContext } from '../../../EmojiWaterfall';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -106,7 +107,8 @@ class ReportActionsView extends React.Component {
             // they are now in the list.
             if (isFromCurrentUser) {
                 if (ReportUtils.isBirthdayMessage(message, this.props.preferredLocale)) {
-                    alert('makeitrain');
+                    console.log('over here', this.context);
+                    this.context.startAnimation();
                 }
 
                 ReportScrollManager.scrollToBottom();
@@ -115,7 +117,7 @@ class ReportActionsView extends React.Component {
                 this.setState({newMarkerReportActionID: ''});
             } else if (this.getIsReportFullyVisible()) {
                 if (ReportUtils.isBirthdayMessage(message, this.props.preferredLocale)) {
-                    alert('makeitrain');
+                    this.context.startAnimation();
                 }
 
                 // We use the scroll position to determine whether the report should be marked as read and the new line indicator reset.
@@ -377,6 +379,7 @@ class ReportActionsView extends React.Component {
 
 ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
+ReportActionsView.contextType = EmojiWaterfallContext;
 
 export default compose(
     Performance.withRenderTrace({id: '<ReportActionsView> rendering'}),

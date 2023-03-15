@@ -21,6 +21,7 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
 import withLocalize from '../../../components/withLocalize';
+import { EmojiWaterfallContext } from '../../../EmojiWaterfall';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -133,7 +134,7 @@ class ReportActionsList extends React.Component {
 
         // If this item is unread we check to see if it matches one of our animation trigger words
         if (ReportUtils.isMessageUnread(this.props.report, reportAction.created) && ReportUtils.isBirthdayMessage(reportAction.message, this.props.preferredLocale)) {
-            alert('makeitrain');
+            this.context.startAnimation();
         }
 
         return (
@@ -150,6 +151,7 @@ class ReportActionsList extends React.Component {
     }
 
     render() {
+        console.log(this.props.sortedReportActions.map(a => a.message[0].html).filter(a => isBirthdayMessage(a, this.props.preferredLocale)));
         // Native mobile does not render updates flatlist the changes even though component did update called.
         // To notify there something changes we can use extraData prop to flatlist
         const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.newMarkerReportActionID : undefined;
@@ -211,10 +213,12 @@ class ReportActionsList extends React.Component {
 
 ReportActionsList.propTypes = propTypes;
 ReportActionsList.defaultProps = defaultProps;
+ReportActionsList.contextType = EmojiWaterfallContext;
 
 export default compose(
     withDrawerState,
     withWindowDimensions,
+    withLocalize,
     withPersonalDetails(),
     withNetwork(),
     withLocalize,
