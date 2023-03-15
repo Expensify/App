@@ -96,9 +96,9 @@ const ReportActionAuthor = (props) => {
         numberOfLines={props.isSingleLine ? 1 : undefined}
         style={[styles.chatItemMessageHeaderSender]}>
         {Str.htmlDecode(props.fragment.text)}
-        {' • '}
+        {props.status && ' • '}
         <Text style={[styles.chatItemMessageHeaderStatus]}>
-          {props.status || 'No status set'}
+          {props.status || ''}
         </Text>
       </Text>
     </Tooltip>
