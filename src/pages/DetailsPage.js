@@ -106,6 +106,13 @@ class DetailsPage extends React.PureComponent {
             pronouns = this.props.translate(`pronouns.${localeKey}`);
         }
 
+        // TODO: remove me
+        details.status = {
+            text: 'Hello i am a status',
+            emojiCode: '👋',
+            timeout: Date.now() + 2340210,
+        };
+
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -180,6 +187,16 @@ class DetailsPage extends React.PureComponent {
                                     </View>
                                 ) : null}
                                 {shouldShowLocalTime && <AutoUpdateTime timezone={details.timezone} />}
+                                {details.status && (
+                                    <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
+                                        <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
+                                            {this.props.translate('profilePage.status')}
+                                        </Text>
+                                        <Text numberOfLines={1}>
+                                            {`${details.status.emojiCode} ${details.status.text}`}
+                                        </Text>
+                                    </View>
+                                )}
                             </View>
                             {details.login !== this.props.session.email && (
                                 <MenuItem
