@@ -106,13 +106,6 @@ class DetailsPage extends React.PureComponent {
             pronouns = this.props.translate(`pronouns.${localeKey}`);
         }
 
-        // TODO: remove me
-        details.status = {
-            text: 'Hello i am a status',
-            emojiCode: '👋',
-            timeout: Date.now() + 2340210,
-        };
-
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
