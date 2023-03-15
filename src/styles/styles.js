@@ -2824,7 +2824,7 @@ const styles = {
     imageCropViewBorder: {
         borderRadius: variables.componentBorderRadiusCard,
         borderWidth: 2,
-        borderColor: '#ffffff',
+        borderColor: themeColors.text,
     },
 
     sliderKnob: {
