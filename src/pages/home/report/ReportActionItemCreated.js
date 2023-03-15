@@ -54,13 +54,13 @@ const ReportActionItemCreated = (props) => {
 
     // Apply data to create style object
     const animatedStyles = useAnimatedStyle(() => {
-        const {rotationX, rotationY} = animatedSensor.sensor.value;
+        const {qx, qy} = animatedSensor.sensor.value;
         if (props.isSmallScreenWidth) {
             return {
                 transform: [
                     // The x vs y here seems wrong but is the way to make it feel right to the user
-                    {translateX: withSpring(offsetX.value - (rotationY * 100))},
-                    {translateY: withSpring(offsetY.value - (rotationX * 100))},
+                    {translateX: withSpring(offsetX.value - (qy * 100))},
+                    {translateY: withSpring(offsetY.value - (qx * 100))},
                 ],
             };
         }
