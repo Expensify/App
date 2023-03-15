@@ -193,4 +193,6 @@ export default {
 
     // Is app in beta version
     IS_BETA: 'isBeta',
+
+    BUG_REPORT: 'bugReport',
 };
