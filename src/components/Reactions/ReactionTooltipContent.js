@@ -6,6 +6,11 @@ import styles from '../../styles/styles';
 import {withPersonalDetails} from '../OnyxProvider';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import Text from '../Text';
+import withCurrentUserPersonalDetails, {
+    withCurrentUserPersonalDetailsPropTypes,
+} from '../withCurrentUserPersonalDetails';
+import compose from '../../libs/compose';
+import withLocalize from '../withLocalize';
 
 const propTypes = {
     /**
@@ -22,10 +27,12 @@ const propTypes = {
      * A list of account IDs to display in the tooltip.
      */
     accountIDs: PropTypes.arrayOf(PropTypes.string).isRequired,
+
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const ReactionTooltipContent = (props) => {
-    const users = PersonalDetailsUtils.getPersonalDetailsByIDs(props.accountIDs);
+    const users = PersonalDetailsUtils.getPersonalDetailsByIDs(props.accountIDs, true);
     const namesString = _.filter(_.map(users, user => user && user.displayName), n => n).join(', ');
 
     return (
@@ -62,5 +69,9 @@ const ReactionTooltipContent = (props) => {
 };
 
 ReactionTooltipContent.propTypes = propTypes;
+ReactionTooltipContent.defaultProps = withCurrentUserPersonalDetails;
 ReactionTooltipContent.displayName = 'ReactionTooltipContent';
-export default React.memo(withPersonalDetails()(ReactionTooltipContent));
+export default React.memo(compose(
+    withPersonalDetails(),
+    withLocalize,
+)(ReactionTooltipContent));

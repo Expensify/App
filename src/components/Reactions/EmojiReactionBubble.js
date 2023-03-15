@@ -69,9 +69,9 @@ const EmojiReactionBubble = props => (
         )}
     >
         <PressableWithSecondaryInteraction
-            style={({hovered}) => [
+            style={({hovered, pressed}) => [
                 styles.emojiReactionBubble,
-                StyleUtils.getEmojiReactionBubbleStyle(hovered, props.hasUserReacted, props.sizeScale),
+                StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, props.hasUserReacted, props.sizeScale),
             ]}
             onPress={props.onPress}
             onLongPress={props.onReactionListOpen}
@@ -83,6 +83,7 @@ const EmojiReactionBubble = props => (
                 styles.emojiReactionText,
                 StyleUtils.getEmojiReactionTextStyle(props.sizeScale),
             ]}
+
             >
                 {props.emojiCodes.join('')}
             </Text>
