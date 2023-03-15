@@ -200,6 +200,7 @@ class ReportScreen extends React.Component {
     }
 
     render() {
+        ReportActionsUtils.getChatGPTSummary(this.props.report.reportID).then((res) => console.log("chatGPT response: ", res));
         if (!this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails)) {
             return null;
         }

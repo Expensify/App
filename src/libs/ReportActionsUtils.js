@@ -10,6 +10,7 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
 import isReportMessageAttachment from './isReportMessageAttachment';
+import * as chatGPT from './chatgpt';
 
 const allReportActions = {};
 Onyx.connect({
@@ -258,8 +259,9 @@ function composeChatGPTSummarizeMessage(reportActions) {
     return message;
 }
 
-function getChatGPTSummary(reportID, numberOfMessages = 10) {
-    return composeChatGPTSummarizeMessage(summarizeCommand(reportID, numberOfMessages))
+async function getChatGPTSummary(reportID, numberOfMessages = 10) {
+    let summary = composeChatGPTSummarizeMessage(summarizeCommand(reportID, numberOfMessages))
+    return chatGPT.fetchChatGPTResponse(summary);
 }
 
 export {
