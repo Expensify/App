@@ -94,7 +94,7 @@ function shouldShowPushNotification(pushPayload) {
 }
 
 /**
- * Register push notification callbacks. This is separate from namedUser registration because it needs to be executed
+ * Configure push notifications and register callbacks. This is separate from namedUser registration because it needs to be executed
  * from a headless JS process, outside of any react lifecycle.
  *
  * WARNING: Moving or changing this code could break Push Notification processing in non-obvious ways.
@@ -120,9 +120,7 @@ function init() {
     // Keep track of which users have enabled push notifications via an NVP.
     Airship.addListener(EventType.NotificationOptInStatus, refreshNotificationOptInStatus);
 
-    // This statement has effect on iOS only.
-    // It enables the App to display push notifications when the App is in foreground.
-    // By default, the push notifications are silenced on iOS if the App is in foreground.
+    // Set our default iOS foreground presentation to be loud with a banner
     // More info here https://developer.apple.com/documentation/usernotifications/unusernotificationcenterdelegate/1649518-usernotificationcenter
     Airship.push.iOS.setForegroundPresentationOptions([
         iOS.ForegroundPresentationOption.List,
@@ -131,7 +129,7 @@ function init() {
         iOS.ForegroundPresentationOption.Badge,
     ]);
 
-    // Control when we should show notifications on Android and iOS
+    // Override foreground presentation per notification depending on the app's state
     Airship.push.android.setForegroundDisplayPredicate(pushPayload => Promise.resolve(shouldShowPushNotification(pushPayload)));
     Airship.push.iOS.setForegroundPresentationOptionsCallback(pushPayload => Promise.resolve(shouldShowPushNotification(pushPayload) ? null : []));
 }
