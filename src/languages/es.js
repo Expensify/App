@@ -114,6 +114,7 @@ export default {
         enterManually: 'Ingresar manualmente',
         message: 'Chatear con ',
         leaveRoom: 'Salir de la sala de chat',
+        you: 'Tú',
         your: 'tu',
         conciergeHelp: 'Por favor contacta con Concierge para obtener ayuda.',
         maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
