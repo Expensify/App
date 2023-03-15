@@ -27,7 +27,7 @@
     "android-build": "fastlane android build",
     "android-build-e2e": "bundle exec fastlane android build_e2e",
     "test": "jest",
-    "lint": "eslint . --max-warnings=0",
+    "lint": "eslint . --max-warnings=0 --cache --cache-location=node_modules/.cache/eslint",
     "lint-watch": "npx eslint-watch --watch --changed",
     "shellcheck": "./scripts/shellCheck.sh",
     "print-version": "echo $npm_package_version",
