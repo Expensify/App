@@ -54,8 +54,13 @@ class ContactMethodsPage extends Component {
     componentDidUpdate(prevProps) {
         let stateToUpdate = {};
 
-        // Recalculate logins if loginList has changed
+        // Recalculate logins if loginList length has changed
         if (_.keys(this.props.loginList).length !== _.keys(prevProps.loginList).length) {
+            stateToUpdate = {logins: this.getLogins()};
+        }
+
+        // Recalculate logins if the values of the loginList (e.g. validatedDate) have changed
+        if (_.isEqual(_.values(this.props.loginList), _.values(prevProps.loginList))) {
             stateToUpdate = {logins: this.getLogins()};
         }
 

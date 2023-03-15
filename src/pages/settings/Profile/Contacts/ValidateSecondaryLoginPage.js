@@ -68,7 +68,7 @@ class ValidateSecondaryLoginPage extends Component {
      * Validate the secondary login via validate code
      */
     submitForm() {
-        User.validateLogin(this.props.session.accountID, this.state.validateCode);
+        User.validateSecondaryLoginAndNavigate(this.props.session.accountID, this.state.validateCode, this.props.route.params.login);
     }
 
     render() {

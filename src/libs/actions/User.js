@@ -20,6 +20,7 @@ import PusherUtils from '../PusherUtils';
 import * as Report from './Report';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as Session from './Session';
+import DateUtils from '../DateUtils';
 
 let currentUserAccountID = '';
 Onyx.connect({
@@ -185,6 +186,42 @@ function validateLogin(accountID, validateCode) {
         validateCode,
     }, {optimisticData});
     Navigation.navigate(ROUTES.HOME);
+}
+
+/**
+ * Validates a secondary login given an accountID and validation code
+ * and redirects to the contact methods page
+ *
+ * @param {Number} accountID
+ * @param {String} validateCode
+ */
+function validateSecondaryLoginAndNavigate(accountID, validateCode, partnerUserID) {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
+
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.LOGIN_LIST,
+            value: {
+                [partnerUserID]: {
+                    validatedDate: DateUtils.getDBTime().substring(0, 19),
+                },
+            },
+        }
+    ];
+
+    API.write('ValidateLogin', {
+        accountID,
+        validateCode,
+    }, {optimisticData});
+    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**
@@ -477,6 +514,7 @@ export {
     updateNewsletterSubscription,
     setSecondaryLoginAndNavigate,
     validateLogin,
+    validateSecondaryLoginAndNavigate,
     isBlockedFromConcierge,
     subscribeToUserEvents,
     updatePreferredSkinTone,
