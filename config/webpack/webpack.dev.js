@@ -63,6 +63,7 @@ module.exports = (env = {}) => portfinder.getPortPromise({port: BASE_PORT})
                     /([\\/]node_modules[\\/](?!react-native-onyx))/,
                 ],
             },
+            experiments: {asyncWebAssembly: true},
         });
 
         return TimeAnalyticsPlugin.wrap(config);

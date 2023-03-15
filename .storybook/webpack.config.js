@@ -17,6 +17,8 @@ module.exports = ({config}) => {
         '@react-native-community/netinfo': path.resolve(__dirname, '../__mocks__/@react-native-community/netinfo.js'),
     };
 
+    config.experiments.asyncWebAssembly = true;
+
     // Necessary to overwrite the values in the existing DefinePlugin hardcoded to the Config staging values
     const definePluginIndex = _.findIndex(config.plugins, plugin => plugin.constructor.name === 'DefinePlugin');
     config.plugins[definePluginIndex].definitions.__REACT_WEB_CONFIG__ = JSON.stringify(env);
