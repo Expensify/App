@@ -74,7 +74,6 @@ class Hoverable extends Component {
                 }
             },
             onMouseEnter: (el) => {
-                console.log("ENTER")
                 this.setIsHovered(true);
 
                 // Call the original onMouseEnter, if any
