@@ -742,17 +742,30 @@ const styles = {
         alignItems: 'center',
     },
 
-    calendarDayContainerSelected: {
-        backgroundColor: themeColors.buttonDefaultBG,
+    calendarDayContainer: {
         width: 30,
         height: 30,
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 15,
     },
+
+    calendarDayContainerSelected: {
+        backgroundColor: themeColors.buttonDefaultBG,
+    },
+
+    calendarDayContainerHovered: {
+        backgroundColor: themeColors.buttonHoveredBG,
+    },
+
+    calendarDayContainerPressed: {
+        backgroundColor: themeColors.buttonPressedBG,
+    },
+
     calendarButtonDisabled: {
         opacity: 0.5,
     },
+
     textInputContainer: {
         flex: 1,
         justifyContent: 'center',

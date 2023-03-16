@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, TouchableOpacity} from 'react-native';
+import {View, TouchableOpacity, Pressable} from 'react-native';
 import moment from 'moment';
 import Text from '../Text';
 import ArrowIcon from './ArrowIcon';
@@ -134,19 +134,27 @@ class CalendarPicker extends React.PureComponent {
                             const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
 
                             return (
-                                <TouchableOpacity
+                                <Pressable
                                     key={`${index}_day-${day}`}
                                     disabled={isDisabled}
                                     onPress={() => this.onDayPressed(day)}
                                     style={styles.calendarDayRoot}
                                     accessibilityLabel={day ? day.toString() : undefined}
                                 >
-                                    <View style={moment(this.props.value).isSame(moment([currentYearView, currentMonthView, day]), 'day') ? [
-                                        styles.calendarDayContainerSelected, styles.justifyContentCenter, styles.alignItemsCenter] : null}
-                                    >
-                                        <Text style={isDisabled ? styles.calendarButtonDisabled : styles.dayText}>{day}</Text>
-                                    </View>
-                                </TouchableOpacity>
+                                    {({hovered, pressed}) => (
+                                        <View style={[
+                                            styles.calendarDayContainer,
+                                            styles.justifyContentCenter,
+                                            styles.alignItemsCenter,
+                                            hovered ? styles.calendarDayContainerHovered : {},
+                                            pressed ? styles.calendarDayContainerPressed : {},
+                                            moment(this.props.value).isSame(moment([currentYearView, currentMonthView, day]), 'day') ? styles.calendarDayContainerSelected : {},
+                                        ]}
+                                        >
+                                            <Text style={isDisabled ? styles.calendarButtonDisabled : styles.dayText}>{day}</Text>
+                                        </View>
+                                    )}
+                                </Pressable>
                             );
                         })}
                     </View>
