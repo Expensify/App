@@ -7,6 +7,7 @@ import colors from './colors';
 import positioning from './utilities/positioning';
 import styles from './styles';
 import * as ReportUtils from '../libs/ReportUtils';
+import getSafeAreaPaddingTop from '../libs/getSafeAreaPaddingTop';
 
 const workspaceColorOptions = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
@@ -129,7 +130,7 @@ function getDefaultWorspaceAvatarColor(workspaceName) {
  */
 function getSafeAreaPadding(insets) {
     return {
-        paddingTop: insets.top,
+        paddingTop: getSafeAreaPaddingTop(insets),
         paddingBottom: insets.bottom * variables.safeInsertPercentage,
         paddingLeft: insets.left * variables.safeInsertPercentage,
         paddingRight: insets.right * variables.safeInsertPercentage,
@@ -418,24 +419,13 @@ function getModalPaddingStyles({
     modalContainerStyleMarginBottom,
     modalContainerStylePaddingTop,
     modalContainerStylePaddingBottom,
-    shouldAddStatusBarPaddingTop,
-    shouldAddStatusBarMarginTop,
-    statusBarHeight,
 }) {
-    let paddingTop = shouldAddTopSafeAreaPadding
-        ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
-        : modalContainerStylePaddingTop || 0;
-    let marginTop = (modalContainerStyleMarginTop || 0) + (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0);
-    if (shouldAddStatusBarMarginTop) {
-        marginTop += statusBarHeight;
-    }
-    if (shouldAddStatusBarPaddingTop) {
-        paddingTop += statusBarHeight;
-    }
     return {
-        marginTop,
+        marginTop: (modalContainerStyleMarginTop || 0) + (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0),
         marginBottom: (modalContainerStyleMarginBottom || 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottom : 0),
-        paddingTop,
+        paddingTop: shouldAddTopSafeAreaPadding
+            ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
+            : modalContainerStylePaddingTop || 0,
         paddingBottom: shouldAddBottomSafeAreaPadding
             ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottom
             : modalContainerStylePaddingBottom || 0,
