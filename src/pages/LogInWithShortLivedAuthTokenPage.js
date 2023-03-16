@@ -27,7 +27,16 @@ class LogInWithShortLivedAuthTokenPage extends Component {
 
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
         const shortLivedAuthToken = lodashGet(this.props, 'route.params.shortLivedAuthToken', '') || lodashGet(this.props, 'route.params.shortLivedToken', '');
-        Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
+        if (shortLivedAuthToken) {
+            Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
+            return;
+        }
+        const authToken = lodashGet(this.props, 'route.params.authToken', '');
+        const encryptedAuthToken = lodashGet(this.props, 'route.params.encryptedAuthToken', '');
+        const accountID = Number(lodashGet(this.props, 'route.params.accountID', ''));
+        if (authToken) {
+            Session.saveSessionForNewUser(email, accountID, authToken, encryptedAuthToken);
+        }
     }
 
     render() {

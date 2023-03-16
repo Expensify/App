@@ -195,7 +195,7 @@ class Expensify extends PureComponent {
         }
 
         return (
-            <DeeplinkWrapper>
+            <DeeplinkWrapper authenticated={this.isAuthenticated()}>
                 {!this.state.isSplashShown && (
                     <>
                         <KeyboardShortcutsModal />

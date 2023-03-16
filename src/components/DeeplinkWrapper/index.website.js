@@ -18,12 +18,15 @@ import * as Expensicons from '../Icon/Expensicons';
 import colors from '../../styles/colors';
 import * as Browser from '../../libs/Browser';
 import ONYXKEYS from '../../ONYXKEYS';
+import * as Authentication from '../../libs/Authentication';
 
 const propTypes = {
     /** Children to render. */
     children: PropTypes.node.isRequired,
 
     ...withLocalizePropTypes,
+
+    authenticated: PropTypes.bool.isRequired,
 };
 
 class DeeplinkWrapper extends PureComponent {
@@ -34,6 +37,7 @@ class DeeplinkWrapper extends PureComponent {
             appInstallationCheckStatus: (this.isMacOSWeb() && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV)
                 ? CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING : CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
         };
+        this.focused = true;
     }
 
     componentDidMount() {
@@ -41,19 +45,9 @@ class DeeplinkWrapper extends PureComponent {
             return;
         }
 
-        let focused = true;
-
         window.addEventListener('blur', () => {
-            focused = false;
+            this.focused = false;
         });
-
-        setTimeout(() => {
-            if (!focused) {
-                this.setState({appInstallationCheckStatus: CONST.DESKTOP_DEEPLINK_APP_STATE.INSTALLED});
-            } else {
-                this.setState({appInstallationCheckStatus: CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED});
-            }
-        }, 500);
 
         // check if pathname matches with deeplink routes
         const matchedRoute = _.find(deeplinkRoutes, (route) => {
@@ -64,17 +58,44 @@ class DeeplinkWrapper extends PureComponent {
             return routeRegex.test(window.location.pathname);
         });
 
-        if (matchedRoute) {
-            this.setState({deeplinkMatch: true});
-            this.openRouteInDesktopApp();
-        } else {
+        if (!matchedRoute) {
             this.setState({deeplinkMatch: false});
+            this.updateAppInstallationCheckStatus();
+            return;
         }
+        this.setState({deeplinkMatch: true});
+        const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
+        if (!this.props.authenticated) {
+            const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}${window.location.pathname}${window.location.search}${window.location.hash}`;
+            this.openRouteInDesktopApp(expensifyDeeplinkUrl);
+            return;
+        }
+        const exitTo = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+        Authentication.getNewAuthToken().then((response) => {
+            const params = new URLSearchParams();
+            params.set('accountID', response.accountID);
+            params.set('email', response.email);
+            params.set('encryptedAuthToken', response.encryptedAuthToken);
+            params.set('authToken', response.authToken);
+            params.set('exitTo', exitTo);
+            params.set('shouldForceLogin', 'false');
+            const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
+            this.openRouteInDesktopApp(expensifyDeeplinkUrl);
+        }).catch(() => {});
     }
 
-    openRouteInDesktopApp() {
-        const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
-        const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}${window.location.pathname}${window.location.search}${window.location.hash}`;
+    updateAppInstallationCheckStatus() {
+        setTimeout(() => {
+            if (!this.focused) {
+                this.setState({appInstallationCheckStatus: CONST.DESKTOP_DEEPLINK_APP_STATE.INSTALLED});
+            } else {
+                this.setState({appInstallationCheckStatus: CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED});
+            }
+        }, 500);
+    }
+
+    openRouteInDesktopApp(expensifyDeeplinkUrl) {
+        this.updateAppInstallationCheckStatus();
 
         // This check is necessary for Safari, otherwise, if the user
         // does NOT have the Expensify desktop app installed, it's gonna

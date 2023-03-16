@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
-import redirectToSignIn from '../SignInRedirect';
+import redirectToSignIn, {isStorageCleared} from '../SignInRedirect';
 import CONFIG from '../../../CONFIG';
 import Log from '../../Log';
 import PushNotification from '../../Notification/PushNotification';
@@ -555,6 +555,17 @@ function authenticatePusher(socketID, channelName, callback) {
     });
 }
 
+function saveSessionForNewUser(email, accountID, authToken, encryptedAuthToken) {
+    isStorageCleared().then(() => {
+        Onyx.merge(ONYXKEYS.SESSION, {
+            email,
+            accountID,
+            authToken,
+            encryptedAuthToken,
+        });
+    });
+}
+
 export {
     beginSignIn,
     updatePasswordAndSignin,
@@ -575,4 +586,5 @@ export {
     reauthenticatePusher,
     invalidateCredentials,
     invalidateAuthToken,
+    saveSessionForNewUser,
 };

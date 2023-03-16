@@ -20,6 +20,13 @@ Onyx.connect({
     },
 });
 
+let resolveStorageIsClearedPromise;
+let storageIsClearedPromise = Promise.resolve();
+
+function isStorageCleared() {
+    return storageIsClearedPromise;
+}
+
 /**
  * @param {String} errorMessage
  */
@@ -38,8 +45,12 @@ function clearStorageAndRedirect(errorMessage) {
         keysToPreserve.push(ONYXKEYS.NETWORK);
     }
 
+    storageIsClearedPromise = new Promise((resolve) => {
+        resolveStorageIsClearedPromise = resolve;
+    });
     Onyx.clear(keysToPreserve)
         .then(() => {
+            resolveStorageIsClearedPromise();
             if (!errorMessage) {
                 return;
             }
@@ -67,3 +78,7 @@ function redirectToSignIn(errorMessage) {
 }
 
 export default redirectToSignIn;
+
+export {
+    isStorageCleared,
+};
