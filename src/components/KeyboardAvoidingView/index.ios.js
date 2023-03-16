@@ -12,13 +12,11 @@ const KeyboardAvoidingView = (props) => {
     const keyboard = useAnimatedKeyboard();
     const insets = useSafeAreaInsets();
 
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    // {/* <KeyboardAvoidingViewComponent {...props} /> */}
-
     const animatedStyle = useAnimatedStyle(() => {
-        global.__lastKeyboardHeight = keyboard.state.value === KeyboardState.OPEN && keyboard.height.value !== 0
+        global.kav_lastKeyboardHeight = keyboard.state.value === KeyboardState.OPEN
+          && keyboard.height.value !== 0
             ? keyboard.height.value
-            : global.__lastKeyboardHeight;
+            : global.kav_lastKeyboardHeight;
 
         let value = 0;
 
@@ -28,8 +26,8 @@ const KeyboardAvoidingView = (props) => {
             value = keyboard.height.value - insets.bottom;
 
             if (keyboard.state.value === KeyboardState.OPEN) {
-                value = global.__lastKeyboardHeight !== 0
-                    ? global.__lastKeyboardHeight - insets.bottom
+                value = global.kav_lastKeyboardHeight !== 0
+                    ? global.kav_lastKeyboardHeight - insets.bottom
                     : 0;
             }
         }
