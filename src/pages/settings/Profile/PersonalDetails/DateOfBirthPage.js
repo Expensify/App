@@ -40,6 +40,7 @@ class DateOfBirthPage extends Component {
 
         this.validate = this.validate.bind(this);
         this.updateDateOfBirth = this.updateDateOfBirth.bind(this);
+        this.clearSelectedYear = this.clearSelectedYear.bind(this);
         this.getYearFromRouteParams = this.getYearFromRouteParams.bind(this);
         this.minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
         this.maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'Y').toDate();
@@ -86,6 +87,13 @@ class DateOfBirthPage extends Component {
     }
 
     /**
+     * A function to clear selected year
+     */
+    clearSelectedYear() {
+        this.setState({selectedYear: ''});
+    }
+
+    /**
      * @param {Object} values
      * @param {String} values.dob - date of birth
      * @returns {Object} - An object containing the errors for each inputID
@@ -129,11 +137,12 @@ class DateOfBirthPage extends Component {
                         ref={ref => this.datePicker = ref}
                         inputID="dob"
                         label={this.props.translate('common.date')}
-                        defaultValue={privateDetails.dob || null}
+                        defaultValue={privateDetails.dob || ''}
                         shouldSaveDraft
                         minDate={this.minDate}
                         maxDate={this.maxDate}
                         selectedYear={this.state.selectedYear}
+                        onHidePicker={this.clearSelectedYear}
                     />
                 </Form>
             </ScreenWrapper>

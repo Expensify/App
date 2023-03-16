@@ -29,6 +29,9 @@ const propTypes = {
 
     /** Default year to be set in the calendar picker */
     selectedYear: PropTypes.string,
+
+    /** A function called when picked is closed */
+    onHidePicker: PropTypes.string,
 };
 
 const defaultProps = {
@@ -36,6 +39,7 @@ const defaultProps = {
     minDate: moment().year(CONST.CALENDAR_PICKER.MIN_YEAR).toDate(),
     maxDate: moment().year(CONST.CALENDAR_PICKER.MAX_YEAR).toDate(),
     value: undefined,
+    onHidePicker: () => {},
 };
 
 export {propTypes, defaultProps};

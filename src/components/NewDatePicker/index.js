@@ -23,7 +23,7 @@ class NewDatePicker extends React.Component {
 
         this.state = {
             isPickerVisible: false,
-            selectedDate: new Date(props.value || props.defaultValue),
+            selectedDate: new Date(props.value || props.defaultValue || undefined),
         };
 
         this.setDate = this.setDate.bind(this);
@@ -77,7 +77,7 @@ class NewDatePicker extends React.Component {
             if (!animationResult.finished) {
                 return;
             }
-            this.setState({isPickerVisible: false});
+            this.setState({isPickerVisible: false}, this.props.onHidePicker);
         });
     }
 

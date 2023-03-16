@@ -70,10 +70,9 @@ class YearPickerPage extends React.Component {
      * @param {String} text
      */
     filterYearList(text) {
-        const formattedText = _.filter(text.split(''), char => CONST.REGEX.NUMBER.test(char)).join('');
         this.setState({
-            inputText: formattedText,
-            yearOptions: _.filter(this.yearList, year => year.text.includes(formattedText)),
+            inputText: text,
+            yearOptions: _.filter(this.yearList, year => year.text.includes(text.trim())),
         });
     }
 
@@ -94,6 +93,7 @@ class YearPickerPage extends React.Component {
                     value={this.state.inputText}
                     sections={[{data: this.state.yearOptions, indexOffset: 0}]}
                     onSelectRow={option => this.updateSelectedYear(option.value)}
+                    initiallyFocusedOptionKey={this.currentYear.toString()}
                     hideSectionHeaders
                     optionHoveredStyle={styles.hoveredComponentBG}
                     shouldHaveOptionSeparator
