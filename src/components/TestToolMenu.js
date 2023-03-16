@@ -41,7 +41,7 @@ const TestToolMenu = props => (
             Test Preferences
         </Text>
 
-        {/* Option to switch from using the staging secure endpoint or the production secure endpoint.
+        {/* Option to switch between staging and default api endpoints.
         This enables QA and internal testers to take advantage of sandbox environments for 3rd party services like Plaid and Onfido. */}
         <TestToolRow title="Use Staging Server">
             <Switch
