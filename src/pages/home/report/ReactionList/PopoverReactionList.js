@@ -36,13 +36,13 @@ class PopoverReactionList extends React.Component {
         };
 
         this.onPopoverHideActionCallback = () => {};
-        this.contextMenuAnchor = undefined;
+        this.reactionListAnchor = undefined;
         this.showReactionList = this.showReactionList.bind(this);
 
         this.hideReactionList = this.hideReactionList.bind(this);
         this.measureContent = this.measureContent.bind(this);
         this.measureReactionListPosition = this.measureReactionListPosition.bind(this);
-        this.getContextMenuMeasuredLocation = this.getContextMenuMeasuredLocation.bind(this);
+        this.getReactionListMeasuredLocation = this.getReactionListMeasuredLocation.bind(this);
 
         this.dimensionsEventListener = null;
 
@@ -73,15 +73,15 @@ class PopoverReactionList extends React.Component {
     }
 
     /**
-     * Get the Context menu anchor position
+     * Get the PopoverReactionList anchor position
      * We calculate the achor coordinates from measureInWindow async method
      *
      * @returns {Promise<Object>}
      */
-    getContextMenuMeasuredLocation() {
+    getReactionListMeasuredLocation() {
         return new Promise((resolve) => {
-            if (this.contextMenuAnchor) {
-                this.contextMenuAnchor.measureInWindow((x, y) => resolve({x, y}));
+            if (this.reactionListAnchor) {
+                this.reactionListAnchor.measureInWindow((x, y) => resolve({x, y}));
             } else {
                 resolve({x: 0, y: 0});
             }
@@ -89,10 +89,10 @@ class PopoverReactionList extends React.Component {
     }
 
     /**
-     * Show the ReportActionContextMenu modal popover.
+     * Show the ReactionList modal popover.
      *
      * @param {Object} [event] - A press event.
-     * @param {Element} contextMenuAnchor - contextMenuAnchor
+     * @param {Element} reactionListAnchor - reactionListAnchor
      * @param {Array} users - Array of users id
      * @param {String} emojiName - Name of emoji
      * @param {Array} emojiCodes - The emoji codes to display in the bubble.
@@ -102,7 +102,7 @@ class PopoverReactionList extends React.Component {
      */
     showReactionList(
         event,
-        contextMenuAnchor,
+        reactionListAnchor,
         users,
         emojiName,
         emojiCodes,
@@ -111,12 +111,12 @@ class PopoverReactionList extends React.Component {
     ) {
         const nativeEvent = event.nativeEvent || {};
 
-        this.contextMenuAnchor = contextMenuAnchor;
+        this.reactionListAnchor = reactionListAnchor;
 
-        // Singleton behaviour of ContextMenu creates race conditions when user requests multiple contextMenus.
+        // Singleton behaviour of ReactionListPopover creates race conditions when user requests multiple ReactionListPopover.
         // But it is possible that every new request registers new callbacks thus instanceID is used to corelate those callbacks
         this.instanceID = Math.random().toString(36).substr(2, 5);
-        this.getContextMenuMeasuredLocation().then(({x, y}) => {
+        this.getReactionListMeasuredLocation().then(({x, y}) => {
             this.setState({
                 cursorRelativePosition: {
                     horizontal: nativeEvent.pageX - x,
@@ -137,13 +137,13 @@ class PopoverReactionList extends React.Component {
     }
 
     /**
-     * This gets called on Dimensions change to find the anchor coordinates for the action context menu.
+     * This gets called on Dimensions change to find the anchor coordinates for the action PopoverReactionList.
      */
     measureReactionListPosition() {
         if (!this.state.isPopoverVisible) {
             return;
         }
-        this.getContextMenuMeasuredLocation().then(({x, y}) => {
+        this.getReactionListMeasuredLocation().then(({x, y}) => {
             if (!x || !y) {
                 return;
             }
@@ -166,7 +166,7 @@ class PopoverReactionList extends React.Component {
     }
 
     /**
-     * Used to calculate the Context Menu Dimensions
+     * Used to calculate the PopoverReactionList Dimensions
      *
      * @returns {JSX}
      */

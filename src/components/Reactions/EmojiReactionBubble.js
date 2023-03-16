@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-
 import styles from '../../styles/styles';
 import Text from '../Text';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -37,7 +36,7 @@ const propTypes = {
     /**
      * The account ids of the users who reacted.
      */
-    reactionUsers: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number])),
+    reactionUsers: PropTypes.arrayOf(PropTypes.string),
 
     /**
      * The default size of the reaction bubble is defined

@@ -14,6 +14,7 @@ const defaultProps = {
 };
 
 const renderItem = ({item}) => <ReactionListItem item={item} />;
+const keyExtractor = item => `${item.accountID}`;
 
 const BaseReactionList = props => (props.isVisible) && (
     <View style={styles.reactionListContainer}>
@@ -28,8 +29,8 @@ const BaseReactionList = props => (props.isVisible) && (
         <FlatList
             data={props.users}
             renderItem={renderItem}
-            keyExtractor={item => `${item.accountID}`}
-            style={[styles.mb3, styles.mt2]}
+            keyExtractor={keyExtractor}
+            style={[styles.pb3, styles.pt2]}
         />
     </View>
 );

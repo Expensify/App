@@ -3,19 +3,19 @@ import React from 'react';
 const reactionListRef = React.createRef();
 
 /**
- * Show the ReportActionContextMenu modal popover.
+ * Show the ReactionList popover modal popover.
  *
- * @param {Object} [event] - A press event.
- * @param {Element} contextMenuAnchor - popoverAnchor
+ * @param {Object} [event] - a press event.
+ * @param {Element} reactionListPopoverAnchor - popoverAnchor
  * @param {Array} users - array of users id
- * @param {String} emojiName - he emoji codes to display near the bubble.
+ * @param {String} emojiName - the emoji codes to display near the bubble.
  * @param {String} emojiCodes - the emoji codes to display in the bubble.
- * @param {Boolean} hasUserReacted - Show if user has reacted
- * @param {Number} sizeScale - Set the sizeScale of emoji
+ * @param {Boolean} hasUserReacted - show if user has reacted
+ * @param {Number} sizeScale - set the sizeScale of emoji
  */
 function showReactionList(
     event,
-    contextMenuAnchor,
+    reactionListPopoverAnchor,
     users,
     emojiName,
     emojiCodes,
@@ -27,7 +27,7 @@ function showReactionList(
     }
     reactionListRef.current.showReactionList(
         event,
-        contextMenuAnchor,
+        reactionListPopoverAnchor,
         users,
         emojiName,
         emojiCodes,
@@ -37,10 +37,10 @@ function showReactionList(
 }
 
 /**
- * Hide the ReportActionContextMenu modal popover.
+ * Hide the ReactionList popover.
  * Hides the popover menu with an optional delay
  * @param {Boolean} shouldDelay - whether the menu should close after a delay
- * @param {Function} [onHideCallback=() => {}] - Callback to be called after Context Menu is completely hidden
+ * @param {Function} [onHideCallback=() => {}] - Callback to be called after popover is completely hidden
  */
 function hideReactionList(shouldDelay, onHideCallback = () => {}) {
     if (!reactionListRef.current) {
