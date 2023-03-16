@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import {Platform} from 'react-native';
 import * as Request from './Request';
 import * as SequentialQueue from './Network/SequentialQueue';
 import pkg from '../../package.json';
@@ -41,7 +40,6 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
             // This should be removed once we are no longer using deprecatedAPI https://github.com/Expensify/Expensify/issues/215650
             shouldRetry: true,
             canCancel: true,
-            echatPlatform: Platform.OS,
         },
         ..._.omit(onyxData, 'optimisticData'),
     };
@@ -81,7 +79,6 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
         ...apiCommandParameters,
         appversion: pkg.version,
         apiRequestType,
-        echatPlatform: Platform.OS,
     };
 
     // Assemble all the request data we'll be storing

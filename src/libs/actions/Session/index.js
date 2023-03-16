@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import {Platform} from 'react-native';
 import ONYXKEYS from '../../../ONYXKEYS';
 import redirectToSignIn from '../SignInRedirect';
 import CONFIG from '../../../CONFIG';
@@ -188,7 +189,7 @@ function beginSignIn(login) {
         },
     ];
 
-    API.read('BeginSignIn', {email: login}, {optimisticData, successData, failureData});
+    API.read('BeginSignIn', {email: login, platform: Platform.OS}, {optimisticData, successData, failureData});
 }
 
 /**
