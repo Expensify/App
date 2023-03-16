@@ -4,12 +4,13 @@ import _ from 'underscore';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
+import packageJSON from '../../../package.json';
 
 const getSystemDetails = (navigation) => {
     const navigationState = navigation.getState();
 
     const appstate = {
-        version: DeviceInfo.getVersion(),
+        version: packageJSON.version,
         platform: Platform.OS,
         OS: Platform.OS,
         currentScreen: navigationState.key,
