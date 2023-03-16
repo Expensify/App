@@ -2,11 +2,8 @@ import Onyx from 'react-native-onyx';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as API from '../../API';
-import getSystemDetails from './getSystemDetails';
 
-function submitBugReport() {
-    const systemDetails = getSystemDetails();
-
+function submitBugReport(systemDetails) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,

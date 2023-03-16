@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../../CONST';
@@ -6,10 +7,13 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import * as BugReportActions from '../../libs/actions/BugReport';
+import getSystemDetails from '../../libs/actions/BugReport/getSystemDetails';
 import ONYXKEYS from '../../ONYXKEYS';
 import ConfirmModal from '../ConfirmModal';
 import Icon from '../Icon';
 import * as Illustrations from '../Icon/Illustrations';
+import styles from '../../styles/styles';
+import withNavigation from '../withNavigation';
 
 const propTypes = {
     /** prop to set shortcuts modal visibility */
@@ -40,6 +44,8 @@ class BugReportConfirmationModal extends React.Component {
     }
 
     submitAndClose() {
+        const systemDetails = getSystemDetails(this.props.navigation);
+        BugReportActions.submitBugReport(systemDetails);
         BugReportActions.hideBugReportModal();
     }
 
@@ -55,15 +61,14 @@ class BugReportConfirmationModal extends React.Component {
                 onConfirm={this.submitAndClose}
                 onCancel={this.close}
                 prompt={(
-                    <Icon
-                        src={Illustrations.Bug}
-                        width={228}
-                        height={236}
-                        fill="#0180FF"
-                        style={[
-                            {width: 200, height: 200},
-                        ]}
-                    />
+                    <View style={[styles.flex1, styles.alignItemsCenter]}>
+                        <Icon
+                            src={Illustrations.Bug}
+                            width={228}
+                            height={236}
+                            fill="#0180FF"
+                        />
+                    </View>
                 )}
                 confirmText="Report Bug"
                 cancelText={this.props.translate('common.cancel')}
@@ -77,6 +82,7 @@ BugReportConfirmationModal.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNavigation,
     withOnyx({
         isBugReportModalOpen: {key: ONYXKEYS.IS_BUG_REPORT_SHORTCUTS_MODAL_OPEN},
     }),
