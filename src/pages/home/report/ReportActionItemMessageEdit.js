@@ -220,6 +220,9 @@ class ReportActionItemMessageEdit extends React.Component {
             return;
         }
         if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
+            if (e.nativeEvent.isComposing) {
+                return;
+            }
             e.preventDefault();
             this.publishDraft();
         } else if (e.key === 'Escape') {
