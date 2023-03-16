@@ -329,7 +329,7 @@ class BaseTextInput extends Component {
                                         </Checkbox>
                                     )}
                                     {!this.props.secureTextEntry && this.props.icon && (
-                                        <View style={styles.textInputIconContainer}>
+                                        <View style={[styles.textInputIconContainer, styles.cursorPointer]}>
                                             <Icon
                                                 src={this.props.icon}
                                                 fill={themeColors.icon}

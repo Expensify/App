@@ -824,7 +824,6 @@ const styles = {
     textInputIconContainer: {
         paddingHorizontal: 11,
         justifyContent: 'center',
-        cursor: 'pointer',
         margin: 1,
     },
 
