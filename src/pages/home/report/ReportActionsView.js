@@ -78,6 +78,7 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
+        console.log('Called Did mount');
         this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
             if (!this.getIsReportFullyVisible()) {
                 return;
@@ -173,11 +174,22 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
+        if (this.props.report.lastVisibleActionCreated !== nextProps.report.lastVisibleActionCreated) {
+            return true;
+        }
+
         return !_.isEqual(lodashGet(this.props.report, 'icons', []), lodashGet(nextProps.report, 'icons', []));
     }
 
     componentDidUpdate(prevProps) {
         const isReportFullyVisible = this.getIsReportFullyVisible();
+
+        const didReceiveNewMessage = prevProps.report.lastVisibleActionCreated !== this.props.report.lastVisibleActionCreated;
+        if (isReportFullyVisible && didReceiveNewMessage) {
+            console.log(`~~Monil logs ${this.props.report.lastMessageText}`);
+        } else {
+            console.log(`~~Monil logs nothing`);
+        }
 
         // When returning from offline to online state we want to trigger a request to OpenReport which
         // will fetch the reportActions data and mark the report as read. If the report is not fully visible
