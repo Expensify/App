@@ -117,17 +117,17 @@ class ReportSettingsPage extends Component {
             return errors;
         }
 
-        if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
+        if (!values.newRoomName || values.newRoomName === CONST.POLICY.ROOM_PREFIX) {
             // We error if the user doesn't enter a room name or left blank
-            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.pleaseEnterRoomName'));
-        } else if (values.roomName !== CONST.POLICY.ROOM_PREFIX && !ValidationUtils.isValidRoomName(values.roomName)) {
+            ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.pleaseEnterRoomName'));
+        } else if (values.newRoomName !== CONST.POLICY.ROOM_PREFIX && !ValidationUtils.isValidRoomName(values.newRoomName)) {
             // We error if the room name has invalid characters
-            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomNameInvalidError'));
+            ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomNameInvalidError'));
         }
 
-        if (ValidationUtils.isReservedRoomName(values.roomName) || ValidationUtils.isExistingRoomName(values.roomName, this.props.reports, values.policyID)) {
+        if (ValidationUtils.isReservedRoomName(values.newRoomName) || ValidationUtils.isExistingRoomName(values.newRoomName, this.props.reports, values.policyID)) {
             // Certain names are reserved for default rooms and should not be used for policy rooms.
-            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomNameReservedError'));
+            ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomNameReservedError'));
         }
 
         return errors;
