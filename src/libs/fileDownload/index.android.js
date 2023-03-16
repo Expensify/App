@@ -45,7 +45,7 @@ function handleDownload(url, fileName) {
             path: `${path}/${attachmentName}`,
             addAndroidDownloads: {
                 useDownloadManager: true,
-                notification: true,
+                notification: false,
                 path: `${path}/Expensify/${attachmentName}`,
             },
         }).fetch('GET', url);
