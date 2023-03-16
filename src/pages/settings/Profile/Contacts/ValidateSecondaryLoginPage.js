@@ -17,7 +17,6 @@ import compose from '../../../../libs/compose';
 import FixedFooter from '../../../../components/FixedFooter';
 import TextInput from '../../../../components/TextInput';
 import userPropTypes from '../../userPropTypes';
-import Permissions from '../../../../libs/Permissions';
 
 const propTypes = {
 
@@ -44,7 +43,6 @@ const propTypes = {
 const defaultProps = {
     user: {},
     route: {},
-    betas: [],
 };
 
 class ValidateSecondaryLoginPage extends Component {

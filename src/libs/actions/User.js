@@ -194,6 +194,7 @@ function validateLogin(accountID, validateCode) {
  *
  * @param {Number} accountID
  * @param {String} validateCode
+ * @param {String} partnerUserID
  */
 function validateSecondaryLoginAndNavigate(accountID, validateCode, partnerUserID) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
@@ -214,7 +215,7 @@ function validateSecondaryLoginAndNavigate(accountID, validateCode, partnerUserI
                     validatedDate: DateUtils.getDBTime().substring(0, 19),
                 },
             },
-        }
+        },
     ];
 
     API.write('ValidateLogin', {
