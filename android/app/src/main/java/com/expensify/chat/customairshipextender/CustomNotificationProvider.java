@@ -37,9 +37,11 @@ import com.urbanairship.util.ImageUtils;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -228,16 +230,16 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
      * Safely retrieve the message time in milliseconds
      */
     private long getMessageTimeInMillis(String createdTime) {
-        Calendar calendar = Calendar.getInstance();
         if (!createdTime.isEmpty()) {
             try {
-                long timeInMillis = Long.getLong(createdTime, 0);
-                calendar.setTimeInMillis(timeInMillis);
-            } catch (NullPointerException e) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                return sdf.parse(createdTime).getTime();
+            } catch (Exception e) {
+                Log.e(TAG, "error parsing createdTime: " + createdTime);
                 e.printStackTrace();
             }
         }
-        return calendar.getTimeInMillis();
+        return Calendar.getInstance().getTimeInMillis();
     }
 
     /**
