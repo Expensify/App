@@ -1,7 +1,7 @@
 const yaml = require('yaml');
 const fs = require('fs');
 
-const setUpActParams = (act, event = null, eventOptions = null, secrets = null, githubToken = null, envVars = null) => {
+const setUpActParams = (act, event = null, eventOptions = null, secrets = null, githubToken = null, envVars = null, inputs = null) => {
     let updated_act = act;
 
     if (event && eventOptions) {
@@ -28,6 +28,12 @@ const setUpActParams = (act, event = null, eventOptions = null, secrets = null, 
     if (envVars) {
         for (const [key, value] of Object.entries(envVars)) {
             updated_act = updated_act.setEnv(key, value);
+        }
+    }
+
+    if (inputs) {
+        for (const [key, value] of Object.entries(inputs)) {
+            updated_act = updated_act.setInput(key, value);
         }
     }
 
