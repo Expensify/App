@@ -1,21 +1,21 @@
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import HttpsError from './Errors/HttpsError';
-
-let shouldUseStagingServer = false;
-Onyx.connect({
-    key: ONYXKEYS.USER,
-    callback: val => shouldUseStagingServer = lodashGet(val, 'shouldUseStagingServer', true),
-});
+import * as ApiUtils from './ApiUtils';
 
 let shouldFailAllRequests = false;
+let shouldForceOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
-    callback: val => shouldFailAllRequests = (val && _.isBoolean(val.shouldFailAllRequests)) ? val.shouldFailAllRequests : false,
+    callback: (network) => {
+        if (!network) {
+            return;
+        }
+        shouldFailAllRequests = Boolean(network.shouldFailAllRequests);
+        shouldForceOffline = Boolean(network.shouldForceOffline);
+    },
 });
 
 // We use the AbortController API to terminate pending request in `cancelPendingRequests`
@@ -40,19 +40,31 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
     })
         .then((response) => {
             // Test mode where all requests will succeed in the server, but fail to return a response
-            if (shouldFailAllRequests) {
+            if (shouldFailAllRequests || shouldForceOffline) {
                 throw new HttpsError({
                     message: CONST.ERROR.FAILED_TO_FETCH,
                 });
             }
 
             if (!response.ok) {
-                // Expensify site is down or something temporary like a Bad Gateway or unknown error occurred
-                if (response.status === 504 || response.status === 502 || response.status === 520) {
+                // Expensify site is down or there was an internal server error, or something temporary like a Bad Gateway, or unknown error occurred
+                const serviceInterruptedStatuses = [
+                    CONST.HTTP_STATUS.INTERNAL_SERVER_ERROR,
+                    CONST.HTTP_STATUS.BAD_GATEWAY,
+                    CONST.HTTP_STATUS.GATEWAY_TIMEOUT,
+                    CONST.HTTP_STATUS.UNKNOWN_ERROR,
+                ];
+                if (_.contains(serviceInterruptedStatuses, response.status)) {
                     throw new HttpsError({
                         message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
                         status: response.status,
                         title: 'Issue connecting to Expensify site',
+                    });
+                } else if (response.status === CONST.HTTP_STATUS.TOO_MANY_REQUESTS) {
+                    throw new HttpsError({
+                        message: CONST.ERROR.THROTTLED,
+                        status: response.status,
+                        title: 'API request throttled',
                     });
                 }
 
@@ -96,13 +108,8 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
         formData.append(key, val);
     });
 
-    let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
-
-    if (CONFIG.IS_IN_STAGING && shouldUseStagingServer) {
-        apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.STAGING_SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.STAGING_EXPENSIFY_URL;
-    }
-
-    return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData, data.canCancel);
+    const url = ApiUtils.getCommandURL({shouldUseSecure, command});
+    return processHTTPRequest(url, type, formData, data.canCancel);
 }
 
 function cancelPendingRequests() {

@@ -54,8 +54,8 @@ class EnablePaymentsPage extends React.Component {
         }
 
         return (
-            <ScreenWrapper>
-                {(() => {
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+                {() => {
                     if (this.props.userWallet.errorCode === CONST.WALLET.ERROR.KYC) {
                         return (
                             <>
@@ -75,15 +75,17 @@ class EnablePaymentsPage extends React.Component {
                     }
 
                     const currentStep = this.props.userWallet.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;
+
                     return (
                         <>
-                            {currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS && <AdditionalDetailsStep walletAdditionalDetailsDraft={this.props.walletAdditionalDetailsDraft} />}
-                            {currentStep === CONST.WALLET.STEP.ONFIDO && <OnfidoStep walletAdditionalDetailsDraft={this.props.walletAdditionalDetailsDraft} />}
+                            {(currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS || currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS_KBA)
+                                && <AdditionalDetailsStep />}
+                            {currentStep === CONST.WALLET.STEP.ONFIDO && <OnfidoStep />}
                             {currentStep === CONST.WALLET.STEP.TERMS && <TermsStep />}
                             {currentStep === CONST.WALLET.STEP.ACTIVATE && <ActivateStep userWallet={this.props.userWallet} />}
                         </>
                     );
-                })()}
+                }}
             </ScreenWrapper>
         );
     }
@@ -101,9 +103,6 @@ export default compose(
             // We want to refresh the wallet each time the user attempts to activate the wallet so we won't use the
             // stored values here.
             initWithStoredValues: false,
-        },
-        walletAdditionalDetailsDraft: {
-            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS_DRAFT,
         },
     }),
     withNetwork(),

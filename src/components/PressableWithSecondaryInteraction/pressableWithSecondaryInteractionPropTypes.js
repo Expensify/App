@@ -31,6 +31,9 @@ const propTypes = {
      * Note: Web uses styling instead of Text due to no support of LongPress. Thus above pointers are not valid for web.
      */
     inline: PropTypes.bool,
+
+    /** Disable focus trap for the element on secondary interaction  */
+    withoutFocusOnSecondaryInteraction: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -39,6 +42,7 @@ const defaultProps = {
     onPressOut: () => {},
     preventDefaultContentMenu: true,
     inline: false,
+    withoutFocusOnSecondaryInteraction: false,
 };
 
 export {propTypes, defaultProps};

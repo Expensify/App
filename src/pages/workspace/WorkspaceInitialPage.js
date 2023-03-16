@@ -10,12 +10,10 @@ import styles from '../../styles/styles';
 import Tooltip from '../../components/Tooltip';
 import Text from '../../components/Text';
 import ConfirmModal from '../../components/ConfirmModal';
-import Icon from '../../components/Icon';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import MenuItem from '../../components/MenuItem';
-import themedefault from '../../styles/themes/default';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
@@ -28,6 +26,7 @@ import CONST from '../../CONST';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import ONYXKEYS from '../../ONYXKEYS';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     ...policyPropTypes,
@@ -49,6 +48,8 @@ class WorkspaceInitialPage extends React.Component {
         this.openEditor = this.openEditor.bind(this);
         this.toggleDeleteModal = this.toggleDeleteModal.bind(this);
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
+        this.hasPolicyCreationError = this.hasPolicyCreationError.bind(this);
+        this.dismissError = this.dismissError.bind(this);
 
         this.state = {
             isDeleteModalOpen: false,
@@ -75,13 +76,26 @@ class WorkspaceInitialPage extends React.Component {
      */
     confirmDeleteAndHideModal() {
         const policyReports = _.filter(this.props.reports, report => report && report.policyID === this.props.policy.id);
-        Policy.deleteWorkspace(this.props.policy.id, policyReports);
+        Policy.deleteWorkspace(this.props.policy.id, policyReports, this.props.policy.name);
         this.toggleDeleteModal(false);
-        Navigation.navigate(ROUTES.SETTINGS);
+        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+    }
+
+    /**
+     * @returns {Boolean}
+     */
+    hasPolicyCreationError() {
+        return Boolean(this.props.policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && this.props.policy.errors);
+    }
+
+    dismissError() {
+        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+        Policy.removeWorkspace(this.props.policy.id);
     }
 
     render() {
         const policy = this.props.policy;
+        const policyName = lodashGet(this.props.policy, 'name', '');
         const hasMembersError = PolicyUtils.hasPolicyMemberError(this.props.policyMemberList);
         const hasGeneralSettingsError = !_.isEmpty(lodashGet(this.props.policy, 'errorFields.generalSettings', {}))
             || !_.isEmpty(lodashGet(this.props.policy, 'errorFields.avatar', {}));
@@ -133,113 +147,116 @@ class WorkspaceInitialPage extends React.Component {
         ];
 
         return (
-            <ScreenWrapper>
-                <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('workspace.common.workspace')}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
-                        shouldShowThreeDotsButton
-                        shouldShowGetAssistanceButton
-                        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
-                        threeDotsMenuItems={[
-                            {
-                                icon: Expensicons.Plus,
-                                text: this.props.translate('workspace.new.newWorkspace'),
-                                onSelected: () => Policy.createWorkspace(),
-                            }, {
-                                icon: Expensicons.Trashcan,
-                                text: this.props.translate('workspace.common.delete'),
-                                onSelected: () => this.setState({isDeleteModalOpen: true}),
-                            },
-                        ]}
-                        threeDotsAnchorPosition={styles.threeDotsPopoverOffset}
-                    />
-                    <ScrollView
-                        contentContainerStyle={[
-                            styles.flexGrow1,
-                            styles.flexColumn,
-                            styles.justifyContentBetween,
-                        ]}
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+                {({safeAreaPaddingBottomStyle}) => (
+                    <FullPageNotFoundView
+                        shouldShow={_.isEmpty(this.props.policy)}
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                     >
-                        <OfflineWithFeedback pendingAction={this.props.policy.pendingAction}>
-                            <View style={[styles.flex1]}>
-                                <View style={styles.pageWrapper}>
-                                    <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
-                                        <Pressable
-                                            style={[styles.pRelative, styles.avatarLarge]}
-                                            onPress={this.openEditor}
-                                        >
-                                            {this.props.policy.avatar
-                                                ? (
+                        <HeaderWithCloseButton
+                            title={this.props.translate('workspace.common.workspace')}
+                            shouldShowBackButton
+                            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                            onCloseButtonPress={() => Navigation.dismissModal()}
+                            shouldShowThreeDotsButton
+                            shouldShowGetAssistanceButton
+                            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
+                            threeDotsMenuItems={[
+                                {
+                                    icon: Expensicons.Trashcan,
+                                    text: this.props.translate('workspace.common.delete'),
+                                    onSelected: () => this.setState({isDeleteModalOpen: true}),
+                                },
+                            ]}
+                            threeDotsAnchorPosition={styles.threeDotsPopoverOffset}
+                        />
+                        <ScrollView
+                            contentContainerStyle={[
+                                styles.flexGrow1,
+                                styles.flexColumn,
+                                styles.justifyContentBetween,
+                                safeAreaPaddingBottomStyle,
+                            ]}
+                        >
+                            <OfflineWithFeedback
+                                pendingAction={this.props.policy.pendingAction}
+                                onClose={this.dismissError}
+                                errors={this.props.policy.errors}
+                                errorRowStyles={[styles.ph6, styles.pv2]}
+                            >
+                                <View style={[styles.flex1]}>
+                                    <View style={styles.avatarSectionWrapper}>
+                                        <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
+                                            <Pressable
+                                                disabled={this.hasPolicyCreationError()}
+                                                style={[styles.pRelative, styles.avatarLarge]}
+                                                onPress={this.openEditor}
+                                            >
+                                                <Tooltip text={this.props.translate('workspace.common.settings')}>
                                                     <Avatar
                                                         containerStyles={styles.avatarLarge}
                                                         imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                                        source={this.props.policy.avatar}
+                                                        source={this.props.policy.avatar ? this.props.policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
                                                         fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                                                         size={CONST.AVATAR_SIZE.LARGE}
+                                                        name={policyName}
+                                                        type={CONST.ICON_TYPE_WORKSPACE}
                                                     />
-                                                )
-                                                : (
-                                                    <Icon
-                                                        src={Expensicons.Workspace}
-                                                        height={80}
-                                                        width={80}
-                                                        fill={themedefault.iconSuccessFill}
-                                                    />
-                                                )}
-                                        </Pressable>
-                                        {!_.isEmpty(this.props.policy.name) && (
-                                            <Pressable
-                                                style={[
-                                                    styles.alignSelfCenter,
-                                                    styles.mt4,
-                                                    styles.mb6,
-                                                    styles.w100,
-                                                ]}
-                                                onPress={this.openEditor}
-                                            >
-                                                <Tooltip text={this.props.policy.name}>
-                                                    <Text
-                                                        numberOfLines={1}
-                                                        style={[
-                                                            styles.displayName,
-                                                            styles.alignSelfCenter,
-                                                        ]}
-                                                    >
-                                                        {this.props.policy.name}
-                                                    </Text>
                                                 </Tooltip>
                                             </Pressable>
-                                        )}
+                                            {!_.isEmpty(this.props.policy.name) && (
+                                                <Pressable
+                                                    disabled={this.hasPolicyCreationError()}
+                                                    style={[
+                                                        styles.alignSelfCenter,
+                                                        styles.mt4,
+                                                        styles.w100,
+                                                    ]}
+                                                    onPress={this.openEditor}
+                                                >
+                                                    <Tooltip text={this.props.translate('workspace.common.settings')}>
+                                                        <Text
+                                                            numberOfLines={1}
+                                                            style={[
+                                                                styles.textHeadline,
+                                                                styles.alignSelfCenter,
+                                                            ]}
+                                                        >
+                                                            {this.props.policy.name}
+                                                        </Text>
+                                                    </Tooltip>
+                                                </Pressable>
+                                            )}
+                                        </View>
                                     </View>
+                                    {_.map(menuItems, item => (
+                                        <MenuItem
+                                            key={item.translationKey}
+                                            disabled={this.hasPolicyCreationError()}
+                                            interactive={!this.hasPolicyCreationError()}
+                                            title={this.props.translate(item.translationKey)}
+                                            icon={item.icon}
+                                            iconRight={item.iconRight}
+                                            onPress={() => item.action()}
+                                            shouldShowRightIcon
+                                            brickRoadIndicator={item.brickRoadIndicator}
+                                        />
+                                    ))}
                                 </View>
-                                {_.map(menuItems, item => (
-                                    <MenuItem
-                                        key={item.translationKey}
-                                        title={this.props.translate(item.translationKey)}
-                                        icon={item.icon}
-                                        iconRight={item.iconRight}
-                                        onPress={() => item.action()}
-                                        shouldShowRightIcon
-                                        brickRoadIndicator={item.brickRoadIndicator}
-                                    />
-                                ))}
-                            </View>
-                        </OfflineWithFeedback>
-                    </ScrollView>
-                    <ConfirmModal
-                        title={this.props.translate('workspace.common.delete')}
-                        isVisible={this.state.isDeleteModalOpen}
-                        onConfirm={this.confirmDeleteAndHideModal}
-                        onCancel={() => this.toggleDeleteModal(false)}
-                        prompt={this.props.translate('workspace.common.deleteConfirmation')}
-                        confirmText={this.props.translate('common.delete')}
-                        cancelText={this.props.translate('common.cancel')}
-                        danger
-                    />
-                </FullPageNotFoundView>
+                            </OfflineWithFeedback>
+                        </ScrollView>
+                        <ConfirmModal
+                            title={this.props.translate('workspace.common.delete')}
+                            isVisible={this.state.isDeleteModalOpen}
+                            onConfirm={this.confirmDeleteAndHideModal}
+                            onCancel={() => this.toggleDeleteModal(false)}
+                            prompt={this.props.translate('workspace.common.deleteConfirmation')}
+                            confirmText={this.props.translate('common.delete')}
+                            cancelText={this.props.translate('common.cancel')}
+                            danger
+                        />
+                    </FullPageNotFoundView>
+                )}
             </ScreenWrapper>
         );
     }

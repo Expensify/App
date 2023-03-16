@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
@@ -6,7 +7,6 @@ import Str from 'expensify-common/lib/str';
 import reportActionPropTypes from './reportActionPropTypes';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import styles from '../../../styles/styles';
-import CONST from '../../../CONST';
 import ReportActionItemDate from './ReportActionItemDate';
 import Avatar from '../../../components/Avatar';
 import personalDetailsPropType from '../../personalDetailsPropType';
@@ -17,6 +17,9 @@ import ROUTES from '../../../ROUTES';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
 import Tooltip from '../../../components/Tooltip';
 import ControlSelection from '../../../libs/ControlSelection';
+import * as ReportUtils from '../../../libs/ReportUtils';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** All the data of the action */
@@ -49,12 +52,14 @@ const showUserDetails = (email) => {
 };
 
 const ReportActionItemSingle = (props) => {
-    const {avatar, displayName, login} = props.personalDetails[props.action.actorEmail] || {};
-    const avatarUrl = props.action.automatic
-        ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
-
-        // Use avatar in personalDetails if we have one then fallback to avatar provided by the action
-        : (avatar || props.action.avatar);
+    const actorEmail = props.action.actorEmail.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    const {
+        avatar,
+        displayName,
+        login,
+        pendingFields,
+    } = props.personalDetails[actorEmail] || {};
+    const avatarSource = ReportUtils.getAvatar(avatar, actorEmail);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
@@ -66,39 +71,43 @@ const ReportActionItemSingle = (props) => {
     return (
         <View style={props.wrapperStyles}>
             <Pressable
-                style={styles.alignSelfStart}
+                style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
                 onPressOut={ControlSelection.unblock}
-                onPress={() => showUserDetails(props.action.actorEmail)}
+                onPress={() => showUserDetails(actorEmail)}
             >
-                <Tooltip text={props.action.actorEmail}>
-                    <Avatar
-                        containerStyles={[styles.actionAvatar]}
-                        source={avatarUrl}
-                    />
+                <Tooltip text={actorEmail}>
+                    <OfflineWithFeedback
+                        pendingAction={lodashGet(pendingFields, 'avatar', null)}
+                    >
+                        <Avatar
+                            containerStyles={[styles.actionAvatar]}
+                            source={avatarSource}
+                        />
+                    </OfflineWithFeedback>
                 </Tooltip>
             </Pressable>
             <View style={[styles.chatItemRight]}>
                 {props.showHeader ? (
                     <View style={[styles.chatItemMessageHeader]}>
                         <Pressable
-                            style={[styles.flexShrink1]}
+                            style={[styles.flexShrink1, styles.mr1]}
                             onPressIn={ControlSelection.block}
                             onPressOut={ControlSelection.unblock}
-                            onPress={() => showUserDetails(props.action.actorEmail)}
+                            onPress={() => showUserDetails(actorEmail)}
                         >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
-                                    key={`person-${props.action.sequenceNumber}-${index}`}
+                                    key={`person-${props.action.reportActionID}-${index}`}
                                     fragment={fragment}
-                                    tooltipText={props.action.actorEmail}
+                                    tooltipText={actorEmail}
                                     isAttachment={props.action.isAttachment}
                                     isLoading={props.action.isLoading}
                                     isSingleLine
                                 />
                             ))}
                         </Pressable>
-                        <ReportActionItemDate timestamp={props.action.timestamp} />
+                        <ReportActionItemDate created={props.action.created} />
                     </View>
                 ) : null}
                 {props.children}

@@ -1,16 +1,15 @@
-import lodashGet from 'lodash/get';
-import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
+import ONYXKEYS from '../../../ONYXKEYS';
 import * as store from './store';
-import Navigation from '../../Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 import * as API from '../../API';
+import * as PlaidDataProps from '../../../pages/ReimbursementAccount/plaidDataPropTypes';
+import * as ReimbursementAccountProps from '../../../pages/ReimbursementAccount/reimbursementAccountPropTypes';
 
 /**
  * Reset user's reimbursement account. This will delete the bank account.
+ * @param {number} bankAccountID
  */
-function resetFreePlanBankAccount() {
-    const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
+function resetFreePlanBankAccount(bankAccountID) {
     if (!bankAccountID) {
         throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
     }
@@ -18,33 +17,59 @@ function resetFreePlanBankAccount() {
         throw new Error('Missing credentials when attempting to reset free plan bank account');
     }
 
-    const achData = {
-        useOnfido: true,
-        policyID: '',
-        isInSetup: true,
-        domainLimit: 0,
-        currentStep: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
-    };
-
     API.write('RestartBankAccountSetup',
         {
             bankAccountID,
             ownerEmail: store.getCredentials().login,
         },
         {
-            optimisticData: [{
-                onyxMethod: 'merge',
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {achData, shouldShowResetModal: false},
-            },
-            {
-                onyxMethod: 'set',
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
-                value: null,
-            }],
+            optimisticData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.SET,
+                    key: ONYXKEYS.ONFIDO_TOKEN,
+                    value: '',
+                },
+                {
+                    onyxMethod: CONST.ONYX.METHOD.SET,
+                    key: ONYXKEYS.PLAID_DATA,
+                    value: PlaidDataProps.plaidDataDefaultProps,
+                },
+                {
+                    onyxMethod: CONST.ONYX.METHOD.SET,
+                    key: ONYXKEYS.PLAID_LINK_TOKEN,
+                    value: '',
+                },
+                {
+                    onyxMethod: CONST.ONYX.METHOD.SET,
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    value: ReimbursementAccountProps.reimbursementAccountDefaultProps,
+                },
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    value: {isLoading: true},
+                },
+                {
+                    onyxMethod: CONST.ONYX.METHOD.SET,
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+                    value: {},
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    value: {isLoading: false},
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    value: {isLoading: false},
+                },
+            ],
         });
-
-    Navigation.navigate(ROUTES.getBankAccountRoute());
 }
 
 export default resetFreePlanBankAccount;

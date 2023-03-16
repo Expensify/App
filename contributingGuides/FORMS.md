@@ -88,7 +88,7 @@ To give a slightly more detailed example of how this would work with phone numbe
 
 ### Form Drafts
 
-Form inputs will NOT store draft values by default. This is to avoid accidentely storing any sensitive information like passwords, SSN or bank account information. We need to explicitly tell each form input to save draft values by passing the shouldSaveDraft prop to the input. Saving draft values is highly desireable and we should always try to save draft values. This way when a user continues a given flow they can easily pick up right where they left off if they accidentally exited a flow. Inputs with saved draft values [will be cleared when a user logs out](https://github.com/Expensify/App/blob/aa1f0f34eeba5d761657168255a1ae9aebdbd95e/src/libs/actions/SignInRedirect.js#L52) (like most data). Additionally we should clear draft data once the form is successfully submitted by calling `Onyx.set(ONYXKEY.FORM_ID, null)` in the onSubmit callback passed to Form.
+Form inputs will NOT store draft values by default. This is to avoid accidentally storing any sensitive information like passwords, SSN or bank account information. We need to explicitly tell each form input to save draft values by passing the shouldSaveDraft prop to the input. Saving draft values is highly desirable and we should always try to save draft values. This way when a user continues a given flow they can easily pick up right where they left off if they accidentally exited a flow. Inputs with saved draft values [will be cleared when a user logs out](https://github.com/Expensify/App/blob/aa1f0f34eeba5d761657168255a1ae9aebdbd95e/src/libs/actions/SignInRedirect.js#L52) (like most data). Additionally, we should clear draft data once the form is successfully submitted by calling `Onyx.set(ONYXKEY.FORM_ID, null)` in the onSubmit callback passed to Form.
 
 ```jsx
 <TextInput
@@ -98,13 +98,17 @@ Form inputs will NOT store draft values by default. This is to avoid accidentely
 
 ## Form Validation and Error handling
 
-### Validate on Blur and Submit
+### Validate on Blur, on Change and Submit
 
 Each individual form field that requires validation will have its own validate test defined. When the form field loses focus (blur) we will run that validate test and show feedback. A blur on one field will not cause other fields to validate or show errors unless they have already been blurred.
 
+Once a user has “touched” an input, i.e. blurred the input, we will also start validating that input on change when the user goes back to editing it.
+
 All form fields will additionally be validated when the form is submitted. Although we are validating on blur this additional step is necessary to cover edge cases where forms are auto-filled or when a form is submitted by pressing enter (i.e. there will be only a ‘submit’ event and no ‘blur’ event to hook into).
 
-The Form component takes care of validation internally and the only requirement is that we pass a validate callback prop. The validate callback takes in the input values as argument and should return an object with shape `{[inputID]: errorMessage}`. Here's an example for a form that has two inputs, `routingNumber` and `accountNumber`:
+The Form component takes care of validation internally and the only requirement is that we pass a validate callback prop. The validate callback takes in the input values as argument and should return an object with shape `{[inputID]: errorMessage}`. 
+
+Here's an example for a form that has two inputs, `routingNumber` and `accountNumber`:
 
 ```js
 function validate(values) {
@@ -117,6 +121,28 @@ function validate(values) {
     }
     return errors;
 }
+```
+
+When more than one method is used to validate the value, the `addErrorMessage` function from `ErrorUtils` should be used. Here's an example for a form with a field with multiple validators for `firstName` input:
+
+```js
+function validate(values) {
+        let errors = {};
+
+        if (!ValidationUtils.isValidDisplayName(values.firstName)) {
+            errors = ErrorUtils.addErrorMessage(errors, 'firstName', props.translate('personalDetails.error.hasInvalidCharacter'));
+        }
+
+        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
+            errors = ErrorUtils.addErrorMessage(errors, 'firstName', props.translate('personalDetails.error.containsReservedWord'));
+        }
+
+        if (!ValidationUtils.isValidDisplayName(values.lastName)) {
+            errors.lastName = props.translate('personalDetails.error.hasInvalidCharacter');
+        }
+
+        return errors;
+    }
 ```
 
 For a working example, check [Form story](https://github.com/Expensify/App/blob/aa1f0f34eeba5d761657168255a1ae9aebdbd95e/src/stories/Form.stories.js#L63-L72)
@@ -198,6 +224,38 @@ function onSubmit(values) {
 </Form>
 ```
 
+`Form.js` also works with inputs nested in a custom component, e.g. [AddressForm](https://github.com/Expensify/App/blob/86579225ff30b21dea507347735259637a2df461/src/pages/ReimbursementAccount/AddressForm.js). The only exception is that the nested component shouldn't be wrapped around any HoC.
+
+```jsx
+const BankAccountForm = () => (
+    <>
+        <View>
+            <TextInput
+                label="Routing number"
+                inputID="routingNumber"
+                maxLength={8}
+                shouldSaveDraft
+            />
+        </View>
+        <TextInput
+            label="Account number"
+            inputID="accountNumber"
+            containerStyles={[styles.mt4]}
+        />
+    </>
+);
+
+// ...
+<Form
+    formID="testForm"
+    submitButtonText="Submit"
+    validate={this.validate}
+    onSubmit={this.onSubmit}
+>
+    <BankAccountForm />
+</Form>
+```
+
 ### Props provided to Form inputs
 
 The following prop is available to form inputs:
@@ -215,3 +273,36 @@ Form.js will automatically provide the following props to any input with the inp
 - errorText: The translated error text that is returned by validate for that specific input.
 - onBlur: An onBlur handler that calls validate.
 - onInputChange: An onChange handler that saves draft values and calls validate for that input (inputA). Passing an inputID as a second param allows inputA to manipulate the input value of the provided inputID (inputB).
+
+## Dynamic Form Inputs
+
+It's possible to conditionally render inputs (or more complex components with multiple inputs) inside a form. For example, an IdentityForm might be nested as input for a Form component.
+In order for Form to track the nested values properly, each field must have a unique identifier. It's not safe to use an index because adding or removing fields from the child Form component will not update these internal keys. Therefore, we will need to define keys and dynamically access the correlating child form data for validation/submission.
+
+To generate these unique keys, use `Str.guid()`.
+
+An example of this can be seen in the [ACHContractStep](https://github.com/Expensify/App/blob/f2973f88cfc0d36c0dbe285201d3ed5e12f29d87/src/pages/ReimbursementAccount/ACHContractStep.js), where each key is stored in an array in state, and IdentityForms are dynamically rendered based on which keys are present in the array.
+
+### Safe Area Padding
+
+Any `Form.js` that has a button will also add safe area padding by default. If the `<Form/>` is inside a `<ScreenWrapper>` we will want to disable the default safe area padding applied there e.g.
+
+```js
+<ScreenWrapper includeSafeAreaPaddingBottom={false}>
+    <Form>
+        {...}
+    </Form>
+</ScreenWrapper>
+```
+
+### Handling nested Pickers in Form
+
+In case there's a nested Picker in Form, we should pass the props below to Form, as needed:
+
+#### Enable ScrollContext
+
+Pass the `scrollContextEnabled` prop to enable scrolling up when Picker is pressed, making sure the Picker is always in view and doesn't get covered by virtual keyboards for example.
+
+#### Enable scrolling to overflow
+
+In addition to the `scrollContextEnabled` prop, we can also pass `scrollToOverflowEnabled` when the nested Picker is at the bottom of the Form to prevent the popup selector from covering Picker.

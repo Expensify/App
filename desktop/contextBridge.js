@@ -6,10 +6,12 @@ const {
 const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 
 const WHITELIST_CHANNELS_RENDERER_TO_MAIN = [
+    ELECTRON_EVENTS.REQUEST_DEVICE_ID,
     ELECTRON_EVENTS.REQUEST_FOCUS_APP,
     ELECTRON_EVENTS.REQUEST_UPDATE_BADGE_COUNT,
     ELECTRON_EVENTS.REQUEST_VISIBILITY,
     ELECTRON_EVENTS.START_UPDATE,
+    ELECTRON_EVENTS.LOCALE_UPDATED,
 ];
 
 const WHITELIST_CHANNELS_MAIN_TO_RENDERER = [
@@ -56,6 +58,21 @@ contextBridge.exposeInMainWorld('electron', {
         }
 
         return ipcRenderer.sendSync(channel, data);
+    },
+
+    /**
+     * Execute a function in the main process and return a promise that resolves with its response.
+     *
+     * @param {String} channel
+     * @param {*} args
+     * @returns {Promise}
+     */
+    invoke: (channel, ...args) => {
+        if (!_.contains(WHITELIST_CHANNELS_RENDERER_TO_MAIN, channel)) {
+            throw new Error(getErrorMessage(channel));
+        }
+
+        return ipcRenderer.invoke(channel, ...args);
     },
 
     /**

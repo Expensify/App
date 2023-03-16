@@ -9,6 +9,14 @@ function setIsOffline(isOffline) {
 }
 
 /**
+ *
+ * @param {Boolean} shouldForceOffline
+ */
+function setShouldForceOffline(shouldForceOffline) {
+    Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline});
+}
+
+/**
  * Test tool that will fail all network requests when enabled
  * @param {Boolean} shouldFailAllRequests
  */
@@ -18,5 +26,6 @@ function setShouldFailAllRequests(shouldFailAllRequests) {
 
 export {
     setIsOffline,
+    setShouldForceOffline,
     setShouldFailAllRequests,
 };

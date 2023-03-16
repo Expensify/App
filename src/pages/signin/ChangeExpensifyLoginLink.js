@@ -1,11 +1,11 @@
 import React from 'react';
 import {TouchableOpacity, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
@@ -31,18 +31,17 @@ const defaultProps = {
 
 const ChangeExpensifyLoginLink = props => (
     <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
-        <Text>
-            {props.translate('common.not')}
-            &nbsp;
-            {Str.isSMSLogin(props.credentials.login || '')
-                ? props.toLocalPhone(Str.removeSMSDomain(props.credentials.login || ''))
-                : Str.removeSMSDomain(props.credentials.login || '')}
-            {'? '}
-        </Text>
+        {!_.isEmpty(props.credentials.login) && (
+            <Text>
+                {props.translate('common.not')}
+                &nbsp;
+                {Str.removeSMSDomain(props.credentials.login)}
+                {'? '}
+            </Text>
+        )}
         <TouchableOpacity
             style={[styles.link]}
             onPress={props.onPress}
-            underlayColor={themeColors.componentBG}
         >
             <Text style={[styles.link]}>
                 {props.translate('common.goBack')}

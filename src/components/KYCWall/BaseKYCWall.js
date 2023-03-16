@@ -1,7 +1,6 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {ActivityIndicator, Dimensions} from 'react-native';
-import themeColors from '../../styles/themes/default';
+import {Dimensions} from 'react-native';
 import CONST from '../../CONST';
 import Navigation from '../../libs/Navigation/Navigation';
 import AddPaymentMethodMenu from '../AddPaymentMethodMenu';
@@ -141,9 +140,7 @@ class KYCWall extends React.Component {
                         }
                     }}
                 />
-                {this.props.isLoadingPaymentMethods && !this.props.isDisabled
-                    ? (<ActivityIndicator color={themeColors.spinner} size="large" />)
-                    : this.props.children(this.continue)}
+                {this.props.children(this.continue)}
             </>
         );
     }

@@ -3,6 +3,14 @@ const EventType = {
     PushReceived: 'pushReceived',
 };
 
+const iOS = {
+    ForegroundPresentationOption: {
+        Alert: 'alert',
+        Sound: 'sound',
+        Badge: 'badge',
+    },
+};
+
 const UrbanAirship = {
     setUserNotificationsEnabled: jest.fn(),
     clearNotifications: jest.fn(),
@@ -12,11 +20,14 @@ const UrbanAirship = {
     setNamedUser: jest.fn(),
     removeAllListeners: jest.fn(),
     setBadgeNumber: jest.fn(),
+    setForegroundPresentationOptions: jest.fn(),
+    getNotificationStatus: () => Promise.resolve({airshipOptIn: false, systemEnabled: false}),
 };
 
 export default UrbanAirship;
 
 export {
     EventType,
+    iOS,
     UrbanAirship,
 };

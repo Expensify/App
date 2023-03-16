@@ -13,7 +13,6 @@ import HapticFeedback from '../libs/HapticFeedback';
 import withNavigationFallback from './withNavigationFallback';
 import compose from '../libs/compose';
 import * as Expensicons from './Icon/Expensicons';
-import colors from '../styles/colors';
 import withNavigationFocus from './withNavigationFocus';
 
 const propTypes = {
@@ -62,6 +61,9 @@ const propTypes = {
 
     /** A function that is called when the button is released */
     onPressOut: PropTypes.func,
+
+    /** Callback that is called when mousedown is triggered. */
+    onMouseDown: PropTypes.func,
 
     /** Call the onPress function when Enter key is pressed */
     pressOnEnter: PropTypes.bool,
@@ -113,7 +115,7 @@ const defaultProps = {
     shouldShowRightIcon: false,
     icon: null,
     iconRight: Expensicons.ArrowRight,
-    iconFill: colors.white,
+    iconFill: themeColors.textLight,
     iconStyles: [],
     isLoading: false,
     isDisabled: false,
@@ -124,6 +126,7 @@ const defaultProps = {
     onLongPress: () => {},
     onPressIn: () => {},
     onPressOut: () => {},
+    onMouseDown: undefined,
     pressOnEnter: false,
     enterKeyEventListenerPriority: 0,
     style: [],
@@ -141,7 +144,6 @@ const defaultProps = {
 class Button extends Component {
     constructor(props) {
         super(props);
-        this.additionalStyles = StyleUtils.parseStyleAsArray(this.props.style);
 
         this.renderContent = this.renderContent.bind(this);
     }
@@ -179,6 +181,7 @@ class Button extends Component {
 
         const textComponent = (
             <Text
+                numberOfLines={1}
                 selectable={false}
                 style={[
                     this.props.isLoading && styles.opacity0,
@@ -189,6 +192,7 @@ class Button extends Component {
                     this.props.large && styles.buttonLargeText,
                     this.props.success && styles.buttonSuccessText,
                     this.props.danger && styles.buttonDangerText,
+                    this.props.icon && styles.textAlignLeft,
                     ...this.props.textStyles,
                 ]}
             >
@@ -199,7 +203,7 @@ class Button extends Component {
         if (this.props.icon) {
             return (
                 <View style={[styles.justifyContentBetween, styles.flexRow]}>
-                    <View style={[styles.alignItemsCenter, styles.flexRow]}>
+                    <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         <View style={[
                             styles.mr1,
                             ...this.props.iconStyles,
@@ -214,7 +218,7 @@ class Button extends Component {
                         {textComponent}
                     </View>
                     {this.props.shouldShowRightIcon && (
-                        <View>
+                        <View style={styles.justifyContentCenter}>
                             <Icon
                                 src={this.props.iconRight}
                                 fill={this.props.iconFill}
@@ -249,10 +253,14 @@ class Button extends Component {
                 }}
                 onPressIn={this.props.onPressIn}
                 onPressOut={this.props.onPressOut}
+                onMouseDown={this.props.onMouseDown}
                 disabled={this.props.isLoading || this.props.isDisabled}
                 style={[
                     this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
-                    ...this.additionalStyles,
+                    styles.buttonContainer,
+                    this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
+                    this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+                    ...StyleUtils.parseStyleAsArray(this.props.style),
                 ]}
                 nativeID={this.props.nativeID}
             >
@@ -281,7 +289,7 @@ class Button extends Component {
                             {this.renderContent()}
                             {this.props.isLoading && (
                                 <ActivityIndicator
-                                    color={(this.props.success || this.props.danger) ? themeColors.textReversed : themeColors.text}
+                                    color={(this.props.success || this.props.danger) ? themeColors.textLight : themeColors.text}
                                     style={[styles.pAbsolute, styles.l0, styles.r0]}
                                 />
                             )}

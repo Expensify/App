@@ -9,7 +9,7 @@ export default create({
     brandImage: 'logomark.svg',
     colorPrimary: colors.dark,
     colorSecondary: colors.orange,
-    fontBase: 'GTAmericaExp-Regular',
+    fontBase: 'ExpensifyNeue-Regular',
     fontCode: 'monospace',
     textInverseColor: colors.black,
 });

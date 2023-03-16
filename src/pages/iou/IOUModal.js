@@ -25,10 +25,11 @@ import Tooltip from '../../components/Tooltip';
 import CONST from '../../CONST';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
-import ROUTES from '../../ROUTES';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import reportPropTypes from '../reportPropTypes';
+import * as ReportUtils from '../../libs/ReportUtils';
+import * as ReportScrollManager from '../../libs/ReportScrollManager';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -115,8 +116,14 @@ class IOUModal extends Component {
         const participantsWithDetails = _.map(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), personalDetails => ({
             login: personalDetails.login,
             text: personalDetails.displayName,
+            firstName: lodashGet(personalDetails, 'firstName', ''),
+            lastName: lodashGet(personalDetails, 'lastName', ''),
             alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
-            icons: [personalDetails.avatar],
+            icons: [{
+                source: ReportUtils.getAvatar(personalDetails.avatar, personalDetails.login),
+                name: personalDetails.login,
+                type: CONST.ICON_TYPE_AVATAR,
+            }],
             keyForList: personalDetails.login,
             payPalMeAddress: lodashGet(personalDetails, 'payPalMeAddress', ''),
             phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
@@ -163,6 +170,7 @@ class IOUModal extends Component {
             // Navigating to Enter Amount Page
             // eslint-disable-next-line react/no-did-update-set-state
             this.setState({currentStepIndex: 0});
+            this.creatingIOUTransaction = false;
         }
 
         const currentSelectedCurrencyCode = lodashGet(this.props, 'iou.selectedCurrencyCode');
@@ -283,119 +291,139 @@ class IOUModal extends Component {
     sendMoney(paymentMethodType) {
         const amount = Math.round(this.state.amount * 100);
         const currency = this.props.iou.selectedCurrencyCode;
-        const comment = this.state.comment;
+        const comment = this.state.comment.trim();
+        const participant = this.state.participants[0];
 
-        const newIOUReportDetails = JSON.stringify({
-            amount,
-            currency,
-            requestorEmail: this.state.participants[0].login,
-            comment,
-            idempotencyKey: Str.guid(),
-        });
+        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            IOU.sendMoneyElsewhere(
+                this.props.report,
+                amount,
+                currency,
+                comment,
+                this.props.currentUserPersonalDetails.login,
+                participant,
+            );
+            return;
+        }
 
-        IOU.payIOUReport({
-            chatReportID: lodashGet(this.props, 'route.params.reportID', ''),
-            reportID: '0',
-            paymentMethodType,
-            amount,
-            currency,
-            requestorPayPalMeAddress: this.state.participants[0].payPalMeAddress,
-            comment,
-            newIOUReportDetails,
-        })
-            .finally(() => {
-                Navigation.navigate(ROUTES.REPORT);
-            });
+        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
+            IOU.sendMoneyViaPaypal(
+                this.props.report,
+                amount,
+                currency,
+                comment,
+                this.props.currentUserPersonalDetails.login,
+                participant,
+            );
+            return;
+        }
+
+        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+            IOU.sendMoneyWithWallet(
+                this.props.report,
+                amount,
+                currency,
+                comment,
+                this.props.currentUserPersonalDetails.login,
+                participant,
+            );
+        }
     }
 
     /**
-     * Create the IOU transaction
-     *
-     * @param {Array} [splits]
+     * @param {Array} selectedParticipants
      */
-    createTransaction(splits) {
+    createTransaction(selectedParticipants) {
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
+        const comment = this.state.comment.trim();
 
-        // Only splits from a group DM has a reportID
-        // Check if reportID is a number
-        if (splits && CONST.REGEX.NUMBER.test(reportID)) {
-            IOU.createIOUSplitGroup({
-                comment: this.state.comment,
-
-                // should send in cents to API
-                amount: Math.round(this.state.amount * 100),
-                currency: this.props.iou.selectedCurrencyCode,
-                splits,
+        // IOUs created from a group report will have a reportID param in the route.
+        // Since the user is already viewing the report, we don't need to navigate them to the report
+        if (this.props.hasMultipleParticipants && CONST.REGEX.NUMBER.test(reportID)) {
+            IOU.splitBill(
+                selectedParticipants,
+                this.props.currentUserPersonalDetails.login,
+                this.state.amount,
+                comment,
+                this.props.iou.selectedCurrencyCode,
+                this.props.preferredLocale,
                 reportID,
-            });
+            );
             return;
         }
 
-        if (splits) {
-            IOU.createIOUSplit({
-                comment: this.state.comment,
-
-                // Send in cents to API.
-                amount: Math.round(this.state.amount * 100),
-                currency: this.props.iou.selectedCurrencyCode,
-                splits,
-            });
+        // If the IOU is created from the global create menu, we also navigate the user to the group report
+        if (this.props.hasMultipleParticipants) {
+            IOU.splitBillAndOpenReport(
+                selectedParticipants,
+                this.props.currentUserPersonalDetails.login,
+                this.state.amount,
+                comment,
+                this.props.iou.selectedCurrencyCode,
+                this.props.preferredLocale,
+            );
             return;
         }
+        IOU.requestMoney(
+            this.props.report,
+            Math.round(this.state.amount * 100),
+            this.props.iou.selectedCurrencyCode,
+            this.props.currentUserPersonalDetails.login,
+            selectedParticipants[0],
+            comment,
+        );
+    }
 
-        IOU.createIOUTransaction({
-            comment: this.state.comment,
-
-            // Send in cents to API.
-            amount: Math.round(this.state.amount * 100),
-            currency: this.props.iou.selectedCurrencyCode,
-            debtorEmail: OptionsListUtils.addSMSDomainIfPhoneNumber(this.state.participants[0].login),
-        });
+    renderHeader() {
+        return (
+            <View style={[styles.headerBar]}>
+                <View style={[
+                    styles.dFlex,
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.flexGrow1,
+                    styles.justifyContentBetween,
+                    styles.overflowHidden,
+                ]}
+                >
+                    {this.state.currentStepIndex > 0
+                        && (
+                        <View style={[styles.mr2]}>
+                            <Tooltip text={this.props.translate('common.back')}>
+                                <TouchableOpacity
+                                    onPress={this.navigateToPreviousStep}
+                                    style={[styles.touchableButtonImage]}
+                                >
+                                    <Icon src={Expensicons.BackArrow} />
+                                </TouchableOpacity>
+                            </Tooltip>
+                        </View>
+                        )}
+                    <Header title={this.getTitleForStep()} />
+                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
+                        <Tooltip text={this.props.translate('common.close')}>
+                            <TouchableOpacity
+                                onPress={() => Navigation.dismissModal()}
+                                style={[styles.touchableButtonImage]}
+                                accessibilityRole="button"
+                                accessibilityLabel={this.props.translate('common.close')}
+                            >
+                                <Icon src={Expensicons.Close} />
+                            </TouchableOpacity>
+                        </Tooltip>
+                    </View>
+                </View>
+            </View>
+        );
     }
 
     render() {
         const currentStep = this.steps[this.state.currentStepIndex];
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
         return (
-            <ScreenWrapper>
-                {({didScreenTransitionEnd}) => (
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+                {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
-                        <View style={[styles.headerBar]}>
-                            <View style={[
-                                styles.dFlex,
-                                styles.flexRow,
-                                styles.alignItemsCenter,
-                                styles.flexGrow1,
-                                styles.justifyContentBetween,
-                                styles.overflowHidden,
-                            ]}
-                            >
-                                {this.state.currentStepIndex > 0
-                                    && (
-                                        <Tooltip text={this.props.translate('common.back')}>
-                                            <TouchableOpacity
-                                                onPress={this.navigateToPreviousStep}
-                                                style={[styles.touchableButtonImage]}
-                                            >
-                                                <Icon src={Expensicons.BackArrow} />
-                                            </TouchableOpacity>
-                                        </Tooltip>
-                                    )}
-                                <Header title={this.getTitleForStep()} />
-                                <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
-                                    <Tooltip text={this.props.translate('common.close')}>
-                                        <TouchableOpacity
-                                            onPress={() => Navigation.dismissModal()}
-                                            style={[styles.touchableButtonImage, styles.mr0]}
-                                            accessibilityRole="button"
-                                            accessibilityLabel={this.props.translate('common.close')}
-                                        >
-                                            <Icon src={Expensicons.Close} />
-                                        </TouchableOpacity>
-                                    </Tooltip>
-                                </View>
-                            </View>
-                        </View>
                         <View style={[styles.pRelative, styles.flex1]}>
                             {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
                             {didScreenTransitionEnd && (
@@ -403,8 +431,9 @@ class IOUModal extends Component {
                                     {currentStep === Steps.IOUAmount && (
                                         <AnimatedStep
                                             direction={this.getDirection()}
-                                            style={[styles.flex1, styles.pageWrapper]}
+                                            style={[styles.flex1, safeAreaPaddingBottomStyle]}
                                         >
+                                            {this.renderHeader()}
                                             <IOUAmountPage
                                                 onStepComplete={(amount) => {
                                                     this.setState({amount});
@@ -423,29 +452,53 @@ class IOUModal extends Component {
                                             style={[styles.flex1]}
                                             direction={this.getDirection()}
                                         >
+                                            {this.renderHeader()}
                                             <IOUParticipantsPage
                                                 participants={this.state.participants}
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
                                                 onAddParticipants={this.addParticipants}
                                                 onStepComplete={this.navigateToNextStep}
+                                                safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                                             />
                                         </AnimatedStep>
                                     )}
                                     {currentStep === Steps.IOUConfirm && (
                                         <AnimatedStep
-                                            style={[styles.flex1]}
+                                            style={[styles.flex1, safeAreaPaddingBottomStyle]}
                                             direction={this.getDirection()}
                                         >
+                                            {this.renderHeader()}
                                             <IOUConfirmPage
-                                                onConfirm={this.createTransaction}
-                                                onSendMoney={this.sendMoney}
+                                                onConfirm={(selectedParticipants) => {
+                                                    // Prevent creating multiple transactions if the button is pressed repeatedly
+                                                    if (this.creatingIOUTransaction) {
+                                                        return;
+                                                    }
+                                                    this.creatingIOUTransaction = true;
+                                                    this.createTransaction(selectedParticipants);
+                                                    ReportScrollManager.scrollToBottom();
+                                                }}
+                                                onSendMoney={(paymentMethodType) => {
+                                                    if (this.creatingIOUTransaction) {
+                                                        return;
+                                                    }
+                                                    this.creatingIOUTransaction = true;
+                                                    this.sendMoney(paymentMethodType);
+                                                    ReportScrollManager.scrollToBottom();
+                                                }}
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
                                                 participants={_.filter(this.state.participants, email => this.props.currentUserPersonalDetails.login !== email.login)}
                                                 iouAmount={this.state.amount}
                                                 comment={this.state.comment}
                                                 onUpdateComment={this.updateComment}
                                                 iouType={this.props.iouType}
-                                                isIOUAttachedToExistingChatReport={!_.isEmpty(reportID)}
+
+                                                // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
+                                                // This is because when there is a group of people, say they are on a trip, and you have some shared expenses with some of the people,
+                                                // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
+                                                // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
+                                                // the floating-action-button (since it is something that exists outside the context of a report).
+                                                canModifyParticipants={!_.isEmpty(reportID)}
                                             />
                                         </AnimatedStep>
                                     )}

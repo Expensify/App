@@ -28,6 +28,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     errors: PropTypes.object,
 
+    /** Whether we should show the error messages */
+    shouldShowErrorMessages: PropTypes.bool,
+
     /** A function to run when the X button next to the error is clicked */
     onClose: PropTypes.func,
 
@@ -52,6 +55,7 @@ const propTypes = {
 const defaultProps = {
     pendingAction: null,
     errors: null,
+    shouldShowErrorMessages: true,
     onClose: () => {},
     style: [],
     contentContainerStyle: [],
@@ -68,7 +72,7 @@ function applyStrikeThrough(children) {
         if (!React.isValidElement(child)) {
             return child;
         }
-        const props = {style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted)};
+        const props = {style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted, styles.userSelectNone)};
         if (child.props.children) {
             props.children = applyStrikeThrough(child.props.children);
         }
@@ -97,13 +101,13 @@ const OfflineWithFeedback = (props) => {
                     {children}
                 </View>
             )}
-            {hasErrors && (
+            {(props.shouldShowErrorMessages && hasErrors) && (
                 <View style={StyleUtils.combineStyles(styles.offlineFeedback.error, props.errorRowStyles)}>
-                    <DotIndicatorMessage messages={props.errors} type="error" />
+                    <DotIndicatorMessage style={[styles.flex1]} messages={props.errors} type="error" />
                     <Tooltip text={props.translate('common.close')}>
                         <Pressable
                             onPress={props.onClose}
-                            style={[styles.touchableButtonImage, styles.mr0]}
+                            style={[styles.touchableButtonImage]}
                             accessibilityRole="button"
                             accessibilityLabel={props.translate('common.close')}
                         >

@@ -14,6 +14,7 @@ import TestToolRow from './TestToolRow';
 import networkPropTypes from './networkPropTypes';
 import compose from '../libs/compose';
 import {withNetwork} from './OnyxProvider';
+import * as ApiUtils from '../libs/ApiUtils';
 
 const propTypes = {
     /** User object in Onyx */
@@ -28,29 +29,41 @@ const propTypes = {
 
 const defaultProps = {
     user: {
-        shouldUseStagingServer: false,
+        // The default value is environment specific and can't be set with `defaultProps` (ENV is not resolved yet)
+        // When undefined (during render) STAGING defaults to `true`, other envs default to `false`
+        shouldUseStagingServer: undefined,
     },
 };
 
 const TestToolMenu = props => (
     <>
-        <Text style={[styles.formLabel]} numberOfLines={1}>
+        <Text style={[styles.textLabelSupporting, styles.mb2, styles.mt6]} numberOfLines={1}>
             Test Preferences
         </Text>
 
-        {/* Option to switch from using the staging secure endpoint or the production secure endpoint.
+        {/* Option to switch between staging and default api endpoints.
         This enables QA and internal testers to take advantage of sandbox environments for 3rd party services like Plaid and Onfido. */}
         <TestToolRow title="Use Staging Server">
             <Switch
-                isOn={lodashGet(props, 'user.shouldUseStagingServer', true)}
-                onToggle={() => User.setShouldUseStagingServer(!lodashGet(props, 'user.shouldUseStagingServer', true))}
+                isOn={lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi())}
+                onToggle={() => User.setShouldUseStagingServer(
+                    !lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi()),
+                )}
+            />
+        </TestToolRow>
+
+        {/* When toggled the app will be forced offline. */}
+        <TestToolRow title="Force offline">
+            <Switch
+                isOn={Boolean(props.network.shouldForceOffline)}
+                onToggle={() => Network.setShouldForceOffline(!props.network.shouldForceOffline)}
             />
         </TestToolRow>
 
         {/* When toggled all network requests will fail. */}
         <TestToolRow title="Simulate failing network requests">
             <Switch
-                isOn={props.network.shouldFailAllRequests || false}
+                isOn={Boolean(props.network.shouldFailAllRequests)}
                 onToggle={() => Network.setShouldFailAllRequests(!props.network.shouldFailAllRequests)}
             />
         </TestToolRow>

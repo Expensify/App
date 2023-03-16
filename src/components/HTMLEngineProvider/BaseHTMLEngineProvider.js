@@ -14,12 +14,17 @@ import fontFamily from '../../styles/fontFamily';
 const propTypes = {
     /** Whether text elements should be selectable */
     textSelectable: PropTypes.bool,
+
+    /** Handle line breaks according to the HTML standard (default on web)  */
+    enableExperimentalBRCollapsing: PropTypes.bool,
+
     children: PropTypes.node,
 };
 
 const defaultProps = {
     textSelectable: false,
     children: null,
+    enableExperimentalBRCollapsing: false,
 };
 
 // Declare nonstandard tags and their content model here
@@ -29,7 +34,7 @@ const customHTMLElementModels = {
     }),
     'muted-text': defaultHTMLElementModels.div.extend({
         tagName: 'muted-text',
-        mixedUAStyles: styles.mutedTextLabel,
+        mixedUAStyles: {...styles.formError, ...styles.mb0},
     }),
     comment: defaultHTMLElementModels.div.extend({
         tagName: 'comment',
@@ -50,11 +55,11 @@ const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]
 // costly invalidations and commits.
 const BaseHTMLEngineProvider = (props) => {
     // We need to memoize this prop to make it referentially stable.
-    const defaultTextProps = useMemo(() => ({selectable: props.textSelectable}), [props.textSelectable]);
+    const defaultTextProps = useMemo(() => ({selectable: props.textSelectable, allowFontScaling: false}), [props.textSelectable]);
 
     // We need to pass multiple system-specific fonts for emojis but
     // we can't apply multiple fonts at once so we need to pass fallback fonts.
-    const fallbackFonts = {'GTAmericaExp-Regular': fontFamily.EMOJI_TEXT_FONT};
+    const fallbackFonts = {'ExpensifyNeue-Regular': fontFamily.EMOJI_TEXT_FONT};
 
     return (
         <TRenderEngineProvider
@@ -70,6 +75,7 @@ const BaseHTMLEngineProvider = (props) => {
                 defaultViewProps={defaultViewProps}
                 renderers={htmlRenderers}
                 computeEmbeddedMaxWidth={HTMLEngineUtils.computeEmbeddedMaxWidth}
+                enableExperimentalBRCollapsing={props.enableExperimentalBRCollapsing}
             >
                 {props.children}
             </RenderHTMLConfigProvider>

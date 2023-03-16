@@ -1,50 +1,52 @@
 import Onyx from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
 import redirectToSignIn from '../SignInRedirect';
-import * as DeprecatedAPI from '../../deprecatedAPI';
 import CONFIG from '../../../CONFIG';
 import Log from '../../Log';
 import PushNotification from '../../Notification/PushNotification';
 import Timing from '../Timing';
 import CONST from '../../../CONST';
-import Navigation from '../../Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 import * as Localize from '../../Localize';
-import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
 import Timers from '../../Timers';
 import * as Pusher from '../../Pusher/pusher';
-import * as User from '../User';
 import * as Authentication from '../../Authentication';
 import * as Welcome from '../Welcome';
 import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
+import * as Report from '../Report';
 import DateUtils from '../../DateUtils';
+import Navigation from '../../Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 let credentials = {};
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
-    callback: val => credentials = val,
+    callback: val => credentials = val || {},
 });
 
 /**
- * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
+ * Manage push notification subscriptions on sign-in/sign-out.
  *
- * @param {Object} data
- * @param {String} data.accountID
- * @param {String} data.authToken
- * @param {String} data.email
+ * On Android, AuthScreens unmounts when the app is closed with the back button so we manage the
+ * push subscription when the session changes here.
  */
-function setSuccessfulSignInData(data) {
-    PushNotification.register(data.accountID);
-    Onyx.merge(ONYXKEYS.SESSION, {
-        errors: null,
-        ..._.pick(data, 'authToken', 'accountID', 'email', 'encryptedAuthToken'),
-    });
-    Onyx.set(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, true);
-}
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
+    callback: (notificationID) => {
+        if (notificationID) {
+            PushNotification.register(notificationID);
+
+            // Prevent issue where report linking fails after users switch accounts without closing the app
+            PushNotification.init();
+            Report.subscribeToReportCommentPushNotifications();
+        } else {
+            PushNotification.deregister();
+            PushNotification.clearNotifications();
+        }
+    },
+});
 
 /**
  * Clears the Onyx store and redirects user to the sign in page
@@ -52,18 +54,6 @@ function setSuccessfulSignInData(data) {
 function signOut() {
     Log.info('Flushing logs before signing out', true, {}, true);
 
-    const optimisticData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: ONYXKEYS.SESSION,
-            value: null,
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: ONYXKEYS.CREDENTIALS,
-            value: null,
-        },
-    ];
     API.write('LogOut', {
         // Send current authToken because we will immediately clear it once triggering this command
         authToken: NetworkStore.getAuthToken(),
@@ -71,7 +61,7 @@ function signOut() {
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         shouldRetry: false,
-    }, {optimisticData});
+    });
 
     Timing.clearData();
 }
@@ -118,6 +108,40 @@ function resendValidationLink(login = credentials.login) {
 }
 
 /**
+ * Request a new validate / magic code for user to sign in via passwordless flow
+ *
+ * @param {String} [login]
+ */
+function resendValidateCode(login = credentials.login) {
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: true,
+            errors: null,
+            message: null,
+        },
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: Localize.translateLocal('validateCodeForm.codeSent'),
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: null,
+        },
+    }];
+    API.write('RequestNewValidateCode', {email: login}, {optimisticData, successData, failureData});
+}
+
+/**
  * Checks the API to see if an account exists for the given login
  *
  * @param {String} login
@@ -142,6 +166,13 @@ function beginSignIn(login) {
                 isLoading: false,
             },
         },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.CREDENTIALS,
+            value: {
+                validateCode: null,
+            },
+        },
     ];
 
     const failureData = [
@@ -161,75 +192,13 @@ function beginSignIn(login) {
 }
 
 /**
- *
  * Will create a temporary login for the user in the passed authenticate response which is used when
  * re-authenticating after an authToken expires.
  *
- * @param {String} authToken
  * @param {String} email
- * @return {Promise}
+ * @param {String} authToken
  */
-function createTemporaryLogin(authToken, email) {
-    const autoGeneratedLogin = Str.guid('expensify.cash-');
-    const autoGeneratedPassword = Str.guid();
-
-    return DeprecatedAPI.CreateLogin({
-        authToken,
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        partnerUserID: autoGeneratedLogin,
-        partnerUserSecret: autoGeneratedPassword,
-        shouldRetry: false,
-        forceNetworkRequest: true,
-        email,
-        includeEncryptedAuthToken: true,
-    })
-        .then((createLoginResponse) => {
-            if (createLoginResponse.jsonCode !== 200) {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds()]: Localize.translate('createLoginResponse.message')}});
-                return createLoginResponse;
-            }
-
-            setSuccessfulSignInData(createLoginResponse);
-
-            // If we have an old generated login for some reason
-            // we should delete it before storing the new details
-            if (credentials && credentials.autoGeneratedLogin) {
-                DeprecatedAPI.DeleteLogin({
-                    partnerUserID: credentials.autoGeneratedLogin,
-                    partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-                    partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-                    shouldRetry: false,
-                })
-                    .then((response) => {
-                        if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
-                            return;
-                        }
-
-                        Log.hmmm('[Session] Unable to delete login', false, {message: response.message, jsonCode: response.jsonCode});
-                    });
-            }
-
-            Onyx.merge(ONYXKEYS.CREDENTIALS, {
-                autoGeneratedLogin,
-                autoGeneratedPassword,
-            });
-            return createLoginResponse;
-        })
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
-        });
-}
-
-/**
- * Sign the user into the application. This will first authenticate their account
- * then it will create a temporary login for them which is used when re-authenticating
- * after an authToken expires.
- *
- * @param {String} password
- * @param {String} [twoFactorAuthCode]
- */
-function signIn(password, twoFactorAuthCode) {
+function signInWithShortLivedAuthToken(email, authToken) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -261,30 +230,115 @@ function signIn(password, twoFactorAuthCode) {
         },
     ];
 
-    API.write('SigninUser', {email: credentials.login, password, twoFactorAuthCode}, {optimisticData, successData, failureData});
+    // If the user is transitioning to newDot from a different account on oldDot the credentials may be tied to
+    // the old account. If so, should not pass the auto-generated login as it is not tied to the account being signed in
+    const oldPartnerUserID = credentials.login === email ? credentials.autoGeneratedLogin : '';
+    API.write('SignInWithShortLivedAuthToken', {authToken, oldPartnerUserID}, {optimisticData, successData, failureData});
 }
 
 /**
- * Uses a short lived authToken to continue a user's session from OldDot
+ * Sign the user into the application. This will first authenticate their account
+ * then it will create a temporary login for them which is used when re-authenticating
+ * after an authToken expires.
  *
- * @param {String} email
- * @param {String} shortLivedToken
- * @param {String} exitTo
+ * @param {String} password This will be removed after passwordless beta ends
+ * @param {String} [validateCode] Code for passwordless login
+ * @param {String} [twoFactorAuthCode]
  */
-function signInWithShortLivedToken(email, shortLivedToken) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
+function signIn(password, validateCode, twoFactorAuthCode) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                ...CONST.DEFAULT_ACCOUNT_DATA,
+                isLoading: true,
+            },
+        },
+    ];
 
-    createTemporaryLogin(shortLivedToken, email)
-        .then((response) => {
-            if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                return;
-            }
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
 
-            User.getUserDetails();
-            Onyx.merge(ONYXKEYS.ACCOUNT, {success: true});
-        }).finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
-        });
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const params = {twoFactorAuthCode, email: credentials.login};
+
+    // Conditionally pass a password or validateCode to command since we temporarily allow both flows
+    if (validateCode) {
+        params.validateCode = validateCode;
+    } else {
+        params.password = password;
+    }
+
+    API.write('SigninUser', params, {optimisticData, successData, failureData});
+}
+
+function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                ...CONST.DEFAULT_ACCOUNT_DATA,
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.CREDENTIALS,
+            value: {
+                accountID,
+                validateCode,
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.write('SigninUserWithLink', {
+        accountID,
+        validateCode,
+        twoFactorAuthCode,
+    }, {optimisticData, successData, failureData});
+}
+
+function signInWithValidateCodeAndNavigate(accountID, validateCode) {
+    signInWithValidateCode(accountID, validateCode);
+    Navigation.navigate(ROUTES.HOME);
 }
 
 /**
@@ -363,7 +417,7 @@ function invalidateAuthToken() {
 function clearSignInData() {
     Onyx.multiSet({
         [ONYXKEYS.ACCOUNT]: null,
-        [ONYXKEYS.CREDENTIALS]: null,
+        [ONYXKEYS.CREDENTIALS]: {},
     });
 }
 
@@ -371,10 +425,6 @@ function clearSignInData() {
  * Put any logic that needs to run when we are signed out here. This can be triggered when the current tab or another tab signs out.
  */
 function cleanupSession() {
-    // We got signed out in this tab or another so clean up any subscriptions and timers
-    UnreadIndicatorUpdater.stopListeningForReportChanges();
-    PushNotification.deregister();
-    PushNotification.clearNotifications();
     Pusher.disconnect();
     Timers.clearAll();
     Welcome.resetReadyCheck();
@@ -387,40 +437,6 @@ function clearAccountMessages() {
         message: null,
         isLoading: false,
     });
-}
-
-/**
- * Calls change password and signs if successful. Otherwise, we request a new magic link
- * if we know the account email. Otherwise or finally we redirect to the root of the nav.
- * @param {String} authToken
- * @param {String} password
- */
-function changePasswordAndSignIn(authToken, password) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {validateSessionExpired: false});
-    DeprecatedAPI.ChangePassword({
-        authToken,
-        password,
-    })
-        .then((responsePassword) => {
-            if (responsePassword.jsonCode === 200) {
-                signIn(password);
-                return;
-            }
-            if (responsePassword.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED && !credentials.login) {
-                // authToken has expired, and we don't have the email set to request a new magic link.
-                // send user to login page to enter email.
-                Navigation.navigate(ROUTES.HOME);
-                return;
-            }
-            if (responsePassword.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
-                // authToken has expired, and we have the account email, so we request a new magic link.
-                Onyx.merge(ONYXKEYS.ACCOUNT, {errors: null});
-                resetPassword();
-                Navigation.navigate(ROUTES.HOME);
-                return;
-            }
-            Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('setPasswordPage.passwordNotSet')}});
-        });
 }
 
 /**
@@ -479,32 +495,6 @@ function updatePasswordAndSignin(accountID, validateCode, password) {
     API.write('UpdatePasswordAndSignin', {
         accountID, validateCode, password,
     }, {optimisticData, successData, failureData});
-}
-
-/**
- * @param {Number} accountID
- * @param {String} validateCode
- * @param {String} login
- * @param {String} authToken
- */
-function validateEmail(accountID, validateCode) {
-    Onyx.merge(ONYXKEYS.SESSION, {errors: null});
-    DeprecatedAPI.ValidateEmail({
-        accountID,
-        validateCode,
-    })
-        .then((responseValidate) => {
-            if (responseValidate.jsonCode === 200) {
-                Onyx.merge(ONYXKEYS.CREDENTIALS, {login: responseValidate.email, authToken: responseValidate.authToken});
-                return;
-            }
-            if (responseValidate.jsonCode === 666) {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true});
-            }
-            if (responseValidate.jsonCode === 401) {
-                Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: Localize.translate('setPasswordPage.setPasswordLinkInvalid')}});
-            }
-        });
 }
 
 // It's necessary to throttle requests to reauthenticate since calling this multiple times will cause Pusher to
@@ -569,19 +559,20 @@ export {
     beginSignIn,
     updatePasswordAndSignin,
     signIn,
-    signInWithShortLivedToken,
+    signInWithValidateCode,
+    signInWithValidateCodeAndNavigate,
+    signInWithShortLivedAuthToken,
+    cleanupSession,
     signOut,
     signOutAndRedirectToSignIn,
     resendValidationLink,
+    resendValidateCode,
     resetPassword,
     resendResetPassword,
     clearSignInData,
-    cleanupSession,
     clearAccountMessages,
-    validateEmail,
     authenticatePusher,
     reauthenticatePusher,
-    changePasswordAndSignIn,
     invalidateCredentials,
     invalidateAuthToken,
 };

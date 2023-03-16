@@ -7,18 +7,20 @@ const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
+const USA_COUNTRY_NAME = 'United States';
 
 const CONST = {
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
+    ANIMATION_IN_TIMING: 100,
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
         ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml', 'mp3', 'mp4', 'mov'],
 
-        // 50 megabytes in bytes
-        MAX_SIZE: 52428800,
+        // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
+        MAX_SIZE: 25165824,
 
         // An arbitrary size, but the same minimum as in the PHP layer
         MIN_SIZE: 240,
@@ -26,11 +28,38 @@ const CONST = {
 
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
 
-    AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp'],
+    AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
 
     // Minimum width and height size in px for a selected image
     AVATAR_MIN_WIDTH_PX: 80,
     AVATAR_MIN_HEIGHT_PX: 80,
+
+    // Maximum width and height size in px for a selected image
+    AVATAR_MAX_WIDTH_PX: 4096,
+    AVATAR_MAX_HEIGHT_PX: 4096,
+
+    DEFAULT_AVATAR_COUNT: 24,
+    OLD_DEFAULT_AVATAR_COUNT: 8,
+
+    DISPLAY_NAME: {
+        MAX_LENGTH: 50,
+        RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
+    },
+
+    // Sizes needed for report empty state background image handling
+    EMPTY_STATE_BACKGROUND: {
+        SMALL_SCREEN: {
+            IMAGE_HEIGHT: 300,
+            CONTAINER_MINHEIGHT: 200,
+            VIEW_HEIGHT: 185,
+        },
+        WIDE_SCREEN: {
+            IMAGE_HEIGHT: 450,
+            CONTAINER_MINHEIGHT: 500,
+            VIEW_HEIGHT: 275,
+        },
+    },
+
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
@@ -39,6 +68,9 @@ const CONST = {
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
+        UNIX_EPOCH: '1970-01-01 00:00:00.000',
+        MAX_DATE: '9999-12-31',
+        MIN_DATE: '0001-01-01',
     },
     SMS: {
         DOMAIN: '@expensify.sms',
@@ -103,7 +135,11 @@ const CONST = {
         },
         MAX_LENGTH: {
             SSN: 4,
-            ZIP_CODE: 5,
+            ZIP_CODE: 10,
+        },
+        TYPE: {
+            BUSINESS: 'BUSINESS',
+            PERSONAL: 'PERSONAL',
         },
     },
     INCORPORATION_TYPES: {
@@ -127,6 +163,7 @@ const CONST = {
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+        PASSWORDLESS: 'passwordless',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -143,6 +180,11 @@ const CONST = {
         MX: 'MX',
         AU: 'AU',
         CA: 'CA',
+    },
+    DESKTOP_DEEPLINK_APP_STATE: {
+        CHECKING: 'checking',
+        INSTALLED: 'installed',
+        NOT_INSTALLED: 'not-installed',
     },
     PLATFORM: {
         IOS: 'ios',
@@ -205,6 +247,11 @@ const CONST = {
             shortcutKey: 'ArrowDown',
             modifiers: [],
         },
+        TAB: {
+            descriptionKey: null,
+            shortcutKey: 'Tab',
+            modifiers: [],
+        },
     },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
         CONTROL: 'CTRL',
@@ -225,17 +272,22 @@ const CONST = {
     DEEPLINK_BASE_URL: 'new-expensify://',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
+    CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
     GITHUB_URL: 'https://github.com/Expensify/App',
     TERMS_URL: `${USE_EXPENSIFY_URL}/terms`,
     PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
     LICENSES_URL: `${USE_EXPENSIFY_URL}/licenses`,
-    PLAY_STORE_URL: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}&hl=en`,
+    GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
     ADD_SECONDARY_LOGIN_URL: encodeURI('settings?param={"section":"account","openModal":"secondaryLogin"}'),
     MANAGE_CARDS_URL: 'domain_companycards',
     FEES_URL: `${USE_EXPENSIFY_URL}/fees`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
+    NEWHELP_URL: 'https://help.expensify.com',
+    INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
+    STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
+    EXPENSIFY_URL: 'https://www.expensify.com',
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
@@ -245,7 +297,9 @@ const CONST = {
         PERSONAL_DETAIL: 'personalDetail',
     },
     REPORT: {
+        DROP_HOST_NAME: 'ReportDropZone',
         DROP_NATIVE_ID: 'report-dropzone',
+        ACTIVE_DROP_NATIVE_ID: 'report-dropzone',
         MAXIMUM_PARTICIPANTS: 8,
         ACTIONS: {
             LIMIT: 50,
@@ -255,6 +309,7 @@ const CONST = {
                 CREATED: 'CREATED',
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
+                CHRONOSOOOLIST: 'CHRONOSOOOLIST',
             },
         },
         ARCHIVE_REASON: {
@@ -263,9 +318,6 @@ const CONST = {
             ACCOUNT_MERGED: 'accountMerged',
             REMOVED_FROM_POLICY: 'removedFromPolicy',
             POLICY_DELETED: 'policyDeleted',
-        },
-        ERROR: {
-            INACCESSIBLE_REPORT: 'Report not found',
         },
         MESSAGE: {
             TYPE: {
@@ -309,14 +361,17 @@ const CONST = {
             ALWAYS: 'always',
         },
         VISIBILITY: {
-            RESTRICTED: 'restricted',
+            PUBLIC: 'public',
+            PUBLIC_ANNOUNCE: 'public_announce',
             PRIVATE: 'private',
+            RESTRICTED: 'restricted',
         },
         RESERVED_ROOM_NAMES: ['#admins', '#announce'],
         MAX_PREVIEW_AVATARS: 4,
-        MAX_ROOM_NAME_LENGTH: 80,
+        MAX_ROOM_NAME_LENGTH: 79,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
         OWNER_EMAIL_FAKE: '__FAKE__',
+        DEFAULT_REPORT_NAME: 'Chat Report',
     },
     COMPOSER: {
         MAX_LINES: 16,
@@ -350,13 +405,15 @@ const CONST = {
         SEARCH_RENDER: 'search_render',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
-        HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
         COLD: 'cold',
+        WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
+        SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
         TOOLTIP_SENSE: 1000,
-        SPINNER_TIMEOUT: 15 * 1000,
+        TRIE_INITIALIZATION: 'trie_initialization',
+        COMMENT_LENGTH_DEBOUNCE_TIME: 500,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -368,8 +425,17 @@ const CONST = {
         EXP_ERROR: 666,
         UNABLE_TO_RETRY: 'unableToRetry',
     },
+    HTTP_STATUS: {
+        // When Cloudflare throttles
+        TOO_MANY_REQUESTS: 429,
+        INTERNAL_SERVER_ERROR: 500,
+        BAD_GATEWAY: 502,
+        GATEWAY_TIMEOUT: 504,
+        UNKNOWN_ERROR: 520,
+    },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
+        THROTTLED: 'throttled',
         UNKNOWN_ERROR: 'Unknown error',
         REQUEST_CANCELLED: 'AbortError',
         FAILED_TO_FETCH: 'Failed to fetch',
@@ -398,7 +464,9 @@ const CONST = {
         METHOD: {
             POST: 'post',
         },
-        MAX_REQUEST_RETRIES: 10,
+        MIN_RETRY_WAIT_TIME_MS: 10,
+        MAX_RANDOM_RETRY_WAIT_TIME_MS: 100,
+        MAX_RETRY_WAIT_TIME_MS: 10 * 1000,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
     },
@@ -416,6 +484,7 @@ const CONST = {
         KYC_MIGRATION: 'expensify_migration_2020_04_28_RunKycVerifications',
         PREFERRED_EMOJI_SKIN_TONE: 'expensify_preferredEmojiSkinTone',
         FREQUENTLY_USED_EMOJIS: 'expensify_frequentlyUsedEmojis',
+        PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
@@ -428,6 +497,13 @@ const CONST = {
 
     // at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
     PASSWORD_COMPLEXITY_REGEX_STRING: '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
+
+    // 6 numeric digits
+    VALIDATE_CODE_REGEX_STRING: /^\d{6}$/,
+
+    // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags using this regex pattern.
+    // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
+    VALIDATE_FOR_HTML_TAG_REGEX: /<(.|\n)*?>/g,
 
     PASSWORD_PAGE: {
         ERROR: {
@@ -443,11 +519,16 @@ const CONST = {
 
     EMOJI_SPACER: 'SPACER',
 
+    // This is the number of columns in each row of the picker.
+    // Because of how flatList implements these rows, each row is an index rather than each element
+    // For this reason to make headers work, we need to have the header be the only rendered element in its row
+    // If this number is changed, emojis.js will need to be updated to have the proper number of spacer elements
+    // around each header.
     EMOJI_NUM_PER_ROW: 8,
 
     EMOJI_FREQUENT_ROW_COUNT: 3,
 
-    EMOJI_INVISIBLE_CODEPOINT: 'fe0f',
+    INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
 
     TOOLTIP_MAX_LINES: 3,
 
@@ -462,8 +543,11 @@ const CONST = {
         DECIMAL_PAD: 'decimal-pad',
         VISIBLE_PASSWORD: 'visible-password',
         EMAIL_ADDRESS: 'email-address',
+        ASCII_CAPABLE: 'ascii-capable',
+        URL: 'url',
     },
 
+    ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
@@ -488,11 +572,19 @@ const CONST = {
     ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_SIZE: {
         WIDTH: 320,
-        HEIGHT: 400,
+        HEIGHT: 416,
     },
-    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
-    EMOJI_PICKER_ITEM_HEIGHT: 40,
-    EMOJI_PICKER_HEADER_HEIGHT: 38,
+    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 256,
+    EMOJI_PICKER_ITEM_HEIGHT: 32,
+    EMOJI_PICKER_HEADER_HEIGHT: 32,
+    RECIPIENT_LOCAL_TIME_HEIGHT: 25,
+    EMOJI_SUGGESTER: {
+        SUGGESTER_PADDING: 6,
+        ITEM_HEIGHT: 36,
+        SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
+        MIN_AMOUNT_OF_ITEMS: 3,
+        MAX_AMOUNT_OF_ITEMS: 5,
+    },
     COMPOSER_MAX_HEIGHT: 125,
     CHAT_FOOTER_MIN_HEIGHT: 65,
     CHAT_SKELETON_VIEW: {
@@ -503,6 +595,7 @@ const CONST = {
             3: 100,
         },
     },
+    EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EMAIL: {
         CONCIERGE: 'concierge@expensify.com',
         HELP: 'help@expensify.com',
@@ -573,6 +666,7 @@ const CONST = {
         STEP: {
             // In the order they appear in the Wallet flow
             ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
+            ADDITIONAL_DETAILS_KBA: 'AdditionalDetailsKBAStep',
             ONFIDO: 'OnfidoStep',
             TERMS: 'TermsStep',
             ACTIVATE: 'ActivateStep',
@@ -601,8 +695,9 @@ const CONST = {
         },
         SMS_NUMBER_COUNTRY_CODE: 'US',
         ERROR: {
-            USER_CANCELLED: 'User canceled flow',
+            USER_CANCELLED: 'User canceled flow.',
             USER_TAPPED_BACK: 'User exited by clicking the back button.',
+            USER_EXITED: 'User exited by manual action.',
             USER_CAMERA_DENINED: 'Onfido.OnfidoFlowError',
             USER_CAMERA_PERMISSION: 'Encountered an error: cameraPermission',
             // eslint-disable-next-line max-len
@@ -655,6 +750,10 @@ const CONST = {
         },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
+            CREATE: 'create',
+            SPLIT: 'split',
+            DECLINE: 'decline',
+            CANCEL: 'cancel',
         },
         AMOUNT_MAX_LENGTH: 10,
     },
@@ -668,7 +767,6 @@ const CONST = {
     },
 
     DEFAULT_LOCALE: 'en',
-    DEFAULT_SKIN_TONE: 'default',
 
     POLICY: {
         TYPE: {
@@ -679,6 +777,8 @@ const CONST = {
         },
         ROLE: {
             ADMIN: 'admin',
+            AUDITOR: 'auditor',
+            USER: 'user',
         },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
@@ -698,12 +798,18 @@ const CONST = {
 
     ICON_TYPE_ICON: 'icon',
     ICON_TYPE_AVATAR: 'avatar',
+    ICON_TYPE_WORKSPACE: 'workspace',
+
     AVATAR_SIZE: {
         LARGE: 'large',
+        MEDIUM: 'medium',
         DEFAULT: 'default',
         SMALL: 'small',
+        SMALLER: 'smaller',
         SUBSCRIPT: 'subscript',
         SMALL_SUBSCRIPT: 'small-subscript',
+        MID_SUBSCRIPT: 'mid-subscript',
+        LARGE_BORDERED: 'large-bordered',
     },
     OPTION_MODE: {
         COMPACT: 'compact',
@@ -715,8 +821,9 @@ const CONST = {
         US_PHONE_WITH_OPTIONAL_COUNTRY_CODE: /^(\+1)?\d{10}$/,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
-        PHONE_WITH_SPECIAL_CHARS: /^[+]*[(]{0,1}[0-9]{1,3}[)]{0,1}[-\s\\./0-9]{0,12}$/,
+        PHONE_WITH_SPECIAL_CHARS: /^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$/,
         ALPHABETIC_CHARS: /[a-zA-Z]+/,
+        ALPHABETIC_CHARS_WITH_NUMBER: /^[a-zA-Z0-9 ]*$/,
         POSITIVE_INTEGER: /^\d+$/,
         NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
@@ -730,15 +837,30 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
+        ROOM_NAME: /^#[a-z0-9-]{1,80}$/,
 
-        // Adapted from: https://gist.github.com/dperini/729294
-        // eslint-disable-next-line max-len
-        HYPERLINK: /^(?:(?:(?:https?|ftp):\/\/)?)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u00a1-\uffff][a-z0-9\u00a1-\uffff_-]{0,62})?[a-z0-9\u00a1-\uffff]\.)+(?:[a-z\u00a1-\uffff]{2,}\.?))(?::\d{2,5})?(?:[/?#]\S*)?$/i,
+        WEBSITE: /^((https?|ftp):\/\/)(([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}(:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(#[-a-z\d_]*)?$/i,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
-        EMOJIS: /(?:\uD83D(?:\uDC41\u200D\uD83D\uDDE8|\uDC68\u200D\uD83D[\uDC68\uDC69]\u200D\uD83D(?:\uDC66(?:\u200D\uD83D\uDC66)?|\uDC67(?:\u200D\uD83D[\uDC66\uDC67])?)|\uDC69\u200D\uD83D\uDC69\u200D\uD83D(?:\uDC66(?:\u200D\uD83D\uDC66)?|\uDC67(?:\u200D\uD83D[\uDC66\uDC67])?))|[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|[\ud83c\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|[\ud83c\ude32-\ude3a]|[\ud83c\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26FF]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/g,
+        EMOJIS: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
+
+        // Extract attachment's source from the data's html string
+        ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
+
+        NON_NUMERIC_WITH_PLUS: /[^0-9+]/g,
+        EMOJI_NAME: /:[\w+-]+:/g,
+        EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
+        AFTER_FIRST_LINE_BREAK: /\n.*/g,
+        CODE_2FA: /^\d{6}$/,
+        ATTACHMENT_ID: /chat-attachments\/(\d+)/,
+        HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
+        NEW_LINE_OR_WHITE_SPACE: /[\n\s]/g,
+
+        // Define the regular expression pattern to match a string starting with a colon and ending with a space or newline character
+        EMOJI_REPLACER: /^:[^\n\r]+?(?=$|\s)/,
+        MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
     },
 
     PRONOUNS: {
@@ -777,10 +899,15 @@ const CONST = {
         ];
     },
 
-    // There's a limit of 60k characters in Auth - https://github.com/Expensify/Auth/blob/198d59547f71fdee8121325e8bc9241fc9c3236a/auth/lib/Request.h#L28
-    MAX_COMMENT_LENGTH: 60000,
+    // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
+    MAX_COMMENT_LENGTH: 15000,
+
+    // Furthermore, applying markup is very resource-consuming, so let's set a slightly lower limit for that
+    MAX_MARKUP_LENGTH: 10000,
 
     FORM_CHARACTER_LIMIT: 50,
+    LEGAL_NAMES_CHARACTER_LIMIT: 150,
+    WORKSPACE_NAME_CHARACTER_LIMIT: 80,
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
         // Values define in how many times the image can be bigger than its container.
@@ -815,7 +942,37 @@ const CONST = {
         INVITE: 'invite',
         LEAVE_ROOM: 'leaveRoom',
     },
-    PROFILE_SETTINGS_FORM: 'profileSettingsForm',
+
+    FOOTER: {
+        EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
+        SPEND_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/spend-management`,
+        EXPENSE_REPORTS_URL: `${USE_EXPENSIFY_URL}/expense-reports`,
+        COMPANY_CARD_URL: `${USE_EXPENSIFY_URL}/company-credit-card`,
+        RECIEPT_SCANNING_URL: `${USE_EXPENSIFY_URL}/receipt-scanning-app`,
+        BILL_PAY_URL: `${USE_EXPENSIFY_URL}/bills`,
+        INVOICES_URL: `${USE_EXPENSIFY_URL}/invoices`,
+        CPA_CARD_URL: `${USE_EXPENSIFY_URL}/cpa-card`,
+        PAYROLL_URL: `${USE_EXPENSIFY_URL}/payroll`,
+        TRAVEL_URL: `${USE_EXPENSIFY_URL}/travel`,
+        EXPENSIFY_APPROVED_URL: `${USE_EXPENSIFY_URL}/accountants`,
+        PRESS_KIT_URL: 'https://we.are.expensify.com/press-kit',
+        SUPPORT_URL: `${USE_EXPENSIFY_URL}/support`,
+        COMMUNITY_URL: 'https://community.expensify.com/',
+        PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
+        ABOUT_URL: 'https://we.are.expensify.com/',
+        BLOG_URL: 'https://blog.expensify.com/',
+        JOBS_URL: 'https://we.are.expensify.com/apply',
+        ORG_URL: 'https://expensify.org/',
+        INVESTOR_RELATIONS_URL: 'https://ir.expensify.com/',
+    },
+
+    SOCIALS: {
+        PODCAST: 'https://we.are.expensify.com/podcast',
+        TWITTER: 'https://www.twitter.com/expensify',
+        INSTAGRAM: 'https://www.instagram.com/expensify',
+        FACEBOOK: 'https://www.facebook.com/expensify',
+        LINKEDIN: 'https://www.linkedin.com/company/expensify',
+    },
 
     // These split the maximum decimal value of a signed 64-bit number (9,223,372,036,854,775,807) into parts where none of them are too big to fit into a 32-bit number, so that we can
     // generate them each with a random number generator with only 32-bits of precision.
@@ -847,7 +1004,304 @@ const CONST = {
         MAKE_REQUEST_WITH_SIDE_EFFECTS: 'makeRequestWithSideEffects',
     },
 
+    QUICK_REACTIONS: [
+        {
+            name: '+1',
+            code: '👍',
+            types: [
+                '👍🏿',
+                '👍🏾',
+                '👍🏽',
+                '👍🏼',
+                '👍🏻',
+            ],
+        },
+        {
+            name: 'heart',
+            code: '❤️',
+        },
+        {
+            name: 'joy',
+            code: '😂',
+        },
+        {
+            name: 'fire',
+            code: '🔥',
+        },
+    ],
+
     TFA_CODE_LENGTH: 6,
+    CHAT_ATTACHMENT_TOKEN_KEY: 'X-Chat-Attachment-Token',
+
+    USA_COUNTRY_NAME,
+    SPACE_LENGTH: 1,
+    SPACE: 1,
+    ALL_COUNTRIES: {
+        AC: 'Ascension Island',
+        AD: 'Andorra',
+        AE: 'United Arab Emirates',
+        AF: 'Afghanistan',
+        AG: 'Antigua & Barbuda',
+        AI: 'Anguilla',
+        AL: 'Albania',
+        AM: 'Armenia',
+        AO: 'Angola',
+        AQ: 'Antarctica',
+        AR: 'Argentina',
+        AS: 'American Samoa',
+        AT: 'Austria',
+        AU: 'Australia',
+        AW: 'Aruba',
+        AX: 'Åland Islands',
+        AZ: 'Azerbaijan',
+        BA: 'Bosnia & Herzegovina',
+        BB: 'Barbados',
+        BD: 'Bangladesh',
+        BE: 'Belgium',
+        BF: 'Burkina Faso',
+        BG: 'Bulgaria',
+        BH: 'Bahrain',
+        BI: 'Burundi',
+        BJ: 'Benin',
+        BL: 'St. Barthélemy',
+        BM: 'Bermuda',
+        BN: 'Brunei',
+        BO: 'Bolivia',
+        BQ: 'Caribbean Netherlands',
+        BR: 'Brazil',
+        BS: 'Bahamas',
+        BT: 'Bhutan',
+        BW: 'Botswana',
+        BY: 'Belarus',
+        BZ: 'Belize',
+        CA: 'Canada',
+        CC: 'Cocos (Keeling) Islands',
+        CD: 'Congo - Kinshasa',
+        CF: 'Central African Republic',
+        CG: 'Congo - Brazzaville',
+        CH: 'Switzerland',
+        CI: 'Côte d’Ivoire',
+        CK: 'Cook Islands',
+        CL: 'Chile',
+        CM: 'Cameroon',
+        CN: 'China',
+        CO: 'Colombia',
+        CR: 'Costa Rica',
+        CU: 'Cuba',
+        CV: 'Cape Verde',
+        CW: 'Curaçao',
+        CX: 'Christmas Island',
+        CY: 'Cyprus',
+        CZ: 'Czechia',
+        DE: 'Germany',
+        DG: 'Diego Garcia',
+        DJ: 'Djibouti',
+        DK: 'Denmark',
+        DM: 'Dominica',
+        DO: 'Dominican Republic',
+        DZ: 'Algeria',
+        EA: 'Ceuta & Melilla',
+        EC: 'Ecuador',
+        EE: 'Estonia',
+        EG: 'Egypt',
+        EH: 'Western Sahara',
+        ER: 'Eritrea',
+        ES: 'Spain',
+        ET: 'Ethiopia',
+        EZ: 'Eurozone',
+        FI: 'Finland',
+        FJ: 'Fiji',
+        FK: 'Falkland Islands',
+        FM: 'Micronesia',
+        FO: 'Faroe Islands',
+        FR: 'France',
+        GA: 'Gabon',
+        GB: 'United Kingdom',
+        GD: 'Grenada',
+        GE: 'Georgia',
+        GF: 'French Guiana',
+        GG: 'Guernsey',
+        GH: 'Ghana',
+        GI: 'Gibraltar',
+        GL: 'Greenland',
+        GM: 'Gambia',
+        GN: 'Guinea',
+        GP: 'Guadeloupe',
+        GQ: 'Equatorial Guinea',
+        GR: 'Greece',
+        GS: 'South Georgia & South Sandwich Islands',
+        GT: 'Guatemala',
+        GU: 'Guam',
+        GW: 'Guinea-Bissau',
+        GY: 'Guyana',
+        HK: 'Hong Kong',
+        HN: 'Honduras',
+        HR: 'Croatia',
+        HT: 'Haiti',
+        HU: 'Hungary',
+        IC: 'Canary Islands',
+        ID: 'Indonesia',
+        IE: 'Ireland',
+        IL: 'Israel',
+        IM: 'Isle of Man',
+        IN: 'India',
+        IO: 'British Indian Ocean Territory',
+        IQ: 'Iraq',
+        IR: 'Iran',
+        IS: 'Iceland',
+        IT: 'Italy',
+        JE: 'Jersey',
+        JM: 'Jamaica',
+        JO: 'Jordan',
+        JP: 'Japan',
+        KE: 'Kenya',
+        KG: 'Kyrgyzstan',
+        KH: 'Cambodia',
+        KI: 'Kiribati',
+        KM: 'Comoros',
+        KN: 'St. Kitts & Nevis',
+        KP: 'North Korea',
+        KR: 'South Korea',
+        KW: 'Kuwait',
+        KY: 'Cayman Islands',
+        KZ: 'Kazakhstan',
+        LA: 'Laos',
+        LB: 'Lebanon',
+        LC: 'St. Lucia',
+        LI: 'Liechtenstein',
+        LK: 'Sri Lanka',
+        LR: 'Liberia',
+        LS: 'Lesotho',
+        LT: 'Lithuania',
+        LU: 'Luxembourg',
+        LV: 'Latvia',
+        LY: 'Libya',
+        MA: 'Morocco',
+        MC: 'Monaco',
+        MD: 'Moldova',
+        ME: 'Montenegro',
+        MF: 'St. Martin',
+        MG: 'Madagascar',
+        MH: 'Marshall Islands',
+        MK: 'Macedonia',
+        ML: 'Mali',
+        MM: 'Myanmar (Burma)',
+        MN: 'Mongolia',
+        MO: 'Macau',
+        MP: 'Northern Mariana Islands',
+        MQ: 'Martinique',
+        MR: 'Mauritania',
+        MS: 'Montserrat',
+        MT: 'Malta',
+        MU: 'Mauritius',
+        MV: 'Maldives',
+        MW: 'Malawi',
+        MX: 'Mexico',
+        MY: 'Malaysia',
+        MZ: 'Mozambique',
+        NA: 'Namibia',
+        NC: 'New Caledonia',
+        NE: 'Niger',
+        NF: 'Norfolk Island',
+        NG: 'Nigeria',
+        NI: 'Nicaragua',
+        NL: 'Netherlands',
+        NO: 'Norway',
+        NP: 'Nepal',
+        NR: 'Nauru',
+        NU: 'Niue',
+        NZ: 'New Zealand',
+        OM: 'Oman',
+        PA: 'Panama',
+        PE: 'Peru',
+        PF: 'French Polynesia',
+        PG: 'Papua New Guinea',
+        PH: 'Philippines',
+        PK: 'Pakistan',
+        PL: 'Poland',
+        PM: 'St. Pierre & Miquelon',
+        PN: 'Pitcairn Islands',
+        PR: 'Puerto Rico',
+        PS: 'Palestinian Territories',
+        PT: 'Portugal',
+        PW: 'Palau',
+        PY: 'Paraguay',
+        QA: 'Qatar',
+        RE: 'Réunion',
+        RO: 'Romania',
+        RS: 'Serbia',
+        RU: 'Russia',
+        RW: 'Rwanda',
+        SA: 'Saudi Arabia',
+        SB: 'Solomon Islands',
+        SC: 'Seychelles',
+        SD: 'Sudan',
+        SE: 'Sweden',
+        SG: 'Singapore',
+        SH: 'St. Helena',
+        SI: 'Slovenia',
+        SJ: 'Svalbard & Jan Mayen',
+        SK: 'Slovakia',
+        SL: 'Sierra Leone',
+        SM: 'San Marino',
+        SN: 'Senegal',
+        SO: 'Somalia',
+        SR: 'Suriname',
+        SS: 'South Sudan',
+        ST: 'São Tomé & Príncipe',
+        SV: 'El Salvador',
+        SX: 'Sint Maarten',
+        SY: 'Syria',
+        SZ: 'Swaziland',
+        TA: 'Tristan da Cunha',
+        TC: 'Turks & Caicos Islands',
+        TD: 'Chad',
+        TF: 'French Southern Territories',
+        TG: 'Togo',
+        TH: 'Thailand',
+        TJ: 'Tajikistan',
+        TK: 'Tokelau',
+        TL: 'Timor-Leste',
+        TM: 'Turkmenistan',
+        TN: 'Tunisia',
+        TO: 'Tonga',
+        TR: 'Turkey',
+        TT: 'Trinidad & Tobago',
+        TV: 'Tuvalu',
+        TW: 'Taiwan',
+        TZ: 'Tanzania',
+        UA: 'Ukraine',
+        UG: 'Uganda',
+        UM: 'U.S. Outlying Islands',
+        UN: 'United Nations',
+        US: 'United States',
+        UY: 'Uruguay',
+        UZ: 'Uzbekistan',
+        VA: 'Vatican City',
+        VC: 'St. Vincent & Grenadines',
+        VE: 'Venezuela',
+        VG: 'British Virgin Islands',
+        VI: 'U.S. Virgin Islands',
+        VN: 'Vietnam',
+        VU: 'Vanuatu',
+        WF: 'Wallis & Futuna',
+        WS: 'Samoa',
+        XK: 'Kosovo',
+        YE: 'Yemen',
+        YT: 'Mayotte',
+        ZA: 'South Africa',
+        ZM: 'Zambia',
+        ZW: 'Zimbabwe',
+    },
+
+    // Values for checking if polyfill is required on a platform
+    POLYFILL_TEST: {
+        STYLE: 'currency',
+        CURRENCY: 'XAF',
+        FORMAT: 'symbol',
+        SAMPLE_INPUT: '123456.789',
+        EXPECTED_OUTPUT: 'FCFA 123,457',
+    },
 };
 
 export default CONST;

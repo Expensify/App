@@ -16,7 +16,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
 import CONST from '../../../CONST';
-import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
 
 const propTypes = {
@@ -52,14 +52,15 @@ class IOUAmountPage extends React.Component {
         super(props);
 
         this.updateAmountNumberPad = this.updateAmountNumberPad.bind(this);
+        this.updateLongPressHandlerState = this.updateLongPressHandlerState.bind(this);
         this.updateAmount = this.updateAmount.bind(this);
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
         this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
-        this.shouldUpdateSelection = true;
 
         this.state = {
             amount: props.selectedAmount,
+            shouldUpdateSelection: true,
             selection: {
                 start: props.selectedAmount.length,
                 end: props.selectedAmount.length,
@@ -141,7 +142,7 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
-     * Check if amount is a decimal upto 3 digits
+     * Check if amount is a decimal up to 3 digits
      *
      * @param {String} amount
      * @returns {Boolean}
@@ -194,6 +195,15 @@ class IOUAmountPage extends React.Component {
             const amount = this.addLeadingZero(`${prevState.amount.substring(0, prevState.selection.start)}${key}${prevState.amount.substring(prevState.selection.end)}`);
             return this.getNewState(prevState, amount);
         });
+    }
+
+    /**
+     * Update long press value, to remove items pressing on <
+     *
+     * @param {Boolean} value - Changed text from user input
+     */
+    updateLongPressHandlerState(value) {
+        this.setState({shouldUpdateSelection: value});
     }
 
     /**
@@ -263,19 +273,19 @@ class IOUAmountPage extends React.Component {
                         selectedCurrencyCode={this.props.iou.selectedCurrencyCode || CONST.CURRENCY.USD}
                         selection={this.state.selection}
                         onSelectionChange={(e) => {
-                            if (!this.shouldUpdateSelection) {
+                            if (!this.state.shouldUpdateSelection) {
                                 return;
                             }
                             this.setState({selection: e.nativeEvent.selection});
                         }}
                     />
                 </View>
-                <View style={[styles.w100, styles.justifyContentEnd]}>
-                    {canUseTouchScreen()
+                <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}>
+                    {DeviceCapabilities.canUseTouchScreen()
                         ? (
                             <BigNumberPad
                                 numberPressed={this.updateAmountNumberPad}
-                                longPressHandlerStateChanged={state => this.shouldUpdateSelection = !state}
+                                longPressHandlerStateChanged={this.updateLongPressHandlerState}
                             />
                         ) : <View />}
 

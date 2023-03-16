@@ -6,6 +6,13 @@ import CONST from '../../CONST';
 const propTypes = {
     /** Height of the container component */
     containerHeight: PropTypes.number.isRequired,
+
+    /** Whether to animate the skeleton view */
+    animate: PropTypes.bool,
+};
+
+const defaultProps = {
+    animate: true,
 };
 
 const ReportActionsSkeletonView = (props) => {
@@ -16,13 +23,13 @@ const ReportActionsSkeletonView = (props) => {
         const iconIndex = (index + 1) % 4;
         switch (iconIndex) {
             case 2:
-                skeletonViewLines.push(<SkeletonViewLines numberOfRows={2} key={`skeletonViewLines${index}`} />);
+                skeletonViewLines.push(<SkeletonViewLines animate={props.animate} numberOfRows={2} key={`skeletonViewLines${index}`} />);
                 break;
             case 0:
-                skeletonViewLines.push(<SkeletonViewLines numberOfRows={3} key={`skeletonViewLines${index}`} />);
+                skeletonViewLines.push(<SkeletonViewLines animate={props.animate} numberOfRows={3} key={`skeletonViewLines${index}`} />);
                 break;
             default:
-                skeletonViewLines.push(<SkeletonViewLines numberOfRows={1} key={`skeletonViewLines${index}`} />);
+                skeletonViewLines.push(<SkeletonViewLines animate={props.animate} numberOfRows={1} key={`skeletonViewLines${index}`} />);
         }
     }
     return <>{skeletonViewLines}</>;
@@ -30,4 +37,5 @@ const ReportActionsSkeletonView = (props) => {
 
 ReportActionsSkeletonView.displayName = 'ReportActionsSkeletonView';
 ReportActionsSkeletonView.propTypes = propTypes;
+ReportActionsSkeletonView.defaultProps = defaultProps;
 export default ReportActionsSkeletonView;

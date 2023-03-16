@@ -6,6 +6,52 @@ import variables from './variables';
 import colors from './colors';
 import positioning from './utilities/positioning';
 import styles from './styles';
+import * as ReportUtils from '../libs/ReportUtils';
+
+const workspaceColorOptions = [
+    {backgroundColor: colors.blue200, fill: colors.blue700},
+    {backgroundColor: colors.blue400, fill: colors.blue800},
+    {backgroundColor: colors.blue700, fill: colors.blue200},
+    {backgroundColor: colors.green200, fill: colors.green700},
+    {backgroundColor: colors.green400, fill: colors.green800},
+    {backgroundColor: colors.green700, fill: colors.green200},
+    {backgroundColor: colors.yellow200, fill: colors.yellow700},
+    {backgroundColor: colors.yellow400, fill: colors.yellow800},
+    {backgroundColor: colors.yellow700, fill: colors.yellow200},
+    {backgroundColor: colors.tangerine200, fill: colors.tangerine700},
+    {backgroundColor: colors.tangerine400, fill: colors.tangerine800},
+    {backgroundColor: colors.tangerine700, fill: colors.tangerine400},
+    {backgroundColor: colors.pink200, fill: colors.pink700},
+    {backgroundColor: colors.pink400, fill: colors.pink800},
+    {backgroundColor: colors.pink700, fill: colors.pink200},
+    {backgroundColor: colors.ice200, fill: colors.ice700},
+    {backgroundColor: colors.ice400, fill: colors.ice800},
+    {backgroundColor: colors.ice700, fill: colors.ice200},
+];
+
+const avatarBorderSizes = {
+    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.componentBorderRadiusSmall,
+    [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.componentBorderRadiusSmall,
+    [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.componentBorderRadiusSmall,
+    [CONST.AVATAR_SIZE.SMALLER]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.SMALL]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
+    [CONST.AVATAR_SIZE.MEDIUM]: variables.componentBorderRadiusLarge,
+    [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
+    [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.componentBorderRadiusRounded,
+};
+
+const avatarSizes = {
+    [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeNormal,
+    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.avatarSizeSmallSubscript,
+    [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.avatarSizeMidSubscript,
+    [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.avatarSizeSubscript,
+    [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
+    [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
+    [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
+    [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
+    [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
+};
 
 /**
  * Return the style size from an avatar size constant
@@ -14,14 +60,7 @@ import styles from './styles';
  * @returns {Number}
  */
 function getAvatarSize(size) {
-    const AVATAR_SIZES = {
-        [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeNormal,
-        [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.avatarSizeSmallSubscript,
-        [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.avatarSizeSubscript,
-        [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
-        [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
-    };
-    return AVATAR_SIZES[size];
+    return avatarSizes[size];
 }
 
 /**
@@ -38,6 +77,48 @@ function getAvatarStyle(size) {
         borderRadius: avatarSize,
         backgroundColor: themeColors.offline,
     };
+}
+
+/**
+* Return the border radius for an avatar
+*
+* @param {String} size
+* @param {String} type
+* @returns {Object}
+*/
+function getAvatarBorderRadius(size, type) {
+    if (type === CONST.ICON_TYPE_WORKSPACE) {
+        return {borderRadius: avatarBorderSizes[size]};
+    }
+
+    // Default to rounded border
+    return {borderRadius: variables.buttonBorderRadius};
+}
+
+/**
+ * Return the border style for an avatar
+ *
+ * @param {String} size
+ * @param {String} type
+ * @returns {Object}
+ */
+function getAvatarBorderStyle(size, type) {
+    return {
+        overflow: 'hidden',
+        ...getAvatarBorderRadius(size, type),
+    };
+}
+
+/**
+ * Helper method to return old dot default avatar associated with login
+ *
+ * @param {String} [workspaceName]
+ * @returns {Object}
+ */
+function getDefaultWorspaceAvatarColor(workspaceName) {
+    const colorHash = ReportUtils.hashLogin(workspaceName.trim(), workspaceColorOptions.length);
+
+    return workspaceColorOptions[colorHash];
 }
 
 /**
@@ -77,27 +158,18 @@ function getNavigationDrawerStyle(isSmallScreenWidth) {
             width: '100%',
             height: '100%',
             borderColor: themeColors.border,
+            backgroundColor: themeColors.appBG,
         }
         : {
             height: '100%',
             width: variables.sideBarWidth,
             borderRightColor: themeColors.border,
+            backgroundColor: themeColors.appBG,
         };
 }
 
 function getNavigationDrawerType(isSmallScreenWidth) {
     return isSmallScreenWidth ? 'slide' : 'permanent';
-}
-
-function getNavigationModalCardStyle(isSmallScreenWidth) {
-    return {
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-        backgroundColor: 'transparent',
-        height: '100%',
-    };
 }
 
 /**
@@ -181,7 +253,7 @@ function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerH
  * @param {Number} width
  * @return {Object}
  */
-function getAutoGrowTextInputStyle(width) {
+function getWidthStyle(width) {
     return {
         width,
     };
@@ -213,6 +285,37 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
+ * Converts a color in hexadecimal notation into RGB notation.
+ *
+ * @param {String} hexadecimal A color in hexadecimal notation.
+ * @returns {Array} `undefined` if the input color is not in hexadecimal notation. Otherwise, the RGB components of the input color.
+ */
+function hexadecimalToRGBArray(hexadecimal) {
+    const components = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexadecimal);
+
+    if (components === null) { return undefined; }
+
+    return _.map(components.slice(1), component => parseInt(component, 16));
+}
+
+/**
+ * Returns a background color with opacity style
+ *
+ * @param {String} backgroundColor
+ * @param {number} opacity
+ * @returns {Object}
+ */
+function getBackgroundColorWithOpacityStyle(backgroundColor, opacity) {
+    const result = hexadecimalToRGBArray(backgroundColor);
+    if (result !== undefined) {
+        return {
+            backgroundColor: `rgba(${result[0]}, ${result[1]}, ${result[2]}, ${opacity})`,
+        };
+    }
+    return {};
+}
+
+/**
  * Generate a style for the background color of the Badge
  *
  * @param {Boolean} success
@@ -234,14 +337,15 @@ function getBadgeColorStyle(success, error, isPressed = false) {
  * Generate a style for the background color of the button, based on its current state.
  *
  * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @param {Boolean} isMenuItem - whether this button is apart of a list
  * @returns {Object}
  */
-function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false) {
     switch (buttonState) {
-        case CONST.BUTTON_STATES.ACTIVE:
-            return {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.PRESSED:
             return {backgroundColor: themeColors.buttonPressedBG};
+        case CONST.BUTTON_STATES.ACTIVE:
+            return isMenuItem ? {backgroundColor: themeColors.border} : {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.DISABLED:
         case CONST.BUTTON_STATES.DEFAULT:
         default:
@@ -253,9 +357,10 @@ function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT
  * Generate fill color of an icon based on its state.
  *
  * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @param {Boolean} isMenuIcon - whether this icon is apart of a list
  * @returns {Object}
  */
-function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false) {
     switch (buttonState) {
         case CONST.BUTTON_STATES.ACTIVE:
         case CONST.BUTTON_STATES.PRESSED:
@@ -265,6 +370,9 @@ function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
         case CONST.BUTTON_STATES.DEFAULT:
         case CONST.BUTTON_STATES.DISABLED:
         default:
+            if (isMenuIcon) {
+                return themeColors.iconMenu;
+            }
             return themeColors.icon;
     }
 }
@@ -283,13 +391,13 @@ function getAnimatedFABStyle(rotate, backgroundColor) {
 
 /**
  * @param {Number} width
- * @param {Number} height
+ * @param {Number | null} height
  * @returns {Object}
  */
-function getWidthAndHeightStyle(width, height) {
+function getWidthAndHeightStyle(width, height = null) {
     return {
         width,
-        height,
+        height: height != null ? height : width,
     };
 }
 
@@ -298,16 +406,22 @@ function getWidthAndHeightStyle(width, height) {
  * @returns {Object}
  */
 function getModalPaddingStyles({
+    shouldAddBottomSafeAreaMargin,
+    shouldAddTopSafeAreaMargin,
     shouldAddBottomSafeAreaPadding,
     shouldAddTopSafeAreaPadding,
     safeAreaPaddingTop,
     safeAreaPaddingBottom,
     safeAreaPaddingLeft,
     safeAreaPaddingRight,
+    modalContainerStyleMarginTop,
+    modalContainerStyleMarginBottom,
     modalContainerStylePaddingTop,
     modalContainerStylePaddingBottom,
 }) {
     return {
+        marginTop: (modalContainerStyleMarginTop || 0) + (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0),
+        marginBottom: (modalContainerStyleMarginBottom || 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottom : 0),
         paddingTop: shouldAddTopSafeAreaPadding
             ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
             : modalContainerStylePaddingTop || 0,
@@ -429,6 +543,76 @@ function getPaymentMethodMenuWidth(isSmallScreenWidth) {
 }
 
 /**
+ * Converts a color in RGBA notation to an equivalent color in RGB notation.
+ *
+ * @param {Array} foregroundRGB The three components of the foreground color in RGB notation.
+ * @param {Array} backgroundRGB The three components of the background color in RGB notation.
+ * @param {number} opacity The desired opacity of the foreground color.
+ * @returns {Array} The RGB components of the RGBA color converted to RGB.
+ */
+function convertRGBAToRGB(foregroundRGB, backgroundRGB, opacity) {
+    const [foregroundRed, foregroundGreen, foregroundBlue] = foregroundRGB;
+    const [backgroundRed, backgroundGreen, backgroundBlue] = backgroundRGB;
+
+    return [
+        ((1 - opacity) * backgroundRed) + (opacity * foregroundRed),
+        ((1 - opacity) * backgroundGreen) + (opacity * foregroundGreen),
+        ((1 - opacity) * backgroundBlue) + (opacity * foregroundBlue),
+    ];
+}
+
+/**
+ * Converts three unit values to the three components of a color in RGB notation.
+ *
+ * @param {number} red A unit value representing the first component of a color in RGB notation.
+ * @param {number} green A unit value representing the second component of a color in RGB notation.
+ * @param {number} blue A unit value representing the third component of a color in RGB notation.
+ * @returns {Array} An array with the three components of a color in RGB notation.
+ */
+function convertUnitValuesToRGB(red, green, blue) {
+    return [Math.floor(red * 255), Math.floor(green * 255), Math.floor(blue * 255)];
+}
+
+/**
+ * Converts the three components of a color in RGB notation to three unit values.
+ *
+ * @param {number} red The first component of a color in RGB notation.
+ * @param {number} green The second component of a color in RGB notation.
+ * @param {number} blue The third component of a color in RGB notation.
+ * @returns {Array} An array with three unit values representing the components of a color in RGB notation.
+ */
+function convertRGBToUnitValues(red, green, blue) {
+    return [red / 255, green / 255, blue / 255];
+}
+
+/**
+ * Determines the theme color for a modal based on the app's background color,
+ * the modal's backdrop, and the backdrop's opacity.
+ *
+ * @returns {String} The theme color as an RGB value.
+ */
+function getThemeBackgroundColor() {
+    const backdropOpacity = variables.modalFullscreenBackdropOpacity;
+
+    const [backgroundRed, backgroundGreen, backgroundBlue] = hexadecimalToRGBArray(themeColors.appBG);
+    const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.modalBackdrop);
+    const normalizedBackdropRGB = convertRGBToUnitValues(backdropRed, backdropGreen, backdropBlue);
+    const normalizedBackgroundRGB = convertRGBToUnitValues(
+        backgroundRed,
+        backgroundGreen,
+        backgroundBlue,
+    );
+    const themeRGBNormalized = convertRGBAToRGB(
+        normalizedBackdropRGB,
+        normalizedBackgroundRGB,
+        backdropOpacity,
+    );
+    const themeRGB = convertUnitValuesToRGB(...themeRGBNormalized);
+
+    return `rgb(${themeRGB.join(', ')})`;
+}
+
+/**
  * Parse styleParam and return Styles array
  * @param {Object|Object[]} styleParam
  * @returns {Object[]}
@@ -484,13 +668,24 @@ function hasSafeAreas(windowWidth, windowHeight) {
 }
 
 /**
- * Get variable keyboard height as style
- * @param {Number} keyboardHeight
+ * Get height as style
+ * @param {Number} height
  * @returns {Object}
  */
-function getHeight(keyboardHeight) {
+function getHeight(height) {
     return {
-        height: keyboardHeight,
+        height,
+    };
+}
+
+/**
+ * Get minimum height as style
+ * @param {Number} minHeight
+ * @returns {Object}
+ */
+function getMinimumHeight(minHeight) {
+    return {
+        minHeight,
     };
 }
 
@@ -506,19 +701,224 @@ function fade(fadeAnimation) {
     };
 }
 
+/**
+ * Return width for keyboard shortcuts modal.
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
+function getKeyboardShortcutsModalWidth(isSmallScreenWidth) {
+    if (isSmallScreenWidth) {
+        return {maxWidth: '100%'};
+    }
+    return {maxWidth: 600};
+}
+
+/**
+ * @param {Boolean} isHovered
+ * @param {Boolean} isPressed
+ * @returns {Object}
+ */
+function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
+    let backgroundColor = themeColors.appBG;
+
+    if (isHovered) {
+        backgroundColor = themeColors.border;
+    }
+
+    if (isPressed) {
+        backgroundColor = themeColors.buttonPressedBG;
+    }
+
+    return {
+        backgroundColor,
+        borderColor: backgroundColor,
+    };
+}
+
+/**
+ * @param {Number} safeAreaPaddingBottom
+ * @returns {Object}
+ */
+function getErrorPageContainerStyle(safeAreaPaddingBottom = 0) {
+    return {
+        backgroundColor: themeColors.componentBG,
+        paddingBottom: 40 + safeAreaPaddingBottom,
+    };
+}
+
+/**
+ * Gets the correct size for the empty state background image based on screen dimensions
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
+function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth) {
+    if (isSmallScreenWidth) {
+        return {
+            height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
+            width: '100%',
+            position: 'absolute',
+        };
+    }
+
+    return {
+        height: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT,
+        width: '100%',
+        position: 'absolute',
+    };
+}
+
+/**
+ * Gets the correct top margin size for the chat welcome message based on screen dimensions
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
+function getReportWelcomeTopMarginStyle(isSmallScreenWidth) {
+    if (isSmallScreenWidth) {
+        return {
+            marginTop: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.VIEW_HEIGHT,
+        };
+    }
+
+    return {
+        marginTop: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.VIEW_HEIGHT,
+    };
+}
+
+/**
+ * Gets the correct size for the empty state container based on screen dimensions
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
+function getReportWelcomeContainerStyle(isSmallScreenWidth) {
+    if (isSmallScreenWidth) {
+        return {
+            minHeight: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.CONTAINER_MINHEIGHT,
+            display: 'flex',
+            justifyContent: 'space-between',
+        };
+    }
+
+    return {
+        minHeight: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.CONTAINER_MINHEIGHT,
+        display: 'flex',
+        justifyContent: 'space-between',
+    };
+}
+
+/**
+ * Gets styles for Emoji Suggestion row
+ *
+ * @param {Number} highlightedEmojiIndex
+ * @param {Number} rowHeight
+ * @param {Boolean} hovered
+ * @param {Number} currentEmojiIndex
+ * @returns {Object}
+ */
+function getEmojiSuggestionItemStyle(
+    highlightedEmojiIndex,
+    rowHeight,
+    hovered,
+    currentEmojiIndex,
+) {
+    return [
+        {
+            height: rowHeight,
+            justifyContent: 'center',
+        },
+        (currentEmojiIndex === highlightedEmojiIndex && !hovered) || hovered
+            ? {
+                backgroundColor: themeColors.highlightBG,
+            }
+            : {},
+    ];
+}
+
+/**
+ * Gets the correct position for emoji suggestion container
+ *
+ * @param {Number} itemsHeight
+ * @param {Boolean} shouldIncludeReportRecipientLocalTimeHeight
+ * @returns {Object}
+ */
+function getEmojiSuggestionContainerStyle(
+    itemsHeight,
+    shouldIncludeReportRecipientLocalTimeHeight,
+) {
+    const optionalPadding = shouldIncludeReportRecipientLocalTimeHeight ? CONST.RECIPIENT_LOCAL_TIME_HEIGHT : 0;
+    const padding = CONST.EMOJI_SUGGESTER.SUGGESTER_PADDING - optionalPadding;
+
+    // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
+    // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
+    return {
+        overflow: 'hidden',
+        top: -(itemsHeight + padding),
+    };
+}
+
+/**
+ * Select the correct color for text.
+ * @param {Boolean} isColored
+ * @returns {String | null}
+ */
+const getColoredBackgroundStyle = isColored => ({backgroundColor: isColored ? colors.blueLink : null});
+
+function getEmojiReactionBubbleStyle(isHovered, hasUserReacted, sizeScale = 1) {
+    const sizeStyles = {
+        paddingVertical: styles.emojiReactionBubble.paddingVertical * sizeScale,
+        paddingHorizontal: styles.emojiReactionBubble.paddingHorizontal * sizeScale,
+    };
+
+    if (hasUserReacted) {
+        return {backgroundColor: themeColors.reactionActive, ...sizeStyles};
+    }
+    if (isHovered) {
+        return {backgroundColor: themeColors.buttonHoveredBG, ...sizeStyles};
+    }
+
+    return sizeStyles;
+}
+
+function getEmojiReactionTextStyle(sizeScale = 1) {
+    return {
+        fontSize: styles.emojiReactionText.fontSize * sizeScale,
+        lineHeight: styles.emojiReactionText.lineHeight * sizeScale,
+    };
+}
+
+function getEmojiReactionCounterTextStyle(hasUserReacted, sizeScale = 1) {
+    const sizeStyles = {
+        fontSize: styles.reactionCounterText.fontSize * sizeScale,
+    };
+
+    if (hasUserReacted) {
+        return {
+            ...sizeStyles,
+            color: themeColors.link,
+        };
+    }
+
+    return sizeStyles;
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
+    getAvatarBorderStyle,
+    getErrorPageContainerStyle,
     getSafeAreaPadding,
     getSafeAreaMargins,
     getNavigationDrawerStyle,
     getNavigationDrawerType,
-    getNavigationModalCardStyle,
     getZoomCursorStyle,
     getZoomSizingStyle,
-    getAutoGrowTextInputStyle,
+    getWidthStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
+    getBackgroundColorWithOpacityStyle,
     getBadgeColorStyle,
     getButtonBackgroundColorStyle,
     getIconFillColor,
@@ -530,12 +930,27 @@ export {
     getLoginPagePromoStyle,
     getReportActionItemStyle,
     getMiniReportActionContextMenuWrapperStyle,
+    getKeyboardShortcutsModalWidth,
     getPaymentMethodMenuWidth,
+    getThemeBackgroundColor,
     parseStyleAsArray,
     combineStyles,
     getPaddingLeft,
     convertToLTR,
     hasSafeAreas,
     getHeight,
+    getMinimumHeight,
     fade,
+    getHorizontalStackedAvatarBorderStyle,
+    getReportWelcomeBackgroundImageStyle,
+    getReportWelcomeTopMarginStyle,
+    getReportWelcomeContainerStyle,
+    getEmojiSuggestionItemStyle,
+    getEmojiSuggestionContainerStyle,
+    getColoredBackgroundStyle,
+    getDefaultWorspaceAvatarColor,
+    getAvatarBorderRadius,
+    getEmojiReactionBubbleStyle,
+    getEmojiReactionTextStyle,
+    getEmojiReactionCounterTextStyle,
 };

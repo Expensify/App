@@ -36,8 +36,20 @@ export default {
                     Settings_Root: {
                         path: ROUTES.SETTINGS,
                     },
+                    Settings_Workspaces: {
+                        path: ROUTES.SETTINGS_WORKSPACES,
+                        exact: true,
+                    },
                     Settings_Preferences: {
                         path: ROUTES.SETTINGS_PREFERENCES,
+                        exact: true,
+                    },
+                    Settings_Preferences_PriorityMode: {
+                        path: ROUTES.SETTINGS_PRIORITY_MODE,
+                        exact: true,
+                    },
+                    Settings_Preferences_Language: {
+                        path: ROUTES.SETTINGS_LANGUAGE,
                         exact: true,
                     },
                     Settings_Close: {
@@ -84,6 +96,22 @@ export default {
                         path: ROUTES.SETTINGS_PROFILE,
                         exact: true,
                     },
+                    Settings_Pronouns: {
+                        path: ROUTES.SETTINGS_PRONOUNS,
+                        exact: true,
+                    },
+                    Settings_Display_Name: {
+                        path: ROUTES.SETTINGS_DISPLAY_NAME,
+                        exact: true,
+                    },
+                    Settings_Timezone: {
+                        path: ROUTES.SETTINGS_TIMEZONE,
+                        exact: true,
+                    },
+                    Settings_Timezone_Select: {
+                        path: ROUTES.SETTINGS_TIMEZONE_SELECT,
+                        exact: true,
+                    },
                     Settings_About: {
                         path: ROUTES.SETTINGS_ABOUT,
                         exact: true,
@@ -92,8 +120,28 @@ export default {
                         path: ROUTES.SETTINGS_APP_DOWNLOAD_LINKS,
                         exact: true,
                     },
+                    Settings_ContactMethods: {
+                        path: ROUTES.SETTINGS_CONTACT_METHODS,
+                        exact: true,
+                    },
                     Settings_Add_Secondary_Login: {
                         path: ROUTES.SETTINGS_ADD_LOGIN,
+                    },
+                    Settings_PersonalDetails_Initial: {
+                        path: ROUTES.SETTINGS_PERSONAL_DETAILS,
+                        exact: true,
+                    },
+                    Settings_PersonalDetails_LegalName: {
+                        path: ROUTES.SETTINGS_PERSONAL_DETAILS_LEGAL_NAME,
+                        exact: true,
+                    },
+                    Settings_PersonalDetails_DateOfBirth: {
+                        path: ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH,
+                        exact: true,
+                    },
+                    Settings_PersonalDetails_Address: {
+                        path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
+                        exact: true,
                     },
                     Workspace_Initial: {
                         path: ROUTES.WORKSPACE_INITIAL,
@@ -118,10 +166,6 @@ export default {
                     },
                     Workspace_Members: {
                         path: ROUTES.WORKSPACE_MEMBERS,
-                    },
-                    Workspace_BankAccount: {
-                        path: ROUTES.WORKSPACE_BANK_ACCOUNT,
-                        exact: true,
                     },
                     Workspace_Invite: {
                         path: ROUTES.WORKSPACE_INVITE,
@@ -213,16 +257,12 @@ export default {
                     EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
                 },
             },
-            RequestCall: {
-                screens: {
-                    RequestCall_Root: ROUTES.REQUEST_CALL,
-                },
-            },
             Wallet_Statement: {
                 screens: {
                     WalletStatement_Root: ROUTES.WALLET_STATEMENT_WITH_DATE,
                 },
             },
+            [SCREENS.NOT_FOUND]: '*',
         },
     },
 };

@@ -1,4 +1,3 @@
-
 /* eslint-disable no-unused-vars */
 function toggleHeaderMenu() {
     const lhn = document.getElementById('lhn');
@@ -11,27 +10,62 @@ function toggleHeaderMenu() {
         lhnContent.className = '';
         barsIcon.classList.remove('hide');
         anguleUpIcon.classList.add('hide');
+        document.body.classList.remove('disable-scrollbar');
     } else {
         // Expand the LHN in mobile
         lhn.className = 'expanded';
         lhnContent.className = 'expanded';
         barsIcon.classList.add('hide');
         anguleUpIcon.classList.remove('hide');
+        document.body.classList.add('disable-scrollbar');
     }
 }
 
+/**
+ * Clamp a number in a range.
+ *
+ * @param {Number} num
+ * @param {Number} min
+ * @param {Number} max
+ * @returns {Number}
+ */
+function clamp(num, min, max) {
+    return Math.min(Math.max(num, min), max);
+}
+
+/**
+ * Check if a number is in a range.
+ *
+ * @param {Number} num
+ * @param {Number} min
+ * @param {Number} max
+ * @returns {Boolean}
+ */
+function isInRange(num, min, max) {
+    return num >= min && num <= max;
+}
+
 function navigateBack() {
-    if (window.location.pathname.includes('/request-money/')) {
-        window.location.href = '/hubs/request-money';
+    const hubs = JSON.parse(document.getElementById('hubs-data').value);
+    const hubToNavigate = hubs.find(hub => window.location.pathname.includes(hub)); // eslint-disable-line rulesdir/prefer-underscore-method
+    if (hubToNavigate) {
+        window.location.href = `/hubs/${hubToNavigate}`;
     } else {
-        window.location.href = '/hubs/send-money';
+        window.location.href = '/';
     }
 
     // Add a little delay to avoid showing the previous content in a fraction of a time
     setTimeout(toggleHeaderMenu, 250);
 }
 
+function injectFooterCopywrite() {
+    const footer = document.getElementById('footer-copywrite-date');
+    footer.innerHTML = `&copy;2008-${new Date().getFullYear()} Expensify, Inc.`;
+}
+
 window.addEventListener('DOMContentLoaded', () => {
+    injectFooterCopywrite();
+
     if (window.tocbot) {
         window.tocbot.init({
         // Where to render the table of contents.
@@ -59,6 +93,9 @@ window.addEventListener('DOMContentLoaded', () => {
             scrollSmoothOffset: -80,
             scrollSmooth: true,
 
+            // If there is a fixed article scroll container, set to calculate titles' offset
+            scrollContainer: 'content-area',
+
             // onclick function to apply to all links in toc. will be called with
             // the event as the first parameter, and this can be used to stop,
             // propagation, prevent default or perform action
@@ -75,4 +112,23 @@ window.addEventListener('DOMContentLoaded', () => {
     if (backButton) {
         backButton.addEventListener('click', navigateBack);
     }
+
+    const articleContent = document.getElementById('article-content');
+    const lhnContent = document.getElementById('lhn-content');
+    lhnContent.addEventListener('wheel', (e) => {
+        const scrollTop = lhnContent.scrollTop;
+        const isScrollingPastLHNTop = e.deltaY < 0 && scrollTop === 0;
+        const isScrollingPastLHNBottom = (
+            e.deltaY > 0
+            && isInRange(lhnContent.scrollHeight - lhnContent.offsetHeight, scrollTop - 1, scrollTop + 1)
+        );
+        if (isScrollingPastLHNTop || isScrollingPastLHNBottom) {
+            e.preventDefault();
+        }
+    });
+    window.addEventListener('scroll', (e) => {
+        const scrollingElement = e.target.scrollingElement;
+        const scrollPercentageInArticleContent = clamp(scrollingElement.scrollTop - articleContent.offsetTop, 0, articleContent.scrollHeight) / articleContent.scrollHeight;
+        lhnContent.scrollTop = scrollPercentageInArticleContent * lhnContent.scrollHeight;
+    });
 });

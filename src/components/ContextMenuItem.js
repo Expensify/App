@@ -1,13 +1,12 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {Pressable} from 'react-native';
 import MenuItem from './MenuItem';
-import Tooltip from './Tooltip';
 import Icon from './Icon';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import getButtonState from '../libs/getButtonState';
 import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
+import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 
 const propTypes = {
     /** Icon Component */
@@ -41,7 +40,7 @@ const defaultProps = {
     isMini: false,
     successIcon: null,
     successText: '',
-    autoReset: false,
+    autoReset: true,
     description: '',
 };
 
@@ -74,26 +73,19 @@ class ContextMenuItem extends Component {
         return (
             this.props.isMini
                 ? (
-                    <Tooltip text={text}>
-                        <Pressable
-                            focusable
-                            accessibilityLabel={text}
-                            onPress={this.triggerPressAndUpdateSuccess}
-                            style={
-                                ({hovered, pressed}) => [
-                                    styles.reportActionContextMenuMiniButton,
-                                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, this.props.isDelayButtonStateComplete)),
-                                ]
-                            }
-                        >
-                            {({hovered, pressed}) => (
-                                <Icon
-                                    src={icon}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.props.isDelayButtonStateComplete))}
-                                />
-                            )}
-                        </Pressable>
-                    </Tooltip>
+                    <BaseMiniContextMenuItem
+                        tooltipText={text}
+                        onPress={this.triggerPressAndUpdateSuccess}
+                        isDelayButtonStateComplete={this.props.isDelayButtonStateComplete}
+                    >
+                        {({hovered, pressed}) => (
+                            <Icon
+                                small
+                                src={icon}
+                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.props.isDelayButtonStateComplete))}
+                            />
+                        )}
+                    </BaseMiniContextMenuItem>
                 ) : (
                     <MenuItem
                         title={text}

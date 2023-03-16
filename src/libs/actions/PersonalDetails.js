@@ -1,17 +1,13 @@
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import lodashMerge from 'lodash/merge';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
+import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as API from '../API';
-import * as DeprecatedAPI from '../deprecatedAPI';
-import NameValuePair from './NameValuePair';
-import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
-import Growl from '../Growl';
-import * as Localize from '../Localize';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -24,21 +20,6 @@ Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
     callback: val => personalDetails = val,
 });
-
-/**
- * Returns the URL for a user's avatar thumbnail and handles someone not having any avatar at all
- *
- * @param {Object} personalDetail
- * @param {String} login
- * @returns {String}
- */
-function getAvatarThumbnail(personalDetail, login) {
-    if (personalDetail && personalDetail.avatarThumbnail) {
-        return personalDetail.avatarThumbnail;
-    }
-
-    return ReportUtils.getDefaultAvatar(login);
-}
 
 /**
  * Returns the displayName for a user
@@ -62,56 +43,6 @@ function getDisplayName(login, personalDetail) {
     const fullName = (`${firstName} ${lastName}`).trim();
 
     return fullName || userLogin;
-}
-
-/**
- * Returns max character error text if true.
- *
- * @param {Boolean} isError
- * @returns {String}
- */
-function getMaxCharacterError(isError) {
-    return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT}) : '';
-}
-
-/**
- * Format personal details
- *
- * @param {Object} personalDetailsList
- * @return {Object}
- */
-function formatPersonalDetails(personalDetailsList) {
-    const formattedResult = {};
-
-    // This method needs to be SUPER PERFORMANT because it can be called with a massive list of logins depending on the policies that someone belongs to
-    // eslint-disable-next-line rulesdir/prefer-underscore-method
-    Object.entries(personalDetailsList).forEach(([login, details]) => {
-        const sanitizedLogin = LoginUtils.getEmailWithoutMergedAccountPrefix(login);
-
-        // Form the details into something that has all the data in an easy to use format.
-        const displayName = getDisplayName(sanitizedLogin, details);
-        const pronouns = details.pronouns || '';
-        const timezone = details.timeZone || CONST.DEFAULT_TIME_ZONE;
-        const firstName = details.firstName || '';
-        const lastName = details.lastName || '';
-        const payPalMeAddress = details.expensify_payPalMeAddress || '';
-        const phoneNumber = details.phoneNumber || '';
-        const avatar = details.avatar || details.avatarThumbnail || ReportUtils.getDefaultAvatar(login);
-        const avatarThumbnail = getAvatarThumbnail(details, sanitizedLogin);
-        formattedResult[sanitizedLogin] = {
-            login: sanitizedLogin,
-            displayName,
-            firstName,
-            lastName,
-            pronouns,
-            timezone,
-            payPalMeAddress,
-            phoneNumber,
-            avatar,
-            avatarThumbnail,
-        };
-    });
-    return formattedResult;
 }
 
 /**
@@ -152,120 +83,42 @@ function extractFirstAndLastNameFromAvailableDetails({
 }
 
 /**
- * Get personal details from report participants.
- *
- * @param {Object} reports
+ * Convert country names obtained from the backend to their respective ISO codes
+ * This is for backward compatibility of stored data before E/App#15507
+ * @param {String} countryName
+ * @returns {String}
  */
-function getFromReportParticipants(reports) {
-    const participantEmails = _.chain(reports)
-        .pluck('participants')
-        .flatten()
-        .unique()
-        .value();
-
-    if (participantEmails.length === 0) {
-        return;
+function getCountryISO(countryName) {
+    if (_.isEmpty(countryName) || countryName.length === 2) {
+        return countryName;
     }
-
-    DeprecatedAPI.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
-        .then((data) => {
-            const existingDetails = _.pick(data, participantEmails);
-
-            // Fallback to add logins that don't appear in the response
-            const details = _.chain(participantEmails)
-                .filter(login => !data[login])
-                .reduce((previousDetails, login) => ({
-                    ...previousDetails,
-                    [login]: {}, // Simply just need the key to exist
-                }), existingDetails)
-                .value();
-
-            const formattedPersonalDetails = formatPersonalDetails(details);
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formattedPersonalDetails);
-
-            // The personalDetails of the participants contain their avatar images. Here we'll go over each
-            // report and based on the participants we'll link up their avatars to report icons. This will
-            // skip over default rooms which aren't named by participants.
-            const reportsToUpdate = {};
-            _.each(reports, (report) => {
-                if (report.participants.length <= 0 && !ReportUtils.isChatRoom(report) && !ReportUtils.isPolicyExpenseChat(report)) {
-                    return;
-                }
-
-                const reportName = (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report))
-                    ? report.reportName
-                    : _.chain(report.participants)
-                        .filter(participant => participant !== currentUserEmail)
-                        .map(participant => lodashGet(
-                            formattedPersonalDetails,
-                            [participant, 'displayName'],
-                            participant,
-                        ))
-                        .value()
-                        .join(', ');
-
-                reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {reportName};
-            });
-
-            // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
-            // Any withOnyx subscribers to this key will also receive the complete updated props just once
-            // than updating props for each report and re-rendering had merge been used.
-            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate);
-        });
+    return _.findKey(CONST.ALL_COUNTRIES, country => country === countryName) || '';
 }
 
 /**
- * Merges partial details object into the local store.
- *
- * @param {Object} details
- * @private
+ * @param {String} pronouns
  */
-function mergeLocalPersonalDetails(details) {
-    // We are merging the partial details provided to this method with the existing details we have for the user so
-    // that we don't overwrite any values that may exist in storage.
-    const mergedDetails = lodashMerge(personalDetails[currentUserEmail], details);
-
-    // displayName is a generated field so we'll use the firstName and lastName + login to update it.
-    mergedDetails.displayName = getDisplayName(currentUserEmail, mergedDetails);
-
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[currentUserEmail]: mergedDetails});
+function updatePronouns(pronouns) {
+    API.write('UpdatePronouns', {pronouns}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    pronouns,
+                },
+            },
+        }],
+    });
+    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
- * Sets the personal details object for the current user
- *
- * @param {Object} details
- * @param {boolean} shouldGrowl
+ * @param {String} firstName
+ * @param {String} lastName
  */
-function setPersonalDetails(details, shouldGrowl) {
-    DeprecatedAPI.PersonalDetails_Update({details: JSON.stringify(details)})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                if (details.timezone) {
-                    NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
-                }
-                mergeLocalPersonalDetails(details);
-
-                if (shouldGrowl) {
-                    Growl.show(Localize.translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
-                }
-            } else if (response.jsonCode === 400) {
-                Growl.error(Localize.translateLocal('personalDetails.error.firstNameLength'), 3000);
-            } else if (response.jsonCode === 401) {
-                Growl.error(Localize.translateLocal('personalDetails.error.lastNameLength'), 3000);
-            } else {
-                console.debug('Error while setting personal details', response);
-            }
-        });
-}
-
-function updateProfile(firstName, lastName, pronouns, timezone) {
-    API.write('UpdateProfile', {
-        firstName,
-        lastName,
-        pronouns,
-        timezone: JSON.stringify(timezone),
-    }, {
+function updateDisplayName(firstName, lastName) {
+    API.write('UpdateDisplayName', {firstName, lastName}, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
@@ -273,8 +126,6 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
                 [currentUserEmail]: {
                     firstName,
                     lastName,
-                    pronouns,
-                    timezone,
                     displayName: getDisplayName(currentUserEmail, {
                         firstName,
                         lastName,
@@ -283,6 +134,125 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
             },
         }],
     });
+    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+}
+
+/**
+ * @param {String} legalFirstName
+ * @param {String} legalLastName
+ */
+function updateLegalName(legalFirstName, legalLastName) {
+    API.write('UpdateLegalName', {legalFirstName, legalLastName}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            value: {
+                legalFirstName,
+                legalLastName,
+            },
+        }],
+    });
+    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+}
+
+/**
+ * @param {String} dob - date of birth
+ */
+function updateDateOfBirth(dob) {
+    API.write('UpdateDateOfBirth', {dob}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            value: {
+                dob,
+            },
+        }],
+    });
+    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+}
+
+/**
+ * @param {String} street
+ * @param {String} street2
+ * @param {String} city
+ * @param {String} state
+ * @param {String} zip
+ * @param {String} country
+ */
+function updateAddress(street, street2, city, state, zip, country) {
+    API.write('UpdateHomeAddress', {
+        addressStreet: street,
+        addressStreet2: street2,
+        addressCity: city,
+        addressState: state,
+        addressZipCode: zip,
+        addressCountry: country,
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            value: {
+                address: {
+                    street: `${street}\n${street2}`,
+                    city,
+                    state,
+                    zip,
+                    country,
+                },
+            },
+        }],
+    });
+    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+}
+
+/**
+ * Updates timezone's 'automatic' setting, and updates
+ * selected timezone if set to automatically update.
+ *
+ * @param {Object} timezone
+ * @param {Boolean} timezone.automatic
+ * @param {String} timezone.selected
+ */
+function updateAutomaticTimezone(timezone) {
+    API.write('UpdateAutomaticTimezone', {
+        timezone: JSON.stringify(timezone),
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    timezone,
+                },
+            },
+        }],
+    });
+}
+
+/**
+ * Updates user's 'selected' timezone, then navigates to the
+ * initial Timezone page.
+ *
+ * @param {String} selectedTimezone
+ */
+function updateSelectedTimezone(selectedTimezone) {
+    const timezone = {
+        selected: selectedTimezone,
+    };
+    API.write('UpdateSelectedTimezone', {
+        timezone: JSON.stringify(timezone),
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    timezone,
+                },
+            },
+        }],
+    });
+    Navigation.navigate(ROUTES.SETTINGS_TIMEZONE);
 }
 
 /**
@@ -290,6 +260,13 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
  */
 function openIOUModalPage() {
     API.read('OpenIOUModalPage');
+}
+
+/**
+ * Fetches additional personal data like legal name, date of birth, address
+ */
+function openPersonalDetailsPage() {
+    API.read('OpenPersonalDetailsPage');
 }
 
 /**
@@ -346,7 +323,8 @@ function updateAvatar(file) {
  * Replaces the user's avatar image with a default avatar
  */
 function deleteAvatar() {
-    const defaultAvatar = ReportUtils.getDefaultAvatar(currentUserEmail);
+    // We want to use the old dot avatar here as this affects both platforms.
+    const defaultAvatar = ReportUtils.getOldDotDefaultAvatar(currentUserEmail);
 
     API.write('DeleteUserAvatar', {}, {
         optimisticData: [{
@@ -387,15 +365,19 @@ function clearAvatarErrors() {
 }
 
 export {
-    formatPersonalDetails,
-    getFromReportParticipants,
     getDisplayName,
-    setPersonalDetails,
     updateAvatar,
     deleteAvatar,
     openIOUModalPage,
-    getMaxCharacterError,
+    openPersonalDetailsPage,
     extractFirstAndLastNameFromAvailableDetails,
-    updateProfile,
+    updateDisplayName,
+    updateLegalName,
+    updateDateOfBirth,
+    updateAddress,
+    updatePronouns,
     clearAvatarErrors,
+    updateAutomaticTimezone,
+    updateSelectedTimezone,
+    getCountryISO,
 };

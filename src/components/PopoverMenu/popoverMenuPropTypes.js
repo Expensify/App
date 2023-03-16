@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Callback method fired when the user requests to close the modal */
@@ -44,6 +45,9 @@ const propTypes = {
         PropTypes.object,
     ]),
 
+    /** A react-native-animatable animation timing for the modal display animation. */
+    animationInTiming: PropTypes.number,
+
     /** Optional non-interactive text to display as a header for any create menu */
     headerText: PropTypes.string,
 
@@ -54,6 +58,7 @@ const propTypes = {
 const defaultProps = {
     animationIn: 'fadeIn',
     animationOut: 'fadeOut',
+    animationInTiming: CONST.ANIMATED_TRANSITION,
     headerText: undefined,
     disableAnimation: true,
 };

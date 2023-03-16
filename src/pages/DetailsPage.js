@@ -18,13 +18,13 @@ import CommunicationsLink from '../components/CommunicationsLink';
 import Tooltip from '../components/Tooltip';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
-import DateUtils from '../libs/DateUtils';
 import * as Expensicons from '../components/Icon/Expensicons';
-import FullscreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import MenuItem from '../components/MenuItem';
 import AttachmentModal from '../components/AttachmentModal';
 import PressableWithoutFocus from '../components/PressableWithoutFocus';
 import * as Report from '../libs/actions/Report';
+import OfflineWithFeedback from '../components/OfflineWithFeedback';
+import AutoUpdateTime from '../components/AutoUpdateTime';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -40,12 +40,17 @@ const propTypes = {
     /* Onyx Props */
 
     /** The personal details of the person who is logged in */
-    personalDetails: personalDetailsPropType.isRequired,
+    personalDetails: personalDetailsPropType,
 
     /** Route params */
     route: matchType.isRequired,
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    // When opening someone else's profile (via deep link) before login, this is empty
+    personalDetails: {},
 };
 
 /**
@@ -77,21 +82,23 @@ class DetailsPage extends React.PureComponent {
     }
 
     render() {
-        const details = this.props.personalDetails[lodashGet(this.props.route.params, 'login')];
+        let details = lodashGet(this.props.personalDetails, lodashGet(this.props.route.params, 'login'));
+
         if (!details) {
-            // Personal details have not loaded yet
-            return <FullscreenLoadingIndicator />;
+            const login = lodashGet(this.props.route.params, 'login');
+            details = {
+                login,
+                displayName: ReportUtils.getDisplayNameForParticipant(login),
+                avatar: ReportUtils.getAvatar(lodashGet(details, 'avatar', ''), login),
+            };
         }
+
         const isSMSLogin = Str.isSMSLogin(details.login);
 
         // If we have a reportID param this means that we
         // arrived here via the ParticipantsPage and should be allowed to navigate back to it
         const shouldShowBackButton = Boolean(this.props.route.params.reportID);
-        const timezone = DateUtils.getLocalMomentFromTimestamp(this.props.preferredLocale, null, details.timezone.selected);
-        const GMTTime = `${timezone.toString().split(/[+-]/)[0].slice(-3)} ${timezone.zoneAbbr()}`;
-        const currentTime = Number.isNaN(Number(timezone.zoneAbbr())) ? timezone.zoneAbbr() : GMTTime;
-        const shouldShowLocalTime = !ReportUtils.hasExpensifyEmails([details.login]);
-
+        const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyEmails([details.login]) && details.timezone;
         let pronouns = details.pronouns;
 
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -115,10 +122,10 @@ class DetailsPage extends React.PureComponent {
                 >
                     {details ? (
                         <ScrollView>
-                            <View style={styles.pageWrapper}>
+                            <View style={styles.avatarSectionWrapper}>
                                 <AttachmentModal
                                     headerTitle={isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
-                                    sourceURL={details.avatar}
+                                    source={ReportUtils.getFullSizeAvatar(details.avatar, details.login)}
                                     isAuthTokenRequired
                                 >
                                     {({show}) => (
@@ -126,31 +133,32 @@ class DetailsPage extends React.PureComponent {
                                             style={styles.noOutline}
                                             onPress={show}
                                         >
-                                            <Avatar
-                                                containerStyles={[styles.avatarLarge, styles.mb3]}
-                                                imageStyles={[styles.avatarLarge]}
-                                                source={details.avatar}
-                                                size={CONST.AVATAR_SIZE.LARGE}
-                                            />
+                                            <OfflineWithFeedback
+                                                pendingAction={lodashGet(details, 'pendingFields.avatar', null)}
+                                            >
+                                                <Avatar
+                                                    containerStyles={[styles.avatarLarge, styles.mb3]}
+                                                    imageStyles={[styles.avatarLarge]}
+                                                    source={ReportUtils.getAvatar(details.avatar, details.login)}
+                                                    size={CONST.AVATAR_SIZE.LARGE}
+                                                />
+                                            </OfflineWithFeedback>
                                         </PressableWithoutFocus>
                                     )}
                                 </AttachmentModal>
                                 {details.displayName && (
-                                    <Text style={[styles.displayName, styles.mb6]} numberOfLines={1}>
+                                    <Text style={[styles.textHeadline, styles.mb6]} numberOfLines={1}>
                                         {isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
                                     </Text>
                                 )}
                                 {details.login ? (
                                     <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
-                                        <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                        <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
                                             {this.props.translate(isSMSLogin
                                                 ? 'common.phoneNumber'
                                                 : 'common.email')}
                                         </Text>
-                                        <CommunicationsLink
-                                            type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
-                                            value={isSMSLogin ? getPhoneNumber(details) : details.login}
-                                        >
+                                        <CommunicationsLink value={isSMSLogin ? getPhoneNumber(details) : details.login}>
                                             <Tooltip text={isSMSLogin ? getPhoneNumber(details) : details.login}>
                                                 <Text numberOfLines={1}>
                                                     {isSMSLogin
@@ -163,7 +171,7 @@ class DetailsPage extends React.PureComponent {
                                 ) : null}
                                 {pronouns ? (
                                     <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                        <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                        <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
                                             {this.props.translate('profilePage.preferredPronouns')}
                                         </Text>
                                         <Text numberOfLines={1}>
@@ -171,24 +179,13 @@ class DetailsPage extends React.PureComponent {
                                         </Text>
                                     </View>
                                 ) : null}
-                                {shouldShowLocalTime && details.timezone ? (
-                                    <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                        <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                            {this.props.translate('detailsPage.localTime')}
-                                        </Text>
-                                        <Text numberOfLines={1}>
-                                            {timezone.format('LT')}
-                                            {' '}
-                                            {currentTime}
-                                        </Text>
-                                    </View>
-                                ) : null}
+                                {shouldShowLocalTime && <AutoUpdateTime timezone={details.timezone} />}
                             </View>
                             {details.login !== this.props.session.email && (
                                 <MenuItem
                                     title={`${this.props.translate('common.message')}${details.displayName}`}
                                     icon={Expensicons.ChatBubble}
-                                    onPress={() => Report.fetchOrCreateChatReport([this.props.session.email, details.login])}
+                                    onPress={() => Report.navigateToAndOpenReport([details.login])}
                                     wrapperStyle={styles.breakAll}
                                     shouldShowRightIcon
                                 />
@@ -202,6 +199,7 @@ class DetailsPage extends React.PureComponent {
 }
 
 DetailsPage.propTypes = propTypes;
+DetailsPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,

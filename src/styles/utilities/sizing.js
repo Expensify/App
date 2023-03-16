@@ -12,12 +12,20 @@ export default {
         width: '20%',
     },
 
+    w25: {
+        width: '25%',
+    },
+
     mnh100: {
         minHeight: '100%',
     },
 
     mnw2: {
         minWidth: 8,
+    },
+
+    mnw25: {
+        minWidth: '25%',
     },
 
     w50: {

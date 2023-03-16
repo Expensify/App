@@ -12,7 +12,7 @@ import Tooltip from '../../../components/Tooltip';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import compose from '../../../libs/compose';
 import * as StyleUtils from '../../../styles/StyleUtils';
 
@@ -98,20 +98,15 @@ const ReportActionItemFragment = (props) => {
                         )
                 );
             }
-            let {html, text} = props.fragment;
+            const {html, text} = props.fragment;
 
             // If the only difference between fragment.text and fragment.html is <br /> tags
-            // we replace them with line breaks and render it as text, not as html.
+            // we render it as text, not as html.
             // This is done to render emojis with line breaks between them as text.
-            const differByLineBreaksOnly = Str.replaceAll(props.fragment.html, '<br />', ' ') === props.fragment.text;
-            if (differByLineBreaksOnly) {
-                const textWithLineBreaks = Str.replaceAll(props.fragment.html, '<br />', '\n');
-                html = textWithLineBreaks;
-                text = textWithLineBreaks;
-            }
+            const differByLineBreaksOnly = Str.replaceAll(html, '<br />', '\n') === text;
 
             // Only render HTML if we have html in the fragment
-            if (html !== text) {
+            if (!differByLineBreaksOnly) {
                 const editedTag = props.fragment.isEdited ? '<edited></edited>' : '';
                 const htmlContent = html + editedTag;
                 return (
@@ -125,7 +120,7 @@ const ReportActionItemFragment = (props) => {
             return (
                 <Text
                     family="EMOJI_TEXT_FONT"
-                    selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
+                    selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
                     style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >
                     {StyleUtils.convertToLTR(Str.htmlDecode(text))}
@@ -144,7 +139,6 @@ const ReportActionItemFragment = (props) => {
             return (
                 <Tooltip text={props.tooltipText}>
                     <Text
-                        selectable
                         numberOfLines={props.isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessageHeaderSender]}
                     >

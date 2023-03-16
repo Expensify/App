@@ -21,6 +21,7 @@ const propTypes = {
 
 const WorkspaceInvoicesPage = props => (
     <WorkspacePageWithSections
+        shouldUseScrollView
         headerText={props.translate('workspace.common.invoices')}
         route={props.route}
         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INVOICES}

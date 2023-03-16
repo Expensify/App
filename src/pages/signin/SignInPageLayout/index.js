@@ -1,14 +1,15 @@
-import _ from 'underscore';
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View, ScrollView} from 'react-native';
+import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
+import compose from '../../../libs/compose';
 import SignInPageContent from './SignInPageContent';
+import Footer from './Footer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import SVGImage from '../../../components/SVGImage';
 import styles from '../../../styles/styles';
+import SignInPageGraphics from './SignInPageGraphics';
 import * as StyleUtils from '../../../styles/StyleUtils';
-import * as Link from '../../../libs/actions/Link';
-import variables from '../../../styles/variables';
+import scrollViewContentContainerStyles from './signInPageStyles';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -24,60 +25,55 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const backgroundStyle = StyleUtils.getLoginPagePromoStyle();
-
 const SignInPageLayout = (props) => {
-    const content = (
-        <SignInPageContent
-            welcomeText={props.welcomeText}
-            shouldShowWelcomeText={props.shouldShowWelcomeText}
-        >
-            {props.children}
-        </SignInPageContent>
-    );
-
-    const hasRedirect = !_.isEmpty(backgroundStyle.redirectUri);
-
-    const graphicLayout = (
-        <Pressable
-            style={[
-                styles.flex1,
-                StyleUtils.getBackgroundColorStyle(backgroundStyle.backgroundColor),
-            ]}
-            onPress={() => {
-                Link.openExternalLink(backgroundStyle.redirectUri);
-            }}
-            disabled={!hasRedirect}
-        >
-            <SVGImage
-                width="100%"
-                height="100%"
-                src={backgroundStyle.backgroundImageUri}
-                resizeMode="contain"
-            />
-        </Pressable>
-    );
-
     let containerStyles = [styles.flex1, styles.signInPageInner];
     let contentContainerStyles = [styles.flex1, styles.flexRow];
 
-    const isLongMediumScreenWidth = props.isMediumScreenWidth && props.windowHeight >= variables.minHeightToShowGraphics;
+    // To scroll on both mobile and web, we need to set the container height manually
+    const containerHeight = props.windowHeight - props.insets.top - props.insets.bottom;
 
     if (props.isSmallScreenWidth) {
         containerStyles = [styles.flex1];
-        contentContainerStyles = [styles.flex1];
-    } else if (isLongMediumScreenWidth) {
-        containerStyles = [styles.dFlex, styles.signInPageInner, styles.flexColumnReverse, styles.justifyContentBetween];
-        contentContainerStyles = [styles.flex1];
+        contentContainerStyles = [styles.flex1, styles.flexColumn];
     }
 
     return (
         <View style={containerStyles}>
-            {isLongMediumScreenWidth && graphicLayout}
-            <View style={contentContainerStyles}>
-                {content}
-                {!props.isSmallScreenWidth && !isLongMediumScreenWidth && graphicLayout}
-            </View>
+            {!props.isSmallScreenWidth
+                ? (
+                    <View style={contentContainerStyles}>
+                        <SignInPageContent
+                            welcomeText={props.welcomeText}
+                            shouldShowWelcomeText={props.shouldShowWelcomeText}
+                        >
+                            {props.children}
+                        </SignInPageContent>
+                        <ScrollView
+                            style={[styles.flex1]}
+                            contentContainerStyle={[styles.flex1]}
+                        >
+                            <SignInPageGraphics />
+                            <Footer />
+                        </ScrollView>
+                    </View>
+                ) : (
+                    <ScrollView
+                        contentContainerStyle={scrollViewContentContainerStyles}
+                        keyboardShouldPersistTaps="handled"
+                    >
+                        <View style={[styles.flex1, StyleUtils.getMinimumHeight(containerHeight)]}>
+                            <SignInPageContent
+                                welcomeText={props.welcomeText}
+                                shouldShowWelcomeText={props.shouldShowWelcomeText}
+                            >
+                                {props.children}
+                            </SignInPageContent>
+                        </View>
+                        <View style={[styles.flex0]}>
+                            <Footer />
+                        </View>
+                    </ScrollView>
+                )}
         </View>
     );
 };
@@ -85,4 +81,7 @@ const SignInPageLayout = (props) => {
 SignInPageLayout.propTypes = propTypes;
 SignInPageLayout.displayName = 'SignInPageLayout';
 
-export default withWindowDimensions(SignInPageLayout);
+export default compose(
+    withWindowDimensions,
+    withSafeAreaInsets,
+)(SignInPageLayout);

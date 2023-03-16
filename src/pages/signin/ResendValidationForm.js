@@ -14,7 +14,6 @@ import compose from '../../libs/compose';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import Avatar from '../../components/Avatar';
 import * as ReportUtils from '../../libs/ReportUtils';
-import OfflineIndicator from '../../components/OfflineIndicator';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
@@ -73,14 +72,14 @@ const ResendValidationForm = (props) => {
             {!_.isEmpty(props.account.message) && (
 
                 // DotIndicatorMessage mostly expects onyxData errors so we need to mock an object so that the messages looks similar to prop.account.errors
-                <DotIndicatorMessage style={[styles.mb5]} type="success" messages={{0: props.account.message}} />
+                <DotIndicatorMessage style={[styles.mb5, styles.flex0]} type="success" messages={{0: props.account.message}} />
             )}
             {!_.isEmpty(props.account.errors) && (
                 <DotIndicatorMessage style={[styles.mb5]} type="error" messages={props.account.errors} />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <TouchableOpacity onPress={() => redirectToSignIn()}>
-                    <Text>
+                    <Text style={[styles.link]}>
                         {props.translate('common.back')}
                     </Text>
                 </TouchableOpacity>
@@ -93,7 +92,6 @@ const ResendValidationForm = (props) => {
                     isDisabled={props.network.isOffline}
                 />
             </View>
-            <OfflineIndicator containerStyles={[styles.mv1]} />
         </>
     );
 };

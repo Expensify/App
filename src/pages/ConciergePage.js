@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import Navigation from '../libs/Navigation/Navigation';
@@ -26,7 +25,9 @@ const propTypes = {
  */
 const ConciergePage = (props) => {
     if (_.has(props.session, 'authToken')) {
-        Report.fetchOrCreateChatReport([props.session.email, CONST.EMAIL.CONCIERGE]);
+        Navigation.isDrawerReady().then(() => {
+            Report.navigateToConciergeChat();
+        });
     } else {
         Navigation.navigate();
     }

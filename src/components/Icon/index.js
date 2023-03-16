@@ -17,7 +17,7 @@ const propTypes = {
     /** The height of the icon. */
     height: PropTypes.number,
 
-    /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue' */
+    /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
     fill: PropTypes.string,
 
     /** Is small icon */
@@ -25,6 +25,9 @@ const propTypes = {
 
     /** Is inline icon */
     inline: PropTypes.bool,
+
+    // eslint-disable-next-line react/forbid-prop-types
+    additionalStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
@@ -33,6 +36,7 @@ const defaultProps = {
     fill: themeColors.icon,
     small: false,
     inline: false,
+    additionalStyles: [],
 };
 
 // We must use a class component to create an animatable component with the Animated API
@@ -41,6 +45,9 @@ class Icon extends PureComponent {
     render() {
         const width = this.props.small ? variables.iconSizeSmall : this.props.width;
         const height = this.props.small ? variables.iconSizeSmall : this.props.height;
+        const iconStyles = [StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute,
+            ...this.props.additionalStyles,
+        ];
 
         if (this.props.inline) {
             return (
@@ -48,7 +55,7 @@ class Icon extends PureComponent {
                     accessibilityHint={`${this.props.src.name} Icon`}
                     style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible]}
                 >
-                    <View style={[StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute]}>
+                    <View style={iconStyles}>
                         <this.props.src
                             width={width}
                             height={height}
@@ -60,7 +67,10 @@ class Icon extends PureComponent {
         }
 
         return (
-            <View accessibilityHint={`${this.props.src.name} Icon`}>
+            <View
+                accessibilityHint={`${this.props.src.name} Icon`}
+                style={this.props.additionalStyles}
+            >
                 <this.props.src
                     width={width}
                     height={height}
