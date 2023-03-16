@@ -1,10 +1,12 @@
 import React from 'react';
-import {View} from 'react-native';
+import {Pressable, Text, StyleSheet, View, Platform} from 'react-native';
+import getPlatform from '../libs/getPlatform';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import CONST from '../CONST';
 import TextInput from './TextInput';
+import FormHelpMessage from './FormHelpMessage';
 
 const propTypes = {
     /** Name attribute for the input */
@@ -13,7 +15,7 @@ const propTypes = {
     /** Input value */
     value: PropTypes.string,
 
-    /** Should the input auto focus? */
+    /** Should the input auto focus */
     autoFocus: PropTypes.bool,
 
     /** Whether we should wait before focusing the TextInput, useful when using transitions  */
@@ -24,6 +26,12 @@ const propTypes = {
         PropTypes.func,
         PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
     ]),
+
+    /** Error text to display */
+    errorText: PropTypes.string,
+
+    /* Should submit when the input is complete */
+    submitOnComplete: PropTypes.bool,
 
     /** Function to call when the input is changed  */
     onChange: PropTypes.func,
@@ -38,38 +46,80 @@ const defaultProps = {
     autoFocus: true,
     forwardedRef: undefined,
     shouldDelayFocus: false,
+    submitOnComplete: false,
     onChange: () => {},
     onSubmit: () => {},
 };
+
+/**
+ * Verifies if a string is a number.
+ * 
+ * @param {string} value The string to check if it's numeric. 
+ * @returns {boolean} True if the string is numeric, false otherwise.
+ */
+function isNumeric(value) {
+    if (typeof value !== "string") return false;
+    return !Number.isNaN(value) && !Number.isNaN(parseFloat(value));
+}
 
 class MagicCodeInput extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        this.inputRefs = {};
+        this.inputNrArray = Array.from(Array(CONST.MAGIC_CODE_NUMBERS).keys());
+        this.inputRef = React.createRef(null);
+
         this.state = {
+            input: '',
             focusedIndex: 0,
-            numbers: props.value ? this._decomposeString(props.value) : []
+            editIndex: 0,
+            numbers: props.value ? this._decomposeString(props.value) : Array(CONST.MAGIC_CODE_NUMBERS).fill(''),
         };
+
+        this.onChangeText = this.onChangeText.bind(this);
+        this.onKeyPress = this.onKeyPress.bind(this);
     }
 
     componentDidMount() {
+        if (!this.props.forwardedRef) {
+            return;
+        }
+        this.props.forwardedRef(this.inputRef);
+
         if (!this.props.autoFocus) {
             return;
         }
 
-        let focusElIndex = _.findIndex(this.state.numbers, e => e === undefined);
-        focusElIndex = focusElIndex === -1 ? 0 : focusElIndex;
-
         if (this.props.shouldDelayFocus) {
-            this.focusTimeout = setTimeout(() => this.updateFocus(focusElIndex), CONST.ANIMATED_TRANSITION);
+            this.focusTimeout = setTimeout(() => this.inputRef.focus(), CONST.ANIMATED_TRANSITION);
             return;
         }
-        this.updateFocus(focusElIndex);
+        this.inputRef.focus();
     }
 
+    componentDidUpdate(prevProps) {
+        if (prevProps.value === this.props.value || this.props.value === this._composeToString(this.state.numbers)) {
+            return;
+        }
+
+        this.setState({
+            numbers: this._decomposeString(this.props.value)
+        })
+    }
+
+    /**
+     * Converts a given string into an array of numbers that must have the same
+     * number of elements as the number of inputs.
+     * 
+     * @param {string} value The string to be converted into an array. 
+     * @returns {array} The array of numbers.
+     */
     _decomposeString(value) {
-        return value.trim().split('');
+        let arr = value.trim().split('').slice(0, CONST.MAGIC_CODE_NUMBERS).map(v => isNumeric(v) ? v : '');
+        if (arr.length < CONST.MAGIC_CODE_NUMBERS) {
+            arr = arr.concat(Array(CONST.MAGIC_CODE_NUMBERS - arr.length).fill(''));
+        }
+        return arr;
     }
 
     _composeToString(value) {
@@ -77,129 +127,137 @@ class MagicCodeInput extends React.PureComponent {
     }
 
     /**
-     * Focuses on the input at the given index and updates the
-     * forwarded reference.
+     * Focuses on the input when it is pressed.
      * 
-     * @param {number} index The index of the input to focus on. 
-     * @returns {void}
+     * @param {number} index The index of the input. 
      */
-    updateFocus(index) {
-        if (index >= Object.keys(this.inputRefs).length) {
-            return;
-        }
-        if (!this.inputRefs[index]) {
-            return;
-        }
-
-        this.inputRefs[index].focus();
-
-        // Update the ref with the currently focused input
-        if (!this.props.forwardedRef) {
-            return;
-        }
-        this.props.forwardedRef(this.inputRefs[index]);
+    onFocus(event, index) {
+        event.preventDefault();
+        this.setState(prevState => ({...prevState, input: '', focusedIndex: index, editIndex: index}));
+        this.inputRef.focus();
     }
 
     /**
-     * Updates the input value on the given index.
+     * Updates the magic inputs with the contents written in the
+     * input. It spreads each number into each input and updates
+     * the focused input on the next empty one, if exists.
+     * It handles both fast typing and only one digit at a time
+     * in a specific position.
      * 
-     * @param {string} value The value written in the input. 
-     * @param {*} index The index of the input changed.
-     * @param {*} callback Function to be executed after the state changes.
+     * @param {string} value The contents of the input text.
      */
-    updateValue(value, index, callback) {
+    onChangeText(value) {
+        if (_.isUndefined(value) || _.isEmpty(value) || !isNumeric(value)) {
+            return;
+        }
+
+        const numbersArr = value.trim().split('');
         this.setState(prevState => {
-            const numbers = [...prevState.numbers];
-            numbers[index] = value;
-            return { ...prevState, numbers, focusedIndex: index };
-        }, callback);
-    }
+            let numbers = [
+                ...prevState.numbers.slice(0, prevState.editIndex),
+                ...numbersArr.slice(0, CONST.MAGIC_CODE_NUMBERS - prevState.editIndex)
+            ];
 
-    /**
-     * Updates the value of the input and focus on the next one,
-     * taking into consideration if the value added is bigger
-     * than one character (quick typing or pasting content).
-     * 
-     * @param {string} value The value written in the input
-     * @param {number} index The index of the input changed
-     * @returns {void} 
-     */
-    onChange(value, index) {
-        if (_.isUndefined(value) || _.isEmpty(value)) {
-            return;
-        }
+            // Updates the focused input taking into consideration the last input
+            // edited and the number of digits added by the user.
+            const focusedIndex = Math.min(prevState.editIndex + numbersArr.length - 1, CONST.MAGIC_CODE_NUMBERS - 1)
 
-        // If there's a bigger value written, for example by pasting the input,
-        // it spreads the string content through all the inputs and focus on the last
-        // input with a value or the next empty input, if it exists
-        if (value.length > 1) {
-            const numbersArr = this._decomposeString(value);
-            this.setState(prevState => {
-                const numbers = [...prevState.numbers.slice(0, index), ...numbersArr.slice(0, CONST.MAGIC_CODE_NUMBERS - index)];
-                return { numbers };
-            }, () => {
-                this.updateFocus(Math.min(index + numbersArr.length, Object.keys(this.inputRefs).length - 1));
-                this.props.onChange(this._composeToString(this.state.numbers));
-            });
-            
-        } else {
-            this.updateValue(value, index, () => {
-                this.updateFocus(index + 1);
-                this.props.onChange(this._composeToString(this.state.numbers));
-            });
-        }
-    }
+            return { numbers, focusedIndex, input: value, editIndex: prevState.editIndex };
+        }, () => {
+            const finalInput = this._composeToString(this.state.numbers);
+            this.props.onChange(finalInput);
 
-    /**
-     * Handles logic related to certain key presses (Backspace, Enter,
-     * ArrowLeft, ArrowRight) that cause value and focus change.
-     * 
-     * @param {*} event The event passed by the key press
-     * @param {*} index The index of the input where the event occurred
-     */
-    onKeyPress({nativeEvent: {key: keyValue}}, index) {
-        // Deletes the existing number on the focused input,
-        // if there is no number, it will delete the previous input
-        if (keyValue === 'Backspace') {
-            if (!_.isUndefined(this.state.numbers[index])) {
-                this.updateValue(undefined, index);
-            } else {
-                this.updateValue(undefined, index - 1, () => this.updateFocus(this.state.focusedIndex));
+            if (this.props.submitOnComplete && finalInput.length === CONST.MAGIC_CODE_NUMBERS) {
+                this.props.onSubmit(finalInput);
             }
-        } else if (keyValue === 'Enter') {
-            this.props.onSubmit(this.state.numbers.join(''));
+        });
+    }
+
+    /**
+     * Handles logic related to certain key presses.
+     * 
+     * NOTE: when using Android Emulator, this can only be tested using
+     * hardware keyboard inputs.
+     * 
+     * @param {object} event The event passed by the key press.
+     */
+    onKeyPress({nativeEvent: {key: keyValue}}) {
+        // Handles the delete character logic if the current input is less than 2 characters,
+        // meaning that it's the last character to be deleted or it's a character being
+        // deleted in the middle of the input, which should delete all the characters after it.
+        if (keyValue === 'Backspace' && this.state.input.length < 2) {
+            this.setState(prevState => {
+                const numbers = [...prevState.numbers];
+                numbers[prevState.focusedIndex] = '';
+                
+                return {
+                    input: '',
+                    numbers: numbers.slice(0, prevState.focusedIndex),
+                    focusedIndex: prevState.focusedIndex === 0 ? 0 : prevState.focusedIndex - 1,
+                    editIndex: prevState.editIndex === 0 ? 0 : prevState.editIndex - 1
+                }
+            });
         } else if (keyValue === 'ArrowLeft') {
-            this.setState(prevState => ({ ...prevState, focusedIndex: index - 1}), () => this.updateFocus(this.state.focusedIndex));
+            this.setState(prevState => ({
+                ...prevState,
+                input: '',
+                focusedIndex: prevState.focusedIndex - 1,
+                editIndex: prevState.focusedIndex - 1
+            }));
         } else if (keyValue === 'ArrowRight') {
-            this.setState(prevState => ({ ...prevState, focusedIndex: index + 1}), () => this.updateFocus(this.state.focusedIndex));
+            this.setState(prevState => ({
+                ...prevState,
+                input: '',
+                focusedIndex: prevState.focusedIndex + 1,
+                editIndex: prevState.focusedIndex + 1
+            }));
+        } else if (keyValue === 'Enter') {
+            this.setState(prevState => ({...prevState, input: '' }));
+            this.props.onSubmit(this._composeToString(this.state.numbers));
         }
     }
 
     render() {
         return (
-            <View style={[styles.flexRow, styles.p0, styles.justifyContentBetween]}>
-                {_.map(Array.from(Array(CONST.MAGIC_CODE_NUMBERS).keys()), i => (
+            <>
+                <View style={[styles.flexRow, styles.justifyContentBetween]}>
+                    {_.map(this.inputNrArray, index => (
+                        <View key={index} style={[styles.w15]}>
+                            <TextInput
+                                editable={false}
+                                focused={this.state.focusedIndex === index}
+                                value={this.state.numbers[index] || ''}
+                                maxLength={1}
+                                blurOnSubmit={false}
+                                onPress={(event) => this.onFocus(event, index)}
+                                inputStyle={[styles.iouAmountTextInput, styles.textAlignCenter]}
+                            />
+                        </View>
+                    ))}
+                </View>
+                <View style={[StyleSheet.absoluteFillObject, styles.w15, styles.opacity0]}>
                     <TextInput
-                        key={i}
-                        autoGrow
+                        ref={el => this.inputRef = el}
+                        autoFocus={this.props.autoFocus}
                         inputMode="numeric"
-                        ref={(ref) => { this.inputRefs[i] = ref; }}
+                        textContentType="oneTimeCode"
                         name={this.props.name}
-
-                        // Only allows one character to be entered on the last input
-                        // so that there's no flickering when more than one number
-                        // is added
-                        maxLength={i === CONST.MAGIC_CODE_NUMBERS - 1 ? 1 : 1}
-                        blurOnSubmit={false}
+                        maxLength={CONST.MAGIC_CODE_NUMBERS}
+                        value={this.state.input}
+                        label={this.props.label}
+                        autoComplete={this.props.autoComplete}
+                        nativeID={this.props.nativeID}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                        value={this.state.numbers[i] === undefined ? '' : this.state.numbers[i].toString()}
-                        inputStyle={[styles.iouAmountTextInput, styles.p1, styles.textAlignCenter, styles.w15]}
-                        onFocus={() => this.updateFocus(i)}
-                        onChangeText={value => this.onChange(value, i)}
-                        onKeyPress={ev => this.onKeyPress(ev, i)}
+                        onPress={(event) => this.onFocus(event, 0)}
+                        onChangeText={this.onChangeText}
+                        onKeyPress={this.onKeyPress}
+                        onBlur={() => this.setState(prevState => ({...prevState, focusedIndex: undefined}))}
                     />
-                ))}
-            </View>
+                </View>
+                {!_.isEmpty(this.props.errorText) && (
+                    <FormHelpMessage isError message={this.props.errorText} />
+                )}
+            </>
         )
     }
 }

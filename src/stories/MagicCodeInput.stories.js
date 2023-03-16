@@ -19,12 +19,21 @@ const Template = args => <MagicCodeInput {...args} />;
 
 const AutoFocus = Template.bind({});
 AutoFocus.args = {
-    label: 'Auto-focused text input',
+    label: 'Auto-focused magic code input',
     name: 'AutoFocus',
     autoFocus: true,
+};
+
+const SubmitOnComplete = Template.bind({});
+SubmitOnComplete.args = {
+    label: 'Submits when the magic code input is complete',
+    name: 'SubmitOnComplete',
+    submitOnComplete: true,
+    onSubmit: () => console.log('Submitted!')
 };
 
 export default story;
 export {
     AutoFocus,
+    SubmitOnComplete
 };
