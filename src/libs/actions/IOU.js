@@ -193,11 +193,12 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         reportActionsFailureData,
     ];
 
+    const commentText = ReportUtils.getParsedComment(comment);
     API.write('RequestMoney', {
         debtorEmail,
         amount,
         currency,
-        comment,
+        comment: commentText,
         iouReportID: iouReport.reportID,
         chatReportID: chatReport.reportID,
         transactionID: optimisticReportAction.originalMessage.IOUTransactionID,

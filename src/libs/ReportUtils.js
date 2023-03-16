@@ -1689,6 +1689,7 @@ export {
     hashLogin,
     getDefaultWorkspaceAvatar,
     getCommentLength,
+    getParsedComment,
     openReportFromDeepLink,
     getFullSizeAvatar,
     getIOUOptions,
