@@ -8,6 +8,7 @@ import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import * as Expensicons from '../Icon/Expensicons';
 import {propTypes as datePickerPropTypes, defaultProps as defaultDatePickerProps} from './datePickerPropTypes';
+import KeyboardShortcut from '../../libs/KeyboardShortcut';
 
 const propTypes = {
     ...datePickerPropTypes,
@@ -23,7 +24,7 @@ class NewDatePicker extends React.Component {
 
         this.state = {
             isPickerVisible: false,
-            selectedDate: new Date(props.value || props.defaultValue || undefined),
+            selectedDate: moment(props.value || props.defaultValue || undefined).toDate(),
         };
 
         this.setDate = this.setDate.bind(this);
@@ -38,6 +39,23 @@ class NewDatePicker extends React.Component {
         this.defaultValue = props.defaultValue
             ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
             : '';
+    }
+
+    componentDidMount() {
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
+            if (!this.state.isPickerVisible) {
+                return;
+            }
+            this.hidePicker();
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+    }
+
+    componentWillUnmount() {
+        if (!this.unsubscribeEscapeKey) {
+            return;
+        }
+        this.unsubscribeEscapeKey();
     }
 
     /**

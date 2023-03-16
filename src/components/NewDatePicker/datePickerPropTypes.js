@@ -31,7 +31,7 @@ const propTypes = {
     selectedYear: PropTypes.string,
 
     /** A function called when picked is closed */
-    onHidePicker: PropTypes.string,
+    onHidePicker: PropTypes.func,
 };
 
 const defaultProps = {

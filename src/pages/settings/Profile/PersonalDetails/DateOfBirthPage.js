@@ -138,7 +138,6 @@ class DateOfBirthPage extends Component {
                         inputID="dob"
                         label={this.props.translate('common.date')}
                         defaultValue={privateDetails.dob || ''}
-                        shouldSaveDraft
                         minDate={this.minDate}
                         maxDate={this.maxDate}
                         selectedYear={this.state.selectedYear}
