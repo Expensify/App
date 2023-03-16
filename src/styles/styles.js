@@ -2996,6 +2996,11 @@ const styles = {
         lineHeight: variables.iconSizeXLarge,
     },
 
+    textReactionSenders: {
+        color: themeColors.dark,
+        ...wordBreak.breakWord,
+    },
+
     quickReactionsContainer: {
         gap: 12,
         flexDirection: 'row',
