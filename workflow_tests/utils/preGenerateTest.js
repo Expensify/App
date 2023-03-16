@@ -195,7 +195,7 @@ const getMockFileContent = (workflowName, jobs) => {
         let mockStepsContent = `// ${jobId.toLowerCase()}`;
         const stepMocks = [];
         for (const step of job.steps) {
-            const stepMockName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__${step.name.replaceAll(' ', '_').toUpperCase()}__STEP_MOCK`;
+            const stepMockName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__${step.name.replaceAll(' ', '_').replaceAll('-', '_').replaceAll(',', '').replaceAll('#', '').toUpperCase()}__STEP_MOCK`;
             stepMocks.push(stepMockName);
             mockStepsContent += mockStepTemplate(stepMockName, step, jobId);
         }
