@@ -5,6 +5,7 @@ import React, {PureComponent} from 'react';
 import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 
+import {useSharedValue} from 'react-native-reanimated';
 import * as ReportUtils from './libs/ReportUtils';
 import BootSplash from './libs/BootSplash';
 import * as ActiveClientManager from './libs/ActiveClientManager';
@@ -83,6 +84,15 @@ const defaultProps = {
     isSidebarLoaded: false,
     screenShareRequest: null,
 };
+
+// TODO this is a temporary solution to share the popover height between the ReportActionContextMenu and the other places
+export let popoverHeightSharedValue = null;
+
+function SharedValueCreator() {
+    popoverHeightSharedValue = useSharedValue(0);
+
+    return null;
+}
 
 class Expensify extends PureComponent {
     constructor(props) {
@@ -218,11 +228,12 @@ class Expensify extends PureComponent {
                         ) : null}
                     </>
                 )}
-
                 <NavigationRoot
                     onReady={this.setNavigationReady}
                     authenticated={this.isAuthenticated()}
                 />
+
+                <SharedValueCreator />
             </DeeplinkWrapper>
         );
     }

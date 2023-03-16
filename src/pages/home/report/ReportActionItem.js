@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -38,6 +38,8 @@ import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnima
 import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosOOOListActions';
 import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
 import * as Report from '../../../libs/actions/Report';
+import withKeyboardState from '../../../components/withKeyboardState';
+import getOperatingSystem from '../../../libs/getOperatingSystem';
 
 const propTypes = {
     /** Report for this action */
@@ -108,6 +110,10 @@ class ReportActionItem extends Component {
 
     checkIfContextMenuActive() {
         this.setState({isContextMenuActive: ReportActionContextMenu.isActiveReportAction(this.props.action.reportActionID)});
+
+        if (this.props.onHidePopover) {
+            this.props.onHidePopover(this.props.index);
+        }
     }
 
     /**
@@ -121,25 +127,54 @@ class ReportActionItem extends Component {
             return;
         }
 
-        this.setState({isContextMenuActive: true});
+        this.popoverAnchor.measureInWindow((fx, fy, width, height, px, py) => {
+            if (this.props.onShowPopover) {
+                this.props.onShowPopover(
+                    this.props.index,
+                    {
+                        fx,
+                        fy,
+                        width,
+                        height,
+                        px,
+                        py,
+                    },
+                    this.props.isKeyboardShown,
+                );
+            }
 
-        // Newline characters need to be removed here because getCurrentSelection() returns html mixed with newlines, and when
-        // <br> tags are converted later to markdown, it creates duplicate newline characters. This means that when the content
-        // is pasted, there are extra newlines in the content that we want to avoid.
-        const selection = SelectionScraper.getCurrentSelection().replace(/\n/g, '');
-        ReportActionContextMenu.showContextMenu(
-            ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
-            event,
-            selection,
-            this.popoverAnchor,
-            this.props.report.reportID,
-            this.props.action,
-            this.props.draftMessage,
-            undefined,
-            this.checkIfContextMenuActive,
-            ReportUtils.isArchivedRoom(this.props.report),
-            ReportUtils.chatIncludesChronos(this.props.report),
-        );
+            if (
+                this.props.isKeyboardShown
+              && getOperatingSystem() === CONST.OS.ANDROID
+            ) {
+                Keyboard.dismiss();
+            }
+
+            setTimeout(
+                () => {
+                    this.setState({isContextMenuActive: true});
+
+                    // Newline characters need to be removed here because getCurrentSelection() returns html mixed with newlines, and when
+                    // <br> tags are converted later to markdown, it creates duplicate newline characters. This means that when the content
+                    // is pasted, there are extra newlines in the content that we want to avoid.
+                    const selection = SelectionScraper.getCurrentSelection().replace(/\n/g, '');
+                    ReportActionContextMenu.showContextMenu(
+                        ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
+                        event,
+                        selection,
+                        this.popoverAnchor,
+                        this.props.report.reportID,
+                        this.props.action,
+                        this.props.draftMessage,
+                        undefined,
+                        this.checkIfContextMenuActive,
+                        ReportUtils.isArchivedRoom(this.props.report),
+                        ReportUtils.chatIncludesChronos(this.props.report),
+                    );
+                },
+                getOperatingSystem() === CONST.OS.ANDROID ? 50 : 0,
+            );
+        });
     }
 
     toggleReaction(emoji) {
@@ -305,6 +340,7 @@ ReportActionItem.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withNetwork(),
+    withKeyboardState,
     withBlockedFromConcierge({propName: 'blockedFromConcierge'}),
     withReportActionsDrafts({
         propName: 'draftMessage',

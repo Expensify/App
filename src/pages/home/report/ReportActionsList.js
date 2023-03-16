@@ -1,15 +1,37 @@
 import PropTypes from 'prop-types';
-import React from 'react';
-import {Animated} from 'react-native';
+import React, {
+    createRef,
+    forwardRef,
+    useImperativeHandle,
+} from 'react';
+import {
+    Animated,
+    Dimensions, Platform,
+    ScrollView,
+    TextInput,
+} from 'react-native';
 import _ from 'underscore';
+import Reanimated, {
+    KeyboardState,
+    runOnUI,
+    useAnimatedKeyboard, useAnimatedStyle, useSharedValue, withSpring,
+} from 'react-native-reanimated';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import InvertedFlatList from '../../../components/InvertedFlatList';
-import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
+import withDrawerState, {
+    withDrawerPropTypes,
+} from '../../../components/withDrawerState';
 import compose from '../../../libs/compose';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../../../components/withWindowDimensions';
+import {
+    withNetwork,
+    withPersonalDetails,
+} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
 import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
 import variables from '../../../styles/variables';
@@ -20,6 +42,116 @@ import CONST from '../../../CONST';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
+import {popoverHeightSharedValue} from '../../../Expensify';
+
+const KeyboardSpace = forwardRef((props, ref) => {
+    const safeArea = useSafeAreaInsets();
+    const keyboard = useAnimatedKeyboard();
+    const lastKeyboardHeight = useSharedValue(0);
+    const IS_ANDROID = Platform.OS === 'android';
+    const {keyboardSpaceState} = props;
+    const windowHeight = Dimensions.get('screen').height;
+
+    useImperativeHandle(ref, () => ({
+        storeKeyboard() {
+            if (IS_ANDROID) {
+                runOnUI(() => {
+                    'worklet';
+
+                    lastKeyboardHeight.value = keyboard.height.value;
+                })();
+            } else {
+                lastKeyboardHeight.value = keyboard.height.value;
+            }
+        },
+        clearKeyboard() {
+            if (IS_ANDROID) {
+                runOnUI(() => {
+                    'worklet';
+
+                    lastKeyboardHeight.value = 0;
+                })();
+            } else {
+                lastKeyboardHeight.value = 0;
+            }
+
+            popoverHeightSharedValue.value = 0;
+        },
+    }));
+
+    const ratio = 1.1;
+    const mass = 0.4;
+    const stiffness = IS_ANDROID ? 200.0 : 100.0;
+    const damping = ratio * 2.0 * Math.sqrt(mass * stiffness);
+
+    const config = {
+        stiffness,
+        damping,
+        mass,
+        restDisplacementThreshold: 1,
+        restSpeedThreshold: 5,
+    };
+
+    const animatedStyle = useAnimatedStyle(() => {
+        if (keyboardSpaceState.value == null) {
+            return {
+                height: 0,
+            };
+        }
+        if (global.__keyboardHeight === undefined) {
+            global.__keyboardHeight = 0;
+        }
+        if (keyboard.state.value === KeyboardState.OPEN) {
+            global.__keyboardHeight = keyboard.height.value;
+        }
+
+        const {measurements, keyboardVisible} = keyboardSpaceState.value;
+
+        if (!keyboardVisible) {
+            // this means the bottom sheet was opened when the keyboard was closed
+            const position = (popoverHeightSharedValue.value - (windowHeight - measurements.fy)) + measurements.height + safeArea.top;
+
+            return {
+                height: withSpring(position, config),
+            };
+        }
+
+        const invertedHeight = keyboard.state.value === KeyboardState.CLOSED ? global.__keyboardHeight - safeArea.bottom : 0;
+
+        const position = popoverHeightSharedValue.value
+          - (windowHeight - measurements.fy)
+          + measurements.height
+          + global.__keyboardHeight
+          + 20;
+
+        return {
+            height: invertedHeight,
+
+            // state === KeyboardState.CLOSED && popoverHeightSharedValue.value > 0
+
+            //     ? withSpring(position, config) : invertedHeight,
+        };
+    });
+
+    return <Reanimated.View style={[animatedStyle]} />;
+});
+
+function ScrollComponent({
+    children,
+    keyboardSpacerRef,
+    keyboardSpaceState,
+    ...props
+}) {
+    return (
+        <ScrollView {...props}>
+            <KeyboardSpace
+                keyboardSpaceState={keyboardSpaceState}
+                ref={keyboardSpacerRef}
+            />
+            {children}
+        </ScrollView>
+    );
+}
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -68,6 +200,8 @@ class ReportActionsList extends React.Component {
         super(props);
         this.renderItem = this.renderItem.bind(this);
         this.keyExtractor = this.keyExtractor.bind(this);
+        this.onReportShowPopover = this.onReportShowPopover.bind(this);
+        this.onReportHidePopover = this.onReportHidePopover.bind(this);
 
         this.state = {
             fadeInAnimation: new Animated.Value(0),
@@ -85,6 +219,26 @@ class ReportActionsList extends React.Component {
             duration: 100,
             useNativeDriver: true,
         }).start();
+    }
+
+    keyboardSpacerRef = createRef();
+
+    onReportShowPopover(index, measurements, keyboardVisible) {
+        this.props.keyboardSpaceState.value = {
+            measurements,
+            height: this.state.skeletonViewHeight,
+            keyboardVisible,
+        };
+
+        this.keyboardSpacerRef.current?.storeKeyboard();
+    }
+
+    onReportHidePopover() {
+        this.keyboardSpacerRef.current?.clearKeyboard();
+
+        if (Platform.OS === 'android') {
+            //   this._input.focus();
+        }
     }
 
     /**
@@ -131,6 +285,8 @@ class ReportActionsList extends React.Component {
         const shouldDisplayNewMarker = reportAction.reportActionID === this.props.newMarkerReportActionID;
         return (
             <ReportActionItem
+                onShowPopover={this.onReportShowPopover}
+                onHidePopover={this.onReportHidePopover}
                 report={this.props.report}
                 action={reportAction}
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, index)}
@@ -158,6 +314,14 @@ class ReportActionsList extends React.Component {
                         styles.chatContentScrollView,
                         shouldShowReportRecipientLocalTime && styles.pt0,
                     ]}
+                    renderScrollComponent={props => (
+                        <ScrollComponent
+                            keyboardSpaceState={this.props.keyboardSpaceState}
+                            keyboardSpacerRef={this.keyboardSpacerRef}
+                            animatedRefs={this.animatedRefs}
+                            {...props}
+                        />
+                    )}
                     keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
                     initialNumToRender={this.calculateInitialNumToRender()}
@@ -205,9 +369,20 @@ class ReportActionsList extends React.Component {
 ReportActionsList.propTypes = propTypes;
 ReportActionsList.defaultProps = defaultProps;
 
+function withSharedValue(name, initialValue) {
+    return WrappedComponent => function (props) {
+        const passProps = {
+            [name]: useSharedValue(initialValue),
+        };
+
+        return <WrappedComponent {...props} {...passProps} />;
+    };
+}
+
 export default compose(
     withDrawerState,
     withWindowDimensions,
     withPersonalDetails(),
     withNetwork(),
+    withSharedValue('keyboardSpaceState', null),
 )(ReportActionsList);

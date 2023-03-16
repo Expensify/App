@@ -9,6 +9,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import CONST from '../CONST';
 import styles from '../styles/styles';
 import {computeHorizontalShift, computeVerticalShift} from '../styles/getPopoverWithMeasuredContentStyles';
+import {popoverHeightSharedValue} from '../Expensify';
 
 const propTypes = {
     // All popover props except:
@@ -121,6 +122,8 @@ class PopoverWithMeasuredContent extends Component {
         this.popoverWidth = nativeEvent.layout.width;
         this.popoverHeight = nativeEvent.layout.height;
         this.setState({isContentMeasured: true});
+
+        popoverHeightSharedValue.value = this.popoverHeight;
     }
 
     /**
