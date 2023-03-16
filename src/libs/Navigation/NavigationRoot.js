@@ -9,6 +9,7 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import Log from '../Log';
+import BugReportModal from '../../components/BugReportModal';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -67,6 +68,7 @@ const NavigationRoot = (props) => {
             }}
         >
             <AppNavigator authenticated={props.authenticated} />
+            <BugReportModal />
         </NavigationContainer>
     );
 };

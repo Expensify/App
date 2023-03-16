@@ -1194,6 +1194,9 @@ export default {
         createAccount: 'Create a new account',
         logIn: 'Log in',
     },
+    bugReportModal: {
+        title: 'You seem frustrated...',
+    },
     allStates: COMMON_CONST.STATES,
     allCountries: CONST.ALL_COUNTRIES,
 };

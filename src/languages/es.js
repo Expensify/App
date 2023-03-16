@@ -1195,6 +1195,9 @@ export default {
         createAccount: 'Crear Una Cuenta Nueva',
         logIn: 'Conectarse',
     },
+    bugReportModal: {
+        title: 'Pareces frustrado...',
+    },
     allStates: {
         AK: {
             stateISO: 'AK',
