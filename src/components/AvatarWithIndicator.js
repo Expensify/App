@@ -85,8 +85,8 @@ const AvatarWithIndicator = (props) => {
     const shouldShowIndicator = _.some(errorCheckingMethods, errorCheckingMethod => errorCheckingMethod());
 
     return (
-        <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
-            <Tooltip text={props.tooltipText}>
+        <Tooltip text={props.tooltipText}>
+            <View style={[isLarge ? styles.avatarLarge : styles.sidebarAvatar]}>
                 <Avatar
                     imageStyles={[isLarge ? styles.avatarLarge : null]}
                     source={props.source}
@@ -95,8 +95,8 @@ const AvatarWithIndicator = (props) => {
                 {shouldShowIndicator && (
                     <View style={StyleSheet.flatten(indicatorStyles)} />
                 )}
-            </Tooltip>
-        </View>
+            </View>
+        </Tooltip>
     );
 };
 

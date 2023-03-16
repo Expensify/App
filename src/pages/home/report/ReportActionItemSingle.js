@@ -70,13 +70,13 @@ const ReportActionItemSingle = (props) => {
 
     return (
         <View style={props.wrapperStyles}>
-            <Pressable
-                style={[styles.alignSelfStart, styles.mr3]}
-                onPressIn={ControlSelection.block}
-                onPressOut={ControlSelection.unblock}
-                onPress={() => showUserDetails(actorEmail)}
-            >
-                <Tooltip text={actorEmail}>
+            <Tooltip text={actorEmail}>
+                <Pressable
+                    style={[styles.alignSelfStart, styles.mr3]}
+                    onPressIn={ControlSelection.block}
+                    onPressOut={ControlSelection.unblock}
+                    onPress={() => showUserDetails(actorEmail)}
+                >
                     <OfflineWithFeedback
                         pendingAction={lodashGet(pendingFields, 'avatar', null)}
                     >
@@ -85,8 +85,8 @@ const ReportActionItemSingle = (props) => {
                             source={avatarSource}
                         />
                     </OfflineWithFeedback>
-                </Tooltip>
-            </Pressable>
+                </Pressable>
+            </Tooltip>
             <View style={[styles.chatItemRight]}>
                 {props.showHeader ? (
                     <View style={[styles.chatItemMessageHeader]}>

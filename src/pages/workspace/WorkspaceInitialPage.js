@@ -187,12 +187,12 @@ class WorkspaceInitialPage extends React.Component {
                                 <View style={[styles.flex1]}>
                                     <View style={styles.avatarSectionWrapper}>
                                         <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
-                                            <Pressable
-                                                disabled={this.hasPolicyCreationError()}
-                                                style={[styles.pRelative, styles.avatarLarge]}
-                                                onPress={this.openEditor}
-                                            >
-                                                <Tooltip text={this.props.translate('workspace.common.settings')}>
+                                            <Tooltip text={this.props.translate('workspace.common.settings')}>
+                                                <Pressable
+                                                    disabled={this.hasPolicyCreationError()}
+                                                    style={[styles.pRelative, styles.avatarLarge]}
+                                                    onPress={this.openEditor}
+                                                >
                                                     <Avatar
                                                         containerStyles={styles.avatarLarge}
                                                         imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
@@ -202,8 +202,8 @@ class WorkspaceInitialPage extends React.Component {
                                                         name={policyName}
                                                         type={CONST.ICON_TYPE_WORKSPACE}
                                                     />
-                                                </Tooltip>
-                                            </Pressable>
+                                                </Pressable>
+                                            </Tooltip>
                                             {!_.isEmpty(this.props.policy.name) && (
                                                 <Pressable
                                                     disabled={this.hasPolicyCreationError()}

@@ -55,68 +55,55 @@ class Hoverable extends Component {
     }
 
     render() {
-        if (this.props.absolute && React.isValidElement(this.props.children)) {
-            return React.cloneElement(React.Children.only(this.props.children), {
-                ref: (el) => {
-                    this.wrapperView = el;
+        const child = _.isFunction(this.props.children)
+            ? this.props.children(this.state.isHovered)
+            : this.props.children
 
-                    // Call the original ref, if any
-                    const {ref} = this.props.children;
-                    if (_.isFunction(ref)) {
-                        ref(el);
-                    }
-                },
-                onMouseEnter: (el) => {
-                    this.setIsHovered(true);
-
-                    // Call the original onMouseEnter, if any
-                    const {onMouseEnter} = this.props.children;
-                    if (_.isFunction(onMouseEnter)) {
-                        onMouseEnter(el);
-                    }
-                },
-                onMouseLeave: (el) => {
-                    this.setIsHovered(false);
-
-                    // Call the original onMouseLeave, if any
-                    const {onMouseLeave} = this.props.children;
-                    if (_.isFunction(onMouseLeave)) {
-                        onMouseLeave(el);
-                    }
-                },
-                onBlur: (el) => {
-                    if (!this.wrapperView.contains(el.relatedTarget)) {
-                        this.setIsHovered(false);
-                    }
-
-                    // Call the original onBlur, if any
-                    const {onBlur} = this.props.children;
-                    if (_.isFunction(onBlur)) {
-                        onBlur(el);
-                    }
-                },
-            });
+        if (!React.isValidElement(child)) {
+            throw Error("Children is not a valid element.");
         }
-        return (
-            <View
-                style={this.props.containerStyles}
-                ref={el => this.wrapperView = el}
-                onMouseEnter={() => this.setIsHovered(true)}
-                onMouseLeave={() => this.setIsHovered(false)}
-                onBlur={(el) => {
-                    if (this.wrapperView.contains(el.relatedTarget)) {
-                        return;
-                    }
-                    this.setIsHovered(false);
-                }}
-            >
-                { // If this.props.children is a function, call it to provide the hover state to the children.
-                    _.isFunction(this.props.children)
-                        ? this.props.children(this.state.isHovered)
-                        : this.props.children
+
+        return React.cloneElement(React.Children.only(child), {
+            ref: (el) => {
+                this.wrapperView = el;
+
+                // Call the original ref, if any
+                const {ref} = child;
+                if (_.isFunction(ref)) {
+                    ref(el);
                 }
-            </View>
-        );
+            },
+            onMouseEnter: (el) => {
+                console.log("ENTER")
+                this.setIsHovered(true);
+
+                // Call the original onMouseEnter, if any
+                const {onMouseEnter} = child;
+                if (_.isFunction(onMouseEnter)) {
+                    onMouseEnter(el);
+                }
+            },
+            onMouseLeave: (el) => {
+                this.setIsHovered(false);
+
+                // Call the original onMouseLeave, if any
+                const {onMouseLeave} = child;
+                if (_.isFunction(onMouseLeave)) {
+                    onMouseLeave(el);
+                }
+            },
+            onBlur: (el) => {
+                if (!this.wrapperView.contains(el.relatedTarget)) {
+                    this.setIsHovered(false);
+                }
+
+                // Call the original onBlur, if any
+                const {onBlur} = child;
+                if (_.isFunction(onBlur)) {
+                    onBlur(el);
+                }
+            },
+        });
     }
 }
 

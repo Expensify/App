@@ -258,8 +258,8 @@ class InitialSettingsPage extends React.Component {
                         <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle} style={[styles.settingsPageBackground]}>
                             <View style={styles.w100}>
                                 <View style={styles.avatarSectionWrapper}>
-                                    <Pressable style={[styles.mb3]} onPress={this.openProfileSettings}>
-                                        <Tooltip text={this.props.translate('common.profile')}>
+                                    <Tooltip text={this.props.translate('common.profile')}>
+                                        <Pressable style={[styles.mb3]} onPress={this.openProfileSettings}>
                                             <OfflineWithFeedback
                                                 pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
                                             >
@@ -269,9 +269,8 @@ class InitialSettingsPage extends React.Component {
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                 />
                                             </OfflineWithFeedback>
-                                        </Tooltip>
-                                    </Pressable>
-
+                                        </Pressable>
+                                    </Tooltip>
                                     <Pressable style={[styles.mt1, styles.mw100]} onPress={this.openProfileSettings}>
                                         <Tooltip text={this.props.translate('common.profile')}>
                                             <Text style={[styles.textHeadline]} numberOfLines={1}>

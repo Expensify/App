@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {PureComponent} from 'react';
-import {Animated, View} from 'react-native';
+import {Animated} from 'react-native';
 import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import Hoverable from '../Hoverable';
 import withWindowDimensions from '../withWindowDimensions';
@@ -37,6 +37,7 @@ class Tooltip extends PureComponent {
         this.getWrapperPosition = this.getWrapperPosition.bind(this);
         this.showTooltip = this.showTooltip.bind(this);
         this.hideTooltip = this.hideTooltip.bind(this);
+        this.isFocusable = this.isFocusable.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -141,46 +142,49 @@ class Tooltip extends PureComponent {
         TooltipSense.deactivate();
     }
 
+    /**
+     * Returns true if children is a focusable component.
+     *
+     * @returns {Boolean}
+     */
+    isFocusable() {
+        const name = this.props.children.type.displayName;
+        const isPressableText = name === 'Text' && Boolean(this.props.children.props.onPress);
+        return isPressableText || ['TouchableOpacity', 'Pressable', 'TouchableWithoutFeedback'].includes(name);
+    }
+
     render() {
         // Skip the tooltip and return the children if the text is empty,
         // we don't have a render function or the device does not support hovering
         if ((_.isEmpty(this.props.text) && this.props.renderTooltipContent == null) || !this.hasHoverSupport) {
             return this.props.children;
         }
-        let child = (
-            <View
-                ref={el => this.wrapperView = el}
-                onBlur={this.hideTooltip}
-                focusable={this.props.focusable}
-                style={this.props.containerStyles}
-            >
-                {this.props.children}
-            </View>
-        );
 
-        if (this.props.absolute && React.isValidElement(this.props.children)) {
-            child = React.cloneElement(React.Children.only(this.props.children), {
-                ref: (el) => {
-                    this.wrapperView = el;
-
-                    // Call the original ref, if any
-                    const {ref} = this.props.children;
-                    if (_.isFunction(ref)) {
-                        ref(el);
-                    }
-                },
-                onBlur: (el) => {
-                    this.hideTooltip();
-
-                    // Call the original onBlur, if any
-                    const {onBlur} = this.props.children;
-                    if (_.isFunction(onBlur)) {
-                        onBlur(el);
-                    }
-                },
-                focusable: true,
-            });
+        if (!React.isValidElement(this.props.children)) {
+            throw Error("Children is not a valid element.");
         }
+
+        const child = React.cloneElement(React.Children.only(this.props.children), {
+            ref: (el) => {
+                this.wrapperView = el;
+
+                // Call the original ref, if any
+                const {ref} = this.props.children;
+                if (_.isFunction(ref)) {
+                    ref(el);
+                }
+            },
+            onBlur: (el) => {
+                this.hideTooltip();
+
+                // Call the original onBlur, if any
+                const {onBlur} = this.props.children;
+                if (_.isFunction(onBlur)) {
+                    onBlur(el);
+                }
+            },
+            focusable: this.isFocusable(),
+        });
 
         return (
             <>
@@ -201,8 +205,6 @@ class Tooltip extends PureComponent {
                     />
                 )}
                 <Hoverable
-                    absolute={this.props.absolute}
-                    containerStyles={this.props.containerStyles}
                     onHoverIn={this.showTooltip}
                     onHoverOut={this.hideTooltip}
                 >

@@ -162,12 +162,15 @@ const Footer = (props) => {
                                             key={row.translationPath}
                                         >
                                             {hovered => (
-                                                <TextLink
-                                                    style={[styles.footerRow, hovered ? styles.textBlue : {}]}
-                                                    href={row.link}
-                                                >
-                                                    {props.translate(row.translationPath)}
-                                                </TextLink>
+                                                <View>
+                                                    <TextLink
+                                                        style={[styles.footerRow, hovered ? styles.textBlue : {}]}
+                                                        href={row.link}
+                                                    >
+                                                        {console.log(hovered)}
+                                                        {props.translate(row.translationPath)}
+                                                    </TextLink>
+                                                </View>
                                             )}
                                         </Hoverable>
                                     ))}

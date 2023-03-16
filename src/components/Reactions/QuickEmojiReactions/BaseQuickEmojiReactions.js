@@ -40,9 +40,7 @@ const propTypes = {
 const BaseQuickEmojiReactions = props => (
     <View style={styles.quickReactionsContainer}>
         {_.map(CONST.QUICK_REACTIONS, emoji => (
-
-            // Note: focus is handled by the Pressable component in EmojiReactionBubble
-            <Tooltip text={`:${emoji.name}:`} key={emoji.name} focusable={false}>
+            <Tooltip text={`:${emoji.name}:`} key={emoji.name}>
                 <EmojiReactionBubble
                     emojiName={emoji.name}
                     emojiCodes={[getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
