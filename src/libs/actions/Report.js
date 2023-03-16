@@ -1133,14 +1133,16 @@ function setIsComposerFullSize(reportID, isComposerFullSize) {
 
 /**
  * @param {String} reportID
- * @param {Object} action
- * @param {Boolean} isRemote
+ * @param {Object} action the associated report action (optional)
+ * @param {Boolean} isRemote whether or not this notification is a remote push notification
  * @returns {Boolean}
  */
-function shouldShowReportActionNotification(reportID, action, isRemote = false) {
+function shouldShowReportActionNotification(reportID, action = null, isRemote = false) {
     const tag = isRemote ? '[PushNotification]' : '[LocalNotification]';
 
-    if (ReportActionsUtils.isDeletedAction(action)) {
+    // Due to payload size constraints, some push notifications may have their report action stripped
+    // so we must double check that we were provided an action before using it in these checks.
+    if (action && ReportActionsUtils.isDeletedAction(action)) {
         Log.info(`${tag} Skipping notification because the action was deleted`, false, {reportID, action});
         return false;
     }
@@ -1158,7 +1160,7 @@ function shouldShowReportActionNotification(reportID, action, isRemote = false) 
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
-    if (action.actorAccountID === currentUserAccountID) {
+    if (action && action.actorAccountID === currentUserAccountID) {
         Log.info(`${tag} No notification because comment is from the currently logged in user`);
         return false;
     }
@@ -1171,13 +1173,13 @@ function shouldShowReportActionNotification(reportID, action, isRemote = false) 
 
     // If this notification was delayed and the user saw the message already, don't show it
     const report = allReports[reportID];
-    if (report && report.lastReadTime >= action.created) {
+    if (action && report && report.lastReadTime >= action.created) {
         Log.info(`${tag} No notification because the comment was already read`, false, {created: action.created, lastReadTime: report.lastReadTime});
         return false;
     }
 
     // Don't show a notification if no comment exists
-    if (!_.some(action.message, f => f.type === 'COMMENT')) {
+    if (action && !_.some(action.message, f => f.type === 'COMMENT')) {
         Log.info(`${tag} No notification because no comments exist for the current action`);
         return false;
     }

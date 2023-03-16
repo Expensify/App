@@ -85,8 +85,8 @@ function shouldShowPushNotification(pushPayload) {
         pushData = JSON.parse(pushData);
     }
 
-    if (!pushData.reportID || !pushData.reportAction) {
-        Log.info('[PushNotification] Not a report action notification. Showing notification', {reportID: pushData.reportID, reportAction: pushData.reportAction});
+    if (!pushData.reportID) {
+        Log.info('[PushNotification] Not a report action notification. Showing notification');
         return true;
     }
 
