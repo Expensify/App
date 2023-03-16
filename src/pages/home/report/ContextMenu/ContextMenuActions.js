@@ -19,6 +19,7 @@ import * as Environment from '../../../../libs/Environment/Environment';
 import Permissions from '../../../../libs/Permissions';
 import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReactions';
 import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickEmojiReactions';
+import {togglePinnedState} from "../../../../libs/actions/Report";
 
 /**
  * Gets the HTML version of the message in an action.
@@ -34,7 +35,7 @@ const CONTEXT_MENU_TYPES = {
     LINK: 'LINK',
     REPORT_ACTION: 'REPORT_ACTION',
     EMAIL: 'EMAIL',
-    EMAIL: '',
+    REPORT: 'REPORT',
 };
 
 // A list of all the context actions in this menu.
@@ -256,11 +257,11 @@ export default [
         getDescription: () => {},
     },
     {
-        textTranslateKey: 'reportActionContextMenu.markAsUnread',
+        textTranslateKey: 'pin',
         icon: Expensicons.Pin,
-        shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
-        onPress: (closePopover, {reportAction, reportID}) => {
-            Report.markCommentAsUnread(reportID, reportAction.created);
+        shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT,
+        onPress: (closePopover, {report}) => {
+            Report.togglePinnedState(report);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
