@@ -660,11 +660,12 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
 function getSendMoneyParams(report, amount, currency, comment, paymentMethodType, managerEmail, recipient) {
     const recipientEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login);
 
+    const commentText = ReportUtils.getParsedComment(comment);
     const newIOUReportDetails = JSON.stringify({
         amount,
         currency,
         requestorEmail: recipientEmail,
-        comment,
+        comment: commentText,
         idempotencyKey: Str.guid(),
     });
 
