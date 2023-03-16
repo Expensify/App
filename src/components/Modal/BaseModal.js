@@ -155,6 +155,7 @@ class BaseModal extends PureComponent {
                             modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
                             modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
                         });
+
                         return (
                             <View
                                 style={{
