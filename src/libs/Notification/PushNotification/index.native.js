@@ -7,6 +7,7 @@ import NotificationType from './NotificationType';
 import * as PushNotification from '../../actions/PushNotification';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as Report from '../../actions/Report';
+import * as ReportActionUtils from '../../ReportActionsUtils';
 
 let isUserOptedInToPushNotifications = false;
 Onyx.connect({
@@ -90,7 +91,8 @@ function shouldShowPushNotification(pushPayload) {
         return true;
     }
 
-    const shouldShow = Report.shouldShowReportActionNotification(String(pushData.reportID), pushData.reportAction, true);
+    const reportAction = ReportActionUtils.getLatestReportActionFromOnyxData(pushData.onyxData);
+    const shouldShow = Report.shouldShowReportActionNotification(String(pushData.reportID), reportAction, true);
     Log.info(`[PushNotification] ${shouldShow ? 'Showing' : 'Not showing'} notification`);
     return shouldShow;
 }
