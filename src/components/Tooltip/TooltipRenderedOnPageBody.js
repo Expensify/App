@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom';
 import getTooltipStyles from '../../styles/getTooltipStyles';
 import Text from '../Text';
 import Log from '../../libs/Log';
+import styles from '../../styles/styles';
 
 const propTypes = {
     /** Window width */
@@ -170,7 +171,7 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
         return ReactDOM.createPortal(
             <Animated.View
                 onLayout={this.measureTooltip}
-                style={[tooltipWrapperStyle, animationStyle]}
+                style={[tooltipWrapperStyle, animationStyle, styles.userSelectNone]}
             >
                 {content}
                 <View style={pointerWrapperStyle}>
