@@ -359,6 +359,16 @@ function isValidDisplayName(name) {
 }
 
 /**
+ * Checks that the provided legal name doesn't contain special characters
+ *
+ * @param {String} name
+ * @returns {Boolean}
+ */
+function isValidLegalName(name) {
+    return CONST.REGEX.ALPHABETIC_CHARS_WITH_NUMBER.test(name);
+}
+
+/**
  * Checks if the provided string includes any of the provided reserved words
  *
  * @param {String} value
@@ -449,5 +459,6 @@ export {
     isValidTaxID,
     isValidValidateCode,
     isValidDisplayName,
+    isValidLegalName,
     doesContainReservedWord,
 };

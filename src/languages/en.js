@@ -115,6 +115,7 @@ export default {
         enterManually: 'Enter it manually',
         message: 'Message ',
         leaveRoom: 'Leave room',
+        you: 'You',
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
         maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
@@ -621,6 +622,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,
+            hasInvalidCharacter: 'Name can only include letters and numbers.',
         },
     },
     resendValidationForm: {
