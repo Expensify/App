@@ -1,13 +1,12 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import Airship, {EventType, iOS} from '@ua/react-native-airship';
+import Airship, {EventType} from '@ua/react-native-airship';
 import lodashGet from 'lodash/get';
 import Log from '../../Log';
 import NotificationType from './NotificationType';
 import * as PushNotification from '../../actions/PushNotification';
 import ONYXKEYS from '../../../ONYXKEYS';
-import * as Report from '../../actions/Report';
-import * as ReportActionUtils from '../../ReportActionsUtils';
+import configureForegroundNotifications from './configureForegroundNotifications';
 
 let isUserOptedInToPushNotifications = false;
 Onyx.connect({
@@ -72,32 +71,6 @@ function refreshNotificationOptInStatus() {
 }
 
 /**
- * Returns whether the given Airship notification should be shown depending on the current state of the app
- * @param {PushPayload} pushPayload
- * @returns {Boolean}
- */
-function shouldShowPushNotification(pushPayload) {
-    Log.info('[PushNotification] push notification received', false, {pushPayload});
-
-    let pushData = pushPayload.extras.payload;
-
-    // The payload is string encoded on Android
-    if (_.isString(pushData)) {
-        pushData = JSON.parse(pushData);
-    }
-
-    if (!pushData.reportID) {
-        Log.info('[PushNotification] Not a report action notification. Showing notification');
-        return true;
-    }
-
-    const reportAction = ReportActionUtils.getLatestReportActionFromOnyxData(pushData.onyxData);
-    const shouldShow = Report.shouldShowReportActionNotification(String(pushData.reportID), reportAction, true);
-    Log.info(`[PushNotification] ${shouldShow ? 'Showing' : 'Not showing'} notification`);
-    return shouldShow;
-}
-
-/**
  * Configure push notifications and register callbacks. This is separate from namedUser registration because it needs to be executed
  * from a headless JS process, outside of any react lifecycle.
  *
@@ -124,18 +97,7 @@ function init() {
     // Keep track of which users have enabled push notifications via an NVP.
     Airship.addListener(EventType.NotificationOptInStatus, refreshNotificationOptInStatus);
 
-    // Set our default iOS foreground presentation to be loud with a banner
-    // More info here https://developer.apple.com/documentation/usernotifications/unusernotificationcenterdelegate/1649518-usernotificationcenter
-    Airship.push.iOS.setForegroundPresentationOptions([
-        iOS.ForegroundPresentationOption.List,
-        iOS.ForegroundPresentationOption.Banner,
-        iOS.ForegroundPresentationOption.Sound,
-        iOS.ForegroundPresentationOption.Badge,
-    ]);
-
-    // Override foreground presentation per notification depending on the app's state
-    Airship.push.android.setForegroundDisplayPredicate(pushPayload => Promise.resolve(shouldShowPushNotification(pushPayload)));
-    Airship.push.iOS.setForegroundPresentationOptionsCallback(pushPayload => Promise.resolve(shouldShowPushNotification(pushPayload) ? null : []));
+    configureForegroundNotifications();
 }
 
 /**
