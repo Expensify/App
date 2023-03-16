@@ -70,9 +70,10 @@ class YearPickerPage extends React.Component {
      * @param {String} text
      */
     filterYearList(text) {
+        const formattedText = _.filter(text.split(''), char => CONST.REGEX.NUMBER.test(char)).join('');
         this.setState({
-            inputText: text,
-            yearOptions: _.filter(this.yearList, year => year.text.includes(text.trim())),
+            inputText: formattedText,
+            yearOptions: _.filter(this.yearList, year => year.text.includes(formattedText)),
         });
     }
 
@@ -89,6 +90,7 @@ class YearPickerPage extends React.Component {
                     textInputLabel={this.props.translate('yearPickerPage.selectYear')}
                     onChangeText={this.filterYearList}
                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                    maxLength={4}
                     value={this.state.inputText}
                     sections={[{data: this.state.yearOptions, indexOffset: 0}]}
                     onSelectRow={option => this.updateSelectedYear(option.value)}

@@ -30,6 +30,9 @@ const propTypes = {
     /** Callback fired when text changes */
     onChangeText: PropTypes.func.isRequired,
 
+    /** Limits the maximum number of characters that can be entered in input field */
+    maxLength: PropTypes.number,
+
     /** Label to display for the text input */
     textInputLabel: PropTypes.string,
 
@@ -121,6 +124,7 @@ const defaultProps = {
     isDisabled: false,
     shouldHaveOptionSeparator: false,
     initiallyFocusedOptionKey: undefined,
+    maxLength: undefined,
 };
 
 export {propTypes, defaultProps};

@@ -23,7 +23,7 @@ class NewDatePicker extends React.Component {
 
         this.state = {
             isPickerVisible: false,
-            selectedDate: moment(props.value || props.defaultValue).toDate(),
+            selectedDate: new Date(props.value || props.defaultValue),
         };
 
         this.setDate = this.setDate.bind(this);
@@ -106,7 +106,7 @@ class NewDatePicker extends React.Component {
                         icon={Expensicons.Calendar}
                         onPress={this.showPicker}
                         label={this.props.label}
-                        value={this.props.value}
+                        value={this.props.value || ''}
                         defaultValue={this.defaultValue}
                         placeholder={this.props.placeholder || CONST.DATE.MOMENT_FORMAT_STRING}
                         errorText={this.props.errorText}

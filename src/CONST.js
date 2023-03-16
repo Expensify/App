@@ -1,6 +1,5 @@
 import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
-import moment from 'moment';
 import * as Url from './libs/Url';
 
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
@@ -9,7 +8,7 @@ const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const USA_COUNTRY_NAME = 'United States';
-const CURRENT_YEAR = moment().get('Y');
+const CURRENT_YEAR = new Date().getFullYear();
 
 const CONST = {
     ANDROID_PACKAGE_NAME,
