@@ -956,7 +956,6 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
 function getIOUReportActionMessage(type, total, participants, comment, currency, paymentType = '', isSettlingUp = false) {
     const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
     const displayNames = _.map(participants, participant => getDisplayNameForParticipant(participant.login, true));
-    const commentText = getParsedComment(comment);
     const who = displayNames.length < 3
         ? displayNames.join(' and ')
         : `${displayNames.slice(0, -1).join(', ')}, and ${_.last(displayNames)}`;
@@ -979,28 +978,28 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
     let iouMessage;
     switch (type) {
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
-            iouMessage = `Requested ${amount} from ${who}${commentText && ` for ${commentText}`}`;
+            iouMessage = `Requested ${amount} from ${who}${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
-            iouMessage = `Split ${amount} with ${who}${commentText && ` for ${commentText}`}`;
+            iouMessage = `Split ${amount} with ${who}${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.CANCEL:
-            iouMessage = `Cancelled the ${amount} request${commentText && ` for ${commentText}`}`;
+            iouMessage = `Cancelled the ${amount} request${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.DECLINE:
-            iouMessage = `Declined the ${amount} request${commentText && ` for ${commentText}`}`;
+            iouMessage = `Declined the ${amount} request${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
             iouMessage = isSettlingUp
                 ? `Settled up${paymentMethodMessage}`
-                : `Sent ${amount}${commentText && ` for ${commentText}`}${paymentMethodMessage}`;
+                : `Sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             break;
         default:
             break;
     }
 
     return [{
-        html: iouMessage,
+        html: getParsedComment(iouMessage),
         text: iouMessage,
         isEdited: false,
         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
