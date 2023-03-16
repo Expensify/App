@@ -2,7 +2,6 @@ import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import Str from 'expensify-common/lib/str';
 import Text from '../Text';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
