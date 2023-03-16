@@ -30,9 +30,6 @@ const propTypes = {
     /** Number of pixels to set max-width on tooltip  */
     maxWidth: PropTypes.number,
 
-    /** Accessibility prop. Sets the tabindex to 0 if true. Default is true. */
-    focusable: PropTypes.bool,
-
     /** Render custom content inside the tooltip. Note: This cannot be used together with the text props. */
     renderTooltipContent: PropTypes.func,
 };
@@ -45,7 +42,6 @@ const defaultProps = {
     maxWidth: variables.sideBarWidth,
     numberOfLines: CONST.TOOLTIP_MAX_LINES,
     renderTooltipContent: undefined,
-    focusable: true,
 };
 
 export {
