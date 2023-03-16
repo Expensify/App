@@ -202,7 +202,8 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
         onPress: (closePopover, {reportAction, reportID}) => {
-            Report.markCommentAsUnread(reportID, reportAction.created);
+            const newLastReadTime = DateUtils.subtractMillisecondsFromDateTime(reportActionCreated, 1);
+            Report.markCommentAsUnread(reportID, newLastReadTime);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }

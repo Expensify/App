@@ -78,7 +78,7 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        console.log('Called Did mount');
+        console.log('~~Monil called Did mount');
         this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
             if (!this.getIsReportFullyVisible()) {
                 return;
@@ -96,6 +96,8 @@ class ReportActionsView extends React.Component {
 
         if (this.getIsReportFullyVisible()) {
             this.openReportIfNecessary();
+            console.log(`~~Monil logs ${this.props.report.reportID}`);
+            Report.markCommentAsUnread(this.props.report.reportID);
         }
 
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
@@ -186,7 +188,9 @@ class ReportActionsView extends React.Component {
 
         const didReceiveNewMessage = prevProps.report.lastVisibleActionCreated !== this.props.report.lastVisibleActionCreated;
         if (isReportFullyVisible && didReceiveNewMessage) {
-            console.log(`~~Monil logs ${this.props.report.lastMessageText}`);
+
+            Report.markCommentAsUnread(this.props.report.reportID);
+            console.log(`~~Monil logs ${this.props.report.lastMessageText} ${this.props.report.reportID}`);
         } else {
             console.log(`~~Monil logs nothing`);
         }
