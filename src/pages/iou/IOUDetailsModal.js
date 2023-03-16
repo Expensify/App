@@ -144,9 +144,10 @@ class IOUDetailsModal extends Component {
 
     // Finds if there is a reportAction pending for this IOU
     findPendingAction() {
-        return _.find(this.props.reportActions, reportAction => reportAction.originalMessage
+        const reportActionWithPendingAction = _.find(this.props.reportActions, reportAction => reportAction.originalMessage
             && Number(reportAction.originalMessage.IOUReportID) === Number(this.props.route.params.iouReportID)
             && !_.isEmpty(reportAction.pendingAction));
+        return reportActionWithPendingAction ? reportActionWithPendingAction.pendingAction : undefined;
     }
 
     render() {
