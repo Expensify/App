@@ -120,22 +120,19 @@ class ReportSettingsPage extends Component {
         // The following validations are ordered by precedence.
         // First priority: We error if the user doesn't enter a room name or left blank
         if (!values.newRoomName || values.newRoomName === CONST.POLICY.ROOM_PREFIX) {
+            // We error if the user doesn't enter a room name or left blank
             ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.pleaseEnterRoomName'));
+        } else if (values.newRoomName !== CONST.POLICY.ROOM_PREFIX && !ValidationUtils.isValidRoomName(values.newRoomName)) {
+            // We error if the room name has invalid characters
+            ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomNameInvalidError'));
         }
 
         if (ValidationUtils.isReservedRoomName(values.newRoomName)) {
-            // Second priority: Certain names are reserved for default rooms and should not be used for policy rooms.
+            // Certain names are reserved for default rooms and should not be used for policy rooms.
             ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomNameReservedError'));
-        }
-
-        if (ValidationUtils.isExistingRoomName(values.newRoomName, this.props.reports, this.props.report.policyID)) {
-            // Third priority: Show error if the room name already exists
+        } else if (ValidationUtils.isExistingRoomName(values.newRoomName, this.props.reports, values.policyID)) {
+            // We error if the room name already exists.
             ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomAlreadyExistsError'));
-        }
-
-        if (!ValidationUtils.isValidRoomName(values.newRoomName)) {
-            // Fourth priority: We error if the room name has invalid characters
-            ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomNameInvalidError'));
         }
 
         return errors;
