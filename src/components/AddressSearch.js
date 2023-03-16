@@ -4,11 +4,11 @@ import PropTypes from 'prop-types';
 import {LogBox, ScrollView, View} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import lodashGet from 'lodash/get';
-import CONFIG from '../CONFIG';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import TextInput from './TextInput';
+import * as ApiUtils from '../libs/ApiUtils';
 import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
 import CONST from '../CONST';
 
@@ -199,7 +199,7 @@ const AddressSearch = (props) => {
                     query={query}
                     requestUrl={{
                         useOnPlatform: 'all',
-                        url: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Proxy_GooglePlaces&proxyUrl=`,
+                        url: ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
                     }}
                     textInputProps={{
                         InputComp: TextInput,
