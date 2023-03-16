@@ -2,34 +2,31 @@
  * The KeyboardAvoidingView is only used on ios
  */
 import React from 'react';
-import {StyleSheet} from 'react-native';
+import {
+    StyleSheet,
+    KeyboardAvoidingView as RNKeyboardAvoidingView,
+} from 'react-native';
 import Reanimated, {KeyboardState, useAnimatedKeyboard, useAnimatedStyle} from 'react-native-reanimated';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const KeyboardAvoidingView = (props) => {
-    const {behavior} = props;
+    const behavior = props.behavior;
 
     const keyboard = useAnimatedKeyboard();
     const insets = useSafeAreaInsets();
 
     const animatedStyle = useAnimatedStyle(() => {
-        global.kav_lastKeyboardHeight = keyboard.state.value === KeyboardState.OPEN
-          && keyboard.height.value !== 0
-            ? keyboard.height.value
-            : global.kav_lastKeyboardHeight;
-
         let value = 0;
 
-        if (keyboard.state.value === KeyboardState.CLOSED) {
+        // when we open modal keyboard is closed without animation and the height is 0
+        // but when we close modal - it opens it again but for one frame the height is still 0
+        if (keyboard.state.value === KeyboardState.OPEN && keyboard.height.value === 0) {
+            value = global.keyboardLastValue - insets.bottom;
+        } else if (keyboard.state.value === KeyboardState.CLOSED) {
             value = 0;
         } else {
+            global.keyboardLastValue = keyboard.height.value;
             value = keyboard.height.value - insets.bottom;
-
-            if (keyboard.state.value === KeyboardState.OPEN) {
-                value = global.kav_lastKeyboardHeight !== 0
-                    ? global.kav_lastKeyboardHeight - insets.bottom
-                    : 0;
-            }
         }
 
         if (behavior === 'height') {
@@ -61,6 +58,8 @@ const KeyboardAvoidingView = (props) => {
         </Reanimated.View>
     );
 };
+
+KeyboardAvoidingView.propTypes = RNKeyboardAvoidingView.propTypes;
 
 KeyboardAvoidingView.displayName = 'KeyboardAvoidingView';
 

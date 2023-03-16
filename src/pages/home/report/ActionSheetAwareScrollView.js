@@ -22,6 +22,7 @@ const ReportKeyboardSpace = forwardRef((props, ref) => {
                 keyboardSpaceState.value = {
                     measurements,
                     keyboardVisible,
+                    keyboardHeight: keyboard.height.value,
                 };
             }, 100);
         },
@@ -46,14 +47,8 @@ const ReportKeyboardSpace = forwardRef((props, ref) => {
                 height: 0,
             };
         }
-        if (global.spacer_keyboardHeight === undefined) {
-            global.spacer_keyboardHeight = 0;
-        }
-        if (keyboard.state.value === KeyboardState.OPEN) {
-            global.spacer_keyboardHeight = keyboard.height.value;
-        }
 
-        const {measurements, keyboardVisible} = keyboardSpaceState.value;
+        const {measurements, keyboardVisible, keyboardHeight} = keyboardSpaceState.value;
 
         if (!keyboardVisible) {
             // this means the bottom sheet was opened when the keyboard was closed
@@ -68,13 +63,16 @@ const ReportKeyboardSpace = forwardRef((props, ref) => {
         }
 
         const invertedHeight = keyboard.state.value === KeyboardState.CLOSED
-            ? global.spacer_keyboardHeight - safeArea.bottom
+            ? keyboardHeight - safeArea.bottom
             : 0;
 
         const offset = popoverHeightSharedValue.value
           - (windowHeight - measurements.fy)
           + measurements.height
-          + global.spacer_keyboardHeight + safeArea.bottom + 10;
+          + keyboardHeight
+          + safeArea.bottom
+          + 10;
+
         if (keyboard.state.value === KeyboardState.CLOSED && offset > invertedHeight) {
             return {
                 // we need set the value to the current offset before running the animation
@@ -84,7 +82,7 @@ const ReportKeyboardSpace = forwardRef((props, ref) => {
                         global.spacer_shouldRunSpring = true;
                         return invertedHeight;
                     })()
-                    : withTiming(offset, config, () => {
+                    : withTiming(offset < 0 ? 0 : offset, config, () => {
                         global.spacer_shouldRunSpring = false;
                     }),
             };
