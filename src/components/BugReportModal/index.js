@@ -14,6 +14,7 @@ import Icon from '../Icon';
 import * as Illustrations from '../Icon/Illustrations';
 import styles from '../../styles/styles';
 import withNavigation from '../withNavigation';
+import shakeEventTrigger from './shakeEventTrigger';
 
 const propTypes = {
     /** prop to set shortcuts modal visibility */
@@ -27,12 +28,11 @@ const defaultProps = {
     isBugReportModalOpen: false,
 };
 
-class BugReportConfirmationModal extends React.Component {
+class BugReportModal extends React.Component {
     componentDidMount() {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.BUG_REPORT_MODAL;
-        this.unsubscribeShortcutModal = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
-            BugReportActions.showBugReportModal();
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+        this.unsubscribeShortcutModal = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, this.showBugReportModal, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+        this.unsubscribeShakeEvent = shakeEventTrigger(this.showBugReportModal);
         this.submitAndClose = this.submitAndClose.bind(this);
     }
 
@@ -41,6 +41,10 @@ class BugReportConfirmationModal extends React.Component {
             return;
         }
         this.unsubscribeShortcutModal();
+    }
+
+    showBugReportModal() {
+        BugReportActions.showBugReportModal();
     }
 
     submitAndClose() {
@@ -77,8 +81,8 @@ class BugReportConfirmationModal extends React.Component {
     }
 }
 
-BugReportConfirmationModal.propTypes = propTypes;
-BugReportConfirmationModal.defaultProps = defaultProps;
+BugReportModal.propTypes = propTypes;
+BugReportModal.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -86,4 +90,4 @@ export default compose(
     withOnyx({
         isBugReportModalOpen: {key: ONYXKEYS.IS_BUG_REPORT_SHORTCUTS_MODAL_OPEN},
     }),
-)(BugReportConfirmationModal);
+)(BugReportModal);
