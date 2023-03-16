@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, Button} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -208,6 +208,10 @@ class LoginForm extends React.Component {
                                 message={serverErrorText}
                                 isAlertVisible={!_.isEmpty(serverErrorText)}
                                 containerStyles={[styles.mh0]}
+                            />
+                            <Button
+                                onPress={Session.beginAppleSignIn}
+                                title="Sign in with Apple"
                             />
                         </View>
                     )

@@ -608,6 +608,7 @@ PODS:
     - glog
     - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
+<<<<<<< HEAD
     - React-callinvoker (= 0.71.2-alpha.3)
     - React-Core (= 0.71.2-alpha.3)
     - React-cxxreact (= 0.71.2-alpha.3)
@@ -625,6 +626,17 @@ PODS:
     - React-jsi (= 0.71.2-alpha.3)
     - React-logger (= 0.71.2-alpha.3)
     - React-perflogger (= 0.71.2-alpha.3)
+=======
+    - React-bridging (= 0.70.4-alpha.2)
+    - React-callinvoker (= 0.70.4-alpha.2)
+    - React-Core (= 0.70.4-alpha.2)
+    - React-cxxreact (= 0.70.4-alpha.2)
+    - React-jsi (= 0.70.4-alpha.2)
+    - React-logger (= 0.70.4-alpha.2)
+    - React-perflogger (= 0.70.4-alpha.2)
+  - RNAppleAuthentication (2.2.2):
+    - React-Core
+>>>>>>> 2e6aa17816 (Apple auth demo using IR team acct. Response from Expensify API not successful yet.)
   - RNCAsyncStorage (1.17.11):
     - React-Core
   - RNCClipboard (1.5.1):
@@ -788,6 +800,7 @@ DEPENDENCIES:
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - "RNAppleAuthentication (from `../node_modules/@invertase/react-native-apple-authentication`)"
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCClipboard (from `../node_modules/@react-native-community/clipboard`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
@@ -962,6 +975,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/runtimeexecutor"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  RNAppleAuthentication:
+    :path: "../node_modules/@invertase/react-native-apple-authentication"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNCClipboard:
@@ -1077,6 +1092,7 @@ SPEC CHECKSUMS:
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: 99b24a0c5acd0d5dcac2b1a7f18c49ea317be99a
   react-native-webview: e771bc375f789ebfa02a26939a57dbc6fa897336
+<<<<<<< HEAD
   React-perflogger: 9f7c5a9d22d104ae0348f38235ee636d156b5938
   React-RCTActionSheet: 43e74f3a54967bb1d0e9ff261bc076843fb50ca1
   React-RCTAnimation: 6b0afd9bdd8fbd5580e821381e97fb12d21e617a
@@ -1090,6 +1106,21 @@ SPEC CHECKSUMS:
   React-RCTVibration: 53291ee889eb2e1558a1507168af310926ad1ce1
   React-runtimeexecutor: 2c2c364acf7d90ec4d503e9f97b83683e040de08
   ReactCommon: 470b1793330b7254a68741f071c5ae432a0a25d6
+=======
+  React-perflogger: b231fb9993c1b5f74e32f0a3473225f9ebaf73d3
+  React-RCTActionSheet: 9064b3b78118a253f2d6a63153f6dfff0b38f19f
+  React-RCTAnimation: d93c521d4ad6457fc8c1d9830ffb0495286ea036
+  React-RCTBlob: 3121c9d4416d1d4c8d05a600f7a27da85458a277
+  React-RCTImage: fac3e6e809d2e79669cc9deec9e4802dde9d73cd
+  React-RCTLinking: 23718d841e65fe258dd64e9cc0681d6767f89196
+  React-RCTNetwork: 1bf07637ebb27f8241557e85871f7af990238130
+  React-RCTSettings: 02f399b023b23a853eeda24879f4703755ffc996
+  React-RCTText: c916d8da274c9823aaed9f53c007ecfa6e802764
+  React-RCTVibration: eb5fb0bb3d78e31dcaeae5f127c75a7caf4b6af9
+  React-runtimeexecutor: a8cee6fe3fb7994f07b735c7024a08a4fa5f8446
+  ReactCommon: 1ebf2df5c764ebb52048e7a1cf42c75a6246171a
+  RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
+>>>>>>> 2e6aa17816 (Apple auth demo using IR team acct. Response from Expensify API not successful yet.)
   RNCAsyncStorage: 8616bd5a58af409453ea4e1b246521bb76578d60
   RNCClipboard: 41d8d918092ae8e676f18adada19104fa3e68495
   RNCPicker: 0b65be85fe7954fbb2062ef079e3d1cde252d888

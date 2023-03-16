@@ -1,0 +1,38 @@
+
+
+After trying once, getting Apple to work with my account but Expensify rejecting it because:
+
+ LOG  RESULT:  {"UUID": "25138b92-d63e-43d2-ab66-10863bdba21e", "code": 666, "data": [], "htmlMessage": "", "jsonCode": 666, "message": "Your domain requires SAML authentication, so you're unable to sign in via Apple. Please try again using SAML.", "onyxData": [], "requestID": "7a90a78fec3debb7-SEA", "title": "", "type": "Expensify\\Libs\\Error\\ExpError"}
+
+(which makes no sense, it's a gmail account)
+
+I tried making an apple account with the same email as the Expensify account I've been testing with. but now when I try to sign in:
+
+
+
+ WARN  Possible Unhandled Promise Rejection (id: 2):
+Error: The operation couldn’t be completed. (com.apple.AuthenticationServices.AuthorizationError error 1000.)
+Error: The operation couldn’t be completed. (com.apple.AuthenticationServices.AuthorizationError error 1000.)
+    at promiseMethodWrapper (http://localhost:8081/index.bundle?platform=ios&dev=true&minify=false&modulesOnly=false&runModule=true&app=com.chat.expensify.chat:4896:45)
+    at performRequest (http://localhost:8081/index.bundle?platform=ios&dev=true&minify=false&modulesOnly=false&runModule=true&app=com.chat.expensify.chat:220860:42)
+    at ?anon_0_ (http://localhost:8081/index.bundle?platform=ios&dev=true&minify=false&modulesOnly=false&runModule=true&app=com.chat.expensify.chat:208008:148)
+    at next (native)
+    at asyncGeneratorStep (http://localhost:8081/index.bundle?platform=ios&dev=true&minify=false&modulesOnly=false&runModule=true&app=com.chat.expensify.chat:22142:26)
+    at _next (http://localhost:8081/index.bundle?platform=ios&dev=true&minify=false&modulesOnly=false&runModule=true&app=com.chat.expensify.chat:22161:29)
+    at anonymous (http://localhost:8081/index.bundle?platform=ios&dev=true&minify=false&modulesOnly=false&runModule=true&app=com.chat.expensify.chat:22166:14)
+    at tryCallTwo (/Users/distiller/react-native/sdks/hermes/build_iphonesimulator/lib/InternalBytecode/InternalBytecode.js:61:9)
+    at doResolve (/Users/distiller/react-native/sdks/hermes/build_iphonesimulator/lib/InternalBytecode/InternalBytecode.js:216:25)
+    at Promise (/Users/distiller/react-native/sdks/hermes/build_iphonesimulator/lib/InternalBytecode/InternalBytecode.js:82:14)
+    at anonymous (http://localhost:8081/index.bundle?platform=ios&dev=true&minify=false&modulesOnly=false&runModule=true&app=com.chat.expensify.chat:22158:25)
+    at apply (native)
+    at beginAppleSignIn (http://localhost:8081/index.bundle?platform=ios&dev=true&minify=false&modulesOnly=false&runModule=true&app=com.chat.expensify.chat:208003:35)
+
+
+Some state that needs clearing?
+
+No clear way to do that from library. Try:
+
+- deleting and re-adding app?
+- resetting simulator state?
+
+- Deleting app did it; now I'm also getting that invalid ClientID error:  LOG  RESULT:  {"jsonCode": 401, "message": "401 Invalid ClientID", "onyxData": [], "requestID": "7a90cdef1e73c4ed-SEA"}
