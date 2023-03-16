@@ -167,6 +167,9 @@ export default {
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
 
+    // Is bug report shortcuts modal open?
+    IS_BUG_REPORT_SHORTCUTS_MODAL_OPEN: 'isBugReportModalOpen',
+
     // Stores information about active wallet transfer amount, selectedAccountID, status, etc
     WALLET_TRANSFER: 'walletTransfer',
 
@@ -193,4 +196,7 @@ export default {
 
     // Is app in beta version
     IS_BETA: 'isBeta',
+
+    // Bug report
+    BUG_REPORT: 'bugReport',
 };
