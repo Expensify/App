@@ -33,7 +33,6 @@ import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
 import UnreadIndicatorUpdater from './libs/UnreadIndicatorUpdater';
-import BugReportTrigger from './components/ReportBugTrigger/ReportBugTrigger';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -220,12 +219,10 @@ class Expensify extends PureComponent {
                         ) : null}
                     </>
                 )}
-
                 <NavigationRoot
                     onReady={this.setNavigationReady}
                     authenticated={this.isAuthenticated()}
                 />
-                <BugReportTrigger onTrigger={() => alert('trigger bug report')} />
             </DeeplinkWrapper>
         );
     }

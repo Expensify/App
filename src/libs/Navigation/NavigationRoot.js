@@ -10,7 +10,6 @@ import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import Log from '../Log';
 import BugReportConfirmationModal from '../../components/BugReportConfirmationModal';
-import ReportBugTrigger from '../../components/ReportBugTrigger/ReportBugTrigger';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -68,12 +67,8 @@ const NavigationRoot = (props) => {
                 enabled: false,
             }}
         >
-            <ReportBugTrigger onTrigger={() => {
-
-            }} />
             <BugReportConfirmationModal navigation={navigationRef} />
             <AppNavigator authenticated={props.authenticated} />
-
         </NavigationContainer>
     );
 };

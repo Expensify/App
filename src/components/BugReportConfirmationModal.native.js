@@ -2,26 +2,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import DevMenu from 'react-native-dev-menu';
 import RNShake from 'react-native-shake';
-import Onyx from 'react-native-onyx';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import HeaderWithCloseButton from './HeaderWithCloseButton';
-import Text from './Text';
-import Modal from './Modal';
-import CONST from '../CONST';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
-import KeyboardShortcut from '../libs/KeyboardShortcut';
 import * as BugReportShortcutsActions from '../libs/actions/BugReportShortcuts';
-import * as ModalActions from '../libs/actions/Modal';
 import ONYXKEYS from '../ONYXKEYS';
 import ConfirmModal from './ConfirmModal';
 import * as BugReport from '../libs/actions/BugReport';
-import withNavigation from './withNavigation';
-import withNavigationFocus from './withNavigationFocus';
 
 const propTypes = {
     /** prop to set shortcuts modal visibility */
@@ -39,18 +27,23 @@ const defaultProps = {
 };
 
 class BugReportConfirmationModal extends React.Component {
-    componentDidMount() {
+    subscription;
 
-        if (!__DEV__) {
-            // For Developers
-            DevMenu.addItem('Report bug', () => {
-                Onyx.merge(ONYXKEYS.IS_BUG_REPORT_SHORTCUTS_MODAL_OPEN, true);
-            });
+    constructor(props) {
+        super(props);
+        this.submitAndClose = this.submitAndClose.bind(this);
+        this.close = this.close.bind(this);
+    }
+
+    componentDidMount() {
+        const handleTrigger = () => {
+            Onyx.merge(ONYXKEYS.IS_BUG_REPORT_SHORTCUTS_MODAL_OPEN, true);
+        };
+
+        if (__DEV__) {
+            DevMenu.addItem('Report bug', handleTrigger);
         } else {
-            // For the rest of the world
-            RNShake.addListener(() => {
-                Onyx.merge(ONYXKEYS.IS_BUG_REPORT_SHORTCUTS_MODAL_OPEN, true);
-            });
+            this.subscription = RNShake.addListener(handleTrigger);
         }
     }
 
@@ -59,35 +52,29 @@ class BugReportConfirmationModal extends React.Component {
             return;
         }
         this.unsubscribeShortcutModal();
-        RNShake.removeAllListeners();
+        this.subscription.remove();
     }
 
     submitAndClose() {
-        // eslint-disable-next-line no-console
-        console.log('success');
-        BugReportShortcutsActions.hideKeyboardShortcutModal();
+        this.close();
         BugReport.send(BugReport.getSystemDetails(this.props.navigation));
     }
 
     close() {
-        // eslint-disable-next-line no-console
-        console.log('nvm');
         BugReportShortcutsActions.hideKeyboardShortcutModal();
     }
 
     render() {
         return (
-            <>
-                <ConfirmModal
-                    title="You seem frustrated..."
-                    isVisible={this.props.isBugReportModalOpen}
-                    onConfirm={this.submitAndClose}
-                    onCancel={this.close}
-                    prompt="Would you like to report a bug?"
-                    confirmText="Report Bug"
-                    cancelText={this.props.translate('common.cancel')}
-                />
-            </>
+            <ConfirmModal
+                title="You seem frustrated..."
+                isVisible={this.props.isBugReportModalOpen}
+                onConfirm={this.submitAndClose}
+                onCancel={this.close}
+                prompt="Would you like to report a bug?"
+                confirmText="Report Bug"
+                cancelText={this.props.translate('common.cancel')}
+            />
         );
     }
 }
