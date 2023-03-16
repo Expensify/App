@@ -44,10 +44,11 @@ class NewDatePicker extends React.Component {
     componentDidMount() {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
         this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
-            if (!this.state.isPickerVisible) {
+            if (!this.state.isPickerVisible && this.textInputRef && !this.textInputRef.isFocused()) {
                 return;
             }
             this.hidePicker();
+            this.textInputRef.blur();
         }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
     }
 
