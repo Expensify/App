@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {View} from 'react-native';
 import {propTypes, defaultProps} from './hoverablePropTypes';
 
 /**
@@ -57,10 +56,10 @@ class Hoverable extends Component {
     render() {
         const child = _.isFunction(this.props.children)
             ? this.props.children(this.state.isHovered)
-            : this.props.children
+            : this.props.children;
 
         if (!React.isValidElement(child)) {
-            throw Error("Children is not a valid element.");
+            throw Error('Children is not a valid element.');
         }
 
         return React.cloneElement(React.Children.only(child), {

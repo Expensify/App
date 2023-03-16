@@ -167,7 +167,6 @@ const Footer = (props) => {
                                                         style={[styles.footerRow, hovered ? styles.textBlue : {}]}
                                                         href={row.link}
                                                     >
-                                                        {console.log(hovered)}
                                                         {props.translate(row.translationPath)}
                                                     </TextLink>
                                                 </View>

@@ -161,7 +161,7 @@ class Tooltip extends PureComponent {
         }
 
         if (!React.isValidElement(this.props.children)) {
-            throw Error("Children is not a valid element.");
+            throw Error('Children is not a valid element.');
         }
 
         const child = React.cloneElement(React.Children.only(this.props.children), {
