@@ -385,6 +385,11 @@ export default {
         enterPreferredEmailToSendValidationLink: 'Escribe tu email para recibir el enlace de validación.',
         sendValidation: 'Enviar validación',
     },
+    validateSecondaryLoginPage: {
+        validate: '',
+        enterMagicCodeToValidate: ({login}) => `${login}`,
+        submit: '',
+    },
     initialSettingsPage: {
         about: 'Acerca de',
         aboutPage: {
