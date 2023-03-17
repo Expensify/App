@@ -26,7 +26,22 @@ const propTypes = {
 
     ...withLocalizePropTypes,
 
-    authenticated: PropTypes.bool.isRequired,
+    /** Session info for the currently logged-in user. */
+    session: PropTypes.shape({
+
+        /** Currently logged-in user authToken */
+        email: PropTypes.string,
+
+        /** Currently logged-in user authToken */
+        authToken: PropTypes.string,
+    }),
+};
+
+const defaultProps = {
+    session: {
+        email: '',
+        authToken: '',
+    },
 };
 
 class DeeplinkWrapper extends PureComponent {
@@ -65,20 +80,16 @@ class DeeplinkWrapper extends PureComponent {
         }
         this.setState({deeplinkMatch: true});
         const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
-        if (!this.props.authenticated) {
-            const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}${window.location.pathname}${window.location.search}${window.location.hash}`;
+        const params = new URLSearchParams();
+        params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
+        if (!this.props.session.authToken) {
+            const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
             this.openRouteInDesktopApp(expensifyDeeplinkUrl);
             return;
         }
-        const exitTo = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-        Authentication.getNewAuthToken().then((response) => {
-            const params = new URLSearchParams();
-            params.set('accountID', response.accountID);
-            params.set('email', response.email);
-            params.set('encryptedAuthToken', response.encryptedAuthToken);
-            params.set('authToken', response.authToken);
-            params.set('exitTo', exitTo);
-            params.set('shouldForceLogin', 'false');
+        Authentication.getShortLivedAuthToken().then((shortLivedAuthToken) => {
+            params.set('email', this.props.session.email);
+            params.set('shortLivedAuthToken', `${shortLivedAuthToken}`);
             const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
             this.openRouteInDesktopApp(expensifyDeeplinkUrl);
         }).catch(() => {});
@@ -183,9 +194,11 @@ class DeeplinkWrapper extends PureComponent {
 }
 
 DeeplinkWrapper.propTypes = propTypes;
+DeeplinkWrapper.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
         betas: {key: ONYXKEYS.BETAS},
+        session: {key: ONYXKEYS.SESSION},
     }),
 )(DeeplinkWrapper);

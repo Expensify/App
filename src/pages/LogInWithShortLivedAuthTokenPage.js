@@ -3,6 +3,7 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import * as Session from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
+import Navigation from '../libs/Navigation/Navigation';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
@@ -31,11 +32,11 @@ class LogInWithShortLivedAuthTokenPage extends Component {
             Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
             return;
         }
-        const authToken = lodashGet(this.props, 'route.params.authToken', '');
-        const encryptedAuthToken = lodashGet(this.props, 'route.params.encryptedAuthToken', '');
-        const accountID = Number(lodashGet(this.props, 'route.params.accountID', ''));
-        if (authToken) {
-            Session.saveSessionForNewUser(email, accountID, authToken, encryptedAuthToken);
+        const exitTo = lodashGet(this.props, 'route.params.exitTo', '');
+        if (exitTo) {
+            Navigation.isNavigationReady().then(() => {
+                Navigation.navigate(exitTo);
+            });
         }
     }
 
