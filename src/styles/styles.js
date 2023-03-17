@@ -2813,18 +2813,11 @@ const styles = {
     },
 
     imageCropContainer: {
-        borderRadius: variables.componentBorderRadiusCard,
         overflow: 'hidden',
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: themeColors.imageCropBackgroundColor,
         cursor: 'move',
-    },
-
-    imageCropViewBorder: {
-        borderRadius: variables.componentBorderRadiusCard,
-        borderWidth: 2,
-        borderColor: themeColors.cropMaskOutline,
     },
 
     sliderKnob: {

@@ -47,6 +47,7 @@ import Hashtag from '../../../assets/images/hashtag.svg';
 import History from '../../../assets/images/history.svg';
 import Hourglass from '../../../assets/images/hourglass.svg';
 import ImageCropMask from '../../../assets/images/image-crop-mask.svg';
+import ImageCropSquareMask from '../../../assets/images/image-crop-square-mask.svg';
 import Info from '../../../assets/images/info.svg';
 import Invoice from '../../../assets/images/invoice.svg';
 import Key from '../../../assets/images/key.svg';
@@ -164,6 +165,7 @@ export {
     History,
     Hourglass,
     ImageCropMask,
+    ImageCropSquareMask,
     Info,
     Invoice,
     Key,

@@ -9,7 +9,6 @@ import * as Expensicons from '../Icon/Expensicons';
 import * as StyleUtils from '../../styles/StyleUtils';
 import gestureHandlerPropTypes from './gestureHandlerPropTypes';
 import ControlSelection from '../../libs/ControlSelection';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** Link to image for cropping   */
@@ -39,15 +38,15 @@ const propTypes = {
     /** React-native-reanimated lib handler which executes when the user is panning image */
     panGestureEventHandler: gestureHandlerPropTypes,
 
-    /** Type of image crop mask */
-    imageCropMaskType: PropTypes.oneOf([CONST.IMAGE_CROP_MASK_TYPE.CIRCLE, CONST.IMAGE_CROP_MASK_TYPE.SQUARE]),
+    /** Image crop vector mask */
+    maskImage: PropTypes.func,
 };
 
 const defaultProps = {
     imageUri: '',
     containerSize: 0,
     panGestureEventHandler: () => {},
-    imageCropMaskType: CONST.IMAGE_CROP_MASK_TYPE.CIRCLE,
+    maskImage: Expensicons.ImageCropMask,
 };
 
 const ImageCropView = (props) => {
@@ -69,18 +68,14 @@ const ImageCropView = (props) => {
         };
     }, [props.originalImageHeight, props.originalImageWidth]);
 
-    // If image crop mask type is square then apply border around View
-    const maskStyles = props.imageCropMaskType === CONST.IMAGE_CROP_MASK_TYPE.SQUARE ? styles.imageCropViewBorder : {};
-
     // We're preventing text selection with ControlSelection.blockElement to prevent safari
     // default behaviour of cursor - I-beam cursor on drag. See https://github.com/Expensify/App/issues/13688
     return (
         <PanGestureHandler onGestureEvent={props.panGestureEventHandler}>
             <Animated.View ref={ControlSelection.blockElement} style={[containerStyle, styles.imageCropContainer]}>
                 <Animated.Image style={[imageStyle, styles.h100, styles.w100]} source={{uri: props.imageUri}} resizeMode="contain" />
-                <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute, maskStyles]}>
-                    {props.imageCropMaskType === CONST.IMAGE_CROP_MASK_TYPE.CIRCLE
-                        && <Icon src={Expensicons.ImageCropMask} width={props.containerSize} height={props.containerSize} />}
+                <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute]}>
+                    <Icon src={props.maskImage} width={props.containerSize} height={props.containerSize} />
                 </View>
             </Animated.View>
         </PanGestureHandler>

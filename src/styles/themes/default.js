@@ -13,7 +13,6 @@ const darkTheme = {
     iconSuccessFill: colors.green,
     iconReversed: colors.greenAppBackground,
     textSupporting: colors.greenSupportingText,
-    cropMaskOutline: colors.white,
     text: colors.white,
     link: colors.blueLink,
     linkHover: colors.blueLinkHover,
