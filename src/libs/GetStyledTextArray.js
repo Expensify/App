@@ -12,7 +12,7 @@ const getStyledTextArray = (name, prefix) => {
     const prefixLocation = name.search(Str.escapeForRegExp(prefixLowercase));
 
     if (prefixLocation === 0 && prefix.length === name.length) {
-        texts.push({text: prefix, isColored: true});
+        texts.push({text: prefixLowercase, isColored: true});
     } else if (prefixLocation === 0 && prefix.length !== name.length) {
         texts.push(
             {text: name.slice(0, prefix.length), isColored: true},
