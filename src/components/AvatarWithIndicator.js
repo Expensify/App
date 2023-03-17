@@ -15,6 +15,7 @@ import {policyPropTypes} from '../pages/workspace/withPolicy';
 import walletTermsPropTypes from '../pages/EnablePayments/walletTermsPropTypes';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
+import * as ReportUtils from '../libs/ReportUtils';
 import * as UserUtils from '../libs/UserUtils';
 import themeColors from '../styles/themes/default';
 
@@ -107,7 +108,7 @@ const AvatarWithIndicator = (props) => {
         <View style={[styles.sidebarAvatar]}>
             <Tooltip text={props.tooltipText}>
                 <Avatar
-                    source={props.source}
+                    source={ReportUtils.getSmallSizeAvatar(props.source)}
                     size={props.size}
                 />
                 {(shouldShowErrorIndicator || shouldShowInfoIndicator) && (
