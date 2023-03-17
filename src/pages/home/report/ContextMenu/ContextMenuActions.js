@@ -19,7 +19,6 @@ import * as Environment from '../../../../libs/Environment/Environment';
 import Permissions from '../../../../libs/Permissions';
 import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReactions';
 import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickEmojiReactions';
-import {togglePinnedState} from "../../../../libs/actions/Report";
 
 /**
  * Gets the HTML version of the message in an action.
