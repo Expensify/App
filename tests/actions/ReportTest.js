@@ -162,7 +162,7 @@ describe('actions/Report', () => {
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                Report.togglePinnedState(REPORT);
+                Report.togglePinnedState(REPORT_ID, false);
                 return waitForPromisesToResolve();
             })
             .then(() => {
