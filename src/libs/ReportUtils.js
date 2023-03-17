@@ -559,6 +559,28 @@ function getFullSizeAvatar(avatarURL, login) {
 }
 
 /**
+ * Small sized avatars end with _128.<file-type>. This adds the _128 at the end of the
+ * source URL (before the file type) if it doesn't exist there already.
+ *
+ * @param {String} avatarURL
+ * @param {String} login
+ * @returns {String|Function}
+ */
+function getSmallSizeAvatar(avatarURL, login) {
+    const source = getAvatar(avatarURL, login);
+    if (!_.isString(source)) {
+        return source;
+    }
+
+    // If image source already has _128 at the end, the given avatar URL is already what we want to use here.
+    const lastPeriodIndex = source.lastIndexOf('.');
+    if (source.substring(lastPeriodIndex - 4, lastPeriodIndex) === '_128') {
+        return source;
+    }
+    return `${source.substring(0, lastPeriodIndex)}_128${source.substring(lastPeriodIndex)}`;
+}
+
+/**
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
  *
@@ -1690,5 +1712,6 @@ export {
     getCommentLength,
     openReportFromDeepLink,
     getFullSizeAvatar,
+    getSmallSizeAvatar,
     getIOUOptions,
 };
