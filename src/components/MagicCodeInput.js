@@ -1,6 +1,5 @@
 import React from 'react';
-import {Pressable, Text, StyleSheet, View, Platform} from 'react-native';
-import getPlatform from '../libs/getPlatform';
+import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../styles/styles';
@@ -30,8 +29,14 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
+    /** Specifies autocomplete hints for the system, so it can provide autofill */
+    autoComplete: PropTypes.oneOf(['sms-otp', 'one-time-code']).isRequired,
+
     /* Should submit when the input is complete */
     submitOnComplete: PropTypes.bool,
+
+    /** Id to use for this button */
+    nativeID: PropTypes.string,
 
     /** Function to call when the input is changed  */
     onChange: PropTypes.func,
@@ -44,21 +49,23 @@ const defaultProps = {
     value: undefined,
     name: '',
     autoFocus: true,
-    forwardedRef: undefined,
     shouldDelayFocus: false,
+    forwardedRef: undefined,
+    errorText: '',
     submitOnComplete: false,
+    nativeID: '',
     onChange: () => {},
     onSubmit: () => {},
 };
 
 /**
  * Verifies if a string is a number.
- * 
- * @param {string} value The string to check if it's numeric. 
+ *
+ * @param {string} value The string to check if it's numeric.
  * @returns {boolean} True if the string is numeric, false otherwise.
  */
 function isNumeric(value) {
-    if (typeof value !== "string") return false;
+    if (typeof value !== 'string') { return false; }
     return !Number.isNaN(value) && !Number.isNaN(parseFloat(value));
 }
 
@@ -73,7 +80,7 @@ class MagicCodeInput extends React.PureComponent {
             input: '',
             focusedIndex: 0,
             editIndex: 0,
-            numbers: props.value ? this._decomposeString(props.value) : Array(CONST.MAGIC_CODE_NUMBERS).fill(''),
+            numbers: props.value ? this.decomposeString(props.value) : Array(CONST.MAGIC_CODE_NUMBERS).fill(''),
         };
 
         this.onChangeText = this.onChangeText.bind(this);
@@ -98,42 +105,26 @@ class MagicCodeInput extends React.PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.value === this.props.value || this.props.value === this._composeToString(this.state.numbers)) {
+        if (prevProps.value === this.props.value || this.props.value === this.composeToString(this.state.numbers)) {
             return;
         }
 
         this.setState({
-            numbers: this._decomposeString(this.props.value)
-        })
-    }
-
-    /**
-     * Converts a given string into an array of numbers that must have the same
-     * number of elements as the number of inputs.
-     * 
-     * @param {string} value The string to be converted into an array. 
-     * @returns {array} The array of numbers.
-     */
-    _decomposeString(value) {
-        let arr = value.trim().split('').slice(0, CONST.MAGIC_CODE_NUMBERS).map(v => isNumeric(v) ? v : '');
-        if (arr.length < CONST.MAGIC_CODE_NUMBERS) {
-            arr = arr.concat(Array(CONST.MAGIC_CODE_NUMBERS - arr.length).fill(''));
-        }
-        return arr;
-    }
-
-    _composeToString(value) {
-        return _.filter(value, v => v !== undefined).join('');
+            numbers: this.decomposeString(this.props.value),
+        });
     }
 
     /**
      * Focuses on the input when it is pressed.
-     * 
-     * @param {number} index The index of the input. 
+     *
+     * @param {object} event The event passed by the input.
+     * @param {number} index The index of the input.
      */
     onFocus(event, index) {
         event.preventDefault();
-        this.setState(prevState => ({...prevState, input: '', focusedIndex: index, editIndex: index}));
+        this.setState(prevState => ({
+            ...prevState, input: '', focusedIndex: index, editIndex: index,
+        }));
         this.inputRef.focus();
     }
 
@@ -143,7 +134,7 @@ class MagicCodeInput extends React.PureComponent {
      * the focused input on the next empty one, if exists.
      * It handles both fast typing and only one digit at a time
      * in a specific position.
-     * 
+     *
      * @param {string} value The contents of the input text.
      */
     onChangeText(value) {
@@ -152,19 +143,21 @@ class MagicCodeInput extends React.PureComponent {
         }
 
         const numbersArr = value.trim().split('');
-        this.setState(prevState => {
-            let numbers = [
+        this.setState((prevState) => {
+            const numbers = [
                 ...prevState.numbers.slice(0, prevState.editIndex),
-                ...numbersArr.slice(0, CONST.MAGIC_CODE_NUMBERS - prevState.editIndex)
+                ...numbersArr.slice(0, CONST.MAGIC_CODE_NUMBERS - prevState.editIndex),
             ];
 
             // Updates the focused input taking into consideration the last input
             // edited and the number of digits added by the user.
-            const focusedIndex = Math.min(prevState.editIndex + numbersArr.length - 1, CONST.MAGIC_CODE_NUMBERS - 1)
+            const focusedIndex = Math.min(prevState.editIndex + (numbersArr.length - 1), CONST.MAGIC_CODE_NUMBERS - 1);
 
-            return { numbers, focusedIndex, input: value, editIndex: prevState.editIndex };
+            return {
+                numbers, focusedIndex, input: value, editIndex: prevState.editIndex,
+            };
         }, () => {
-            const finalInput = this._composeToString(this.state.numbers);
+            const finalInput = this.composeToString(this.state.numbers);
             this.props.onChange(finalInput);
 
             if (this.props.submitOnComplete && finalInput.length === CONST.MAGIC_CODE_NUMBERS) {
@@ -175,10 +168,10 @@ class MagicCodeInput extends React.PureComponent {
 
     /**
      * Handles logic related to certain key presses.
-     * 
+     *
      * NOTE: when using Android Emulator, this can only be tested using
      * hardware keyboard inputs.
-     * 
+     *
      * @param {object} event The event passed by the key press.
      */
     onKeyPress({nativeEvent: {key: keyValue}}) {
@@ -186,35 +179,54 @@ class MagicCodeInput extends React.PureComponent {
         // meaning that it's the last character to be deleted or it's a character being
         // deleted in the middle of the input, which should delete all the characters after it.
         if (keyValue === 'Backspace' && this.state.input.length < 2) {
-            this.setState(prevState => {
+            this.setState((prevState) => {
                 const numbers = [...prevState.numbers];
                 numbers[prevState.focusedIndex] = '';
-                
+
                 return {
                     input: '',
                     numbers: numbers.slice(0, prevState.focusedIndex),
                     focusedIndex: prevState.focusedIndex === 0 ? 0 : prevState.focusedIndex - 1,
-                    editIndex: prevState.editIndex === 0 ? 0 : prevState.editIndex - 1
-                }
+                    editIndex: prevState.editIndex === 0 ? 0 : prevState.editIndex - 1,
+                };
             });
         } else if (keyValue === 'ArrowLeft') {
             this.setState(prevState => ({
                 ...prevState,
                 input: '',
                 focusedIndex: prevState.focusedIndex - 1,
-                editIndex: prevState.focusedIndex - 1
+                editIndex: prevState.focusedIndex - 1,
             }));
         } else if (keyValue === 'ArrowRight') {
             this.setState(prevState => ({
                 ...prevState,
                 input: '',
                 focusedIndex: prevState.focusedIndex + 1,
-                editIndex: prevState.focusedIndex + 1
+                editIndex: prevState.focusedIndex + 1,
             }));
         } else if (keyValue === 'Enter') {
-            this.setState(prevState => ({...prevState, input: '' }));
-            this.props.onSubmit(this._composeToString(this.state.numbers));
+            this.setState(prevState => ({...prevState, input: ''}));
+            this.props.onSubmit(this.composeToString(this.state.numbers));
         }
+    }
+
+    /**
+     * Converts a given string into an array of numbers that must have the same
+     * number of elements as the number of inputs.
+     *
+     * @param {string} value The string to be converted into an array.
+     * @returns {array} The array of numbers.
+     */
+    decomposeString(value) {
+        let arr = _.map(value.trim().split('').slice(0, CONST.MAGIC_CODE_NUMBERS), v => (isNumeric(v) ? v : ''));
+        if (arr.length < CONST.MAGIC_CODE_NUMBERS) {
+            arr = arr.concat(Array(CONST.MAGIC_CODE_NUMBERS - arr.length).fill(''));
+        }
+        return arr;
+    }
+
+    composeToString(value) {
+        return _.filter(value, v => v !== undefined).join('');
     }
 
     render() {
@@ -229,7 +241,7 @@ class MagicCodeInput extends React.PureComponent {
                                 value={this.state.numbers[index] || ''}
                                 maxLength={1}
                                 blurOnSubmit={false}
-                                onPress={(event) => this.onFocus(event, index)}
+                                onPress={event => this.onFocus(event, index)}
                                 inputStyle={[styles.iouAmountTextInput, styles.textAlignCenter]}
                             />
                         </View>
@@ -244,11 +256,10 @@ class MagicCodeInput extends React.PureComponent {
                         name={this.props.name}
                         maxLength={CONST.MAGIC_CODE_NUMBERS}
                         value={this.state.input}
-                        label={this.props.label}
                         autoComplete={this.props.autoComplete}
                         nativeID={this.props.nativeID}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                        onPress={(event) => this.onFocus(event, 0)}
+                        onPress={event => this.onFocus(event, 0)}
                         onChangeText={this.onChangeText}
                         onKeyPress={this.onKeyPress}
                         onBlur={() => this.setState(prevState => ({...prevState, focusedIndex: undefined}))}
@@ -258,13 +269,12 @@ class MagicCodeInput extends React.PureComponent {
                     <FormHelpMessage isError message={this.props.errorText} />
                 )}
             </>
-        )
+        );
     }
 }
 
 MagicCodeInput.propTypes = propTypes;
 MagicCodeInput.defaultProps = defaultProps;
-MagicCodeInput.displayName = 'MagicCodeInput';
 
 export default React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
