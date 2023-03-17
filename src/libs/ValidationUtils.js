@@ -420,6 +420,17 @@ function isValidTaxID(taxID) {
     return taxID && CONST.REGEX.TAX_ID.test(taxID.replace(CONST.REGEX.NON_NUMERIC, ''));
 }
 
+/**
+ * Verifies if a string is a number.
+ *
+ * @param {string} value The string to check if it's numeric.
+ * @returns {boolean} True if the string is numeric, false otherwise.
+ */
+function isNumeric(value) {
+    if (typeof value !== 'string') { return false; }
+    return !Number.isNaN(value) && !Number.isNaN(parseFloat(value));
+}
+
 export {
     meetsAgeRequirements,
     getAgeRequirementError,
@@ -450,4 +461,5 @@ export {
     isValidValidateCode,
     isValidDisplayName,
     doesContainReservedWord,
+    isNumeric,
 };

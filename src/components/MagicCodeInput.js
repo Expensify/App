@@ -3,6 +3,7 @@ import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../styles/styles';
+import * as ValidationUtils from '../libs/ValidationUtils';
 import CONST from '../CONST';
 import TextInput from './TextInput';
 import FormHelpMessage from './FormHelpMessage';
@@ -58,23 +59,12 @@ const defaultProps = {
     onSubmit: () => {},
 };
 
-/**
- * Verifies if a string is a number.
- *
- * @param {string} value The string to check if it's numeric.
- * @returns {boolean} True if the string is numeric, false otherwise.
- */
-function isNumeric(value) {
-    if (typeof value !== 'string') { return false; }
-    return !Number.isNaN(value) && !Number.isNaN(parseFloat(value));
-}
-
 class MagicCodeInput extends React.PureComponent {
     constructor(props) {
         super(props);
 
         this.inputNrArray = Array.from(Array(CONST.MAGIC_CODE_NUMBERS).keys());
-        this.inputRef = React.createRef(null);
+        this.inputRef = null;
 
         this.state = {
             input: '',
@@ -105,13 +95,20 @@ class MagicCodeInput extends React.PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.value === this.props.value || this.props.value === this.composeToString(this.state.numbers)) {
+        if (prevProps.value === this.props.value) {
             return;
         }
 
         this.setState({
             numbers: this.decomposeString(this.props.value),
         });
+    }
+
+    componentWillUnmount() {
+        if (!this.focusTimeout) {
+            return;
+        }
+        clearTimeout(this.focusTimeout);
     }
 
     /**
@@ -122,9 +119,11 @@ class MagicCodeInput extends React.PureComponent {
      */
     onFocus(event, index) {
         event.preventDefault();
-        this.setState(prevState => ({
-            ...prevState, input: '', focusedIndex: index, editIndex: index,
-        }));
+        this.setState({
+            input: '',
+            focusedIndex: index,
+            editIndex: index,
+        });
         this.inputRef.focus();
     }
 
@@ -138,7 +137,7 @@ class MagicCodeInput extends React.PureComponent {
      * @param {string} value The contents of the input text.
      */
     onChangeText(value) {
-        if (_.isUndefined(value) || _.isEmpty(value) || !isNumeric(value)) {
+        if (_.isUndefined(value) || _.isEmpty(value) || !ValidationUtils.isNumeric(value)) {
             return;
         }
 
@@ -154,7 +153,10 @@ class MagicCodeInput extends React.PureComponent {
             const focusedIndex = Math.min(prevState.editIndex + (numbersArr.length - 1), CONST.MAGIC_CODE_NUMBERS - 1);
 
             return {
-                numbers, focusedIndex, input: value, editIndex: prevState.editIndex,
+                numbers,
+                focusedIndex,
+                input: value,
+                editIndex: prevState.editIndex,
             };
         }, () => {
             const finalInput = this.composeToString(this.state.numbers);
@@ -192,20 +194,18 @@ class MagicCodeInput extends React.PureComponent {
             });
         } else if (keyValue === 'ArrowLeft') {
             this.setState(prevState => ({
-                ...prevState,
                 input: '',
                 focusedIndex: prevState.focusedIndex - 1,
                 editIndex: prevState.focusedIndex - 1,
             }));
         } else if (keyValue === 'ArrowRight') {
             this.setState(prevState => ({
-                ...prevState,
                 input: '',
                 focusedIndex: prevState.focusedIndex + 1,
                 editIndex: prevState.focusedIndex + 1,
             }));
         } else if (keyValue === 'Enter') {
-            this.setState(prevState => ({...prevState, input: ''}));
+            this.setState({input: ''});
             this.props.onSubmit(this.composeToString(this.state.numbers));
         }
     }
@@ -218,7 +218,7 @@ class MagicCodeInput extends React.PureComponent {
      * @returns {array} The array of numbers.
      */
     decomposeString(value) {
-        let arr = _.map(value.trim().split('').slice(0, CONST.MAGIC_CODE_NUMBERS), v => (isNumeric(v) ? v : ''));
+        let arr = _.map(value.trim().split('').slice(0, CONST.MAGIC_CODE_NUMBERS), v => (ValidationUtils.isNumeric(v) ? v : ''));
         if (arr.length < CONST.MAGIC_CODE_NUMBERS) {
             arr = arr.concat(Array(CONST.MAGIC_CODE_NUMBERS - arr.length).fill(''));
         }
@@ -262,7 +262,7 @@ class MagicCodeInput extends React.PureComponent {
                         onPress={event => this.onFocus(event, 0)}
                         onChangeText={this.onChangeText}
                         onKeyPress={this.onKeyPress}
-                        onBlur={() => this.setState(prevState => ({...prevState, focusedIndex: undefined}))}
+                        onBlur={() => this.setState({focusedIndex: undefined})}
                     />
                 </View>
                 {!_.isEmpty(this.props.errorText) && (
