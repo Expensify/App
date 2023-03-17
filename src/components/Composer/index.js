@@ -124,6 +124,7 @@ class Composer extends React.Component {
         };
 
         this.paste = this.paste.bind(this);
+        this.handleKeyPress = this.handleKeyPress.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
@@ -179,6 +180,14 @@ class Composer extends React.Component {
 
         this.textInput.removeEventListener('paste', this.handlePaste);
         this.textInput.removeEventListener('wheel', this.handleWheel);
+    }
+
+    // Prevent onKeyPress from being triggered if the Enter key is pressed while text is being composed
+    handleKeyPress(e) {
+        if (!this.props.onKeyPress || (e.key === 'Enter' && e.nativeEvent && e.nativeEvent.isComposing)) {
+            return;
+        }
+        this.props.onKeyPress(e);
     }
 
     /**
@@ -356,6 +365,7 @@ class Composer extends React.Component {
                 ref={el => this.textInput = el}
                 selection={this.state.selection}
                 onChange={this.shouldCallUpdateNumberOfLines}
+                onKeyPress={this.handleKeyPress}
                 onSelectionChange={this.onSelectionChange}
                 numberOfLines={this.state.numberOfLines}
                 style={[
