@@ -13,18 +13,20 @@ jobs:
     # It does not run for pull requests created by OSBotify
     if: ${{ github.event.issue.pull_request || (github.event_name == 'pull_request_target' && github.event.pull_request.user.login != 'OSBotify') }}
     steps:
-        - uses: actions-ecosystem/action-regex-match@9c35fe9ac1840239939c59e5db8839422eed8a73
+        - name: CLA comment check
+          uses: actions-ecosystem/action-regex-match@9c35fe9ac1840239939c59e5db8839422eed8a73
           id: sign
           with:
             text: ${{ github.event.comment.body }}
             regex: '\s*I have read the CLA Document and I hereby sign the CLA\s*'
-        - uses: actions-ecosystem/action-regex-match@9c35fe9ac1840239939c59e5db8839422eed8a73
+        - name: CLA comment re-check
+          uses: actions-ecosystem/action-regex-match@9c35fe9ac1840239939c59e5db8839422eed8a73
           id: recheck
           with:
             text: ${{ github.event.comment.body }}
             regex: '\s*recheck\s*'
         - name: CLA Assistant
-          if: ${{ steps.recheck.outputs.match != '' || steps.sign.outputs.match != '' }} || github.event_name == 'pull_request_target'
+          if: ${{ steps.recheck.outputs.match != '' || steps.sign.outputs.match != '' || github.event_name == 'pull_request_target' }}
           # Version: 2.1.2-beta
           uses: cla-assistant/github-action@948230deb0d44dd38957592f08c6bd934d96d0cf
           env:
