@@ -15,10 +15,10 @@ import * as Authentication from '../../Authentication';
 import * as Welcome from '../Welcome';
 import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
-import * as Report from '../Report';
 import DateUtils from '../../DateUtils';
 import Navigation from '../../Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
+import subscribeToReportCommentPushNotifications from '../../Notification/PushNotification/subscribeToReportCommentPushNotifications';
 
 let credentials = {};
 Onyx.connect({
@@ -40,7 +40,7 @@ Onyx.connect({
 
             // Prevent issue where report linking fails after users switch accounts without closing the app
             PushNotification.init();
-            Report.subscribeToReportCommentPushNotifications();
+            subscribeToReportCommentPushNotifications();
         } else {
             PushNotification.deregister();
             PushNotification.clearNotifications();
