@@ -257,11 +257,11 @@ export default [
         getDescription: () => {},
     },
     {
-        textTranslateKey: 'pin',
+        textTranslateKey: 'common.pin',
         icon: Expensicons.Pin,
         shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT,
-        onPress: (closePopover, {report}) => {
-            Report.togglePinnedState(report);
+        onPress: (closePopover, {reportID}) => {
+            Report.togglePinnedState(reportID);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }

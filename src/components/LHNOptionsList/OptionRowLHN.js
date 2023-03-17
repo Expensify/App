@@ -24,6 +24,13 @@ import themeColors from '../../styles/themes/default';
 import SidebarUtils from '../../libs/SidebarUtils';
 import TextPill from '../TextPill';
 import OfflineWithFeedback from '../OfflineWithFeedback';
+import * as DeviceCapabilities from "../../libs/DeviceCapabilities";
+import ControlSelection from "../../libs/ControlSelection";
+import PressableWithSecondaryInteraction from "../PressableWithSecondaryInteraction";
+import SelectionScraper from "../../libs/SelectionScraper";
+import * as ReportActionContextMenu from "../../pages/home/report/ContextMenu/ReportActionContextMenu";
+import * as ContextMenuActions from "../../pages/home/report/ContextMenu/ContextMenuActions";
+import * as ReportUtils from "../../libs/ReportUtils";
 
 const propTypes = {
     /** Style for hovered state */
@@ -62,6 +69,7 @@ const OptionRowLHN = (props) => {
     }
 
     let touchableRef = null;
+    let popoverAnchor = null;
     const textStyle = props.isFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
@@ -97,12 +105,38 @@ const OptionRowLHN = (props) => {
 
     const avatarTooltips = !optionItem.isChatRoom && !optionItem.isArchivedRoom ? _.pluck(optionItem.displayNamesWithTooltips, 'tooltip') : undefined;
 
+    /**
+     * Show the ReportActionContextMenu modal popover.
+     *
+     * @param {Object} [event] - A press event.
+     */
+    const showPopover = (event) => {
+        ReportActionContextMenu.showContextMenu(
+            ContextMenuActions.CONTEXT_MENU_TYPES.REPORT,
+            event,
+            '',
+            popoverAnchor,
+            props.reportID,
+            {},
+            '',
+            undefined,
+            undefined,
+        );
+    };
+
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
             errors={optionItem.allReportErrors}
             shouldShowErrorMessages={false}
         >
+            <PressableWithSecondaryInteraction
+                pointerEvents={'auto'}
+                ref={el => popoverAnchor = el}
+                onSecondaryInteraction={showPopover}
+                preventDefaultContentMenu
+                withoutFocusOnSecondaryInteraction
+            >
             <Hoverable>
                 {hovered => (
                     <TouchableOpacity
@@ -237,6 +271,7 @@ const OptionRowLHN = (props) => {
                     </TouchableOpacity>
                 )}
             </Hoverable>
+            </PressableWithSecondaryInteraction>
         </OfflineWithFeedback>
     );
 };
