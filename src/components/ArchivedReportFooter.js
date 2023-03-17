@@ -74,6 +74,7 @@ const ArchivedReportFooter = (props) => {
             })}
             shouldRenderHTML={archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT}
             shouldShowIcon
+            textStyles={styles.pre}
         />
     );
 };
