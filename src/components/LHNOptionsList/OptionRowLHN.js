@@ -24,13 +24,9 @@ import themeColors from '../../styles/themes/default';
 import SidebarUtils from '../../libs/SidebarUtils';
 import TextPill from '../TextPill';
 import OfflineWithFeedback from '../OfflineWithFeedback';
-import * as DeviceCapabilities from "../../libs/DeviceCapabilities";
-import ControlSelection from "../../libs/ControlSelection";
-import PressableWithSecondaryInteraction from "../PressableWithSecondaryInteraction";
-import SelectionScraper from "../../libs/SelectionScraper";
-import * as ReportActionContextMenu from "../../pages/home/report/ContextMenu/ReportActionContextMenu";
-import * as ContextMenuActions from "../../pages/home/report/ContextMenu/ContextMenuActions";
-import * as ReportUtils from "../../libs/ReportUtils";
+import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
+import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
+import * as ContextMenuActions from '../../pages/home/report/ContextMenu/ContextMenuActions';
 
 const propTypes = {
     /** Style for hovered state */
