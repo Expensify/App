@@ -155,8 +155,11 @@ class EmojiPickerMenu extends Component {
                 return;
             }
 
+            // If Enter key is pressed during text composition, allow the user to finish composition without emoji election
+            const isComposing = !keyBoardEvent.nativeEvent || keyBoardEvent.nativeEvent.isComposing;
+
             // Select the currently highlighted emoji if enter is pressed
-            if (keyBoardEvent.key === 'Enter' && this.state.highlightedIndex !== -1) {
+            if (keyBoardEvent.key === 'Enter' && this.state.highlightedIndex !== -1 && !isComposing) {
                 const item = this.state.filteredEmojis[this.state.highlightedIndex];
                 if (!item) {
                     return;
