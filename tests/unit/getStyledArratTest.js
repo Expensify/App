@@ -39,4 +39,9 @@ describe('getStyledTextArray', () => {
             {text: 'e', isColored: false},
         ]);
     });
+
+    test('returns an array with a single object with isColored true when prefix matches entire name, case-insensitive', () => {
+        const result = getStyledTextArray('smile', 'SMILE');
+        expect(result).toEqual([{text: 'smile', isColored: true}]);
+    });
 });
