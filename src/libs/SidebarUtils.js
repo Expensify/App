@@ -253,7 +253,7 @@ function getOptionData(reportID) {
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action.
     let lastActorDetails = personalDetails[report.lastActorEmail] || null;
-    if (!lastActorDetails && lastReportActions[report.reportID]) {
+    if (!lastActorDetails && lastReportActions[report.reportID] && lastReportActions[report.reportID].actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
         const lastActorDisplayName = lodashGet(lastReportActions[report.reportID], 'person[0].text');
         lastActorDetails = lastActorDisplayName ? {
             displayName: lastActorDisplayName,
