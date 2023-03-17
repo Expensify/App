@@ -11,6 +11,8 @@ import withLocalize from '../withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
+import getButtonState from '../../libs/getButtonState';
+import * as StyleUtils from '../../styles/StyleUtils';
 
 class CalendarPicker extends React.PureComponent {
     constructor(props) {
@@ -132,6 +134,7 @@ class CalendarPicker extends React.PureComponent {
                             const isBeforeMinDate = currentDate < moment(this.props.minDate).startOf('day');
                             const isAfterMaxDate = currentDate > moment(this.props.maxDate).startOf('day');
                             const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
+                            const selected = moment(this.props.value).isSame(moment([currentYearView, currentMonthView, day]), 'day')
 
                             return (
                                 <Pressable
@@ -142,14 +145,12 @@ class CalendarPicker extends React.PureComponent {
                                     accessibilityLabel={day ? day.toString() : undefined}
                                 >
                                     {({hovered, pressed}) => (
-                                        <View style={[
-                                            styles.calendarDayContainer,
-                                            styles.justifyContentCenter,
-                                            styles.alignItemsCenter,
-                                            hovered ? styles.calendarDayContainerHovered : {},
-                                            pressed ? styles.calendarDayContainerPressed : {},
-                                            moment(this.props.value).isSame(moment([currentYearView, currentMonthView, day]), 'day') ? styles.calendarDayContainerSelected : {},
-                                        ]}
+                                        <View
+                                            style={[
+                                                styles.calendarDayContainer,
+                                                selected ? styles.calendarDayContainerSelected : {},
+                                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
+                                            ]}
                                         >
                                             <Text style={isDisabled ? styles.calendarButtonDisabled : styles.dayText}>{day}</Text>
                                         </View>

@@ -754,14 +754,6 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
-    calendarDayContainerHovered: {
-        backgroundColor: themeColors.buttonHoveredBG,
-    },
-
-    calendarDayContainerPressed: {
-        backgroundColor: themeColors.buttonPressedBG,
-    },
-
     calendarButtonDisabled: {
         opacity: 0.5,
     },
