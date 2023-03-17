@@ -49,7 +49,7 @@ class NewDatePicker extends React.Component {
             }
             this.hidePicker();
             this.textInputRef.blur();
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, () => !this.state.isPickerVisible);
     }
 
     componentWillUnmount() {
