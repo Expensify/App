@@ -20,6 +20,7 @@ import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import CategoryShortcutBar from '../CategoryShortcutBar';
 import TextInput from '../../TextInput';
+import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -155,11 +156,8 @@ class EmojiPickerMenu extends Component {
                 return;
             }
 
-            // If Enter key is pressed during text composition, allow the user to finish composition without emoji election
-            const isComposing = !keyBoardEvent.nativeEvent || keyBoardEvent.nativeEvent.isComposing;
-
             // Select the currently highlighted emoji if enter is pressed
-            if (keyBoardEvent.key === 'Enter' && this.state.highlightedIndex !== -1 && !isComposing) {
+            if (!KeyboardShortcut.isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === 'Enter' && this.state.highlightedIndex !== -1) {
                 const item = this.state.filteredEmojis[this.state.highlightedIndex];
                 if (!item) {
                     return;

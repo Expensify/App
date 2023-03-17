@@ -15,6 +15,7 @@ import Clipboard from '../../libs/Clipboard';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
+import KeyboardShortcut from '../../libs/KeyboardShortcut';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -184,7 +185,7 @@ class Composer extends React.Component {
 
     // Prevent onKeyPress from being triggered if the Enter key is pressed while text is being composed
     handleKeyPress(e) {
-        if (!this.props.onKeyPress || (e.key === 'Enter' && e.nativeEvent && e.nativeEvent.isComposing)) {
+        if (!this.props.onKeyPress || KeyboardShortcut.isEnterWhileComposition(e)) {
             return;
         }
         this.props.onKeyPress(e);

@@ -3,6 +3,7 @@ import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import getOperatingSystem from '../getOperatingSystem';
 import CONST from '../../CONST';
+import * as Browser from '../Browser';
 
 // Handlers for the various keyboard listeners we set up
 const eventHandlers = {};
@@ -60,16 +61,20 @@ function getDisplayName(key, modifiers) {
     return displayName.join(' + ');
 }
 
+const isEnterWhileComposition = (event) => {
+    if (CONST.BROWSER.SAFARI === Browser.getBrowser()) {
+        return event.keyCode === 229;
+    }
+    return event.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && event.nativeEvent && event.nativeEvent.isComposing;
+};
+
 /**
  * Checks if an event for that key is configured and if so, runs it.
  * @param {Event} event
  * @private
  */
 function bindHandlerToKeydownEvent(event) {
-    // Prevent a callback from being triggered if the Enter key is pressed while text is being composed
-    const shouldAllowComposition = event.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && event.nativeEvent.isComposing;
-
-    if (!(event instanceof KeyboardEvent) || shouldAllowComposition) {
+    if (!(event instanceof KeyboardEvent) || isEnterWhileComposition(event)) {
         return;
     }
 
@@ -203,6 +208,7 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
 const KeyboardShortcut = {
     subscribe,
     getDocumentedShortcuts,
+    isEnterWhileComposition,
 };
 
 export default KeyboardShortcut;

@@ -7,6 +7,9 @@ const KeyboardShortcut = {
         return () => {};
     },
     getDocumentedShortcuts() { return []; },
+    isEnterWhileComposition() {
+        return false;
+    },
 };
 
 export default KeyboardShortcut;
