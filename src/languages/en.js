@@ -47,6 +47,8 @@ export default {
         downloading: 'Downloading',
         pin: 'Pin',
         unPin: 'Unpin',
+        pinned: 'Pinned!',
+        unPinned: 'Unpinned!',
         back: 'Back',
         saveAndContinue: 'Save & continue',
         settings: 'Settings',

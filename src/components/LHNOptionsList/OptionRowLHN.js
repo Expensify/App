@@ -121,6 +121,9 @@ const OptionRowLHN = (props) => {
             '',
             undefined,
             undefined,
+            false,
+            false,
+            optionItem.isPinned,
         );
     };
 

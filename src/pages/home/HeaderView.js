@@ -158,7 +158,7 @@ const HeaderView = (props) => {
                             {shouldShowCallButton && <VideoChatButtonAndMenu isConcierge={isConcierge} guideCalendarLink={guideCalendarLink} />}
                             <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
                                 <Pressable
-                                    onPress={() => Report.togglePinnedState(props.report)}
+                                    onPress={() => Report.togglePinnedState(props.report.reportID, props.report.isPinned)}
                                     style={[styles.touchableButtonImage]}
                                 >
                                     <Icon src={Expensicons.Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />

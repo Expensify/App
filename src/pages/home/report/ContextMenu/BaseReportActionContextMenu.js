@@ -72,6 +72,7 @@ class BaseReportActionContextMenu extends React.Component {
                     const payload = {
                         reportAction: this.props.reportAction,
                         reportID: this.props.reportID,
+                        isPinnedChat: this.props.isPinnedChat,
                         draftMessage: this.props.draftMessage,
                         selection: this.props.selection,
                         close: () => this.setState({shouldKeepOpen: false}),

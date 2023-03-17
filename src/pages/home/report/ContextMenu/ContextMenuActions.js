@@ -259,11 +259,13 @@ export default [
     {
         textTranslateKey: 'common.pin',
         icon: Expensicons.Pin,
+        successTextTranslateKey: 'common.pinned',
+        successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT,
         onPress: (closePopover, {reportID}) => {
-            Report.togglePinnedState(reportID);
+            Report.togglePinnedState(reportID, false);
             if (closePopover) {
-                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+                hideContextMenu(false);
             }
         },
         getDescription: () => {},
