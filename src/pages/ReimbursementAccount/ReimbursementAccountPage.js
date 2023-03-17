@@ -106,17 +106,28 @@ class ReimbursementAccountPage extends React.Component {
 
         const currentStep = lodashGet(this.props.reimbursementAccount, 'achData.currentStep') || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
 
-        if (this.state.shouldShowContinueSetupButton || this.getStepToOpenFromRouteParams() === currentStep) {
-            // We don't want to update the route if we are showing the "Continue with setup" / "Start over" buttons
-            // in case the user reloads the page. If we update the route and the user reloads, we will take the user to the
-            // step set in the route.
+        if (this.state.shouldShowContinueSetupButton) {
+            // If we are showing the "Continue with setup" / "Start over" buttons:
+            // - We don't want to update the route in case the user reloads the page. If we update the route and the user reloads, we will
+            //   take the user to the step set in the route and skip chosing the options.
+            // - We don't want to clear possible errors because we want to allow the user to clear them clicking the X
             return;
         }
 
+        const currentStepRouteParam = this.getStepToOpenFromRouteParams();
+        if (currentStepRouteParam === currentStep) {
+            // The route is showing the correct step, no need to update the route param or clear errors.
+            return;
+        }
+        if (currentStepRouteParam !== '') {
+            // When we click "Connect bank account", we load the page without the current step param, if there
+            // was an error when we tried to disconnect or start over, we want the user to be able to see the error,
+            // so we don't clear it. We only want to clear the errors if we are moving between steps.
+            BankAccounts.hideBankAccountErrors();
+        }
         // When the step changes we will navigate to update the route params. This is mostly cosmetic as we only use
         // the route params when the component first mounts to jump to a specific route instead of picking up where the
         // user left off in the flow.
-        BankAccounts.hideBankAccountErrors();
         Navigation.navigate(ROUTES.getBankAccountRoute(this.getRouteForCurrentStep(currentStep)));
     }
 
