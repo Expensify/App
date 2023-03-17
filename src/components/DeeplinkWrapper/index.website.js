@@ -92,7 +92,9 @@ class DeeplinkWrapper extends PureComponent {
             params.set('shortLivedAuthToken', `${shortLivedAuthToken}`);
             const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
             this.openRouteInDesktopApp(expensifyDeeplinkUrl);
-        }).catch(() => {});
+        }).catch(() => {
+            this.updateAppInstallationCheckStatus();
+        });
     }
 
     updateAppInstallationCheckStatus() {
