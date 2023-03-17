@@ -31,6 +31,10 @@ function getActionText(reportAction) {
     return lodashGet(message, 'html', '');
 }
 
+function pinText(isPinnedChat) {
+    return isPinnedChat ? 'common.unPin' : 'common.pin';
+}
+
 const CONTEXT_MENU_TYPES = {
     LINK: 'LINK',
     REPORT_ACTION: 'REPORT_ACTION',
@@ -257,11 +261,11 @@ export default [
         getDescription: () => {},
     },
     {
-        textTranslateKey: 'common.pin',
+        textTranslateKey: (isPinnedChat) => pinText(isPinnedChat),
         icon: Expensicons.Pin,
         shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT,
-        onPress: (closePopover, {reportID}) => {
-            Report.togglePinnedState(reportID, false);
+        onPress: (closePopover, {reportID, isPinnedChat}) => {
+            Report.togglePinnedState(reportID, isPinnedChat);
             if (closePopover) {
                 hideContextMenu(false);
             }
