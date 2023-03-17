@@ -18,7 +18,7 @@ class FormSubmit extends React.Component {
 
     submitForm(event) {
         // ENTER is pressed with modifier key, do not submit the form
-        if (event.shiftKey || event.key !== 'Enter') {
+        if (event.shiftKey || event.key !== 'Enter' || event.nativeEvent.isComposing) {
             return;
         }
 
