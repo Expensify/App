@@ -66,7 +66,7 @@ function getDisplayName(key, modifiers) {
  * @private
  */
 function bindHandlerToKeydownEvent(event) {
-    // When typing in a language that has the composition phase, allow the enter key to trigger the confirmation of composition
+    // Prevent a callback from being triggered if the Enter key is pressed while text is being composed
     const shouldAllowComposition = event.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && event.nativeEvent.isComposing;
 
     if (!(event instanceof KeyboardEvent) || shouldAllowComposition) {
