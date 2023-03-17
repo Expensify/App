@@ -10,6 +10,7 @@ import * as Localize from './Localize';
 import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
 import Navigation from './Navigation/Navigation';
+import * as LoginUtils from './LoginUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -361,7 +362,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         result.alternateText = Str.removeSMSDomain(personalDetail.login);
     }
 
-    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, currentUserLogin, iouReports);
+    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);
     result.iouReportAmount = ReportUtils.getIOUTotal(result, iouReports);
 
     if (!hasMultipleParticipants) {
@@ -442,7 +443,7 @@ function getOptions(reports, personalDetails, {
 
     // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
     sortByReportTypeInSearch = false,
-    searchValue = '',
+    searchInputValue = '',
     showChatPreviewLine = false,
     sortPersonalDetailsByAlphaAsc = true,
     forcePolicyNamePreview = false,
@@ -450,6 +451,8 @@ function getOptions(reports, personalDetails, {
     let recentReportOptions = [];
     let personalDetailsOptions = [];
     const reportMapForLogins = {};
+    const isPhoneNumber = CONST.REGEX.PHONE_WITH_SPECIAL_CHARS.test(searchInputValue);
+    const searchValue = isPhoneNumber ? searchInputValue.replace(CONST.REGEX.NON_NUMERIC_WITH_PLUS, '') : searchInputValue;
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(
@@ -578,9 +581,8 @@ function getOptions(reports, personalDetails, {
 
     // If the phone number doesn't have an international code then let's prefix it with the
     // current user's international code based on their IP address.
-    const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
-        ? `+${countryCodeByIP}${searchValue}`
-        : searchValue;
+    const login = LoginUtils.appendCountryCode(searchValue);
+
     if (login && (noOptions || noOptionsMatchExactly)
         && !isCurrentUser({login})
         && _.every(selectedOptions, option => option.login !== login)
@@ -645,7 +647,7 @@ function getSearchOptions(
 ) {
     return getOptions(reports, personalDetails, {
         betas,
-        searchValue: searchValue.trim(),
+        searchInputValue: searchValue.trim(),
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
@@ -713,7 +715,7 @@ function getNewChatOptions(
 ) {
     return getOptions(reports, personalDetails, {
         betas,
-        searchValue: searchValue.trim(),
+        searchInputValue: searchValue.trim(),
         selectedOptions,
         excludeChatRooms: true,
         includeRecentReports: true,
@@ -740,7 +742,7 @@ function getMemberInviteOptions(
 ) {
     return getOptions([], personalDetails, {
         betas,
-        searchValue: searchValue.trim(),
+        searchInputValue: searchValue.trim(),
         excludeDefaultRooms: true,
         includePersonalDetails: true,
         excludeLogins,
@@ -762,14 +764,16 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
         return Localize.translate(preferredLocale, 'common.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS});
     }
 
-    if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !Str.isValidPhone(searchValue)) {
+    const isValidPhone = Str.isValidPhone(LoginUtils.appendCountryCode(searchValue));
+
+    if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone) {
         return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
     }
 
     // Without a search value, it would be very confusing to see a search validation message.
     // Therefore, this skips the validation when there is no search value.
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
-        if (/^\d+$/.test(searchValue) && !Str.isValidPhone(searchValue)) {
+        if (/^\d+$/.test(searchValue) && !isValidPhone) {
             return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
         }
 
