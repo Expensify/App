@@ -365,7 +365,6 @@ class Composer extends React.Component {
                 ref={el => this.textInput = el}
                 selection={this.state.selection}
                 onChange={this.shouldCallUpdateNumberOfLines}
-                onKeyPress={this.handleKeyPress}
                 onSelectionChange={this.onSelectionChange}
                 numberOfLines={this.state.numberOfLines}
                 style={[
@@ -378,6 +377,7 @@ class Composer extends React.Component {
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsWithoutStyles}
                 disabled={this.props.isDisabled}
+                onKeyPress={this.handleKeyPress}
             />
         );
     }
