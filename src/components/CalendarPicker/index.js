@@ -134,7 +134,7 @@ class CalendarPicker extends React.PureComponent {
                             const isBeforeMinDate = currentDate < moment(this.props.minDate).startOf('day');
                             const isAfterMaxDate = currentDate > moment(this.props.maxDate).startOf('day');
                             const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
-                            const selected = moment(this.props.value).isSame(moment([currentYearView, currentMonthView, day]), 'day')
+                            const isSelected = moment(this.props.value).isSame(moment([currentYearView, currentMonthView, day]), 'day')
 
                             return (
                                 <Pressable
@@ -148,7 +148,7 @@ class CalendarPicker extends React.PureComponent {
                                         <View
                                             style={[
                                                 styles.calendarDayContainer,
-                                                selected ? styles.calendarDayContainerSelected : {},
+                                                isSelected ? styles.calendarDayContainerSelected : {},
                                                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
                                             ]}
                                         >
