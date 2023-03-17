@@ -31,10 +31,6 @@ function getActionText(reportAction) {
     return lodashGet(message, 'html', '');
 }
 
-function pinText(isPinnedChat) {
-    return isPinnedChat ? 'common.unPin' : 'common.pin';
-}
-
 const CONTEXT_MENU_TYPES = {
     LINK: 'LINK',
     REPORT_ACTION: 'REPORT_ACTION',
@@ -261,11 +257,23 @@ export default [
         getDescription: () => {},
     },
     {
-        textTranslateKey: (isPinnedChat) => pinText(isPinnedChat),
+        textTranslateKey: 'common.pin',
         icon: Expensicons.Pin,
-        shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT,
-        onPress: (closePopover, {reportID, isPinnedChat}) => {
-            Report.togglePinnedState(reportID, isPinnedChat);
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, isPinnedChat) => type === CONTEXT_MENU_TYPES.REPORT && !isPinnedChat,
+        onPress: (closePopover, {reportID}) => {
+            Report.togglePinnedState(reportID, false);
+            if (closePopover) {
+                hideContextMenu(false);
+            }
+        },
+        getDescription: () => {},
+    },
+    {
+        textTranslateKey: 'common.unPin',
+        icon: Expensicons.Pin,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, isPinnedChat) => type === CONTEXT_MENU_TYPES.REPORT && isPinnedChat,
+        onPress: (closePopover, {reportID}) => {
+            Report.togglePinnedState(reportID, true);
             if (closePopover) {
                 hideContextMenu(false);
             }

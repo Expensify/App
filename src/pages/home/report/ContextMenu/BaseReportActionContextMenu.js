@@ -60,6 +60,7 @@ class BaseReportActionContextMenu extends React.Component {
             this.props.betas,
             this.props.anchor,
             this.props.isChronosReport,
+            this.props.isPinnedChat,
         );
 
         return (this.props.isVisible || this.state.shouldKeepOpen) && (
@@ -72,9 +73,9 @@ class BaseReportActionContextMenu extends React.Component {
                     const payload = {
                         reportAction: this.props.reportAction,
                         reportID: this.props.reportID,
-                        isPinnedChat: this.props.isPinnedChat,
                         draftMessage: this.props.draftMessage,
                         selection: this.props.selection,
+                        isPinnedChat: this.props.isPinnedChat,
                         close: () => this.setState({shouldKeepOpen: false}),
                         openContextMenu: () => this.setState({shouldKeepOpen: true}),
                     };
