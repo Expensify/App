@@ -61,7 +61,15 @@ function getDisplayName(key, modifiers) {
     return displayName.join(' + ');
 }
 
+/**
+ * Check if the Enter key was pressed during IME confirmation (i.e. while the text is being composed).
+ * See {@link https://en.wikipedia.org/wiki/Input_method}
+ * @param {Event} event
+ * @returns {boolean}
+ */
 const isEnterWhileComposition = (event) => {
+    // On Safari, isComposing returns false on Enter keypress event even for IME confirmation. Although keyCode is deprecated,
+    // reading keyCode is the only way available to distinguish Enter keypress event for IME confirmation.
     if (CONST.BROWSER.SAFARI === Browser.getBrowser()) {
         return event.keyCode === 229;
     }
