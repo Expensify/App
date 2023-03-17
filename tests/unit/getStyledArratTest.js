@@ -22,4 +22,21 @@ describe('getStyledTextArray', () => {
             {text: 'e', isColored: false},
         ]);
     });
+
+    test('returns an array with two objects, the first with isColored true, when prefix matches the beginning of name, case-insensitive', () => {
+        const result = getStyledTextArray('smile', 'sM');
+        expect(result).toEqual([
+            {text: 'sm', isColored: true},
+            {text: 'ile', isColored: false},
+        ]);
+    });
+
+    test('returns an array with three objects, the second with isColored true, when prefix matches in the middle of name, case-insensitive', () => {
+        const result = getStyledTextArray('smile', 'IL');
+        expect(result).toEqual([
+            {text: 'sm', isColored: false},
+            {text: 'il', isColored: true},
+            {text: 'e', isColored: false},
+        ]);
+    });
 });
