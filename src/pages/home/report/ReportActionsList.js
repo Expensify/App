@@ -95,7 +95,7 @@ class ReportActionsList extends React.Component {
         this.fadeIn();
     }
 
-    onReportShowPopover(index, measurements, keyboardVisible) {
+    onReportShowPopover(measurements, keyboardVisible) {
         if (this.keyboardSpacerRef.current == null || getOperatingSystem() !== CONST.OS.IOS) {
             return;
         }
@@ -120,10 +120,10 @@ class ReportActionsList extends React.Component {
     }
 
     /**
-   * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
-   * the height of the smallest report action possible.
-   * @return {Number}
-   */
+     * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
+     * the height of the smallest report action possible.
+     * @return {Number}
+     */
     calculateInitialNumToRender() {
         const minimumReportActionHeight = styles.chatItem.paddingTop
       + styles.chatItem.paddingBottom
@@ -134,28 +134,28 @@ class ReportActionsList extends React.Component {
     }
 
     /**
-   * Create a unique key for each action in the FlatList.
-   * We use the reportActionID that is a string representation of a random 64-bit int, which should be
-   * random enough to avoid collisions
-   * @param {Object} item
-   * @param {Object} item.action
-   * @return {String}
-   */
+     * Create a unique key for each action in the FlatList.
+     * We use the reportActionID that is a string representation of a random 64-bit int, which should be
+     * random enough to avoid collisions
+     * @param {Object} item
+     * @param {Object} item.action
+     * @return {String}
+     */
     keyExtractor(item) {
         return item.reportActionID;
     }
 
     /**
-   * Do not move this or make it an anonymous function it is a method
-   * so it will not be recreated each time we render an item
-   *
-   * See: https://reactnative.dev/docs/optimizing-flatlist-configuration#avoid-anonymous-function-on-renderitem
-   *
-   * @param {Object} args
-   * @param {Number} args.index
-   *
-   * @returns {React.Component}
-   */
+     * Do not move this or make it an anonymous function it is a method
+     * so it will not be recreated each time we render an item
+     *
+     * See: https://reactnative.dev/docs/optimizing-flatlist-configuration#avoid-anonymous-function-on-renderitem
+     *
+     * @param {Object} args
+     * @param {Number} args.index
+     *
+     * @returns {React.Component}
+     */
     renderItem({item: reportAction, index}) {
     // When the new indicator should not be displayed we explicitly set it to null
         const shouldDisplayNewMarker = reportAction.reportActionID === this.props.newMarkerReportActionID;

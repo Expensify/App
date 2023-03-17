@@ -18,18 +18,21 @@ const ReportKeyboardSpace = forwardRef((props, ref) => {
 
     useImperativeHandle(ref, () => ({
         setState(measurements, keyboardVisible) {
+            // we need for the keyboard to hide and popover to have its final height
             setTimeout(() => {
                 keyboardSpaceState.value = {
                     measurements,
                     keyboardVisible,
-                    keyboardHeight: keyboard.height.value,
                 };
             }, 100);
         },
         reset() {
+            // we start the animation
             setTimeout(() => {
                 popoverHeightSharedValue.value = 0;
             }, 100);
+
+            // and then wait for it to finish and reset everything
             setTimeout(() => {
                 keyboardSpaceState.value = null;
             }, 450);
@@ -42,20 +45,31 @@ const ReportKeyboardSpace = forwardRef((props, ref) => {
     };
 
     const animatedStyle = useAnimatedStyle(() => {
+        let keyboardHeight = 0;
+
+        // when we open modal keyboard is closed without animation and the height is 0
+        // but when we close modal - it opens it again but for one frame the height is still 0
+        if (keyboard.state.value === KeyboardState.OPEN && keyboard.height.value !== 0) {
+            global.spacerKeyboardLastValue = keyboard.height.value;
+            keyboardHeight = keyboard.height.value;
+        } else {
+            keyboardHeight = global.spacerKeyboardLastValue || 0;
+        }
+
         if (keyboardSpaceState.value == null) {
             return {
                 height: 0,
             };
         }
 
-        const {measurements, keyboardVisible, keyboardHeight} = keyboardSpaceState.value;
+        const {measurements, keyboardVisible} = keyboardSpaceState.value;
 
         if (!keyboardVisible) {
             // this means the bottom sheet was opened when the keyboard was closed
             const offset = popoverHeightSharedValue.value
               - (windowHeight - measurements.fy)
               + measurements.height
-              + safeArea.top + safeArea.bottom;
+              + safeArea.bottom + 10;
 
             return {
                 height: withTiming(offset < 0 ? 0 : offset, config),
@@ -70,7 +84,6 @@ const ReportKeyboardSpace = forwardRef((props, ref) => {
           - (windowHeight - measurements.fy)
           + measurements.height
           + keyboardHeight
-          + safeArea.bottom
           + 10;
 
         if (keyboard.state.value === KeyboardState.CLOSED && offset > invertedHeight) {
