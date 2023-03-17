@@ -562,9 +562,6 @@ class ReportActionCompose extends React.Component {
         }
 
         if ((e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && this.state.suggestedEmojis.length) {
-            if (e.nativeEvent.isComposing) {
-                return;
-            }
             e.preventDefault();
             this.insertSelectedEmoji(this.state.highlightedEmojiIndex);
             return;
@@ -577,9 +574,6 @@ class ReportActionCompose extends React.Component {
 
         // Submit the form when Enter is pressed
         if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
-            if (e.nativeEvent.isComposing) {
-                return;
-            }
             e.preventDefault();
             this.submitForm();
         }
