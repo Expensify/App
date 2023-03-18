@@ -46,7 +46,7 @@ const defaultProps = {
     imageUri: '',
     containerSize: 0,
     panGestureEventHandler: () => {},
-    maskImage: Expensicons.CircleCropMask,
+    maskImage: Expensicons.ImageCropCircleMask,
 };
 
 const ImageCropView = (props) => {
