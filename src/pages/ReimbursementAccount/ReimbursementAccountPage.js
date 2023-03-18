@@ -90,7 +90,7 @@ class ReimbursementAccountPage extends React.Component {
         // it once we get the response from the server the first time in componentDidUpdate.
         const hasACHDataBeenLoaded = this.props.reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps;
         this.state = {
-            hasACHDataBeenLoaded: hasACHDataBeenLoaded,
+            hasACHDataBeenLoaded,
             shouldShowContinueSetupButton: hasACHDataBeenLoaded ? this.getShouldShowContinueSetupButtonInitialValue() : false,
         };
     }
@@ -108,7 +108,7 @@ class ReimbursementAccountPage extends React.Component {
             // We don't need to do anything yet
             if (this.props.reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps
                 && !this.props.reimbursementAccount.isLoading) {
-                // If we are here, it is because this is the first time we load the ACHData from the server and 
+                // If we are here, it is because this is the first time we load the ACHData from the server and
                 // this.props.reimbursementAccount.isLoading just changed to false. From now on, it makes sense to run the code
                 // below updating states and the route, and this will happen in the next react lifecycle.
                 this.hasACHDataBeenLoaded = true;
@@ -148,6 +148,7 @@ class ReimbursementAccountPage extends React.Component {
             // so we don't clear it. We only want to clear the errors if we are moving between steps.
             BankAccounts.hideBankAccountErrors();
         }
+
         // When the step changes we will navigate to update the route params. This is mostly cosmetic as we only use
         // the route params when the component first mounts to jump to a specific route instead of picking up where the
         // user left off in the flow.
