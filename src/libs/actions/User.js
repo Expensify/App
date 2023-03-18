@@ -212,6 +212,8 @@ function validateSecondaryLoginAndNavigate(accountID, validateCode, partnerUserI
             key: ONYXKEYS.LOGIN_LIST,
             value: {
                 [partnerUserID]: {
+                    partnerUserID,
+                    partnerName: CONST.EXPENSIFY_PARTNER_NAME,
                     validatedDate: DateUtils.getDBTime().substring(0, 19),
                 },
             },

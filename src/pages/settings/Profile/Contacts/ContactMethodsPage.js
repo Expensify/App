@@ -60,7 +60,7 @@ class ContactMethodsPage extends Component {
         }
 
         // Recalculate logins if the values of the loginList (e.g. validatedDate) have changed
-        if (_.isEqual(_.values(this.props.loginList), _.values(prevProps.loginList))) {
+        if (!_.isEqual(_.values(this.props.loginList), _.values(prevProps.loginList))) {
             stateToUpdate = {logins: this.getLogins()};
         }
 
