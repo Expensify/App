@@ -27,6 +27,8 @@ import OfflineWithFeedback from '../OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
 import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from '../../pages/home/report/ContextMenu/ContextMenuActions';
+import ControlSelection from '../../libs/ControlSelection';
+import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
 const propTypes = {
     /** Style for hovered state */
@@ -132,6 +134,8 @@ const OptionRowLHN = (props) => {
             <PressableWithSecondaryInteraction
                 pointerEvents="auto"
                 ref={el => popoverAnchor = el}
+                onPressIn={() => props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                onPressOut={() => ControlSelection.unblock()}
                 onSecondaryInteraction={showPopover}
                 preventDefaultContentMenu
                 withoutFocusOnSecondaryInteraction
