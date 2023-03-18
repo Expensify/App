@@ -45,70 +45,59 @@ const defaultProps = {
     route: {},
 };
 
-class ValidateSecondaryLoginPage extends Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {validateCode: ''};
-
-        this.formType = props.route.params.type;
-        this.submitForm = this.submitForm.bind(this);
-    }
-
-    componentWillUnmount() {
-        User.clearUserErrorMessage();
-    }
+const ValidateSecondaryLoginPage = (props) => {
+    const [validateCode, setValidateCode] = useState(props.credentials.validateCode || '');
 
     /**
      * Validate the secondary login via validate code
      */
-    submitForm() {
-        User.validateSecondaryLoginAndNavigate(this.props.session.accountID, this.state.validateCode, this.props.route.params.login);
-    }
+    const submitForm = () => {
+        let login = props.route.params.login;
 
-    render() {
-        return (
-            <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={`${this.props.translate('validateSecondaryLoginPage.validate')} ${this.props.route.params.login}`}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
-                {/* We use keyboardShouldPersistTaps="handled" to prevent the keyboard from being hidden when switching focus on input fields  */}
-                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5} keyboardShouldPersistTaps="handled">
-                    <Text style={[styles.mb6]}>
-                        {`${this.props.translate('validateSecondaryLoginPage.enterMagicCodeToValidate', {login: this.props.route.params.login})}`}
-                    </Text>
-                    <View style={styles.mb6}>
-                        <TextInput
-                            label={this.props.translate('common.magicCode')}
-                            value={this.state.validateCode}
-                            onChangeText={validateCode => this.setState({validateCode})}
-                            textContentType="oneTimeCode"
-                        />
-                    </View>
-                    {!_.isEmpty(this.props.user.error) && (
-                        <Text style={styles.formError}>
-                            {this.props.user.error}
-                        </Text>
-                    )}
-                </ScrollView>
-                <FixedFooter style={[styles.flexGrow0]}>
-                    <Button
-                        success
-                        isDisabled={!this.state.validateCode}
-                        isLoading={this.props.user.loading}
-                        text={this.props.translate('validateSecondaryLoginPage.submit')}
-                        onPress={this.submitForm}
-                        pressOnEnter
+        // Re-add SMS domain if we're validating a phone number
+        if (Str.isValidPhone(login)) {
+            login = `${login}@${CONST.SMS.DOMAIN}`;
+        }
+        User.validateSecondaryLoginAndNavigate(props.session.accountID, validateCode, login);
+    };
+
+    return (
+        <ScreenWrapper>
+            <HeaderWithCloseButton
+                title={`${props.translate('validateSecondaryLoginPage.validate')} ${props.route.params.login}`}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
+                onCloseButtonPress={() => Navigation.dismissModal()}
+            />
+            {/* We use keyboardShouldPersistTaps="handled" to prevent the keyboard from being hidden when switching focus on input fields  */}
+            <ScrollView style={styles.flex1} contentContainerStyle={styles.p5} keyboardShouldPersistTaps="handled">
+                <Text style={[styles.mb6]}>
+                    {`${props.translate('validateSecondaryLoginPage.enterMagicCodeToValidate', {login: props.route.params.login})}`}
+                </Text>
+                <View style={styles.mb6}>
+                    <TextInput
+                        label={props.translate('common.magicCode')}
+                        value={validateCode}
+                        onChangeText={validateCode => setValidateCode(validateCode)}
+                        textContentType="oneTimeCode"
                     />
-                </FixedFooter>
-            </ScreenWrapper>
-        );
-    }
+                </View>
+            </ScrollView>
+            <FixedFooter style={[styles.flexGrow0]}>
+                <Button
+                    success
+                    isDisabled={!validateCode}
+                    text={props.translate('validateSecondaryLoginPage.submit')}
+                    onPress={() => {submitForm()}}
+                    pressOnEnter
+                />
+            </FixedFooter>
+
+        </ScreenWrapper>
+    );
 }
 
+ValidateSecondaryLoginPage.displayName = 'ValidateSecondaryLoginPage'
 ValidateSecondaryLoginPage.propTypes = propTypes;
 ValidateSecondaryLoginPage.defaultProps = defaultProps;
 
