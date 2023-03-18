@@ -7,6 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
+import Text from '../../../../components/Text';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../../components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import CONST from '../../../../CONST';
@@ -15,6 +16,8 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
 import LoginField from './LoginField';
+import * as ErrorUtils from '../../../../libs/ErrorUtils';
+import styles from '../../../../styles/styles';
 
 const propTypes = {
     /* Onyx Props */
@@ -31,12 +34,25 @@ const propTypes = {
         validatedDate: PropTypes.string,
     }),
 
+    /** Holds information about the users account that is logging in */
+    account: PropTypes.shape({
+        /** An error message to display to the user */
+        errors: PropTypes.objectOf(PropTypes.string),
+
+        /** Success message to display when necessary */
+        success: PropTypes.string,
+
+        /** Whether a sign on form is loading (being submitted) */
+        isLoading: PropTypes.bool,
+    }),
+
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     loginList: {},
+    account: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -123,6 +139,11 @@ class ContactMethodsPage extends Component {
                         login={this.state.logins.phone}
                         defaultValue={this.state.logins.phone}
                     />
+                    {this.props.account && !_.isEmpty(this.props.account.errors) && (
+                        <Text style={[styles.formError, styles.p5]}>
+                            {ErrorUtils.getLatestErrorMessage(this.props.account)}
+                        </Text>
+                    )}
                 </ScrollView>
             </ScreenWrapper>
         );
@@ -138,6 +159,9 @@ export default compose(
     withOnyx({
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
+        },
+        account: {
+            key: ONYXKEYS.ACCOUNT,
         },
     }),
 )(ContactMethodsPage);
