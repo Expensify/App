@@ -63,7 +63,7 @@ const defaultProps = {
     imageType: '',
     onClose: () => {},
     onSave: () => {},
-    maskImage: Expensicons.ImageCropMask,
+    maskImage: undefined,
 };
 
 // This component can't be written using class since reanimated API uses hooks.
