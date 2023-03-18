@@ -621,6 +621,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `La fecha debe ser posterior a ${dateString}.`,
+            hasInvalidCharacter: 'El nombre solo puede contener letras y números.',
         },
     },
     resendValidationForm: {

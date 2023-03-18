@@ -228,7 +228,7 @@ export default {
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
-        addReactionTooltip: 'Add Reaction',
+        addReactionTooltip: 'Add reaction',
     },
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'You missed the party in ',
@@ -622,6 +622,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,
+            hasInvalidCharacter: 'Name can only include letters and numbers.',
         },
     },
     resendValidationForm: {

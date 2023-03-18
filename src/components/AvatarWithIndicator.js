@@ -16,6 +16,7 @@ import walletTermsPropTypes from '../pages/EnablePayments/walletTermsPropTypes';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
 import * as ReimbursementAccountProps from '../pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import * as ReportUtils from '../libs/ReportUtils';
 
 const propTypes = {
     /** URL for the avatar */
@@ -95,7 +96,7 @@ const AvatarWithIndicator = (props) => {
             <Tooltip text={props.tooltipText}>
                 <Avatar
                     imageStyles={[isLarge ? styles.avatarLarge : null]}
-                    source={props.source}
+                    source={ReportUtils.getSmallSizeAvatar(props.source)}
                     size={props.size}
                 />
                 {shouldShowIndicator && (
