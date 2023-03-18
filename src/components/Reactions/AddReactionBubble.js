@@ -59,9 +59,9 @@ const AddReactionBubble = (props) => {
     const ref = React.createRef();
 
     const onPress = () => {
-        const openPicker = (refParam, anchorOrigin) => {
+        const openPicker = (refParam, anchorOrigin, onHide = () => {}) => {
             EmojiPickerAction.showEmojiPicker(
-                () => {},
+                onHide,
                 (emojiCode, emojiObject) => {
                     props.onSelectEmoji(emojiObject);
                 },

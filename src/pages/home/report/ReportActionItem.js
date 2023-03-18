@@ -84,6 +84,7 @@ class ReportActionItem extends Component {
         this.showPopover = this.showPopover.bind(this);
         this.renderItemContent = this.renderItemContent.bind(this);
         this.toggleReaction = this.toggleReaction.bind(this);
+        this.onPressOpenPicker = this.onPressOpenPicker.bind(this);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -161,6 +162,23 @@ class ReportActionItem extends Component {
         });
     }
 
+    onPressOpenPicker(openPicker) {
+        this.popoverAnchor.measureInWindow((fx, fy, width, height) => {
+            if (this.props.onShowPopover) {
+                this.props.onShowPopover(
+                    {
+                        fx,
+                        fy,
+                        width,
+                        height,
+                    },
+                    this.props.isKeyboardShown,
+                );
+            }
+            openPicker(undefined, undefined, this.props.onHidePopover);
+        });
+    }
+
     toggleReaction(emoji) {
         Report.toggleEmojiReaction(this.props.report.reportID, this.props.action, emoji);
     }
@@ -229,6 +247,7 @@ class ReportActionItem extends Component {
                 {children}
                 {hasReactions && (
                     <ReportActionItemReactions
+                        onPressOpenPicker={this.onPressOpenPicker}
                         reactions={reactions}
                         toggleReaction={this.toggleReaction}
                     />

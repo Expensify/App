@@ -17,6 +17,7 @@ import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import * as User from '../../../libs/actions/User';
 import CategoryShortcutBar from '../CategoryShortcutBar';
+import {popoverHeightSharedValue} from '../../../Expensify';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -65,6 +66,11 @@ class EmojiPickerMenu extends Component {
         this.updatePreferredSkinTone = this.updatePreferredSkinTone.bind(this);
         this.scrollToHeader = this.scrollToHeader.bind(this);
         this.getItemLayout = this.getItemLayout.bind(this);
+        this.onLayout = this.onLayout.bind(this);
+    }
+
+    onLayout(event) {
+        popoverHeightSharedValue.value = event.nativeEvent.layout.height;
     }
 
     getItemLayout(data, index) {
@@ -149,7 +155,7 @@ class EmojiPickerMenu extends Component {
 
     render() {
         return (
-            <View style={styles.emojiPickerContainer}>
+            <View onLayout={this.onLayout} style={styles.emojiPickerContainer}>
                 <View>
                     <CategoryShortcutBar
                         headerEmojis={this.headerEmojis}

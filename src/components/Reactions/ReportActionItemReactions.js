@@ -50,6 +50,19 @@ const propTypes = {
      * hence this function asks to toggle the reaction by emoji.
      */
     toggleReaction: PropTypes.func.isRequired,
+
+    /**
+     * Function to call when the user presses on the add reaction button.
+     * This is only called when the user presses on the button, not on the
+     * reaction bubbles.
+     * This is optional, because we don't need it everywhere.
+     * For example in the ReportActionContextMenu we don't need it.
+     */
+    onPressOpenPicker: PropTypes.func,
+};
+
+const defaultProps = {
+    onPressOpenPicker: undefined,
 };
 
 const ReportActionItemReactions = (props) => {
@@ -82,11 +95,12 @@ const ReportActionItemReactions = (props) => {
                     />
                 );
             })}
-            {reactionsWithCount.length > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}
+            {reactionsWithCount.length > 0 && <AddReactionBubble onPressOpenPicker={props.onPressOpenPicker} onSelectEmoji={props.toggleReaction} />}
         </View>
     );
 };
 
 ReportActionItemReactions.displayName = 'ReportActionItemReactions';
+ReportActionItemReactions.defaultProps = defaultProps;
 ReportActionItemReactions.propTypes = propTypes;
 export default ReportActionItemReactions;

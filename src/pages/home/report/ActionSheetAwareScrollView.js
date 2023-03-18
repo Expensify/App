@@ -5,7 +5,7 @@ import Reanimated, {
     Easing,
     KeyboardState,
     useAnimatedKeyboard,
-    useAnimatedStyle, useSharedValue, withTiming,
+    useAnimatedStyle, useDerivedValue, useSharedValue, withTiming,
 } from 'react-native-reanimated';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {popoverHeightSharedValue} from '../../../Expensify';
@@ -30,12 +30,12 @@ const ReportKeyboardSpace = forwardRef((props, ref) => {
             // we start the animation
             setTimeout(() => {
                 popoverHeightSharedValue.value = 0;
-            }, 100);
+                keyboardSpaceState.value = null;
+            }, 0);
 
             // and then wait for it to finish and reset everything
             setTimeout(() => {
-                keyboardSpaceState.value = null;
-            }, 450);
+            }, 16);
         },
     }));
 
@@ -44,7 +44,7 @@ const ReportKeyboardSpace = forwardRef((props, ref) => {
         easing: Easing.bezier(0.33, 0.01, 0, 1),
     };
 
-    const animatedStyle = useAnimatedStyle(() => {
+    const translateY = useDerivedValue(() => {
         let keyboardHeight = 0;
 
         // when we open modal keyboard is closed without animation and the height is 0
@@ -57,9 +57,7 @@ const ReportKeyboardSpace = forwardRef((props, ref) => {
         }
 
         if (keyboardSpaceState.value == null) {
-            return {
-                height: 0,
-            };
+            return withTiming(0, config);
         }
 
         const {measurements, keyboardVisible} = keyboardSpaceState.value;
@@ -67,13 +65,10 @@ const ReportKeyboardSpace = forwardRef((props, ref) => {
         if (!keyboardVisible) {
             // this means the bottom sheet was opened when the keyboard was closed
             const offset = popoverHeightSharedValue.value
-              - (windowHeight - measurements.fy)
-              + measurements.height
-              + safeArea.bottom + 10;
+                - (windowHeight - measurements.fy - safeArea.top)
+                + measurements.height;
 
-            return {
-                height: withTiming(offset < 0 ? 0 : offset, config),
-            };
+            return withTiming(offset < 0 ? 0 : offset, config);
         }
 
         const invertedHeight = keyboard.state.value === KeyboardState.CLOSED
@@ -81,31 +76,30 @@ const ReportKeyboardSpace = forwardRef((props, ref) => {
             : 0;
 
         const offset = popoverHeightSharedValue.value
-          - (windowHeight - measurements.fy)
-          + measurements.height
-          + keyboardHeight
-          + 10;
+            - (windowHeight - measurements.fy - safeArea.top)
+            - safeArea.bottom
+            + measurements.height
+            + keyboardHeight;
 
         if (keyboard.state.value === KeyboardState.CLOSED && offset > invertedHeight) {
-            return {
-                // we need set the value to the current offset before running the animation
-                // but also it should happen only once
-                height: !global.spacer_shouldRunSpring
-                    ? (() => {
-                        global.spacer_shouldRunSpring = true;
-                        return invertedHeight;
-                    })()
-                    : withTiming(offset < 0 ? 0 : offset, config, () => {
-                        global.spacer_shouldRunSpring = false;
-                    }),
-            };
+            return !global.spacer_shouldRunSpring
+                ? (() => {
+                    global.spacer_shouldRunSpring = true;
+                    return invertedHeight;
+                })()
+                : withTiming(offset < 0 ? 0 : offset, config, () => {
+                    global.spacer_shouldRunSpring = false;
+                });
         }
-        return {
-            height: invertedHeight,
-        };
+
+        return invertedHeight;
     });
 
-    return <Reanimated.View style={[animatedStyle]} />;
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{translateY: translateY.value}],
+    }));
+
+    return <Reanimated.View style={[{flex: 1}, animatedStyle]} {...props} />;
 });
 
 ReportKeyboardSpace.displayName = 'ReportKeyboardSpace';
@@ -114,8 +108,9 @@ export default function ActionSheetAwareScrollView(props) {
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
         <ScrollView {...props}>
-            <ReportKeyboardSpace ref={props.keyboardSpacerRef} />
-            {props.children}
+            <ReportKeyboardSpace ref={props.keyboardSpacerRef}>
+                {props.children}
+            </ReportKeyboardSpace>
         </ScrollView>
     );
 }
