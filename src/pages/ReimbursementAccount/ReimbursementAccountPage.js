@@ -84,8 +84,14 @@ class ReimbursementAccountPage extends React.Component {
         this.continue = this.continue.bind(this);
         this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
         this.goBack = this.goBack.bind(this);
+
+        // The first time we open this page, the props.reimbursementAccount has not been loaded from the server.
+        // Calculating shouldShowContinueSetupButton on the default data doesn't make sense, and we should recalculate
+        // it once we get the response from the server the first time in componentDidUpdate.
+        const hasACHDataBeenLoaded = this.props.reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps;
         this.state = {
-            shouldShowContinueSetupButton: this.getShouldShowContinueSetupButtonInitialValue(),
+            hasACHDataBeenLoaded: hasACHDataBeenLoaded,
+            shouldShowContinueSetupButton: hasACHDataBeenLoaded ? this.getShouldShowContinueSetupButtonInitialValue() : false,
         };
     }
 
@@ -97,6 +103,23 @@ class ReimbursementAccountPage extends React.Component {
         if (prevProps.network.isOffline && !this.props.network.isOffline) {
             this.fetchData();
         }
+        if (!this.state.hasACHDataBeenLoaded) {
+            // If the ACHData has not been loaded yet, and we are seeing the default data for props.reimbursementAccount
+            // We don't need to do anything yet
+            if (this.props.reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps
+                && !this.props.reimbursementAccount.isLoading) {
+                // If we are here, it is because this is the first time we load the ACHData from the server and 
+                // this.props.reimbursementAccount.isLoading just changed to false. From now on, it makes sense to run the code
+                // below updating states and the route, and this will happen in the next react lifecycle.
+                this.hasACHDataBeenLoaded = true;
+                this.setState({
+                    shouldShowContinueSetupButton: this.getShouldShowContinueSetupButtonInitialValue(),
+                    hasACHDataBeenLoaded: true,
+                });
+            }
+            return;
+        }
+
         if (prevProps.reimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
             && this.props.reimbursementAccount.pendingAction !== prevProps.reimbursementAccount.pendingAction) {
             // We are here after the user tried to delete the bank account. We will want to set
