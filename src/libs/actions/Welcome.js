@@ -6,8 +6,6 @@ import * as ReportUtils from '../ReportUtils';
 import ROUTES from '../../ROUTES';
 import * as Policy from './Policy';
 import ONYXKEYS from '../../ONYXKEYS';
-import NameValuePair from './NameValuePair';
-import CONST from '../../CONST';
 import SCREENS from '../../SCREENS';
 import * as User from '../actions/User';
 
