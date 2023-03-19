@@ -34,18 +34,6 @@ function Get(parameters, shouldUseSecure = false) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.name
- * @param {String} parameters.value
- * @returns {Promise}
- */
-function SetNameValuePair(parameters) {
-    const commandName = 'SetNameValuePair';
-    requireParameters(['name', 'value'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.email
  * @param {String} parameters.password
  * @returns {Promise}
@@ -58,6 +46,5 @@ function User_SecondaryLogin_Send(parameters) {
 
 export {
     Get,
-    SetNameValuePair,
     User_SecondaryLogin_Send,
 };
