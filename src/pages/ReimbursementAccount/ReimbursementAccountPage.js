@@ -31,6 +31,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
+import withPolicy from '../workspace/withPolicy';
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -60,6 +61,7 @@ const propTypes = {
         params: PropTypes.shape({
             /** A step to navigate to if we need to drop the user into a specific point in the flow */
             stepToOpen: PropTypes.string,
+            policyID: PropTypes.string,
         }),
     }),
 
@@ -74,6 +76,7 @@ const defaultProps = {
     route: {
         params: {
             stepToOpen: '',
+            policyID: '',
         },
     },
 };
@@ -110,7 +113,9 @@ class ReimbursementAccountPage extends React.Component {
         // the route params when the component first mounts to jump to a specific route instead of picking up where the
         // user left off in the flow.
         BankAccounts.hideBankAccountErrors();
-        Navigation.navigate(ROUTES.getBankAccountRoute(this.getRouteForCurrentStep(currentStep)));
+        Navigation.navigate(ROUTES.getBankAccountRoute(
+            this.getRouteForCurrentStep(currentStep), lodashGet(this.props.route.params, 'policyID'),
+        ));
     }
 
     /**
@@ -247,6 +252,7 @@ class ReimbursementAccountPage extends React.Component {
         // next step.
         const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+        const policyName = lodashGet(this.props.policy, 'name');
 
         // Don't show the loading indicator if we're offline and restarted the bank account setup process
         if (this.props.reimbursementAccount.isLoading && !(this.props.network.isOffline && currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)) {
@@ -278,6 +284,7 @@ class ReimbursementAccountPage extends React.Component {
                     reimbursementAccount={this.props.reimbursementAccount}
                     continue={this.continue}
                     startOver={() => this.setState({shouldHideContinueSetupButton: true})}
+                    policyName={policyName}
                 />
             );
         }
@@ -310,6 +317,7 @@ class ReimbursementAccountPage extends React.Component {
                     <HeaderWithCloseButton
                         title={this.props.translate('workspace.common.bankAccount')}
                         onCloseButtonPress={Navigation.dismissModal}
+                        subtitle={policyName}
                     />
                     {errorComponent}
                 </ScreenWrapper>
@@ -325,6 +333,7 @@ class ReimbursementAccountPage extends React.Component {
                     receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                     plaidLinkOAuthToken={this.props.plaidLinkToken}
                     getDefaultStateForField={this.getDefaultStateForField}
+                    policyName={policyName}
                 />
             );
         }
@@ -376,7 +385,7 @@ class ReimbursementAccountPage extends React.Component {
 
         if (currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE) {
             return (
-                <EnableStep reimbursementAccount={this.props.reimbursementAccount} />
+                <EnableStep reimbursementAccount={this.props.reimbursementAccount} policyName={policyName} />
             );
         }
     }
@@ -405,4 +414,5 @@ export default compose(
         },
     }),
     withLocalize,
+    withPolicy,
 )(ReimbursementAccountPage);

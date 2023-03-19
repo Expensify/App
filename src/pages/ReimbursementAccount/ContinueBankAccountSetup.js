@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView} from 'react-native';
@@ -37,6 +36,9 @@ const propTypes = {
         name: PropTypes.string,
     }).isRequired,
 
+    /* The workspace name */
+    policyName: PropTypes.string.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -45,7 +47,7 @@ const ContinueBankAccountSetup = props => (
         <FullPageNotFoundView shouldShow={_.isEmpty(props.policy)}>
             <HeaderWithCloseButton
                 title={props.translate('workspace.common.bankAccount')}
-                subtitle={lodashGet(props.policy, 'name')}
+                subtitle={props.policyName}
                 onCloseButtonPress={Navigation.dismissModal}
                 onBackButtonPress={Navigation.goBack}
                 shouldShowGetAssistanceButton

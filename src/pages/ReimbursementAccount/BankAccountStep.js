@@ -44,6 +44,9 @@ const propTypes = {
         /** Is the user account validated? */
         validated: PropTypes.bool,
     }),
+
+    /* The workspace name */
+    policyName: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -88,6 +91,7 @@ const BankAccountStep = (props) => {
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
                     title={props.translate('workspace.common.bankAccount')}
+                    subtitle={props.policyName}
                     stepCounter={subStep ? {step: 1, total: 5} : undefined}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={props.onBackButtonPress}
