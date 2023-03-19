@@ -30,7 +30,6 @@ import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
-import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -120,7 +119,7 @@ class ReimbursementAccountPage extends React.Component {
      * @returns {*}
      */
     getDefaultStateForField(fieldName, defaultValue = '') {
-        return ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccount, fieldName, defaultValue);
+        return lodashGet(this.props.reimbursementAccount, ['achData', fieldName], defaultValue);
     }
 
     /**
