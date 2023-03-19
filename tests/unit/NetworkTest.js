@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 
-import * as DeprecatedAPI from '../../src/libs/deprecatedAPI';
 import * as TestHelper from '../utils/TestHelper';
 import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';

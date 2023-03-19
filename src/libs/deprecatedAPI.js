@@ -2,7 +2,6 @@ import requireParameters from './requireParameters';
 import * as Request from './Request';
 import * as Network from './Network';
 import * as Middleware from './Middleware';
-import CONST from '../CONST';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
 // Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next
