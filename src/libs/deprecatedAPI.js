@@ -22,18 +22,6 @@ Request.use(Middleware.SaveResponseInOnyx);
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.returnValueList
- * @param {Boolean} shouldUseSecure
- * @returns {Promise}
- */
-function Get(parameters, shouldUseSecure = false) {
-    const commandName = 'Get';
-    requireParameters(['returnValueList'], parameters, commandName);
-    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, shouldUseSecure);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.email
  * @param {String} parameters.password
  * @returns {Promise}
@@ -45,6 +33,5 @@ function User_SecondaryLogin_Send(parameters) {
 }
 
 export {
-    Get,
     User_SecondaryLogin_Send,
 };
