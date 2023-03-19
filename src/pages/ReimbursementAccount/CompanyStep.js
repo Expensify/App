@@ -167,7 +167,7 @@ class CompanyStep extends React.Component {
                         disabled={shouldDisableCompanyName}
                         defaultValue={this.props.getDefaultStateForField('companyName')}
                         shouldSaveDraft
-                        shouldDiscardDraft={shouldDisableCompanyName}
+                        isValidValueSaved={shouldDisableCompanyName}
                     />
                     <AddressForm
                         translate={this.props.translate}
@@ -210,7 +210,7 @@ class CompanyStep extends React.Component {
                         placeholder={this.props.translate('companyStep.taxIDNumberPlaceholder')}
                         defaultValue={this.props.getDefaultStateForField('companyTaxID')}
                         shouldSaveDraft
-                        shouldDiscardDraft={shouldDisableCompanyTaxID}
+                        isValidValueSaved={shouldDisableCompanyTaxID}
                     />
                     <View style={styles.mt4}>
                         <Picker
