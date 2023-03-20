@@ -19,6 +19,7 @@ import * as Environment from '../../../../libs/Environment/Environment';
 import Permissions from '../../../../libs/Permissions';
 import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReactions';
 import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickEmojiReactions';
+import DateUtils from '../../../../libs/DateUtils';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -202,7 +203,9 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
         onPress: (closePopover, {reportAction, reportID}) => {
-            Report.markCommentAsUnread(reportID, reportAction.created);
+            const newLastReadTime = DateUtils.subtractMillisecondsFromDateTime(reportAction.created, 1);
+
+            Report.markCommentAsUnread(reportID, newLastReadTime);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }

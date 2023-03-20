@@ -91,26 +91,36 @@ class ReportActionsList extends React.Component {
         // if (unReadMessageWasDeleted) {}
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps) {
         console.log('<<<<<ReportActionsList componentDidUpdate>>>>>', this.props.report.reportID);
 
         // This get executed after all the messages are loaded
-        if (!this.currentUnreadMarker.current) {
+        if (!this.currentUnreadMarker.current && this.props.report.lastVisibleActionCreated < this.props.report.lastRead) {
             // Set a fake unread marker to the last message
+            console.log('Setting fake unread marker');
             this.currentUnreadMarker.current = EMPTY_UNREAD_MARKER;
         }
+
+        // if (prevProps.report.lastVisibleActionCreated !== this.props.report.lastVisibleActionCreated) {
+        //     // If the last visible action has changed, we need to update the unread marker
+        //     console.log('lastVisibleActionCreated changed');
+        //     this.currentUnreadMarker.current = null;
+        // }
+    }
+
+    componentWillUnmount() {
+        console.log('<<<<<ReportActionsList componentWillUnmount>>>>>');
+        this.currentUnreadMarker.current = null;
     }
 
     /**
-     * Create a unique key for each action in the FlatList.
-     * We use the reportActionID that is a string representation of a random 64-bit int, which should be
-     * random enough to avoid collisions
-     * @param {Object} item
-     * @param {Object} item.action
-     * @return {String}
+     * keeps track of the Scroll offset of the main messages list
+     *
+     * @param {Object} {nativeEvent}
      */
-    keyExtractor(item) {
-        return item.reportActionID;
+    trackScroll({nativeEvent}) {
+        this.currentScrollOffset = -nativeEvent.contentOffset.y;
+        this.toggleFloatingMessageCounter();
     }
 
     /**
@@ -127,18 +137,15 @@ class ReportActionsList extends React.Component {
     }
 
     /**
-     * keeps track of the Scroll offset of the main messages list
-     *
-     * @param {Object} {nativeEvent}
+     * Create a unique key for each action in the FlatList.
+     * We use the reportActionID that is a string representation of a random 64-bit int, which should be
+     * random enough to avoid collisions
+     * @param {Object} item
+     * @param {Object} item.action
+     * @return {String}
      */
-    trackScroll({nativeEvent}) {
-        this.currentScrollOffset = -nativeEvent.contentOffset.y;
-        this.toggleFloatingMessageCounter();
-    }
-
-    componentWillUnmount() {
-        console.log('<<<<<ReportActionsList componentWillUnmount>>>>>');
-        this.currentUnreadMarker.current = null;
+    keyExtractor(item) {
+        return item.reportActionID;
     }
 
     /**
@@ -191,10 +198,12 @@ class ReportActionsList extends React.Component {
             const nextMessage = this.props.sortedReportActions[index + 1];
 
             // console.log('1) reportAction', reportAction, this.props.report.lastReadTime);
+            // console.log('nextMessage', nextMessage);
             const isCurrentMessageUnread = !!this.isUnreadMsg(reportAction, this.props.report.lastReadTime);
 
-            // console.log('isCurrentMessageUnread', isCurrentMessageUnread);
             shouldDisplayNewMarker = isCurrentMessageUnread && !this.isUnreadMsg(nextMessage, this.props.report.lastReadTime);
+
+            // console.log('>>>>>>>>>>shouldDisplayNewMarker', shouldDisplayNewMarker);
 
             // console.log('shouldDisplayNewMarker', shouldDisplayNewMarker);
 
@@ -205,8 +214,9 @@ class ReportActionsList extends React.Component {
             }
         } else {
             // console.log('2) reportAction', reportAction, this.props.report.lastReadTime, this.currentUnreadMarker.current);
-
             shouldDisplayNewMarker = reportAction.reportActionID === this.currentUnreadMarker.current.id;
+
+            // console.log('>>>>>>>>>>shouldDisplayNewMarker', shouldDisplayNewMarker);
 
             // console.log('2) this.currentUnreadMarker.current', this.currentUnreadMarker.current);
         }
@@ -230,6 +240,7 @@ class ReportActionsList extends React.Component {
         // To notify there something changes we can use extraData prop to flatlist
         const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.newMarkerReportActionID : undefined;
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
+        console.log('ReportActionsList render: ', this.props.sortedReportActions);
         return (
             <Animated.View style={[StyleUtils.fade(this.state.fadeInAnimation), styles.flex1]}>
                 <FloatingMessageCounter
