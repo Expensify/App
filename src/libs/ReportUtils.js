@@ -220,6 +220,17 @@ function isChatRoom(report) {
 }
 
 /**
+ * Whether the provided report is a public room
+ * @param {Object} report
+ * @param {String} report.visibility
+ * @returns {Boolean}
+ */
+function isPublicRoom(report) {
+    const visibility = lodashGet(report, 'visibility', '');
+    return visibility === CONST.REPORT.VISIBILITY.PUBLIC || visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE;
+}
+
+/**
  * Get the policy type from a given report
  * @param {Object} report
  * @param {String} report.policyID
@@ -415,12 +426,12 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
     const reportRecipient = personalDetails[participantsWithoutExpensifyEmails[0]];
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
     const isReportParticipantValidated = lodashGet(reportRecipient, 'validated', false);
-    return !hasMultipleParticipants
+    return Boolean(!hasMultipleParticipants
         && !isChatRoom(report)
         && reportRecipient
         && reportRecipientTimezone
         && reportRecipientTimezone.selected
-        && isReportParticipantValidated;
+        && isReportParticipantValidated);
 }
 
 /**
@@ -544,6 +555,28 @@ function getFullSizeAvatar(avatarURL, login) {
         return source;
     }
     return source.replace('_128', '');
+}
+
+/**
+ * Small sized avatars end with _128.<file-type>. This adds the _128 at the end of the
+ * source URL (before the file type) if it doesn't exist there already.
+ *
+ * @param {String} avatarURL
+ * @param {String} login
+ * @returns {String|Function}
+ */
+function getSmallSizeAvatar(avatarURL, login) {
+    const source = getAvatar(avatarURL, login);
+    if (!_.isString(source)) {
+        return source;
+    }
+
+    // If image source already has _128 at the end, the given avatar URL is already what we want to use here.
+    const lastPeriodIndex = source.lastIndexOf('.');
+    if (source.substring(lastPeriodIndex - 4, lastPeriodIndex) === '_128') {
+        return source;
+    }
+    return `${source.substring(0, lastPeriodIndex)}_128${source.substring(lastPeriodIndex)}`;
 }
 
 /**
@@ -1627,6 +1660,7 @@ export {
     getPolicyName,
     getPolicyType,
     isArchivedRoom,
+    isPublicRoom,
     isConciergeChatReport,
     hasAutomatedExpensifyEmails,
     hasExpensifyGuidesEmails,
@@ -1671,5 +1705,6 @@ export {
     getDefaultWorkspaceAvatar,
     getCommentLength,
     getFullSizeAvatar,
+    getSmallSizeAvatar,
     getIOUOptions,
 };

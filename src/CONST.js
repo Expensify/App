@@ -8,6 +8,7 @@ const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const USA_COUNTRY_NAME = 'United States';
+const CURRENT_YEAR = new Date().getFullYear();
 
 const CONST = {
     ANDROID_PACKAGE_NAME,
@@ -44,6 +45,23 @@ const CONST = {
     DISPLAY_NAME: {
         MAX_LENGTH: 50,
         RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
+    },
+
+    CALENDAR_PICKER: {
+        // Numbers were arbitrarily picked.
+        MIN_YEAR: CURRENT_YEAR - 100,
+        MAX_YEAR: CURRENT_YEAR + 100,
+    },
+
+    DATE_BIRTH: {
+        MIN_AGE: 5,
+        MAX_AGE: 150,
+    },
+
+    // This is used to enable a rotation/transform style to any component.
+    DIRECTION: {
+        LEFT: 'left',
+        RIGHT: 'right',
     },
 
     // Sizes needed for report empty state background image handling
@@ -247,6 +265,11 @@ const CONST = {
             shortcutKey: 'ArrowDown',
             modifiers: [],
         },
+        TAB: {
+            descriptionKey: null,
+            shortcutKey: 'Tab',
+            modifiers: [],
+        },
     },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
         CONTROL: 'CTRL',
@@ -280,6 +303,9 @@ const CONST = {
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     NEWHELP_URL: 'https://help.expensify.com',
+    INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
+    STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
+    EXPENSIFY_URL: 'https://www.expensify.com',
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
@@ -301,6 +327,7 @@ const CONST = {
                 CREATED: 'CREATED',
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
+                CHRONOSOOOLIST: 'CHRONOSOOOLIST',
             },
         },
         ARCHIVE_REASON: {
@@ -492,6 +519,10 @@ const CONST = {
     // 6 numeric digits
     VALIDATE_CODE_REGEX_STRING: /^\d{6}$/,
 
+    // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags using this regex pattern.
+    // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
+    VALIDATE_FOR_HTML_TAG_REGEX: /<(.|\n)*?>/g,
+
     PASSWORD_PAGE: {
         ERROR: {
             ALREADY_VALIDATED: 'Account already validated',
@@ -559,11 +590,19 @@ const CONST = {
     ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_SIZE: {
         WIDTH: 320,
-        HEIGHT: 392,
+        HEIGHT: 416,
     },
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 256,
     EMOJI_PICKER_ITEM_HEIGHT: 32,
     EMOJI_PICKER_HEADER_HEIGHT: 32,
+    RECIPIENT_LOCAL_TIME_HEIGHT: 25,
+    EMOJI_SUGGESTER: {
+        SUGGESTER_PADDING: 6,
+        ITEM_HEIGHT: 36,
+        SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
+        MIN_AMOUNT_OF_ITEMS: 3,
+        MAX_AMOUNT_OF_ITEMS: 5,
+    },
     COMPOSER_MAX_HEIGHT: 125,
     CHAT_FOOTER_MIN_HEIGHT: 65,
     CHAT_SKELETON_VIEW: {
@@ -802,6 +841,7 @@ const CONST = {
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
         PHONE_WITH_SPECIAL_CHARS: /^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$/,
         ALPHABETIC_CHARS: /[a-zA-Z]+/,
+        ALPHABETIC_CHARS_WITH_NUMBER: /^[a-zA-Z0-9 ]*$/,
         POSITIVE_INTEGER: /^\d+$/,
         NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
@@ -833,6 +873,11 @@ const CONST = {
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
+        HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
+        NEW_LINE_OR_WHITE_SPACE: /[\n\s]/g,
+
+        // Define the regular expression pattern to match a string starting with a colon and ending with a space or newline character
+        EMOJI_REPLACER: /^:[^\n\r]+?(?=$|\s)/,
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
     },
 
@@ -1007,6 +1052,8 @@ const CONST = {
     CHAT_ATTACHMENT_TOKEN_KEY: 'X-Chat-Attachment-Token',
 
     USA_COUNTRY_NAME,
+    SPACE_LENGTH: 1,
+    SPACE: 1,
     ALL_COUNTRIES: {
         AC: 'Ascension Island',
         AD: 'Andorra',

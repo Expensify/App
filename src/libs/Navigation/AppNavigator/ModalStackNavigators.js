@@ -219,20 +219,6 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const SettingsContactMethodDetailsPage = require('../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default;
-            return SettingsContactMethodDetailsPage;
-        },
-        name: 'Settings_ContactMethodDetails',
-    },
-    {
-        getComponent: () => {
-            const SettingsContactMethodsPage = require('../../../pages/settings/Profile/Contacts/ContactMethodsPage').default;
-            return SettingsContactMethodsPage;
-        },
-        name: 'Settings_ContactMethods',
-    },
-    {
-        getComponent: () => {
             const SettingsPronounsPage = require('../../../pages/settings/Profile/PronounsPage').default;
             return SettingsPronounsPage;
         },
@@ -286,6 +272,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             return SettingsAddressPage;
         },
         name: 'Settings_PersonalDetails_Address',
+    },
+    {
+        getComponent: () => {
+            const SettingsContactMethodsPage = require('../../../pages/settings/Profile/Contacts/ContactMethodsPage').default;
+            return SettingsContactMethodsPage;
+        },
+        name: 'Settings_ContactMethods',
     },
     {
         getComponent: () => {
@@ -518,6 +511,14 @@ const WalletStatementStackNavigator = createModalStackNavigator([{
     name: 'WalletStatement_Root',
 }]);
 
+const YearPickerStackNavigator = createModalStackNavigator([{
+    getComponent: () => {
+        const YearPickerPage = require('../../../pages/YearPickerPage').default;
+        return YearPickerPage;
+    },
+    name: 'YearPicker_Root',
+}]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
@@ -535,4 +536,5 @@ export {
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
     WalletStatementStackNavigator,
+    YearPickerStackNavigator,
 };
