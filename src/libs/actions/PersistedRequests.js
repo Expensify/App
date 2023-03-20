@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
+import HttpUtils from '../HttpUtils';
 
 let persistedRequests = [];
 
@@ -17,7 +18,12 @@ function clear() {
  * @param {Array} requestsToPersist
  */
 function save(requestsToPersist) {
-    persistedRequests = persistedRequests.concat(requestsToPersist);
+    HttpUtils.cancelPendingReconnectAppRequests();
+    persistedRequests = _.chain(persistedRequests)
+        .concat(requestsToPersist)
+        .partition(request => request.command !== 'ReconnectApp')
+        .flatten()
+        .value();
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
 
