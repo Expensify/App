@@ -266,11 +266,6 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = '')
                 isLoading: false,
             },
         },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-            value: preferredLocale,
-        },
     ];
 
     const failureData = [
