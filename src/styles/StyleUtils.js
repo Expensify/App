@@ -881,6 +881,12 @@ function getEmojiReactionBubbleStyle(isHovered, hasUserReacted, sizeScale = 1) {
 
     return sizeStyles;
 }
+
+/**
+ * Select the correct color for emoji reaction bubble.
+ * @param {Boolean} hasUserReacted
+ * @returns {Object}
+ */
 function getEmojiReactionListHeaderBubbleStyle(hasUserReacted) {
     if (hasUserReacted) {
         return {backgroundColor: themeColors.reactionActive};
