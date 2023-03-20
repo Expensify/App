@@ -17,7 +17,6 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
-
     ...withLocalizePropTypes,
 };
 
