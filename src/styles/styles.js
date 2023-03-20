@@ -2813,7 +2813,6 @@ const styles = {
     },
 
     imageCropContainer: {
-        borderRadius: variables.componentBorderRadiusCard,
         overflow: 'hidden',
         alignItems: 'center',
         justifyContent: 'center',
