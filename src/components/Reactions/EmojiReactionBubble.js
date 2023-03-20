@@ -7,7 +7,7 @@ import {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetai
 import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
-import withWindowDimensions from '../withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
     emojiName: PropTypes.string.isRequired,
@@ -45,7 +45,13 @@ const propTypes = {
      */
     sizeScale: PropTypes.number,
 
+    /**
+     * Returns true if the current account has reacted to the report action (with the given skin tone).
+     */
+    hasUserReacted: PropTypes.bool,
+
     ...withCurrentUserPersonalDetailsPropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -53,6 +59,7 @@ const defaultProps = {
     onReactionListOpen: () => {},
     reactionUsers: [],
     sizeScale: 1,
+    hasUserReacted: false,
 
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -82,7 +89,6 @@ const EmojiReactionBubble = props => (
                 styles.emojiReactionText,
                 StyleUtils.getEmojiReactionTextStyle(props.sizeScale),
             ]}
-
             >
                 {props.emojiCodes.join('')}
             </Text>
