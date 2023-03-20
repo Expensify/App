@@ -123,10 +123,10 @@ There are a few things that we have customized for our tastes which will take pr
 <SomeComponent shouldShowIcon />
 
 // Bad
-const valid = this.props.something && this.props.somethingElse;
+const valid = props.something && props.somethingElse;
 
 // Good
-const isValid = this.props.something && this.props.somethingElse;
+const isValid = props.something && props.somethingElse;
 ```
 
 ## Functions
@@ -297,8 +297,8 @@ Don't destructure props or state. It makes the source of a given variable unclea
 
 ```javascript
 // Bad
-const {userData} = this.props;
-const {firstName, lastName} = this.state;
+const {userData} = props;
+const {firstName, lastName} = state;
 ...
 
 // Bad
@@ -488,7 +488,7 @@ const propTypes = {
 ```javascript
 // Bad
 {
-    const optionalTitle = this.props.title ? <div className="title">{this.props.title}</div> : null;
+    const optionalTitle = props.title ? <div className="title">{props.title}</div> : null;
     return (
         <div>
             {optionalTitle}
@@ -503,8 +503,8 @@ const propTypes = {
 {
     return (
         <div>
-            {this.props.title
-                ? <div className="title">{this.props.title}</div>
+            {props.title
+                ? <div className="title">{props.title}</div>
                 : null}
             <div className="body">This is the body</div>
         </div>
@@ -517,8 +517,8 @@ const propTypes = {
 {
     return (
         <div>
-            {this.props.title
-                ? <div className="title">{this.props.title}</div>
+            {props.title
+                ? <div className="title">{props.title}</div>
                 : <div className="title">Default Title</div>
             }
             <div className="body">This is the body</body>
@@ -536,8 +536,8 @@ In React Native, one **must not** attempt to falsey-check a string for an inline
 {
     return (
         <View>
-            {this.props.title
-                ? <View style={styles.title}>{this.props.title}</View>
+            {props.title
+                ? <View style={styles.title}>{props.title}</View>
                 : null}
             <View style={styles.body}>This is the body</View>
         </View>
@@ -548,8 +548,8 @@ In React Native, one **must not** attempt to falsey-check a string for an inline
 {
     return (
         <View>
-            {!_.isEmpty(this.props.title)
-                ? <View style={styles.title}>{this.props.title}</View>
+            {!_.isEmpty(props.title)
+                ? <View style={styles.title}>{props.title}</View>
                 : null}
             <View style={styles.body}>This is the body</View>
         </View>
