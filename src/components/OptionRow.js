@@ -100,7 +100,8 @@ class OptionRow extends Component {
             || this.props.option.text !== nextProps.option.text
             || this.props.option.alternateText !== nextProps.option.alternateText
             || this.props.option.descriptiveText !== nextProps.option.descriptiveText
-            || this.props.option.brickRoadIndicator !== nextProps.option.brickRoadIndicator;
+            || this.props.option.brickRoadIndicator !== nextProps.option.brickRoadIndicator
+            || this.props.shouldHaveOptionSeparator !== nextProps.shouldHaveOptionSeparator;
     }
 
     componentDidUpdate(prevProps) {
