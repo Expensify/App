@@ -232,7 +232,7 @@ const WorkspaceInitialPage = (props) => {
             )}
         </ScreenWrapper>
     );
-}
+};
 
 WorkspaceInitialPage.propTypes = propTypes;
 WorkspaceInitialPage.defaultProps = defaultProps;
