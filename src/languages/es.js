@@ -56,6 +56,8 @@ export default {
         here: 'aquí',
         date: 'Fecha',
         dob: 'Fecha de Nacimiento',
+        currentYear: 'Año actual',
+        currentMonth: 'Mes actual',
         ssnLast4: 'Últimos 4 dígitos de su SSN',
         ssnFull9: 'Los 9 dígitos del SSN',
         addressLine: ({lineNumber}) => `Dirección línea ${lineNumber}`,
@@ -114,6 +116,7 @@ export default {
         enterManually: 'Ingresar manualmente',
         message: 'Chatear con ',
         leaveRoom: 'Salir de la sala de chat',
+        you: 'Tú',
         your: 'tu',
         conciergeHelp: 'Por favor contacta con Concierge para obtener ayuda.',
         maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
@@ -627,6 +630,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `La fecha debe ser posterior a ${dateString}.`,
+            hasInvalidCharacter: 'El nombre solo puede contener letras y números.',
         },
     },
     resendValidationForm: {
@@ -640,6 +644,10 @@ export default {
     },
     newChatPage: {
         createGroup: 'Crear grupo',
+    },
+    yearPickerPage: {
+        year: 'Año',
+        selectYear: 'Por favor seleccione un año',
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'El chat que estás buscando no se pudo encontrar.',

@@ -449,6 +449,7 @@ function reconnect(reportID) {
                 value: {
                     isLoadingReportActions: true,
                     isLoadingMoreReportActions: false,
+                    reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
                 },
             }],
             successData: [{
@@ -671,10 +672,10 @@ function handleReportChanged(report) {
         }
     }
 
-    // A report can be missing a name if a comment is received via pusher event
-    // and the report does not yet exist in Onyx (eg. a new DM created with the logged in person)
+    // A report can be missing a name if a comment is received via pusher event and the report does not yet exist in Onyx (eg. a new DM created with the logged in person)
+    // In this case, we call reconnect so that we can fetch the report data without marking it as read
     if (report.reportID && report.reportName === undefined) {
-        openReport(report.reportID);
+        reconnect(report.reportID);
     }
 }
 
@@ -1366,6 +1367,10 @@ function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = pref
     return addEmojiReaction(reportID, reportAction, emoji, skinTone);
 }
 
+function getCurrentUserAccountID() {
+    return currentUserAccountID;
+}
+
 export {
     addComment,
     addAttachment,
@@ -1401,4 +1406,5 @@ export {
     removeEmojiReaction,
     toggleEmojiReaction,
     hasAccountIDReacted,
+    getCurrentUserAccountID,
 };
