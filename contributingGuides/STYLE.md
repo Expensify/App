@@ -576,6 +576,8 @@ When writing a function component you must ALWAYS add a `displayName` property a
 
 Class components are DEPRECATED. Use function components and React hooks.
 
+[https://react.dev/reference/react/Component#migrating-a-component-with-lifecycle-methods-from-a-class-to-a-function](https://react.dev/reference/react/Component#migrating-a-component-with-lifecycle-methods-from-a-class-to-a-function)
+
 ## Composition vs Inheritance
 
 From React's documentation -
