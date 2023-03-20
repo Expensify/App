@@ -31,16 +31,16 @@ function getDocumentedShortcuts() {
 function getDisplayName(key, modifiers) {
     let displayName = (() => {
         // Type of key is string and the type of KeyCommand.constants.* is number | string. Use _.isEqual to match different types.
-        if (_.isEqual(key, lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInputEnter').toString())) {
+        if (_.isEqual(key.toLowerCase(), lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInputEnter').toString().toLowerCase())) {
             return ['ENTER'];
         }
-        if (_.isEqual(key, lodashGet(KeyCommand, 'constants.keyInputEscape', 'keyInputEscape').toString())) {
+        if (_.isEqual(key.toLowerCase(), lodashGet(KeyCommand, 'constants.keyInputEscape', 'keyInputEscape').toString().toLowerCase())) {
             return ['ESCAPE'];
         }
-        if (_.isEqual(key, lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow').toString())) {
+        if (_.isEqual(key.toLowerCase(), lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow').toString().toLowerCase())) {
             return ['ARROWUP'];
         }
-        if (_.isEqual(key, lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow').toString())) {
+        if (_.isEqual(key.toLowerCase(), lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow').toString().toLowerCase())) {
             return ['ARROWDOWN'];
         }
         return [key.toUpperCase()];
