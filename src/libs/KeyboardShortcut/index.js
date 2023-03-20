@@ -58,8 +58,10 @@ function getDisplayName(key, modifiers) {
 }
 
 _.each(CONST.KEYBOARD_SHORTCUTS, (shortcut) => {
+    const shortcutTrigger = lodashGet(shortcut, ['trigger', operatingSystem], lodashGet(shortcut, 'trigger.DEFAULT'));
+
     KeyCommand.addListener(
-        lodashGet(shortcut, ['trigger', operatingSystem], shortcut.trigger.DEFAULT),
+        shortcutTrigger,
         (keycommandEvent, event) => bindHandlerToKeydownEvent(getDisplayName, eventHandlers, keycommandEvent, event),
     );
 });
