@@ -1,5 +1,4 @@
 import {Platform} from 'react-native';
-import DeviceInfo from 'react-native-device-info';
 import _ from 'underscore';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -13,12 +12,10 @@ const getSystemDetails = (navigation) => {
         version: packageJSON.version,
         platform: Platform.OS,
         OS: Platform.OS,
-        currentScreen: navigationState.key,
-        recentRouteHistory: _.map(navigationState.routes, route => route.name),
+        currentScreen: navigationState ? navigationState.key : undefined,
+        recentRouteHistory: navigationState ? _.map(navigationState.routes, route => route.name) : undefined,
         recentLogs: [],
     };
-
-    console.log('state' + JSON.stringify(appstate));
 
     return appstate;
 };
