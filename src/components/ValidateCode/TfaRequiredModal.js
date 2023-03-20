@@ -10,7 +10,6 @@ import * as Illustrations from '../Icon/Illustrations';
 import variables from '../../styles/variables';
 
 const propTypes = {
-
     ...withLocalizePropTypes,
 };
 
