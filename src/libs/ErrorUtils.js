@@ -63,12 +63,13 @@ function getLatestErrorMessage(onyxData) {
  */
 function addErrorMessage(errors, inputID, message) {
     const errorList = errors;
-    if (message && inputID) {
-        if (_.isEmpty(errorList[inputID])) {
-            errorList[inputID] = message;
-        } else {
-            errorList[inputID] = `${errorList[inputID]}\n${message}`;
-        }
+    if (!message || !inputID) {
+        return;
+    }
+    if (_.isEmpty(errorList[inputID])) {
+        errorList[inputID] = message;
+    } else {
+        errorList[inputID] = `${errorList[inputID]}\n${message}`;
     }
 }
 

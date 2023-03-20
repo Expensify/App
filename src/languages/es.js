@@ -1075,7 +1075,7 @@ export default {
         publicDescription: 'Cualquier persona puede unirse a esta sala',
         createRoom: 'Crea una sala de chat',
         roomAlreadyExistsError: 'Ya existe una sala con este nombre',
-        roomNameReservedError: 'Una sala en este espacio de trabajo ya usa este nombre',
+        roomNameReservedError: 'Los nombres #admins y #announce son nombres reservados para este espacio de trabajo',
         roomNameInvalidError: 'Los nombres de las salas solo pueden contener minúsculas, números y guiones',
         pleaseEnterRoomName: 'Por favor, escribe el nombre de una sala',
         pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo',

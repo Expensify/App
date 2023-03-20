@@ -123,11 +123,12 @@ class ReportSettingsPage extends Component {
         } else if (values.newRoomName !== CONST.POLICY.ROOM_PREFIX && !ValidationUtils.isValidRoomName(values.newRoomName)) {
             // We error if the room name has invalid characters
             ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomNameInvalidError'));
-        }
-
-        if (ValidationUtils.isReservedRoomName(values.newRoomName) || ValidationUtils.isExistingRoomName(values.newRoomName, this.props.reports, values.policyID)) {
+        } else if (ValidationUtils.isReservedRoomName(values.newRoomName)) {
             // Certain names are reserved for default rooms and should not be used for policy rooms.
             ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomNameReservedError'));
+        } else if (ValidationUtils.isExistingRoomName(values.newRoomName, this.props.reports, this.props.report.policyID)) {
+            // Certain names are reserved for default rooms and should not be used for policy rooms.
+            ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomAlreadyExistsError'));
         }
 
         return errors;
@@ -187,15 +188,15 @@ class ReportSettingsPage extends Component {
                                     <View style={[styles.flexRow]}>
                                         <View style={[styles.flex3]}>
                                             {shouldDisableRename ? (
-                                                <View>
-                                                    <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
-                                                        {this.props.translate('newRoomPage.roomName')}
-                                                    </Text>
-                                                    <Text numberOfLines={1} style={[styles.optionAlternateText]}>
-                                                        {this.props.report.reportName}
-                                                    </Text>
-                                                </View>
-                                            )
+                                                    <View>
+                                                        <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
+                                                            {this.props.translate('newRoomPage.roomName')}
+                                                        </Text>
+                                                        <Text numberOfLines={1} style={[styles.optionAlternateText]}>
+                                                            {this.props.report.reportName}
+                                                        </Text>
+                                                    </View>
+                                                )
                                                 : (
                                                     <RoomNameInput
                                                         inputID="newRoomName"
