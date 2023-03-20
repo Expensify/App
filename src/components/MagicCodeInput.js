@@ -181,17 +181,12 @@ class MagicCodeInput extends React.PureComponent {
         // meaning that it's the last character to be deleted or it's a character being
         // deleted in the middle of the input, which should delete all the characters after it.
         if (keyValue === 'Backspace' && this.state.input.length < 2) {
-            this.setState((prevState) => {
-                const numbers = [...prevState.numbers];
-                numbers[prevState.focusedIndex] = '';
-
-                return {
-                    input: '',
-                    numbers: numbers.slice(0, prevState.focusedIndex),
-                    focusedIndex: prevState.focusedIndex === 0 ? 0 : prevState.focusedIndex - 1,
-                    editIndex: prevState.editIndex === 0 ? 0 : prevState.editIndex - 1,
-                };
-            });
+            this.setState(({numbers, focusedIndex, editIndex}) => ({
+                input: '',
+                numbers: focusedIndex === 0 ? [] : [...numbers.slice(0, focusedIndex), ''],
+                focusedIndex: Math.max(0, focusedIndex - 1),
+                editIndex: Math.max(0, editIndex - 1),
+            }));
         } else if (keyValue === 'ArrowLeft') {
             this.setState(prevState => ({
                 input: '',
