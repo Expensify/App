@@ -1074,7 +1074,7 @@ export default {
         publicDescription: 'Anyone can find this room',
         createRoom: 'Create room',
         roomAlreadyExistsError: 'A room with this name already exists',
-        roomNameReservedError: 'Room names #admins and #announce are reserved names for this workspace',
+        roomNameReservedError: ({reservedName}) => `${reservedName} is a default room on all workspaces. Please choose another name.`,
         roomNameInvalidError: 'Room names can only include lowercase letters, numbers and hyphens',
         pleaseEnterRoomName: 'Please enter a room name',
         pleaseSelectWorkspace: 'Please select a workspace',

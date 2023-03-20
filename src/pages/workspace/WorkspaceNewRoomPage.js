@@ -91,7 +91,7 @@ class WorkspaceNewRoomPage extends React.Component {
             ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomNameInvalidError'));
         } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
             // Certain names are reserved for default rooms and should not be used for policy rooms.
-            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomNameReservedError'));
+            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
         } else if (ValidationUtils.isExistingRoomName(values.roomName, this.props.reports, values.policyID)) {
             // Certain names are reserved for default rooms and should not be used for policy rooms.
             ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomAlreadyExistsError'));

@@ -125,7 +125,7 @@ class ReportSettingsPage extends Component {
             ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomNameInvalidError'));
         } else if (ValidationUtils.isReservedRoomName(values.newRoomName)) {
             // Certain names are reserved for default rooms and should not be used for policy rooms.
-            ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomNameReservedError'));
+            ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomNameReservedError', {reservedName: values.newRoomName}));
         } else if (ValidationUtils.isExistingRoomName(values.newRoomName, this.props.reports, this.props.report.policyID)) {
             // Certain names are reserved for default rooms and should not be used for policy rooms.
             ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomAlreadyExistsError'));
