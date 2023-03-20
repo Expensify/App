@@ -94,17 +94,17 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             builder.setPriority(PRIORITY_MAX);
         }
 
-        // Attempt to parse data and style notification
+        // Attempt to parse data and apply custom notification styling
         if (message.containsKey(PAYLOAD_KEY)) {
             try {
                 JsonMap payload = JsonValue.parseString(message.getExtra(PAYLOAD_KEY)).optMap();
 
-                // Apply message style when onyxData is present
+                // Apply message style using onyxData from the notification payload
                 if (payload.get("onyxData").getList().size() > 0) {
                         applyMessageStyle(context, builder, payload, arguments.getNotificationId());
                 }
             } catch (Exception e) {
-                Log.e(TAG, "Failed to parse conversation. SendID=" + message.getSendId(), e);
+                Log.e(TAG, "Failed to parse conversation, falling back to default notification style. SendID=" + message.getSendId(), e);
             }
         }
 
