@@ -77,9 +77,7 @@ class ExpiredValidateCodeModal extends PureComponent {
                                 <Text style={[styles.textDanger, styles.validateCodeMessage]}>
                                     <br />
                                     <br />
-
                                     {codeRequestedErrors}
-
                                 </Text>
                             )}
                         {this.shouldShowRequestCodeLink() && codeRequestedMessage
