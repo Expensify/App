@@ -11,6 +11,15 @@ const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const USA_COUNTRY_NAME = 'United States';
 
+const keyModifierControl = lodashGet(KeyCommand, 'constants.keyModifierControl', 'keyModifierControl');
+const keyModifierCommand = lodashGet(KeyCommand, 'constants.keyModifierCommand', 'keyModifierCommand');
+const keyModifierShiftControl = lodashGet(KeyCommand, 'constants.keyModifierShiftControl', 'keyModifierShiftControl');
+const keyModifierShiftCommand = lodashGet(KeyCommand, 'constants.keyModifierShiftCommand', 'keyModifierShiftCommand');
+const keyInputEscape = lodashGet(KeyCommand, 'constants.keyInputEscape', 'keyInputEscape');
+const keyInputEnter = lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInputEnter');
+const keyInputUpArrow = lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow');
+const keyInputDownArrow = lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow');
+
 const CONST = {
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
@@ -210,9 +219,9 @@ const CONST = {
             shortcutKey: 'K',
             modifiers: ['CTRL'],
             trigger: {
-                DEFAULT: {input: 'k', modifierFlags: lodashGet(KeyCommand, 'constants.keyModifierControl', 'keyModifierControl')},
-                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: lodashGet(KeyCommand, 'constants.keyModifierCommand', 'keyModifierCommand')},
-                [PLATFORM_IOS]: {input: 'k', modifierFlags: lodashGet(KeyCommand, 'constants.keyModifierCommand', 'keyModifierCommand')},
+                DEFAULT: {input: 'k', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierCommand},
             },
         },
         NEW_GROUP: {
@@ -220,9 +229,9 @@ const CONST = {
             shortcutKey: 'K',
             modifiers: ['CTRL', 'SHIFT'],
             trigger: {
-                DEFAULT: {input: 'k', modifierFlags: lodashGet(KeyCommand, 'constants.keyModifierShiftControl', 'keyModifierShiftControl')},
-                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: lodashGet(KeyCommand, 'constants.keyModifierShiftCommand', 'keyModifierShiftCommand')},
-                [PLATFORM_IOS]: {input: 'k', modifierFlags: lodashGet(KeyCommand, 'constants.keyModifierShiftCommand', 'keyModifierShiftCommand')},
+                DEFAULT: {input: 'k', modifierFlags: keyModifierShiftControl},
+                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
+                [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
             },
         },
         SHORTCUT_MODAL: {
@@ -230,9 +239,9 @@ const CONST = {
             shortcutKey: 'I',
             modifiers: ['CTRL'],
             trigger: {
-                DEFAULT: {input: 'i', modifierFlags: lodashGet(KeyCommand, 'constants.keyModifierControl', 'keyModifierControl')},
-                [PLATFORM_OS_MACOS]: {input: 'i', modifierFlags: lodashGet(KeyCommand, 'constants.keyModifierCommand', 'keyModifierCommand')},
-                [PLATFORM_IOS]: {input: 'i', modifierFlags: lodashGet(KeyCommand, 'constants.keyModifierCommand', 'keyModifierCommand')},
+                DEFAULT: {input: 'i', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'i', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'i', modifierFlags: keyModifierCommand},
             },
         },
         ESCAPE: {
@@ -240,9 +249,9 @@ const CONST = {
             shortcutKey: 'Escape',
             modifiers: [],
             trigger: {
-                DEFAULT: {input: lodashGet(KeyCommand, 'constants.keyInputEscape', 'keyInputEscape')},
-                [PLATFORM_OS_MACOS]: {input: lodashGet(KeyCommand, 'constants.keyInputEscape', 'keyInputEscape')},
-                [PLATFORM_IOS]: {input: lodashGet(KeyCommand, 'constants.keyInputEscape', 'keyInputEscape')},
+                DEFAULT: {input: keyInputEscape},
+                [PLATFORM_OS_MACOS]: {input: keyInputEscape},
+                [PLATFORM_IOS]: {input: keyInputEscape},
             },
         },
         ENTER: {
@@ -250,9 +259,9 @@ const CONST = {
             shortcutKey: 'Enter',
             modifiers: [],
             trigger: {
-                DEFAULT: {input: lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInputEnter')},
-                [PLATFORM_OS_MACOS]: {input: lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInputEnter')},
-                [PLATFORM_IOS]: {input: lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInputEnter')},
+                DEFAULT: {input: keyInputEnter},
+                [PLATFORM_OS_MACOS]: {input: keyInputEnter},
+                [PLATFORM_IOS]: {input: keyInputEnter},
             },
         },
         CTRL_ENTER: {
@@ -260,9 +269,9 @@ const CONST = {
             shortcutKey: 'Enter',
             modifiers: ['CTRL'],
             trigger: {
-                DEFAULT: {input: lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInputEnter'), modifierFlags: lodashGet(KeyCommand, 'constants.keyModifierControl', 'keyModifierControl')},
-                [PLATFORM_OS_MACOS]: {input: lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInputEnter'), modifierFlags: lodashGet(KeyCommand, 'constants.keyModifierCommand', 'keyModifierCommand')},
-                [PLATFORM_IOS]: {input: lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInputEnter'), modifierFlags: lodashGet(KeyCommand, 'constants.keyModifierCommand', 'keyModifierCommand')},
+                DEFAULT: {input: keyInputEnter, modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
             },
         },
         COPY: {
@@ -270,9 +279,9 @@ const CONST = {
             shortcutKey: 'C',
             modifiers: ['CTRL'],
             trigger: {
-                DEFAULT: {input: 'c', modifierFlags: lodashGet(KeyCommand, 'constants.keyModifierControl', 'keyModifierControl')},
-                [PLATFORM_OS_MACOS]: {input: 'c', modifierFlags: lodashGet(KeyCommand, 'constants.keyModifierCommand', 'keyModifierCommand')},
-                [PLATFORM_IOS]: {input: 'c', modifierFlags: lodashGet(KeyCommand, 'constants.keyModifierCommand', 'keyModifierCommand')},
+                DEFAULT: {input: 'c', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'c', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'c', modifierFlags: keyModifierCommand},
             },
         },
         ARROW_UP: {
@@ -280,9 +289,9 @@ const CONST = {
             shortcutKey: 'ArrowUp',
             modifiers: [],
             trigger: {
-                DEFAULT: {input: lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow')},
-                [PLATFORM_OS_MACOS]: {input: lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow')},
-                [PLATFORM_IOS]: {input: lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow')},
+                DEFAULT: {input: keyInputUpArrow},
+                [PLATFORM_OS_MACOS]: {input: keyInputUpArrow},
+                [PLATFORM_IOS]: {input: keyInputUpArrow},
             },
         },
         ARROW_DOWN: {
@@ -290,9 +299,9 @@ const CONST = {
             shortcutKey: 'ArrowDown',
             modifiers: [],
             trigger: {
-                DEFAULT: {input: lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow')},
-                [PLATFORM_OS_MACOS]: {input: lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow')},
-                [PLATFORM_IOS]: {input: lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow')},
+                DEFAULT: {input: keyInputDownArrow},
+                [PLATFORM_OS_MACOS]: {input: keyInputDownArrow},
+                [PLATFORM_IOS]: {input: keyInputDownArrow},
             },
         },
     },
