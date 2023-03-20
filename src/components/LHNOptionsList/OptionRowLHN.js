@@ -6,6 +6,7 @@ import {
     View,
     StyleSheet,
 } from 'react-native';
+import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import Icon from '../Icon';
@@ -75,7 +76,7 @@ const OptionRowLHN = (props) => {
         ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
         : [textStyle, styles.optionAlternateText, styles.textLabelSupporting], props.style);
     const contentContainerStyles = props.viewMode === CONST.OPTION_MODE.COMPACT
-        ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter]
+        ? [styles.flex1, styles.flexRow, styles.overflowHidden, optionRowStyles.compactContentContainerStyles]
         : [styles.flex1];
     const sidebarInnerRowStyle = StyleSheet.flatten(props.viewMode === CONST.OPTION_MODE.COMPACT ? [
         styles.chatLinkRowPressable,
