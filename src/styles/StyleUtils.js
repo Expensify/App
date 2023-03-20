@@ -911,6 +911,20 @@ function getEmojiReactionCounterTextStyle(hasUserReacted, sizeScale = 1) {
     return sizeStyles;
 }
 
+/**
+ * Returns a style object with a rotation transformation applied based on the provided direction prop.
+ *
+ * @param {string} direction - The direction of the rotation (CONST.DIRECTION.LEFT or CONST.DIRECTION.RIGHT).
+ * @returns {Object}
+ */
+function getDirectionStyle(direction) {
+    if (direction === CONST.DIRECTION.LEFT) {
+        return {transform: [{rotate: '180deg'}]};
+    }
+
+    return {};
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -961,4 +975,5 @@ export {
     getEmojiReactionTextStyle,
     getEmojiReactionCounterTextStyle,
     getEmojiReactionListHeaderBubbleStyle,
+    getDirectionStyle,
 };

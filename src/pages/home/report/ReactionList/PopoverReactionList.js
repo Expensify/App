@@ -47,10 +47,6 @@ class PopoverReactionList extends React.Component {
         this.dimensionsEventListener = null;
 
         this.contentRef = React.createRef();
-        this.setContentRef = (ref) => {
-            this.contentRef.current = ref;
-        };
-        this.setContentRef = this.setContentRef.bind(this);
     }
 
     componentDidMount() {
@@ -93,7 +89,7 @@ class PopoverReactionList extends React.Component {
      *
      * @param {Object} [event] - A press event.
      * @param {Element} reactionListAnchor - reactionListAnchor
-     * @param {Array} users - Array of users id
+     * @param {Array} users - Array of personal detail objects
      * @param {String} emojiName - Name of emoji
      * @param {Array} emojiCodes - The emoji codes to display in the bubble.
      * @param {Number} emojiCount - Count of emoji

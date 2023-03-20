@@ -82,7 +82,7 @@ const EmojiReactionBubble = props => (
             onPress={props.onPress}
             onLongPress={props.onReactionListOpen}
             onSecondaryInteraction={props.onReactionListOpen}
-            ref={props.forwardedRef}
+            ref={props.forwardRef}
             isLongPressEnabledWithHover={props.isSmallScreenWidth}
         >
             <Text style={[

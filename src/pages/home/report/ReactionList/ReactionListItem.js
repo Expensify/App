@@ -9,6 +9,8 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import {withPersonalDetails} from '../../../../components/OnyxProvider';
 import ControlSelection from '../../../../libs/ControlSelection';
 import Text from '../../../../components/Text';
+import participantPropTypes from '../../../../components/participantPropTypes';
+import * as ReportUtils from '../../../../libs/ReportUtils';
 
 const propTypes = {
     /** Styles for the outermost View */
@@ -16,16 +18,7 @@ const propTypes = {
     wrapperStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Personal details of the user */
-    item: PropTypes.shape({
-        // Display Name of participant
-        displayName: PropTypes.string,
-
-        // Avatar url of participant
-        avatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
-
-        /** First Name of the participant */
-        firstName: PropTypes.string,
-    }).isRequired,
+    item: participantPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -34,24 +27,28 @@ const defaultProps = {
     wrapperStyles: [styles.reactionListItem],
 };
 
-const ReactionListItem = props => (
-    <View style={props.wrapperStyles}>
-        <Pressable
-            style={[styles.alignSelfStart, styles.mr3]}
-            onPressIn={ControlSelection.block}
-            onPressOut={ControlSelection.unblock}
-        >
-            <Avatar
-                containerStyles={[styles.actionAvatar]}
-                source={props.item.avatar}
-            />
-        </Pressable>
-        <View style={[styles.chatItemRight]}>
-            <Text style={styles.h3}>{props.item.displayName}</Text>
-            <Text style={{color: colors.greenSupportingText}}>{props.item.login}</Text>
+const ReactionListItem = (props) => {
+    const avatarSource = ReportUtils.getAvatar(props.item.avatar, props.item.login);
+
+    return (
+        <View style={props.wrapperStyles}>
+            <Pressable
+                style={[styles.alignSelfStart, styles.mr3]}
+                onPressIn={ControlSelection.block}
+                onPressOut={ControlSelection.unblock}
+            >
+                <Avatar
+                    containerStyles={[styles.actionAvatar]}
+                    source={avatarSource}
+                />
+            </Pressable>
+            <View style={[styles.chatItemRight]}>
+                <Text numberOfLines={1} style={styles.h3}>{props.item.displayName}</Text>
+                <Text style={{color: colors.greenSupportingText}}>{props.item.login}</Text>
+            </View>
         </View>
-    </View>
-);
+    );
+};
 
 ReactionListItem.propTypes = propTypes;
 ReactionListItem.defaultProps = defaultProps;

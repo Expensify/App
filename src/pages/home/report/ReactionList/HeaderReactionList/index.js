@@ -1,34 +1,19 @@
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import styles from '../../../../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../../../../components/withLocalize';
 import Text from '../../../../../components/Text';
 import * as StyleUtils from '../../../../../styles/StyleUtils';
+import {
+    propTypes as reactionPropTypes,
+    defaultProps as reactionDefaultProps,
+} from './reactionPropTypes';
 
 const propTypes = {
-    /** Selected emoji */
-    /** The emoji codes */
-    emojiCodes: PropTypes.arrayOf(PropTypes.string).isRequired,
-
-    /** The name of the emoji */
-    emojiName: PropTypes.string.isRequired,
-
-    /** Count of the emoji */
-    emojiCount: PropTypes.number.isRequired,
-
-    /**
-     * The default size of the reaction bubble is defined
-     * by the styles in styles.js. This scale factor can be used
-     * to make the bubble bigger or smaller.
-     */
-    sizeScale: PropTypes.number,
-
-    ...withLocalizePropTypes,
+    ...reactionPropTypes,
 };
 
 const defaultProps = {
-    sizeScale: 1,
+    ...reactionDefaultProps,
 };
 
 const HeaderReactionList = props => (
@@ -49,5 +34,5 @@ HeaderReactionList.propTypes = propTypes;
 HeaderReactionList.defaultProps = defaultProps;
 HeaderReactionList.displayName = 'HeaderReactionList';
 
-export default withLocalize(HeaderReactionList);
+export default HeaderReactionList;
 

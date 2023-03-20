@@ -30,10 +30,6 @@ const getUniqueEmojiCodes = (emoji, users) => {
     return emojiCodes;
 };
 
-const defaultProps = {
-    ...withCurrentUserPersonalDetailsDefaultProps,
-};
-
 const propTypes = {
     /**
      * An array of objects containing the reaction data.
@@ -67,7 +63,10 @@ const propTypes = {
     onReactionListOpen: PropTypes.func.isRequired,
 
     ...withCurrentUserPersonalDetailsPropTypes,
+};
 
+const defaultProps = {
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 const ReportActionItemReactions = (props) => {

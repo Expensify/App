@@ -1,38 +1,23 @@
 import React from 'react';
 import {View, TouchableOpacity} from 'react-native';
-import PropTypes from 'prop-types';
 import styles from '../../../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../../../components/withLocalize';
 import Text from '../../../../../components/Text';
 import Icon from '../../../../../components/Icon';
 import * as Expensicons from '../../../../../components/Icon/Expensicons';
 import * as StyleUtils from '../../../../../styles/StyleUtils';
+import {
+    propTypes as reactionPropTypes,
+    defaultProps as reactionDefaultProps,
+} from './reactionPropTypes';
 
 const propTypes = {
-    /** Children view component for this action item */
-    onClose: PropTypes.func.isRequired,
-
-    /** The emoji codes */
-    emojiCodes: PropTypes.arrayOf(PropTypes.string).isRequired,
-
-    /** The name of the emoji */
-    emojiName: PropTypes.string.isRequired,
-
-    /** Count of the emoji */
-    emojiCount: PropTypes.number.isRequired,
-
-    /**
-     * The default size of the reaction bubble is defined
-     * by the styles in styles.js. This scale factor can be used
-     * to make the bubble bigger or smaller.
-     */
-    sizeScale: PropTypes.number,
-
+    ...reactionPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    sizeScale: 1,
+    ...reactionDefaultProps,
 };
 
 const HeaderReactionList = props => (
