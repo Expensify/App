@@ -19,6 +19,9 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
+    /** Icon to display in right side of text input */
+    icon: PropTypes.func,
+
     /** Customize the TextInput container */
     textInputContainerStyles: PropTypes.arrayOf(PropTypes.object),
 
@@ -108,6 +111,7 @@ const defaultProps = {
     onInputChange: () => {},
     shouldDelayFocus: false,
     submitOnEnter: false,
+    icon: null,
     shouldUseDefaultValue: false,
 };
 
