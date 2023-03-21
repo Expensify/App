@@ -193,6 +193,7 @@ const WorkspaceInitialPage = (props) => {
                                                         style={[
                                                             styles.textHeadline,
                                                             styles.alignSelfCenter,
+                                                            styles.pre,
                                                         ]}
                                                     >
                                                         {props.policy.name}
