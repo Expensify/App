@@ -160,7 +160,7 @@ class WorkspaceMembersPage extends React.Component {
     toggleAllUsers(memberList) {
         const emailList = _.keys(memberList);
         this.setState(prevState => ({
-            selectedEmployees: !_.every(emailList, member => _.contains(prevState.selectedEmployees, member))
+            selectedEmployees: !_.every(emailList, memberEmail => _.contains(prevState.selectedEmployees, memberEmail))
                 ? emailList
                 : [],
         }), () => this.validate());
@@ -393,7 +393,7 @@ class WorkspaceMembersPage extends React.Component {
                                         <View style={[styles.peopleRowCell]}>
                                             <Checkbox
                                                 isChecked={!_.isEmpty(removableMembers)
-                                                    && _.every(_.values(removableMembers), member => _.contains(this.state.selectedEmployees, member.login))}
+                                                    && _.every(_.keys(removableMembers), memberEmail => _.contains(this.state.selectedEmployees, memberEmail))}
                                                 onPress={() => this.toggleAllUsers(removableMembers)}
                                             />
                                         </View>
