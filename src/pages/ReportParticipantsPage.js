@@ -55,7 +55,7 @@ const getAllParticipants = (report, personalDetails) => {
 
     return _.map(participants, (login) => {
         const userLogin = Str.removeSMSDomain(login);
-        const userPersonalDetail = lodashGet(personalDetails, login, {displayName: userLogin, avatar: ''}); // if sms, format as sms
+        const userPersonalDetail = lodashGet(personalDetails, login, {displayName: userLogin, avatar: ''});
 
         return ({
             alternateText: userLogin,
