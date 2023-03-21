@@ -33,6 +33,8 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import FormHelpMessage from '../../components/FormHelpMessage';
 import TextInput from '../../components/TextInput';
 import KeyboardDismissingFlatList from '../../components/KeyboardDismissingFlatList';
+import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -236,11 +238,11 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     /**
-     * @param {String} value
+     * @param {String} [value = '']
      * @param {String} keyword
      * @returns {Boolean}
      */
-    isKeywordMatch(value, keyword) {
+    isKeywordMatch(value = '', keyword) {
         return value.trim().toLowerCase().includes(keyword);
     }
 
@@ -326,6 +328,15 @@ class WorkspaceMembersPage extends React.Component {
             || this.isKeywordMatch(member.phoneNumber, searchValue)
             || this.isKeywordMatch(member.firstName, searchValue)
             || this.isKeywordMatch(member.lastName, searchValue));
+        // eslint-disable-next-line arrow-body-style
+        data = _.reject(data, (member) => {
+            // We don't want to show guides as policy members unless the user is not a guide. Some customers get confused when they
+            // see random people added to their policy, but guides having access to the policies help set them up.
+            // eslint-disable-next-line implicit-arrow-linebreak
+            const isCurrentUserAssignedGuide = PolicyUtils.isAssignedGuide(this.props.currentUserPersonalDetails.login);
+            return !isCurrentUserAssignedGuide && PolicyUtils.isAssignedGuide(member.login);
+        });
+
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
 
@@ -410,13 +421,11 @@ class WorkspaceMembersPage extends React.Component {
                                     />
                                 </View>
                             ) : (
-                                !_.isEmpty(policyMemberList) && (
-                                    <View style={[styles.ph5]}>
-                                        <Text style={[styles.textLabel, styles.colorMuted]}>
-                                            {this.props.translate('common.noResultsFound')}
-                                        </Text>
-                                    </View>
-                                )
+                                <View style={[styles.ph5]}>
+                                    <Text style={[styles.textLabel, styles.colorMuted]}>
+                                        {this.props.translate('common.noResultsFound')}
+                                    </Text>
+                                </View>
                             )}
                         </View>
                     </FullPageNotFoundView>
@@ -442,4 +451,5 @@ export default compose(
             key: ONYXKEYS.SESSION,
         },
     }),
+    withCurrentUserPersonalDetails,
 )(WorkspaceMembersPage);
