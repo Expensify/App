@@ -156,15 +156,14 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     /**
-     * Add or remove all users from the selectedEmployees list
+     * Add or remove all users passed from the selectedEmployees list
+     * @param {Object} memberList
      */
-    toggleAllUsers() {
-        let policyMemberList = lodashGet(this.props, 'policyMemberList', {});
-        policyMemberList = _.filter(_.keys(policyMemberList), policyMember => policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
+    toggleAllUsers(memberList) {
+        const emailList = _.keys(memberList);
         this.setState(prevState => ({
-            selectedEmployees: !_.every(removableMembers, member => _.contains(prevState.selectedEmployees, member))
-                ? removableMembers
+            selectedEmployees: !_.every(emailList, memberEmail => _.contains(prevState.selectedEmployees, memberEmail))
+                ? emailList
                 : [],
         }), () => this.validate());
     }
@@ -309,12 +308,9 @@ class WorkspaceMembersPage extends React.Component {
 
     render() {
         const policyMemberList = lodashGet(this.props, 'policyMemberList', {});
-        const removableMembers = [];
+        const removableMembers = {};
         let data = [];
         _.each(policyMemberList, (policyMember, email) => {
-            if (email !== this.props.session.email && email !== this.props.policy.owner && policyMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                removableMembers.push(email);
-            }
             const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email});
             data.push({
                 ...policyMember,
@@ -328,6 +324,7 @@ class WorkspaceMembersPage extends React.Component {
             || this.isKeywordMatch(member.phoneNumber, searchValue)
             || this.isKeywordMatch(member.firstName, searchValue)
             || this.isKeywordMatch(member.lastName, searchValue));
+            
         // eslint-disable-next-line arrow-body-style
         data = _.reject(data, (member) => {
             // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
@@ -341,6 +338,12 @@ class WorkspaceMembersPage extends React.Component {
             return !isCurrentUserExpensifyTeam && PolicyUtils.isExpensifyTeam(member.login);
         });
 
+        _.each(data, (member) => {
+            if (member.login === this.props.session.email || member.login === this.props.policy.owner || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                return;
+            }
+            removableMembers[member.login] = member;
+        });
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
 
@@ -404,8 +407,9 @@ class WorkspaceMembersPage extends React.Component {
                                     <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
                                         <View style={[styles.peopleRowCell]}>
                                             <Checkbox
-                                                isChecked={removableMembers.length !== 0 && _.every(removableMembers, member => _.contains(this.state.selectedEmployees, member))}
-                                                onPress={() => this.toggleAllUsers()}
+                                                isChecked={!_.isEmpty(removableMembers)
+                                                    && _.every(_.keys(removableMembers), memberEmail => _.contains(this.state.selectedEmployees, memberEmail))}
+                                                onPress={() => this.toggleAllUsers(removableMembers)}
                                             />
                                         </View>
                                         <View style={[styles.peopleRowCell, styles.flex1]}>
