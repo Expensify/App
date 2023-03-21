@@ -203,7 +203,7 @@ class IOUAmountPage extends React.Component {
      * @param {Boolean} value - Changed text from user input
      */
     updateLongPressHandlerState(value) {
-        this.setState({shouldUpdateSelection: value});
+        this.setState({shouldUpdateSelection: !value});
     }
 
     /**

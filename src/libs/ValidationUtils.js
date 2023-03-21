@@ -221,7 +221,7 @@ function getAgeRequirementError(date, minimumAge, maximumAge) {
     if (!testDate.isValid()) {
         return Localize.translateLocal('common.error.dateInvalid');
     }
-    if (testDate.isBetween(longAgoDate, recentDate)) {
+    if (testDate.isBetween(longAgoDate, recentDate, undefined, [])) {
         return '';
     }
     if (testDate.isSameOrAfter(recentDate)) {

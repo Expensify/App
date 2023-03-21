@@ -116,6 +116,7 @@ class WorkspaceSettingsPage extends React.Component {
                                 isUsingDefaultAvatar={!lodashGet(this.props.policy, 'avatar', null)}
                                 onImageSelected={file => Policy.updateWorkspaceAvatar(lodashGet(this.props.policy, 'id', ''), file)}
                                 onImageRemoved={() => Policy.deleteWorkspaceAvatar(lodashGet(this.props.policy, 'id', ''))}
+                                editorMaskImage={Expensicons.ImageCropSquareMask}
                             />
                         </OfflineWithFeedback>
                         <OfflineWithFeedback

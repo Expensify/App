@@ -323,6 +323,7 @@ const styles = {
 
     textHeadline: {
         ...headlineFont,
+        ...whiteSpace.preWrap,
         color: themeColors.heading,
         fontSize: variables.fontSizeXLarge,
     },
@@ -752,6 +753,38 @@ const styles = {
         height: variables.inputHeight,
     },
 
+    calendarHeader: {
+        height: 50,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingRight: 5,
+    },
+
+    calendarDayRoot: {
+        flex: 1,
+        height: 45,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    calendarDayContainer: {
+        width: 30,
+        height: 30,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 15,
+    },
+
+    calendarDayContainerSelected: {
+        backgroundColor: themeColors.buttonDefaultBG,
+    },
+
+    calendarButtonDisabled: {
+        opacity: 0.5,
+    },
+
     textInputContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -820,7 +853,7 @@ const styles = {
 
     textInputDesktop: addOutlineWidth({}, 0),
 
-    secureInputShowPasswordButton: {
+    textInputIconContainer: {
         paddingHorizontal: 11,
         justifyContent: 'center',
         margin: 1,
@@ -2813,7 +2846,6 @@ const styles = {
     },
 
     imageCropContainer: {
-        borderRadius: variables.componentBorderRadiusCard,
         overflow: 'hidden',
         alignItems: 'center',
         justifyContent: 'center',
@@ -2888,6 +2920,7 @@ const styles = {
         flexShrink: 0,
         maxWidth: variables.badgeMaxWidth,
         fontSize: variables.fontSizeSmall,
+        ...whiteSpace.pre,
         ...spacing.ph2,
     },
 
@@ -3015,7 +3048,6 @@ const styles = {
         fontSize: variables.fontSizeXXLarge,
         letterSpacing: 4,
     },
-
     footer: {
         backgroundColor: themeColors.midtone,
     },
@@ -3052,6 +3084,24 @@ const styles = {
         width: '100%',
     },
 
+    listPickerSeparator: {
+        height: 1,
+        backgroundColor: themeColors.buttonDefaultBG,
+    },
+
+    datePickerRoot: {
+        position: 'relative',
+        zIndex: 99,
+    },
+
+    datePickerPopover: {
+        position: 'absolute',
+        backgroundColor: themeColors.appBG,
+        width: '100%',
+        alignSelf: 'center',
+        top: 60,
+        zIndex: 100,
+    },
 };
 
 export default styles;
