@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -40,32 +40,36 @@ const propTypes = {
 const defaultProps = {
     ...policyDefaultProps,
 };
+
+/**
+ * @param {string} policyID
+ */
+function openEditor(policyID) {
+    Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(policyID));
+}
+
+/**
+ * @param {string} policyID
+ */
+function dismissError(policyID) {
+    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+    Policy.removeWorkspace(policyID);
+}
+
 const WorkspaceInitialPage = (props) => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
     const hasPolicyCreationError = Boolean(props.policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && props.policy.errors);
 
     /**
-     * Open Workspace Editor
-     */
-    function openEditor() {
-        Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(props.policy.id));
-    }
-
-    /**
      * Call the delete policy and hide the modal
      */
-    function confirmDeleteAndHideModal() {
+    const confirmDeleteAndHideModal = useCallback(() => {
         const policyReports = _.filter(props.reports, report => report && report.policyID === props.policy.id);
         Policy.deleteWorkspace(props.policy.id, policyReports, props.policy.name);
         setIsDeleteModalOpen(false);
         Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
-    }
-
-    function dismissError() {
-        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
-        Policy.removeWorkspace(props.policy.id);
-    }
+    }, [props.reports, props.policy]);
 
     const policy = props.policy;
     const policyName = lodashGet(props.policy, 'name', '');
@@ -153,7 +157,7 @@ const WorkspaceInitialPage = (props) => {
                     >
                         <OfflineWithFeedback
                             pendingAction={props.policy.pendingAction}
-                            onClose={dismissError}
+                            onClose={() => dismissError(props.policy.id)}
                             errors={props.policy.errors}
                             errorRowStyles={[styles.ph6, styles.pv2]}
                         >
@@ -163,7 +167,7 @@ const WorkspaceInitialPage = (props) => {
                                         <Pressable
                                             disabled={hasPolicyCreationError}
                                             style={[styles.pRelative, styles.avatarLarge]}
-                                            onPress={openEditor}
+                                            onPress={() => openEditor(props.policy.id)}
                                         >
                                             <Tooltip text={props.translate('workspace.common.settings')}>
                                                 <Avatar
@@ -185,7 +189,7 @@ const WorkspaceInitialPage = (props) => {
                                                     styles.mt4,
                                                     styles.w100,
                                                 ]}
-                                                onPress={openEditor}
+                                                onPress={() => openEditor(props.policy.id)}
                                             >
                                                 <Tooltip text={props.translate('workspace.common.settings')}>
                                                     <Text
