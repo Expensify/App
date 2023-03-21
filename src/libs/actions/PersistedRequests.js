@@ -19,7 +19,7 @@ function clear() {
  * @param {Array} requestsToPersist
  */
 function save(requestsToPersist) {
-    HttpUtils.cancelPendingReconnectAppRequests();
+    HttpUtils.cancelPendingReconnectAppRequest();
     persistedRequests = _.chain(persistedRequests)
         .concat(requestsToPersist)
         .partition(request => request.command !== CONST.NETWORK.RECONNECT_APP_COMMANDS)

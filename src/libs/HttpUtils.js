@@ -38,7 +38,7 @@ let reconnectAppCancellationController = new AbortController();
 function processHTTPRequest(url, method = 'get', body = null, canCancel = true, command = '') {
     let signal;
     if (canCancel) {
-        signal = command === 'ReconnectApp' ? reconnectAppCancellationController.signal : cancellationController.signal;
+        signal = command === CONST.NETWORK.RECONNECT_APP_COMMANDS ? reconnectAppCancellationController.signal : cancellationController.signal;
     }
 
     return fetch(url, {
@@ -121,7 +121,7 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
     return processHTTPRequest(url, type, formData, data.canCancel, command);
 }
 
-function cancelPendingReconnectAppRequests() {
+function cancelPendingReconnectAppRequest() {
     reconnectAppCancellationController.abort();
     reconnectAppCancellationController = new AbortController();
 }
@@ -132,11 +132,11 @@ function cancelPendingRequests() {
     // We create a new instance because once `abort()` is called any future requests using the same controller would
     // automatically get rejected: https://dom.spec.whatwg.org/#abortcontroller-api-integration
     cancellationController = new AbortController();
-    cancelPendingReconnectAppRequests();
+    cancelPendingReconnectAppRequest();
 }
 
 export default {
     xhr,
     cancelPendingRequests,
-    cancelPendingReconnectAppRequests,
+    cancelPendingReconnectAppRequest,
 };
