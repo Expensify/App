@@ -82,7 +82,6 @@ const ReportActionItemReactions = (props) => {
                         <EmojiReactionBubble
                             key={reaction.emoji}
                             count={reactionCount}
-                            emojiName={reaction.emoji}
                             emojiCodes={emojiCodes}
                             onPress={onPress}
                             reactionUsers={reactionUsers}
