@@ -56,7 +56,7 @@ const propTypes = {
     /** Route params */
     route: PropTypes.shape({
         params: PropTypes.shape({
-            /** passed via route /settings/profile/contact-methods/:contactMethod/details */
+            /** Passed via route /settings/profile/contact-methods/:contactMethod/details */
             contactMethod: PropTypes.string,
         }),
     }),
