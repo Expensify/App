@@ -108,11 +108,10 @@ class ReportActionsList extends React.Component {
      * @return {Number}
      */
     calculateInitialNumToRender() {
-        const minimumReportActionHeight = styles.chatItem.paddingTop
-      + styles.chatItem.paddingBottom
-      + variables.fontSizeNormalHeight;
+        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom
+            + variables.fontSizeNormalHeight;
         const availableHeight = this.props.windowHeight
-      - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
+            - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
         return Math.ceil(availableHeight / minimumReportActionHeight);
     }
 
@@ -139,21 +138,19 @@ class ReportActionsList extends React.Component {
      *
      * @returns {React.Component}
      */
-    renderItem({item: reportAction, index}) {
-    // When the new indicator should not be displayed we explicitly set it to null
+    renderItem({
+        item: reportAction,
+        index,
+    }) {
+        // When the new indicator should not be displayed we explicitly set it to null
         const shouldDisplayNewMarker = reportAction.reportActionID === this.props.newMarkerReportActionID;
         return (
             <ReportActionItem
                 report={this.props.report}
                 action={reportAction}
-                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(
-                    this.props.sortedReportActions,
-                    index,
-                )}
+                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, index)}
                 shouldDisplayNewMarker={shouldDisplayNewMarker}
-                isMostRecentIOUReportAction={
-          reportAction.reportActionID === this.props.mostRecentIOUReportActionID
-        }
+                isMostRecentIOUReportAction={reportAction.reportActionID === this.props.mostRecentIOUReportActionID}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
             />
@@ -161,15 +158,10 @@ class ReportActionsList extends React.Component {
     }
 
     render() {
-    // Native mobile does not render updates flatlist the changes even though component did update called.
-    // To notify there something changes we can use extraData prop to flatlist
-        const extraData = !this.props.isDrawerOpen && this.props.isSmallScreenWidth
-            ? this.props.newMarkerReportActionID
-            : undefined;
-        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(
-            this.props.personalDetails,
-            this.props.report,
-        );
+        // Native mobile does not render updates flatlist the changes even though component did update called.
+        // To notify there something changes we can use extraData prop to flatlist
+        const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.newMarkerReportActionID : undefined;
+        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
         return (
             <Animated.View
                 style={[StyleUtils.fade(this.state.fadeInAnimation), styles.flex1]}
@@ -198,9 +190,7 @@ class ReportActionsList extends React.Component {
                         if (this.props.report.isLoadingMoreReportActions) {
                             return (
                                 <ReportActionsSkeletonView
-                                    containerHeight={
-                                        CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3
-                                    }
+                                    containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3}
                                 />
                             );
                         }
@@ -209,10 +199,7 @@ class ReportActionsList extends React.Component {
                         // skeleton view above the created action in a newly generated optimistic chat or one with not
                         // that many comments.
                         const lastReportAction = _.last(this.props.sortedReportActions) || {};
-                        if (
-                            this.props.report.isLoadingReportActions
-              && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED
-                        ) {
+                        if (this.props.report.isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
                             return (
                                 <ReportActionsSkeletonView
                                     containerHeight={this.state.skeletonViewHeight}
