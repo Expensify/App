@@ -26,12 +26,12 @@ import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
 import getCurrentUrl from '../currentUrl';
 
 // Modal Stack Navigators
-import * as ModalStackNavigators from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
 import * as Download from '../../actions/Download';
 import * as Session from '../../actions/Session';
+import RightModalStack from './RightModalStack';
 
 let currentUserEmail;
 Onyx.connect({
@@ -150,20 +150,18 @@ class AuthScreens extends React.Component {
     }
 
     render() {
-        const commonModalScreenOptions = {
+        const RightModalStackScreenOptions = {
             headerShown: false,
             gestureDirection: 'horizontal',
             animationEnabled: true,
 
-            // This option is required to make previous screen visible underneath the modal screen
-            // https://reactnavigation.org/docs/6.x/stack-navigator#transparent-modals
-            presentation: 'transparentModal',
-        };
-        const modalScreenOptions = {
-            ...commonModalScreenOptions,
             cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
             cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, false, props),
             cardOverlayEnabled: true,
+
+            // This option is required to make previous screen visible underneath the modal screen
+            // https://reactnavigation.org/docs/6.x/stack-navigator#transparent-modals
+            presentation: 'transparentModal',
 
             // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
             // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
@@ -229,99 +227,14 @@ class AuthScreens extends React.Component {
                     }}
                 />
 
-                {/* These are the various modal routes */}
                 {/* Note: Each modal must have it's own stack navigator since we want to be able to navigate to any
                 modal subscreens e.g. `/settings/profile` and this will allow us to navigate while inside the modal. We
                 are also using a custom navigator on web so even if a modal does not have any subscreens it still must
                 use a navigator */}
                 <RootStack.Screen
-                    name="Settings"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.SettingsModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="NewChat"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.NewChatModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="NewGroup"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.NewGroupModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="Search"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.SearchModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="Details"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.DetailsModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="Report_Details"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.ReportDetailsModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="Report_Settings"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.ReportSettingsModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="Participants"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="IOU_Request"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.IOURequestModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="IOU_Bill"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.IOUBillStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="EnablePayments"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.EnablePaymentsStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="IOU_Details"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.IOUDetailsModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="AddPersonalBankAccount"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.AddPersonalBankAccountModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="IOU_Send"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.IOUSendModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="Wallet_Statement"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.WalletStatementStackNavigator}
+                    name="RightModalStack"
+                    options={RightModalStackScreenOptions}
+                    component={RightModalStack}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
