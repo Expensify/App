@@ -22,7 +22,7 @@ function save(requestsToPersist) {
     HttpUtils.cancelPendingReconnectAppRequest();
     persistedRequests = _.chain(persistedRequests)
         .concat(requestsToPersist)
-        .partition(request => request.command !== CONST.NETWORK.RECONNECT_APP_COMMANDS)
+        .partition(request => request.command !== CONST.NETWORK.COMMAND.RECONNECT_APP)
         .flatten()
         .value();
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);

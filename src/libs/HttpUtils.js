@@ -38,7 +38,7 @@ let reconnectAppCancellationController = new AbortController();
 function processHTTPRequest(url, method = 'get', body = null, canCancel = true, command = '') {
     let signal;
     if (canCancel) {
-        signal = command === CONST.NETWORK.RECONNECT_APP_COMMANDS ? reconnectAppCancellationController.signal : cancellationController.signal;
+        signal = command === CONST.NETWORK.COMMAND.RECONNECT_APP ? reconnectAppCancellationController.signal : cancellationController.signal;
     }
 
     return fetch(url, {
