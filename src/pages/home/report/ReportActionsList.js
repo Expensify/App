@@ -31,7 +31,7 @@ import CONST from '../../../CONST';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
-import ActionSheetAwareScrollView from './ActionSheetAwareScrollView';
+import ActionSheetAwareScrollView from '../../../components/ActionSheetAwareScrollView';
 import getOperatingSystem from '../../../libs/getOperatingSystem';
 
 const propTypes = {
@@ -83,7 +83,6 @@ class ReportActionsList extends React.Component {
         this.keyExtractor = this.keyExtractor.bind(this);
         this.onReportShowPopover = this.onReportShowPopover.bind(this);
         this.onReportHidePopover = this.onReportHidePopover.bind(this);
-        this.keyboardSpacerRef = createRef();
 
         this.state = {
             fadeInAnimation: new Animated.Value(0),
@@ -93,22 +92,6 @@ class ReportActionsList extends React.Component {
 
     componentDidMount() {
         this.fadeIn();
-    }
-
-    onReportShowPopover(measurements, keyboardVisible) {
-        if (this.keyboardSpacerRef.current == null || getOperatingSystem() !== CONST.OS.IOS) {
-            return;
-        }
-
-        this.keyboardSpacerRef.current.setState(measurements, keyboardVisible);
-    }
-
-    onReportHidePopover() {
-        if (this.keyboardSpacerRef.current == null || getOperatingSystem() !== CONST.OS.IOS) {
-            return;
-        }
-
-        this.keyboardSpacerRef.current.reset();
     }
 
     fadeIn() {
@@ -161,8 +144,6 @@ class ReportActionsList extends React.Component {
         const shouldDisplayNewMarker = reportAction.reportActionID === this.props.newMarkerReportActionID;
         return (
             <ReportActionItem
-                onShowPopover={this.onReportShowPopover}
-                onHidePopover={this.onReportHidePopover}
                 report={this.props.report}
                 action={reportAction}
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(
@@ -204,7 +185,6 @@ class ReportActionsList extends React.Component {
                     ]}
                     renderScrollComponent={props => (
                         <ActionSheetAwareScrollView
-                            keyboardSpacerRef={this.keyboardSpacerRef}
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...props}
                         />
@@ -219,8 +199,8 @@ class ReportActionsList extends React.Component {
                             return (
                                 <ReportActionsSkeletonView
                                     containerHeight={
-                    CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3
-                  }
+                                        CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3
+                                    }
                                 />
                             );
                         }

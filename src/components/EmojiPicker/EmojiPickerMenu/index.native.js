@@ -17,7 +17,7 @@ import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import * as User from '../../../libs/actions/User';
 import CategoryShortcutBar from '../CategoryShortcutBar';
-import {popoverHeightSharedValue} from '../../../Expensify';
+import {withActionSheetAwareScrollViewContext} from '../../ActionSheetAwareScrollView';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -70,7 +70,13 @@ class EmojiPickerMenu extends Component {
     }
 
     onLayout(event) {
-        popoverHeightSharedValue.value = event.nativeEvent.layout.height;
+        const {height} = event.nativeEvent.layout;
+        this.props.transitionActionSheetState({
+            type: 'MEASURE_EMOJI_PICKER_POPOVER',
+            payload: {
+                popoverHeight: height,
+            },
+        });
     }
 
     getItemLayout(data, index) {
@@ -191,6 +197,7 @@ EmojiPickerMenu.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
+    withActionSheetAwareScrollViewContext,
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,

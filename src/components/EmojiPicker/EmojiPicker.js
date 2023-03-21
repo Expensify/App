@@ -4,6 +4,7 @@ import _ from 'underscore';
 import EmojiPickerMenu from './EmojiPickerMenu';
 import CONST from '../../CONST';
 import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
+import getOperatingSystem from '../../libs/getOperatingSystem';
 
 const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -47,7 +48,10 @@ class EmojiPicker extends React.Component {
         }
 
         // Dismiss the keyboard to provide a focus for the emoji picker to avoid selection issues.
-        Keyboard.dismiss();
+        // on iOS, the keyboard will dismiss automatically when the emoji picker is shown.
+        if (getOperatingSystem() !== CONST.OS.IOS) {
+            Keyboard.dismiss();
+        }
     }
 
     componentWillUnmount() {

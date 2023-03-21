@@ -9,6 +9,8 @@ import Tooltip from '../Tooltip';
 import Icon from '../Icon';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
+import compose from '../../libs/compose';
+import {withActionSheetAwareScrollViewContext} from '../ActionSheetAwareScrollView';
 
 const propTypes = {
     /** Flag to disable the emoji picker button */
@@ -27,6 +29,25 @@ const defaultProps = {
 
 const EmojiPickerButton = (props) => {
     let emojiPopoverAnchor = null;
+
+    const onPress = () => {
+        props.transitionActionSheetState({
+            type: 'OPEN_EMOJI_PICKER_POPOVER_STANDALONE',
+        });
+
+        const onHide = () => {
+            props.transitionActionSheetState({
+                type: 'CLOSE_EMOJI_PICKER_POPOVER_STANDALONE',
+            });
+
+            if (props.onModalHide) {
+                props.onModalHide();
+            }
+        };
+
+        EmojiPickerAction.showEmojiPicker(onHide, props.onEmojiSelected, emojiPopoverAnchor);
+    };
+
     return (
         <Tooltip containerStyles={[styles.alignSelfEnd]} text={props.translate('reportActionCompose.emoji')}>
             <Pressable
@@ -36,7 +57,7 @@ const EmojiPickerButton = (props) => {
                     StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
                 ])}
                 disabled={props.isDisabled}
-                onPress={() => EmojiPickerAction.showEmojiPicker(props.onModalHide, props.onEmojiSelected, emojiPopoverAnchor)}
+                onPress={onPress}
                 nativeID={props.nativeID}
             >
                 {({hovered, pressed}) => (
@@ -53,4 +74,7 @@ const EmojiPickerButton = (props) => {
 EmojiPickerButton.propTypes = propTypes;
 EmojiPickerButton.defaultProps = defaultProps;
 EmojiPickerButton.displayName = 'EmojiPickerButton';
-export default withLocalize(EmojiPickerButton);
+export default compose(
+    withLocalize,
+    withActionSheetAwareScrollViewContext,
+)(EmojiPickerButton);

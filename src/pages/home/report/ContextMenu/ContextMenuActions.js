@@ -216,7 +216,9 @@ export default [
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) => (
             type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && !isArchivedRoom && !isChronosReport
         ),
-        onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
+        onPress: (closePopover, {
+            reportID, reportAction, draftMessage, transitionActionSheetState,
+        }) => {
             const editAction = () => Report.saveReportActionDraft(
                 reportID,
                 reportAction.reportActionID,
@@ -224,6 +226,10 @@ export default [
             );
 
             if (closePopover) {
+                transitionActionSheetState({
+                    type: 'EDIT_REPORT',
+                });
+
                 // Hide popover, then call editAction
                 hideContextMenu(false, editAction);
                 return;

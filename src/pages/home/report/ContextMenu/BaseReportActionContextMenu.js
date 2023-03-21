@@ -13,6 +13,7 @@ import ContextMenuActions, {CONTEXT_MENU_TYPES} from './ContextMenuActions';
 import compose from '../../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import {withBetas} from '../../../../components/OnyxProvider';
+import {withActionSheetAwareScrollViewContext} from '../../../../components/ActionSheetAwareScrollView';
 
 const propTypes = {
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
@@ -74,6 +75,7 @@ class BaseReportActionContextMenu extends React.Component {
                         reportID: this.props.reportID,
                         draftMessage: this.props.draftMessage,
                         selection: this.props.selection,
+                        transitionActionSheetState: this.props.transitionActionSheetState,
                         close: () => this.setState({shouldKeepOpen: false}),
                         openContextMenu: () => this.setState({shouldKeepOpen: true}),
                     };
@@ -114,5 +116,6 @@ BaseReportActionContextMenu.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withBetas(),
+    withActionSheetAwareScrollViewContext,
     withWindowDimensions,
 )(BaseReportActionContextMenu);

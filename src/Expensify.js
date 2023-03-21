@@ -5,7 +5,6 @@ import React, {PureComponent} from 'react';
 import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 
-import {useSharedValue} from 'react-native-reanimated';
 import * as ReportUtils from './libs/ReportUtils';
 import BootSplash from './libs/BootSplash';
 import * as ActiveClientManager from './libs/ActiveClientManager';
@@ -31,8 +30,6 @@ import * as ReportActionContextMenu from './pages/home/report/ContextMenu/Report
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
-// eslint-disable-next-line no-unused-vars
-import UnreadIndicatorUpdater from './libs/UnreadIndicatorUpdater';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -84,15 +81,6 @@ const defaultProps = {
     isSidebarLoaded: false,
     screenShareRequest: null,
 };
-
-// TODO this is a temporary solution to share the popover height between the ReportActionContextMenu and the other places
-export let popoverHeightSharedValue = null;
-
-function SharedValueCreator() {
-    popoverHeightSharedValue = useSharedValue(0);
-
-    return null;
-}
 
 class Expensify extends PureComponent {
     constructor(props) {
@@ -232,8 +220,6 @@ class Expensify extends PureComponent {
                     onReady={this.setNavigationReady}
                     authenticated={this.isAuthenticated()}
                 />
-
-                <SharedValueCreator />
             </DeeplinkWrapper>
         );
     }

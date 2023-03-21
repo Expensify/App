@@ -39,6 +39,7 @@ import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosO
 import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
 import * as Report from '../../../libs/actions/Report';
 import withKeyboardState from '../../../components/withKeyboardState';
+import {withActionSheetAwareScrollViewContext} from '../../../components/ActionSheetAwareScrollView';
 
 const propTypes = {
     /** Report for this action */
@@ -108,12 +109,30 @@ class ReportActionItem extends Component {
         focusTextInputAfterAnimation(this.textInput, 100);
     }
 
+    onPressOpenPicker(openPicker) {
+        this.popoverAnchor.measureInWindow((fx, fy, width, height) => {
+            this.props.transitionActionSheetState({
+                type: 'OPEN_EMOJI_PICKER_POPOVER',
+                payload: {
+                    fy,
+                    height,
+                },
+            });
+
+            openPicker(undefined, undefined, () => {
+                this.props.transitionActionSheetState({
+                    type: 'CLOSE_EMOJI_PICKER_POPOVER',
+                });
+            });
+        });
+    }
+
     checkIfContextMenuActive() {
         this.setState({isContextMenuActive: ReportActionContextMenu.isActiveReportAction(this.props.action.reportActionID)});
 
-        if (this.props.onHidePopover) {
-            this.props.onHidePopover();
-        }
+        this.props.transitionActionSheetState({
+            type: 'CLOSE_POPOVER',
+        });
     }
 
     /**
@@ -128,17 +147,13 @@ class ReportActionItem extends Component {
         }
 
         this.popoverAnchor.measureInWindow((fx, fy, width, height) => {
-            if (this.props.onShowPopover) {
-                this.props.onShowPopover(
-                    {
-                        fx,
-                        fy,
-                        width,
-                        height,
-                    },
-                    this.props.isKeyboardShown,
-                );
-            }
+            this.props.transitionActionSheetState({
+                type: 'POPOVER_OPEN',
+                payload: {
+                    fy,
+                    height,
+                },
+            });
 
             this.setState({isContextMenuActive: true});
 
@@ -159,23 +174,6 @@ class ReportActionItem extends Component {
                 ReportUtils.isArchivedRoom(this.props.report),
                 ReportUtils.chatIncludesChronos(this.props.report),
             );
-        });
-    }
-
-    onPressOpenPicker(openPicker) {
-        this.popoverAnchor.measureInWindow((fx, fy, width, height) => {
-            if (this.props.onShowPopover) {
-                this.props.onShowPopover(
-                    {
-                        fx,
-                        fy,
-                        width,
-                        height,
-                    },
-                    this.props.isKeyboardShown,
-                );
-            }
-            openPicker(undefined, undefined, this.props.onHidePopover);
         });
     }
 
@@ -352,4 +350,5 @@ export default compose(
             return lodashGet(drafts, draftKey, '');
         },
     }),
+    withActionSheetAwareScrollViewContext,
 )(ReportActionItem);
