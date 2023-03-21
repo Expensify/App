@@ -255,8 +255,8 @@ class Form extends React.Component {
                 this.state.inputValues[inputID] = defaultValue;
             }
 
-            // We won't use the draft value and set the input value to the default value if there is a saved valid value
-            if (child.props.isValidValueSaved) {
+            // We force the form to set the input value from the defaultValue props if there is a saved valid value
+            if (child.props.shouldUseDefaultValue) {
                 this.state.inputValues[inputID] = child.props.defaultValue;
             }
 

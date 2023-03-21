@@ -101,7 +101,7 @@ class BankAccountManualStep extends React.Component {
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableInputs}
                         shouldSaveDraft
-                        isValidValueSaved={shouldDisableInputs}
+                        shouldUseDefaultValue={shouldDisableInputs}
                     />
                     <TextInput
                         inputID="accountNumber"
@@ -111,7 +111,7 @@ class BankAccountManualStep extends React.Component {
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableInputs}
                         shouldSaveDraft
-                        isValidValueSaved={shouldDisableInputs}
+                        shouldUseDefaultValue={shouldDisableInputs}
                     />
                     <CheckboxWithLabel
                         style={styles.mt4}
