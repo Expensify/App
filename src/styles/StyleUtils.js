@@ -126,7 +126,7 @@ function getDefaultWorspaceAvatarColor(workspaceName) {
  * Takes safe area insets and returns padding to use for a View
  *
  * @param {Object} insets
- * @param {boolean} statusBarTranslucent
+ * @param {Boolean} statusBarTranslucent
  * @returns {Object}
  */
 function getSafeAreaPadding(insets, statusBarTranslucent) {
