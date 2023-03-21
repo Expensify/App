@@ -324,7 +324,7 @@ class WorkspaceMembersPage extends React.Component {
             || this.isKeywordMatch(member.phoneNumber, searchValue)
             || this.isKeywordMatch(member.firstName, searchValue)
             || this.isKeywordMatch(member.lastName, searchValue));
-            
+
         // eslint-disable-next-line arrow-body-style
         data = _.reject(data, (member) => {
             // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
