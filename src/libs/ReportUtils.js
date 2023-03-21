@@ -4,7 +4,6 @@ import lodashGet from 'lodash/get';
 import lodashIntersection from 'lodash/intersection';
 import Onyx from 'react-native-onyx';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import {InteractionManager} from 'react-native';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
@@ -221,6 +220,17 @@ function isChatRoom(report) {
 }
 
 /**
+ * Whether the provided report is a public room
+ * @param {Object} report
+ * @param {String} report.visibility
+ * @returns {Boolean}
+ */
+function isPublicRoom(report) {
+    const visibility = lodashGet(report, 'visibility', '');
+    return visibility === CONST.REPORT.VISIBILITY.PUBLIC || visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE;
+}
+
+/**
  * Get the policy type from a given report
  * @param {Object} report
  * @param {String} report.policyID
@@ -416,12 +426,12 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
     const reportRecipient = personalDetails[participantsWithoutExpensifyEmails[0]];
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
     const isReportParticipantValidated = lodashGet(reportRecipient, 'validated', false);
-    return !hasMultipleParticipants
+    return Boolean(!hasMultipleParticipants
         && !isChatRoom(report)
         && reportRecipient
         && reportRecipientTimezone
         && reportRecipientTimezone.selected
-        && isReportParticipantValidated;
+        && isReportParticipantValidated);
 }
 
 /**
@@ -545,6 +555,28 @@ function getFullSizeAvatar(avatarURL, login) {
         return source;
     }
     return source.replace('_128', '');
+}
+
+/**
+ * Small sized avatars end with _128.<file-type>. This adds the _128 at the end of the
+ * source URL (before the file type) if it doesn't exist there already.
+ *
+ * @param {String} avatarURL
+ * @param {String} login
+ * @returns {String|Function}
+ */
+function getSmallSizeAvatar(avatarURL, login) {
+    const source = getAvatar(avatarURL, login);
+    if (!_.isString(source)) {
+        return source;
+    }
+
+    // If image source already has _128 at the end, the given avatar URL is already what we want to use here.
+    const lastPeriodIndex = source.lastIndexOf('.');
+    if (source.substring(lastPeriodIndex - 4, lastPeriodIndex) === '_128') {
+        return source;
+    }
+    return `${source.substring(0, lastPeriodIndex)}_128${source.substring(lastPeriodIndex)}`;
 }
 
 /**
@@ -1318,15 +1350,14 @@ function getIOUTotal(report, iouReports = {}) {
 /**
  * @param {Object} report
  * @param {String} report.iouReportID
- * @param {String} currentUserLogin
  * @param {Object} iouReports
  * @returns {Boolean}
  */
-function isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports = {}) {
+function isIOUOwnedByCurrentUser(report, iouReports = {}) {
     if (report.hasOutstandingIOU) {
         const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
         if (iouReport) {
-            return iouReport.ownerEmail === currentUserLogin;
+            return iouReport.ownerEmail === currentUserEmail;
         }
     }
     return false;
@@ -1507,7 +1538,7 @@ function getCommentLength(textComment) {
  * @param {String|null} url
  * @returns {String}
  */
-function getReportIDFromDeepLink(url) {
+function getRouteFromLink(url) {
     if (!url) {
         return '';
     }
@@ -1534,27 +1565,21 @@ function getReportIDFromDeepLink(url) {
             route = route.replace('/', '');
         }
     });
+    return route;
+}
+
+/**
+ * @param {String|null} url
+ * @returns {String}
+ */
+function getReportIDFromLink(url) {
+    const route = getRouteFromLink(url);
     const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(route);
     if (isSubReportPageRoute) {
         // We allow the Sub-Report deep link routes (settings, details, etc.) to be handled by their respective component pages
         return '';
     }
     return reportID;
-}
-
-/**
- * @param {String|null} url
- */
-function openReportFromDeepLink(url) {
-    const reportID = getReportIDFromDeepLink(url);
-    if (!reportID) {
-        return;
-    }
-    InteractionManager.runAfterInteractions(() => {
-        Navigation.isReportScreenReady().then(() => {
-            Navigation.navigate(ROUTES.getReportRoute(reportID));
-        });
-    });
 }
 
 /**
@@ -1587,12 +1612,44 @@ function getIOUOptions(report, reportParticipants, betas) {
     ];
 }
 
+/**
+ * Allows a user to leave a policy room according to the following conditions of the visibility or chatType rNVP:
+ * `public` - Anyone can leave (because anybody can join)
+ * `public_announce` - Only non-policy members can leave (it's auto-shared with policy members)
+ * `policy_admins` - Nobody can leave (it's auto-shared with all policy admins)
+ * `policy_announce` - Nobody can leave (it's auto-shared with all policy members)
+ * `policy` - Anyone can leave (though only policy members can join)
+ * `domain` - Nobody can leave (it's auto-shared with domain members)
+ * `dm` - Nobody can leave (it's auto-shared with users)
+ * `private` - Anybody can leave (though you can only be invited to join)
+ *
+ * @param {Object} report
+ * @param {String} report.visibility
+ * @param {String} report.chatType
+ * @param {Boolean} isPolicyMember
+ * @returns {Boolean}
+ */
+function canLeaveRoom(report, isPolicyMember) {
+    if (_.isEmpty(report.visibility)) {
+        if (report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS
+            || report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE
+            || report.chatType === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL
+            || _.isEmpty(report.chatType)) { // DM chats don't have a chatType
+            return false;
+        }
+    } else if (report.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE && isPolicyMember) {
+        return false;
+    }
+    return true;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,
     canDeleteReportAction,
+    canLeaveRoom,
     sortReportsByLastRead,
     isDefaultRoom,
     isAdminRoom,
@@ -1603,6 +1660,7 @@ export {
     getPolicyName,
     getPolicyType,
     isArchivedRoom,
+    isPublicRoom,
     isConciergeChatReport,
     hasAutomatedExpensifyEmails,
     hasExpensifyGuidesEmails,
@@ -1618,7 +1676,8 @@ export {
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
     getReportName,
-    getReportIDFromDeepLink,
+    getReportIDFromLink,
+    getRouteFromLink,
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
@@ -1645,7 +1704,7 @@ export {
     hashLogin,
     getDefaultWorkspaceAvatar,
     getCommentLength,
-    openReportFromDeepLink,
     getFullSizeAvatar,
+    getSmallSizeAvatar,
     getIOUOptions,
 };

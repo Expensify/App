@@ -64,11 +64,6 @@ class WorkspaceSettingsPage extends React.Component {
         const errors = {};
         const name = values.name.trim();
 
-        // Searches for anything that looks like an html tag "< >""
-        if (name.search(/<(.|\n)*?>/g) !== -1) {
-            errors.name = this.props.translate('workspace.editor.nameHasHtml');
-        }
-
         if (!name || !name.length) {
             errors.name = this.props.translate('workspace.editor.nameIsRequiredError');
         }
@@ -121,6 +116,7 @@ class WorkspaceSettingsPage extends React.Component {
                                 isUsingDefaultAvatar={!lodashGet(this.props.policy, 'avatar', null)}
                                 onImageSelected={file => Policy.updateWorkspaceAvatar(lodashGet(this.props.policy, 'id', ''), file)}
                                 onImageRemoved={() => Policy.deleteWorkspaceAvatar(lodashGet(this.props.policy, 'id', ''))}
+                                editorMaskImage={Expensicons.ImageCropSquareMask}
                             />
                         </OfflineWithFeedback>
                         <OfflineWithFeedback

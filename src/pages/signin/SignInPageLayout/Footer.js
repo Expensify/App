@@ -13,10 +13,19 @@ import Licenses from '../Licenses';
 import Socials from '../Socials';
 import Hoverable from '../../../components/Hoverable';
 import CONST from '../../../CONST';
+import Navigation from '../../../libs/Navigation/Navigation';
+import * as Session from '../../../libs/actions/Session';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
+};
+
+const navigateHome = () => {
+    Navigation.navigate();
+
+    // We need to clear sign in data in case the user is already in the ValidateCodeForm or PasswordForm pages
+    Session.clearSignInData();
 };
 
 const columns = [
@@ -123,11 +132,11 @@ const columns = [
         translationPath: 'footer.getStarted',
         rows: [
             {
-                link: CONST.NEW_EXPENSIFY_URL,
+                onPress: navigateHome,
                 translationPath: 'footer.createAccount',
             },
             {
-                link: CONST.NEW_EXPENSIFY_URL,
+                onPress: navigateHome,
                 translationPath: 'footer.logIn',
             },
         ],
@@ -165,6 +174,7 @@ const Footer = (props) => {
                                                 <TextLink
                                                     style={[styles.footerRow, hovered ? styles.textBlue : {}]}
                                                     href={row.link}
+                                                    onPress={row.onPress}
                                                 >
                                                     {props.translate(row.translationPath)}
                                                 </TextLink>

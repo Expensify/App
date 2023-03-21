@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
@@ -129,7 +130,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
             return;
         }
 
-        if (report.hasOutstandingIOU && !report.isIOUReportOwner) {
+        if (report.hasOutstandingIOU && !ReportUtils.isIOUOwnedByCurrentUser(report, iouReports)) {
             outstandingIOUReports.push(report);
             return;
         }
@@ -249,7 +250,16 @@ function getOptionData(reportID) {
         lastMessageTextFromReport = Str.htmlDecode(report ? report.lastMessageText : '');
     }
 
-    const lastActorDetails = personalDetails[report.lastActorEmail] || null;
+    // If the last actor's details are not currently saved in Onyx Collection,
+    // then try to get that from the last report action.
+    let lastActorDetails = personalDetails[report.lastActorEmail] || null;
+    if (!lastActorDetails && lastReportActions[report.reportID] && lastReportActions[report.reportID].actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        const lastActorDisplayName = lodashGet(lastReportActions[report.reportID], 'person[0].text');
+        lastActorDetails = lastActorDisplayName ? {
+            displayName: lastActorDisplayName,
+            login: report.lastActorEmail,
+        } : null;
+    }
     let lastMessageText = hasMultipleParticipants && lastActorDetails && (lastActorDetails.login !== currentUserLogin.email)
         ? `${lastActorDetails.displayName}: `
         : '';
@@ -283,7 +293,7 @@ function getOptionData(reportID) {
         result.alternateText = lastMessageText || Str.removeSMSDomain(personalDetail.login);
     }
 
-    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, currentUserLogin, iouReports);
+    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);
     result.iouReportAmount = ReportUtils.getIOUTotal(result, iouReports);
 
     if (!hasMultipleParticipants) {
