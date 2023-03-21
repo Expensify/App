@@ -64,6 +64,10 @@ function isOverlappingAtTop(xOffset, yOffset) {
 
     const element = document.elementFromPoint(xOffset, yOffset);
 
+    if (!element) {
+        return false;
+    }
+
     const rect = element.getBoundingClientRect();
 
     // Ensure it's not itself by checking if the yOffset is greater than the top of the element
