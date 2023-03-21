@@ -23,9 +23,6 @@ const propTypes = {
     /** URL for the avatar */
     source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
 
-    /** Avatar size */
-    size: PropTypes.string,
-
     /** To show a tooltip on hover */
     tooltipText: PropTypes.string,
 
@@ -60,7 +57,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    size: 'default',
     tooltipText: '',
     policiesMemberList: {},
     policies: {},
@@ -107,10 +103,7 @@ const AvatarWithIndicator = (props) => {
     return (
         <View style={[styles.sidebarAvatar]}>
             <Tooltip text={props.tooltipText}>
-                <Avatar
-                    source={ReportUtils.getSmallSizeAvatar(props.source)}
-                    size={props.size}
-                />
+                <Avatar source={ReportUtils.getSmallSizeAvatar(props.source)} />
                 {(shouldShowErrorIndicator || shouldShowInfoIndicator) && (
                     <View style={StyleSheet.flatten(indicatorStyles)} />
                 )}
