@@ -97,7 +97,6 @@ const AddressSearch = (props) => {
     }
 
     const saveLocationDetails = (autocompleteData, details) => {
-        console.log(autocompleteData, details);
         const addressComponents = details.address_components;
         if (!addressComponents) {
             return;
