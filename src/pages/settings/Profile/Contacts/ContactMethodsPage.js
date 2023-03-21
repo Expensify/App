@@ -78,7 +78,8 @@ const ContactMethodsPage = (props) => {
         }
 
         // Temporary checks to determine if we need to show specific LoginField
-        // components. This check will be removed soon.
+        // components. This check will be removed soon by this follow up PR:
+        // https://github.com/Expensify/App/pull/15330
         // Also we still use login.partnerUserID here even though it could have been
         // deleted optimistically because if the deletion is pending, we want to show
         // the option to add a new phone or email login, so we don't want to find
