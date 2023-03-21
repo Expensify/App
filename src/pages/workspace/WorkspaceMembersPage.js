@@ -2,7 +2,7 @@ import React from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {
-    View, FlatList, TouchableOpacity,
+    View, TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -32,6 +32,7 @@ import networkPropTypes from '../../components/networkPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import FormHelpMessage from '../../components/FormHelpMessage';
 import TextInput from '../../components/TextInput';
+import KeyboardDismissingFlatList from '../../components/KeyboardDismissingFlatList';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -398,7 +399,7 @@ class WorkspaceMembersPage extends React.Component {
                                             </Text>
                                         </View>
                                     </View>
-                                    <FlatList
+                                    <KeyboardDismissingFlatList
                                         renderItem={this.renderItem}
                                         data={data}
                                         keyExtractor={item => item.login}
