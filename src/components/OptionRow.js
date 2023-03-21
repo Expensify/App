@@ -101,6 +101,11 @@ class OptionRow extends Component {
             || this.props.option.alternateText !== nextProps.option.alternateText
             || this.props.option.descriptiveText !== nextProps.option.descriptiveText
             || this.props.option.brickRoadIndicator !== nextProps.option.brickRoadIndicator
+            || this.props.option.shouldShowSubscript !== nextProps.option.shouldShowSubscript
+            || this.props.option.icons !== nextProps.option.icons
+            || this.props.option.ownerEmail !== nextProps.option.ownerEmail
+            || this.props.option.subtitle !== nextProps.option.subtitle
+            || this.props.option.pendingAction !== nextProps.option.pendingAction
             || this.props.shouldHaveOptionSeparator !== nextProps.shouldHaveOptionSeparator;
     }
 
