@@ -147,10 +147,9 @@ class PopoverReportActionContextMenu extends React.Component {
         this.instanceID = Math.random().toString(36).substr(2, 5);
 
         // Register the onHide callback only when Popover is shown to remove the race conditions when there are mutltiple popover open requests
-        this.onPopoverShow = () => {
-            onShow();
-            this.onPopoverHide = onHide;
-        };
+        this.onPopoverShow = onShow;
+        this.onPopoverHide = onHide;
+
         this.getContextMenuMeasuredLocation().then(({x, y}) => {
             this.setState({
                 cursorRelativePosition: {
