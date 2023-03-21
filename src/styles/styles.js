@@ -1204,11 +1204,6 @@ const styles = {
         alignItems: 'center',
     },
 
-    popoverMenuIconEmphasized: {
-        backgroundColor: themeColors.iconSuccessFill,
-        borderRadius: variables.componentSizeLarge / 2,
-    },
-
     popoverMenuText: {
         fontSize: variables.fontSizeNormal,
         color: themeColors.heading,
