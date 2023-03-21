@@ -332,7 +332,6 @@ class WorkspaceMembersPage extends React.Component {
         data = _.reject(data, (member) => {
             // We don't want to show guides as policy members unless the user is not a guide. Some customers get confused when they
             // see random people added to their policy, but guides having access to the policies help set them up.
-            // eslint-disable-next-line implicit-arrow-linebreak
             const isCurrentUserAssignedGuide = PolicyUtils.isAssignedGuide(this.props.currentUserPersonalDetails.login);
             return !isCurrentUserAssignedGuide && PolicyUtils.isAssignedGuide(member.login);
         });
