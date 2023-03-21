@@ -155,12 +155,6 @@ export default {
         updateApp: 'Update app',
         updatePrompt: 'A new version of this app is available.\nUpdate now or restart the app at a later time to download the latest changes.',
     },
-    deeplinkWrapper: {
-        launching: 'Launching Expensify',
-        redirectedToDesktopApp: 'We\'ve redirected you to the desktop app.',
-        youCanAlso: 'You can also',
-        openLinkInBrowser: 'open this link in your browser',
-    },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\nyou are signed in!',
         successfulSignInDescription: 'Head back to your original tab to continue.',
