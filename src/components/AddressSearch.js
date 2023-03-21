@@ -69,7 +69,8 @@ const propTypes = {
 const defaultProps = {
     inputID: undefined,
     shouldSaveDraft: false,
-    onBlur: () => {},
+    onBlur: () => {
+    },
     errorText: '',
     hint: '',
     value: undefined,
@@ -95,7 +96,8 @@ const AddressSearch = (props) => {
         query.components = 'country:us';
     }
 
-    const saveLocationDetails = (details) => {
+    const saveLocationDetails = (autocompleteData, details) => {
+        console.log(autocompleteData, details);
         const addressComponents = details.address_components;
         if (!addressComponents) {
             return;
@@ -128,11 +130,16 @@ const AddressSearch = (props) => {
             administrative_area_level_1: 'long_name',
         });
 
+        const {
+            state: stateAutoCompleteFallback = '',
+            city: cityAutocompleteFallback = '',
+        } = GooglePlacesUtils.getPlaceAutocompleteTerms(autocompleteData.terms);
+
         const values = {
             street: props.value ? props.value.trim() : '',
-            city: city || cityFallback,
+            city: city || cityFallback || cityAutocompleteFallback,
             zipCode,
-            state,
+            state: state || stateAutoCompleteFallback,
             country: '',
         };
 
@@ -191,7 +198,7 @@ const AddressSearch = (props) => {
                     suppressDefaultStyles
                     enablePoweredByContainer={false}
                     onPress={(data, details) => {
-                        saveLocationDetails(details);
+                        saveLocationDetails(data, details);
 
                         // After we select an option, we set displayListViewBorder to false to prevent UI flickering
                         setDisplayListViewBorder(false);
