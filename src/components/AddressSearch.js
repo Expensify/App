@@ -69,8 +69,7 @@ const propTypes = {
 const defaultProps = {
     inputID: undefined,
     shouldSaveDraft: false,
-    onBlur: () => {
-    },
+    onBlur: () => {},
     errorText: '',
     hint: '',
     value: undefined,
