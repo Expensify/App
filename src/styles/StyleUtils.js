@@ -7,6 +7,7 @@ import colors from './colors';
 import positioning from './utilities/positioning';
 import styles from './styles';
 import * as ReportUtils from '../libs/ReportUtils';
+import getSafeAreaPaddingTop from '../libs/getSafeAreaPaddingTop';
 
 const workspaceColorOptions = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
@@ -129,7 +130,7 @@ function getDefaultWorspaceAvatarColor(workspaceName) {
  */
 function getSafeAreaPadding(insets) {
     return {
-        paddingTop: insets.top,
+        paddingTop: getSafeAreaPaddingTop(insets),
         paddingBottom: insets.bottom * variables.safeInsertPercentage,
         paddingLeft: insets.left * variables.safeInsertPercentage,
         paddingRight: insets.right * variables.safeInsertPercentage,
