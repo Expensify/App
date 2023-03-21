@@ -139,6 +139,10 @@ class ReportScreen extends React.Component {
         toggleReportActionComposeView(true);
     }
 
+    componentWillUnmount() {
+        Navigation.resetIsReportScreenReadyPromise();
+    }
+
     /**
      * @param {String} text
      */
