@@ -124,10 +124,10 @@ class ContactMethodDetailsPage extends Component {
 
     /**
      * Toggle delete confirm modal visibility
-     * @param {Boolean} shouldOpen
+     * @param {Boolean} isOpen
      */
-    toggleDeleteModal(shouldOpen) {
-        this.setState({isDeleteModalOpen: shouldOpen});
+    toggleDeleteModal(isOpen) {
+        this.setState({isDeleteModalOpen: isOpen});
     }
 
     /**
@@ -159,7 +159,7 @@ class ContactMethodDetailsPage extends Component {
             return <FullScreenLoadingIndicator />;
         }
 
-        const isDefaultContactMethod = (this.props.session.email === loginData.partnerUserID);
+        const isDefaultContactMethod = this.props.session.email === loginData.partnerUserID;
         const hasMagicCodeBeenSent = lodashGet(this.props.loginList, [contactMethod, 'validateCodeSent'], false);
 
         return (
