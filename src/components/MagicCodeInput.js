@@ -53,7 +53,7 @@ const defaultProps = {
     shouldDelayFocus: false,
     forwardedRef: undefined,
     errorText: '',
-    submitOnComplete: false,
+    submitOnComplete: true,
     nativeID: '',
     onChange: () => {},
     onSubmit: () => {},
