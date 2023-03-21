@@ -139,7 +139,7 @@ class BaseModal extends PureComponent {
                             paddingBottom: safeAreaPaddingBottom,
                             paddingLeft: safeAreaPaddingLeft,
                             paddingRight: safeAreaPaddingRight,
-                        } = StyleUtils.getSafeAreaPadding(insets);
+                        } = StyleUtils.getSafeAreaPadding(insets, this.props.statusBarTranslucent);
 
                         const modalPaddingStyles = StyleUtils.getModalPaddingStyles({
                             safeAreaPaddingTop,
