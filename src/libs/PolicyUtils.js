@@ -80,8 +80,9 @@ function shouldShowPolicy(policy, isOffline) {
  * @param {string} email
  * @returns {boolean}
  */
-function isAssignedGuide(email) {
-    return Str.extractEmailDomain(email) === CONST.EMAIL.GUIDES_DOMAIN;
+function isExpensifyTeam(email) {
+    const emailDomain = Str.extractEmailDomain(email);
+    return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
 }
 
 export {
@@ -90,5 +91,5 @@ export {
     hasCustomUnitsError,
     getPolicyBrickRoadIndicatorStatus,
     shouldShowPolicy,
-    isAssignedGuide,
+    isExpensifyTeam,
 };

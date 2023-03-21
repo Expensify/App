@@ -330,10 +330,15 @@ class WorkspaceMembersPage extends React.Component {
             || this.isKeywordMatch(member.lastName, searchValue));
         // eslint-disable-next-line arrow-body-style
         data = _.reject(data, (member) => {
+            // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
+            if (PolicyUtils.isExpensifyTeam(lodashGet(this.props.policy, 'owner'))) {
+                return;
+            }
+
             // We don't want to show guides as policy members unless the user is not a guide. Some customers get confused when they
             // see random people added to their policy, but guides having access to the policies help set them up.
-            const isCurrentUserAssignedGuide = PolicyUtils.isAssignedGuide(this.props.currentUserPersonalDetails.login);
-            return !isCurrentUserAssignedGuide && PolicyUtils.isAssignedGuide(member.login);
+            const isCurrentUserExpensifyTeam = PolicyUtils.isExpensifyTeam(this.props.currentUserPersonalDetails.login);
+            return !isCurrentUserExpensifyTeam && PolicyUtils.isExpensifyTeam(member.login);
         });
 
         const policyID = lodashGet(this.props.route, 'params.policyID');
