@@ -127,9 +127,7 @@ class AdditionalDetailsStep extends React.Component {
 
         if (!ValidationUtils.isValidPastDate(values[INPUT_IDS.DOB])) {
             ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, this.props.translate(this.errorTranslationKeys.dob));
-        }
-
-        if (!ValidationUtils.meetsAgeRequirements(values[INPUT_IDS.DOB])) {
+        } else if (!ValidationUtils.meetsAgeRequirements(values[INPUT_IDS.DOB])) {
             ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, this.props.translate(this.errorTranslationKeys.age));
         }
 
