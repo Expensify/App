@@ -170,3 +170,10 @@ Additionally if you want to discuss an idea with the open source community witho
 #### Important note about JavaScript Style
 - Read our official [JavaScript and React style guide](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md). Please refer to our Style Guide before asking for a review.
 - We have nothing against Prettier or any other automatic style fixers, but we generally don't use them here at Expensify. Do not use Prettier. The style changes these tools enforce don't always align with the ones we recommend and require in our eslint configs and can result in unnecessary changes for our reviewers. Ignoring this advice will ultimately make your changes take longer to review as we will ask you to undo any style changes that are not related to the important changes you are making.
+
+#### For external agencies that Expensify partners with
+Follow all the above above steps and processes. When you find a job you'd like to work on:
+- Post “I’m from [agency], I’d like to work on this job”
+  - If no proposals have been submitted by other contributors, BugZero (BZ) team member or an internal engineer will assign the issue to you. 
+  - If there are existing proposals, BZ will put the issue on hold. Contributor+ (C+) will review the existing proposals.  If a contributor’s proposal is accepted then contributor will be assigned to the issue.  If not the issue will be assigned to the agency-employee. 
+- Once assigned follow the steps [here](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#propose-a-solution-for-the-job) to submit your proposal 
