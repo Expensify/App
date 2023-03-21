@@ -24,7 +24,7 @@ let drawerIsReadyPromise = new Promise((resolve) => {
 });
 
 let resolveReportScreenIsReadyPromise;
-const reportScreenIsReadyPromise = new Promise((resolve) => {
+let reportScreenIsReadyPromise = new Promise((resolve) => {
     resolveReportScreenIsReadyPromise = resolve;
 });
 
@@ -252,6 +252,12 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
+function resetIsReportScreenReadyPromise() {
+    reportScreenIsReadyPromise = new Promise((resolve) => {
+        resolveReportScreenIsReadyPromise = resolve;
+    });
+}
+
 /**
  * @returns {Promise}
  */
@@ -293,6 +299,7 @@ export default {
     isDrawerReady,
     setIsDrawerReady,
     resetDrawerIsReadyPromise,
+    resetIsReportScreenReadyPromise,
     isDrawerRoute,
     isReportScreenReady,
     setIsReportScreenIsReady,

@@ -58,6 +58,8 @@ export default {
     REPORT,
     REPORT_WITH_ID: 'r/:reportID',
     getReportRoute: reportID => `r/${reportID}`,
+    SELECT_YEAR: 'select-year',
+    getYearSelectionRoute: (minYear, maxYear, currYear, backTo) => `select-year?min=${minYear}&max=${maxYear}&year=${currYear}&backTo=${backTo}`,
 
     /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
     CONCIERGE: 'concierge',
@@ -138,7 +140,7 @@ export default {
      */
     parseReportRouteParams: (route) => {
         if (!route.startsWith(Url.addTrailingForwardSlash(REPORT))) {
-            return {};
+            return {reportID: '', isSubReportPageRoute: false};
         }
 
         const pathSegments = route.split('/');
