@@ -125,6 +125,9 @@ export default function getTooltipStyles(
             zIndex: variables.tooltipzIndex,
             width: wrapperWidth,
 
+            // We are adding this to prevent the tooltip text from being selected and copied on CTRL + A.
+            ...styles.userSelectNone,
+
             // Because it uses fixed positioning, the top-left corner of the tooltip is aligned
             // with the top-left corner of the window by default.
             // we will use yOffset to position the tooltip relative to the Wrapped Component
