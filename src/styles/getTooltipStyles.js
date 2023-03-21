@@ -58,6 +58,10 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  * @returns {Boolean}
  */
 function isOverlappingAtTop(xOffset, yOffset) {
+    if (typeof document.elementFromPoint !== 'function') {
+        return false;
+    }
+
     const element = document.elementFromPoint(xOffset, yOffset);
 
     const rect = element.getBoundingClientRect();
