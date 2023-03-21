@@ -26,14 +26,13 @@ const propTypes = {
 
     /** Login list for the user that is signed in */
     loginList: PropTypes.shape({
-        /** Value of partner name */
+        /** The partner creating the account. It depends on the source: website, mobile, integrations, ... */
         partnerName: PropTypes.string,
 
         /** Phone/Email associated with user */
         partnerUserID: PropTypes.string,
 
-        /** Date of when login was validated */
-        /** Date login was validated, used to show brickroad info status */
+        /** The date when the login was validated, used to show the brickroad status */
         validatedDate: PropTypes.string,
 
         /** Field-specific server side errors keyed by microtime */
@@ -81,7 +80,7 @@ const ContactMethodsPage = (props) => {
         // Temporary checks to determine if we need to show specific LoginField
         // components. This check will be removed soon.
         // Also we still use login.partnerUserID here even though it could have been
-        // deleted optimistically because if the deletion is pending, do want to show
+        // deleted optimistically because if the deletion is pending, we want to show
         // the option to add a new phone or email login, so we don't want to find
         // that login type in the list here.
         if (Str.isValidPhone(Str.removeSMSDomain(login.partnerUserID))) {
