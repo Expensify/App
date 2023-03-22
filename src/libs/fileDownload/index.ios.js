@@ -1,5 +1,5 @@
 import RNFetchBlob from 'react-native-blob-util';
-import {CameraRoll} from '@react-native-camera-roll/camera-roll';
+import CameraRoll from '@react-native-community/cameraroll';
 import lodashGet from 'lodash/get';
 import * as FileUtils from './FileUtils';
 import CONST from '../../CONST';
