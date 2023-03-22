@@ -213,6 +213,11 @@ class ReportActionsView extends React.Component {
             });
         }
 
+        // When the new report actions are displayed to the user because of pusher events, these actions should be marked as read
+        if (this.props.reportActions.length > prevProps.reportActions.length) {
+            Report.readNewestAction(this.props.report.reportID);
+        }
+
         // When the user navigates to the LHN the ReportActionsView doesn't unmount and just remains hidden.
         // The next time we navigate to the same report (e.g. by swiping or tapping the LHN row) we want the new marker to clear.
         const didSidebarOpen = !prevProps.isDrawerOpen && this.props.isDrawerOpen;
