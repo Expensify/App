@@ -68,7 +68,15 @@ const MenuItem = (props) => {
     ], props.style);
 
     return (
-        <Pressable
+        <PressableWithSecondaryInteraction
+            key={item.translationKey}
+            onPressIn={() => props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+            onPressOut={() => ControlSelection.unblock()}
+            onSecondaryInteraction={e => showPopover(e, item.link)}
+            ref={el => popoverAnchor = el}
+            onKeyDown={(event) => {
+                event.target.blur();
+            }}
             onPress={(e) => {
                 if (props.disabled) {
                     return;
@@ -208,7 +216,7 @@ const MenuItem = (props) => {
                     </View>
                 </>
             )}
-        </Pressable>
+        </PressableWithSecondaryInteraction>
     );
 };
 
