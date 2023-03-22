@@ -55,7 +55,7 @@ class DeeplinkWrapper extends PureComponent {
             const routeRegex = new RegExp(route.pattern);
             return routeRegex.test(window.location.pathname);
         });
-        console.log('<<componentDidMount>> matchedRoute', matchedRoute);
+
         if (matchedRoute) {
             this.openRouteInDesktopApp();
         }
