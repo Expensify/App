@@ -147,7 +147,7 @@ class DetailsPage extends React.PureComponent {
                                     )}
                                 </AttachmentModal>
                                 {details.displayName && (
-                                    <Text style={[styles.textHeadline, styles.mb6]} numberOfLines={1}>
+                                    <Text style={[styles.textHeadline, styles.mb6, styles.pre]} numberOfLines={1}>
                                         {isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
                                     </Text>
                                 )}

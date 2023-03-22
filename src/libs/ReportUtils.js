@@ -4,7 +4,6 @@ import lodashGet from 'lodash/get';
 import lodashIntersection from 'lodash/intersection';
 import Onyx from 'react-native-onyx';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import {InteractionManager} from 'react-native';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
@@ -556,6 +555,28 @@ function getFullSizeAvatar(avatarURL, login) {
         return source;
     }
     return source.replace('_128', '');
+}
+
+/**
+ * Small sized avatars end with _128.<file-type>. This adds the _128 at the end of the
+ * source URL (before the file type) if it doesn't exist there already.
+ *
+ * @param {String} avatarURL
+ * @param {String} login
+ * @returns {String|Function}
+ */
+function getSmallSizeAvatar(avatarURL, login) {
+    const source = getAvatar(avatarURL, login);
+    if (!_.isString(source)) {
+        return source;
+    }
+
+    // If image source already has _128 at the end, the given avatar URL is already what we want to use here.
+    const lastPeriodIndex = source.lastIndexOf('.');
+    if (source.substring(lastPeriodIndex - 4, lastPeriodIndex) === '_128') {
+        return source;
+    }
+    return `${source.substring(0, lastPeriodIndex)}_128${source.substring(lastPeriodIndex)}`;
 }
 
 /**
@@ -1517,7 +1538,7 @@ function getCommentLength(textComment) {
  * @param {String|null} url
  * @returns {String}
  */
-function getReportIDFromDeepLink(url) {
+function getRouteFromLink(url) {
     if (!url) {
         return '';
     }
@@ -1544,27 +1565,21 @@ function getReportIDFromDeepLink(url) {
             route = route.replace('/', '');
         }
     });
+    return route;
+}
+
+/**
+ * @param {String|null} url
+ * @returns {String}
+ */
+function getReportIDFromLink(url) {
+    const route = getRouteFromLink(url);
     const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(route);
     if (isSubReportPageRoute) {
         // We allow the Sub-Report deep link routes (settings, details, etc.) to be handled by their respective component pages
         return '';
     }
     return reportID;
-}
-
-/**
- * @param {String|null} url
- */
-function openReportFromDeepLink(url) {
-    const reportID = getReportIDFromDeepLink(url);
-    if (!reportID) {
-        return;
-    }
-    InteractionManager.runAfterInteractions(() => {
-        Navigation.isReportScreenReady().then(() => {
-            Navigation.navigate(ROUTES.getReportRoute(reportID));
-        });
-    });
 }
 
 /**
@@ -1661,7 +1676,8 @@ export {
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
     getReportName,
-    getReportIDFromDeepLink,
+    getReportIDFromLink,
+    getRouteFromLink,
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
@@ -1688,7 +1704,7 @@ export {
     hashLogin,
     getDefaultWorkspaceAvatar,
     getCommentLength,
-    openReportFromDeepLink,
     getFullSizeAvatar,
+    getSmallSizeAvatar,
     getIOUOptions,
 };
