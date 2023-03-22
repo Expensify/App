@@ -44,7 +44,6 @@ const BaseQuickEmojiReactions = props => (
             // Note: focus is handled by the Pressable component in EmojiReactionBubble
             <Tooltip text={`:${emoji.name}:`} key={emoji.name} focusable={false}>
                 <EmojiReactionBubble
-                    emojiName={emoji.name}
                     emojiCodes={[getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
                     sizeScale={EMOJI_BUBBLE_SCALE}
                     onPress={() => {
