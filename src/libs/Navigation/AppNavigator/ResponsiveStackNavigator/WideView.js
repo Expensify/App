@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
 const displayIfTrue = condition => ({display: condition ? 'flex' : 'none'});
 
 const WideView = (props) => {
-    const lastChatIndex = _.findLastIndex(props.state.routes, {name: SCREENS.HOME});
+    const lastChatIndex = _.findLastIndex(props.state.routes, {name: SCREENS.REPORT});
 
     const renderRightPanel = ({key, shouldDisplay, children}) => (
         <View
@@ -66,14 +66,14 @@ const WideView = (props) => {
     return (
         <View style={styles.container}>
             {_.map(props.state.routes, (route, i) => {
-                // TODO-NR add config for route names
-                if (route.name === 'LeftHandNav') {
+                console.log({ route })
+                if (route.name === SCREENS.HOME) {
                     return (
                         <View key={route.key} style={styles.leftPanelContainer}>
                             {props.descriptors[route.key].render()}
                         </View>
                     );
-                } if (route.name === SCREENS.HOME) {
+                } if (route.name === SCREENS.REPORT) {
                     return (
                         <View
                             key={route.key}

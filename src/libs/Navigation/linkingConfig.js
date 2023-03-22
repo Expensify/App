@@ -16,13 +16,14 @@ export default {
         screens: {
             [SCREENS.HOME]: {
                 path: ROUTES.HOME,
-                initialRouteName: SCREENS.REPORT,
-                screens: {
-                    // Report route
-                    [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
-                    [SCREENS.LOADING]: ROUTES.REPORT,
-                },
+                // initialRouteName: SCREENS.REPORT,
+                // screens: {
+                //     // Report route
+                //     [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
+                //     [SCREENS.LOADING]: ROUTES.REPORT,
+                // },
             },
+            [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
 
             // Main Routes
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,

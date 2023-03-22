@@ -195,8 +195,26 @@ class AuthScreens extends React.Component {
                         },
                     }}
                     getComponent={() => {
-                        const MainDrawerNavigator = require('./MainDrawerNavigator').default;
-                        return MainDrawerNavigator;
+                        const SidebarScreen = require('../../../pages/home/sidebar/SidebarScreen').default;
+                        return SidebarScreen;
+                    }}
+                    initialParams={{openOnAdminRoom: openOnAdminRoom === 'true'}}
+                />
+                <RootStack.Screen
+                    name={SCREENS.REPORT}
+                    options={{
+                        headerShown: false,
+                        title: 'New Expensify',
+
+                        // prevent unnecessary scrolling
+                        cardStyle: {
+                            overflow: 'hidden',
+                            height: '100%',
+                        },
+                    }}
+                    getComponent={() => {
+                        const ReportScreen = require('../../../pages/home/ReportScreen').default;
+                        return ReportScreen;
                     }}
                     initialParams={{openOnAdminRoom: openOnAdminRoom === 'true'}}
                 />

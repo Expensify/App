@@ -9,14 +9,14 @@ const withDrawerPropTypes = {
 
 export default function withDrawerState(WrappedComponent) {
     const WithDrawerState = (props) => {
-        const drawerStatus = useDrawerStatus();
+        // const drawerStatus = useDrawerStatus();
 
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 ref={props.forwardedRef}
-                isDrawerOpen={drawerStatus === 'open'}
+                isDrawerOpen={true}
             />
         );
     };
