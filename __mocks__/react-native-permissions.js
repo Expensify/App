@@ -1,5 +1,5 @@
-const {PERMISSIONS} = require('react-native-permissions/dist/commonjs/permissions');
-const {RESULTS} = require('react-native-permissions/dist/commonjs/results');
+const {PERMISSIONS} = require('react-native-permissions/src/permissions');
+const {RESULTS} = require('react-native-permissions/src/results');
 const _ = require('underscore');
 
 export {PERMISSIONS, RESULTS};
