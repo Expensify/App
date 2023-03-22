@@ -363,7 +363,6 @@ const AvatarCropModal = (props) => {
             isVisible={props.isVisible}
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             onModalHide={resetState}
-            statusBarTranslucent={false}
         >
             {props.isSmallScreenWidth && <HeaderGap />}
             <HeaderWithCloseButton
