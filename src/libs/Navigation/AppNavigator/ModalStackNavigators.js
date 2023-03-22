@@ -503,20 +503,20 @@ const ReimbursementAccountModalStackNavigator = createModalStackNavigator([{
     name: 'ReimbursementAccount_Root',
 }]);
 
-const RequestCallModalStackNavigator = createModalStackNavigator([{
-    getComponent: () => {
-        const RequestCallPage = require('../../../pages/RequestCallPage').default;
-        return RequestCallPage;
-    },
-    name: 'RequestCall_Root',
-}]);
-
 const WalletStatementStackNavigator = createModalStackNavigator([{
     getComponent: () => {
         const WalletStatementPage = require('../../../pages/wallet/WalletStatementPage').default;
         return WalletStatementPage;
     },
     name: 'WalletStatement_Root',
+}]);
+
+const YearPickerStackNavigator = createModalStackNavigator([{
+    getComponent: () => {
+        const YearPickerPage = require('../../../pages/YearPickerPage').default;
+        return YearPickerPage;
+    },
+    name: 'YearPicker_Root',
 }]);
 
 export {
@@ -535,6 +535,6 @@ export {
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
-    RequestCallModalStackNavigator,
     WalletStatementStackNavigator,
+    YearPickerStackNavigator,
 };

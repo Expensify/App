@@ -9,10 +9,8 @@ import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
-import Icon from '../../components/Icon';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
-import defaultTheme from '../../styles/themes/default';
 import CONST from '../../CONST';
 import Picker from '../../components/Picker';
 import TextInput from '../../components/TextInput';
@@ -21,6 +19,8 @@ import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import Form from '../../components/Form';
+import * as ReportUtils from '../../libs/ReportUtils';
+import Avatar from '../../components/Avatar';
 
 const propTypes = {
     ...policyPropTypes,
@@ -64,11 +64,6 @@ class WorkspaceSettingsPage extends React.Component {
         const errors = {};
         const name = values.name.trim();
 
-        // Searches for anything that looks like an html tag "< >""
-        if (name.search(/<(.|\n)*?>/g) !== -1) {
-            errors.name = this.props.translate('workspace.editor.nameHasHtml');
-        }
-
         if (!name || !name.length) {
             errors.name = this.props.translate('workspace.editor.nameIsRequiredError');
         }
@@ -77,6 +72,7 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     render() {
+        const policyName = lodashGet(this.props.policy, 'name', '');
         return (
             <WorkspacePageWithSections
                 headerText={this.props.translate('workspace.common.settings')}
@@ -103,19 +99,24 @@ class WorkspaceSettingsPage extends React.Component {
                                 source={lodashGet(this.props.policy, 'avatar')}
                                 size={CONST.AVATAR_SIZE.LARGE}
                                 DefaultAvatar={() => (
-                                    <Icon
-                                        src={Expensicons.Workspace}
-                                        height={80}
-                                        width={80}
-                                        fill={defaultTheme.iconSuccessFill}
+                                    <Avatar
+                                        containerStyles={styles.avatarLarge}
+                                        imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                        source={this.props.policy.avatar ? this.props.policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
+                                        fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                                        size={CONST.AVATAR_SIZE.LARGE}
+                                        name={policyName}
+                                        type={CONST.ICON_TYPE_WORKSPACE}
                                     />
                                 )}
+                                type={CONST.ICON_TYPE_WORKSPACE}
                                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                                 style={[styles.mb3]}
                                 anchorPosition={{top: 172, right: 18}}
                                 isUsingDefaultAvatar={!lodashGet(this.props.policy, 'avatar', null)}
                                 onImageSelected={file => Policy.updateWorkspaceAvatar(lodashGet(this.props.policy, 'id', ''), file)}
                                 onImageRemoved={() => Policy.deleteWorkspaceAvatar(lodashGet(this.props.policy, 'id', ''))}
+                                editorMaskImage={Expensicons.ImageCropSquareMask}
                             />
                         </OfflineWithFeedback>
                         <OfflineWithFeedback

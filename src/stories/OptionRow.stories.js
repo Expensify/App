@@ -30,7 +30,7 @@ export default {
         option: {
             text: 'Test Option',
             alternateText: 'Alternate text',
-            icons: [Expensicons.ActiveRoomAvatar],
+            icons: [{source: Expensicons.ActiveRoomAvatar, name: 'Test Option', type: 'avatar'}],
             login: 'test@expensify.com',
             reportID: null,
             isChatRoom: false,
