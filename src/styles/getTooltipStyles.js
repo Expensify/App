@@ -51,10 +51,11 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
 
 /**
  * Determines if there is an overlapping element at the top of a given coordinate.
+ *
  * @param {Number} xOffset - The distance between the left edge of the window
  *                           and the left edge of the wrapped component.
- * @param {Number} yOffset - The distance between the left edge of the window
- *                           and the left edge of the wrapped component.
+ * @param {Number} yOffset - The distance between the top edge of the window
+ *                           and the top edge of the wrapped component.
  * @returns {Boolean}
  */
 function isOverlappingAtTop(xOffset, yOffset) {
