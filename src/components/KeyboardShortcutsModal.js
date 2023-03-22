@@ -34,18 +34,26 @@ const defaultProps = {
 
 class KeyboardShortcutsModal extends React.Component {
     componentDidMount() {
-        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUT_MODAL;
-        this.unsubscribeShortcutModal = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
+        const openShortcutModalConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUT_MODAL;
+        this.unsubscribeShortcutModal = KeyboardShortcut.subscribe(openShortcutModalConfig.shortcutKey, () => {
             ModalActions.close();
             KeyboardShortcutsActions.showKeyboardShortcutModal();
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+        }, openShortcutModalConfig.descriptionKey, openShortcutModalConfig.modifiers, true);
+
+        const closeShortcutModalConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        this.unsubscribeEscapeModal = KeyboardShortcut.subscribe(closeShortcutModalConfig.shortcutKey, () => {
+            ModalActions.close();
+            KeyboardShortcutsActions.hideKeyboardShortcutModal();
+        }, closeShortcutModalConfig.descriptionKey, closeShortcutModalConfig.modifiers, true, true);
     }
 
     componentWillUnmount() {
-        if (!this.unsubscribeShortcutModal) {
-            return;
+        if (this.unsubscribeShortcutModal) {
+            this.unsubscribeShortcutModal();
         }
-        this.unsubscribeShortcutModal();
+        if (this.unsubscribeEscapeModal) {
+            this.unsubscribeEscapeModal();
+        }
     }
 
     /**

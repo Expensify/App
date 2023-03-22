@@ -177,7 +177,7 @@ class ReportActionCompose extends React.Component {
             }
 
             this.updateComment('');
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, true);
 
         this.setMaxLines();
         this.updateComment(this.comment);

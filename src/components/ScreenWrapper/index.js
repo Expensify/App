@@ -36,7 +36,7 @@ class ScreenWrapper extends React.Component {
             }
 
             Navigation.dismissModal();
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, true);
 
         this.unsubscribeTransitionStart = this.props.navigation.addListener('transitionStart', () => {
             Navigation.setIsNavigating(true);
