@@ -400,6 +400,8 @@ const CONST = {
         FULL_COMPOSER_MIN_LINES: 3,
     },
     MODAL: {
+        // Defined on react-native-modal (as a patch)
+        BACKDROP_NATIVE_ID: 'modalBackdrop',
         MODAL_TYPE: {
             CONFIRM: 'confirm',
             CENTERED: 'centered',

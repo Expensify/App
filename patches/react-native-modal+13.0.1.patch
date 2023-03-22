@@ -11,7 +11,7 @@ index b63bcfc..bd6419e 100644
      buildPanResponder: () => void;
      getAccDistancePerDirection: (gestureState: PanResponderGestureState) => number;
 diff --git a/node_modules/react-native-modal/dist/modal.js b/node_modules/react-native-modal/dist/modal.js
-index 80f4e75..fe028ab 100644
+index 80f4e75..b6e8e9d 100644
 --- a/node_modules/react-native-modal/dist/modal.js
 +++ b/node_modules/react-native-modal/dist/modal.js
 @@ -75,6 +75,13 @@ export class ReactNativeModal extends React.Component {
@@ -28,6 +28,15 @@ index 80f4e75..fe028ab 100644
          this.shouldPropagateSwipe = (evt, gestureState) => {
              return typeof this.props.propagateSwipe === 'function'
                  ? this.props.propagateSwipe(evt, gestureState)
+@@ -418,7 +425,7 @@ export class ReactNativeModal extends React.Component {
+             }
+             // If there's no custom backdrop, handle presses with
+             // TouchableWithoutFeedback
+-            return (React.createElement(TouchableWithoutFeedback, { onPress: onBackdropPress }, backdropWrapper));
++            return (React.createElement(TouchableWithoutFeedback, { nativeID: 'modalBackdrop', onPress: onBackdropPress }, backdropWrapper));
+         };
+         const { animationIn, animationOut } = buildAnimations(extractAnimationFromProps(props));
+         this.animationIn = animationIn;
 @@ -454,9 +461,15 @@ export class ReactNativeModal extends React.Component {
              this.open();
          }
