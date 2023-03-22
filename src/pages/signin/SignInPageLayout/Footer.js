@@ -15,7 +15,8 @@ import Hoverable from '../../../components/Hoverable';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import * as Session from '../../../libs/actions/Session';
-import GradientBG from '../../../../assets/images/home-fade-gradient.svg';
+
+// import GradientBG from '../../../../assets/images/home-fade-gradient.svg';
 
 const propTypes = {
     ...windowDimensionsPropTypes,

@@ -1006,6 +1006,14 @@ const styles = {
         flex: 1,
     },
 
+    signInPageGradient: {
+        background: 'linear-gradient(90deg, #07271F 0%, rgba(0, 46, 34, 0) 100%)',
+        height: '100%',
+        width: 540,
+        position: 'absolute',
+        top: 0,
+    },
+
     signInPageInner: {
         marginLeft: 'auto',
         marginRight: 'auto',
