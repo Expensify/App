@@ -421,10 +421,10 @@ function isValidTaxID(taxID) {
 }
 
 /**
- * Verifies if a string is a number.
+ * Checks if a value is a number.
  *
- * @param {string} value The string to check if it's numeric.
- * @returns {boolean} True if the string is numeric, false otherwise.
+ * @param {String} value
+ * @returns {Boolean}
  */
 function isNumeric(value) {
     if (typeof value !== 'string') { return false; }

@@ -63,14 +63,14 @@ class MagicCodeInput extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        this.inputNrArray = Array.from(Array(CONST.MAGIC_CODE_NUMBERS).keys());
+        this.inputNrArray = Array.from(Array(CONST.MAGIC_CODE_LENGTH).keys());
         this.inputRef = null;
 
         this.state = {
             input: '',
             focusedIndex: 0,
             editIndex: 0,
-            numbers: props.value ? this.decomposeString(props.value) : Array(CONST.MAGIC_CODE_NUMBERS).fill(''),
+            numbers: props.value ? this.decomposeString(props.value) : Array(CONST.MAGIC_CODE_LENGTH).fill(''),
         };
 
         this.onChangeText = this.onChangeText.bind(this);
@@ -114,8 +114,8 @@ class MagicCodeInput extends React.PureComponent {
     /**
      * Focuses on the input when it is pressed.
      *
-     * @param {object} event The event passed by the input.
-     * @param {number} index The index of the input.
+     * @param {Object} event
+     * @param {Number} index
      */
     onFocus(event, index) {
         event.preventDefault();
@@ -134,7 +134,7 @@ class MagicCodeInput extends React.PureComponent {
      * It handles both fast typing and only one digit at a time
      * in a specific position.
      *
-     * @param {string} value The contents of the input text.
+     * @param {String} value
      */
     onChangeText(value) {
         if (_.isUndefined(value) || _.isEmpty(value) || !ValidationUtils.isNumeric(value)) {
@@ -145,12 +145,12 @@ class MagicCodeInput extends React.PureComponent {
         this.setState((prevState) => {
             const numbers = [
                 ...prevState.numbers.slice(0, prevState.editIndex),
-                ...numbersArr.slice(0, CONST.MAGIC_CODE_NUMBERS - prevState.editIndex),
+                ...numbersArr.slice(0, CONST.MAGIC_CODE_LENGTH - prevState.editIndex),
             ];
 
             // Updates the focused input taking into consideration the last input
             // edited and the number of digits added by the user.
-            const focusedIndex = Math.min(prevState.editIndex + (numbersArr.length - 1), CONST.MAGIC_CODE_NUMBERS - 1);
+            const focusedIndex = Math.min(prevState.editIndex + (numbersArr.length - 1), CONST.MAGIC_CODE_LENGTH - 1);
 
             return {
                 numbers,
@@ -162,7 +162,7 @@ class MagicCodeInput extends React.PureComponent {
             const finalInput = this.composeToString(this.state.numbers);
             this.props.onChange(finalInput);
 
-            if (this.props.submitOnComplete && finalInput.length === CONST.MAGIC_CODE_NUMBERS) {
+            if (this.props.submitOnComplete && finalInput.length === CONST.MAGIC_CODE_LENGTH) {
                 this.props.onSubmit(finalInput);
             }
         });
@@ -174,7 +174,7 @@ class MagicCodeInput extends React.PureComponent {
      * NOTE: when using Android Emulator, this can only be tested using
      * hardware keyboard inputs.
      *
-     * @param {object} event The event passed by the key press.
+     * @param {Object} event
      */
     onKeyPress({nativeEvent: {key: keyValue}}) {
         // Handles the delete character logic if the current input is less than 2 characters,
@@ -209,13 +209,13 @@ class MagicCodeInput extends React.PureComponent {
      * Converts a given string into an array of numbers that must have the same
      * number of elements as the number of inputs.
      *
-     * @param {string} value The string to be converted into an array.
-     * @returns {array} The array of numbers.
+     * @param {String} value
+     * @returns {Array}
      */
     decomposeString(value) {
-        let arr = _.map(value.trim().split('').slice(0, CONST.MAGIC_CODE_NUMBERS), v => (ValidationUtils.isNumeric(v) ? v : ''));
-        if (arr.length < CONST.MAGIC_CODE_NUMBERS) {
-            arr = arr.concat(Array(CONST.MAGIC_CODE_NUMBERS - arr.length).fill(''));
+        let arr = _.map(value.trim().split('').slice(0, CONST.MAGIC_CODE_LENGTH), v => (ValidationUtils.isNumeric(v) ? v : ''));
+        if (arr.length < CONST.MAGIC_CODE_LENGTH) {
+            arr = arr.concat(Array(CONST.MAGIC_CODE_LENGTH - arr.length).fill(''));
         }
         return arr;
     }
@@ -249,7 +249,7 @@ class MagicCodeInput extends React.PureComponent {
                         inputMode="numeric"
                         textContentType="oneTimeCode"
                         name={this.props.name}
-                        maxLength={CONST.MAGIC_CODE_NUMBERS}
+                        maxLength={CONST.MAGIC_CODE_LENGTH}
                         value={this.state.input}
                         autoComplete={this.props.autoComplete}
                         nativeID={this.props.nativeID}
