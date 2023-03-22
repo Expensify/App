@@ -119,6 +119,7 @@ class ReportScreen extends React.Component {
     }
 
     componentDidMount() {
+        console.log('ReportScreen componentDidMount and going to fetchReportIfNeeded');
         this.fetchReportIfNeeded();
         toggleReportActionComposeView(true);
         Navigation.setIsReportScreenIsReady();
@@ -134,7 +135,7 @@ class ReportScreen extends React.Component {
         if (routeReportID === prevProps.route.params.reportID && (!onyxReportID || onyxReportID === routeReportID)) {
             return;
         }
-
+        console.log('ReportScreen componentDidUpdate going to fetchReportIfNeeded');
         this.fetchReportIfNeeded();
         toggleReportActionComposeView(true);
     }
@@ -169,10 +170,13 @@ class ReportScreen extends React.Component {
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
         // is not stored locally yet. If props.report.reportID exists, then the report has been stored locally and nothing more needs to be done.
         // If it doesn't exist, then we fetch the report from the API.
-        if (this.props.report.reportID && this.props.report.reportID === getReportID(this.props.route)) {
+        console.log('ReportScreen - fetchReportIfNeeded: ', this.props.report.reportID, reportIDFromPath);
+        if (this.props.report.reportID && this.props.report.reportID === reportIDFromPath) {
+            console.log('ReportScreen - fetchReportIfNeeded: Report already exists in Onyx');
             return;
         }
 
+        console.log('ReportScreen - fetchReportIfNeeded: openREPORT ', reportIDFromPath);
         Report.openReport(reportIDFromPath);
     }
 
@@ -185,6 +189,7 @@ class ReportScreen extends React.Component {
     }
 
     render() {
+        console.log('ReportScreen - render: ', this.props.report);
         if (!this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails)) {
             return null;
         }

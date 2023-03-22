@@ -18,6 +18,7 @@ function subscribeToPrivateUserChannelEvent(eventName, accountID, onEvent) {
      * @param {Object} pushJSON
      */
     function logPusherEvent(pushJSON) {
+        console.log('logPusherEvent', pushJSON);
         Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, pushJSON);
     }
 
@@ -29,6 +30,7 @@ function subscribeToPrivateUserChannelEvent(eventName, accountID, onEvent) {
      * @param {*} pushJSON
      */
     function onEventPush(pushJSON) {
+        console.log('onEventPush', pushJSON);
         logPusherEvent(pushJSON);
         onEvent(pushJSON);
     }

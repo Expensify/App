@@ -1299,6 +1299,7 @@ function isUnread(report) {
         return false;
     }
 
+    // IT CAN GIVE YOU A TRUE NEGATIVE
     // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
     const lastVisibleActionCreated = report.lastVisibleActionCreated || '';
     const lastReadTime = report.lastReadTime || '';
