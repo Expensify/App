@@ -67,7 +67,6 @@ const OptionRowLHN = (props) => {
         return null;
     }
 
-    let touchableRef = null;
     let popoverAnchor = null;
     const textStyle = props.isFocused
         ? styles.sidebarLinkActiveText
@@ -110,6 +109,7 @@ const OptionRowLHN = (props) => {
      * @param {Object} [event] - A press event.
      */
     const showPopover = (event) => {
+        console.log('here');
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT,
             event,
@@ -132,27 +132,21 @@ const OptionRowLHN = (props) => {
             errors={optionItem.allReportErrors}
             shouldShowErrorMessages={false}
         >
-            <PressableWithSecondaryInteraction
-                pointerEvents="auto"
-                ref={el => popoverAnchor = el}
-                onPressIn={() => props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                onPressOut={() => ControlSelection.unblock()}
-                onSecondaryInteraction={showPopover}
-                preventDefaultContentMenu
-                withoutFocusOnSecondaryInteraction
-            >
                 <Hoverable>
                     {hovered => (
-                        <TouchableOpacity
-                            ref={el => touchableRef = el}
+                        <PressableWithSecondaryInteraction
+                            pointerEvents="auto"
+                            ref={el => popoverAnchor = el}
                             onPress={(e) => {
                                 if (e) {
                                     e.preventDefault();
                                 }
 
-                                props.onSelectRow(optionItem, touchableRef);
+                                props.onSelectRow(optionItem, popoverAnchor);
                             }}
-                            activeOpacity={0.8}
+                            onSecondaryInteraction={e => showPopover(e)}
+                            preventDefaultContentMenu
+                            withoutFocusOnSecondaryInteraction
                             style={[
                                 styles.flexRow,
                                 styles.alignItemsCenter,
@@ -272,10 +266,9 @@ const OptionRowLHN = (props) => {
                                     </View>
                                 )}
                             </View>
-                        </TouchableOpacity>
+                        </PressableWithSecondaryInteraction>
                     )}
                 </Hoverable>
-            </PressableWithSecondaryInteraction>
         </OfflineWithFeedback>
     );
 };
