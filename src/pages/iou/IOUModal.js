@@ -30,6 +30,7 @@ import {withNetwork} from '../../components/OnyxProvider';
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as ReportScrollManager from '../../libs/ReportScrollManager';
+import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -420,8 +421,10 @@ class IOUModal extends Component {
     render() {
         const currentStep = this.steps[this.state.currentStepIndex];
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
+        const lockHeight = DeviceCapabilities.canUseTouchScreen() && currentStep === Steps.IOUAmount;
+
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false} lockHeight={lockHeight}>
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
                         <View style={[styles.pRelative, styles.flex1]}>
@@ -429,23 +432,23 @@ class IOUModal extends Component {
                             {didScreenTransitionEnd && (
                                 <>
                                     {currentStep === Steps.IOUAmount && (
-                                        <AnimatedStep
-                                            direction={this.getDirection()}
-                                            style={[styles.flex1, safeAreaPaddingBottomStyle]}
-                                        >
-                                            {this.renderHeader()}
-                                            <IOUAmountPage
-                                                onStepComplete={(amount) => {
-                                                    this.setState({amount});
-                                                    this.navigateToNextStep();
-                                                }}
-                                                reportID={reportID}
-                                                hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                                selectedAmount={this.state.amount}
-                                                navigation={this.props.navigation}
-                                                iouType={this.props.iouType}
-                                            />
-                                        </AnimatedStep>
+                                    <AnimatedStep
+                                        direction={this.getDirection()}
+                                        style={[styles.flex1, safeAreaPaddingBottomStyle]}
+                                    >
+                                        {this.renderHeader()}
+                                        <IOUAmountPage
+                                            onStepComplete={(amount) => {
+                                                this.setState({amount});
+                                                this.navigateToNextStep();
+                                            }}
+                                            reportID={reportID}
+                                            hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                            selectedAmount={this.state.amount}
+                                            navigation={this.props.navigation}
+                                            iouType={this.props.iouType}
+                                        />
+                                    </AnimatedStep>
                                     )}
                                     {currentStep === Steps.IOUParticipants && (
                                         <AnimatedStep

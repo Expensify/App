@@ -109,7 +109,7 @@ class ScreenWrapper extends React.Component {
                     if (this.props.includeSafeAreaPaddingBottom || this.props.network.isOffline) {
                         paddingStyle.paddingBottom = paddingBottom;
                     }
-
+                    const maxHeight = this.props.lockHeight ? null : this.props.windowHeight;
                     return (
                         <View
                             style={[
@@ -118,7 +118,7 @@ class ScreenWrapper extends React.Component {
                                 paddingStyle,
                             ]}
                         >
-                            <KeyboardAvoidingView style={[styles.w100, styles.h100, {maxHeight: this.props.windowHeight}]} behavior={this.props.keyboardAvoidingViewBehavior}>
+                            <KeyboardAvoidingView style={[styles.w100, styles.h100, {maxHeight}]} behavior={this.props.keyboardAvoidingViewBehavior}>
                                 <HeaderGap />
                                 {// If props.children is a function, call it to provide the insets to the children.
                                     _.isFunction(this.props.children)

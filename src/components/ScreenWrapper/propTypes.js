@@ -31,6 +31,9 @@ const propTypes = {
 
     /** Whether to dismiss keyboard before leaving a screen */
     shouldDismissKeyboardBeforeClose: PropTypes.bool,
+
+    /** Whether to lock the max height with the initial window height */
+    lockHeight: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -41,6 +44,7 @@ const defaultProps = {
     onEntryTransitionEnd: () => {},
     modal: {},
     keyboardAvoidingViewBehavior: 'padding',
+    lockHeight: false,
 };
 
 export {propTypes, defaultProps};
