@@ -81,8 +81,6 @@ class ReportActionsList extends React.Component {
         super(props);
         this.renderItem = this.renderItem.bind(this);
         this.keyExtractor = this.keyExtractor.bind(this);
-        this.onReportShowPopover = this.onReportShowPopover.bind(this);
-        this.onReportHidePopover = this.onReportHidePopover.bind(this);
 
         this.state = {
             fadeInAnimation: new Animated.Value(0),
