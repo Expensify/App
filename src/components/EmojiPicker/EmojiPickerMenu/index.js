@@ -166,6 +166,12 @@ class EmojiPickerMenu extends Component {
                 return;
             }
 
+            // Let the tab logic and enter logic execute the default behavior,
+            // necessary for tab cycling and pressing enter on the focused element
+            if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Shift' || keyBoardEvent.key === 'Enter') {
+                return;
+            }
+
             // We allow typing in the search box if any key is pressed apart from Arrow keys.
             if (this.searchInput && !this.searchInput.isFocused()) {
                 this.setState({selectTextOnFocus: false});
@@ -462,6 +468,8 @@ class EmojiPickerMenu extends Component {
                     this.setState({highlightedIndex: -1});
                 }}
                 emoji={emojiCode}
+                onFocus={() => this.setState({highlightedIndex: index})}
+                isFocused={index === this.state.highlightedIndex && this.state.isUsingKeyboardMovement}
                 isHighlighted={index === this.state.highlightedIndex}
                 isUsingKeyboardMovement={this.state.isUsingKeyboardMovement}
             />

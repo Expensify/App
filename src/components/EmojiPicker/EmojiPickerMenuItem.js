@@ -19,40 +19,60 @@ const propTypes = {
     /** Handles what to do when the hover is out */
     onHoverOut: PropTypes.func,
 
+    /** Handles what to do when the pressable is focused */
+    onFocus: PropTypes.func,
+
     /** Whether this menu item is currently highlighted or not */
     isHighlighted: PropTypes.bool,
+
+    /** Whether this menu item is currently focused or not */
+    isFocused: PropTypes.bool,
 
     /** Whether the emoji is highlighted by the keyboard/mouse */
     isUsingKeyboardMovement: PropTypes.bool,
 };
 
-const EmojiPickerMenuItem = props => (
-    <Pressable
-        onPress={() => props.onPress(props.emoji)}
-        onHoverIn={props.onHoverIn}
-        onHoverOut={props.onHoverOut}
-        style={({
-            pressed,
-        }) => ([
-            StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
-            props.isHighlighted && props.isUsingKeyboardMovement ? styles.emojiItemKeyboardHighlighted : {},
-            props.isHighlighted && !props.isUsingKeyboardMovement ? styles.emojiItemHighlighted : {},
-            styles.emojiItem,
-        ])}
-    >
-        <Text style={[styles.emojiText]}>
-            {props.emoji}
-        </Text>
-    </Pressable>
+const EmojiPickerMenuItem = (props) => {
+    const ref = React.createRef();
 
-);
+    React.useEffect(() => {
+        if (!props.isFocused) {
+            return;
+        }
+        ref.current.focus();
+    }, [props.isFocused]);
+
+    return (
+        <Pressable
+            onPress={() => props.onPress(props.emoji)}
+            onHoverIn={props.onHoverIn}
+            onHoverOut={props.onHoverOut}
+            onFocus={props.onFocus}
+            ref={ref}
+            style={({
+                pressed,
+            }) => ([
+                StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
+                props.isHighlighted && props.isUsingKeyboardMovement ? styles.emojiItemKeyboardHighlighted : {},
+                props.isHighlighted && !props.isUsingKeyboardMovement ? styles.emojiItemHighlighted : {},
+                styles.emojiItem,
+            ])}
+        >
+            <Text style={[styles.emojiText]}>
+                {props.emoji}
+            </Text>
+        </Pressable>
+    );
+};
 EmojiPickerMenuItem.propTypes = propTypes;
 EmojiPickerMenuItem.displayName = 'EmojiPickerMenuItem';
 EmojiPickerMenuItem.defaultProps = {
     isHighlighted: false,
+    isFocused: false,
     isUsingKeyboardMovement: false,
     onHoverIn: () => {},
     onHoverOut: () => {},
+    onFocus: () => {},
 };
 
 // Significantly speeds up re-renders of the EmojiPickerMenu's FlatList
