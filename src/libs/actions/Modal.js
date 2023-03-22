@@ -17,15 +17,16 @@ function setCloseModal(onClose) {
  * Close modal in other parts of the app
  *
  * @param {Function} [onClose]
+ * @param {Boolean} isNavigating
  */
-function close(onClose) {
+function close(onClose, isNavigating = true) {
     if (!closeModal) {
         if (onClose) { onClose(); }
         onModalClose = null;
         return;
     }
     onModalClose = onClose;
-    closeModal();
+    closeModal(isNavigating);
 }
 
 function onModalDidClose() {
