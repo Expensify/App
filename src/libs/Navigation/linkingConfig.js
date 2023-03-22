@@ -262,6 +262,11 @@ export default {
                     WalletStatement_Root: ROUTES.WALLET_STATEMENT_WITH_DATE,
                 },
             },
+            Select_Year: {
+                screens: {
+                    YearPicker_Root: ROUTES.SELECT_YEAR,
+                },
+            },
             [SCREENS.NOT_FOUND]: '*',
         },
     },

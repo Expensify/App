@@ -57,6 +57,8 @@ export default {
         here: 'here',
         date: 'Date',
         dob: 'Date of birth',
+        currentYear: 'Current year',
+        currentMonth: 'Current month',
         ssnLast4: 'Last 4 digits of SSN',
         ssnFull9: 'Full 9 digits of SSN',
         addressLine: ({lineNumber}) => `Address line ${lineNumber}`,
@@ -228,7 +230,7 @@ export default {
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
-        addReactionTooltip: 'Add Reaction',
+        addReactionTooltip: 'Add reaction',
     },
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'You missed the party in ',
@@ -622,6 +624,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,
+            hasInvalidCharacter: 'Name can only include letters and numbers.',
         },
     },
     resendValidationForm: {
@@ -635,6 +638,10 @@ export default {
     },
     newChatPage: {
         createGroup: 'Create group',
+    },
+    yearPickerPage: {
+        year: 'Year',
+        selectYear: 'Please select a year',
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',

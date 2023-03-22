@@ -56,6 +56,8 @@ export default {
         here: 'aquí',
         date: 'Fecha',
         dob: 'Fecha de Nacimiento',
+        currentYear: 'Año actual',
+        currentMonth: 'Mes actual',
         ssnLast4: 'Últimos 4 dígitos de su SSN',
         ssnFull9: 'Los 9 dígitos del SSN',
         addressLine: ({lineNumber}) => `Dirección línea ${lineNumber}`,
@@ -186,7 +188,7 @@ export default {
     hello: 'Hola',
     phoneCountryCode: '34',
     welcomeText: {
-        welcome: 'Con el Nuevo Expensify, chat y pagos son lo mismo.',
+        welcome: '¡Bienvenido al Nuevo Expensify! Por favor, introduce tu número de teléfono o email para continuar.',
         welcomeEnterMagicCode: ({login}) => `¡Siempre es genial ver una cara nueva por aquí! Por favor ingresa el código mágico enviado a ${login}`,
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
@@ -621,6 +623,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `La fecha debe ser posterior a ${dateString}.`,
+            hasInvalidCharacter: 'El nombre solo puede contener letras y números.',
         },
     },
     resendValidationForm: {
@@ -634,6 +637,10 @@ export default {
     },
     newChatPage: {
         createGroup: 'Crear grupo',
+    },
+    yearPickerPage: {
+        year: 'Año',
+        selectYear: 'Por favor seleccione un año',
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'El chat que estás buscando no se pudo encontrar.',

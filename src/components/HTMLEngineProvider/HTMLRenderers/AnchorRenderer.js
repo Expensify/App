@@ -14,7 +14,6 @@ import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
 import AnchorForCommentsOnly from '../../AnchorForCommentsOnly';
 import AnchorForAttachmentsOnly from '../../AnchorForAttachmentsOnly';
-import * as Report from '../../../libs/actions/Report';
 import * as Url from '../../../libs/Url';
 import ROUTES from '../../../ROUTES';
 
@@ -27,7 +26,7 @@ const AnchorRenderer = (props) => {
     const parentStyle = lodashGet(props.tnode, 'parent.styles.nativeTextRet', {});
     const attrHref = htmlAttribs.href || '';
     const attrPath = lodashGet(Url.getURLObject(attrHref), 'path', '').replace('/', '');
-    const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.STAGING_EXPENSIFY_URL);
+    const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.STAGING_API_ROOT);
     const internalNewExpensifyPath = (Url.hasSameExpensifyOrigin(attrHref, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(attrHref, CONST.STAGING_NEW_EXPENSIFY_URL)) && attrPath;
     const internalExpensifyPath = hasExpensifyOrigin
                                     && !attrPath.startsWith(CONFIG.EXPENSIFY.CONCIERGE_URL_PATHNAME)
@@ -48,13 +47,6 @@ const AnchorRenderer = (props) => {
         // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
         // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
         if (internalNewExpensifyPath) {
-            // If we're navigating to a report, we need to call OpenReport here since componentDidMount doesn't get called
-            // when we're deeplinking to a report from a different report (it never unmounts).
-            if (attrPath.startsWith('r/')) {
-                const reportID = attrPath.split('/')[1];
-                Report.openReport(reportID);
-            }
-
             Navigation.navigate(internalNewExpensifyPath);
             return;
         }
