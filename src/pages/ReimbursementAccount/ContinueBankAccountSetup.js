@@ -37,10 +37,12 @@ const propTypes = {
     }).isRequired,
 
     /* The workspace name */
-    policyName: PropTypes.string.isRequired,
+    policyName: PropTypes.string,
 
     ...withLocalizePropTypes,
 };
+
+const defaultProps = {policyName: ''};
 
 const ContinueBankAccountSetup = props => (
     <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -93,6 +95,7 @@ const ContinueBankAccountSetup = props => (
 );
 
 ContinueBankAccountSetup.propTypes = propTypes;
+ContinueBankAccountSetup.defaultProps = defaultProps;
 ContinueBankAccountSetup.displayName = 'ContinueBankAccountSetup';
 
 export default compose(

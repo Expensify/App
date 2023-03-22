@@ -33,10 +33,11 @@ const propTypes = {
     user: userPropTypes.isRequired,
 
     /* The workspace name */
-    policyName: PropTypes.string.isRequired,
+    policyName: PropTypes.string,
 
     ...withLocalizePropTypes,
 };
+const defaultProps = {policyName: ''};
 
 const EnableStep = (props) => {
     const isUsingExpensifyCard = props.user.isUsingExpensifyCard;
@@ -119,6 +120,7 @@ const EnableStep = (props) => {
 
 EnableStep.displayName = 'EnableStep';
 EnableStep.propTypes = propTypes;
+EnableStep.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,

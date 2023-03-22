@@ -46,13 +46,14 @@ const propTypes = {
     }),
 
     /* The workspace name */
-    policyName: PropTypes.string.isRequired,
+    policyName: PropTypes.string,
 };
 
 const defaultProps = {
     receivedRedirectURI: null,
     plaidLinkOAuthToken: '',
     user: {},
+    policyName: '',
 };
 
 const BankAccountStep = (props) => {
