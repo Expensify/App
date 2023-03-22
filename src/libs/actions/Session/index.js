@@ -246,7 +246,7 @@ function signInWithShortLivedAuthToken(email, authToken) {
  * @param {String} [twoFactorAuthCode]
  * @param {String} [preferredLocale] Indicates which language to use when the user lands in the app
  */
-function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = '') {
+function signIn(password, validateCode, twoFactorAuthCode, preferredLocale) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -289,7 +289,7 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = '')
 
     // If the user chooses a language other than the default, pass that to the API so it'll be set on their account upon sign in
     // We only do this for non-default locales because that indicates they took an explicit action to set their language
-    if (preferredLocale !== CONST.DEFAULT_LOCALE) {
+    if (preferredLocale && preferredLocale !== CONST.DEFAULT_LOCALE) {
         params.preferredLocale = preferredLocale;
     }
 
