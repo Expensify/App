@@ -15,6 +15,7 @@ import Hoverable from '../../../components/Hoverable';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import * as Session from '../../../libs/actions/Session';
+import GradientBG from '../../../../assets/images/home-fade-gradient.svg';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -154,7 +155,23 @@ const Footer = (props) => {
 
     return (
         <View style={[styles.flex1]}>
+            {/* <GradientBG
+                height="100%"
+                style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                }}
+            /> */}
             <View style={styles.footer}>
+                {/* <GradientBG
+                    height="100%"
+                    style={{
+                        position: 'absolute',
+                        left: -100,
+                        top: 0,
+                    }}
+                /> */}
                 <View style={pageFooterWrapper}>
                     <View style={footerColumns}>
                         {_.map(columns, (column, i) => (

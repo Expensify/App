@@ -17,29 +17,23 @@ const propTypes = {
 };
 
 const SignInPageHero = props => (
-    <View
-        style={[
-            StyleUtils.getHeight(props.windowHeight),
-            StyleUtils.getBackgroundColorStyle(''),
-            {minHeight: 700},
-        ]}
+    <View style={[
+        StyleUtils.getHeight(props.windowHeight < 750 ? 750 : props.windowHeight),
+        StyleUtils.getMinimumHeight(variables.signInContentMinHeight),
+        props.windowWidth <= variables.signInDesktopBreakpoint ? styles.flexColumn : styles.flexColumn,
+        StyleUtils.getBackgroundColorStyle('transparent'),
+
+        {paddingTop: 80},
+        {maxWidth: 740}, // width of text / image container
+        styles.alignSelfCenter,
+
+        // styles.pb20,
+        // props.isMediumScreenWidth ? {paddingTop: 80} : {paddingTop: 80},
+    ]}
     >
-        {/* <SignInHeroBackgroundImage
-            pointerEvents="none"
-            height="100%"
-            style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
-        /> */}
-        <View style={[
-            styles.flex1,
-            props.windowWidth <= variables.signInDesktopBreakpoint ? styles.flexColumnReverse : styles.flexRow,
-            styles.gap9,
-            StyleUtils.getBackgroundColorStyle(''),
-            styles.pb20,
-            props.isMediumScreenWidth ? {paddingVertical: 90} : {paddingTop: 140},
-        ]}
-        >
-            <SignInHeroCopy />
+        <View style={[styles.flex1, styles.alignSelfCenter, styles.gap7]}>
             <SignInHeroImage />
+            <SignInHeroCopy />
         </View>
     </View>
 );

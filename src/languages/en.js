@@ -198,8 +198,8 @@ export default {
     },
     login: {
         hero: {
-            header: 'Your one-stop shop for all of life\'s expenses',
-            body: 'Split bills, get paid, and manage spend for work or play — all in one easy chat.',
+            header: 'Split bills, request payments, and chat with friends.',
+            body: 'Welcome to the future of Expensify, your new go-to place for financial collaboration with friends and teammates alike.',
         },
     },
     reportActionCompose: {

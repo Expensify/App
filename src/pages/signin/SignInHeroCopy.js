@@ -6,6 +6,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
+import variables from '../../styles/variables';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -13,8 +14,16 @@ const propTypes = {
 };
 
 const SignInHeroCopy = props => (
-    <View style={[styles.flex1, styles.alignSelfCenter, {backgroundColor: 'transparent'}, {gap: 36}]}>
-        <Text style={[styles.loginHeroHeader, props.isMediumScreenWidth ? {fontSize: 50} : {}]}>
+    <View style={[
+        styles.flex1,
+        styles.alignSelfCenter, {backgroundColor: 'transparent'}, {gap: 28}]}
+    >
+        <Text style={[styles.loginHeroHeader,
+            props.isSmallScreenWidth ? {fontSize: variables.fontSizeSignInHeroSmall} : {},
+            props.isMediumScreenWidth ? {fontSize: variables.fontSizeSignInHeroMedium} : {},
+            props.isLargeScreenWidth ? {fontSize: variables.fontSizeSignInHeroLarge} : {},
+        ]}
+        >
             {props.translate('login.hero.header')}
         </Text>
         <Text style={[styles.loginHeroBody, props.isMediumScreenWidth ? {fontSize: 20} : {}]}>

@@ -10,7 +10,9 @@ import styles from '../../../styles/styles';
 import SignInPageHero from '../SignInPageHero';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import scrollViewContentContainerStyles from './signInPageStyles';
+
 import themeColors from '../../../styles/themes/default';
+import GradientBG from '../../../../assets/images/home-fade-gradient.svg';
 
 // import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_background-fade.png';
 import SignInHeroBackgroundImage from '../../../../assets/images/home-background--desktop.svg';
@@ -56,9 +58,19 @@ const SignInPageLayout = (props) => {
                             {props.children}
                         </SignInPageContent>
                         <ScrollView
-                            style={[styles.flex1, {backgroundColor: themeColors.midtone}]}
+                            style={[styles.flex1, {backgroundColor: 'pink'}]}
                             contentContainerStyle={[styles.flex1]}
                         >
+                            <GradientBG
+                                preserveAspectRatio="xMinYMin slice"
+                                style={{
+                                    height: '100%',
+                                    position: 'absolute',
+                                    preserveAspectRatio: 'xMinYMin slice',
+                                    left: 0,
+                                    top: containerHeight,
+                                }}
+                            />
                             <View style={[styles.flex1, styles.alignItemsCenter]}>
                                 <SignInHeroBackgroundImage
                                     pointerEvents="none"
@@ -69,7 +81,18 @@ const SignInPageLayout = (props) => {
                                         position: 'absolute',
                                     }}
                                 />
-                                <View style={[{maxWidth: 1360}, {backgroundColor: 'transparent'}, {paddingHorizontal: 40}]}>
+                                <GradientBG
+                                    height="100%"
+                                    preserveAspectRatio="xMinYMin slice"
+                                    style={{
+                                        position: 'absolute',
+                                        left: 0,
+                                        top: 0,
+                                    }}
+                                />
+                                <View style={[{maxWidth: variables.signInHeroContentMaxWidth}, {backgroundColor: 'transparent'}, props.isMediumScreenWidth ? {paddingHorizontal: 40} : {},
+                                    props.isLargeScreenWidth ? {paddingHorizontal: 100} : {}]}
+                                >
                                     <View style={[{backgroundColor: 'transparent'}]}>
                                         <SignInPageHero />
                                         <Footer />

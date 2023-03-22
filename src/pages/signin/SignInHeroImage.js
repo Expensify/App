@@ -13,9 +13,9 @@ const propTypes = {
 const SignInHeroImage = props => (
     <View style={[{backgroundColor: 'transparent'}, styles.alignSelfCenter, styles.flex1, props.isSmallScreenWidth
         ? {
-            width: props.windowHeight > variables.signInContentMinHeight ? props.windowWidth : 350,
-            height: props.windowHeight > variables.signInContentMinHeight ? props.windowWidth : 350,
-        } : styles.flex1]}
+            width: props.windowHeight > variables.signInContentMinHeight ? props.windowWidth : 387,
+            height: props.windowHeight > variables.signInContentMinHeight ? props.windowWidth : 387,
+        } : {width: 387}]}
     >
         {props.isSmallScreenWidth ? (
             <Illustrations.HandsMobile

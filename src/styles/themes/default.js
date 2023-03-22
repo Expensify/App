@@ -29,6 +29,7 @@ const darkTheme = {
     successPressed: colors.greenPressed,
     transparent: colors.transparent,
     midtone: colors.green700,
+    signInPage: colors.green800,
     dark: colors.midnight,
 
     // Additional keys

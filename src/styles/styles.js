@@ -1001,7 +1001,7 @@ const styles = {
     },
 
     signInPage: {
-        backgroundColor: themeColors.signInSidebar,
+        backgroundColor: themeColors.highlightBG,
         minHeight: '100%',
         flex: 1,
     },
@@ -3049,7 +3049,7 @@ const styles = {
         letterSpacing: 4,
     },
     footer: {
-        backgroundColor: themeColors.midtone,
+        backgroundColor: themeColors.transparent,
     },
 
     footerWrapper: {
@@ -3105,15 +3105,16 @@ const styles = {
     },
     loginHeroHeader: {
         fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
-        fontSize: variables.fontSizeSignInHero,
         color: themeColors.success,
         fontWeight: 500,
+        textAlign: 'center',
     },
 
     loginHeroBody: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSignInHeroBody,
         color: themeColors.textLight,
+        textAlign: 'center',
     },
 
 };
