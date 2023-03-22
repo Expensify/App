@@ -220,6 +220,7 @@ class WorkspaceInitialPage extends React.Component {
                                                             style={[
                                                                 styles.textHeadline,
                                                                 styles.alignSelfCenter,
+                                                                styles.pre,
                                                             ]}
                                                         >
                                                             {this.props.policy.name}
