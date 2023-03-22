@@ -134,8 +134,13 @@ class InitialSettingsPage extends React.Component {
         const policiesAvatars = _.chain(this.props.policies)
             .filter(policy => PolicyUtils.shouldShowPolicy(policy, this.props.network.isOffline))
             .sortBy(policy => policy.name)
-            .pluck('avatar')
+            .map(policy => ({
+                source: policy.avatar || ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+                name: policy.name,
+                type: CONST.ICON_TYPE_WORKSPACE,
+            }))
             .value();
+
         const policyBrickRoadIndicator = _.chain(this.props.policies)
             .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
             .find(policy => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers))
@@ -254,7 +259,7 @@ class InitialSettingsPage extends React.Component {
                             <View style={styles.w100}>
                                 <View style={styles.avatarSectionWrapper}>
                                     <Pressable style={[styles.mb3]} onPress={this.openProfileSettings}>
-                                        <Tooltip text={this.props.currentUserPersonalDetails.displayName}>
+                                        <Tooltip text={this.props.translate('common.profile')}>
                                             <OfflineWithFeedback
                                                 pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
                                             >
@@ -268,11 +273,13 @@ class InitialSettingsPage extends React.Component {
                                     </Pressable>
 
                                     <Pressable style={[styles.mt1, styles.mw100]} onPress={this.openProfileSettings}>
-                                        <Text style={[styles.textHeadline]} numberOfLines={1}>
-                                            {this.props.currentUserPersonalDetails.displayName
-                                                ? this.props.currentUserPersonalDetails.displayName
-                                                : Str.removeSMSDomain(this.props.session.email)}
-                                        </Text>
+                                        <Tooltip text={this.props.translate('common.profile')}>
+                                            <Text style={[styles.textHeadline, styles.pre]} numberOfLines={1}>
+                                                {this.props.currentUserPersonalDetails.displayName
+                                                    ? this.props.currentUserPersonalDetails.displayName
+                                                    : Str.removeSMSDomain(this.props.session.email)}
+                                            </Text>
+                                        </Tooltip>
                                     </Pressable>
                                     {this.props.currentUserPersonalDetails.displayName && (
                                         <Text

@@ -29,6 +29,7 @@ import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
+import * as ReportScrollManager from '../../libs/ReportScrollManager';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -118,7 +119,11 @@ class IOUModal extends Component {
             firstName: lodashGet(personalDetails, 'firstName', ''),
             lastName: lodashGet(personalDetails, 'lastName', ''),
             alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
-            icons: [ReportUtils.getAvatar(personalDetails.avatar, personalDetails.login)],
+            icons: [{
+                source: ReportUtils.getAvatar(personalDetails.avatar, personalDetails.login),
+                name: personalDetails.login,
+                type: CONST.ICON_TYPE_AVATAR,
+            }],
             keyForList: personalDetails.login,
             payPalMeAddress: lodashGet(personalDetails, 'payPalMeAddress', ''),
             phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
@@ -471,6 +476,7 @@ class IOUModal extends Component {
                                                     }
                                                     this.creatingIOUTransaction = true;
                                                     this.createTransaction(selectedParticipants);
+                                                    ReportScrollManager.scrollToBottom();
                                                 }}
                                                 onSendMoney={(paymentMethodType) => {
                                                     if (this.creatingIOUTransaction) {
@@ -478,6 +484,7 @@ class IOUModal extends Component {
                                                     }
                                                     this.creatingIOUTransaction = true;
                                                     this.sendMoney(paymentMethodType);
+                                                    ReportScrollManager.scrollToBottom();
                                                 }}
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
                                                 participants={_.filter(this.state.participants, email => this.props.currentUserPersonalDetails.login !== email.login)}

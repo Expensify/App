@@ -98,7 +98,7 @@ class AuthScreens extends React.Component {
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=AuthenticatePusher`,
+            authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api?command=AuthenticatePusher`,
         }).then(() => {
             User.subscribeToUserEvents();
         });
@@ -304,12 +304,6 @@ class AuthScreens extends React.Component {
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
-                    name="RequestCall"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.RequestCallModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
                     name="IOU_Send"
                     options={modalScreenOptions}
                     component={ModalStackNavigators.IOUSendModalStackNavigator}
@@ -319,6 +313,12 @@ class AuthScreens extends React.Component {
                     name="Wallet_Statement"
                     options={modalScreenOptions}
                     component={ModalStackNavigators.WalletStatementStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="Select_Year"
+                    options={modalScreenOptions}
+                    component={ModalStackNavigators.YearPickerStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen

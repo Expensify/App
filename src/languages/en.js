@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '../CONST';
 
 /* eslint-disable max-len */
@@ -49,12 +50,15 @@ export default {
         back: 'Back',
         saveAndContinue: 'Save & continue',
         settings: 'Settings',
-        termsOfService: 'Terms of service',
+        termsOfService: 'Terms of Service',
+        expensifyTermsOfService: 'Expensify Terms of Service',
         members: 'Members',
         invite: 'Invite',
         here: 'here',
         date: 'Date',
         dob: 'Date of birth',
+        currentYear: 'Current year',
+        currentMonth: 'Current month',
         ssnLast4: 'Last 4 digits of SSN',
         ssnFull9: 'Full 9 digits of SSN',
         addressLine: ({lineNumber}) => `Address line ${lineNumber}`,
@@ -90,6 +94,7 @@ export default {
             fieldRequired: 'This field is required.',
             characterLimit: ({limit}) => `Exceeds the maximum length of ${limit} characters`,
             dateInvalid: 'Please enter a valid date',
+            invalidCharacter: 'Invalid character',
         },
         comma: 'comma',
         semicolon: 'semicolon',
@@ -112,6 +117,7 @@ export default {
         enterManually: 'Enter it manually',
         message: 'Message ',
         leaveRoom: 'Leave room',
+        you: 'You',
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
         maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
@@ -162,6 +168,13 @@ export default {
         description: 'Please enter the code using the device\nwhere it was originally requested',
         or: ', or',
         signInHere: 'just sign in here',
+        expiredCodeTitle: 'Magic code expired',
+        expiredCodeDescription: 'Go back to the original device and request a new code.',
+        requestNewCode: 'You can also',
+        requestNewCodeLink: 'request a new code here',
+        successfulNewCodeRequest: 'Code requested. Please check your device.',
+        tfaRequiredTitle: 'Two factor authentication\nrequired',
+        tfaRequiredDescription: 'Please enter the two-factor authentication code\nwhere you are trying to sign in.',
     },
     iOUConfirmationList: {
         whoPaid: 'Who paid?',
@@ -224,6 +237,7 @@ export default {
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
+        addReactionTooltip: 'Add reaction',
     },
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'You missed the party in ',
@@ -458,7 +472,6 @@ export default {
         expirationDate: 'MMYY',
         cvv: 'CVV',
         billingAddress: 'Billing address',
-        expensifyTermsOfService: 'Expensify Terms of Service',
         growlMessageOnSave: 'Your debit card was successfully added',
         expensifyPassword: 'Expensify password',
         error: {
@@ -618,6 +631,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,
+            hasInvalidCharacter: 'Name can only include letters and numbers.',
         },
     },
     resendValidationForm: {
@@ -632,6 +646,10 @@ export default {
     newChatPage: {
         createGroup: 'Create group',
     },
+    yearPickerPage: {
+        year: 'Year',
+        selectYear: 'Please select a year',
+    },
     notFound: {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
         getMeOutOfHere: 'Get me out of here',
@@ -639,6 +657,7 @@ export default {
         notHere: "Hmm... it's not here",
         pageNotFound: 'That page is nowhere to be found.',
         noAccess: 'You don\'t have access to this chat',
+        goBackHome: 'Go back to Home page',
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
@@ -1009,7 +1028,6 @@ export default {
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             nameIsRequiredError: 'You need to define a name for your workspace.',
-            nameHasHtml: 'HTML tags are not allowed in workspace names.',
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
             save: 'Save',
@@ -1047,35 +1065,6 @@ export default {
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
     },
-    requestCallPage: {
-        title: 'Request a call',
-        subtitle: 'Need help, or a demo?',
-        description: 'Our team is ready to help each step of the way. Enter your name and phone number, and we\'ll give you a call back ASAP.*',
-        phoneNumberExtension: 'Extension (Optional)',
-        callMe: 'Call me',
-        growlMessageOnSave: 'Call requested.',
-        callButton: 'Call',
-        callButtonTooltip: 'Get live help from our team',
-        blockedFromConcierge: 'Due to previous interactions with our staff, a call cannot be scheduled at this time.',
-        waitTime: {
-            calculating: 'Calculating wait time...',
-            fiveHoursPlus: 'The current wait time is longer than 5 hours.',
-            hoursAndMinutes: ({minutes}) => `The current wait time is ${Math.floor(minutes / 60)} hours and ${minutes % 60} minutes. `,
-            minutes: ({minutes}) => `The current wait time is ${minutes} minutes. `,
-            weekend: 'We have limited availability on the weekends. We\'ll give you a call back as soon as we can. ',
-            guides: 'Please note that our Guides are typically available from Sunday at 5pm CT to Friday at 5pm CT.',
-        },
-        error: {
-            phoneNumberExtension: 'Please enter a valid phone extension number',
-            firstName: 'Please provide your first name',
-            lastName: 'Please provide your last name',
-        },
-    },
-    requestCallConfirmationScreen: {
-        callRequested: 'Call successfully requested!',
-        allSet: 'You’re all set. You will be receiving a call from us soon.',
-        gotIt: 'Got it',
-    },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
         headers: {
@@ -1097,9 +1086,10 @@ export default {
         visibility: 'Visibility',
         restrictedDescription: 'People in your workspace can find this room',
         privateDescription: 'People invited to this room can find it',
+        publicDescription: 'Anyone can find this room',
         createRoom: 'Create room',
         roomAlreadyExistsError: 'A room with this name already exists',
-        roomNameReservedError: 'A room on this workspace already uses this name',
+        roomNameReservedError: ({reservedName}) => `${reservedName} is a default room on all workspaces. Please choose another name.`,
         roomNameInvalidError: 'Room names can only include lowercase letters, numbers and hyphens',
         pleaseEnterRoomName: 'Please enter a room name',
         pleaseSelectWorkspace: 'Please select a workspace',
@@ -1110,6 +1100,8 @@ export default {
         visibilityOptions: {
             restricted: 'Restricted',
             private: 'Private',
+            public: 'Public',
+            public_announce: 'Public Announce',
         },
     },
     statementPage: {
@@ -1182,4 +1174,39 @@ export default {
     report: {
         genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
     },
+    chronos: {
+        oooEventSummaryFullDay: ({summary, dayCount, date}) => `${summary} for ${dayCount} ${dayCount === 1 ? 'day' : 'days'} until ${date}`,
+        oooEventSummaryPartialDay: ({summary, timePeriod, date}) => `${summary} from ${timePeriod} on ${date}`,
+    },
+    footer: {
+        features: 'Features',
+        expenseManagement: 'Expense Management',
+        spendManagement: 'Spend Management',
+        expenseReports: 'Expense Reports',
+        companyCreditCard: 'Company Credit Card',
+        receiptScanningApp: 'Receipt Scanning App',
+        billPay: 'Bill Pay',
+        invoicing: 'Invoicing',
+        CPACard: 'CPA Card',
+        payroll: 'Payroll',
+        travel: 'Travel',
+        resources: 'Resources',
+        expensifyApproved: 'ExpensifyApproved!',
+        pressKit: 'Press Kit',
+        support: 'Support',
+        expensifyHelp: 'ExpensifyHelp',
+        community: 'Community',
+        privacy: 'Privacy',
+        learnMore: 'Learn More',
+        aboutExpensify: 'About Expensify',
+        blog: 'Blog',
+        jobs: 'Jobs',
+        expensifyOrg: 'Expensify.org',
+        investorRelations: 'Investor Relations',
+        getStarted: 'Get Started',
+        createAccount: 'Create a new account',
+        logIn: 'Log in',
+    },
+    allStates: COMMON_CONST.STATES,
+    allCountries: CONST.ALL_COUNTRIES,
 };

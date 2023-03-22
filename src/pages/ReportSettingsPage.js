@@ -10,6 +10,7 @@ import styles from '../styles/styles';
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import * as Report from '../libs/actions/Report';
+import * as Policy from '../libs/actions/Policy';
 import * as ReportUtils from '../libs/ReportUtils';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -18,6 +19,7 @@ import Text from '../components/Text';
 import RoomNameInput from '../components/RoomNameInput';
 import Picker from '../components/Picker';
 import * as ValidationUtils from '../libs/ValidationUtils';
+import * as ErrorUtils from '../libs/ErrorUtils';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import reportPropTypes from './reportPropTypes';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
@@ -66,6 +68,31 @@ class ReportSettingsPage extends Component {
     }
 
     /**
+     * @param {Object|null} linkedWorkspace - the workspace the report is on, null if the user isn't a member of the workspace
+     * @returns {Boolean}
+     */
+    shouldDisableRename(linkedWorkspace) {
+        if (ReportUtils.isDefaultRoom(this.props.report) || ReportUtils.isArchivedRoom(this.props.report)) {
+            return true;
+        }
+
+        // The remaining checks only apply to public rooms
+        if (!ReportUtils.isPublicRoom(this.props.report)) {
+            return false;
+        }
+
+        // if the linked workspace is null, that means the person isn't a member of the workspace the report is in
+        // which means this has to be a public room we want to disable renaming for
+        if (!linkedWorkspace) {
+            return true;
+        }
+
+        // If there is a linked workspace, that means the user is a member of the workspace the report is in.
+        // Still, we only want policy owners and admins to be able to modify the name.
+        return !Policy.isPolicyOwner(linkedWorkspace) && linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN;
+    }
+
+    /**
      * @param {Object} values - form input values passed by the Form component
      */
     updatePolicyRoomName(values) {
@@ -90,19 +117,18 @@ class ReportSettingsPage extends Component {
             return errors;
         }
 
-        // The following validations are ordered by precedence.
-        // First priority: We error if the user doesn't enter a room name or left blank
         if (!values.newRoomName || values.newRoomName === CONST.POLICY.ROOM_PREFIX) {
-            errors.newRoomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
+            // We error if the user doesn't enter a room name or left blank
+            ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.pleaseEnterRoomName'));
+        } else if (values.newRoomName !== CONST.POLICY.ROOM_PREFIX && !ValidationUtils.isValidRoomName(values.newRoomName)) {
+            // We error if the room name has invalid characters
+            ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomNameInvalidError'));
         } else if (ValidationUtils.isReservedRoomName(values.newRoomName)) {
-            // Second priority: Certain names are reserved for default rooms and should not be used for policy rooms.
-            errors.newRoomName = this.props.translate('newRoomPage.roomNameReservedError');
+            // Certain names are reserved for default rooms and should not be used for policy rooms.
+            ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomNameReservedError', {reservedName: values.newRoomName}));
         } else if (ValidationUtils.isExistingRoomName(values.newRoomName, this.props.reports, this.props.report.policyID)) {
-            // Third priority: Show error if the room name already exists
-            errors.newRoomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
-        } else if (!ValidationUtils.isValidRoomName(values.newRoomName)) {
-            // Fourth priority: We error if the room name has invalid characters
-            errors.newRoomName = this.props.translate('newRoomPage.roomNameInvalidError');
+            // Certain names are reserved for default rooms and should not be used for policy rooms.
+            ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomAlreadyExistsError'));
         }
 
         return errors;
@@ -110,8 +136,8 @@ class ReportSettingsPage extends Component {
 
     render() {
         const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report);
-        const shouldDisableRename = ReportUtils.isDefaultRoom(this.props.report) || ReportUtils.isArchivedRoom(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, policy => policy && policy.id === this.props.report.policyID);
+        const shouldDisableRename = this.shouldDisableRename(linkedWorkspace);
 
         return (
             <ScreenWrapper>
@@ -166,7 +192,7 @@ class ReportSettingsPage extends Component {
                                                     <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
                                                         {this.props.translate('newRoomPage.roomName')}
                                                     </Text>
-                                                    <Text numberOfLines={1} style={[styles.optionAlternateText]}>
+                                                    <Text numberOfLines={1} style={[styles.optionAlternateText, styles.pre]}>
                                                         {this.props.report.reportName}
                                                     </Text>
                                                 </View>
@@ -187,7 +213,7 @@ class ReportSettingsPage extends Component {
                                 <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
                                     {this.props.translate('workspace.common.workspace')}
                                 </Text>
-                                <Text numberOfLines={1} style={[styles.optionAlternateText]}>
+                                <Text numberOfLines={1} style={[styles.optionAlternateText, styles.pre]}>
                                     {linkedWorkspace.name}
                                 </Text>
                             </View>

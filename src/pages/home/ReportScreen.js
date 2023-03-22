@@ -33,6 +33,7 @@ import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -51,7 +52,7 @@ const propTypes = {
     report: reportPropTypes,
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
@@ -124,12 +125,22 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.route.params.reportID === prevProps.route.params.reportID) {
+        // If you already have a report open and are deeplinking to a new report on native,
+        // the ReportScreen never actually unmounts and the reportID in the route also doesn't change.
+        // Therefore, we need to compare if the existing reportID is the same as the one in the route
+        // before deciding that we shouldn't call OpenReport.
+        const onyxReportID = this.props.report.reportID;
+        const routeReportID = getReportID(this.props.route);
+        if (routeReportID === prevProps.route.params.reportID && (!onyxReportID || onyxReportID === routeReportID)) {
             return;
         }
 
         this.fetchReportIfNeeded();
         toggleReportActionComposeView(true);
+    }
+
+    componentWillUnmount() {
+        Navigation.resetIsReportScreenReadyPromise();
     }
 
     /**
@@ -158,7 +169,7 @@ class ReportScreen extends React.Component {
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
         // is not stored locally yet. If props.report.reportID exists, then the report has been stored locally and nothing more needs to be done.
         // If it doesn't exist, then we fetch the report from the API.
-        if (this.props.report.reportID) {
+        if (this.props.report.reportID && this.props.report.reportID === getReportID(this.props.route)) {
             return;
         }
 
@@ -220,7 +231,7 @@ class ReportScreen extends React.Component {
                     )}
                 >
                     <FullPageNotFoundView
-                        shouldShow={!this.props.report.reportID}
+                        shouldShow={!this.props.report.reportID && !this.props.report.isLoadingReportActions}
                         subtitleKey="notFound.noAccess"
                         shouldShowCloseButton={false}
                         shouldShowBackButton={this.props.isSmallScreenWidth}
@@ -324,6 +335,7 @@ export default compose(
         reportActions: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
             canEvict: false,
+            selector: ReportActionsUtils.getSortedReportActionsForDisplay,
         },
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
