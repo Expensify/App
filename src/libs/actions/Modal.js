@@ -16,16 +16,17 @@ function setCloseModal(onClose) {
 /**
  * Close modal in other parts of the app
  *
- * @param {Function} [onClose]
+ * @param {Function} [onModalHideCallback]
  * @param {Boolean} isNavigating
  */
-function close(onClose, isNavigating = true) {
+function close(onModalHideCallback, isNavigating = true) {
     if (!closeModal) {
-        if (onClose) { onClose(); }
+        // If modal is already closed, no need to wait for modal close. So immediately call callback.
+        if (onModalHideCallback) { onModalHideCallback(); }
         onModalClose = null;
         return;
     }
-    onModalClose = onClose;
+    onModalClose = onModalHideCallback;
     closeModal(isNavigating);
 }
 
