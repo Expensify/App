@@ -873,7 +873,7 @@ function hasReportNameError(report) {
  */
 function getParsedComment(text) {
     const parser = new ExpensiMark();
-    return text.length < CONST.MAX_MARKUP_LENGTH ? parser.replace(text) : text;
+    return text.length < CONST.MAX_MARKUP_LENGTH ? parser.replace(text) : _.escape(text);
 }
 
 /**
