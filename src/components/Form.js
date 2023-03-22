@@ -271,8 +271,6 @@ class Form extends React.Component {
             return React.cloneElement(child, {
                 ref: (node) => {
                     this.inputRefs[inputID] = node;
-
-                    // Call the original ref, if any
                     const {ref} = child;
                     if (_.isFunction(ref)) {
                         ref(node);
