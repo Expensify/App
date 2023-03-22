@@ -34,6 +34,8 @@ const propTypes = {
 
     /** Disable focus trap for the element on secondary interaction  */
     withoutFocusOnSecondaryInteraction: PropTypes.bool,
+
+    activeOpacity: PropTypes.number,
 };
 
 const defaultProps = {
@@ -43,6 +45,7 @@ const defaultProps = {
     preventDefaultContentMenu: true,
     inline: false,
     withoutFocusOnSecondaryInteraction: false,
+    activeOpacity: 1,
 };
 
 export {propTypes, defaultProps};

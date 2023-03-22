@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {Pressable} from 'react-native';
+import {Pressable, TouchableOpacity} from 'react-native';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 import styles from '../../styles/styles';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
@@ -53,7 +53,7 @@ class PressableWithSecondaryInteraction extends Component {
 
         // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
         return (
-            <Pressable
+            <TouchableOpacity
                 style={this.props.inline && styles.dInline}
                 onPressIn={this.props.onPressIn}
                 onLongPress={(e) => {
@@ -65,6 +65,7 @@ class PressableWithSecondaryInteraction extends Component {
                     }
                     this.props.onSecondaryInteraction(e);
                 }}
+                activeOpacity={this.props.activeOpacity}
                 onPressOut={this.props.onPressOut}
                 onPress={this.props.onPress}
                 ref={el => this.pressableRef = el}
@@ -72,7 +73,7 @@ class PressableWithSecondaryInteraction extends Component {
                 {...defaultPressableProps}
             >
                 {this.props.children}
-            </Pressable>
+            </TouchableOpacity>
         );
     }
 }

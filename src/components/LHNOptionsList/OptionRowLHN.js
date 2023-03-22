@@ -147,6 +147,7 @@ const OptionRowLHN = (props) => {
                             onSecondaryInteraction={e => showPopover(e)}
                             preventDefaultContentMenu
                             withoutFocusOnSecondaryInteraction
+                            activeOpacity={0.8}
                             style={[
                                 styles.flexRow,
                                 styles.alignItemsCenter,
