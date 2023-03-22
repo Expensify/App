@@ -148,10 +148,6 @@ describe('actions/Report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = '1';
-        const REPORT = {
-            reportID: REPORT_ID,
-            isPinned: false,
-        };
 
         let reportIsPinned;
         Onyx.connect({
