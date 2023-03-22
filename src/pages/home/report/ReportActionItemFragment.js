@@ -140,7 +140,7 @@ const ReportActionItemFragment = (props) => {
                 <Tooltip text={props.tooltipText}>
                     <Text
                         numberOfLines={props.isSingleLine ? 1 : undefined}
-                        style={[styles.chatItemMessageHeaderSender, (props.isSingleLine ? styles.pre : styles.preWrap)]}
+                        style={[styles.chatItemMessageHeaderSender]}
                     >
                         {Str.htmlDecode(props.fragment.text)}
                     </Text>

@@ -123,7 +123,7 @@ const HeaderView = (props) => {
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={1}
-                                    textStyles={[styles.headerText, styles.pre]}
+                                    textStyles={[styles.headerText, styles.textNoWrap]}
                                     shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
                                 />
                                 {(isChatRoom || isPolicyExpenseChat) && (
@@ -132,7 +132,6 @@ const HeaderView = (props) => {
                                             styles.sidebarLinkText,
                                             styles.optionAlternateText,
                                             styles.textLabelSupporting,
-                                            styles.pre,
                                         ]}
                                         numberOfLines={1}
                                     >
