@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 // eslint-disable-next-line no-restricted-imports
@@ -23,6 +23,9 @@ const propTypes = {
     /** The family of the font to use */
     family: PropTypes.string,
 
+    /** The maximum number of lines to be displayed (longer text will be truncated) */
+    numberOfLines: PropTypes.number,
+
     /** Any additional styles to apply */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
@@ -33,6 +36,7 @@ const defaultProps = {
     family: 'EXP_NEUE',
     textAlign: 'left',
     children: null,
+    numberOfLines: null,
     style: {},
 };
 
@@ -42,9 +46,12 @@ const Text = React.forwardRef(({
     textAlign,
     children,
     family,
+    numberOfLines,
     style,
     ...props
 }, ref) => {
+    const [truncatedText, setTruncatedText] = useState(typeof children === 'string' ? children : null);
+
     // If the style prop is an array of styles, we need to mix them all together
     const mergedStyles = !_.isArray(style) ? style : _.reduce(style, (finalStyles, s) => ({
         ...finalStyles,
@@ -62,9 +69,24 @@ const Text = React.forwardRef(({
         componentStyle.lineHeight = variables.fontSizeNormalHeight;
     }
 
+    const handleTextLayout = ({nativeEvent: {lines}}) => {
+        if (!numberOfLines || lines.length <= numberOfLines) {
+            return;
+        }
+
+        let newText = '';
+        for (let index = 0; index < numberOfLines; index += 1) {
+            newText = `${newText}${lines[index].text}`;
+        }
+
+        setTruncatedText(`${newText.slice(0, -3)}...`);
+    };
+
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <RNText allowFontScaling={false} ref={ref} style={[componentStyle]} {...props}>{children}</RNText>
+        /* eslint-disable-next-line react/jsx-props-no-spreading */
+        <RNText allowFontScaling={false} ref={ref} style={[componentStyle]} onTextLayout={handleTextLayout} {...props}>
+            {typeof children === 'string' ? truncatedText : children}
+        </RNText>
     );
 });
 
