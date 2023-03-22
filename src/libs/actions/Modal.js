@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
 let closeModal;
+let onModalClose;
 
 /**
  * Allows other parts of the app to call modal close function
@@ -12,9 +13,25 @@ function setCloseModal(onClose) {
     closeModal = onClose;
 }
 
-function close() {
-    if (!closeModal) { return; }
+/**
+ * Close modal in other parts of the app
+ *
+ * @param {Function} [onClose]
+ */
+function close(onClose) {
+    if (!closeModal) {
+        if (onClose) { onClose(); }
+        onModalClose = null;
+        return;
+    }
+    onModalClose = onClose;
     closeModal();
+}
+
+function onModalDidClose() {
+    if (!onModalClose) { return; }
+    onModalClose();
+    onModalClose = null;
 }
 
 /**
@@ -39,6 +56,7 @@ function willAlertModalBecomeVisible(isVisible) {
 export {
     setCloseModal,
     close,
+    onModalDidClose,
     setModalVisibility,
     willAlertModalBecomeVisible,
 };
