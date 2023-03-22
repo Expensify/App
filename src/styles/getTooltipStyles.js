@@ -70,7 +70,7 @@ function isOverlappingAtTop(xOffset, yOffset) {
 
     const rect = element.getBoundingClientRect();
 
-    // Ensure it's not itself by checking if the yOffset is greater than the top of the element
+    // Ensure it's not itself + overlapping with another element by checking if the yOffset is greater than the top of the element
     // and less than the bottom of the element
     return yOffset > rect.top && yOffset < rect.bottom;
 }
@@ -113,7 +113,7 @@ export default function getTooltipStyles(
 ) {
     // Determine if the tooltip should display below the wrapped component.
     // If either a tooltip will try to render within GUTTER_WIDTH logical pixels of the top of the screen,
-    // Or a tooltip is overlapping at top-left with another element
+    // Or the wrapped component is overlapping at top-left with another element
     // we'll display it beneath its wrapped component rather than above it as usual.
     const shouldShowBelow = (yOffset - tooltipHeight) < GUTTER_WIDTH || isOverlappingAtTop(xOffset, yOffset);
 
