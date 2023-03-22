@@ -76,6 +76,7 @@ class ReportActionItemMessageEdit extends React.Component {
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
         this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
+        this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.saveButtonID = 'saveButton';
         this.cancelButtonID = 'cancelButton';
         this.emojiButtonID = 'emojiButton';
@@ -288,7 +289,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
                         numberOfLines={this.props.numberOfLines}
-                        onNumberOfLinesChange={numberOfLines => this.updateNumberOfLines(numberOfLines)}
+                        onNumberOfLinesChange={this.updateNumberOfLines}
                     />
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton

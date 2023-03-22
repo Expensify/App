@@ -124,7 +124,7 @@ class Composer extends React.Component {
             : `${props.value || ''}`;
 
         this.state = {
-            numberOfLines: props.numberOfLines || 1,
+            numberOfLines: props.numberOfLines,
             selection: {
                 start: initialValue.length,
                 end: initialValue.length,
@@ -344,7 +344,7 @@ class Composer extends React.Component {
             const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
             + parseInt(computedStyle.paddingTop, 10);
             const computedNumberOfLines = getNumberOfLines(this.props.maxLines, lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
-            const numberOfLines = computedNumberOfLines === 0 ? Math.max(this.props.numberOfLines, 1) : computedNumberOfLines;
+            const numberOfLines = computedNumberOfLines === 0 ? this.props.numberOfLines : computedNumberOfLines;
             updateIsFullComposerAvailable(this.props, numberOfLines);
             this.setState({
                 numberOfLines,

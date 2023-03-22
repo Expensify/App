@@ -156,6 +156,7 @@ class ReportActionCompose extends React.Component {
         this.addAttachment = this.addAttachment.bind(this);
         this.insertSelectedEmoji = this.insertSelectedEmoji.bind(this);
         this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
+        this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.comment = props.comment;
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
@@ -836,7 +837,7 @@ class ReportActionCompose extends React.Component {
                                             isComposerFullSize={this.props.isComposerFullSize}
                                             value={this.state.value}
                                             numberOfLines={this.props.numberOfLines}
-                                            onNumberOfLinesChange={numberOfLines => this.updateNumberOfLines(numberOfLines)}
+                                            onNumberOfLinesChange={this.updateNumberOfLines}
                                             onLayout={(e) => {
                                                 const composerHeight = e.nativeEvent.layout.height;
                                                 if (this.state.composerHeight === composerHeight) {
