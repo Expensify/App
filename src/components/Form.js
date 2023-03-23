@@ -106,6 +106,7 @@ class Form extends React.Component {
         };
 
         this.formRef = React.createRef(null);
+        this.formContentRef = React.createRef(null);
         this.inputRefs = {};
         this.touchedInputs = {};
 
@@ -312,7 +313,7 @@ class Form extends React.Component {
 
     render() {
         const scrollViewContent = safeAreaPaddingBottomStyle => (
-            <View>
+            <View ref={this.formContentRef}>
                 <FormSubmit style={StyleSheet.flatten([this.props.style, safeAreaPaddingBottomStyle])} onSubmit={this.submit}>
                     {this.childrenWrapperWithProps(_.isFunction(this.props.children) ? this.props.children({inputValues: this.state.inputValues}) : this.props.children)}
                     {this.props.isSubmitButtonVisible && (
@@ -330,9 +331,14 @@ class Form extends React.Component {
                                 focusInput.focus();
                             }
 
+                            const formRef = this.formRef.current;
+                            const formContentRef = this.formContentRef.current;
+
                             // We subtract 10 to scroll slightly above the input
                             if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
-                                focusInput.measureLayout(this.formRef.current, (x, y) => this.formRef.current.scrollTo({y: y - 10, animated: false}));
+                                // We measure relative to the content root, not the scroll view, as that gives
+                                // consistent results across mobile and web
+                                focusInput.measureLayout(formContentRef, (x, y) => formRef.scrollTo({y: y - 10, animated: false}));
                             }
                         }}
                         containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
