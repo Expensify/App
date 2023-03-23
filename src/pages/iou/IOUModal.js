@@ -421,6 +421,9 @@ class IOUModal extends Component {
     render() {
         const currentStep = this.steps[this.state.currentStepIndex];
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
+
+        // We want to lock the height of the screen when the IOUAmount page is visible
+        // so that the keyboard doesn't cause the screen to resize and move the NumberPad up and down
         const lockHeight = DeviceCapabilities.canUseTouchScreen() && currentStep === Steps.IOUAmount;
 
         return (
@@ -432,23 +435,23 @@ class IOUModal extends Component {
                             {didScreenTransitionEnd && (
                                 <>
                                     {currentStep === Steps.IOUAmount && (
-                                    <AnimatedStep
-                                        direction={this.getDirection()}
-                                        style={[styles.flex1, safeAreaPaddingBottomStyle]}
-                                    >
-                                        {this.renderHeader()}
-                                        <IOUAmountPage
-                                            onStepComplete={(amount) => {
-                                                this.setState({amount});
-                                                this.navigateToNextStep();
-                                            }}
-                                            reportID={reportID}
-                                            hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                            selectedAmount={this.state.amount}
-                                            navigation={this.props.navigation}
-                                            iouType={this.props.iouType}
-                                        />
-                                    </AnimatedStep>
+                                        <AnimatedStep
+                                            direction={this.getDirection()}
+                                            style={[styles.flex1, safeAreaPaddingBottomStyle]}
+                                        >
+                                            {this.renderHeader()}
+                                            <IOUAmountPage
+                                                onStepComplete={(amount) => {
+                                                    this.setState({amount});
+                                                    this.navigateToNextStep();
+                                                }}
+                                                reportID={reportID}
+                                                hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                                selectedAmount={this.state.amount}
+                                                navigation={this.props.navigation}
+                                                iouType={this.props.iouType}
+                                            />
+                                        </AnimatedStep>
                                     )}
                                     {currentStep === Steps.IOUParticipants && (
                                         <AnimatedStep

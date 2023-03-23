@@ -32,7 +32,7 @@ const propTypes = {
     /** Whether to dismiss keyboard before leaving a screen */
     shouldDismissKeyboardBeforeClose: PropTypes.bool,
 
-    /** Whether to lock the max height with the initial window height */
+    /** Whether to use the maxHeight (false) or use the 100% of the height (true) */
     lockHeight: PropTypes.bool,
 };
 

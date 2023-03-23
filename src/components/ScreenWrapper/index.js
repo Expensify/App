@@ -94,6 +94,8 @@ class ScreenWrapper extends React.Component {
     }
 
     render() {
+        const maxHeight = this.props.lockHeight ? null : this.props.windowHeight;
+
         return (
             <SafeAreaConsumer>
                 {({
@@ -109,7 +111,7 @@ class ScreenWrapper extends React.Component {
                     if (this.props.includeSafeAreaPaddingBottom || this.props.network.isOffline) {
                         paddingStyle.paddingBottom = paddingBottom;
                     }
-                    const maxHeight = this.props.lockHeight ? null : this.props.windowHeight;
+
                     return (
                         <View
                             style={[
