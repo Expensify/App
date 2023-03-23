@@ -29,6 +29,7 @@ import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import LHNSkeletonView from '../../../components/LHNSkeletonView';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -129,11 +130,11 @@ class SidebarLinks extends React.Component {
     }
 
     render() {
-        // Wait until the personalDetails are actually loaded before displaying the LHN
-        if (_.isEmpty(this.props.personalDetails)) {
-            return null;
-        }
+        const isLoading = _.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.chatReports);
+        const shouldFreeze = this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded;
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
+
+        const skeletonPlaceholder = <LHNSkeletonView shouldAnimate={!shouldFreeze} />;
 
         return (
             <View
@@ -183,25 +184,30 @@ class SidebarLinks extends React.Component {
                         </OfflineWithFeedback>
                     </TouchableOpacity>
                 </View>
-                <Freeze freeze={this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded}>
-                    <LHNOptionsList
-                        contentContainerStyles={[
-                            styles.sidebarListContainer,
-                            {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
-                        ]}
-                        data={optionListItems}
-                        focusedIndex={_.findIndex(optionListItems, (
-                            option => option.toString() === this.props.reportIDFromRoute
-                        ))}
-                        onSelectRow={this.showReportPage}
-                        shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                        optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
-                        onLayout={() => {
-                            this.props.onLayout();
-                            App.setSidebarLoaded();
-                            this.isSidebarLoaded = true;
-                        }}
-                    />
+                <Freeze
+                    freeze={shouldFreeze}
+                    placeholder={skeletonPlaceholder}
+                >
+                    {isLoading ? skeletonPlaceholder : (
+                        <LHNOptionsList
+                            contentContainerStyles={[
+                                styles.sidebarListContainer,
+                                {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
+                            ]}
+                            data={optionListItems}
+                            focusedIndex={_.findIndex(optionListItems, (
+                                option => option.toString() === this.props.reportIDFromRoute
+                            ))}
+                            onSelectRow={this.showReportPage}
+                            shouldDisableFocusOptions={this.props.isSmallScreenWidth}
+                            optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
+                            onLayout={() => {
+                                this.props.onLayout();
+                                App.setSidebarLoaded();
+                                this.isSidebarLoaded = true;
+                            }}
+                        />
+                    )}
                 </Freeze>
             </View>
         );

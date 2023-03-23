@@ -27,6 +27,13 @@ const CONST = {
         MIN_SIZE: 240,
     },
 
+    AUTO_AUTH_STATE: {
+        NOT_STARTED: 'not-started',
+        SIGNING_IN: 'signing-in',
+        JUST_SIGNED_IN: 'just-signed-in',
+        FAILED: 'failed',
+    },
+
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
 
     AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
@@ -613,6 +620,7 @@ const CONST = {
             3: 100,
         },
     },
+    LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EMAIL: {
         CONCIERGE: 'concierge@expensify.com',
