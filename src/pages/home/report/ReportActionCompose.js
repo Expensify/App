@@ -98,6 +98,15 @@ const propTypes = {
         expiresAt: PropTypes.string,
     }),
 
+    /** Stores user's preferred skin tone */
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+
+    /** User's frequently used emojis */
+    frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
+        code: PropTypes.string.isRequired,
+        keywords: PropTypes.arrayOf(PropTypes.string),
+    })),
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -112,6 +121,8 @@ const defaultProps = {
     reportActions: [],
     blockedFromConcierge: {},
     personalDetails: {},
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
+    frequentlyUsedEmojis: [],
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 

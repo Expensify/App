@@ -40,6 +40,9 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** Indicates which locale the user currently has selected */
+    preferredLocale: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -47,6 +50,7 @@ const defaultProps = {
     walletStatement: {
         isGenerating: false,
     },
+    preferredLocale: CONST.DEFAULT_LOCALE,
 };
 
 class WalletStatementPage extends React.Component {
@@ -83,7 +87,7 @@ class WalletStatementPage extends React.Component {
     }
 
     render() {
-        moment.locale(lodashGet(this.props, 'preferredLocale', 'en'));
+        moment.locale(this.props.preferredLocale);
         const year = this.yearMonth.substring(0, 4) || moment().year();
         const month = this.yearMonth.substring(4) || moment().month();
         const monthName = moment(month, 'M').format('MMMM');

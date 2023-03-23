@@ -53,7 +53,7 @@ const propTypes = {
     session: PropTypes.shape({
         /** User login */
         email: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** Route object from navigation */
     route: PropTypes.shape({
@@ -73,6 +73,9 @@ const defaultProps = {
     reimbursementAccountDraft: {},
     onfidoToken: '',
     plaidLinkToken: '',
+    session: {
+        email: null,
+    },
     route: {
         params: {
             stepToOpen: '',

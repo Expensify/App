@@ -34,6 +34,7 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import personalDetailsPropType from '../personalDetailsPropType';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -72,6 +73,12 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** The account manager report ID */
+    accountManagerReportID: PropTypes.string,
+
+    /** All of the personal details for everyone */
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
+
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
     ...viewportOffsetTopPropTypes,
@@ -87,6 +94,8 @@ const defaultProps = {
     isComposerFullSize: false,
     betas: [],
     policies: {},
+    accountManagerReportID: null,
+    personalDetails: {},
 };
 
 /**
@@ -290,7 +299,6 @@ class ReportScreen extends React.Component {
                                     <ReportActionsView
                                         reportActions={this.props.reportActions}
                                         report={this.props.report}
-                                        session={this.props.session}
                                         isComposerFullSize={this.props.isComposerFullSize}
                                         isDrawerOpen={this.props.isDrawerOpen}
                                         parentViewHeight={this.state.skeletonViewContainerHeight}
@@ -336,9 +344,6 @@ export default compose(
     withOnyx({
         isSidebarLoaded: {
             key: ONYXKEYS.IS_SIDEBAR_LOADED,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
         reportActions: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,

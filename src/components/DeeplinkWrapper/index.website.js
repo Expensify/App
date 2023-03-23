@@ -14,9 +14,10 @@ const propTypes = {
     /** Children to render. */
     children: PropTypes.node.isRequired,
 
-    /** Beta features list */
+    /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 };
+
 const defaultProps = {
     betas: [],
 };
