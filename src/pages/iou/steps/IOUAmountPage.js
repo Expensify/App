@@ -179,6 +179,8 @@ class IOUAmountPage extends React.Component {
      * @param {String} key
      */
     updateAmountNumberPad(key) {
+        this.focusTextInput();
+
         // Backspace button is pressed
         if (key === '<' || key === 'Backspace') {
             if (this.state.amount.length > 0) {
@@ -191,7 +193,6 @@ class IOUAmountPage extends React.Component {
             return;
         }
 
-        this.focusTextInput();
         this.setState((prevState) => {
             const amount = this.addLeadingZero(`${prevState.amount.substring(0, prevState.selection.start)}${key}${prevState.amount.substring(prevState.selection.end)}`);
             return this.getNewState(prevState, amount);
