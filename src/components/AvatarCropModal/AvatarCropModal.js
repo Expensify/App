@@ -50,6 +50,9 @@ const propTypes = {
     /** Modal visibility */
     isVisible: PropTypes.bool.isRequired,
 
+    /** Image crop vector mask */
+    maskImage: PropTypes.func,
+
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -60,6 +63,7 @@ const defaultProps = {
     imageType: '',
     onClose: () => {},
     onSave: () => {},
+    maskImage: undefined,
 };
 
 // This component can't be written using class since reanimated API uses hooks.
@@ -359,7 +363,6 @@ const AvatarCropModal = (props) => {
             isVisible={props.isVisible}
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             onModalHide={resetState}
-            statusBarTranslucent={false}
         >
             {props.isSmallScreenWidth && <HeaderGap />}
             <HeaderWithCloseButton
@@ -383,6 +386,7 @@ const AvatarCropModal = (props) => {
                                 translateY={translateY}
                                 translateX={translateX}
                                 rotation={rotation}
+                                maskImage={props.maskImage}
                             />
                             <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
                                 <Icon src={Expensicons.Zoom} fill={themeColors.icons} />

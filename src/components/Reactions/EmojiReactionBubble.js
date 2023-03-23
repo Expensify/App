@@ -3,15 +3,12 @@ import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import * as StyleUtils from '../../styles/StyleUtils';
+
 import {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
-import Tooltip from '../Tooltip';
-import ReactionTooltipContent from './ReactionTooltipContent';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
-    emojiName: PropTypes.string.isRequired,
-
     /**
      * The emoji codes to display in the bubble.
      */
@@ -34,11 +31,6 @@ const propTypes = {
     count: PropTypes.number,
 
     /**
-     * The account ids of the users who reacted.
-     */
-    reactionUsers: PropTypes.arrayOf(PropTypes.string),
-
-    /**
      * The default size of the reaction bubble is defined
      * by the styles in styles.js. This scale factor can be used
      * to make the bubble bigger or smaller.
@@ -57,7 +49,6 @@ const propTypes = {
 const defaultProps = {
     count: 0,
     onReactionListOpen: () => {},
-    reactionUsers: [],
     sizeScale: 1,
     hasUserReacted: false,
 
@@ -65,45 +56,37 @@ const defaultProps = {
 };
 
 const EmojiReactionBubble = props => (
-    <Tooltip
-        renderTooltipContent={() => (
-            <ReactionTooltipContent
-                emojiName={props.emojiName}
-                emojiCodes={props.emojiCodes}
-                accountIDs={props.reactionUsers}
-            />
-        )}
+    <PressableWithSecondaryInteraction
+        style={({hovered, pressed}) => [
+            styles.emojiReactionBubble,
+            StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, props.hasUserReacted, props.sizeScale),
+        ]}
+        onPress={props.onPress}
+        onLongPress={props.onReactionListOpen}
+        onSecondaryInteraction={props.onReactionListOpen}
+        ref={props.forwardRef}
+        isLongPressEnabledWithHover={props.isSmallScreenWidth}
     >
-        <PressableWithSecondaryInteraction
-            style={({hovered, pressed}) => [
-                styles.emojiReactionBubble,
-                StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, props.hasUserReacted, props.sizeScale),
-            ]}
-            onPress={props.onPress}
-            onLongPress={props.onReactionListOpen}
-            onSecondaryInteraction={props.onReactionListOpen}
-            ref={props.forwardRef}
-            isLongPressEnabledWithHover={props.isSmallScreenWidth}
+        <Text style={[
+            styles.emojiReactionText,
+            StyleUtils.getEmojiReactionTextStyle(props.sizeScale),
+        ]}
         >
+            {props.emojiCodes.join('')}
+        </Text>
+        {props.count > 0 && (
+
             <Text style={[
-                styles.emojiReactionText,
-                StyleUtils.getEmojiReactionTextStyle(props.sizeScale),
+                styles.reactionCounterText,
+                StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted, props.sizeScale),
             ]}
             >
-                {props.emojiCodes.join('')}
+                {props.count}
             </Text>
-            {props.count > 0 && (
-                <Text style={[
-                    styles.reactionCounterText,
-                    StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted, props.sizeScale),
-                ]}
-                >
-                    {props.count}
-                </Text>
-            )}
-        </PressableWithSecondaryInteraction>
-    </Tooltip>
+        )}
+    </PressableWithSecondaryInteraction>
 );
+
 EmojiReactionBubble.propTypes = propTypes;
 EmojiReactionBubble.defaultProps = defaultProps;
 EmojiReactionBubble.displayName = 'EmojiReactionBubble';

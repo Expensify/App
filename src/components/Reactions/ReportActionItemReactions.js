@@ -8,7 +8,11 @@ import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import getPreferredEmojiCode from './getPreferredEmojiCode';
+
 import * as Report from '../../libs/actions/Report';
+
+import Tooltip from '../Tooltip';
+import ReactionTooltipContent from './ReactionTooltipContent';
 
 /**
  * Given an emoji object and a list of senders it will return an
@@ -89,17 +93,27 @@ const ReportActionItemReactions = (props) => {
                 };
 
                 return (
-                    <EmojiReactionBubble
-                        ref={props.forwardedRef}
-                        key={reaction.emoji}
-                        count={reactionCount}
-                        emojiName={reaction.emoji}
-                        emojiCodes={emojiCodes}
-                        onPress={onPress}
-                        reactionUsers={reactionUsers}
-                        hasUserReacted={hasUserReacted}
-                        onReactionListOpen={onReactionListOpen}
-                    />
+                    <Tooltip
+                        renderTooltipContent={() => (
+                            <ReactionTooltipContent
+                                emojiName={reaction.emoji}
+                                emojiCodes={emojiCodes}
+                                accountIDs={reactionUsers}
+                            />
+                        )}
+                    >
+                        <EmojiReactionBubble
+                            ref={props.forwardedRef}
+                            key={reaction.emoji}
+                            count={reactionCount}
+                            emojiCodes={emojiCodes}
+                            onPress={onPress}
+                            reactionUsers={reactionUsers}
+                            hasUserReacted={hasUserReacted}
+                            onReactionListOpen={onReactionListOpen}
+                        />
+                    </Tooltip>
+
                 );
             })}
             {reactionsWithCount.length > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}

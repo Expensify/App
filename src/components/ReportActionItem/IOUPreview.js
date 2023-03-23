@@ -176,7 +176,7 @@ const IOUPreview = (props) => {
             onPressOut={() => ControlSelection.unblock()}
             onLongPress={showContextMenu}
         >
-            <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
+            <View>
                 <OfflineWithFeedback
                     pendingAction={props.pendingAction}
                     errors={props.walletTerms.errors}
@@ -185,8 +185,9 @@ const IOUPreview = (props) => {
                         Report.clearIOUError(props.chatReportID);
                     }}
                     errorRowStyles={[styles.mbn1]}
+                    needsOffscreenAlphaCompositing
                 >
-                    <View>
+                    <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                 <Text style={styles.h1}>
