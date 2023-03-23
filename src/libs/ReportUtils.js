@@ -4,7 +4,6 @@ import lodashGet from 'lodash/get';
 import lodashIntersection from 'lodash/intersection';
 import Onyx from 'react-native-onyx';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import {InteractionManager} from 'react-native';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
@@ -869,12 +868,15 @@ function hasReportNameError(report) {
 }
 
 /**
+ * For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
+ * For longer comments, skip parsing, but still escape the text, and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
+ *
  * @param {String} text
  * @returns {String}
  */
 function getParsedComment(text) {
     const parser = new ExpensiMark();
-    return text.length < CONST.MAX_MARKUP_LENGTH ? parser.replace(text) : text;
+    return text.length < CONST.MAX_MARKUP_LENGTH ? parser.replace(text) : _.escape(text);
 }
 
 /**
@@ -883,8 +885,6 @@ function getParsedComment(text) {
  * @returns {Object}
  */
 function buildOptimisticAddCommentReportAction(text, file) {
-    // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
-    // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     const parser = new ExpensiMark();
     const commentText = getParsedComment(text);
     const isAttachment = _.isEmpty(text) && file !== undefined;
@@ -1539,7 +1539,7 @@ function getCommentLength(textComment) {
  * @param {String|null} url
  * @returns {String}
  */
-function getReportIDFromDeepLink(url) {
+function getRouteFromLink(url) {
     if (!url) {
         return '';
     }
@@ -1566,27 +1566,21 @@ function getReportIDFromDeepLink(url) {
             route = route.replace('/', '');
         }
     });
+    return route;
+}
+
+/**
+ * @param {String|null} url
+ * @returns {String}
+ */
+function getReportIDFromLink(url) {
+    const route = getRouteFromLink(url);
     const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(route);
     if (isSubReportPageRoute) {
         // We allow the Sub-Report deep link routes (settings, details, etc.) to be handled by their respective component pages
         return '';
     }
     return reportID;
-}
-
-/**
- * @param {String|null} url
- */
-function openReportFromDeepLink(url) {
-    const reportID = getReportIDFromDeepLink(url);
-    if (!reportID) {
-        return;
-    }
-    InteractionManager.runAfterInteractions(() => {
-        Navigation.isReportScreenReady().then(() => {
-            Navigation.navigate(ROUTES.getReportRoute(reportID));
-        });
-    });
 }
 
 /**
@@ -1683,7 +1677,8 @@ export {
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
     getReportName,
-    getReportIDFromDeepLink,
+    getReportIDFromLink,
+    getRouteFromLink,
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
@@ -1710,7 +1705,6 @@ export {
     hashLogin,
     getDefaultWorkspaceAvatar,
     getCommentLength,
-    openReportFromDeepLink,
     getFullSizeAvatar,
     getSmallSizeAvatar,
     getIOUOptions,
