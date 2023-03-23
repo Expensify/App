@@ -117,27 +117,7 @@ class MainDrawerNavigator extends Component {
 
     render() {
         return (
-            <BaseDrawerNavigator
-                drawerContent={({navigation, state}) => {
-                    // This state belongs to the drawer so it should always have the ReportScreen as it's initial (and only) route
-                    const reportIDFromRoute = lodashGet(state, ['routes', 0, 'params', 'reportID']);
-                    return (
-                        <SidebarScreen
-                            navigation={navigation}
-                            onLayout={this.trackAppStartTiming}
-                            reportIDFromRoute={reportIDFromRoute}
-                        />
-                    );
-                }}
-                screens={[
-                    {
-                        name: SCREENS.REPORT,
-                        component: ReportScreen,
-                        initialParams: this.initialParams,
-                    },
-                ]}
-                isMainScreen
-            />
+            <ReportScreen initialParams={this.initialParams} />
         );
     }
 }
