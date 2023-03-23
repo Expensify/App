@@ -21,17 +21,19 @@ const KeyboardAvoidingView = (props) => {
         let value = 0;
 
         if (keyboard.state.value === KeyboardState.CLOSING || keyboard.state.value === KeyboardState.OPENING) {
-            value = keyboard.height.value - insets.bottom;
+            value = keyboard.height.value;
         } else if (keyboard.state.value === KeyboardState.OPEN && keyboard.height.value === 0) {
             // when we open modal keyboard is closed without animation and the height is 0
             // but when we close modal - it opens it again but for one frame the height is still 0
-            value = ctx.keyboardLastValue - insets.bottom;
+            value = ctx.keyboardLastValue;
         } else if (keyboard.state.value === KeyboardState.CLOSED) {
             value = 0;
         } else {
             ctx.keyboardLastValue = keyboard.height.value;
-            value = keyboard.height.value - insets.bottom;
+            value = keyboard.height.value;
         }
+
+        value = Math.max(0, value - insets.bottom);
 
         if (behavior === 'height') {
             return {
