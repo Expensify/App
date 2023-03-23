@@ -1075,24 +1075,6 @@ const styles = {
         zIndex: 10,
     }),
 
-    statusIndicatorOnline: {
-        backgroundColor: themeColors.success,
-    },
-
-    avatarWithIndicator: {
-        errorDot: {
-            borderColor: themeColors.sidebar,
-            borderRadius: 6,
-            borderWidth: 2,
-            position: 'absolute',
-            right: -1,
-            bottom: -1,
-            height: 12,
-            width: 12,
-            zIndex: 10,
-        },
-    },
-
     floatingActionButtonContainer: {
         position: 'absolute',
         right: 20,
