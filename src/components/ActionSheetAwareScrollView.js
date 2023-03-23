@@ -11,7 +11,7 @@ import Reanimated, {
     Easing,
     KeyboardState,
     useAnimatedKeyboard,
-    useAnimatedStyle, useDerivedValue, withSequence, withTiming,
+    useAnimatedStyle, useDerivedValue, withTiming,
 } from 'react-native-reanimated';
 import {makeRemote} from 'react-native-reanimated/src/reanimated2/core';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -62,6 +62,15 @@ function useStateMachine(stateMachine, initialState) {
         };
     });
 
+    const resetWorklet = useWorkletCallback(() => {
+        // console.log('RESET STATE MACHINE');
+        currentState.value = initialState;
+    }, []);
+
+    const reset = useCallback(() => {
+        runOnUI(resetWorklet)();
+    }, []);
+
     const transition = useCallback((action) => {
         runOnUI(transitionWorklet)(action);
     }, []);
@@ -70,6 +79,8 @@ function useStateMachine(stateMachine, initialState) {
         currentState,
         transitionWorklet,
         transition,
+        reset,
+        resetWorklet,
     };
 }
 
@@ -104,12 +115,21 @@ const stateMachine = {
     keyboardOpen: {
         ON_KEYBOARD_OPEN: 'keyboardOpen',
         POPOVER_OPEN: 'keyboardPopoverOpen',
+        OPEN_EMOJI_PICKER_POPOVER: 'keyboardPopoverOpen',
         OPEN_EMOJI_PICKER_POPOVER_STANDALONE: 'emojiPickerWithKeyboardOpen',
         ON_KEYBOARD_CLOSE: 'idle',
     },
     keyboardPopoverOpen: {
         MEASURE_POPOVER: 'keyboardPopoverOpen',
         CLOSE_POPOVER: 'keyboardClosingPopover',
+        CLOSE_EMOJI_PICKER_POPOVER: 'keyboardClosingPopover',
+        MEASURE_EMOJI_PICKER_POPOVER: 'keyboardPopoverOpen',
+        OPEN_EMOJI_PICKER_POPOVER: 'emojiPickerPopoverWithKeyboardOpen',
+    },
+
+    emojiPickerPopoverWithKeyboardOpen: {
+        MEASURE_EMOJI_PICKER_POPOVER: 'emojiPickerPopoverWithKeyboardOpen',
+        CLOSE_EMOJI_PICKER_POPOVER: 'keyboardClosingPopover',
     },
     emojiPickerWithKeyboardOpen: {
         MEASURE_EMOJI_PICKER_POPOVER: 'emojiPickerWithKeyboardOpen',
@@ -125,7 +145,9 @@ const stateMachine = {
 };
 
 function ActionSheetAwareScrollViewProvider(props) {
-    const {currentState, transition, transitionWorklet} = useStateMachine(stateMachine, {
+    const {
+        currentState, transition, transitionWorklet, reset,
+    } = useStateMachine(stateMachine, {
         previous: null,
         current: {
             state: 'idle',
@@ -137,6 +159,7 @@ function ActionSheetAwareScrollViewProvider(props) {
         currentActionSheetState: currentState,
         transitionActionSheetState: transition,
         transitionActionSheetStateWorklet: transitionWorklet,
+        resetStateMachine: reset,
     }), []);
 
     return (
@@ -147,6 +170,10 @@ function ActionSheetAwareScrollViewProvider(props) {
         </ActionSheetAwareScrollViewContext.Provider>
     );
 }
+
+ActionSheetAwareScrollViewProvider.propTypes = {
+    children: PropTypes.node.isRequired,
+};
 
 function withActionSheetAwareScrollViewContext(WrappedComponent) {
     const WithActionSheetAwareScrollViewContext = forwardRef((props, ref) => (
@@ -168,11 +195,13 @@ const ReportKeyboardSpace = (props) => {
     const keyboard = useAnimatedKeyboard();
     const ctx = useMemo(() => makeRemote({}), []);
     const windowHeight = Dimensions.get('screen').height;
-    const {currentActionSheetState, transitionActionSheetStateWorklet: transition, transitionActionSheetState} = useContext(ActionSheetAwareScrollViewContext);
+    const {
+        currentActionSheetState, transitionActionSheetStateWorklet: transition, transitionActionSheetState, resetStateMachine,
+    } = useContext(ActionSheetAwareScrollViewContext);
 
     useEffect(() => {
         let lastAction = null;
-        const removeDidShow = Keyboard.addListener('keyboardDidShow', () => {
+        const onDidShow = () => {
             if (lastAction === 'keyboardDidShow') {
                 return;
             }
@@ -182,9 +211,10 @@ const ReportKeyboardSpace = (props) => {
             transitionActionSheetState({
                 type: 'ON_KEYBOARD_OPEN',
             });
-        });
+        };
+        const removeDidShow = Keyboard.addListener('keyboardDidShow', onDidShow);
 
-        const removeDidHide = Keyboard.addListener('keyboardDidHide', () => {
+        const onDidHide = () => {
             if (lastAction === 'keyboardDidHide') {
                 return;
             }
@@ -194,14 +224,18 @@ const ReportKeyboardSpace = (props) => {
             transitionActionSheetState({
                 type: 'ON_KEYBOARD_CLOSE',
             });
-        });
+        };
+        const removeDidHide = Keyboard.addListener('keyboardDidHide', onDidHide);
 
         return () => {
+            resetStateMachine();
+
             try {
                 removeDidShow();
                 removeDidHide();
             } catch (err) {
-                // noop so Hot reloading doesn't break
+                Keyboard.removeSubscription(onDidShow);
+                Keyboard.removeSubscription(onDidHide);
             }
         };
     }, []);
@@ -211,18 +245,41 @@ const ReportKeyboardSpace = (props) => {
         easing: Easing.bezier(0.33, 0.01, 0, 1),
     };
 
-    const translateY = useDerivedValue(() => {
-        let lastKeyboardValue;
+    // we need this because of the bug in useAnimatedKeyboard
+    // it calls the same state twice which triggers this thing again
+    // this should work after the fix
+    // return withSequence(withTiming(set, {
+    //     duration: 0,
+    // }), withTiming(animateTo, config));
+    const setAndTiming = useWorkletCallback((set, animateTo) => (!ctx.shouldRunAnimation
+        ? (() => {
+            ctx.shouldRunAnimation = true;
+            return set;
+        })()
+        : withTiming(animateTo, config, () => {
+            ctx.shouldRunAnimation = false;
+        })));
 
-        if (keyboard.state.value === KeyboardState.OPEN && keyboard.height.value !== 0) {
-            ctx.keyboardValue = keyboard.height.value;
-        } else {
-            lastKeyboardValue = ctx.keyboardValue || 0;
+    const translateY = useDerivedValue(() => {
+        const keyboardHeight = keyboard.height.value === 0 ? 0 : keyboard.height.value - safeArea.bottom;
+
+        // sometimes we need to know the last keyboard height
+        if (keyboard.state.value === KeyboardState.OPEN && keyboardHeight !== 0) {
+            ctx.keyboardValue = keyboardHeight;
         }
+        const lastKeyboardValue = (ctx.keyboardValue || 0);
 
         const {current, previous} = currentActionSheetState.value;
 
         const {popoverHeight, fy, height} = current.payload || {};
+
+        const invertedKeyboardHeight = keyboard.state.value === KeyboardState.CLOSED
+            ? lastKeyboardValue
+            : 0;
+
+        const elementOffset = popoverHeight
+            - (windowHeight - fy - safeArea.top)
+            + height;
 
         switch (current.state) {
             case 'idle':
@@ -250,29 +307,47 @@ const ReportKeyboardSpace = (props) => {
             case 'emojiPickerPopoverOpen':
             case 'popoverOpen': {
                 if (popoverHeight) {
-                    const offset = popoverHeight - (windowHeight - fy - safeArea.top)
-                        + height;
-
-                    return withTiming(offset < 0 ? 0 : offset, config);
+                    return withTiming(elementOffset < 0 ? 0 : elementOffset, config);
                 }
 
                 return 0;
             }
 
             case 'edit': {
-                const offset = popoverHeight - (windowHeight - fy - safeArea.top)
-                    + height + safeArea.bottom;
-
-                return withSequence(withTiming(offset - keyboard.height.value, {
+                return withTiming(0, {
                     duration: 0,
-                }), withTiming(0, {
-                    ...config,
-                    duration: 400,
                 }, () => {
                     transition({
                         type: 'END_TRANSITION',
                     });
-                }));
+                });
+
+                // return withSequence(withTiming(elementOffset - keyboardHeight, {
+                //     duration: 0,
+                // }), withTiming(0, {
+                //     ...config,
+                //     duration: 400,
+                // }, () => {
+                //     transition({
+                //         type: 'END_TRANSITION',
+                //     });
+                // }));
+            }
+
+            case 'emojiPickerPopoverWithKeyboardOpen': {
+                // when item is higher than keyboard and bottom sheet
+                // we should just stay in place
+                if (elementOffset < 0) {
+                    return invertedKeyboardHeight;
+                }
+
+                const nextOffset = invertedKeyboardHeight + elementOffset;
+
+                if (previous.payload.popoverHeight !== popoverHeight) {
+                    return withTiming(nextOffset, config);
+                }
+
+                return nextOffset;
             }
 
             case 'emojiPickerWithKeyboardOpen': {
@@ -284,28 +359,19 @@ const ReportKeyboardSpace = (props) => {
             }
 
             case 'closingStandaloneEmojiPicker': {
-                return keyboard.height.value;
+                return keyboardHeight;
             }
 
             case 'keyboardClosingPopover': {
-                const offset = popoverHeight
-                    - (windowHeight - fy - safeArea.top)
-                    - safeArea.bottom
-                    + height;
-
-                if (offset < 0) {
-                    const invertedHeight = keyboard.state.value === KeyboardState.CLOSED
-                        ? lastKeyboardValue - safeArea.bottom
-                        : 0;
-
-                    return invertedHeight;
+                if (elementOffset < 0) {
+                    return invertedKeyboardHeight;
                 }
 
                 if (keyboard.state.value === KeyboardState.CLOSED) {
-                    return offset + keyboard.height.value;
+                    return elementOffset + keyboardHeight;
                 }
 
-                return offset;
+                return elementOffset;
             }
 
             case 'keyboardPopoverOpen': {
@@ -313,34 +379,11 @@ const ReportKeyboardSpace = (props) => {
                     return 0;
                 }
 
-                const keyboardHeight = keyboard.height.value;
-
-                const invertedHeight = keyboard.state.value === KeyboardState.CLOSED
-                    ? keyboardHeight - safeArea.bottom
-                    : 0;
-
-                const offset = popoverHeight
-                    - (windowHeight - fy - safeArea.top)
-                    - safeArea.bottom
-                    + height
+                const nextOffset = elementOffset
                     + keyboardHeight;
 
-                if (keyboard.state.value === KeyboardState.CLOSED && offset > invertedHeight) {
-                    // we need this because of the bug in useAnimatedKeyboard
-                    // it calls the same state twice which triggers this thing again
-                    return !global.spacer_shouldRunSpring
-                        ? (() => {
-                            global.spacer_shouldRunSpring = true;
-                            return keyboardHeight;
-                        })()
-                        : withTiming(offset < 0 ? 0 : offset, config, () => {
-                            global.spacer_shouldRunSpring = false;
-                        });
-
-                    // this should work after the fix
-                    // return withSequence(withTiming(keyboardHeight, {
-                    //     duration: 0,
-                    // }), withTiming(offset < 0 ? 0 : offset, config));
+                if (keyboard.state.value === KeyboardState.CLOSED && nextOffset > invertedKeyboardHeight) {
+                    return setAndTiming(keyboardHeight, nextOffset < 0 ? 0 : nextOffset);
                 }
 
                 return keyboardHeight;
@@ -355,6 +398,7 @@ const ReportKeyboardSpace = (props) => {
         transform: [{translateY: translateY.value}],
     }));
 
+    // eslint-disable-next-line react/jsx-props-no-spreading
     return <Reanimated.View style={[{flex: 1}, animatedStyle]} {...props} />;
 };
 
@@ -371,8 +415,12 @@ export default function ActionSheetAwareScrollView(props) {
     );
 }
 
+ActionSheetAwareScrollView.defaultProps = {
+    children: null,
+};
+
 ActionSheetAwareScrollView.propTypes = {
-    children: PropTypes.node.isRequired,
+    children: PropTypes.node,
     keyboardSpacerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object])
         .isRequired,
 };
