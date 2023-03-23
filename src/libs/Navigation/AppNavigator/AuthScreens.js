@@ -21,7 +21,7 @@ import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import * as Modal from '../../actions/Modal';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
-import createCustomModalStackNavigator from './createCustomModalStackNavigator';
+import createResponsiveStackNavigator from './ResponsiveStackNavigator/createResponsiveStackNavigator';
 import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
 import getCurrentUrl from '../currentUrl';
 
@@ -66,7 +66,7 @@ Onyx.connect({
     },
 });
 
-const RootStack = createCustomModalStackNavigator();
+const RootStack = createResponsiveStackNavigator();
 
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
 // that depends on modal visibility until Modal is completely closed and its focused
@@ -172,6 +172,7 @@ class AuthScreens extends React.Component {
 
         return (
             <RootStack.Navigator
+                isNarrowLayout={this.props.isSmallScreenWidth}
                 mode="modal"
 
                 // We are disabling the default keyboard handling here since the automatic behavior is to close a

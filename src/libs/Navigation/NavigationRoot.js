@@ -8,6 +8,7 @@ import AppNavigator from './AppNavigator';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import Log from '../Log';
 
 // https://reactnavigation.org/docs/themes
@@ -20,6 +21,8 @@ const navigationTheme = {
 };
 
 const propTypes = {
+    ...windowDimensionsPropTypes,
+
     /** Whether the current user is logged in with an authToken */
     authenticated: PropTypes.bool.isRequired,
 
@@ -52,6 +55,7 @@ const NavigationRoot = (props) => {
     useFlipper(navigationRef);
     return (
         <NavigationContainer
+            key={props.isSmallScreenWidth ? 'small' : 'big'}
             fallback={(
                 <FullScreenLoadingIndicator
                     style={styles.navigatorFullScreenLoading}
@@ -73,4 +77,4 @@ const NavigationRoot = (props) => {
 
 NavigationRoot.displayName = 'NavigationRoot';
 NavigationRoot.propTypes = propTypes;
-export default NavigationRoot;
+export default withWindowDimensions(NavigationRoot);
