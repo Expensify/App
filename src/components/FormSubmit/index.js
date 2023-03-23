@@ -19,7 +19,7 @@ class FormSubmit extends React.Component {
 
     submitForm(event) {
         // ENTER is pressed with modifier key or during text composition, do not submit the form
-        if (event.shiftKey || event.key !== 'Enter' || KeyboardShortcut.isEnterWhileComposition(event)) {
+        if (event.shiftKey || event.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || KeyboardShortcut.isEnterWhileComposition(event)) {
             return;
         }
 

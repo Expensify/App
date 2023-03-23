@@ -157,7 +157,7 @@ class EmojiPickerMenu extends Component {
             }
 
             // Select the currently highlighted emoji if enter is pressed
-            if (!KeyboardShortcut.isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === 'Enter' && this.state.highlightedIndex !== -1) {
+            if (!KeyboardShortcut.isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && this.state.highlightedIndex !== -1) {
                 const item = this.state.filteredEmojis[this.state.highlightedIndex];
                 if (!item) {
                     return;
