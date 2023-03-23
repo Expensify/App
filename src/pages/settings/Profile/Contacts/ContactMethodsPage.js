@@ -135,14 +135,14 @@ const ContactMethodsPage = (props) => {
                 {!hasEmailLogin && (
                     <LoginField
                         label={props.translate('profilePage.emailAddress')}
-                        type="email"
+                        type={CONST.LOGIN_TYPE.EMAIL}
                         login={{}}
                     />
                 )}
                 {!hasPhoneNumberLogin && (
                     <LoginField
                         label={props.translate('common.phoneNumber')}
-                        type="phone"
+                        type={CONST.LOGIN_TYPE.PHONE}
                         login={{}}
                     />
                 )}
