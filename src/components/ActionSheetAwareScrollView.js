@@ -71,7 +71,11 @@ ActionSheetAwareScrollView.propTypes = {
     children: PropTypes.node,
 };
 
+// mock
+const renderScrollComponent = undefined;
+
 export {
+    renderScrollComponent,
     ActionSheetAwareScrollViewProvider,
     ActionSheetAwareScrollViewContext,
     withActionSheetAwareScrollViewContext,

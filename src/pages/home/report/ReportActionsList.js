@@ -31,8 +31,7 @@ import CONST from '../../../CONST';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
-import ActionSheetAwareScrollView from '../../../components/ActionSheetAwareScrollView';
-import getOperatingSystem from '../../../libs/getOperatingSystem';
+import * as ActionSheetAwareScrollView from '../../../components/ActionSheetAwareScrollView';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -171,12 +170,7 @@ class ReportActionsList extends React.Component {
                         styles.chatContentScrollView,
                         shouldShowReportRecipientLocalTime && styles.pt0,
                     ]}
-                    renderScrollComponent={props => (
-                        <ActionSheetAwareScrollView
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...props}
-                        />
-                    )}
+                    renderScrollComponent={ActionSheetAwareScrollView.renderScrollComponent}
                     keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
                     initialNumToRender={this.calculateInitialNumToRender()}

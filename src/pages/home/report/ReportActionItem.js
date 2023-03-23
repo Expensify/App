@@ -38,7 +38,7 @@ import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnima
 import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosOOOListActions';
 import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
 import * as Report from '../../../libs/actions/Report';
-import {withActionSheetAwareScrollViewContext} from '../../../components/ActionSheetAwareScrollView';
+import * as ActionSheetAwareScrollView from '../../../components/ActionSheetAwareScrollView';
 
 const propTypes = {
     /** Report for this action */
@@ -348,5 +348,5 @@ export default compose(
             return lodashGet(drafts, draftKey, '');
         },
     }),
-    withActionSheetAwareScrollViewContext,
+    ActionSheetAwareScrollView.withActionSheetAwareScrollViewContext,
 )(ReportActionItem);

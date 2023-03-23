@@ -13,7 +13,7 @@ import ContextMenuActions, {CONTEXT_MENU_TYPES} from './ContextMenuActions';
 import compose from '../../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import {withBetas} from '../../../../components/OnyxProvider';
-import {withActionSheetAwareScrollViewContext} from '../../../../components/ActionSheetAwareScrollView';
+import * as ActionSheetAwareScrollView from '../../../../components/ActionSheetAwareScrollView';
 
 const propTypes = {
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
@@ -116,6 +116,6 @@ BaseReportActionContextMenu.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withBetas(),
-    withActionSheetAwareScrollViewContext,
+    ActionSheetAwareScrollView.withActionSheetAwareScrollViewContext,
     withWindowDimensions,
 )(BaseReportActionContextMenu);

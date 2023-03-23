@@ -423,7 +423,13 @@ ActionSheetAwareScrollView.propTypes = {
     children: PropTypes.node,
 };
 
+function renderScrollComponent(props) {
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <ActionSheetAwareScrollView {...props} />;
+}
+
 export {
+    renderScrollComponent,
     ActionSheetAwareScrollViewProvider,
     ActionSheetAwareScrollViewContext,
     withActionSheetAwareScrollViewContext,
