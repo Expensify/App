@@ -80,7 +80,10 @@ Onyx.connect({
             return;
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
-        lastReportActions[reportID] = _.first(ReportActionsUtils.getSortedReportActionsForDisplay(_.toArray(actions)));
+        lastReportActions[reportID] = _.find(
+            ReportActionsUtils.getSortedReportActionsForDisplay(_.toArray(actions)),
+            reportAction => reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
     },
 });
 
@@ -453,8 +456,12 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
  */
 function getLastMessageText(report) {
     const lastReportAction = lastReportActions[report.reportID];
-    const lastReportActionText = lodashGet(lastReportAction, 'message[0].text', report.lastMessageText);
-    const lastReportActionHtml = lodashGet(lastReportAction, 'message[0].html', report.lastMessageHtml);
+    let lastReportActionText = report.lastMessageText;
+    let lastReportActionHtml = report.lastMessageHtml;
+    if (lastReportAction && lastReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT) {
+        lastReportActionText = lodashGet(lastReportAction, 'message[0].text', report.lastMessageText);
+        lastReportActionHtml = lodashGet(lastReportAction, 'message[0].html', report.lastMessageHtml);
+    }
     return isReportMessageAttachment({text: lastReportActionText, html: lastReportActionHtml})
         ? `[${Localize.translateLocal('common.attachment')}]`
         : Str.htmlDecode(lastReportActionText);
