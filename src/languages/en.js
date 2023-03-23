@@ -1183,5 +1183,8 @@ export default {
     },
     accessibilityLabel: {
         loginForm: 'Login form',
+        chatUserDisplayNames: 'Chat user display names',
+        newMessageLineIndicator: 'New message line indicator',
+        listOfChats: 'List of chats',
     },
 };
