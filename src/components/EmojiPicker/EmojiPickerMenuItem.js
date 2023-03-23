@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {Pressable} from 'react-native';
 import styles from '../../styles/styles';
@@ -32,40 +32,56 @@ const propTypes = {
     isUsingKeyboardMovement: PropTypes.bool,
 };
 
-const EmojiPickerMenuItem = (props) => {
-    const ref = React.createRef();
+class EmojiPickerMenuItem extends PureComponent {
+    constructor(props) {
+        super(props);
 
-    React.useEffect(() => {
-        if (!props.isFocused) {
+        this.ref = null;
+    }
+
+    componentDidMount() {
+        if (!this.props.isFocused) {
             return;
         }
-        ref.current.focus();
-    }, [props.isFocused]);
+        this.ref.focus();
+    }
 
-    return (
-        <Pressable
-            onPress={() => props.onPress(props.emoji)}
-            onHoverIn={props.onHoverIn}
-            onHoverOut={props.onHoverOut}
-            onFocus={props.onFocus}
-            ref={ref}
-            style={({
-                pressed,
-            }) => ([
-                StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
-                props.isHighlighted && props.isUsingKeyboardMovement ? styles.emojiItemKeyboardHighlighted : {},
-                props.isHighlighted && !props.isUsingKeyboardMovement ? styles.emojiItemHighlighted : {},
-                styles.emojiItem,
-            ])}
-        >
-            <Text style={[styles.emojiText]}>
-                {props.emoji}
-            </Text>
-        </Pressable>
-    );
-};
+    componentDidUpdate(prevProps) {
+        if (prevProps.isFocused === this.props.isFocused) {
+            return;
+        }
+        if (!this.props.isFocused) {
+            return;
+        }
+        this.ref.focus();
+    }
+
+    render() {
+        return (
+            <Pressable
+                onPress={() => this.props.onPress(this.props.emoji)}
+                onHoverIn={this.props.onHoverIn}
+                onHoverOut={this.props.onHoverOut}
+                onFocus={this.props.onFocus}
+                ref={ref => this.ref = ref}
+                style={({
+                    pressed,
+                }) => ([
+                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
+                    this.props.isHighlighted && this.props.isUsingKeyboardMovement ? styles.emojiItemKeyboardHighlighted : {},
+                    this.props.isHighlighted && !this.props.isUsingKeyboardMovement ? styles.emojiItemHighlighted : {},
+                    styles.emojiItem,
+                ])}
+            >
+                <Text style={[styles.emojiText]}>
+                    {this.props.emoji}
+                </Text>
+            </Pressable>
+        );
+    }
+}
+
 EmojiPickerMenuItem.propTypes = propTypes;
-EmojiPickerMenuItem.displayName = 'EmojiPickerMenuItem';
 EmojiPickerMenuItem.defaultProps = {
     isHighlighted: false,
     isFocused: false,

@@ -457,6 +457,8 @@ class EmojiPickerMenu extends Component {
             ? types[this.props.preferredSkinTone]
             : code;
 
+        const isEmojiFocused = index === this.state.highlightedIndex && this.state.isUsingKeyboardMovement;
+
         return (
             <EmojiPickerMenuItem
                 onPress={emoji => this.addToFrequentAndSelectEmoji(emoji, item)}
@@ -469,7 +471,7 @@ class EmojiPickerMenu extends Component {
                 }}
                 emoji={emojiCode}
                 onFocus={() => this.setState({highlightedIndex: index})}
-                isFocused={index === this.state.highlightedIndex && this.state.isUsingKeyboardMovement}
+                isFocused={isEmojiFocused}
                 isHighlighted={index === this.state.highlightedIndex}
                 isUsingKeyboardMovement={this.state.isUsingKeyboardMovement}
             />
