@@ -57,6 +57,8 @@ export default {
         here: 'here',
         date: 'Date',
         dob: 'Date of birth',
+        currentYear: 'Current year',
+        currentMonth: 'Current month',
         ssnLast4: 'Last 4 digits of SSN',
         ssnFull9: 'Full 9 digits of SSN',
         addressLine: ({lineNumber}) => `Address line ${lineNumber}`,
@@ -155,9 +157,6 @@ export default {
     },
     deeplinkWrapper: {
         launching: 'Launching Expensify',
-        redirectedToDesktopApp: 'We\'ve redirected you to the desktop app.',
-        youCanAlso: 'You can also',
-        openLinkInBrowser: 'open this link in your browser',
         expired: 'Your session has expired.',
         signIn: 'Please sign in again.',
     },
@@ -168,6 +167,13 @@ export default {
         description: 'Please enter the code using the device\nwhere it was originally requested',
         or: ', or',
         signInHere: 'just sign in here',
+        expiredCodeTitle: 'Magic code expired',
+        expiredCodeDescription: 'Go back to the original device and request a new code.',
+        requestNewCode: 'You can also',
+        requestNewCodeLink: 'request a new code here',
+        successfulNewCodeRequest: 'Code requested. Please check your device.',
+        tfaRequiredTitle: 'Two factor authentication\nrequired',
+        tfaRequiredDescription: 'Please enter the two-factor authentication code\nwhere you are trying to sign in.',
     },
     iOUConfirmationList: {
         whoPaid: 'Who paid?',
@@ -230,7 +236,7 @@ export default {
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
-        addReactionTooltip: 'Add Reaction',
+        addReactionTooltip: 'Add reaction',
     },
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'You missed the party in ',
@@ -638,6 +644,10 @@ export default {
     },
     newChatPage: {
         createGroup: 'Create group',
+    },
+    yearPickerPage: {
+        year: 'Year',
+        selectYear: 'Please select a year',
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
@@ -1078,7 +1088,7 @@ export default {
         publicDescription: 'Anyone can find this room',
         createRoom: 'Create room',
         roomAlreadyExistsError: 'A room with this name already exists',
-        roomNameReservedError: 'A room on this workspace already uses this name',
+        roomNameReservedError: ({reservedName}) => `${reservedName} is a default room on all workspaces. Please choose another name.`,
         roomNameInvalidError: 'Room names can only include lowercase letters, numbers and hyphens',
         pleaseEnterRoomName: 'Please enter a room name',
         pleaseSelectWorkspace: 'Please select a workspace',

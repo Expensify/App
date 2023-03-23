@@ -9,11 +9,17 @@ import {
 import * as User from '../../libs/actions/User';
 import compose from '../../libs/compose';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import ValidateCodeModal from '../../components/ValidateCodeModal';
+import ValidateCodeModal from '../../components/ValidateCode/ValidateCodeModal';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
 import Permissions from '../../libs/Permissions';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import AbracadabraModal from '../../components/ValidateCode/AbracadabraModal';
+import ExpiredValidateCodeModal from '../../components/ValidateCode/ExpiredValidateCodeModal';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
+import CONST from '../../CONST';
+import TfaRequiredModal from '../../components/ValidateCode/TfaRequiredModal';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
@@ -31,74 +37,77 @@ const defaultProps = {
 };
 
 class ValidateLoginPage extends Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {justSignedIn: false};
-    }
-
     componentDidMount() {
         // Validate login if
         // - The user is not on passwordless beta
-        if (!this.isOnPasswordlessBeta()) {
-            User.validateLogin(this.accountID(), this.validateCode());
+        if (!Permissions.canUsePasswordlessLogins(this.props.betas)) {
+            User.validateLogin(this.getAccountID(), this.getValidateCode());
             return;
         }
 
-        // Sign in if
-        // - The user is on the passwordless beta
-        // - AND the user is not authenticated
-        // - AND the user has initiated the sign in process in another tab
-        if (this.isOnPasswordlessBeta() && !this.isAuthenticated() && this.isSignInInitiated()) {
-            Session.signInWithValidateCode(this.accountID(), this.validateCode());
-        }
-    }
-
-    componentDidUpdate(prevProps) {
-        if (!(prevProps.credentials && !prevProps.credentials.validateCode && this.props.credentials.validateCode)) {
+        const isSignedIn = Boolean(lodashGet(this.props, 'session.authToken', null));
+        const cachedAutoAuthState = lodashGet(this.props, 'session.autoAuthState', null);
+        const login = lodashGet(this.props, 'credentials.login', null);
+        if (!login && isSignedIn && cachedAutoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN) {
+            // The user clicked the option to sign in the current tab
+            Navigation.navigate(ROUTES.REPORT);
             return;
         }
-        this.setState({justSignedIn: true});
+        Session.initAutoAuthState(cachedAutoAuthState);
+
+        if (isSignedIn || !login) {
+            return;
+        }
+
+        // The user has initiated the sign in process on the same browser, in another tab.
+        Session.signInWithValidateCode(this.getAccountID(), this.getValidateCode());
     }
 
-    /**
-     * @returns {Boolean}
-     */
-    isOnPasswordlessBeta = () => Permissions.canUsePasswordlessLogins(this.props.betas);
+    componentDidUpdate() {
+        if (
+            lodashGet(this.props, 'credentials.login', null)
+            || !lodashGet(this.props, 'credentials.accountID', null)
+            || !lodashGet(this.props, 'account.requiresTwoFactorAuth', false)
+        ) {
+            return;
+        }
+
+        // The user clicked the option to sign in the current tab
+        Navigation.navigate(ROUTES.REPORT);
+    }
 
     /**
      * @returns {String}
      */
-    accountID = () => lodashGet(this.props.route.params, 'accountID', '');
+    getAutoAuthState() {
+        return lodashGet(this.props, 'session.autoAuthState', CONST.AUTO_AUTH_STATE.NOT_STARTED);
+    }
 
     /**
      * @returns {String}
      */
-    validateCode = () => lodashGet(this.props.route.params, 'validateCode', '');
+    getAccountID() {
+        return lodashGet(this.props.route.params, 'accountID', '');
+    }
 
     /**
-     * @returns {Boolean}
+     * @returns {String}
      */
-    isAuthenticated = () => Boolean(lodashGet(this.props, 'session.authToken', null));
-
-    /**
-     * Whether SignIn was initiated on the current browser.
-     * @returns {Boolean}
-     */
-    isSignInInitiated = () => !this.isAuthenticated() && lodashGet(this.props, 'credentials.login', null);
+    getValidateCode() {
+        return lodashGet(this.props.route.params, 'validateCode', '');
+    }
 
     render() {
+        const isTfaRequired = lodashGet(this.props, 'account.requiresTwoFactorAuth', false);
+        const isSignedIn = Boolean(lodashGet(this.props, 'session.authToken', null));
         return (
-            this.isOnPasswordlessBeta() && !this.isSignInInitiated() && !lodashGet(this.props, 'account.isLoading', true)
-                ? (
-                    <ValidateCodeModal
-                        isSuccessfullySignedIn={this.state.justSignedIn}
-                        code={this.validateCode()}
-                        shouldShowSignInHere={!this.isAuthenticated() && !this.isSignInInitiated()}
-                        onSignInHereClick={() => Session.signInWithValidateCodeAndNavigate(this.accountID(), this.validateCode())}
-                    />
-                )
-                : <FullScreenLoadingIndicator />
+            <>
+                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
+                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && (!isTfaRequired || isSignedIn) && <AbracadabraModal />}
+                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isTfaRequired && !isSignedIn && <TfaRequiredModal />}
+                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.NOT_STARTED && <ValidateCodeModal accountID={this.getAccountID()} code={this.getValidateCode()} />}
+                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
+            </>
         );
     }
 }

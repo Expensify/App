@@ -1,21 +1,12 @@
 import _ from 'underscore';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import deeplinkRoutes from './deeplinkRoutes';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import TextLink from '../TextLink';
-import * as Illustrations from '../Icon/Illustrations';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import Text from '../Text';
 import styles from '../../styles/styles';
-import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import colors from '../../styles/colors';
 import * as Browser from '../../libs/Browser';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Authentication from '../../libs/Authentication';
@@ -24,7 +15,8 @@ const propTypes = {
     /** Children to render. */
     children: PropTypes.node.isRequired,
 
-    ...withLocalizePropTypes,
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** Session info for the currently logged-in user. */
     session: PropTypes.shape({
@@ -36,8 +28,8 @@ const propTypes = {
         authToken: PropTypes.string,
     }),
 };
-
 const defaultProps = {
+    betas: [],
     session: {
         email: '',
         authToken: '',
@@ -74,11 +66,9 @@ class DeeplinkWrapper extends PureComponent {
         });
 
         if (!matchedRoute) {
-            this.setState({deeplinkMatch: false});
             this.updateAppInstallationCheckStatus();
             return;
         }
-        this.setState({deeplinkMatch: true});
         const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
         const params = new URLSearchParams();
         params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
@@ -149,58 +139,13 @@ class DeeplinkWrapper extends PureComponent {
             return <FullScreenLoadingIndicator style={styles.flex1} />;
         }
 
-        if (
-            this.state.deeplinkMatch
-            && this.state.appInstallationCheckStatus === CONST.DESKTOP_DEEPLINK_APP_STATE.INSTALLED
-        ) {
-            return (
-                <View style={styles.deeplinkWrapperContainer}>
-                    <View style={styles.deeplinkWrapperMessage}>
-                        <View style={styles.mb2}>
-                            <Icon
-                                width={200}
-                                height={164}
-                                src={Illustrations.RocketBlue}
-                            />
-                        </View>
-                        <Text style={[styles.textHeadline, styles.textXXLarge]}>
-                            {this.props.translate('deeplinkWrapper.launching')}
-                        </Text>
-                        <View style={styles.mt2}>
-                            <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
-                                {this.props.translate('deeplinkWrapper.redirectedToDesktopApp')}
-                                {'\n'}
-                                {this.props.translate('deeplinkWrapper.youCanAlso')}
-                                {' '}
-                                <TextLink onPress={() => this.setState({deeplinkMatch: false})}>
-                                    {this.props.translate('deeplinkWrapper.openLinkInBrowser')}
-                                </TextLink>
-                                .
-                            </Text>
-                        </View>
-                    </View>
-                    <View style={styles.deeplinkWrapperFooter}>
-                        <Icon
-                            width={154}
-                            height={34}
-                            fill={colors.green}
-                            src={Expensicons.ExpensifyWordmark}
-                        />
-                    </View>
-                </View>
-            );
-        }
-
         return this.props.children;
     }
 }
 
 DeeplinkWrapper.propTypes = propTypes;
 DeeplinkWrapper.defaultProps = defaultProps;
-export default compose(
-    withLocalize,
-    withOnyx({
-        betas: {key: ONYXKEYS.BETAS},
-        session: {key: ONYXKEYS.SESSION},
-    }),
-)(DeeplinkWrapper);
+export default withOnyx({
+    betas: {key: ONYXKEYS.BETAS},
+    session: {key: ONYXKEYS.SESSION},
+})(DeeplinkWrapper);

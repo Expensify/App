@@ -7,6 +7,8 @@ import EmojiReactionBubble from './EmojiReactionBubble';
 import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
 import getPreferredEmojiCode from './getPreferredEmojiCode';
+import Tooltip from '../Tooltip';
+import ReactionTooltipContent from './ReactionTooltipContent';
 
 /**
  * Given an emoji object and a list of senders it will return an
@@ -68,14 +70,23 @@ const ReportActionItemReactions = (props) => {
                 };
 
                 return (
-                    <EmojiReactionBubble
-                        key={reaction.emoji}
-                        count={reactionCount}
-                        emojiName={reaction.emoji}
-                        emojiCodes={emojiCodes}
-                        onPress={onPress}
-                        reactionUsers={reactionUsers}
-                    />
+                    <Tooltip
+                        renderTooltipContent={() => (
+                            <ReactionTooltipContent
+                                emojiName={reaction.emoji}
+                                emojiCodes={emojiCodes}
+                                accountIDs={reactionUsers}
+                            />
+                        )}
+                    >
+                        <EmojiReactionBubble
+                            key={reaction.emoji}
+                            count={reactionCount}
+                            emojiCodes={emojiCodes}
+                            onPress={onPress}
+                            reactionUsers={reactionUsers}
+                        />
+                    </Tooltip>
                 );
             })}
             {reactionsWithCount.length > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}
