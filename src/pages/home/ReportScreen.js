@@ -241,11 +241,7 @@ class ReportScreen extends React.Component {
                     )}
                 >
                     <FullPageNotFoundView
-<<<<<<< HEAD
-                        shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions) || shouldHideReport}
-=======
-                        shouldShow={!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading}
->>>>>>> main
+                        shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading) || shouldHideReport}
                         subtitleKey="notFound.noAccess"
                         shouldShowCloseButton={false}
                         shouldShowBackButton={this.props.isSmallScreenWidth}
