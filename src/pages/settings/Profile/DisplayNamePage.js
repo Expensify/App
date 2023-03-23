@@ -16,6 +16,7 @@ import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
+import * as ErrorUtils from '../../../libs/ErrorUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -58,9 +59,10 @@ class DisplayNamePage extends Component {
 
         // First we validate the first name field
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
-            errors.firstName = this.props.translate('personalDetails.error.hasInvalidCharacter');
-        } else if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
-            errors.firstName = this.props.translate('personalDetails.error.containsReservedWord');
+            ErrorUtils.addErrorMessage(errors, 'firstName', this.props.translate('personalDetails.error.hasInvalidCharacter'));
+        }
+        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
+            ErrorUtils.addErrorMessage(errors, 'firstName', this.props.translate('personalDetails.error.containsReservedWord'));
         }
 
         // Then we validate the last name field

@@ -211,7 +211,7 @@ class ReportActionCompose extends React.Component {
                 return;
             }
 
-            this.updateComment('');
+            this.updateComment('', true);
         }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
 
         this.setMaxLines();
@@ -660,11 +660,6 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
-        // Waiting until ONYX variables are loaded before displaying the component
-        if (_.isEmpty(this.props.personalDetails)) {
-            return null;
-        }
-
         const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
         const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
         const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyEmails[0]];
@@ -841,7 +836,7 @@ class ReportActionCompose extends React.Component {
                                                 }
                                                 this.setState({composerHeight});
                                             }}
-                                            onScroll={this.setShouldShowSuggestionMenuToFalse}
+                                            onScroll={() => this.setShouldShowSuggestionMenuToFalse()}
                                         />
                                     </DragAndDrop>
                                 </View>

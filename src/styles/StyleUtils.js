@@ -7,6 +7,7 @@ import colors from './colors';
 import positioning from './utilities/positioning';
 import styles from './styles';
 import * as ReportUtils from '../libs/ReportUtils';
+import getSafeAreaPaddingTop from '../libs/getSafeAreaPaddingTop';
 
 const workspaceColorOptions = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
@@ -125,11 +126,12 @@ function getDefaultWorspaceAvatarColor(workspaceName) {
  * Takes safe area insets and returns padding to use for a View
  *
  * @param {Object} insets
+ * @param {Boolean} statusBarTranslucent
  * @returns {Object}
  */
-function getSafeAreaPadding(insets) {
+function getSafeAreaPadding(insets, statusBarTranslucent) {
     return {
-        paddingTop: insets.top,
+        paddingTop: getSafeAreaPaddingTop(insets, statusBarTranslucent),
         paddingBottom: insets.bottom * variables.safeInsertPercentage,
         paddingLeft: insets.left * variables.safeInsertPercentage,
         paddingRight: insets.right * variables.safeInsertPercentage,
@@ -904,6 +906,20 @@ function getEmojiReactionCounterTextStyle(hasUserReacted, sizeScale = 1) {
     return sizeStyles;
 }
 
+/**
+ * Returns a style object with a rotation transformation applied based on the provided direction prop.
+ *
+ * @param {string} direction - The direction of the rotation (CONST.DIRECTION.LEFT or CONST.DIRECTION.RIGHT).
+ * @returns {Object}
+ */
+function getDirectionStyle(direction) {
+    if (direction === CONST.DIRECTION.LEFT) {
+        return {transform: [{rotate: '180deg'}]};
+    }
+
+    return {};
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -953,4 +969,5 @@ export {
     getEmojiReactionBubbleStyle,
     getEmojiReactionTextStyle,
     getEmojiReactionCounterTextStyle,
+    getDirectionStyle,
 };
