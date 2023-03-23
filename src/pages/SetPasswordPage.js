@@ -21,7 +21,6 @@ import NewPasswordForm from './settings/NewPasswordForm';
 import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
 import FormSubmit from '../components/FormSubmit';
 import * as ErrorUtils from '../libs/ErrorUtils';
-import OfflineIndicator from '../components/OfflineIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -121,7 +120,6 @@ class SetPasswordPage extends Component {
                             />
                         </View>
                     </FormSubmit>
-                    <OfflineIndicator containerStyles={[styles.mv1]} />
                 </SignInPageLayout>
             </SafeAreaView>
         );
