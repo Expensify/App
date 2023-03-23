@@ -158,6 +158,8 @@ export default {
         redirectedToDesktopApp: 'We\'ve redirected you to the desktop app.',
         youCanAlso: 'You can also',
         openLinkInBrowser: 'open this link in your browser',
+        expired: 'Your session has expired.',
+        signIn: 'Please sign in again.',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\nyou are signed in!',

@@ -157,6 +157,8 @@ export default {
         redirectedToDesktopApp: 'Te hemos redirigido a la aplicación de escritorio.',
         youCanAlso: 'También puedes',
         openLinkInBrowser: 'abrir este enlace en tu navegador',
+        expired: 'Su sesión ha expirado.',
+        signIn: 'Por favor, inicie sesión de nuevo.',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',

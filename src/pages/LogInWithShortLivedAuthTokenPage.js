@@ -1,9 +1,21 @@
 import React, {Component} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
+import Text from '../components/Text';
 import * as Session from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import Navigation from '../libs/Navigation/Navigation';
+import styles from '../styles/styles';
+import colors from '../styles/colors';
+import Icon from '../components/Icon';
+import * as Expensicons from '../components/Icon/Expensicons';
+import * as Illustrations from '../components/Icon/Illustrations';
+import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import compose from '../libs/compose';
+import TextLink from '../components/TextLink';
+import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
@@ -20,6 +32,14 @@ const propTypes = {
             email: PropTypes.string,
         }),
     }).isRequired,
+
+    ...withLocalizePropTypes,
+
+    isValid: PropTypes.bool,
+};
+
+const defaultProps = {
+    isValid: false,
 };
 
 class LogInWithShortLivedAuthTokenPage extends Component {
@@ -41,10 +61,51 @@ class LogInWithShortLivedAuthTokenPage extends Component {
     }
 
     render() {
-        return <FullScreenLoadingIndicator />;
+        if (this.props.isValid) {
+            return <FullScreenLoadingIndicator />;
+        }
+        return (
+            <View style={styles.deeplinkWrapperContainer}>
+                <View style={styles.deeplinkWrapperMessage}>
+                    <View style={styles.mb2}>
+                        <Icon
+                            width={200}
+                            height={164}
+                            src={Illustrations.RocketBlue}
+                        />
+                    </View>
+                    <Text style={[styles.textHeadline, styles.textXXLarge]}>
+                        {this.props.translate('deeplinkWrapper.launching')}
+                    </Text>
+                    <View style={styles.mt2}>
+                        <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
+                            {this.props.translate('deeplinkWrapper.expired')}
+                            {' '}
+                            <TextLink onPress={() => Navigation.navigate()}>
+                                {this.props.translate('deeplinkWrapper.signIn')}
+                            </TextLink>
+                        </Text>
+                    </View>
+                </View>
+                <View style={styles.deeplinkWrapperFooter}>
+                    <Icon
+                        width={154}
+                        height={34}
+                        fill={colors.green}
+                        src={Expensicons.ExpensifyWordmark}
+                    />
+                </View>
+            </View>
+        );
     }
 }
 
 LogInWithShortLivedAuthTokenPage.propTypes = propTypes;
+LogInWithShortLivedAuthTokenPage.defaultProps = defaultProps;
 
-export default LogInWithShortLivedAuthTokenPage;
+export default compose(
+    withLocalize,
+    withOnyx({
+        isValid: {key: ONYXKEYS.TOKEN_IS_VALID},
+    }),
+)(LogInWithShortLivedAuthTokenPage);
