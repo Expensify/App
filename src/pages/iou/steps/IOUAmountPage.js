@@ -36,17 +36,18 @@ const propTypes = {
 
     /** Holds data related to IOU view state, rather than the underlying IOU data. */
     iou: PropTypes.shape({
-
-        /** Whether or not the IOU step is loading (retrieving users preferred currency) */
-        loading: PropTypes.bool,
-
         /** Selected Currency Code of the current IOU */
         selectedCurrencyCode: PropTypes.string,
-    }).isRequired,
+    }),
 
     ...withLocalizePropTypes,
 };
 
+const defaultProps = {
+    iou: {
+        selectedCurrencyCode: CONST.CURRENCY.USD,
+    },
+};
 class IOUAmountPage extends React.Component {
     constructor(props) {
         super(props);
@@ -179,6 +180,8 @@ class IOUAmountPage extends React.Component {
      * @param {String} key
      */
     updateAmountNumberPad(key) {
+        this.focusTextInput();
+
         // Backspace button is pressed
         if (key === '<' || key === 'Backspace') {
             if (this.state.amount.length > 0) {
@@ -270,7 +273,7 @@ class IOUAmountPage extends React.Component {
                         placeholder={this.props.numberFormat(0)}
                         preferredLocale={this.props.preferredLocale}
                         ref={el => this.textInput = el}
-                        selectedCurrencyCode={this.props.iou.selectedCurrencyCode || CONST.CURRENCY.USD}
+                        selectedCurrencyCode={this.props.iou.selectedCurrencyCode}
                         selection={this.state.selection}
                         onSelectionChange={(e) => {
                             if (!this.state.shouldUpdateSelection) {
@@ -304,6 +307,7 @@ class IOUAmountPage extends React.Component {
 }
 
 IOUAmountPage.propTypes = propTypes;
+IOUAmountPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,

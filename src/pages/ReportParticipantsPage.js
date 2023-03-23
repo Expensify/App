@@ -27,7 +27,7 @@ const propTypes = {
     /* Onyx Props */
 
     /** The personal details of the person who is logged in */
-    personalDetails: personalDetailsPropType.isRequired,
+    personalDetails: personalDetailsPropType,
 
     /** The active report */
     report: reportPropTypes.isRequired,
@@ -41,6 +41,10 @@ const propTypes = {
     }).isRequired,
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    personalDetails: {},
 };
 
 /**
@@ -119,6 +123,7 @@ const ReportParticipantsPage = (props) => {
 };
 
 ReportParticipantsPage.propTypes = propTypes;
+ReportParticipantsPage.defaultProps = defaultProps;
 ReportParticipantsPage.displayName = 'ReportParticipantsPage';
 
 export default compose(

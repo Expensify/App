@@ -3037,7 +3037,7 @@ const styles = {
         justifyContent: 'space-between',
     },
 
-    magicCodeDigits: {
+    validateCodeDigits: {
         color: themeColors.text,
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeXXLarge,
@@ -3096,6 +3096,11 @@ const styles = {
         alignSelf: 'center',
         top: 60,
         zIndex: 100,
+    },
+
+    validateCodeMessage: {
+        width: variables.modalContentMaxWidth,
+        textAlign: 'center',
     },
 };
 
