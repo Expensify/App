@@ -1023,6 +1023,7 @@ export default {
             nameIsRequiredError: 'You need to define a name for your workspace.',
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
+            currencyInputDisabledText: 'The default currency cannot be changed because this workspace is linked to a business bank account.',
             save: 'Save',
             genericFailureMessage: 'An error occurred updating the workspace, please try again.',
             avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',

@@ -135,7 +135,11 @@ class WorkspaceSettingsPage extends React.Component {
                                     items={this.getCurrencyItems()}
                                     isDisabled={hasVBA}
                                     defaultValue={this.props.policy.outputCurrency}
-                                    hintText={this.props.translate('workspace.editor.currencyInputHelpText')}
+                                    hintText={
+                                        hasVBA
+                                            ? this.props.translate('workspace.editor.currencyInputDisabledText')
+                                            : this.props.translate('workspace.editor.currencyInputHelpText')
+                                    }
                                 />
                             </View>
                         </OfflineWithFeedback>
