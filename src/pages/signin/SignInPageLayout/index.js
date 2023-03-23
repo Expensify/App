@@ -18,7 +18,6 @@ import themeColors from '../../../styles/themes/default';
 // import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_background-fade.png';
 import SignInHeroBackgroundImage from '../../../../assets/images/home-background--desktop.svg';
 import SignInHeroBackgroundImageMobile from '../../../../assets/images/home-background--mobile.svg';
-import SignInHeroImage from '../SignInHeroImage';
 import variables from '../../../styles/variables';
 
 const propTypes = {
@@ -130,9 +129,6 @@ const SignInPageLayout = (props) => {
                             >
                                 {props.children}
                             </SignInPageContent>
-                            <View style={[styles.flex1, {width: props.windowWidth}]}>
-                                <SignInHeroImage />
-                            </View>
                         </View>
                         <View style={[styles.flex0]}>
                             <Footer />

@@ -10,26 +10,32 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const SignInHeroImage = props => (
-    <View style={[{backgroundColor: 'transparent'}, styles.alignSelfCenter, styles.flex1, props.isSmallScreenWidth
-        ? {
-            width: props.windowHeight > variables.signInContentMinHeight ? props.windowWidth : 387,
-            height: props.windowHeight > variables.signInContentMinHeight ? props.windowWidth : 387,
-        } : {width: 387}]}
-    >
-        {props.isSmallScreenWidth ? (
-            <Illustrations.HandsMobile
-                width="100%"
-                height="100%"
-            />
-        ) : (
-            <Illustrations.HandsDesktop
-                width="100%"
-                height="100%"
-            />
-        )}
-    </View>
-);
+const SignInHeroImage = (props) => {
+    let imageWidth;
+    if (props.isSmallScreenWidth) {
+        imageWidth = 303;
+    } else if (props.isMediumScreenWidth) {
+        imageWidth = 347;
+    } else {
+        imageWidth = 387;
+    }
+
+    return (
+        <View style={[{backgroundColor: 'transparent'}, styles.alignSelfCenter, styles.flex1, {width: imageWidth}]}>
+            {props.isSmallScreenWidth ? (
+                <Illustrations.HandsMobile
+                    width="100%"
+                    height="100%"
+                />
+            ) : (
+                <Illustrations.HandsDesktop
+                    width="100%"
+                    height="100%"
+                />
+            )}
+        </View>
+    );
+};
 
 SignInHeroImage.displayName = 'SignInHeroImage';
 SignInHeroImage.propTypes = propTypes;

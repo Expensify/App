@@ -27,7 +27,7 @@ const SignInHeroCopy = props => (
             {props.translate('login.hero.header')}
         </Text>
         <Text style={[styles.loginHeroBody, props.isMediumScreenWidth ? {fontSize: 20} : {}]}>
-            {props.translate('login.hero.body')}
+            {!props.isSmallScreenWidth ? props.translate('login.hero.body') : {}}
         </Text>
     </View>
 );

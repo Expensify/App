@@ -188,12 +188,16 @@ export default {
     hello: 'Hola',
     phoneCountryCode: '34',
     welcomeText: {
+        header: {
+            phrase1: '',
+            phrase2: '',
+        },
         welcome: 'Con el Nuevo Expensify, chat y pagos son lo mismo.',
         welcomeEnterMagicCode: ({login}) => `¡Siempre es genial ver una cara nueva por aquí! Por favor ingresa el código mágico enviado a ${login}`,
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
         welcomeBack: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, introduce tu contraseña.',
-        welcomeBackEnterMagicCode: ({login}) => `¡Bienvenido de nuevo! Por favor, introduce el código mágico enviado a ${login}`,
+        welcomeBackEnterMagicCode: ({login}) => `Por favor, introduce el código mágico enviado a ${login}`,
     },
     login: {
         hero: {
