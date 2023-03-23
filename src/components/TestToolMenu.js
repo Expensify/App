@@ -15,6 +15,7 @@ import networkPropTypes from './networkPropTypes';
 import compose from '../libs/compose';
 import {withNetwork} from './OnyxProvider';
 import * as ApiUtils from '../libs/ApiUtils';
+import CONFIG from '../CONFIG';
 
 const propTypes = {
     /** User object in Onyx */
@@ -43,7 +44,7 @@ const TestToolMenu = props => (
 
         {/* Option to switch between staging and default api endpoints.
         This enables QA and internal testers to take advantage of sandbox environments for 3rd party services like Plaid and Onfido. */}
-        <TestToolRow title="Use Staging Server">
+        <TestToolRow title="Use Staging Server" isHidden={CONFIG.IS_USING_LOCAL_WEB}>
             <Switch
                 isOn={lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi())}
                 onToggle={() => User.setShouldUseStagingServer(
