@@ -34,7 +34,7 @@ const propTypes = {
     autoComplete: PropTypes.oneOf(['sms-otp', 'one-time-code']).isRequired,
 
     /* Should submit when the input is complete */
-    submitOnComplete: PropTypes.bool,
+    shouldSubmitOnComplete: PropTypes.bool,
 
     /** Id to use for this button */
     nativeID: PropTypes.string,
@@ -53,7 +53,7 @@ const defaultProps = {
     shouldDelayFocus: false,
     forwardedRef: undefined,
     errorText: '',
-    submitOnComplete: true,
+    shouldSubmitOnComplete: true,
     nativeID: '',
     onChange: () => {},
     onSubmit: () => {},
@@ -162,7 +162,7 @@ class MagicCodeInput extends React.PureComponent {
             const finalInput = this.composeToString(this.state.numbers);
             this.props.onChange(finalInput);
 
-            if (this.props.submitOnComplete && finalInput.length === CONST.MAGIC_CODE_LENGTH) {
+            if (this.props.shouldSubmitOnComplete && finalInput.length === CONST.MAGIC_CODE_LENGTH) {
                 this.props.onSubmit(finalInput);
             }
         });

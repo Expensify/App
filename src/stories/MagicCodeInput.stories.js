@@ -28,7 +28,7 @@ const SubmitOnComplete = Template.bind({});
 SubmitOnComplete.args = {
     label: 'Submits when the magic code input is complete',
     name: 'SubmitOnComplete',
-    submitOnComplete: true,
+    shouldSubmitOnComplete: true,
     onSubmit: () => console.debug('Submitted!'),
 };
 
