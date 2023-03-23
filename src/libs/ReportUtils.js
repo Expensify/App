@@ -571,6 +571,11 @@ function getSmallSizeAvatar(avatarURL, login) {
         return source;
     }
 
+    // If image source is not part of CloudFront, the given avatar URL is already what we want to use here.
+    if (!new RegExp(CONST.CLOUDFRONT_REGEX_STRING).test(avatarURL)) {
+    	return source;
+    }
+
     // If image source already has _128 at the end, the given avatar URL is already what we want to use here.
     const lastPeriodIndex = source.lastIndexOf('.');
     if (source.substring(lastPeriodIndex - 4, lastPeriodIndex) === '_128') {
