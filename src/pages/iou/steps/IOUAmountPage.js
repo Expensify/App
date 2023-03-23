@@ -52,14 +52,15 @@ class IOUAmountPage extends React.Component {
         super(props);
 
         this.updateAmountNumberPad = this.updateAmountNumberPad.bind(this);
+        this.updateLongPressHandlerState = this.updateLongPressHandlerState.bind(this);
         this.updateAmount = this.updateAmount.bind(this);
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
         this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
-        this.shouldUpdateSelection = true;
 
         this.state = {
             amount: props.selectedAmount,
+            shouldUpdateSelection: true,
             selection: {
                 start: props.selectedAmount.length,
                 end: props.selectedAmount.length,
@@ -178,6 +179,8 @@ class IOUAmountPage extends React.Component {
      * @param {String} key
      */
     updateAmountNumberPad(key) {
+        this.focusTextInput();
+
         // Backspace button is pressed
         if (key === '<' || key === 'Backspace') {
             if (this.state.amount.length > 0) {
@@ -194,6 +197,15 @@ class IOUAmountPage extends React.Component {
             const amount = this.addLeadingZero(`${prevState.amount.substring(0, prevState.selection.start)}${key}${prevState.amount.substring(prevState.selection.end)}`);
             return this.getNewState(prevState, amount);
         });
+    }
+
+    /**
+     * Update long press value, to remove items pressing on <
+     *
+     * @param {Boolean} value - Changed text from user input
+     */
+    updateLongPressHandlerState(value) {
+        this.setState({shouldUpdateSelection: !value});
     }
 
     /**
@@ -263,7 +275,7 @@ class IOUAmountPage extends React.Component {
                         selectedCurrencyCode={this.props.iou.selectedCurrencyCode || CONST.CURRENCY.USD}
                         selection={this.state.selection}
                         onSelectionChange={(e) => {
-                            if (!this.shouldUpdateSelection) {
+                            if (!this.state.shouldUpdateSelection) {
                                 return;
                             }
                             this.setState({selection: e.nativeEvent.selection});
@@ -275,7 +287,7 @@ class IOUAmountPage extends React.Component {
                         ? (
                             <BigNumberPad
                                 numberPressed={this.updateAmountNumberPad}
-                                longPressHandlerStateChanged={state => this.shouldUpdateSelection = !state}
+                                longPressHandlerStateChanged={this.updateLongPressHandlerState}
                             />
                         ) : <View />}
 

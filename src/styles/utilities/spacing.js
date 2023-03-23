@@ -141,6 +141,10 @@ export default {
         marginLeft: 40,
     },
 
+    ml18: {
+        marginLeft: 72,
+    },
+
     mln5: {
         marginLeft: -20,
     },
@@ -199,10 +203,6 @@ export default {
 
     mb6: {
         marginBottom: 24,
-    },
-
-    mb7: {
-        marginBottom: 28,
     },
 
     mb8: {
