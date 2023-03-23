@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {PureComponent} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import PropTypes from 'prop-types';
 import RNPickerSelect from 'react-native-picker-select';
 import Icon from '../Icon';
@@ -172,6 +172,18 @@ class Picker extends PureComponent {
     render() {
         const hasError = !_.isEmpty(this.props.errorText);
 
+        const inputRefs = Platform.OS === 'web' ? {
+            // Forward the inner ref to the picker component on Web, as on the Web:
+            // - focusing any input un-focuses other inputs
+            // - focusing doesn't open the picker (which we don't want)
+            // - it improves accessibility
+            pickerRef: this.props.innerRef,
+        } : {
+            // On other platforms forward the ref to the internal text input, as text inputs share the global focus
+            // state
+            textInputRef: this.props.innerRef,
+        };
+
         return (
             <>
                 <View
@@ -204,8 +216,12 @@ class Picker extends PureComponent {
                         fixAndroidTouchableBug
                         onOpen={this.enableHighlight}
                         onClose={this.disableHighlight}
-                        textInputProps={{allowFontScaling: false}}
+                        textInputProps={{
+                            ref: inputRefs.textInputRef,
+                            allowFontScaling: false,
+                        }}
                         pickerProps={{
+                            ref: inputRefs.pickerRef,
                             onFocus: this.enableHighlight,
                             onBlur: () => {
                                 this.disableHighlight();
@@ -218,12 +234,6 @@ class Picker extends PureComponent {
                                     this.disableHighlight();
                                 },
                             ),
-                        }}
-                        ref={(el) => {
-                            if (!_.isFunction(this.props.innerRef)) {
-                                return;
-                            }
-                            this.props.innerRef(el);
                         }}
                         scrollViewRef={this.context && this.context.scrollViewRef}
                         scrollViewContentOffsetY={this.context && this.context.contentOffsetY}
