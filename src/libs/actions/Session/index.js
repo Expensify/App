@@ -17,6 +17,7 @@ import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
 import * as Report from '../Report';
 import DateUtils from '../../DateUtils';
+import Navigation from '../../Navigation/Navigation';
 
 let credentials = {};
 Onyx.connect({
