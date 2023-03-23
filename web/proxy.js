@@ -31,10 +31,10 @@ const server = http.createServer((request, response) => {
      * the actual server request must use the /api path.
      * For example,
      * /api?command=OpenReport => request sent to production server
-     * /staging-api?command=OpenReport => request sent to staging server
-     * /staging-secure-api?command=OpenReport => request sent to secure staging server
+     * /staging/api?command=OpenReport => request sent to staging server
+     * /staging-secure/api?command=OpenReport => request sent to secure staging server
      * /chat-attachments/46545... => request sent to production server
-     * /staging-chat-attachments/46545... => request sent to staging server
+     * /staging/chat-attachments/46545... => request sent to staging server
      */
     if (request.url.startsWith(proxyConfig.STAGING_SECURE)) {
         hostname = stagingSecureHost;
