@@ -281,8 +281,10 @@ class Form extends React.Component {
                 value: this.state.inputValues[inputID],
                 errorText: this.state.errors[inputID] || fieldErrorMessage,
                 onBlur: () => {
-                    this.setTouchedInput(inputID);
-                    this.validate(this.state.inputValues);
+                    setTimeout(() => {
+                        this.setTouchedInput(inputID);
+                        this.validate(this.state.inputValues);
+                    }, 100);
                 },
                 onInputChange: (value, key) => {
                     const inputKey = key || inputID;
