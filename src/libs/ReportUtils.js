@@ -21,6 +21,7 @@ import linkingConfig from './Navigation/linkingConfig';
 import * as defaultAvatars from '../components/Icon/DefaultAvatars';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
+import * as CollectionUtils from './CollectionUtils';
 
 let sessionEmail;
 Onyx.connect({
@@ -69,6 +70,18 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: val => allReports = val,
+});
+
+const lastReportActions = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    callback: (actions, key) => {
+        if (!key || !actions) {
+            return;
+        }
+        const reportID = CollectionUtils.extractCollectionItemID(key);
+        lastReportActions[reportID] = _.first(ReportActionsUtils.getSortedReportActionsForDisplay(_.toArray(actions)));
+    },
 });
 
 let doesDomainHaveApprovedAccountant;
@@ -432,6 +445,19 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
         && reportRecipientTimezone
         && reportRecipientTimezone.selected
         && isReportParticipantValidated);
+}
+
+/**
+ * @param {Object} report
+ * @returns {String}
+ */
+function getLastMessageText(report) {
+    const lastReportAction = lastReportActions[report.reportID];
+    const lastReportActionText = lodashGet(lastReportAction, 'message[0].text', report.lastMessageText);
+    const lastReportActionHtml = lodashGet(lastReportAction, 'message[0].html', report.lastMessageHtml);
+    return isReportMessageAttachment({text: lastReportActionText, html: lastReportActionHtml})
+        ? `[${Localize.translateLocal('common.attachment')}]`
+        : Str.htmlDecode(lastReportActionText);
 }
 
 /**
@@ -1669,6 +1695,7 @@ export {
     isIOUOwnedByCurrentUser,
     getIOUTotal,
     canShowReportRecipientLocalTime,
+    getLastMessageText,
     formatReportLastMessageText,
     chatIncludesConcierge,
     isPolicyExpenseChat,
