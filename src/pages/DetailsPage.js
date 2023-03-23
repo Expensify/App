@@ -1,6 +1,7 @@
 import React from 'react';
 import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
@@ -101,7 +102,7 @@ class DetailsPage extends React.PureComponent {
 
         return (
             <ScreenWrapper>
-                <FullPageNotFoundView shouldShow={!Boolean(login)}>
+                <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
                     <HeaderWithCloseButton
                         title={this.props.translate('common.details')}
                         shouldShowBackButton={shouldShowBackButton}
