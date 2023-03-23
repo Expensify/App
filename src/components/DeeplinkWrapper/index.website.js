@@ -15,7 +15,10 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 
     /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+    betas: PropTypes.arrayOf(PropTypes.string),
+};
+const defaultProps = {
+    betas: [],
 };
 
 class DeeplinkWrapper extends PureComponent {
@@ -109,6 +112,7 @@ class DeeplinkWrapper extends PureComponent {
 }
 
 DeeplinkWrapper.propTypes = propTypes;
+DeeplinkWrapper.defaultProps = defaultProps;
 export default withOnyx({
     betas: {key: ONYXKEYS.BETAS},
 })(DeeplinkWrapper);
