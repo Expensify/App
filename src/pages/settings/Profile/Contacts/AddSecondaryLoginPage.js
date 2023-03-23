@@ -134,7 +134,7 @@ class AddSecondaryLoginPage extends Component {
                             keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
                                 ? CONST.KEYBOARD_TYPE.PHONE_PAD : CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                             returnKeyType="done"
-                            autoComplete="tel"
+                            autoComplete={this.formType === CONST.LOGIN_TYPE.PHONE ? 'tel' : 'email'}
                         />
                     </View>
                     {!Permissions.canUsePasswordlessLogins(this.props.betas) && (
