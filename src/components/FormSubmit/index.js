@@ -3,6 +3,7 @@ import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import * as formSubmitPropTypes from './formSubmitPropTypes';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
+import CONST from '../../CONST';
 
 // This is a wrapper component to handle the ENTER key press, and submit the form.
 class FormSubmit extends React.Component {
