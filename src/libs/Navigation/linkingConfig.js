@@ -16,6 +16,7 @@ export default {
         screens: {
             [SCREENS.HOME]: {
                 path: ROUTES.HOME,
+
                 // initialRouteName: SCREENS.REPORT,
                 // screens: {
                 //     // Report route
@@ -30,7 +31,11 @@ export default {
             ValidateLogin: ROUTES.VALIDATE_LOGIN,
             [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
             Concierge: ROUTES.CONCIERGE,
-            [SCREENS.NOT_FOUND]: '*',
+            FullScreenModalStack: {
+                screens: {
+                    [SCREENS.NOT_FOUND]: '*',
+                },
+            },
 
             // Modal Screens
             RightModalStack: {

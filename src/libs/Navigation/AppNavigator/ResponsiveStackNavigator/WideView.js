@@ -4,6 +4,7 @@ import {
     View, Pressable, StyleSheet,
 } from 'react-native';
 import SCREENS from '../../../../SCREENS';
+import { StackView } from '@react-navigation/stack';
 
 const RIGHT_PANEL_WIDTH = 375;
 const LEFT_PANEL_WIDTH = 350;
@@ -94,6 +95,7 @@ const WideView = (props) => {
                 }
                 return (
                     <View key={route.key} style={styles.fullScreen}>
+                    <StackView/>
                         {props.descriptors[route.key].render()}
                     </View>
                 );

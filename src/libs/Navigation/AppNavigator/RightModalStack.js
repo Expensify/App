@@ -84,6 +84,12 @@ function RigthModalStack() {
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.WalletStatementStackNavigator}
             />
+            <RootStack.Screen
+                name="Select_Year"
+                options={modalScreenOptions}
+                component={ModalStackNavigators.YearPickerStackNavigator}
+                listeners={modalScreenListeners}
+            />
         </RootStack.Navigator>
     );
 }
