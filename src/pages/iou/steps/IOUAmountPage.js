@@ -192,7 +192,6 @@ class IOUAmountPage extends React.Component {
         }
 
         this.focusTextInput();
-
         this.setState((prevState) => {
             const amount = this.addLeadingZero(`${prevState.amount.substring(0, prevState.selection.start)}${key}${prevState.amount.substring(prevState.selection.end)}`);
             return this.getNewState(prevState, amount);
