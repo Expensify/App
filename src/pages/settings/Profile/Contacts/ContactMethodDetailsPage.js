@@ -203,6 +203,7 @@ class ContactMethodDetailsPage extends Component {
                                     onPress={this.validateContactMethod}
                                     style={[styles.mt4]}
                                     success
+                                    pressOnEnter
                                 />
                             </OfflineWithFeedback>
                         </View>
