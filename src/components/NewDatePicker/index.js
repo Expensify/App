@@ -9,8 +9,10 @@ import styles from '../../styles/styles';
 import * as Expensicons from '../Icon/Expensicons';
 import {propTypes as datePickerPropTypes, defaultProps as defaultDatePickerProps} from './datePickerPropTypes';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
+    ...withLocalizePropTypes,
     ...datePickerPropTypes,
 };
 
@@ -127,7 +129,7 @@ class NewDatePicker extends React.Component {
                         label={this.props.label}
                         value={this.props.value || ''}
                         defaultValue={this.defaultValue}
-                        placeholder={this.props.placeholder || CONST.DATE.MOMENT_FORMAT_STRING}
+                        placeholder={this.props.placeholder || this.props.translate('common.dateFormat')}
                         errorText={this.props.errorText}
                         containerStyles={this.props.containerStyles}
                         textInputContainerStyles={this.state.isPickerVisible ? [styles.borderColorFocus] : []}
@@ -162,7 +164,8 @@ class NewDatePicker extends React.Component {
 NewDatePicker.propTypes = propTypes;
 NewDatePicker.defaultProps = datePickerDefaultProps;
 
-export default React.forwardRef((props, ref) => (
+export default
+withLocalize(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <NewDatePicker {...props} innerRef={ref} />
-));
+)));
