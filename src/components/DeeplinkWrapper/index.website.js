@@ -16,8 +16,6 @@ const propTypes = {
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
