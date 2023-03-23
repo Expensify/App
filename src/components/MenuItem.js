@@ -18,6 +18,7 @@ import colors from '../styles/colors';
 import variables from '../styles/variables';
 import MultipleAvatars from './MultipleAvatars';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
+import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 
 const propTypes = {
     ...menuItemPropTypes,
@@ -45,6 +46,7 @@ const defaultProps = {
     subtitle: undefined,
     iconType: CONST.ICON_TYPE_ICON,
     onPress: () => {},
+    onSecondaryInteraction: () => {},
     interactive: true,
     fallbackIcon: Expensicons.FallbackAvatar,
     brickRoadIndicator: '',
@@ -72,7 +74,15 @@ const MenuItem = (props) => {
             key={item.translationKey}
             onPressIn={() => props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
-            onSecondaryInteraction={e => showPopover(e, item.link)}
+            onSecondaryInteraction={(e) => {
+            if (props.disabled) {
+                return;
+            }
+                if (e && e.type === 'click') {
+                e.currentTarget.blur();
+            }
+                props.onSecondaryInteraction(e);
+            }}
             ref={el => popoverAnchor = el}
             onKeyDown={(event) => {
                 event.target.blur();

@@ -17,6 +17,9 @@ const propTypes = {
     /** Function to fire when component is pressed */
     onPress: PropTypes.func,
 
+    /** Function to fire when component is long pressed/right clicked */
+    onSecondaryInteraction: PropTypes.func,
+
     /** Icon to display on the left side of component */
     icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
 
