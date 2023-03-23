@@ -54,8 +54,28 @@ function getLatestErrorMessage(onyxData) {
         .value();
 }
 
+/**
+ * Method used to generate error message for given inputID
+ * @param {Object} errors - An object containing current errors in the form
+ * @param {String} inputID
+ * @param {String} message - Message to assign to the inputID errors
+ *
+ */
+function addErrorMessage(errors, inputID, message) {
+    const errorList = errors;
+    if (!message || !inputID) {
+        return;
+    }
+    if (_.isEmpty(errorList[inputID])) {
+        errorList[inputID] = message;
+    } else {
+        errorList[inputID] = `${errorList[inputID]}\n${message}`;
+    }
+}
+
 export {
     // eslint-disable-next-line import/prefer-default-export
     getAuthenticateErrorMessage,
     getLatestErrorMessage,
+    addErrorMessage,
 };

@@ -20,7 +20,7 @@ export default {
     BANK_ACCOUNT: 'bank-account',
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: 'bank-account/:stepToOpen?',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
-    getBankAccountRoute: (stepToOpen = '') => `bank-account/${stepToOpen}`,
+    getBankAccountRoute: (stepToOpen = '', policyID = '') => `bank-account/${stepToOpen}?policyID=${policyID}`,
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
@@ -56,6 +56,8 @@ export default {
     REPORT,
     REPORT_WITH_ID: 'r/:reportID',
     getReportRoute: reportID => `r/${reportID}`,
+    SELECT_YEAR: 'select-year',
+    getYearSelectionRoute: (minYear, maxYear, currYear, backTo) => `select-year?min=${minYear}&max=${maxYear}&year=${currYear}&backTo=${backTo}`,
 
     /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
     CONCIERGE: 'concierge',
@@ -136,7 +138,7 @@ export default {
      */
     parseReportRouteParams: (route) => {
         if (!route.startsWith(Url.addTrailingForwardSlash(REPORT))) {
-            return {};
+            return {reportID: '', isSubReportPageRoute: false};
         }
 
         const pathSegments = route.split('/');
