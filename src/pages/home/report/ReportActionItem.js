@@ -38,7 +38,6 @@ import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnima
 import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosOOOListActions';
 import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
 import * as Report from '../../../libs/actions/Report';
-import withKeyboardState from '../../../components/withKeyboardState';
 import {withActionSheetAwareScrollViewContext} from '../../../components/ActionSheetAwareScrollView';
 
 const propTypes = {
@@ -341,7 +340,6 @@ ReportActionItem.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withNetwork(),
-    withKeyboardState,
     withBlockedFromConcierge({propName: 'blockedFromConcierge'}),
     withReportActionsDrafts({
         propName: 'draftMessage',

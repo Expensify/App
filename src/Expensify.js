@@ -218,6 +218,7 @@ class Expensify extends PureComponent {
                         ) : null}
                     </>
                 )}
+
                 <NavigationRoot
                     onReady={this.setNavigationReady}
                     authenticated={this.isAuthenticated()}

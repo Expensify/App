@@ -161,9 +161,7 @@ class ReportActionsList extends React.Component {
         const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.newMarkerReportActionID : undefined;
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
         return (
-            <Animated.View
-                style={[StyleUtils.fade(this.state.fadeInAnimation), styles.flex1]}
-            >
+            <Animated.View style={[StyleUtils.fade(this.state.fadeInAnimation), styles.flex1]}>
                 <InvertedFlatList
                     accessibilityLabel="List of chat messages"
                     ref={ReportScrollManager.flatListRef}
