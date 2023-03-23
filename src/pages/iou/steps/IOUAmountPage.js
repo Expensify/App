@@ -190,6 +190,7 @@ class IOUAmountPage extends React.Component {
             }
             return;
         }
+
         this.focusTextInput();
 
         this.setState((prevState) => {
