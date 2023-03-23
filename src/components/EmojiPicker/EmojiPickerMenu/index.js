@@ -505,6 +505,7 @@ class EmojiPickerMenu extends Component {
                                 styles.dFlex,
                                 styles.alignItemsCenter,
                                 styles.justifyContentCenter,
+                                styles.flexGrow1,
                                 this.isMobileLandscape() && styles.emojiPickerListLandscape,
                             ]}
                         >
