@@ -37,10 +37,10 @@ const propTypes = {
 
     ...withLocalizePropTypes,
 };
-const defaultProps = {policyName: ''};
 
 const defaultProps = {
     user: {},
+    policyName: '',
 };
 
 const EnableStep = (props) => {

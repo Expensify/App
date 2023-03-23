@@ -24,7 +24,19 @@ const propTypes = {
     /** The ID of the account to which the code belongs. */
     accountID: PropTypes.string.isRequired,
 
+    /** Session of currently logged in user */
+    session: PropTypes.shape({
+        /** Currently logged in user authToken */
+        authToken: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    session: {
+        authToken: null,
+    },
 };
 
 class ValidateCodeModal extends PureComponent {
@@ -88,6 +100,7 @@ class ValidateCodeModal extends PureComponent {
 }
 
 ValidateCodeModal.propTypes = propTypes;
+ValidateCodeModal.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
