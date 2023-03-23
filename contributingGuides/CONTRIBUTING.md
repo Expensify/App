@@ -111,7 +111,7 @@ Additionally if you want to discuss an idea with the open source community witho
 3. If you cannot reproduce the problem, pause on this step and add a comment to the issue explaining where you are stuck or that you don't think the issue can be reproduced.
 
 #### Propose a solution for the job
-4. Do not propose solutions to jobs until the `External` or `Help Wanted` label has been applied. Any proposals submitted before these labels are added will not be reviewed. 
+4. Do not propose solutions to jobs until the `Help Wanted` label has been applied. Any proposals submitted before these labels are added will not be reviewed. 
 5. After you reproduce the issue, complete the [proposal template here](./PROPOSAL_TEMPLATE.md) and post it as a comment in the corresponding GitHub issue (linked in the Upwork job).
     - Note: Before submitting a proposal on an issue, be sure to read any other existing proposals. ALL NEW PROPOSALS MUST BE DIFFERENT FROM EXISTING PROPOSALS. The *difference* should be important, meaningful or considerable.
 6. Refrain from leaving additional comments until someone from the Contributor-Plus team and / or someone from Expensify provides feedback on your proposal (do not create a pull request yet).

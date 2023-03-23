@@ -35,6 +35,7 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import * as Link from '../../libs/actions/Link';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import * as UserUtils from '../../libs/UserUtils';
+import policyMemberPropType from '../policyMemberPropType';
 
 const propTypes = {
     /* Onyx Props */
@@ -90,6 +91,9 @@ const propTypes = {
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
+    /** List of policy members */
+    policyMembers: PropTypes.objectOf(policyMemberPropType),
+
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -102,6 +106,9 @@ const defaultProps = {
     },
     betas: [],
     walletTerms: {},
+    bankAccountList: {},
+    cardList: {},
+    policyMembers: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 

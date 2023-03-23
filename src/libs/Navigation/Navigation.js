@@ -171,6 +171,19 @@ function navigate(route = ROUTES.HOME) {
 }
 
 /**
+ * Update route params for the specified route.
+ *
+ * @param {Object} params
+ * @param {String} routeKey
+ */
+function setParams(params, routeKey) {
+    navigationRef.current.dispatch({
+        ...CommonActions.setParams(params),
+        source: routeKey,
+    });
+}
+
+/**
  * Dismisses a screen presented modally and returns us back to the previous view.
  *
  * @param {Boolean} [shouldOpenDrawer]
@@ -286,6 +299,7 @@ function setIsReportScreenIsReady() {
 export default {
     canNavigate,
     navigate,
+    setParams,
     dismissModal,
     isActiveRoute,
     getActiveRoute,
