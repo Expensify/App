@@ -65,7 +65,7 @@ const BaseAnchorForCommentsOnly = (props) => {
             onPressIn={props.onPressIn}
             onPressOut={props.onPressOut}
         >
-            <Tooltip containerStyles={[styles.dInline]} text={Str.isValidEmailMarkdown(props.displayName) ? '' : props.href}>
+            <Tooltip containerStyles={[styles.dInline]} text={props.href}>
                 <Text
                     ref={el => linkRef = el}
                     style={StyleSheet.flatten([props.style, defaultTextStyle])}
