@@ -18,6 +18,7 @@ import TextInput from '../../components/TextInput';
 import * as Wallet from '../../libs/actions/Wallet';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 import AddressForm from '../ReimbursementAccount/AddressForm';
 import DatePicker from '../../components/DatePicker';
 import Form from '../../components/Form';
@@ -125,11 +126,9 @@ class AdditionalDetailsStep extends React.Component {
         }
 
         if (!ValidationUtils.isValidPastDate(values[INPUT_IDS.DOB])) {
-            errors[INPUT_IDS.DOB] = this.props.translate(this.errorTranslationKeys.dob);
-        }
-
-        if (!ValidationUtils.meetsAgeRequirements(values[INPUT_IDS.DOB])) {
-            errors[INPUT_IDS.DOB] = this.props.translate(this.errorTranslationKeys.age);
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, this.props.translate(this.errorTranslationKeys.dob));
+        } else if (!ValidationUtils.meetsAgeRequirements(values[INPUT_IDS.DOB])) {
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, this.props.translate(this.errorTranslationKeys.age));
         }
 
         if (!ValidationUtils.isValidAddress(values[INPUT_IDS.ADDRESS.street]) || _.isEmpty(values[INPUT_IDS.ADDRESS.street])) {
