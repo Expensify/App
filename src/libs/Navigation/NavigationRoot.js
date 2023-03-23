@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import PropTypes from 'prop-types';
 import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
 import {useFlipper} from '@react-navigation/devtools';
@@ -53,6 +53,15 @@ function parseAndLogRoute(state) {
 
 const NavigationRoot = (props) => {
     useFlipper(navigationRef);
+    const stateRef = useRef(null);
+
+    const handleStateChange = (state) => {
+        stateRef.current = state;
+        parseAndLogRoute(state);
+    };
+
+    const handleInitialState = () => stateRef.current;
+
     return (
         <NavigationContainer
             key={props.isSmallScreenWidth ? 'small' : 'big'}
@@ -61,7 +70,8 @@ const NavigationRoot = (props) => {
                     style={styles.navigatorFullScreenLoading}
                 />
             )}
-            onStateChange={parseAndLogRoute}
+            onStateChange={handleStateChange}
+            initialState={handleInitialState()}
             onReady={props.onReady}
             theme={navigationTheme}
             ref={navigationRef}
