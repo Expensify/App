@@ -49,7 +49,7 @@ const getMockStep = (name, message, job_id = null, inputs = null, in_envs = null
     mockWithCommand += ` ${message}`;
     if (inputs) {
         for (const input of inputs) {
-            mockWithCommand += `, ${input}="\${{ inputs.${input} }}"`;
+            mockWithCommand += `, ${input}="\${{ inputs.${input} }}\${{ github.event.inputs.${input} }}"`;
         }
     }
     if (in_envs) {
