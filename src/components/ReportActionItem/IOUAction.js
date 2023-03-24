@@ -70,10 +70,12 @@ const IOUAction = (props) => {
         Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
     };
 
-    const shouldShowIOUPreview = (
-        props.isMostRecentIOUReportAction
-        && Boolean(props.action.originalMessage.IOUReportID)
-        && props.chatReport.hasOutstandingIOU) || props.action.originalMessage.type === 'pay';
+    const shouldShowIOUPreview = props.action.shouldShowIOUPreview;
+
+    // const shouldShowIOUPreview = (
+    //     props.isMostRecentIOUReportAction
+    //     && Boolean(props.action.originalMessage.IOUReportID)
+    //     && props.chatReport.hasOutstandingIOU) || props.action.originalMessage.type === 'pay';
 
     let shouldShowPendingConversionMessage = false;
     if (
