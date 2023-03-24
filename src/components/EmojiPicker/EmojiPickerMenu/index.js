@@ -29,13 +29,13 @@ const propTypes = {
     forwardedRef: PropTypes.func,
 
     /** Stores user's preferred skin tone */
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
     /** User's frequently used emojis */
     frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
         code: PropTypes.string.isRequired,
         keywords: PropTypes.arrayOf(PropTypes.string),
-    })).isRequired,
+    })),
 
     /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
@@ -45,6 +45,8 @@ const propTypes = {
 
 const defaultProps = {
     forwardedRef: () => {},
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
+    frequentlyUsedEmojis: [],
 };
 
 class EmojiPickerMenu extends Component {

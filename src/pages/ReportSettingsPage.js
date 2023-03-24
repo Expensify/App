@@ -49,7 +49,15 @@ const propTypes = {
 
         /** ID of the policy */
         id: PropTypes.string,
-    }).isRequired,
+    }),
+
+    /** All reports shared with the user */
+    reports: PropTypes.objectOf(reportPropTypes),
+};
+
+const defaultProps = {
+    policies: {},
+    reports: {},
 };
 
 class ReportSettingsPage extends Component {
@@ -243,7 +251,7 @@ class ReportSettingsPage extends Component {
 }
 
 ReportSettingsPage.propTypes = propTypes;
-
+ReportSettingsPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withReportOrNotFound,

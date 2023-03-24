@@ -30,14 +30,18 @@ const propTypes = {
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
     /* Onyx Props */
-    user: userPropTypes.isRequired,
+    user: userPropTypes,
 
     /* The workspace name */
     policyName: PropTypes.string,
 
     ...withLocalizePropTypes,
 };
-const defaultProps = {policyName: ''};
+
+const defaultProps = {
+    user: {},
+    policyName: '',
+};
 
 const EnableStep = (props) => {
     const isUsingExpensifyCard = props.user.isUsingExpensifyCard;

@@ -9,8 +9,10 @@ import styles from '../../styles/styles';
 import * as Expensicons from '../Icon/Expensicons';
 import {propTypes as datePickerPropTypes, defaultProps as defaultDatePickerProps} from './datePickerPropTypes';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
+    ...withLocalizePropTypes,
     ...datePickerPropTypes,
 };
 
@@ -24,12 +26,14 @@ class NewDatePicker extends React.Component {
 
         this.state = {
             isPickerVisible: false,
+            selectedMonth: null,
             selectedDate: moment(props.value || props.defaultValue || undefined).toDate(),
         };
 
         this.setDate = this.setDate.bind(this);
         this.showPicker = this.showPicker.bind(this);
         this.hidePicker = this.hidePicker.bind(this);
+        this.setCurrentSelectedMonth = this.setCurrentSelectedMonth.bind(this);
 
         this.opacity = new Animated.Value(0);
 
@@ -57,6 +61,15 @@ class NewDatePicker extends React.Component {
             return;
         }
         this.unsubscribeEscapeKey();
+    }
+
+    /**
+     * Updates selected month when year picker is opened.
+     * This is used to keep the last visible month in the calendar when going back from year picker screen.
+     * @param {Date} currentDateView
+     */
+    setCurrentSelectedMonth(currentDateView) {
+        this.setState({selectedMonth: currentDateView.getMonth()});
     }
 
     /**
@@ -127,7 +140,7 @@ class NewDatePicker extends React.Component {
                         label={this.props.label}
                         value={this.props.value || ''}
                         defaultValue={this.defaultValue}
-                        placeholder={this.props.placeholder || CONST.DATE.MOMENT_FORMAT_STRING}
+                        placeholder={this.props.placeholder || this.props.translate('common.dateFormat')}
                         errorText={this.props.errorText}
                         containerStyles={this.props.containerStyles}
                         textInputContainerStyles={this.state.isPickerVisible ? [styles.borderColorFocus] : []}
@@ -149,7 +162,9 @@ class NewDatePicker extends React.Component {
                             maxDate={this.props.maxDate}
                             value={this.state.selectedDate}
                             onSelected={this.setDate}
+                            selectedMonth={this.state.selectedMonth}
                             selectedYear={this.props.selectedYear}
+                            onYearPickerOpen={this.setCurrentSelectedMonth}
                         />
                     </Animated.View>
                     )
@@ -162,7 +177,7 @@ class NewDatePicker extends React.Component {
 NewDatePicker.propTypes = propTypes;
 NewDatePicker.defaultProps = datePickerDefaultProps;
 
-export default React.forwardRef((props, ref) => (
+export default withLocalize(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <NewDatePicker {...props} innerRef={ref} />
-));
+)));

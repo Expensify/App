@@ -101,10 +101,10 @@ const ReportActionItemReactions = (props) => {
                                 accountIDs={reactionUsers}
                             />
                         )}
+                        key={reaction.emoji}
                     >
                         <EmojiReactionBubble
                             ref={props.forwardedRef}
-                            key={reaction.emoji}
                             count={reactionCount}
                             emojiCodes={emojiCodes}
                             onPress={onPress}
