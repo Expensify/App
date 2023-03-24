@@ -10,6 +10,7 @@ import * as Localize from './Localize';
 import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
 import Navigation from './Navigation/Navigation';
+import * as LoginUtils from './LoginUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -580,9 +581,8 @@ function getOptions(reports, personalDetails, {
 
     // If the phone number doesn't have an international code then let's prefix it with the
     // current user's international code based on their IP address.
-    const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
-        ? `+${countryCodeByIP}${searchValue}`
-        : searchValue;
+    const login = LoginUtils.appendCountryCode(searchValue);
+
     if (login && (noOptions || noOptionsMatchExactly)
         && !isCurrentUser({login})
         && _.every(selectedOptions, option => option.login !== login)
@@ -764,14 +764,16 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
         return Localize.translate(preferredLocale, 'common.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS});
     }
 
-    if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !Str.isValidPhone(searchValue)) {
+    const isValidPhone = Str.isValidPhone(LoginUtils.appendCountryCode(searchValue));
+
+    if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone) {
         return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
     }
 
     // Without a search value, it would be very confusing to see a search validation message.
     // Therefore, this skips the validation when there is no search value.
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
-        if (/^\d+$/.test(searchValue) && !Str.isValidPhone(searchValue)) {
+        if (/^\d+$/.test(searchValue) && !isValidPhone) {
             return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
         }
 

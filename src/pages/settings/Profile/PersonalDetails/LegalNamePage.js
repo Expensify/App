@@ -66,14 +66,14 @@ class LegalNamePage extends Component {
     validate(values) {
         const errors = {};
 
-        if (!ValidationUtils.isValidDisplayName(values.legalFirstName)) {
-            errors.legalFirstName = this.props.translate('personalDetails.error.hasInvalidCharacter');
+        if (!ValidationUtils.isValidLegalName(values.legalFirstName)) {
+            errors.legalFirstName = this.props.translate('privatePersonalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalFirstName)) {
             errors.legalFirstName = this.props.translate('common.error.fieldRequired');
         }
 
-        if (!ValidationUtils.isValidDisplayName(values.legalLastName)) {
-            errors.legalLastName = this.props.translate('personalDetails.error.hasInvalidCharacter');
+        if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
+            errors.legalLastName = this.props.translate('privatePersonalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalLastName)) {
             errors.legalLastName = this.props.translate('common.error.fieldRequired');
         }

@@ -15,7 +15,6 @@ import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
 import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
-import emojiHeaderContainerPlatformStyles from './emojiHeaderContainerPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
@@ -276,6 +275,7 @@ const styles = {
         fontWeight: fontWeightBold,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontSize: variables.fontSizeSmall,
+        lineHeight: variables.lineHeightSmall,
     },
 
     textMicroSupporting: {
@@ -324,6 +324,7 @@ const styles = {
 
     textHeadline: {
         ...headlineFont,
+        ...whiteSpace.preWrap,
         color: themeColors.heading,
         fontSize: variables.fontSizeXLarge,
     },
@@ -753,6 +754,39 @@ const styles = {
         height: variables.inputHeight,
     },
 
+    calendarHeader: {
+        height: 50,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingRight: 5,
+    },
+
+    calendarDayRoot: {
+        flex: 1,
+        height: 45,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    calendarDayContainer: {
+        width: 30,
+        height: 30,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 15,
+        overflow: 'hidden',
+    },
+
+    calendarDayContainerSelected: {
+        backgroundColor: themeColors.buttonDefaultBG,
+    },
+
+    calendarButtonDisabled: {
+        opacity: 0.5,
+    },
+
     textInputContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -821,7 +855,7 @@ const styles = {
 
     textInputDesktop: addOutlineWidth({}, 0),
 
-    secureInputShowPasswordButton: {
+    textInputIconContainer: {
         paddingHorizontal: 11,
         justifyContent: 'center',
         margin: 1,
@@ -1172,11 +1206,6 @@ const styles = {
         alignItems: 'center',
     },
 
-    popoverMenuIconEmphasized: {
-        backgroundColor: themeColors.iconSuccessFill,
-        borderRadius: variables.componentSizeLarge / 2,
-    },
-
     popoverMenuText: {
         fontSize: variables.fontSizeNormal,
         color: themeColors.heading,
@@ -1510,7 +1539,6 @@ const styles = {
         height: CONST.EMOJI_PICKER_HEADER_HEIGHT,
         justifyContent: 'center',
         width: '100%',
-        ...emojiHeaderContainerPlatformStyles,
     },
 
     emojiSkinToneTitle: {
@@ -2815,7 +2843,6 @@ const styles = {
     },
 
     imageCropContainer: {
-        borderRadius: variables.componentBorderRadiusCard,
         overflow: 'hidden',
         alignItems: 'center',
         justifyContent: 'center',
@@ -2890,6 +2917,7 @@ const styles = {
         flexShrink: 0,
         maxWidth: variables.badgeMaxWidth,
         fontSize: variables.fontSizeSmall,
+        ...whiteSpace.pre,
         ...spacing.ph2,
     },
 
@@ -2998,6 +3026,11 @@ const styles = {
         lineHeight: variables.iconSizeXLarge,
     },
 
+    textReactionSenders: {
+        color: themeColors.dark,
+        ...wordBreak.breakWord,
+    },
+
     quickReactionsContainer: {
         gap: 12,
         flexDirection: 'row',
@@ -3006,13 +3039,12 @@ const styles = {
         justifyContent: 'space-between',
     },
 
-    magicCodeDigits: {
+    validateCodeDigits: {
         color: themeColors.text,
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeXXLarge,
         letterSpacing: 4,
     },
-
     footer: {
         backgroundColor: themeColors.midtone,
     },
@@ -3049,6 +3081,29 @@ const styles = {
         width: '100%',
     },
 
+    listPickerSeparator: {
+        height: 1,
+        backgroundColor: themeColors.buttonDefaultBG,
+    },
+
+    datePickerRoot: {
+        position: 'relative',
+        zIndex: 99,
+    },
+
+    datePickerPopover: {
+        position: 'absolute',
+        backgroundColor: themeColors.appBG,
+        width: '100%',
+        alignSelf: 'center',
+        top: 60,
+        zIndex: 100,
+    },
+
+    validateCodeMessage: {
+        width: variables.modalContentMaxWidth,
+        textAlign: 'center',
+    },
 };
 
 export default styles;

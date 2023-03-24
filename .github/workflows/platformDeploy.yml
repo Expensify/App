@@ -264,11 +264,11 @@ jobs:
 
       - name: Deploy production to S3
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://expensify-cash/ && aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE s3://expensify-cash/.well-known/apple-app-site-association s3://expensify-cash/.well-known/apple-app-site-association
+        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://expensify-cash/ && aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE s3://expensify-cash/.well-known/apple-app-site-association s3://expensify-cash/.well-known/apple-app-site-association && aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE s3://expensify-cash/.well-known/apple-app-site-association s3://expensify-cash/apple-app-site-association
 
       - name: Deploy staging to S3
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://staging-expensify-cash/ && aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE s3://staging-expensify-cash/.well-known/apple-app-site-association s3://staging-expensify-cash/.well-known/apple-app-site-association
+        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://staging-expensify-cash/ && aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE s3://staging-expensify-cash/.well-known/apple-app-site-association s3://staging-expensify-cash/.well-known/apple-app-site-association && aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE s3://staging-expensify-cash/.well-known/apple-app-site-association s3://staging-expensify-cash/apple-app-site-association
 
       - name: Purge production Cloudflare cache
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}

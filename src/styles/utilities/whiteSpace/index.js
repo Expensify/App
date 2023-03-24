@@ -5,4 +5,7 @@ export default {
     preWrap: {
         whiteSpace: 'pre-wrap',
     },
+    pre: {
+        whiteSpace: 'pre',
+    },
 };

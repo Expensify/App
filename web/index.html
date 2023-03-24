@@ -34,8 +34,9 @@
         #drag-area {
             -webkit-app-region: drag;
         }
-        input[type=text] {
-            -webkit-user-select: text !important;
+        input::placeholder {
+            user-select: none;
+            -webkit-user-select: none
         }
         .disable-select * {
             -webkit-user-select: none !important;
