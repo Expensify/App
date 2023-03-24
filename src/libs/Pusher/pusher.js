@@ -4,7 +4,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Pusher from './library';
 import TYPE from './EventType';
 import Log from '../Log';
-import HttpUtils from '../HttpUtils';
 
 let shouldForceOffline = false;
 Onyx.connect({
@@ -18,6 +17,7 @@ Onyx.connect({
 });
 
 let socket;
+let pusherSocketID = '';
 const socketEventCallbacks = [];
 let customAuthorizer;
 
@@ -65,7 +65,7 @@ function init(args, params) {
         }
 
         socket = new Pusher(args.appKey, options);
-        HttpUtils.setPusherSocketID(socket.connection.socket_id);
+        pusherSocketID = socket.connection.socket_id;
 
         // If we want to pass params in our requests to api.php we'll need to add it to socket.config.auth.params
         // as per the documentation
@@ -357,7 +357,7 @@ function disconnect() {
 
     socket.disconnect();
     socket = null;
-    HttpUtils.setPusherSocketID('');
+    pusherSocketID = '';
 }
 
 /**
@@ -372,6 +372,13 @@ function reconnect() {
     Log.info('[Pusher] Reconnecting to Pusher');
     socket.disconnect();
     socket.connect();
+}
+
+/**
+ * @returns {String}
+ */
+function getPusherSocketID() {
+    return pusherSocketID;
 }
 
 if (window) {
@@ -396,4 +403,5 @@ export {
     registerSocketEventCallback,
     registerCustomAuthorizer,
     TYPE,
+    getPusherSocketID,
 };

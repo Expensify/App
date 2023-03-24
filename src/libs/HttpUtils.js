@@ -24,9 +24,6 @@ let cancellationController = new AbortController();
 // To terminate pending ReconnectApp requests https://github.com/Expensify/App/issues/15627
 let reconnectAppCancellationController = new AbortController();
 
-// An ID for this client's Pusher socket. When Pusher is initialized it will set this value and it will be sent with all requests.
-let pusherSocketID = '';
-
 /**
  * Send an HTTP request, and attempt to resolve the json response.
  * If there is a network error, we'll set the application offline.
@@ -120,11 +117,6 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
         formData.append(key, val);
     });
 
-    // We send the pusherSocketID with all requests so that the api can include it with push events to prevent Pusher from sending the events to that client. The push event is sent back
-    // to the requesting client in the response data instead, which prevents a replay effect. See https://github.com/Expensify/App/issues/12775.
-    if (!_.isEmpty(pusherSocketID)) {
-        formData.append('pusherSocketID', pusherSocketID);
-    }
     const url = ApiUtils.getCommandURL({shouldUseSecure, command});
     return processHTTPRequest(url, type, formData, data.canCancel, command);
 }
@@ -143,16 +135,8 @@ function cancelPendingRequests() {
     cancelPendingReconnectAppRequest();
 }
 
-/**
- * @param {String} value The pusherSocketID
- */
-function setPusherSocketID(value) {
-    pusherSocketID = value;
-}
-
 export default {
     xhr,
     cancelPendingRequests,
     cancelPendingReconnectAppRequest,
-    setPusherSocketID,
 };
