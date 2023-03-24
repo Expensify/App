@@ -105,9 +105,6 @@ function show({routes, showCreateMenu}) {
             return;
         }
 
-        // Set the NVP back to false so we don't automatically run welcome actions again
-        User.triggerWelcomeRoutine();
-
         // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
         // create menu right now. We should also stay on the workspace page if that is our destination.
         const topRoute = _.last(routes);

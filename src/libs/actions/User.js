@@ -470,18 +470,6 @@ function generateStatementPDF(period) {
     });
 }
 
-/**
- * When a new user logs in we trigger a welcome routine. There is an NVP that we must set to keep this logic working.
- */
-function triggerWelcomeRoutine() {
-    // There are no params needed when this is called we will mark the user as "no longer a new user"
-    API.write('TriggerWelcomeRoutine', {}, {
-        optimisticData: {
-            [ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER]: false,
-        },
-    });
-}
-
 export {
     updatePassword,
     closeAccount,
@@ -502,5 +490,4 @@ export {
     deletePaypalMeAddress,
     addPaypalMeAddress,
     updateChatPriorityMode,
-    triggerWelcomeRoutine,
 };
