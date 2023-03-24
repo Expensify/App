@@ -110,6 +110,7 @@ export default {
         POLICY: 'policy_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         POLICY_MEMBER_LIST: 'policyMemberList_',
+        WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         DOWNLOAD: 'download_',
     },
 

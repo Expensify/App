@@ -160,6 +160,7 @@ class InitialSettingsPage extends React.Component {
                 action: () => { Navigation.navigate(ROUTES.SETTINGS_WORKSPACES); },
                 floatRightAvatars: policiesAvatars,
                 shouldStackHorizontally: true,
+                avatarSize: CONST.AVATAR_SIZE.SMALLER,
                 brickRoadIndicator: policyBrickRoadIndicator,
             },
             {
@@ -224,6 +225,7 @@ class InitialSettingsPage extends React.Component {
                 brickRoadIndicator={item.brickRoadIndicator}
                 floatRightAvatars={item.floatRightAvatars}
                 shouldStackHorizontally={item.shouldStackHorizontally}
+                avatarSize={item.avatarSize}
             />
         );
     }

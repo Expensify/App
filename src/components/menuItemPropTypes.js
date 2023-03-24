@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import CONST from '../CONST';
 import stylePropTypes from '../styles/stylePropTypes';
 import avatarPropTypes from './avatarPropTypes';
@@ -85,6 +86,8 @@ const propTypes = {
 
     /** Prop to identify if we should load avatars vertically instead of diagonally */
     shouldStackHorizontally: PropTypes.bool,
+
+    avatarSize: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
 };
 
 export default propTypes;
