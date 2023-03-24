@@ -35,11 +35,11 @@ const propTypes = {
 
     ...withLocalizePropTypes,
 
-    isValid: PropTypes.bool,
+    isTokenValid: PropTypes.bool,
 };
 
 const defaultProps = {
-    isValid: false,
+    isTokenValid: true,
 };
 
 class LogInWithShortLivedAuthTokenPage extends Component {
@@ -61,7 +61,7 @@ class LogInWithShortLivedAuthTokenPage extends Component {
     }
 
     render() {
-        if (this.props.isValid) {
+        if (this.props.isTokenValid) {
             return <FullScreenLoadingIndicator />;
         }
         return (
@@ -106,6 +106,6 @@ LogInWithShortLivedAuthTokenPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        isValid: {key: ONYXKEYS.TOKEN_IS_VALID},
+        isTokenValid: {key: ONYXKEYS.IS_TOKEN_VALID},
     }),
 )(LogInWithShortLivedAuthTokenPage);

@@ -195,5 +195,5 @@ export default {
     IS_BETA: 'isBeta',
 
     // Whether the auth token is valid
-    TOKEN_IS_VALID: 'isValid',
+    IS_TOKEN_VALID: 'isTokenValid',
 };

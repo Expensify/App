@@ -240,6 +240,11 @@ function signInWithShortLivedAuthToken(email, authToken) {
                 isLoading: true,
             },
         },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_TOKEN_VALID,
+            value: true,
+        },
     ];
 
     const successData = [
@@ -249,11 +254,6 @@ function signInWithShortLivedAuthToken(email, authToken) {
             value: {
                 isLoading: false,
             },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.TOKEN_IS_VALID,
-            value: true,
         },
     ];
 
@@ -267,7 +267,7 @@ function signInWithShortLivedAuthToken(email, authToken) {
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.TOKEN_IS_VALID,
+            key: ONYXKEYS.IS_TOKEN_VALID,
             value: false,
         },
     ];
