@@ -132,8 +132,8 @@ const AddressSearch = (props) => {
             street: props.value ? props.value.trim() : '',
             city: city || cityFallback,
             zipCode,
-            state,
             country: '',
+            state,
         };
 
         // If the address is not in the US, use the full length state name since we're displaying the address's
