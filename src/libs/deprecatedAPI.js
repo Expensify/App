@@ -14,5 +14,6 @@ function User_SecondaryLogin_Send(parameters) {
 }
 
 export {
+    // eslint-disable-next-line import/prefer-default-export
     User_SecondaryLogin_Send,
 };
