@@ -337,6 +337,7 @@ const CONST = {
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
+                POLICYCHANGELOG_REGEX: /^POLICYCHANGELOG_/,
             },
         },
         ARCHIVE_REASON: {

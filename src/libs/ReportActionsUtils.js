@@ -193,6 +193,11 @@ function getSortedReportActionsForDisplay(reportActions) {
     const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
     const sortedReportActions = getSortedReportActions(filteredReportActions, true);
     return _.filter(sortedReportActions, (reportAction) => {
+        // Allow all Policy Change reportActions to be displayed
+        if (CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG_REGEX.test(reportAction.actionName)) {
+            return true;
+        }
+
         // Filter out any unsupported reportAction types
         if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName)) {
             return false;
