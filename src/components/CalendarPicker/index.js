@@ -18,8 +18,8 @@ class CalendarPicker extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        this.monthNames = moment.localeData(props.preferredLocale).months();
-        this.daysOfWeek = moment.localeData(props.preferredLocale).weekdays();
+       this.monthNames = moment.localeData(props.preferredLocale).months().map(month => month.replace(/^\w/, c => c.toUpperCase()));
+        this.daysOfWeek = moment.localeData(props.preferredLocale).weekdays().map(day => day.toUpperCase());
 
         let currentDateView = props.value;
         if (props.selectedYear) {
