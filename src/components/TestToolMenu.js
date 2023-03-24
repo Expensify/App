@@ -43,15 +43,18 @@ const TestToolMenu = props => (
         </Text>
 
         {/* Option to switch between staging and default api endpoints.
-        This enables QA and internal testers to take advantage of sandbox environments for 3rd party services like Plaid and Onfido. */}
-        <TestToolRow title="Use Staging Server" isHidden={CONFIG.IS_USING_LOCAL_WEB}>
-            <Switch
-                isOn={lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi())}
-                onToggle={() => User.setShouldUseStagingServer(
-                    !lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi()),
-                )}
-            />
-        </TestToolRow>
+        This enables QA, internal testers and external devs to take advantage of sandbox environments for 3rd party services like Plaid and Onfido.
+        This toggle is rendered conditionally to not display this option for internal employees as they make environment changes directly to the .env file. */}
+        {CONFIG.IS_USING_LOCAL_WEB && (
+            <TestToolRow title="Use Staging Server">
+                <Switch
+                    isOn={lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi())}
+                    onToggle={() => User.setShouldUseStagingServer(
+                        !lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi()),
+                    )}
+                />
+            </TestToolRow>
+        )}
 
         {/* When toggled the app will be forced offline. */}
         <TestToolRow title="Force offline">

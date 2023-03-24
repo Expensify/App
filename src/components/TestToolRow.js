@@ -10,16 +10,9 @@ const propTypes = {
 
     /** Control component jsx */
     children: PropTypes.node.isRequired,
-
-    /** Conditionally hide the row */
-    isHidden: PropTypes.bool,
 };
 
-const defaultProps = {
-    isHidden: false,
-};
-
-const TestToolRow = props => !props.isHidden && (
+const TestToolRow = props => (
     <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween, styles.alignItemsCenter]}>
         <View style={styles.flex2}>
             <Text>
@@ -33,7 +26,6 @@ const TestToolRow = props => !props.isHidden && (
 );
 
 TestToolRow.propTypes = propTypes;
-TestToolRow.defaultProps = defaultProps;
 TestToolRow.displayName = 'TestToolRow';
 
 export default TestToolRow;
