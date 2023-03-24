@@ -38,31 +38,14 @@ function showReactionList(
 
 /**
  * Hide the ReactionList popover.
- * Hides the popover menu with an optional delay
- * @param {Boolean} shouldDelay - whether the menu should close after a delay
  * @param {Function} [onHideCallback=() => {}] - Callback to be called after popover is completely hidden
  */
-function hideReactionList(shouldDelay, onHideCallback = () => {}) {
+function hideReactionList(onHideCallback = () => {}) {
     if (!reactionListRef.current) {
         return;
     }
-    if (!shouldDelay) {
-        reactionListRef.current.hideReactionList(onHideCallback);
 
-        return;
-    }
-
-    // Save the active instanceID for which hide action was called.
-    // If menu is being closed with a delay, check that whether the same instance exists or a new was created.
-    // If instance is not same, cancel the hide action
-    const instanceID = reactionListRef.current.instanceID;
-    setTimeout(() => {
-        if (reactionListRef.current.instanceID !== instanceID) {
-            return;
-        }
-
-        reactionListRef.current.hideReactionList(onHideCallback);
-    }, 800);
+    reactionListRef.current.hideReactionList(onHideCallback);
 }
 
 export {

@@ -109,9 +109,6 @@ class PopoverReactionList extends React.Component {
 
         this.reactionListAnchor = reactionListAnchor;
 
-        // Singleton behaviour of ReactionListPopover creates race conditions when user requests multiple ReactionListPopover.
-        // But it is possible that every new request registers new callbacks thus instanceID is used to corelate those callbacks
-        this.instanceID = Math.random().toString(36).substr(2, 5);
         this.getReactionListMeasuredLocation().then(({x, y}) => {
             this.setState({
                 cursorRelativePosition: {

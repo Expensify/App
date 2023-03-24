@@ -32,16 +32,12 @@ const ReactionListItem = (props) => {
 
     return (
         <View style={props.wrapperStyles}>
-            <Pressable
-                style={[styles.alignSelfStart, styles.mr3]}
-                onPressIn={ControlSelection.block}
-                onPressOut={ControlSelection.unblock}
-            >
+            <View style={[styles.alignSelfStart, styles.mr3]}>
                 <Avatar
                     containerStyles={[styles.actionAvatar]}
                     source={avatarSource}
                 />
-            </Pressable>
+            </View>
             <View style={[styles.chatItemRight]}>
                 <Text numberOfLines={1} style={styles.h3}>{props.item.displayName}</Text>
                 <Text style={{color: colors.greenSupportingText}}>{props.item.login}</Text>
