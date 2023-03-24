@@ -451,6 +451,10 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
 }
 
 /**
+ * Gets the last message text from the report.
+ * Looks at reportActions data as the "best source" for information, because the front-end may have optimistic reportActions that the server is not yet aware of.
+ * If reportActions are not loaded for the report, then there can't be any optimistic reportActions, and the lastMessageText rNVP will be accurate as a fallback.
+ *
  * @param {Object} report
  * @returns {String}
  */
