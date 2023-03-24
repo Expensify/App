@@ -571,8 +571,8 @@ function getSmallSizeAvatar(avatarURL, login) {
         return source;
     }
 
-    // If image source is not part of CloudFront, the given avatar URL is already what we want to use here.
-    if (!new RegExp(CONST.CLOUDFRONT_REGEX_STRING).test(avatarURL)) {
+    // Because other urls than CloudFront do not support dynamic image sizing (_SIZE suffix), the given avatar URL is already what we want to use here.
+    if (!CONST.CLOUDFRONT_DOMAIN_REGEX.test(avatarURL)) {
         return source;
     }
 
