@@ -396,3 +396,7 @@ Assert results are as expected. This can, for example, include using `expect()` 
 assertions.assertSomethingHappend(result);
 assertions.assertSomethingDidNotHappen(result, false);
 ```
+
+## FAQ
+### I'm positive that one of the jobs should run, but it doesn't - why?
+#### Check the runner type (`runs-on`) it may not be set (which `Act` does not like) or it may be set one of the unsupported types (primarily the `macos-...` runner types). You can always overwrite the runner type with `utils.setJobRunners()` helper method

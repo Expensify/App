@@ -12,7 +12,6 @@ const workflowFileRegex = new RegExp(workflowFilePattern, 'g');
 
 const capitalize = s => (s && s.charAt(0).toUpperCase() + s.slice(1)) || '';
 const mockFileTemplate = (mockSteps, exports) => `const utils = require('../utils/utils');
-
 ${mockSteps}
 ${exports}
 `;
@@ -128,11 +127,11 @@ const ${jobAssertionName} = (workflowResult, didExecute = true) => {
 };`;
 const mocksExportsTemplate = (jobMocks) => `
 module.exports = {
-    ${jobMocks.map((jobMock) => `${jobMock},`)}
+    ${jobMocks.map((jobMock) => `${jobMock}`)}
 };`;
 const assertionsExportsTemplate = (jobAssertions) => `
 module.exports = {
-    ${jobAssertions.map((jobAssertion) => `${jobAssertion},`)}
+    ${jobAssertions.map((jobAssertion) => `${jobAssertion}`)}
 };`;
 
 const checkArguments = (args) => {
@@ -192,7 +191,7 @@ const getMockFileContent = (workflowName, jobs) => {
     let content = '';
     const jobMocks = [];
     for (const [jobId, job] of Object.entries(jobs)) {
-        let mockStepsContent = `// ${jobId.toLowerCase()}`;
+        let mockStepsContent = `\n// ${jobId.toLowerCase()}`;
         const stepMocks = [];
         for (const step of job.steps) {
             const stepMockName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__${step.name.replaceAll(' ', '_').replaceAll('-', '_').replaceAll(',', '').replaceAll('#', '').toUpperCase()}__STEP_MOCK`;
