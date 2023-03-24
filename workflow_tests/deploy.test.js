@@ -5,6 +5,7 @@ const assertions = require('./assertions/deployAssertions');
 const mocks = require('./mocks/deployMocks');
 const eAct = require('./utils/ExtendedAct');
 
+jest.setTimeout(60 * 1000);
 let mockGithub;
 const FILES_TO_COPY_INTO_TEST_REPO = [
     {
@@ -25,27 +26,26 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
     },
 ];
 
-beforeEach(async () => {
-    // create a local repository and copy required files
-    mockGithub = new kieMockGithub.MockGithub({
-        repo: {
-            testDeployWorkflowRepo: {
-                files: FILES_TO_COPY_INTO_TEST_REPO,
-                pushedBranches: ['staging', 'production'],
+describe('test workflow deploy', () => {
+    beforeEach(async () => {
+        // create a local repository and copy required files
+        mockGithub = new kieMockGithub.MockGithub({
+            repo: {
+                testDeployWorkflowRepo: {
+                    files: FILES_TO_COPY_INTO_TEST_REPO,
+                    pushedBranches: ['staging', 'production'],
+                },
             },
-        },
+        });
+
+        await mockGithub.setup();
     });
 
-    await mockGithub.setup();
-});
-
-afterEach(async () => {
-    await mockGithub.teardown();
-});
-
-describe('test workflow deploy', () => {
+    afterEach(async () => {
+        await mockGithub.teardown();
+    });
     describe('push as OSBotify', () => {
-        test('to main - nothing triggered', async () => {
+        it('to main - nothing triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -75,9 +75,9 @@ describe('test workflow deploy', () => {
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
             assertions.assertDeployProductionJobExecuted(result, false);
-        }, 60000);
+        });
 
-        test('to staging - deployStaging triggered', async () => {
+        it('to staging - deployStaging triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -107,9 +107,9 @@ describe('test workflow deploy', () => {
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result);
             assertions.assertDeployProductionJobExecuted(result, false);
-        }, 60000);
+        });
 
-        test('to production - deployProduction triggered', async () => {
+        it('to production - deployProduction triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -139,10 +139,10 @@ describe('test workflow deploy', () => {
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
             assertions.assertDeployProductionJobExecuted(result);
-        }, 60000);
+        });
     });
     describe('push as user', () => {
-        test('to main - nothing triggered', async () => {
+        it('to main - nothing triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -172,9 +172,9 @@ describe('test workflow deploy', () => {
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
             assertions.assertDeployProductionJobExecuted(result, false);
-        }, 60000);
+        });
 
-        test('to staging - nothing triggered', async () => {
+        it('to staging - nothing triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -204,9 +204,9 @@ describe('test workflow deploy', () => {
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
             assertions.assertDeployProductionJobExecuted(result, false);
-        }, 60000);
+        });
 
-        test('to production - nothing triggered', async () => {
+        it('to production - nothing triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -236,10 +236,10 @@ describe('test workflow deploy', () => {
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
             assertions.assertDeployProductionJobExecuted(result, false);
-        }, 60000);
+        });
     });
 
-    test('different event than push - workflow does not execute', async () => {
+    it('different event than push - workflow does not execute', async () => {
         const repoPath = mockGithub.repo.getPath('testdeployWorkflowRepo') || '';
         const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
         let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -290,5 +290,5 @@ describe('test workflow deploy', () => {
         assertions.assertValidateJobExecuted(result, false);
         assertions.assertDeployStagingJobExecuted(result, false);
         assertions.assertDeployProductionJobExecuted(result, false);
-    }, 60000);
+    });
 });

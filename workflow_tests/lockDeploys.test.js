@@ -5,6 +5,7 @@ const assertions = require('./assertions/lockDeploysAssertions');
 const mocks = require('./mocks/lockDeploysMocks');
 const eAct = require('./utils/ExtendedAct');
 
+jest.setTimeout(60 * 1000);
 let mockGithub;
 const FILES_TO_COPY_INTO_TEST_REPO = [
     {
@@ -25,29 +26,28 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
     },
 ];
 
-beforeEach(async () => {
-    // create a local repository and copy required files
-    mockGithub = new kieMockGithub.MockGithub({
-        repo: {
-            testLockDeploysWorkflowRepo: {
-                files: FILES_TO_COPY_INTO_TEST_REPO,
+describe('test workflow lockDeploys', () => {
+    beforeEach(async () => {
+        // create a local repository and copy required files
+        mockGithub = new kieMockGithub.MockGithub({
+            repo: {
+                testLockDeploysWorkflowRepo: {
+                    files: FILES_TO_COPY_INTO_TEST_REPO,
+                },
             },
-        },
+        });
+
+        await mockGithub.setup();
     });
 
-    await mockGithub.setup();
-});
-
-afterEach(async () => {
-    await mockGithub.teardown();
-});
-
-describe('test workflow lockDeploys', () => {
+    afterEach(async () => {
+        await mockGithub.teardown();
+    });
     describe('issue labeled', () => {
         describe('label is LockCashDeploys', () => {
             describe('issue has StagingDeployCash', () => {
                 describe('actor is not OSBotify', () => {
-                    test('job triggered, comment left in StagingDeployCash', async () => {
+                    it('job triggered, comment left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
                         let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -89,9 +89,9 @@ describe('test workflow lockDeploys', () => {
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result);
-                    }, 60000);
+                    });
 
-                    test('one step fails, comment not left in StagingDeployCash, announced failure in Slack', async () => {
+                    it('one step fails, comment not left in StagingDeployCash, announced failure in Slack', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
                         let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -143,11 +143,11 @@ describe('test workflow lockDeploys', () => {
                             });
 
                         assertions.assertlockStagingDeploysJobFailedAfterFirstStep(result);
-                    }, 60000);
+                    });
                 });
 
                 describe('actor is OSBotify', () => {
-                    test('job not triggered, comment not left in StagingDeployCash', async () => {
+                    it('job not triggered, comment not left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
                         let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -189,13 +189,13 @@ describe('test workflow lockDeploys', () => {
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result, false);
-                    }, 60000);
+                    });
                 });
             });
 
             describe('issue does not have StagingDeployCash', () => {
                 describe('actor is not OSBotify', () => {
-                    test('job not triggered, comment not left in StagingDeployCash', async () => {
+                    it('job not triggered, comment not left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
                         let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -239,11 +239,11 @@ describe('test workflow lockDeploys', () => {
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result, false);
-                    }, 60000);
+                    });
                 });
 
                 describe('actor is OSBotify', () => {
-                    test('job not triggered, comment not left in StagingDeployCash', async () => {
+                    it('job not triggered, comment not left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
                         let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -287,7 +287,7 @@ describe('test workflow lockDeploys', () => {
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result, false);
-                    }, 60000);
+                    });
                 });
             });
         });
@@ -295,7 +295,7 @@ describe('test workflow lockDeploys', () => {
         describe('label is not LockCashDeploys', () => {
             describe('issue has StagingDeployCash', () => {
                 describe('actor is not OSBotify', () => {
-                    test('job not triggered, comment not left in StagingDeployCash', async () => {
+                    it('job not triggered, comment not left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
                         let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -337,11 +337,11 @@ describe('test workflow lockDeploys', () => {
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result, false);
-                    }, 60000);
+                    });
                 });
 
                 describe('actor is OSBotify', () => {
-                    test('job not triggered, comment not left in StagingDeployCash', async () => {
+                    it('job not triggered, comment not left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
                         let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -383,13 +383,13 @@ describe('test workflow lockDeploys', () => {
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result, false);
-                    }, 60000);
+                    });
                 });
             });
 
             describe('issue does not have StagingDeployCash', () => {
                 describe('actor is not OSBotify', () => {
-                    test('job not triggered, comment not left in StagingDeployCash', async () => {
+                    it('job not triggered, comment not left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
                         let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -433,11 +433,11 @@ describe('test workflow lockDeploys', () => {
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result, false);
-                    }, 60000);
+                    });
                 });
 
                 describe('actor is OSBotify', () => {
-                    test('job not triggered, comment not left in StagingDeployCash', async () => {
+                    it('job not triggered, comment not left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
                         let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -481,7 +481,7 @@ describe('test workflow lockDeploys', () => {
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result, false);
-                    }, 60000);
+                    });
                 });
             });
         });

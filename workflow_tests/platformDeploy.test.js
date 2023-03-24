@@ -5,6 +5,7 @@ const assertions = require('./assertions/platformDeployAssertions');
 const mocks = require('./mocks/platformDeployMocks');
 const eAct = require('./utils/ExtendedAct');
 
+jest.setTimeout(60 * 1000);
 let mockGithub;
 const FILES_TO_COPY_INTO_TEST_REPO = [
     {
@@ -25,28 +26,27 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
     },
 ];
 
-beforeEach(async () => {
-    // create a local repository and copy required files
-    mockGithub = new kieMockGithub.MockGithub({
-        repo: {
-            testPlatformDeployWorkflowRepo: {
-                files: FILES_TO_COPY_INTO_TEST_REPO,
-                pushedBranches: [],
+describe('test workflow platformDeploy', () => {
+    beforeEach(async () => {
+        // create a local repository and copy required files
+        mockGithub = new kieMockGithub.MockGithub({
+            repo: {
+                testPlatformDeployWorkflowRepo: {
+                    files: FILES_TO_COPY_INTO_TEST_REPO,
+                    pushedBranches: [],
+                },
             },
-        },
+        });
+
+        await mockGithub.setup();
     });
 
-    await mockGithub.setup();
-});
-
-afterEach(async () => {
-    await mockGithub.teardown();
-});
-
-describe('test workflow platformDeploy', () => {
+    afterEach(async () => {
+        await mockGithub.teardown();
+    });
     describe('push', () => {
         describe('tag', () => {
-            test('as team member - platform deploy executes on staging', async () => {
+            it('as team member - platform deploy executes on staging', async () => {
                 const repoPath = mockGithub.repo.getPath('testPlatformDeployWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -116,9 +116,9 @@ describe('test workflow platformDeploy', () => {
                 assertions.assertPostSlackOnFailureJobExecuted(result, false);
                 assertions.assertPostSlackOnSuccessJobExecuted(result, true, false);
                 assertions.assertPostGithubCommentJobExecuted(result, true, false);
-            }, 60000);
+            });
 
-            test('as OSBotify - platform deploy executes on staging', async () => {
+            it('as OSBotify - platform deploy executes on staging', async () => {
                 const repoPath = mockGithub.repo.getPath('testPlatformDeployWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -188,9 +188,9 @@ describe('test workflow platformDeploy', () => {
                 assertions.assertPostSlackOnFailureJobExecuted(result, false);
                 assertions.assertPostSlackOnSuccessJobExecuted(result, true, false);
                 assertions.assertPostGithubCommentJobExecuted(result, true, false);
-            }, 60000);
+            });
 
-            test('as outsider - platform deploy does not execute', async () => {
+            it('as outsider - platform deploy does not execute', async () => {
                 const repoPath = mockGithub.repo.getPath('testPlatformDeployWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -260,7 +260,7 @@ describe('test workflow platformDeploy', () => {
                 assertions.assertPostSlackOnFailureJobExecuted(result, false);
                 assertions.assertPostSlackOnSuccessJobExecuted(result, false);
                 assertions.assertPostGithubCommentJobExecuted(result, true, false, false);
-            }, 60000);
+            });
         });
 
         describe('branch', () => {

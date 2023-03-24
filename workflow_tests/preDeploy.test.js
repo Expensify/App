@@ -5,6 +5,7 @@ const assertions = require('./assertions/preDeployAssertions');
 const mocks = require('./mocks/preDeployMocks');
 const eAct = require('./utils/ExtendedAct');
 
+jest.setTimeout(60 * 1000);
 let mockGithub;
 const FILES_TO_COPY_INTO_TEST_REPO = [
     {
@@ -25,26 +26,25 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
     },
 ];
 
-beforeEach(async () => {
-    // create a local repository and copy required files
-    mockGithub = new kieMockGithub.MockGithub({
-        repo: {
-            testPreDeployWorkflowRepo: {
-                files: FILES_TO_COPY_INTO_TEST_REPO,
-                pushedBranches: ['different_branch'],
+describe('test workflow preDeploy', () => {
+    beforeEach(async () => {
+        // create a local repository and copy required files
+        mockGithub = new kieMockGithub.MockGithub({
+            repo: {
+                testPreDeployWorkflowRepo: {
+                    files: FILES_TO_COPY_INTO_TEST_REPO,
+                    pushedBranches: ['different_branch'],
+                },
             },
-        },
+        });
+
+        await mockGithub.setup();
     });
 
-    await mockGithub.setup();
-});
-
-afterEach(async () => {
-    await mockGithub.teardown();
-});
-
-describe('test workflow preDeploy', () => {
-    test('push to main - workflow executes', async () => {
+    afterEach(async () => {
+        await mockGithub.teardown();
+    });
+    it('push to main - workflow executes', async () => {
         // get path to the local test repo
         const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
 
@@ -97,10 +97,10 @@ describe('test workflow preDeploy', () => {
         assertions.assertSkipDeployJobExecuted(result, false);
         assertions.assertCreateNewVersionJobExecuted(result);
         assertions.assertUpdateStagingJobExecuted(result);
-    }, 60000);
+    });
 
     // using a different branch does not seem to work as described in documentation
-    // test('push to different branch - workflow does not execute', async () => {
+    // it('push to different branch - workflow does not execute', async () => {
     //     const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
     //     const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
     //     let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -141,9 +141,9 @@ describe('test workflow preDeploy', () => {
     //     assertions.assertSkipDeployJobExecuted(result, false);
     //     assertions.assertCreateNewVersionJobExecuted(result, false);
     //     assertions.assertUpdateStagingJobExecuted(result, false);
-    // }, 60000);
+    // });
 
-    test('different event than push - workflow does not execute', async () => {
+    it('different event than push - workflow does not execute', async () => {
         const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
         const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
         let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -209,10 +209,10 @@ describe('test workflow preDeploy', () => {
         assertions.assertSkipDeployJobExecuted(result, false);
         assertions.assertCreateNewVersionJobExecuted(result, false);
         assertions.assertUpdateStagingJobExecuted(result, false);
-    }, 60000);
+    });
 
     describe('confirm passing build', () => {
-        test('lint job failed - workflow exits', async () => {
+        it('lint job failed - workflow exits', async () => {
             const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -289,9 +289,9 @@ describe('test workflow preDeploy', () => {
             assertions.assertSkipDeployJobExecuted(result, false);
             assertions.assertCreateNewVersionJobExecuted(result, false);
             assertions.assertUpdateStagingJobExecuted(result, false);
-        }, 60000);
+        });
 
-        test('test job failed - workflow exits', async () => {
+        it('test job failed - workflow exits', async () => {
             const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -368,9 +368,9 @@ describe('test workflow preDeploy', () => {
             assertions.assertSkipDeployJobExecuted(result, false);
             assertions.assertCreateNewVersionJobExecuted(result, false);
             assertions.assertUpdateStagingJobExecuted(result, false);
-        }, 60000);
+        });
 
-        test('lint and test job succeed - workflow continues', async () => {
+        it('lint and test job succeed - workflow continues', async () => {
             const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -409,11 +409,11 @@ describe('test workflow preDeploy', () => {
             assertions.assertSkipDeployJobExecuted(result, false);
             assertions.assertCreateNewVersionJobExecuted(result);
             assertions.assertUpdateStagingJobExecuted(result);
-        }, 60000);
+        });
     });
 
     describe('new contributor welcome message', () => {
-        test('actor is OSBotify - no comment left', async () => {
+        it('actor is OSBotify - no comment left', async () => {
             const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -450,9 +450,9 @@ describe('test workflow preDeploy', () => {
             assertions.assertE2ETestsJobExecuted(result, false); // Act does not support ubuntu-20.04-64core runner and omits the job
             assertions.assertChooseDeployActionsJobExecuted(result);
             assertions.assertNewContributorWelcomeMessageJobExecuted(result, false);
-        }, 60000);
+        });
 
-        test('actor is Expensify employee - no comment left', async () => {
+        it('actor is Expensify employee - no comment left', async () => {
             const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -489,9 +489,9 @@ describe('test workflow preDeploy', () => {
             assertions.assertE2ETestsJobExecuted(result, false); // Act does not support ubuntu-20.04-64core runner and omits the job
             assertions.assertChooseDeployActionsJobExecuted(result);
             assertions.assertNewContributorWelcomeMessageJobExecuted(result, false);
-        }, 60000);
+        });
 
-        test('actor is not Expensify employee, its not their first PR - job triggers, but no comment left', async () => {
+        it('actor is not Expensify employee, its not their first PR - job triggers, but no comment left', async () => {
             const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -528,9 +528,9 @@ describe('test workflow preDeploy', () => {
             assertions.assertE2ETestsJobExecuted(result, false); // Act does not support ubuntu-20.04-64core runner and omits the job
             assertions.assertChooseDeployActionsJobExecuted(result);
             assertions.assertNewContributorWelcomeMessageJobExecuted(result, true, false, false);
-        }, 60000);
+        });
 
-        test('actor is not Expensify employee, and its their first PR - job triggers and comment left', async () => {
+        it('actor is not Expensify employee, and its their first PR - job triggers and comment left', async () => {
             const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -567,13 +567,13 @@ describe('test workflow preDeploy', () => {
             assertions.assertE2ETestsJobExecuted(result, false); // Act does not support ubuntu-20.04-64core runner and omits the job
             assertions.assertChooseDeployActionsJobExecuted(result);
             assertions.assertNewContributorWelcomeMessageJobExecuted(result, true, false, true);
-        }, 60000);
+        });
     });
 
     describe('choose deploy actions', () => {
         describe('no CP label', () => {
             describe('staging locked', () => {
-                test('not automated PR - deploy skipped and comment left', async () => {
+                it('not automated PR - deploy skipped and comment left', async () => {
                     const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
                     const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
                     let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -611,9 +611,9 @@ describe('test workflow preDeploy', () => {
                     assertions.assertCreateNewVersionJobExecuted(result, false);
                     assertions.assertUpdateStagingJobExecuted(result, false, false);
                     assertions.assertUpdateStagingJobFailed(result, false);
-                }, 60000);
+                });
 
-                test('automated PR - deploy skipped, but no comment left', async () => {
+                it('automated PR - deploy skipped, but no comment left', async () => {
                     const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
                     const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
                     let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -651,11 +651,11 @@ describe('test workflow preDeploy', () => {
                     assertions.assertCreateNewVersionJobExecuted(result, false);
                     assertions.assertUpdateStagingJobExecuted(result, false, false);
                     assertions.assertUpdateStagingJobFailed(result, false);
-                }, 60000);
+                });
             });
 
             describe('staging not locked', () => {
-                test('not automated PR - proceed with deploy', async () => {
+                it('not automated PR - proceed with deploy', async () => {
                     const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
                     const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
                     let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -697,9 +697,9 @@ describe('test workflow preDeploy', () => {
                     assertions.assertCreateNewVersionJobExecuted(result);
                     assertions.assertUpdateStagingJobExecuted(result, true, false);
                     assertions.assertUpdateStagingJobFailed(result, false);
-                }, 60000);
+                });
 
-                test('automated PR - deploy skipped, but no comment left', async () => {
+                it('automated PR - deploy skipped, but no comment left', async () => {
                     const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
                     const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
                     let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -740,13 +740,13 @@ describe('test workflow preDeploy', () => {
                     assertions.assertCreateNewVersionJobExecuted(result, false);
                     assertions.assertUpdateStagingJobExecuted(result, false, false);
                     assertions.assertUpdateStagingJobFailed(result, false);
-                }, 60000);
+                });
             });
         });
 
         describe('CP label', () => {
             describe('staging locked', () => {
-                test('not automated PR - proceed with deploy', async () => {
+                it('not automated PR - proceed with deploy', async () => {
                     const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
                     const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
                     let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -788,9 +788,9 @@ describe('test workflow preDeploy', () => {
                     assertions.assertCreateNewVersionJobExecuted(result);
                     assertions.assertUpdateStagingJobExecuted(result, true, true);
                     assertions.assertUpdateStagingJobFailed(result, false);
-                }, 60000);
+                });
 
-                test('automated PR - proceed with deploy', async () => {
+                it('automated PR - proceed with deploy', async () => {
                     const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
                     const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
                     let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -832,11 +832,11 @@ describe('test workflow preDeploy', () => {
                     assertions.assertCreateNewVersionJobExecuted(result);
                     assertions.assertUpdateStagingJobExecuted(result, true, true);
                     assertions.assertUpdateStagingJobFailed(result, false);
-                }, 60000);
+                });
             });
 
             describe('staging not locked', () => {
-                test('not automated PR - proceed with deploy', async () => {
+                it('not automated PR - proceed with deploy', async () => {
                     const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
                     const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
                     let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -878,9 +878,9 @@ describe('test workflow preDeploy', () => {
                     assertions.assertCreateNewVersionJobExecuted(result);
                     assertions.assertUpdateStagingJobExecuted(result, true, false);
                     assertions.assertUpdateStagingJobFailed(result, false);
-                }, 60000);
+                });
 
-                test('automated PR - proceed with deploy', async () => {
+                it('automated PR - proceed with deploy', async () => {
                     const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
                     const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
                     let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -922,11 +922,11 @@ describe('test workflow preDeploy', () => {
                     assertions.assertCreateNewVersionJobExecuted(result);
                     assertions.assertUpdateStagingJobExecuted(result, true, false);
                     assertions.assertUpdateStagingJobFailed(result, false);
-                }, 60000);
+                });
             });
         });
 
-        test('one of updateStaging steps failed - failure announced in Slack', async () => {
+        it('one of updateStaging steps failed - failure announced in Slack', async () => {
             const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -966,6 +966,6 @@ describe('test workflow preDeploy', () => {
             assertions.assertSkipDeployJobExecuted(result, false);
             assertions.assertCreateNewVersionJobExecuted(result);
             assertions.assertUpdateStagingJobFailed(result, true);
-        }, 60000);
+        });
     });
 });

@@ -5,6 +5,7 @@ const assertions = require('./assertions/cherryPickAssertions');
 const mocks = require('./mocks/cherryPickMocks');
 const eAct = require('./utils/ExtendedAct');
 
+jest.setTimeout(60 * 1000);
 let mockGithub;
 const FILES_TO_COPY_INTO_TEST_REPO = [
     {
@@ -24,23 +25,6 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
         dest: '.github/workflows/cherryPick.yml',
     },
 ];
-
-beforeEach(async () => {
-    // create a local repository and copy required files
-    mockGithub = new kieMockGithub.MockGithub({
-        repo: {
-            testCherryPickWorkflowRepo: {
-                files: FILES_TO_COPY_INTO_TEST_REPO,
-            },
-        },
-    });
-
-    await mockGithub.setup();
-});
-
-afterEach(async () => {
-    await mockGithub.teardown();
-});
 
 const runWorkflow = async (act, event, repoPath, testMockSteps, actor) => await act
     .runEvent(event, {
@@ -74,6 +58,22 @@ const setUpActParams = (act, event, newVersion) => utils.setUpActParams(
 );
 
 describe('test workflow cherryPick', () => {
+    beforeEach(async () => {
+        // create a local repository and copy required files
+        mockGithub = new kieMockGithub.MockGithub({
+            repo: {
+                testCherryPickWorkflowRepo: {
+                    files: FILES_TO_COPY_INTO_TEST_REPO,
+                },
+            },
+        });
+
+        await mockGithub.setup();
+    });
+
+    afterEach(async () => {
+        await mockGithub.teardown();
+    });
     describe('manual workflow dispatch', () => {
         const event = 'workflow_dispatch';
         describe('actor is not deployer', () => {
@@ -83,7 +83,7 @@ describe('test workflow cherryPick', () => {
                 cherryPick: mocks.getCherryPickMockSteps(true, true, true),
             };
             const actor = 'Dummy Author';
-            test('workflow ends after validate job', async () => {
+            it('workflow ends after validate job', async () => {
                 const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -113,7 +113,7 @@ describe('test workflow cherryPick', () => {
                 assertions.assertValidateActorJobExecuted(result, actor);
                 assertions.assertCreateNewVersionJobExecuted(result, false);
                 assertions.assertCherryPickJobExecuted(result, actor, '1234', '1.2.3', false);
-            }, 60000);
+            });
         });
         describe('actor is OSBotify', () => {
             const testMockSteps = {
@@ -125,7 +125,7 @@ describe('test workflow cherryPick', () => {
             const mergeConflicts = false;
             const versionsMatch = true;
             const prIsMergeable = true;
-            test('behaviour is the same as with actor being the deployer', async () => {
+            it('behaviour is the same as with actor being the deployer', async () => {
                 const pathsAndAct = getPathsAndAct();
                 const repoPath = pathsAndAct.repoPath;
                 let act = pathsAndAct.act;
@@ -147,7 +147,7 @@ describe('test workflow cherryPick', () => {
                     prIsMergeable,
                     newVersion,
                 );
-            }, 60000);
+            });
         });
         describe('actor is a deployer', () => {
             const testMockSteps = {
@@ -163,7 +163,7 @@ describe('test workflow cherryPick', () => {
                         const versionsMatch = true;
                         describe('PR is mergeable', () => {
                             const prIsMergeable = true;
-                            test('workflow executes, new version created, PR approved and merged automatically', async () => {
+                            it('workflow executes, new version created, PR approved and merged automatically', async () => {
                                 const pathsAndAct = getPathsAndAct();
                                 const repoPath = pathsAndAct.repoPath;
                                 let act = pathsAndAct.act;
@@ -185,11 +185,11 @@ describe('test workflow cherryPick', () => {
                                     prIsMergeable,
                                     newVersion,
                                 );
-                            }, 60000);
+                            });
                         });
                         describe('PR is not mergeable', () => {
                             const prIsMergeable = false;
-                            test('workflow executes, new version created, PR is not merged automatically', async () => {
+                            it('workflow executes, new version created, PR is not merged automatically', async () => {
                                 const pathsAndAct = getPathsAndAct();
                                 const repoPath = pathsAndAct.repoPath;
                                 let act = pathsAndAct.act;
@@ -211,14 +211,14 @@ describe('test workflow cherryPick', () => {
                                     prIsMergeable,
                                     newVersion,
                                 );
-                            }, 60000);
+                            });
                         });
                     });
                     describe('version do not match', () => {
                         const versionsMatch = false;
                         describe('PR is mergeable', () => {
                             const prIsMergeable = true;
-                            test('workflow executes, new version created, PR auto-assigned and commented, approved and merged automatically', async () => {
+                            it('workflow executes, new version created, PR auto-assigned and commented, approved and merged automatically', async () => {
                                 const pathsAndAct = getPathsAndAct();
                                 const repoPath = pathsAndAct.repoPath;
                                 let act = pathsAndAct.act;
@@ -240,11 +240,11 @@ describe('test workflow cherryPick', () => {
                                     prIsMergeable,
                                     newVersion,
                                 );
-                            }, 60000);
+                            });
                         });
                         describe('PR is not mergeable', () => {
                             const prIsMergeable = false;
-                            test('workflow executes, new version created, PR auto-assigned and commented, not merged automatically', async () => {
+                            it('workflow executes, new version created, PR auto-assigned and commented, not merged automatically', async () => {
                                 const pathsAndAct = getPathsAndAct();
                                 const repoPath = pathsAndAct.repoPath;
                                 let act = pathsAndAct.act;
@@ -266,7 +266,7 @@ describe('test workflow cherryPick', () => {
                                     prIsMergeable,
                                     newVersion,
                                 );
-                            }, 60000);
+                            });
                         });
                     });
                 });
@@ -276,7 +276,7 @@ describe('test workflow cherryPick', () => {
                         const versionsMatch = true;
                         describe('PR is mergeable', () => {
                             const prIsMergeable = true;
-                            test('workflow executes, new version created, PR auto-assigned and commented, not merged automatically', async () => {
+                            it('workflow executes, new version created, PR auto-assigned and commented, not merged automatically', async () => {
                                 const pathsAndAct = getPathsAndAct();
                                 const repoPath = pathsAndAct.repoPath;
                                 let act = pathsAndAct.act;
@@ -298,11 +298,11 @@ describe('test workflow cherryPick', () => {
                                     prIsMergeable,
                                     newVersion,
                                 );
-                            }, 60000);
+                            });
                         });
                         describe('PR is not mergeable', () => {
                             const prIsMergeable = false;
-                            test('workflow executes, new version created, PR auto-assigned and commented, not merged automatically', async () => {
+                            it('workflow executes, new version created, PR auto-assigned and commented, not merged automatically', async () => {
                                 const pathsAndAct = getPathsAndAct();
                                 const repoPath = pathsAndAct.repoPath;
                                 let act = pathsAndAct.act;
@@ -324,14 +324,14 @@ describe('test workflow cherryPick', () => {
                                     prIsMergeable,
                                     newVersion,
                                 );
-                            }, 60000);
+                            });
                         });
                     });
                     describe('version do not match', () => {
                         const versionsMatch = false;
                         describe('PR is mergeable', () => {
                             const prIsMergeable = true;
-                            test('workflow executes, new version created, PR auto-assigned and commented, not merged automatically', async () => {
+                            it('workflow executes, new version created, PR auto-assigned and commented, not merged automatically', async () => {
                                 const pathsAndAct = getPathsAndAct();
                                 const repoPath = pathsAndAct.repoPath;
                                 let act = pathsAndAct.act;
@@ -353,11 +353,11 @@ describe('test workflow cherryPick', () => {
                                     prIsMergeable,
                                     newVersion,
                                 );
-                            }, 60000);
+                            });
                         });
                         describe('PR is not mergeable', () => {
                             const prIsMergeable = false;
-                            test('workflow executes, new version created, PR auto-assigned and commented, not merged automatically', async () => {
+                            it('workflow executes, new version created, PR auto-assigned and commented, not merged automatically', async () => {
                                 const pathsAndAct = getPathsAndAct();
                                 const repoPath = pathsAndAct.repoPath;
                                 let act = pathsAndAct.act;
@@ -379,7 +379,7 @@ describe('test workflow cherryPick', () => {
                                     prIsMergeable,
                                     newVersion,
                                 );
-                            }, 60000);
+                            });
                         });
                     });
                 });
@@ -393,7 +393,7 @@ describe('test workflow cherryPick', () => {
                         const versionsMatch = true;
                         describe('PR is mergeable', () => {
                             const prIsMergeable = true;
-                            test('workflow executes, PR approved and merged automatically', async () => {
+                            it('workflow executes, PR approved and merged automatically', async () => {
                                 const pathsAndAct = getPathsAndAct();
                                 const repoPath = pathsAndAct.repoPath;
                                 let act = pathsAndAct.act;
@@ -415,11 +415,11 @@ describe('test workflow cherryPick', () => {
                                     prIsMergeable,
                                     newVersion,
                                 );
-                            }, 60000);
+                            });
                         });
                         describe('PR is not mergeable', () => {
                             const prIsMergeable = false;
-                            test('workflow executes, PR is not merged automatically', async () => {
+                            it('workflow executes, PR is not merged automatically', async () => {
                                 const pathsAndAct = getPathsAndAct();
                                 const repoPath = pathsAndAct.repoPath;
                                 let act = pathsAndAct.act;
@@ -441,14 +441,14 @@ describe('test workflow cherryPick', () => {
                                     prIsMergeable,
                                     newVersion,
                                 );
-                            }, 60000);
+                            });
                         });
                     });
                     describe('version do not match', () => {
                         const versionsMatch = false;
                         describe('PR is mergeable', () => {
                             const prIsMergeable = true;
-                            test('workflow executes, PR auto-assigned and commented, approved and merged automatically', async () => {
+                            it('workflow executes, PR auto-assigned and commented, approved and merged automatically', async () => {
                                 const pathsAndAct = getPathsAndAct();
                                 const repoPath = pathsAndAct.repoPath;
                                 let act = pathsAndAct.act;
@@ -470,11 +470,11 @@ describe('test workflow cherryPick', () => {
                                     prIsMergeable,
                                     newVersion,
                                 );
-                            }, 60000);
+                            });
                         });
                         describe('PR is not mergeable', () => {
                             const prIsMergeable = false;
-                            test('workflow executes, PR auto-assigned and commented, not merged automatically', async () => {
+                            it('workflow executes, PR auto-assigned and commented, not merged automatically', async () => {
                                 const pathsAndAct = getPathsAndAct();
                                 const repoPath = pathsAndAct.repoPath;
                                 let act = pathsAndAct.act;
@@ -496,7 +496,7 @@ describe('test workflow cherryPick', () => {
                                     prIsMergeable,
                                     newVersion,
                                 );
-                            }, 60000);
+                            });
                         });
                     });
                 });
@@ -506,7 +506,7 @@ describe('test workflow cherryPick', () => {
                         const versionsMatch = true;
                         describe('PR is mergeable', () => {
                             const prIsMergeable = true;
-                            test('workflow executes, PR auto-assigned and commented, not merged automatically', async () => {
+                            it('workflow executes, PR auto-assigned and commented, not merged automatically', async () => {
                                 const pathsAndAct = getPathsAndAct();
                                 const repoPath = pathsAndAct.repoPath;
                                 let act = pathsAndAct.act;
@@ -528,11 +528,11 @@ describe('test workflow cherryPick', () => {
                                     prIsMergeable,
                                     newVersion,
                                 );
-                            }, 60000);
+                            });
                         });
                         describe('PR is not mergeable', () => {
                             const prIsMergeable = false;
-                            test('workflow executes, PR auto-assigned and commented, not merged automatically', async () => {
+                            it('workflow executes, PR auto-assigned and commented, not merged automatically', async () => {
                                 const pathsAndAct = getPathsAndAct();
                                 const repoPath = pathsAndAct.repoPath;
                                 let act = pathsAndAct.act;
@@ -554,14 +554,14 @@ describe('test workflow cherryPick', () => {
                                     prIsMergeable,
                                     newVersion,
                                 );
-                            }, 60000);
+                            });
                         });
                     });
                     describe('version do not match', () => {
                         const versionsMatch = false;
                         describe('PR is mergeable', () => {
                             const prIsMergeable = true;
-                            test('workflow executes, PR auto-assigned and commented, not merged automatically', async () => {
+                            it('workflow executes, PR auto-assigned and commented, not merged automatically', async () => {
                                 const pathsAndAct = getPathsAndAct();
                                 const repoPath = pathsAndAct.repoPath;
                                 let act = pathsAndAct.act;
@@ -583,11 +583,11 @@ describe('test workflow cherryPick', () => {
                                     prIsMergeable,
                                     newVersion,
                                 );
-                            }, 60000);
+                            });
                         });
                         describe('PR is not mergeable', () => {
                             const prIsMergeable = false;
-                            test('workflow executes, PR auto-assigned and commented, not merged automatically', async () => {
+                            it('workflow executes, PR auto-assigned and commented, not merged automatically', async () => {
                                 const pathsAndAct = getPathsAndAct();
                                 const repoPath = pathsAndAct.repoPath;
                                 let act = pathsAndAct.act;
@@ -609,7 +609,7 @@ describe('test workflow cherryPick', () => {
                                     prIsMergeable,
                                     newVersion,
                                 );
-                            }, 60000);
+                            });
                         });
                     });
                 });
@@ -618,7 +618,7 @@ describe('test workflow cherryPick', () => {
     });
     describe('autmatic trigger', () => {
         const event = 'pull_request';
-        test('workflow does not execute', async () => {
+        it('workflow does not execute', async () => {
             const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -653,6 +653,6 @@ describe('test workflow cherryPick', () => {
             assertions.assertValidateActorJobExecuted(result, 'Dummy Author', false);
             assertions.assertCreateNewVersionJobExecuted(result, false);
             assertions.assertCherryPickJobExecuted(result, 'Dummy Author', '1234', '1.2.3', false);
-        }, 60000);
+        });
     });
 });

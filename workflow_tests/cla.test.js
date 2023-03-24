@@ -5,6 +5,7 @@ const assertions = require('./assertions/claAssertions');
 const mocks = require('./mocks/claMocks');
 const eAct = require('./utils/ExtendedAct');
 
+jest.setTimeout(60 * 1000);
 let mockGithub;
 const FILES_TO_COPY_INTO_TEST_REPO = [
     {
@@ -25,29 +26,29 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
     },
 ];
 
-beforeEach(async () => {
-    // create a local repository and copy required files
-    mockGithub = new kieMockGithub.MockGithub({
-        repo: {
-            testClaWorkflowRepo: {
-                files: FILES_TO_COPY_INTO_TEST_REPO,
-            },
-        },
-    });
-
-    await mockGithub.setup();
-});
-
-afterEach(async () => {
-    await mockGithub.teardown();
-});
-
 describe('test workflow cla', () => {
     const secrets = {
         CLA_BOTIFY_TOKEN: 'dummy_cla_botify_token',
     };
     const githubToken = 'dummy_github_token';
     const actor = 'Dummy Author';
+
+    beforeEach(async () => {
+        // create a local repository and copy required files
+        mockGithub = new kieMockGithub.MockGithub({
+            repo: {
+                testClaWorkflowRepo: {
+                    files: FILES_TO_COPY_INTO_TEST_REPO,
+                },
+            },
+        });
+
+        await mockGithub.setup();
+    });
+
+    afterEach(async () => {
+        await mockGithub.teardown();
+    });
     describe('event is issue_comment', () => {
         const event = 'issue_comment';
         describe('no regex matches', () => {
@@ -63,7 +64,7 @@ describe('test workflow cla', () => {
                     body: commentBody,
                 },
             };
-            test('workflow executes, CLA assistant step not run', async () => {
+            it('workflow executes, CLA assistant step not run', async () => {
                 const repoPath = mockGithub.repo.getPath('testClaWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'cla.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -85,7 +86,7 @@ describe('test workflow cla', () => {
                     });
 
                 assertions.assertCLAJobExecuted(result, commentBody, `${repoPath}/remote/origin`, true, false);
-            }, 60000);
+            });
         });
         describe('check regex matches', () => {
             const commentBody = 'I have read the CLA Document and I hereby sign the CLA';
@@ -100,7 +101,7 @@ describe('test workflow cla', () => {
                     body: commentBody,
                 },
             };
-            test('workflow executes, CLA assistant step run', async () => {
+            it('workflow executes, CLA assistant step run', async () => {
                 const repoPath = mockGithub.repo.getPath('testClaWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'cla.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -122,7 +123,7 @@ describe('test workflow cla', () => {
                     });
 
                 assertions.assertCLAJobExecuted(result, commentBody, `${repoPath}/remote/origin`, true, true);
-            }, 60000);
+            });
         });
         describe('re-check regex matches', () => {
             const commentBody = 'recheck';
@@ -137,7 +138,7 @@ describe('test workflow cla', () => {
                     body: commentBody,
                 },
             };
-            test('workflow executes, CLA assistant step run', async () => {
+            it('workflow executes, CLA assistant step run', async () => {
                 const repoPath = mockGithub.repo.getPath('testClaWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'cla.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -159,7 +160,7 @@ describe('test workflow cla', () => {
                     });
 
                 assertions.assertCLAJobExecuted(result, commentBody, `${repoPath}/remote/origin`, true, true);
-            }, 60000);
+            });
         });
     });
     describe('event is pull_request_target', () => {
@@ -173,7 +174,7 @@ describe('test workflow cla', () => {
                     },
                 },
             };
-            test('workflow executes, CLA assistant step still run', async () => {
+            it('workflow executes, CLA assistant step still run', async () => {
                 const repoPath = mockGithub.repo.getPath('testClaWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'cla.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -195,12 +196,12 @@ describe('test workflow cla', () => {
                     });
 
                 assertions.assertCLAJobExecuted(result, '', `${repoPath}/remote/origin`, true, true);
-            }, 60000);
+            });
         });
     });
     describe('different event', () => {
         const event = 'push';
-        test('workflow does not execute', async () => {
+        it('workflow does not execute', async () => {
             const eventData = {
                 ref: 'main',
             };
@@ -225,6 +226,6 @@ describe('test workflow cla', () => {
                 });
 
             assertions.assertCLAJobExecuted(result, '', `${repoPath}/remote/origin`, false);
-        }, 60000);
+        });
     });
 });
