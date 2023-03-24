@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import * as StyleUtils from '../../styles/StyleUtils';
-
 import {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
