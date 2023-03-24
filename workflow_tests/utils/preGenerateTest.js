@@ -48,7 +48,7 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
 ];
 
 describe('test workflow ${workflowName}', () => {
-    const githubToken = 'dummy_github_token',
+    const githubToken = 'dummy_github_token';
     const actor = 'Dummy Actor';
     beforeEach(async () => {
         // create a local repository and copy required files
@@ -68,7 +68,7 @@ describe('test workflow ${workflowName}', () => {
     afterEach(async () => {
         await mockGithub.teardown();
     });
-    test('test stub', async () => {
+    it('test stub', async () => {
         const repoPath = mockGithub.repo.getPath('test${capitalize(workflowName)}WorkflowRepo') || '';
         const workflowPath = path.join(repoPath, '.github', 'workflows', '${workflowName}.yml');
         let act = new eAct.ExtendedAct(repoPath, workflowPath);
