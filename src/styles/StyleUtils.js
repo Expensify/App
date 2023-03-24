@@ -95,7 +95,7 @@ function getAvatarExtraFontSize(size) {
     return AVATAR_SIZES[size];
 }
 
-function getAvatarBorderSize(size) {
+function getAvatarBorderWidth(size) {
     const AVATAR_SIZES = {
         [CONST.AVATAR_SIZE.DEFAULT]: 3,
         [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 2,
@@ -959,6 +959,8 @@ function getDirectionStyle(direction) {
 export {
     getAvatarSize,
     getAvatarStyle,
+    getAvatarExtraFontSize,
+    getAvatarBorderWidth,
     getAvatarBorderStyle,
     getAvatarExtraFontSize,
     getAvatarBorderSize,
