@@ -4,7 +4,7 @@ import {
     View, Pressable, StyleSheet,
 } from 'react-native';
 import SCREENS from '../../../../SCREENS';
-import { StackView } from '@react-navigation/stack';
+import themeColors from '../../../../styles/themes/default';
 
 const RIGHT_PANEL_WIDTH = 375;
 const LEFT_PANEL_WIDTH = 350;
@@ -16,6 +16,9 @@ const styles = StyleSheet.create({
         flex: 1,
         maxWidth: LEFT_PANEL_WIDTH,
         borderRightWidth: 1,
+
+        // TODO-NR maybe in different place?
+        borderRightColor: themeColors.border,
     },
     centralPanelContainer: {flex: 1},
     rightPanelContainer: {
@@ -67,7 +70,6 @@ const WideView = (props) => {
     return (
         <View style={styles.container}>
             {_.map(props.state.routes, (route, i) => {
-                console.log({ route })
                 if (route.name === SCREENS.HOME) {
                     return (
                         <View key={route.key} style={styles.leftPanelContainer}>
@@ -95,7 +97,6 @@ const WideView = (props) => {
                 }
                 return (
                     <View key={route.key} style={styles.fullScreen}>
-                    <StackView/>
                         {props.descriptors[route.key].render()}
                     </View>
                 );
