@@ -459,6 +459,10 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
  * @returns {String}
  */
 function getLastMessageText(report) {
+    if (!report) {
+        return '';
+    }
+
     const lastReportAction = lastReportActions[report.reportID];
     let lastReportActionText = report.lastMessageText;
     let lastReportActionHtml = report.lastMessageHtml;
