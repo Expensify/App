@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {useNavigationBuilder, createNavigatorFactory, StackRouter} from '@react-navigation/native';
 import {StackView} from '@react-navigation/stack';
-import WideView from './WideView';
+import ThreePaneView from './ThreePaneView';
 
 // TODO-NR prop types
 
@@ -29,7 +29,7 @@ function ResponsiveStackNavigator(props) {
     }
     return (
         <NavigationContent>
-            <WideView
+            <ThreePaneView
                 {...props}
                 state={state}
                 descriptors={descriptors}
