@@ -36,7 +36,7 @@ function getAddressComponents(addressComponents, fieldsToExtract) {
  */
 function getPlaceAutocompleteTerms(addressTerms) {
     const fieldsToExtract = ['country', 'state', 'city', 'street'];
-    const result = _.map(fieldsToExtract, () => '');
+    const result = {};
     _.each(fieldsToExtract, (fieldToExtract, index) => {
         const fieldTermIndex = addressTerms.length - (index + 1);
         result[fieldToExtract] = fieldTermIndex >= 0 && addressTerms[fieldTermIndex].value;
