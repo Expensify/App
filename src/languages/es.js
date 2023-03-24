@@ -1168,6 +1168,7 @@ export default {
     },
     report: {
         genericAddCommentFailureMessage: 'Error inesperado al agregar el comentario, por favor inténtalo más tarde',
+        roomNoChat: 'Sin actividad todavía',
     },
     chronos: {
         oooEventSummaryFullDay: ({summary, dayCount, date}) => `${summary} por ${dayCount} ${dayCount === 1 ? 'día' : 'días'} hasta el ${date}`,
