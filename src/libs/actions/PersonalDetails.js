@@ -6,7 +6,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
-import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import drawerGoBack from '../Navigation/drawerGoBack';
 
