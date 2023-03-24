@@ -164,8 +164,7 @@ class NewDatePicker extends React.Component {
 NewDatePicker.propTypes = propTypes;
 NewDatePicker.defaultProps = datePickerDefaultProps;
 
-export default
-withLocalize(React.forwardRef((props, ref) => (
+export default withLocalize(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <NewDatePicker {...props} innerRef={ref} />
 )));
