@@ -1,7 +1,15 @@
 const yaml = require('yaml');
 const fs = require('fs');
 
-const setUpActParams = (act, event = null, eventOptions = null, secrets = null, githubToken = null, envVars = null, inputs = null) => {
+function setUpActParams(
+    act,
+    event = null,
+    eventOptions = null,
+    secrets = null,
+    githubToken = null,
+    envVars = null,
+    inputs = null,
+) {
     let updated_act = act;
 
     if (event && eventOptions) {
@@ -38,9 +46,18 @@ const setUpActParams = (act, event = null, eventOptions = null, secrets = null, 
     }
 
     return updated_act;
-};
+}
 
-const getMockStep = (name, message, job_id = null, inputs = null, in_envs = null, outputs = null, out_envs = null, isSuccessful = true) => {
+function getMockStep(
+    name,
+    message,
+    job_id = null,
+    inputs = null,
+    in_envs = null,
+    outputs = null,
+    out_envs = null,
+    isSuccessful = true,
+) {
     const mockStepName = name;
     let mockWithCommand = 'echo [MOCK]';
     if (job_id) {
@@ -74,9 +91,17 @@ const getMockStep = (name, message, job_id = null, inputs = null, in_envs = null
         name: mockStepName,
         mockWith: mockWithCommand,
     };
-};
+}
 
-const getStepAssertion = (name, isSuccessful = true, expectedOutput = null, jobId = null, message = null, inputs = null, envs = null) => {
+function getStepAssertion(
+    name,
+    isSuccessful = true,
+    expectedOutput = null,
+    jobId = null,
+    message = null,
+    inputs = null,
+    envs = null,
+) {
     const stepName = `Main ${name}`;
     const stepStatus = isSuccessful ? 0 : 1;
     let stepOutput;
@@ -106,9 +131,9 @@ const getStepAssertion = (name, isSuccessful = true, expectedOutput = null, jobI
         status: stepStatus,
         output: stepOutput,
     };
-};
+}
 
-const setJobRunners = (act, jobs, workflowPath) => {
+function setJobRunners(act, jobs, workflowPath) {
     if (!act || !jobs || !workflowPath) {
         return act;
     }
@@ -120,11 +145,16 @@ const setJobRunners = (act, jobs, workflowPath) => {
     }
     fs.writeFileSync(workflowPath, yaml.stringify(workflow), 'utf8');
     return act;
-};
+}
+
+function deepCopy(originalObject) {
+    return JSON.parse(JSON.stringify(originalObject));
+}
 
 module.exports = {
     setUpActParams,
     getMockStep,
     getStepAssertion,
     setJobRunners,
+    deepCopy,
 };

@@ -26,6 +26,7 @@ const assertions = require('./assertions/${workflowName}Assertions');
 const mocks = require('./mocks/${workflowName}Mocks');
 const eAct = require('./utils/ExtendedAct');
 
+jest.setTimeout(60 * 1000);
 let mockGithub;
 const FILES_TO_COPY_INTO_TEST_REPO = [
     {
@@ -46,34 +47,37 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
     },
 ];
 
-beforeEach(async () => {
-    // create a local repository and copy required files
-    mockGithub = new kieMockGithub.MockGithub({
-        repo: {
-            test${capitalize(workflowName)}WorkflowRepo: {
-                files: FILES_TO_COPY_INTO_TEST_REPO,
-                
-                // if any branches besides main are need add: pushedBranches: ['staging', 'production'],
-            },
-        },
-    });
-
-    await mockGithub.setup();
-});
-
-afterEach(async () => {
-    await mockGithub.teardown();
-});
-
 describe('test workflow ${workflowName}', () => {
+    const githubToken = 'dummy_github_token',
+    const actor = 'Dummy Actor';
+    beforeEach(async () => {
+        // create a local repository and copy required files
+        mockGithub = new kieMockGithub.MockGithub({
+            repo: {
+                test${capitalize(workflowName)}WorkflowRepo: {
+                    files: FILES_TO_COPY_INTO_TEST_REPO,
+                    
+                    // if any branches besides main are need add: pushedBranches: ['staging', 'production'],
+                },
+            },
+        });
+    
+        await mockGithub.setup();
+    });
+    
+    afterEach(async () => {
+        await mockGithub.teardown();
+    });
     test('test stub', async () => {
         const repoPath = mockGithub.repo.getPath('test${capitalize(workflowName)}WorkflowRepo') || '';
         const workflowPath = path.join(repoPath, '.github', 'workflows', '${workflowName}.yml');
         let act = new eAct.ExtendedAct(repoPath, workflowPath);
         act = utils.setUpActParams(
             act,
-            
-            // set up params if needed
+            '[EVENT]',
+            {},
+            {},
+            githubToken,
         );
         const testMockSteps = {
             // mock steps with imported mocks
@@ -82,11 +86,11 @@ describe('test workflow ${workflowName}', () => {
             .runEvent('[EVENT]', {
                 workflowFile: path.join(repoPath, '.github', 'workflows'),
                 mockSteps: testMockSteps,
-                actor: 'Dummy Author',
+                actor,
             });
             
         // assert execution with imported assertions
-    }, 60000);
+    });
 });
 `;
 const mockStepTemplate = (stepMockName, step, jobId) => `
