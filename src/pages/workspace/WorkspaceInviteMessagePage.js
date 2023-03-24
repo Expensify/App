@@ -39,9 +39,9 @@ const personalDetailsPropTypes = PropTypes.shape({
 const propTypes = {
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
+    personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
-    invitedMembersDraft: PropTypes.arrayOf(PropTypes.string).isRequired,
+    invitedMembersDraft: PropTypes.arrayOf(PropTypes.string),
 
     /** URL Route params */
     route: PropTypes.shape({
@@ -56,7 +56,11 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const defaultProps = policyDefaultProps;
+const defaultProps = {
+    ...policyDefaultProps,
+    personalDetails: {},
+    invitedMembersDraft: [],
+};
 
 class WorkspaceInviteMessagePage extends React.Component {
     constructor(props) {
