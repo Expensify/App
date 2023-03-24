@@ -41,6 +41,7 @@ const BaseAnchorForAttachmentsOnly = (props) => {
     return (
         <ShowContextMenuContext.Consumer>
             {({
+                onShowContextMenu,
                 anchor,
                 reportID,
                 action,
@@ -57,13 +58,15 @@ const BaseAnchorForAttachmentsOnly = (props) => {
                     }}
                     onPressIn={props.onPressIn}
                     onPressOut={props.onPressOut}
-                    onLongPress={event => showContextMenuForReport(
-                        event,
-                        anchor,
-                        reportID,
-                        action,
-                        checkIfContextMenuActive,
-                    )}
+                    onLongPress={event => onShowContextMenu(() => {
+                        showContextMenuForReport(
+                            event,
+                            anchor,
+                            reportID,
+                            action,
+                            checkIfContextMenuActive,
+                        );
+                    })}
                 >
                     <AttachmentView
                         source={sourceURLWithAuth}

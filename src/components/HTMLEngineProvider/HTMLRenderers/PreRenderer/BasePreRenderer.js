@@ -35,6 +35,7 @@ const BasePreRenderer = forwardRef((props, ref) => {
         >
             <ShowContextMenuContext.Consumer>
                 {({
+                    onShowContextMenu,
                     anchor,
                     reportID,
                     action,
@@ -43,7 +44,9 @@ const BasePreRenderer = forwardRef((props, ref) => {
                     <TouchableWithoutFeedback
                         onPressIn={props.onPressIn}
                         onPressOut={props.onPressOut}
-                        onLongPress={event => showContextMenuForReport(event, anchor, reportID, action, checkIfContextMenuActive)}
+                        onLongPress={event => onShowContextMenu(() => {
+                            showContextMenuForReport(event, anchor, reportID, action, checkIfContextMenuActive);
+                        })}
                     >
                         <View>
                             {/* eslint-disable-next-line react/jsx-props-no-spreading */}

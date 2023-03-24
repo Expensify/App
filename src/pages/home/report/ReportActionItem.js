@@ -85,6 +85,7 @@ class ReportActionItem extends Component {
         this.renderItemContent = this.renderItemContent.bind(this);
         this.toggleReaction = this.toggleReaction.bind(this);
         this.onPressOpenPicker = this.onPressOpenPicker.bind(this);
+        this.onShowContextMenu = this.onShowContextMenu.bind(this);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -126,6 +127,20 @@ class ReportActionItem extends Component {
         });
     }
 
+    onShowContextMenu(callback) {
+        this.popoverAnchor.measureInWindow((fx, fy, width, height) => {
+            this.props.transitionActionSheetState({
+                type: 'POPOVER_OPEN',
+                payload: {
+                    fy,
+                    height,
+                },
+            });
+
+            callback();
+        });
+    }
+
     checkIfContextMenuActive() {
         this.setState({isContextMenuActive: ReportActionContextMenu.isActiveReportAction(this.props.action.reportActionID)});
 
@@ -145,15 +160,7 @@ class ReportActionItem extends Component {
             return;
         }
 
-        this.popoverAnchor.measureInWindow((fx, fy, width, height) => {
-            this.props.transitionActionSheetState({
-                type: 'POPOVER_OPEN',
-                payload: {
-                    fy,
-                    height,
-                },
-            });
-
+        this.onShowContextMenu(() => {
             this.setState({isContextMenuActive: true});
 
             // Newline characters need to be removed here because getCurrentSelection() returns html mixed with newlines, and when
@@ -206,7 +213,7 @@ class ReportActionItem extends Component {
             children = (
                 <ShowContextMenuContext.Provider
                     value={{
-                        getAnchor: () => this.popoverAnchor,
+                        onShowContextMenu: this.onShowContextMenu,
                         anchor: this.popoverAnchor,
                         reportID: this.props.report.reportID,
                         action: this.props.action,

@@ -4,7 +4,7 @@ import * as ContextMenuActions from '../pages/home/report/ContextMenu/ContextMen
 
 const ShowContextMenuContext = React.createContext({
     anchor: null,
-    getAnchor: () => null,
+    onShowContextMenu: () => undefined,
     reportID: null,
     action: undefined,
     checkIfContextMenuActive: () => {},

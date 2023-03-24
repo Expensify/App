@@ -7,7 +7,6 @@ import PressableWithoutFocus from '../../PressableWithoutFocus';
 import CONST from '../../../CONST';
 import {ShowContextMenuContext, showContextMenuForReport} from '../../ShowContextMenuContext';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
-import * as ActionSheetAwareScrollView from '../../ActionSheetAwareScrollView';
 
 const ImageRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
@@ -42,20 +41,6 @@ const ImageRenderer = (props) => {
     const imageHeight = htmlAttribs['data-expensify-height'] ? parseInt(htmlAttribs['data-expensify-height'], 10) : undefined;
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
 
-    const onLongPress = (event, getAnchor, anchor, reportID, action, checkIfContextMenuActive) => {
-        (anchor || getAnchor()).measureInWindow((fx, fy, width, height) => {
-            props.transitionActionSheetState({
-                type: 'POPOVER_OPEN',
-                payload: {
-                    fy,
-                    height,
-                },
-            });
-
-            showContextMenuForReport(event, anchor, reportID, action, checkIfContextMenuActive);
-        });
-    };
-
     return imagePreviewModalDisabled ? (
         <ThumbnailImage
             previewSourceURL={previewSource}
@@ -67,7 +52,7 @@ const ImageRenderer = (props) => {
     ) : (
         <ShowContextMenuContext.Consumer>
             {({
-                getAnchor,
+                onShowContextMenu,
                 anchor,
                 reportID,
                 action,
@@ -83,7 +68,9 @@ const ImageRenderer = (props) => {
                         <PressableWithoutFocus
                             style={styles.noOutline}
                             onPress={show}
-                            onLongPress={event => onLongPress(event, getAnchor, anchor, reportID, action, checkIfContextMenuActive)}
+                            onLongPress={event => onShowContextMenu(() => {
+                                showContextMenuForReport(event, anchor, reportID, action, checkIfContextMenuActive);
+                            })}
                         >
                             <ThumbnailImage
                                 previewSourceURL={previewSource}
@@ -103,4 +90,4 @@ const ImageRenderer = (props) => {
 ImageRenderer.propTypes = htmlRendererPropTypes;
 ImageRenderer.displayName = 'ImageRenderer';
 
-export default ActionSheetAwareScrollView.withActionSheetAwareScrollViewContext(ImageRenderer);
+export default ImageRenderer;
