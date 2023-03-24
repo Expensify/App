@@ -8,8 +8,6 @@ import Text from '../Text';
 import themeColors from '../../styles/themes/default';
 import TextLink from '../TextLink';
 import Navigation from '../../libs/Navigation/Navigation';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Expensicon for the page */
@@ -29,8 +27,6 @@ const propTypes = {
 
     /** Whether we should show a go back home link */
     shouldShowBackHomeLink: PropTypes.bool,
-
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -54,12 +50,7 @@ const BlockingView = props => (
         {props.shouldShowBackHomeLink
             ? (
                 <TextLink
-                    onPress={() => {
-                        if (props.isSmallScreenWidth) {
-                            return Navigation.dismissModal(true);
-                        }
-                        return Navigation.navigate(ROUTES.REPORT);
-                    }}
+                    onPress={() => Navigation.dismissModal(true)}
                     style={[styles.link, styles.mt2]}
                 >
                     {props.link}
@@ -72,4 +63,4 @@ BlockingView.propTypes = propTypes;
 BlockingView.defaultProps = defaultProps;
 BlockingView.displayName = 'BlockingView';
 
-export default withWindowDimensions(BlockingView);
+export default BlockingView;
