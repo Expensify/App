@@ -962,8 +962,6 @@ export {
     getAvatarExtraFontSize,
     getAvatarBorderWidth,
     getAvatarBorderStyle,
-    getAvatarExtraFontSize,
-    getAvatarBorderSize,
     getErrorPageContainerStyle,
     getSafeAreaPadding,
     getSafeAreaMargins,
