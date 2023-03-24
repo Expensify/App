@@ -287,7 +287,7 @@ class Form extends React.Component {
                     setTimeout(() => {
                         this.setTouchedInput(inputID);
                         this.validate(this.state.inputValues);
-                    }, 100);
+                    }, 200);
                 },
                 onInputChange: (value, key) => {
                     const inputKey = key || inputID;
