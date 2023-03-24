@@ -374,6 +374,13 @@ function reconnect() {
     socket.connect();
 }
 
+/**
+ * @returns {String}
+ */
+function getPusherSocketID() {
+    return pusherSocketID;
+}
+
 if (window) {
     /**
      * Pusher socket for debugging purposes
@@ -396,5 +403,5 @@ export {
     registerSocketEventCallback,
     registerCustomAuthorizer,
     TYPE,
-    pusherSocketID,
+    getPusherSocketID,
 };
