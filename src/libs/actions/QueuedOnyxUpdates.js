@@ -9,9 +9,10 @@ Onyx.connect({
 
 /**
  * @param {Array<Object>} updates Onyx updates to queue for later
+ * @returns {Promise}
  */
 function queueOnyxUpdates(updates) {
-    Onyx.merge(ONYXKEYS.QUEUED_ONYX_UPDATES, updates);
+    return Onyx.merge(ONYXKEYS.QUEUED_ONYX_UPDATES, updates);
 }
 
 function clear() {
