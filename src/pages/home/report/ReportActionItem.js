@@ -206,6 +206,7 @@ class ReportActionItem extends Component {
             children = (
                 <ShowContextMenuContext.Provider
                     value={{
+                        getAnchor: () => this.popoverAnchor,
                         anchor: this.popoverAnchor,
                         reportID: this.props.report.reportID,
                         action: this.props.action,

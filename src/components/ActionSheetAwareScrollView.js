@@ -54,14 +54,12 @@ function withActionSheetAwareScrollViewContext(WrappedComponent) {
 
     return WithActionSheetAwareScrollViewContext;
 }
-export default function ActionSheetAwareScrollView(props) {
-    return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <ScrollView {...props}>
-            {props.children}
-        </ScrollView>
-    );
-}
+const ActionSheetAwareScrollView = forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <ScrollView ref={ref} {...props}>
+        {props.children}
+    </ScrollView>
+));
 
 ActionSheetAwareScrollView.defaultProps = {
     children: null,
@@ -70,6 +68,8 @@ ActionSheetAwareScrollView.defaultProps = {
 ActionSheetAwareScrollView.propTypes = {
     children: PropTypes.node,
 };
+
+export default ActionSheetAwareScrollView;
 
 // mock
 const renderScrollComponent = undefined;

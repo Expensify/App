@@ -7,6 +7,8 @@ import styles from '../styles/styles';
 import Button from './Button';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Text from './Text';
+import * as ActionSheetAwareScrollView from './ActionSheetAwareScrollView';
+import compose from '../libs/compose';
 
 const propTypes = {
     /** Title of the modal */
@@ -54,38 +56,54 @@ const defaultProps = {
     contentStyles: [],
 };
 
-const ConfirmContent = props => (
-    <View style={[styles.m5, ...props.contentStyles]}>
-        <View style={[styles.flexRow, styles.mb4]}>
-            <Header title={props.title} />
-        </View>
+const ConfirmContent = (props) => {
+    const onLayout = (event) => {
+        const {height} = event.nativeEvent.layout;
 
-        {_.isString(props.prompt)
-            ? (
-                <Text>
-                    {props.prompt}
-                </Text>
-            ) : props.prompt}
+        props.transitionActionSheetState({
+            type: 'MEASURE_CONFIRM_MODAL',
+            payload: {
+                popoverHeight: height,
+            },
+        });
+    };
 
-        <Button
-            success={props.success}
-            danger={props.danger}
-            style={[styles.mt4]}
-            onPress={props.onConfirm}
-            pressOnEnter
-            text={props.confirmText || props.translate('common.yes')}
-        />
-        {props.shouldShowCancelButton && (
+    return (
+        <View onLayout={onLayout} style={[styles.m5, ...props.contentStyles]}>
+            <View style={[styles.flexRow, styles.mb4]}>
+                <Header title={props.title} />
+            </View>
+
+            {_.isString(props.prompt)
+                ? (
+                    <Text>
+                        {props.prompt}
+                    </Text>
+                ) : props.prompt}
+
+            <Button
+                success={props.success}
+                danger={props.danger}
+                style={[styles.mt4]}
+                onPress={props.onConfirm}
+                pressOnEnter
+                text={props.confirmText || props.translate('common.yes')}
+            />
+            {props.shouldShowCancelButton && (
             <Button
                 style={[styles.mt3, styles.noSelect]}
                 onPress={props.onCancel}
                 text={props.cancelText || props.translate('common.no')}
             />
-        )}
-    </View>
-);
+            )}
+        </View>
+    );
+};
 
 ConfirmContent.propTypes = propTypes;
 ConfirmContent.defaultProps = defaultProps;
 ConfirmContent.displayName = 'ConfirmContent';
-export default withLocalize(ConfirmContent);
+export default compose(
+    ActionSheetAwareScrollView.withActionSheetAwareScrollViewContext,
+    withLocalize,
+)(ConfirmContent);

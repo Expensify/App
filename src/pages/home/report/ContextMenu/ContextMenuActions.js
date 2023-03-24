@@ -245,12 +245,22 @@ export default [
         icon: Expensicons.Trashcan,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) => type === CONTEXT_MENU_TYPES.REPORT_ACTION
             && ReportUtils.canDeleteReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
-        onPress: (closePopover, {reportID, reportAction}) => {
+        onPress: (closePopover, {reportID, reportAction, transitionActionSheetState}) => {
             if (closePopover) {
+                transitionActionSheetState({
+                    type: 'SHOW_DELETE_CONFIRM_MODAL',
+                });
+
+                const onClose = () => {
+                    transitionActionSheetState({
+                        type: 'CLOSE_CONFIRM_MODAL',
+                    });
+                };
+
                 // Hide popover, then call showDeleteConfirmModal
                 hideContextMenu(
                     false,
-                    () => showDeleteModal(reportID, reportAction),
+                    () => showDeleteModal(reportID, reportAction, undefined, onClose, onClose),
                 );
                 return;
             }

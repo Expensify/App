@@ -100,6 +100,7 @@ const stateMachine = {
         POPOVER_ANY_ACTION: 'popoverClosed',
         HIDE_WITHOUT_ANIMATION: 'idle',
         EDIT_REPORT: 'edit',
+        SHOW_DELETE_CONFIRM_MODAL: 'deleteModal',
     },
     edit: {
         CLOSE_POPOVER: 'edit',
@@ -111,6 +112,10 @@ const stateMachine = {
     emojiPickerPopoverOpen: {
         MEASURE_EMOJI_PICKER_POPOVER: 'emojiPickerPopoverOpen',
         CLOSE_EMOJI_PICKER_POPOVER: 'popoverClosed',
+    },
+    deleteModal: {
+        MEASURE_CONFIRM_MODAL: 'deleteModal',
+        CLOSE_CONFIRM_MODAL: 'popoverClosed',
     },
     keyboardOpen: {
         ON_KEYBOARD_OPEN: 'keyboardOpen',
@@ -125,8 +130,12 @@ const stateMachine = {
         CLOSE_EMOJI_PICKER_POPOVER: 'keyboardClosingPopover',
         MEASURE_EMOJI_PICKER_POPOVER: 'keyboardPopoverOpen',
         OPEN_EMOJI_PICKER_POPOVER: 'emojiPickerPopoverWithKeyboardOpen',
+        SHOW_DELETE_CONFIRM_MODAL: 'deleteModalWithKeyboardOpen',
     },
-
+    deleteModalWithKeyboardOpen: {
+        MEASURE_CONFIRM_MODAL: 'deleteModalWithKeyboardOpen',
+        CLOSE_CONFIRM_MODAL: 'keyboardClosingPopover',
+    },
     emojiPickerPopoverWithKeyboardOpen: {
         MEASURE_EMOJI_PICKER_POPOVER: 'emojiPickerPopoverWithKeyboardOpen',
         CLOSE_EMOJI_PICKER_POPOVER: 'keyboardClosingPopover',
@@ -281,6 +290,12 @@ const ReportKeyboardSpace = (props) => {
             - (windowHeight - fy - safeArea.top)
             + height;
 
+        const previousPayload = previous.payload || {};
+
+        const previousElementOffset = previousPayload.popoverHeight
+            - (windowHeight - previousPayload.fy - safeArea.top)
+            + previousPayload.height;
+
         switch (current.state) {
             case 'idle':
                 return 0;
@@ -304,10 +319,15 @@ const ReportKeyboardSpace = (props) => {
                     });
                 });
 
+            case 'deleteModal':
             case 'emojiPickerPopoverOpen':
             case 'popoverOpen': {
                 if (popoverHeight) {
-                    return withTiming(elementOffset < 0 ? 0 : elementOffset, config);
+                    if (Number.isNaN(previousElementOffset) || elementOffset > previousElementOffset) {
+                        return withTiming(elementOffset < 0 ? 0 : elementOffset, config);
+                    }
+
+                    return previousElementOffset;
                 }
 
                 return 0;
@@ -334,6 +354,7 @@ const ReportKeyboardSpace = (props) => {
                 // }));
             }
 
+            case 'deleteModalWithKeyboardOpen':
             case 'emojiPickerPopoverWithKeyboardOpen': {
                 // when item is higher than keyboard and bottom sheet
                 // we should just stay in place
@@ -344,7 +365,13 @@ const ReportKeyboardSpace = (props) => {
                 const nextOffset = invertedKeyboardHeight + elementOffset;
 
                 if (previous.payload.popoverHeight !== popoverHeight) {
-                    return withTiming(nextOffset, config);
+                    const previousOffset = invertedKeyboardHeight + previousElementOffset;
+
+                    if (Number.isNaN(previousOffset) || nextOffset > previousOffset) {
+                        return withTiming(nextOffset, config);
+                    }
+
+                    return previousOffset;
                 }
 
                 return nextOffset;
@@ -404,16 +431,14 @@ const ReportKeyboardSpace = (props) => {
 
 ReportKeyboardSpace.displayName = 'ReportKeyboardSpace';
 
-export default function ActionSheetAwareScrollView(props) {
-    return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <ScrollView {...props}>
-            <ReportKeyboardSpace>
-                {props.children}
-            </ReportKeyboardSpace>
-        </ScrollView>
-    );
-}
+const ActionSheetAwareScrollView = forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <ScrollView ref={ref} {...props}>
+        <ReportKeyboardSpace>
+            {props.children}
+        </ReportKeyboardSpace>
+    </ScrollView>
+));
 
 ActionSheetAwareScrollView.defaultProps = {
     children: null,
@@ -422,6 +447,8 @@ ActionSheetAwareScrollView.defaultProps = {
 ActionSheetAwareScrollView.propTypes = {
     children: PropTypes.node,
 };
+
+export default ActionSheetAwareScrollView;
 
 function renderScrollComponent(props) {
     // eslint-disable-next-line react/jsx-props-no-spreading
