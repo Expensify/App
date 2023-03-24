@@ -99,12 +99,8 @@ const stateMachine = {
         OPEN_EMOJI_PICKER_POPOVER: 'emojiPickerPopoverOpen',
         POPOVER_ANY_ACTION: 'popoverClosed',
         HIDE_WITHOUT_ANIMATION: 'idle',
-        EDIT_REPORT: 'edit',
+        EDIT_REPORT: 'idle',
         SHOW_DELETE_CONFIRM_MODAL: 'deleteModal',
-    },
-    edit: {
-        CLOSE_POPOVER: 'edit',
-        END_TRANSITION: 'idle',
     },
     popoverClosed: {
         END_TRANSITION: 'idle',
@@ -331,27 +327,6 @@ const ReportKeyboardSpace = (props) => {
                 }
 
                 return 0;
-            }
-
-            case 'edit': {
-                return withTiming(0, {
-                    duration: 0,
-                }, () => {
-                    transition({
-                        type: 'END_TRANSITION',
-                    });
-                });
-
-                // return withSequence(withTiming(elementOffset - keyboardHeight, {
-                //     duration: 0,
-                // }), withTiming(0, {
-                //     ...config,
-                //     duration: 400,
-                // }, () => {
-                //     transition({
-                //         type: 'END_TRANSITION',
-                //     });
-                // }));
             }
 
             case 'deleteModalWithKeyboardOpen':
