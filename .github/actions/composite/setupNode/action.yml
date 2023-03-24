@@ -12,6 +12,6 @@ runs:
     - name: Install node packages
       uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
       with:
-        timeout_minutes: 10
+        timeout_minutes: 60
         max_attempts: 5
         command: npm ci
