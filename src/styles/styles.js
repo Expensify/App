@@ -275,6 +275,7 @@ const styles = {
         fontWeight: fontWeightBold,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontSize: variables.fontSizeSmall,
+        lineHeight: variables.lineHeightSmall,
     },
 
     textMicroSupporting: {
@@ -775,6 +776,7 @@ const styles = {
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 15,
+        overflow: 'hidden',
     },
 
     calendarDayContainerSelected: {
@@ -1202,11 +1204,6 @@ const styles = {
         height: variables.componentSizeNormal,
         justifyContent: 'center',
         alignItems: 'center',
-    },
-
-    popoverMenuIconEmphasized: {
-        backgroundColor: themeColors.iconSuccessFill,
-        borderRadius: variables.componentSizeLarge / 2,
     },
 
     popoverMenuText: {
@@ -3042,7 +3039,7 @@ const styles = {
         justifyContent: 'space-between',
     },
 
-    magicCodeDigits: {
+    validateCodeDigits: {
         color: themeColors.text,
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeXXLarge,
@@ -3101,6 +3098,11 @@ const styles = {
         alignSelf: 'center',
         top: 60,
         zIndex: 100,
+    },
+
+    validateCodeMessage: {
+        width: variables.modalContentMaxWidth,
+        textAlign: 'center',
     },
 };
 

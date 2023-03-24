@@ -7,6 +7,7 @@ import colors from './colors';
 import positioning from './utilities/positioning';
 import styles from './styles';
 import * as ReportUtils from '../libs/ReportUtils';
+import getSafeAreaPaddingTop from '../libs/getSafeAreaPaddingTop';
 
 const workspaceColorOptions = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
@@ -125,11 +126,12 @@ function getDefaultWorspaceAvatarColor(workspaceName) {
  * Takes safe area insets and returns padding to use for a View
  *
  * @param {Object} insets
+ * @param {Boolean} statusBarTranslucent
  * @returns {Object}
  */
-function getSafeAreaPadding(insets) {
+function getSafeAreaPadding(insets, statusBarTranslucent) {
     return {
-        paddingTop: insets.top,
+        paddingTop: getSafeAreaPaddingTop(insets, statusBarTranslucent),
         paddingBottom: insets.bottom * variables.safeInsertPercentage,
         paddingLeft: insets.left * variables.safeInsertPercentage,
         paddingRight: insets.right * variables.safeInsertPercentage,
@@ -824,16 +826,22 @@ function getEmojiSuggestionItemStyle(
     hovered,
     currentEmojiIndex,
 ) {
+    let backgroundColor;
+
+    if (currentEmojiIndex === highlightedEmojiIndex) {
+        backgroundColor = themeColors.activeComponentBG;
+    } else if (hovered) {
+        backgroundColor = themeColors.hoverComponentBG;
+    }
+
     return [
         {
             height: rowHeight,
             justifyContent: 'center',
         },
-        (currentEmojiIndex === highlightedEmojiIndex && !hovered) || hovered
-            ? {
-                backgroundColor: themeColors.highlightBG,
-            }
-            : {},
+        backgroundColor ? {
+            backgroundColor,
+        } : {},
     ];
 }
 
