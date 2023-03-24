@@ -1393,6 +1393,10 @@ function getCurrentUserAccountID() {
     return currentUserAccountID;
 }
 
+function getCurrentUserEmail() {
+    return currentUserEmail;
+}
+
 export {
     addComment,
     addAttachment,
@@ -1430,4 +1434,5 @@ export {
     toggleEmojiReaction,
     hasAccountIDReacted,
     getCurrentUserAccountID,
+    getCurrentUserEmail,
 };

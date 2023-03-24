@@ -23,6 +23,7 @@ import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
+import {getCurrentUserAccountID} from "../../../libs/actions/Report";
 
 const propTypes = {
     /** The report currently being looked at */
@@ -180,9 +181,8 @@ class ReportActionsView extends React.Component {
         const isReportFullyVisible = this.getIsReportFullyVisible();
 
         const didReceiveNewMessage = prevProps.report.lastVisibleActionCreated !== this.props.report.lastVisibleActionCreated;
-        if (isReportFullyVisible && didReceiveNewMessage) {
-
-            Report.markCommentAsUnread(this.props.report.reportID);
+        if (isReportFullyVisible && didReceiveNewMessage && this.props.report.lastActorEmail !== Report.getCurrentUserEmail()) {
+            Report.markCommentAsUnread(this.props.report.reportID, null);
             console.log(`~~Monil logs ${this.props.report.lastMessageText} ${this.props.report.reportID}`);
         } else {
             console.log(`~~Monil logs nothing`);
