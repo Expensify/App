@@ -316,6 +316,12 @@ class AuthScreens extends React.Component {
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
+                    name="Select_Year"
+                    options={modalScreenOptions}
+                    component={ModalStackNavigators.YearPickerStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
                     name={SCREENS.NOT_FOUND}
                     options={{headerShown: false}}
                     component={NotFoundPage}

@@ -2,12 +2,14 @@ import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
 import * as Url from './libs/Url';
 
-const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
+const CLOUDFRONT_DOMAIN = 'cloudfront.net';
+const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com'));
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const USA_COUNTRY_NAME = 'United States';
+const CURRENT_YEAR = new Date().getFullYear();
 
 const CONST = {
     ANDROID_PACKAGE_NAME,
@@ -44,6 +46,23 @@ const CONST = {
     DISPLAY_NAME: {
         MAX_LENGTH: 50,
         RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
+    },
+
+    CALENDAR_PICKER: {
+        // Numbers were arbitrarily picked.
+        MIN_YEAR: CURRENT_YEAR - 100,
+        MAX_YEAR: CURRENT_YEAR + 100,
+    },
+
+    DATE_BIRTH: {
+        MIN_AGE: 5,
+        MAX_AGE: 150,
+    },
+
+    // This is used to enable a rotation/transform style to any component.
+    DIRECTION: {
+        LEFT: 'left',
+        RIGHT: 'right',
     },
 
     // Sizes needed for report empty state background image handling
@@ -271,6 +290,7 @@ const CONST = {
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     DEEPLINK_BASE_URL: 'new-expensify://',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
+    CLOUDFRONT_DOMAIN_REGEX: /^https:\/\/\w+\.cloudfront\.net/i,
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
     CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
