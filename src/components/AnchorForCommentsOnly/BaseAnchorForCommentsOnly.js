@@ -54,7 +54,7 @@ const BaseAnchorForCommentsOnly = (props) => {
             onSecondaryInteraction={
                 (event) => {
                     ReportActionContextMenu.showContextMenu(
-                        Str.isValidEmail(props.displayName) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
+                        Str.isValidEmailMarkdown(props.displayName) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
                         event,
                         props.href,
                         lodashGet(linkRef, 'current'),
@@ -65,7 +65,7 @@ const BaseAnchorForCommentsOnly = (props) => {
             onPressIn={props.onPressIn}
             onPressOut={props.onPressOut}
         >
-            <Tooltip containerStyles={[styles.dInline]} text={Str.isValidEmail(props.displayName) ? '' : props.href}>
+            <Tooltip containerStyles={[styles.dInline]} text={Str.isValidEmailMarkdown(props.displayName) ? '' : props.href}>
                 <Text
                     ref={el => linkRef = el}
                     style={StyleSheet.flatten([props.style, defaultTextStyle])}
