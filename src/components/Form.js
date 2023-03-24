@@ -281,6 +281,9 @@ class Form extends React.Component {
                 value: this.state.inputValues[inputID],
                 errorText: this.state.errors[inputID] || fieldErrorMessage,
                 onBlur: () => {
+                    // We delay the validation in order to prevent Checkbox loss of focus when
+                    // the user are focusing a TextInput and proceeds to toggle a CheckBox in
+                    // web and mobile web platforms.
                     setTimeout(() => {
                         this.setTouchedInput(inputID);
                         this.validate(this.state.inputValues);
