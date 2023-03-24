@@ -68,14 +68,6 @@ const propTypes = {
     /** Callback called when click or tap out of Picker */
     onBlur: PropTypes.func,
 
-    /** Ref to be forwarded to RNPickerSelect component, provided by forwardRef, not parent component. */
-    innerRef: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.shape({
-            current: PropTypes.element,
-        }),
-    ]),
-
     /** Additional events passed to the core Picker for specific platforms such as web */
     additionalPickerEvents: PropTypes.func,
 };
@@ -99,7 +91,6 @@ const defaultProps = {
         />
     ),
     onBlur: () => {},
-    innerRef: () => {},
     additionalPickerEvents: () => {},
 };
 
@@ -110,9 +101,12 @@ class Picker extends PureComponent {
             isHighlighted: false,
         };
 
+        this.textInput = null;
+
         this.onInputChange = this.onInputChange.bind(this);
         this.enableHighlight = this.enableHighlight.bind(this);
         this.disableHighlight = this.disableHighlight.bind(this);
+        this.measureLayout = this.measureLayout.bind(this);
 
         // Windows will reuse the text color of the select for each one of the options
         // so we might need to color accordingly so it doesn't blend with the background.
@@ -169,24 +163,20 @@ class Picker extends PureComponent {
         });
     }
 
+    /**
+     * This method is used by Form when scrolling to the input
+     */
+    measureLayout(...args) {
+        return this.textInput.measureLayout(...args);
+    }
+
     render() {
         const hasError = !_.isEmpty(this.props.errorText);
-
-        const inputRefs = Platform.OS === 'web' ? {
-            // Forward the inner ref to the picker component on Web, as on the Web:
-            // - focusing any input un-focuses other inputs
-            // - focusing doesn't open the picker (which we don't want)
-            // - it improves accessibility
-            pickerRef: this.props.innerRef,
-        } : {
-            // On other platforms forward the ref to the internal text input, as text inputs share the global focus
-            // state
-            textInputRef: this.props.innerRef,
-        };
 
         return (
             <>
                 <View
+                    ref={el => this.root = el}
                     style={[
                         styles.pickerContainer,
                         this.props.isDisabled && styles.inputDisabled,
@@ -217,11 +207,10 @@ class Picker extends PureComponent {
                         onOpen={this.enableHighlight}
                         onClose={this.disableHighlight}
                         textInputProps={{
-                            ref: inputRefs.textInputRef,
+                            ref: el => this.textInput = el,
                             allowFontScaling: false,
                         }}
                         pickerProps={{
-                            ref: inputRefs.pickerRef,
                             onFocus: this.enableHighlight,
                             onBlur: () => {
                                 this.disableHighlight();
@@ -250,4 +239,4 @@ Picker.defaultProps = defaultProps;
 Picker.contextType = ScrollContext;
 
 // eslint-disable-next-line react/jsx-props-no-spreading
-export default React.forwardRef((props, ref) => <Picker {...props} innerRef={ref} key={props.inputID} />);
+export default React.forwardRef((props, ref) => <Picker {...props} ref={ref} key={props.inputID} />);
