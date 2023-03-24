@@ -166,7 +166,7 @@ describe('test workflow createNewVersion', () => {
                 act = utils.setJobRunners(act, {createNewVersion: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     validateActor: mocks.CREATENEWVERSION__VALIDATEACTOR__ADMIN__STEP_MOCKS,
-                    createNewVersion: JSON.parse(JSON.stringify(mocks.CREATENEWVERSION__CREATENEWVERSION__STEP_MOCKS)),
+                    createNewVersion: utils.deepCopy(mocks.CREATENEWVERSION__CREATENEWVERSION__STEP_MOCKS),
                 };
                 testMockSteps.createNewVersion[5] = utils.getMockStep(
                     'Commit new version',
