@@ -7,7 +7,6 @@ import ROUTES from '../../ROUTES';
 import * as Policy from './Policy';
 import ONYXKEYS from '../../ONYXKEYS';
 import SCREENS from '../../SCREENS';
-import * as User from '../actions/User';
 
 let resolveIsReadyPromise;
 let isReadyPromise = new Promise((resolve) => {

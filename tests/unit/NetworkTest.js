@@ -108,7 +108,7 @@ describe('NetworkTests', () => {
                     })
                     .then(() => {
                         // Then we will eventually have 3 calls to chatList and 2 calls to Authenticate
-                        const callsToOpenApp = _.filter(HttpUtils.xhr.mock.calls, ([command, params]) => (
+                        const callsToOpenApp = _.filter(HttpUtils.xhr.mock.calls, ([command]) => (
                             command === 'OpenApp'
                         ));
                         const callsToAuthenticate = _.filter(HttpUtils.xhr.mock.calls, ([command]) => (
