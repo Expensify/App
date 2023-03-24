@@ -7,9 +7,9 @@ if (process.env.USE_WEB_PROXY === 'false') {
     process.stdout.write('Skipping proxy as USE_WEB_PROXY was set to false.\n');
     process.exit();
 }
-const host = new URL(process.env.EXPENSIFY_URL || 'https://www.expensify.com').hostname;
-const stagingHost = new URL(process.env.STAGING_EXPENSIFY_URL || 'https://staging.expensify.com').hostname;
-const stagingSecureHost = new URL(process.env.STAGING_SECURE_EXPENSIFY_URL || 'https://staging-secure.expensify.com').hostname;
+const host = 'www.expensify.com';
+const stagingHost = 'staging.expensify.com';
+const stagingSecureHost = 'staging-secure.expensify.com';
 
 // eslint-disable-next-line no-console
 console.log(`Creating proxy with host: ${host} for production API and ${stagingHost} for staging API`);
