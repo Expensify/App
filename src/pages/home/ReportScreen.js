@@ -22,6 +22,7 @@ import reportActionPropTypes from './report/reportActionPropTypes';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
 import {withNetwork} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
+import Visibility from '../../libs/Visibility';
 import networkPropTypes from '../../components/networkPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
@@ -117,6 +118,8 @@ class ReportScreen extends React.Component {
     constructor(props) {
         super(props);
 
+        this.unsubscribeVisibilityListener = null;
+
         this.onSubmitComment = this.onSubmitComment.bind(this);
         this.chatWithAccountManager = this.chatWithAccountManager.bind(this);
         this.dismissBanner = this.dismissBanner.bind(this);
@@ -128,6 +131,16 @@ class ReportScreen extends React.Component {
     }
 
     componentDidMount() {
+        this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
+            // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
+            // we don't need to call openReport again
+            if (!this.isReportFullyVisible() || this.props.report.isOptimisticReport) {
+                return;
+            }
+
+            Report.openReport(this.props.report.reportID);
+        });
+
         this.fetchReportIfNeeded();
         toggleReportActionComposeView(true);
         Navigation.setIsReportScreenIsReady();
@@ -149,6 +162,9 @@ class ReportScreen extends React.Component {
     }
 
     componentWillUnmount() {
+        if (this.unsubscribeVisibilityListener) {
+            this.unsubscribeVisibilityListener();
+        }
         Navigation.resetIsReportScreenReadyPromise();
     }
 
@@ -197,6 +213,16 @@ class ReportScreen extends React.Component {
 
     chatWithAccountManager() {
         Navigation.navigate(ROUTES.getReportRoute(this.props.accountManagerReportID));
+    }
+
+    /**
+     * When the app is visible and the LHN is not opening in small-screen devices we can assume that the report is fully visible.
+     *
+     * @returns {Boolean}
+     */
+    isReportFullyVisible() {
+        const isSidebarCoveringReportView = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
+        return Visibility.isVisible() && !isSidebarCoveringReportView;
     }
 
     render() {
