@@ -1,4 +1,4 @@
-const applyStrikethrough = (html, isPendingDelete) => {
+function applyStrikethrough(html, isPendingDelete) {
     if (isPendingDelete) {
         return `<del>${html}</del>`;
     }

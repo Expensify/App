@@ -1,3 +1,5 @@
-const applyStrikethrough = (html) => html;
+function applyStrikethrough(html) {
+    return html;
+}
 
 export default applyStrikethrough;
