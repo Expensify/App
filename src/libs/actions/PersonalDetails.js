@@ -153,7 +153,7 @@ function updateLegalName(legalFirstName, legalLastName) {
             },
         }],
     });
-    Navigation.goBackAfterApiCall(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    drawerGoBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
