@@ -49,8 +49,11 @@ function isOptimisticAction(reportAction) {
 }
 
 /**
- * Sort an array of reportActions by their created timestamp first, and reportActionID second
- * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
+ * Sort an array of reportActions by:
+ *
+ * - Finalized actions always are "later" than optimistic actions
+ * - then sort by created timestamp
+ * - then sort by reportActionID. This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
  * @param {Array} reportActions
  * @param {Boolean} shouldSortInDescendingOrder
