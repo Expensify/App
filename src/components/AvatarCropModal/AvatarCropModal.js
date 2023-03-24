@@ -299,7 +299,7 @@ const AvatarCropModal = (props) => {
             originalImageWidth.value,
             originalImageHeight.value,
         ];
-    }, []);
+    }, [originalImageHeight.value, originalImageWidth.value, rotation, translateX.value, translateY.value]);
 
     // Crops an image that was provided in the imageUri prop, using the current position/scale
     // then calls onSave and onClose callbacks
