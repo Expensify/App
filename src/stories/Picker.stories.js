@@ -31,6 +31,7 @@ const Default = Template.bind({});
 Default.args = {
     label: 'Default picker',
     name: 'Default',
+    hintText: 'Default hint text',
     items: [
         {
             label: 'Orange',
@@ -48,6 +49,7 @@ PickerWithValue.args = {
     label: 'Picker with defined value',
     name: 'Picker with defined value',
     value: 'apple',
+    hintText: 'Picker with hint text',
     items: [
         {
             label: 'Orange',
@@ -64,6 +66,7 @@ const ErrorStory = Template.bind({});
 ErrorStory.args = {
     label: 'Picker with error',
     name: 'PickerWithError',
+    hintText: 'Picker hint text',
     errorText: 'This field has an error.',
     items: [
         {
@@ -81,7 +84,9 @@ const Disabled = Template.bind({});
 Disabled.args = {
     label: 'Picker disabled',
     name: 'Disabled',
+    value: 'orange',
     isDisabled: true,
+    hintText: 'Picker hint text',
     items: [
         {
             label: 'Orange',
