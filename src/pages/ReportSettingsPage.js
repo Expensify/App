@@ -19,6 +19,7 @@ import Text from '../components/Text';
 import RoomNameInput from '../components/RoomNameInput';
 import Picker from '../components/Picker';
 import * as ValidationUtils from '../libs/ValidationUtils';
+import * as ErrorUtils from '../libs/ErrorUtils';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import reportPropTypes from './reportPropTypes';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
@@ -48,7 +49,15 @@ const propTypes = {
 
         /** ID of the policy */
         id: PropTypes.string,
-    }).isRequired,
+    }),
+
+    /** All reports shared with the user */
+    reports: PropTypes.objectOf(reportPropTypes),
+};
+
+const defaultProps = {
+    policies: {},
+    reports: {},
 };
 
 class ReportSettingsPage extends Component {
@@ -116,19 +125,18 @@ class ReportSettingsPage extends Component {
             return errors;
         }
 
-        // The following validations are ordered by precedence.
-        // First priority: We error if the user doesn't enter a room name or left blank
         if (!values.newRoomName || values.newRoomName === CONST.POLICY.ROOM_PREFIX) {
-            errors.newRoomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
+            // We error if the user doesn't enter a room name or left blank
+            ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.pleaseEnterRoomName'));
+        } else if (values.newRoomName !== CONST.POLICY.ROOM_PREFIX && !ValidationUtils.isValidRoomName(values.newRoomName)) {
+            // We error if the room name has invalid characters
+            ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomNameInvalidError'));
         } else if (ValidationUtils.isReservedRoomName(values.newRoomName)) {
-            // Second priority: Certain names are reserved for default rooms and should not be used for policy rooms.
-            errors.newRoomName = this.props.translate('newRoomPage.roomNameReservedError');
+            // Certain names are reserved for default rooms and should not be used for policy rooms.
+            ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomNameReservedError', {reservedName: values.newRoomName}));
         } else if (ValidationUtils.isExistingRoomName(values.newRoomName, this.props.reports, this.props.report.policyID)) {
-            // Third priority: Show error if the room name already exists
-            errors.newRoomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
-        } else if (!ValidationUtils.isValidRoomName(values.newRoomName)) {
-            // Fourth priority: We error if the room name has invalid characters
-            errors.newRoomName = this.props.translate('newRoomPage.roomNameInvalidError');
+            // Certain names are reserved for default rooms and should not be used for policy rooms.
+            ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomAlreadyExistsError'));
         }
 
         return errors;
@@ -243,7 +251,7 @@ class ReportSettingsPage extends Component {
 }
 
 ReportSettingsPage.propTypes = propTypes;
-
+ReportSettingsPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withReportOrNotFound,

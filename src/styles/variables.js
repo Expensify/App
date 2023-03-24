@@ -104,7 +104,7 @@ export default {
     modalTopIconHeight: 164,
     modalTopBigIconHeight: 244,
     modalWordmarkWidth: 154,
-    modalWordmarkHeight: 34,
+    modalWordmarkHeight: 37,
     verticalLogoHeight: 634,
     verticalLogoWidth: 111,
     badgeMaxWidth: 180,
@@ -114,4 +114,5 @@ export default {
     signInDesktopBreakpoint: 1025,
     signInHeroContentMaxWidth: 1360,
     signInContentMinHeight: 700,
+    modalContentMaxWidth: 360,
 };

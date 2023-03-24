@@ -27,6 +27,13 @@ const CONST = {
         MIN_SIZE: 240,
     },
 
+    AUTO_AUTH_STATE: {
+        NOT_STARTED: 'not-started',
+        SIGNING_IN: 'signing-in',
+        JUST_SIGNED_IN: 'just-signed-in',
+        FAILED: 'failed',
+    },
+
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
 
     AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
@@ -487,6 +494,9 @@ const CONST = {
         MAX_RETRY_WAIT_TIME_MS: 10 * 1000,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
+        COMMAND: {
+            RECONNECT_APP: 'ReconnectApp',
+        },
     },
     NVP: {
         IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
@@ -545,6 +555,8 @@ const CONST = {
     EMOJI_NUM_PER_ROW: 8,
 
     EMOJI_FREQUENT_ROW_COUNT: 3,
+
+    EMOJI_DEFAULT_SKIN_TONE: -1,
 
     INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
 
@@ -613,6 +625,7 @@ const CONST = {
             3: 100,
         },
     },
+    LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EMAIL: {
         CONCIERGE: 'concierge@expensify.com',
