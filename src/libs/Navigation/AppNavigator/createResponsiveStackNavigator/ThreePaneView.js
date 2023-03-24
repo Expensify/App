@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import SCREENS from '../../../../SCREENS';
 import themeColors from '../../../../styles/themes/default';
+import NAVIGATORS from '../../../../NAVIGATORS';
 
 const RIGHT_PANEL_WIDTH = 375;
 const LEFT_PANEL_WIDTH = 350;
@@ -46,7 +47,7 @@ const styles = StyleSheet.create({
 const displayIfTrue = condition => ({display: condition ? 'flex' : 'none'});
 
 const WideView = (props) => {
-    const lastChatIndex = _.findLastIndex(props.state.routes, {name: SCREENS.REPORT});
+    const lastCentralPaneIndex = _.findLastIndex(props.state.routes, {name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR});
 
     const renderRightPanel = ({key, shouldDisplay, children}) => (
         <View
@@ -76,19 +77,19 @@ const WideView = (props) => {
                             {props.descriptors[route.key].render()}
                         </View>
                     );
-                } if (route.name === SCREENS.REPORT) {
+                } if (route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
                     return (
                         <View
                             key={route.key}
                             style={[
                                 styles.centralPanelContainer,
-                                displayIfTrue(lastChatIndex === i),
+                                displayIfTrue(lastCentralPaneIndex === i),
                             ]}
                         >
                             {props.descriptors[route.key].render()}
                         </View>
                     );
-                } if (route.name === 'RightModalStack') {
+                } if (route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
                     return renderRightPanel({
                         key: route.key,
                         shouldDisplay: props.state.index === i,

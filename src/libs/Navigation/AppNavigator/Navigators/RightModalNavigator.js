@@ -1,97 +1,96 @@
 import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 
-import * as ModalStackNavigators from './ModalStackNavigators';
-import defaultModalScreenOptions from './defaultModalScreenOptions';
+import * as ModalStackNavigators from '../ModalStackNavigators';
+import defaultModalScreenOptions from '../defaultModalScreenOptions';
 
-const RootStack = createStackNavigator();
+const Stack = createStackNavigator();
 
-function RigthModalStack() {
+function RigthModalNavigator() {
     return (
-        <RootStack.Navigator>
-            <RootStack.Screen
+        <Stack.Navigator>
+            <Stack.Screen
                 name="Settings"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.SettingsModalStackNavigator}
             />
-            <RootStack.Screen
+            <Stack.Screen
                 name="NewChat"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.NewChatModalStackNavigator}
             />
-            <RootStack.Screen
+            <Stack.Screen
                 name="NewGroup"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.NewGroupModalStackNavigator}
             />
-            <RootStack.Screen
+            <Stack.Screen
                 name="Search"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.SearchModalStackNavigator}
             />
-            <RootStack.Screen
+            <Stack.Screen
                 name="Details"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.DetailsModalStackNavigator}
             />
-            <RootStack.Screen
+            <Stack.Screen
                 name="Report_Details"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.ReportDetailsModalStackNavigator}
             />
-            <RootStack.Screen
+            <Stack.Screen
                 name="Report_Settings"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.ReportSettingsModalStackNavigator}
             />
-            <RootStack.Screen
+            <Stack.Screen
                 name="Participants"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
             />
-            <RootStack.Screen
+            <Stack.Screen
                 name="IOU_Request"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.IOURequestModalStackNavigator}
             />
-            <RootStack.Screen
+            <Stack.Screen
                 name="IOU_Bill"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.IOUBillStackNavigator}
             />
-            <RootStack.Screen
+            <Stack.Screen
                 name="EnablePayments"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.EnablePaymentsStackNavigator}
             />
-            <RootStack.Screen
+            <Stack.Screen
                 name="IOU_Details"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.IOUDetailsModalStackNavigator}
             />
-            <RootStack.Screen
+            <Stack.Screen
                 name="AddPersonalBankAccount"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.AddPersonalBankAccountModalStackNavigator}
             />
-            <RootStack.Screen
+            <Stack.Screen
                 name="IOU_Send"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.IOUSendModalStackNavigator}
             />
-            <RootStack.Screen
+            <Stack.Screen
                 name="Wallet_Statement"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.WalletStatementStackNavigator}
             />
-            <RootStack.Screen
+            <Stack.Screen
                 name="Select_Year"
-                options={modalScreenOptions}
+                options={defaultModalScreenOptions}
                 component={ModalStackNavigators.YearPickerStackNavigator}
-                listeners={modalScreenListeners}
             />
-        </RootStack.Navigator>
+        </Stack.Navigator>
     );
 }
 
-export default RigthModalStack;
+export default RigthModalNavigator;

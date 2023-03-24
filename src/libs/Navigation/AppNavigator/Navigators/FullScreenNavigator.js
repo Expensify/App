@@ -1,15 +1,15 @@
 import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 
-import SCREENS from '../../../SCREENS';
-import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
+import SCREENS from '../../../../SCREENS';
+import NotFoundPage from '../../../../pages/ErrorPage/NotFoundPage';
 
-const RootStack = createStackNavigator();
+const Stack = createStackNavigator();
 
-function FullScreenModalStack() {
+function FullScreenNavigator() {
     return (
-        <RootStack.Navigator>
-            <RootStack.Screen
+        <Stack.Navigator>
+            <Stack.Screen
                 name={SCREENS.NOT_FOUND}
                 options={{headerShown: false}}
                 component={NotFoundPage}
@@ -18,8 +18,8 @@ function FullScreenModalStack() {
                 // we may need to modyfi this part to work with chat / modals / chat / modals on the stack. Previously there could be only one chat
                 // listeners={modalScreenListeners}
             />
-        </RootStack.Navigator>
+        </Stack.Navigator>
     );
 }
 
-export default FullScreenModalStack;
+export default FullScreenNavigator;

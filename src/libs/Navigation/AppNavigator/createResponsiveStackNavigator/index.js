@@ -1,15 +1,28 @@
 import * as React from 'react';
+import PropTypes from 'prop-types';
 import {useNavigationBuilder, createNavigatorFactory, StackRouter} from '@react-navigation/native';
 import {StackView} from '@react-navigation/stack';
 import ThreePaneView from './ThreePaneView';
 
-// TODO-NR prop types
+const propTypes = {
+    isNarrowLayout: PropTypes.bool.isRequired,
+    children: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.node,
+    ]).isRequired,
+    initialRouteName: PropTypes.oneOf([PropTypes.string, PropTypes.undefined]),
+};
+
+const defaultProps = {
+    initialRouteName: undefined,
+};
 
 function ResponsiveStackNavigator(props) {
     const {
         navigation, state, descriptors, NavigationContent,
     } = useNavigationBuilder(StackRouter, {
         children: props.children,
+        // eslint-disable-next-line react/prop-types
         screenOptions: props.screenOptions,
         initialRouteName: props.initialRouteName,
     });
@@ -18,7 +31,7 @@ function ResponsiveStackNavigator(props) {
         return (
             <NavigationContent>
                 <StackView
-                    // TODO-NR should really props spreading be forbidden? There are stuff you can't do without it 
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     state={state}
                     descriptors={descriptors}
@@ -30,6 +43,7 @@ function ResponsiveStackNavigator(props) {
     return (
         <NavigationContent>
             <ThreePaneView
+                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 state={state}
                 descriptors={descriptors}
@@ -39,6 +53,8 @@ function ResponsiveStackNavigator(props) {
     );
 }
 
+ResponsiveStackNavigator.defaultProps = defaultProps;
+ResponsiveStackNavigator.propTypes = propTypes;
 ResponsiveStackNavigator.displayName = 'ResponsiveStackNavigator';
 
 export default createNavigatorFactory(ResponsiveStackNavigator);

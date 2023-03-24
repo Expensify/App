@@ -1,6 +1,7 @@
 import ROUTES from '../../ROUTES';
 import SCREENS from '../../SCREENS';
 import CONST from '../../CONST';
+import NAVIGATORS from '../../NAVIGATORS';
 
 export default {
     prefixes: [
@@ -14,31 +15,29 @@ export default {
     config: {
         initialRouteName: SCREENS.HOME,
         screens: {
-            [SCREENS.HOME]: {
-                path: ROUTES.HOME,
-
-                // initialRouteName: SCREENS.REPORT,
-                // screens: {
-                //     // Report route
-                //     [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
-                //     [SCREENS.LOADING]: ROUTES.REPORT,
-                // },
-            },
-            [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
-
             // Main Routes
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
             ValidateLogin: ROUTES.VALIDATE_LOGIN,
             [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
             Concierge: ROUTES.CONCIERGE,
-            FullScreenModalStack: {
+
+            // Sidebar
+            [SCREENS.HOME]: {
+                path: ROUTES.HOME,
+            },
+
+            [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: {
+                screens: {
+                    [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
+                },
+            },
+            [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
                 screens: {
                     [SCREENS.NOT_FOUND]: '*',
                 },
             },
 
-            // Modal Screens
-            RightModalStack: {
+            [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
                 screens: {
                     Settings: {
                         screens: {

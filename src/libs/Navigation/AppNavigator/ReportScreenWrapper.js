@@ -5,15 +5,12 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 
 import ONYXKEYS from '../../../ONYXKEYS';
-import SCREENS from '../../../SCREENS';
 import Permissions from '../../Permissions';
 import Timing from '../../actions/Timing';
 import CONST from '../../../CONST';
 
 // Screens
 import ReportScreen from '../../../pages/home/ReportScreen';
-import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
-import BaseDrawerNavigator from './BaseDrawerNavigator';
 import * as ReportUtils from '../../ReportUtils';
 import reportPropTypes from '../../../pages/reportPropTypes';
 import Navigation from '../Navigation';
@@ -67,7 +64,7 @@ const getInitialReportScreenParams = (reports, ignoreDefaultRooms, policies, ope
     return {reportID: String(reportID)};
 };
 
-class MainDrawerNavigator extends Component {
+class ReportScreenWrapper extends Component {
     constructor(props) {
         super(props);
         this.trackAppStartTiming = this.trackAppStartTiming.bind(this);
@@ -122,9 +119,9 @@ class MainDrawerNavigator extends Component {
     }
 }
 
-MainDrawerNavigator.propTypes = propTypes;
-MainDrawerNavigator.defaultProps = defaultProps;
-MainDrawerNavigator.displayName = 'MainDrawerNavigator';
+ReportScreenWrapper.propTypes = propTypes;
+ReportScreenWrapper.defaultProps = defaultProps;
+ReportScreenWrapper.displayName = 'ReportScreenWrapper';
 
 export default withOnyx({
     reports: {
@@ -136,4 +133,4 @@ export default withOnyx({
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
     },
-})(MainDrawerNavigator);
+})(ReportScreenWrapper);

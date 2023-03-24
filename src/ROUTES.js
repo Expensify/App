@@ -56,7 +56,7 @@ export default {
     NEW_GROUP: 'new/group',
     NEW_CHAT: 'new/chat',
     REPORT,
-    REPORT_WITH_ID: 'r/:reportID',
+    REPORT_WITH_ID: 'r/:reportID?',
     getReportRoute: reportID => `r/${reportID}`,
     SELECT_YEAR: 'select-year',
     getYearSelectionRoute: (minYear, maxYear, currYear, backTo) => `select-year?min=${minYear}&max=${maxYear}&year=${currYear}&backTo=${backTo}`,
