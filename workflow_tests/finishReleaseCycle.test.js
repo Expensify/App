@@ -5,6 +5,7 @@ const assertions = require('./assertions/finishReleaseCycleAssertions');
 const mocks = require('./mocks/finishReleaseCycleMocks');
 const eAct = require('./utils/ExtendedAct');
 
+jest.setTimeout(60 * 1000);
 let mockGithub;
 const FILES_TO_COPY_INTO_TEST_REPO = [
     {
@@ -25,29 +26,28 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
     },
 ];
 
-beforeEach(async () => {
-    // create a local repository and copy required files
-    mockGithub = new kieMockGithub.MockGithub({
-        repo: {
-            testFinishReleaseCycleWorkflowRepo: {
-                files: FILES_TO_COPY_INTO_TEST_REPO,
+describe('test workflow finishReleaseCycle', () => {
+    beforeEach(async () => {
+        // create a local repository and copy required files
+        mockGithub = new kieMockGithub.MockGithub({
+            repo: {
+                testFinishReleaseCycleWorkflowRepo: {
+                    files: FILES_TO_COPY_INTO_TEST_REPO,
+                },
             },
-        },
+        });
+
+        await mockGithub.setup();
     });
 
-    await mockGithub.setup();
-});
-
-afterEach(async () => {
-    await mockGithub.teardown();
-});
-
-describe('test workflow finishReleaseCycle', () => {
+    afterEach(async () => {
+        await mockGithub.teardown();
+    });
     describe('issue closed', () => {
         describe('issue has StagingDeployCash', () => {
             describe('actor is a team member', () => {
                 describe('no deploy blockers', () => {
-                    test('production updated, new version created, new StagingDeployCash created', async () => {
+                    it('production updated, new version created, new StagingDeployCash created', async () => {
                         const repoPath = mockGithub.repo.getPath('testFinishReleaseCycleWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml');
                         let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -86,9 +86,9 @@ describe('test workflow finishReleaseCycle', () => {
                         assertions.assertUpdateProductionJobExecuted(result);
                         assertions.assertCreateNewPatchVersionJobExecuted(result);
                         assertions.assertCreateNewStagingDeployCashJobExecuted(result, '1.2.3');
-                    }, 60000);
+                    });
                     describe('createNewStagingDeployCash fails', () => {
-                        test('failure announced on Slack', async () => {
+                        it('failure announced on Slack', async () => {
                             const repoPath = mockGithub.repo.getPath('testFinishReleaseCycleWorkflowRepo') || '';
                             const workflowPath = path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml');
                             let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -137,11 +137,11 @@ describe('test workflow finishReleaseCycle', () => {
                             assertions.assertUpdateProductionJobExecuted(result);
                             assertions.assertCreateNewPatchVersionJobExecuted(result);
                             assertions.assertCreateNewStagingDeployCashJobExecuted(result, '1.2.3', true, false);
-                        }, 60000);
+                        });
                     });
                 });
                 describe('deploy blockers', () => {
-                    test('production not updated, new version not created, new StagingDeployCash not created, issue reopened', async () => {
+                    it('production not updated, new version not created, new StagingDeployCash not created, issue reopened', async () => {
                         const repoPath = mockGithub.repo.getPath('testFinishReleaseCycleWorkflowRepo') || '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml');
                         let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -180,11 +180,11 @@ describe('test workflow finishReleaseCycle', () => {
                         assertions.assertUpdateProductionJobExecuted(result, false);
                         assertions.assertCreateNewPatchVersionJobExecuted(result, false);
                         assertions.assertCreateNewStagingDeployCashJobExecuted(result, '1.2.3', false);
-                    }, 60000);
+                    });
                 });
             });
             describe('actor is not a team member', () => {
-                test('production not updated, new version not created, new StagingDeployCash not created, issue reopened', async () => {
+                it('production not updated, new version not created, new StagingDeployCash not created, issue reopened', async () => {
                     const repoPath = mockGithub.repo.getPath('testFinishReleaseCycleWorkflowRepo') || '';
                     const workflowPath = path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml');
                     let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -223,11 +223,11 @@ describe('test workflow finishReleaseCycle', () => {
                     assertions.assertUpdateProductionJobExecuted(result, false);
                     assertions.assertCreateNewPatchVersionJobExecuted(result, false);
                     assertions.assertCreateNewStagingDeployCashJobExecuted(result, '1.2.3', false);
-                }, 60000);
+                });
             });
         });
         describe('issue does not have StagingDeployCash', () => {
-            test('validate job not run', async () => {
+            it('validate job not run', async () => {
                 const repoPath = mockGithub.repo.getPath('testFinishReleaseCycleWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -268,7 +268,7 @@ describe('test workflow finishReleaseCycle', () => {
                 assertions.assertUpdateProductionJobExecuted(result, false);
                 assertions.assertCreateNewPatchVersionJobExecuted(result, false);
                 assertions.assertCreateNewStagingDeployCashJobExecuted(result, '1.2.3', false);
-            }, 60000);
+            });
         });
     });
 });

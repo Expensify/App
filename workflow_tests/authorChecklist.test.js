@@ -5,6 +5,7 @@ const assertions = require('./assertions/authorChecklistAssertions');
 const mocks = require('./mocks/authorChecklistMocks');
 const eAct = require('./utils/ExtendedAct');
 
+jest.setTimeout(60 * 1000);
 let mockGithub;
 const FILES_TO_COPY_INTO_TEST_REPO = [
     {
@@ -25,190 +26,196 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
     },
 ];
 
-beforeEach(async () => {
-    // create a local repository and copy required files
-    mockGithub = new kieMockGithub.MockGithub({
-        repo: {
-            testAuthorChecklistWorkflowRepo: {
-                files: FILES_TO_COPY_INTO_TEST_REPO,
+describe('test workflow authorChecklist', () => {
+    const githubToken = 'dummy_github_token';
+    beforeEach(async () => {
+        // create a local repository and copy required files
+        mockGithub = new kieMockGithub.MockGithub({
+            repo: {
+                testAuthorChecklistWorkflowRepo: {
+                    files: FILES_TO_COPY_INTO_TEST_REPO,
+                },
             },
-        },
+        });
+
+        await mockGithub.setup();
     });
 
-    await mockGithub.setup();
-});
-
-afterEach(async () => {
-    await mockGithub.teardown();
-});
-
-describe('test workflow authorChecklist', () => {
+    afterEach(async () => {
+        await mockGithub.teardown();
+    });
     describe('pull request opened', () => {
+        const event = 'pull_request';
+        const eventOptions = {
+            action: 'opened',
+        };
         describe('actor is not OSBotify', () => {
-            test('workflow executes', async () => {
+            const actor = 'Dummy Author';
+            it('executes workflow', async () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
-                    'pull_request',
-                    {
-                        action: 'opened',
-                    },
+                    event,
+                    eventOptions,
                     {},
-                    'dummy_github_token',
+                    githubToken,
                 );
                 const testMockSteps = {
                     checklist: mocks.AUTHORCHECKLIST__CHECKLIST__STEP_MOCKS,
                 };
                 const result = await act
-                    .runEvent('pull_request', {
+                    .runEvent(event, {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
-                        actor: 'Dummy Author',
+                        actor,
                     });
 
                 assertions.assertChecklistJobExecuted(result);
-            }, 60000);
+            });
         });
         describe('actor is OSBotify', () => {
-            test('workflow does not execute', async () => {
+            const actor = 'OSBotify';
+            it('does not execute workflow', async () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
-                    'pull_request',
-                    {
-                        action: 'opened',
-                    },
+                    event,
+                    eventOptions,
                     {},
-                    'dummy_github_token',
+                    githubToken,
                 );
                 const testMockSteps = {
                     checklist: mocks.AUTHORCHECKLIST__CHECKLIST__STEP_MOCKS,
                 };
                 const result = await act
-                    .runEvent('pull_request', {
+                    .runEvent(event, {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
-                        actor: 'OSBotify',
+                        actor,
                     });
 
                 assertions.assertChecklistJobExecuted(result, false);
-            }, 60000);
+            });
         });
     });
     describe('pull request edited', () => {
+        const event = 'pull_request';
+        const eventOptions = {
+            action: 'edited',
+        };
         describe('actor is not OSBotify', () => {
-            test('workflow executes', async () => {
+            const actor = 'Dummy Author';
+            it('executes workflow', async () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
-                    'pull_request',
-                    {
-                        action: 'edited',
-                    },
+                    event,
+                    eventOptions,
                     {},
-                    'dummy_github_token',
+                    githubToken,
                 );
                 const testMockSteps = {
                     checklist: mocks.AUTHORCHECKLIST__CHECKLIST__STEP_MOCKS,
                 };
                 const result = await act
-                    .runEvent('pull_request', {
+                    .runEvent(event, {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
-                        actor: 'Dummy Author',
+                        actor,
                     });
 
                 assertions.assertChecklistJobExecuted(result);
-            }, 60000);
+            });
         });
         describe('actor is OSBotify', () => {
-            test('workflow does not execute', async () => {
+            const actor = 'OSBotify';
+            it('does not execute workflow', async () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
-                    'pull_request',
-                    {
-                        action: 'edited',
-                    },
+                    event,
+                    eventOptions,
                     {},
-                    'dummy_github_token',
+                    githubToken,
                 );
                 const testMockSteps = {
                     checklist: mocks.AUTHORCHECKLIST__CHECKLIST__STEP_MOCKS,
                 };
                 const result = await act
-                    .runEvent('pull_request', {
+                    .runEvent(event, {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
-                        actor: 'OSBotify',
+                        actor,
                     });
 
                 assertions.assertChecklistJobExecuted(result, false);
-            }, 60000);
+            });
         });
     });
     describe('pull request reopened', () => {
+        const event = 'pull_request';
+        const eventOptions = {
+            action: 'reopened',
+        };
         describe('actor is not OSBotify', () => {
-            test('workflow executes', async () => {
+            const actor = 'Dummy Author';
+            it('executes workflow', async () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
-                    'pull_request',
-                    {
-                        action: 'reopened',
-                    },
+                    event,
+                    eventOptions,
                     {},
-                    'dummy_github_token',
+                    githubToken,
                 );
                 const testMockSteps = {
                     checklist: mocks.AUTHORCHECKLIST__CHECKLIST__STEP_MOCKS,
                 };
                 const result = await act
-                    .runEvent('pull_request', {
+                    .runEvent(event, {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
-                        actor: 'Dummy Author',
+                        actor,
                     });
 
                 assertions.assertChecklistJobExecuted(result);
-            }, 60000);
+            });
         });
         describe('actor is OSBotify', () => {
-            test('workflow does not execute', async () => {
+            const actor = 'OSBotify';
+            it('does not execute workflow', async () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
-                    'pull_request',
-                    {
-                        action: 'reopened',
-                    },
+                    event,
+                    eventOptions,
                     {},
-                    'dummy_github_token',
+                    githubToken,
                 );
                 const testMockSteps = {
                     checklist: mocks.AUTHORCHECKLIST__CHECKLIST__STEP_MOCKS,
                 };
                 const result = await act
-                    .runEvent('pull_request', {
+                    .runEvent(event, {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
-                        actor: 'OSBotify',
+                        actor,
                     });
 
                 assertions.assertChecklistJobExecuted(result, false);
-            }, 60000);
+            });
         });
     });
 });
