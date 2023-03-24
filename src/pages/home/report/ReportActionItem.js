@@ -38,6 +38,7 @@ import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnima
 import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosOOOListActions';
 import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
 import * as Report from '../../../libs/actions/Report';
+import PolicyChangeLogActionItem from '../../../components/ReportActionItem/PolicyChangeLogActionItem';
 
 const propTypes = {
     /** Report for this action */
@@ -227,6 +228,9 @@ class ReportActionItem extends Component {
         }
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOSOOOLIST) {
             return <ChronosOOOListActions action={this.props.action} reportID={this.props.report.reportID} />;
+        }
+        if (CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG_REGEX.test(this.props.action.actionName)) {
+            return <PolicyChangeLogActionItem action={this.props.action} />;
         }
         return (
             <PressableWithSecondaryInteraction
