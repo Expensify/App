@@ -67,7 +67,6 @@ class WorkspaceInviteMessagePage extends React.Component {
         super(props);
 
         this.onSubmit = this.onSubmit.bind(this);
-        this.validate = this.validate.bind(this);
         this.openPrivacyURL = this.openPrivacyURL.bind(this);
         this.state = {
             welcomeNote: this.getWelcomeNote(),
@@ -138,7 +137,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}
-                    validate={() => {}}
+                    validate={() => ({})}
                     onSubmit={this.onSubmit}
                     submitButtonText={this.props.translate('common.save')}
                     enabledWhenOffline
