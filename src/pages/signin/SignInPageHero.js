@@ -22,13 +22,9 @@ const SignInPageHero = props => (
         StyleUtils.getMinimumHeight(variables.signInContentMinHeight),
         props.windowWidth <= variables.signInDesktopBreakpoint ? styles.flexColumn : styles.flexColumn,
         StyleUtils.getBackgroundColorStyle('transparent'),
-
         {paddingTop: 80},
         {maxWidth: 740}, // width of text / image container
         styles.alignSelfCenter,
-
-        // styles.pb20,
-        // props.isMediumScreenWidth ? {paddingTop: 80} : {paddingTop: 80},
     ]}
     >
         <View style={[styles.flex1, styles.alignSelfCenter, styles.gap7]}>

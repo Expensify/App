@@ -692,6 +692,17 @@ function getMinimumHeight(minHeight) {
 }
 
 /**
+ * Get maximum width as style
+ * @param {Number} maxWidth
+ * @returns {Object}
+ */
+function getMaximumWidth(maxWidth) {
+    return {
+        maxWidth,
+    };
+}
+
+/**
  * Return style for opacity animation.
  *
  * @param {Animated.Value} fadeAnimation
@@ -962,6 +973,7 @@ export {
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
+    getMaximumWidth,
     fade,
     getHorizontalStackedAvatarBorderStyle,
     getReportWelcomeBackgroundImageStyle,

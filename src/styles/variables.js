@@ -114,5 +114,6 @@ export default {
     signInDesktopBreakpoint: 1025,
     signInHeroContentMaxWidth: 1360,
     signInContentMinHeight: 700,
+    signInLogoHeight: 34,
     modalContentMaxWidth: 360,
 };

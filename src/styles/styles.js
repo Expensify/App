@@ -290,6 +290,10 @@ const styles = {
         fontSize: variables.fontSizeExtraSmall,
     },
 
+    textNormal: {
+        fontSize: variables.fontSizeNormal,
+    },
+
     textLarge: {
         fontSize: variables.fontSizeLarge,
     },
@@ -1012,6 +1016,20 @@ const styles = {
         width: 540,
         position: 'absolute',
         top: 0,
+        left: 0,
+    },
+
+    signInBackgroundDesktop: {
+        height: '100%',
+        width: 'auto',
+        position: 'absolute',
+        minHeight: 700,
+    },
+
+    signInBackgroundMobile: {
+        width: '100%',
+        position: 'absolute',
+        minHeight: 700,
     },
 
     signInPageInner: {
@@ -3119,7 +3137,6 @@ const styles = {
         color: themeColors.textLight,
         textAlign: 'center',
     },
-
 
     validateCodeMessage: {
         width: variables.modalContentMaxWidth,

@@ -194,11 +194,11 @@ export default {
             phrase1: 'Get started below.',
             phrase2: 'Welcome back!',
         },
-        welcome: 'Welcome to New Expensify! Enter your phone number or email to continue.',
+        welcome: 'Enter your phone number or email to continue.',
         welcomeEnterMagicCode: ({login}) => `Please enter the magic code sent to ${login}`,
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
-        welcomeBack: 'Welcome back to the New Expensify! Please enter your password.',
+        welcomeBack: 'Please enter your password.',
         welcomeBackEnterMagicCode: ({login}) => `Please enter the magic code sent to ${login}`,
     },
     login: {

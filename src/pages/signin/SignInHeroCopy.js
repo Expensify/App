@@ -5,6 +5,7 @@ import Text from '../../components/Text';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 

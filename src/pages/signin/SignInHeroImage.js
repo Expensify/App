@@ -4,7 +4,8 @@ import React from 'react';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import styles from '../../styles/styles';
-import variables from '../../styles/variables';
+
+// import variables from '../../styles/variables';
 
 const propTypes = {
     ...windowDimensionsPropTypes,

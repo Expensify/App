@@ -9,11 +9,19 @@ const propTypes = {
     /** Fontsize */
     smallFontSize: PropTypes.bool,
 
+    /** Header Style Text */
+    welcomeHeader: PropTypes.string,
+
+    /**  Body Style Text */
+    welcomeBody: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     smallFontSize: false,
+    welcomeHeader: '',
+    welcomeBody: '',
 };
 
 const WelcomeText = (props) => {
@@ -21,9 +29,11 @@ const WelcomeText = (props) => {
     return (
         <>
             <Text style={[textSize, styles.textStrong, styles.mb1]}>
-                {props.translate('welcomeText.welcome')}
+                {props.welcomeHeader}
+                {/* {props.translate('welcomeText.welcome')} */}
             </Text>
             <Text style={[textSize]}>
+                {props.welcomeBody}
                 {props.translate('welcomeText.phrase2')}
                 {' '}
                 {props.translate('welcomeText.phrase3')}

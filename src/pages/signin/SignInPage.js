@@ -15,6 +15,7 @@ import ResendValidationForm from './ResendValidationForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Performance from '../../libs/Performance';
 import Permissions from '../../libs/Permissions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 
 const propTypes = {
     /* Onyx Props */
@@ -39,6 +40,8 @@ const propTypes = {
     }),
 
     ...withLocalizePropTypes,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -85,27 +88,34 @@ class SignInPage extends Component {
             && (!this.props.account.validated || this.props.account.forgotPassword)
             && !Permissions.canUsePasswordlessLogins(this.props.betas);
 
+        let welcomeHeader = '';
         let welcomeText = '';
         if (showValidateCodeForm) {
             if (this.props.account.requiresTwoFactorAuth) {
                 // We will only know this after a user signs in successfully, without their 2FA code
+                welcomeHeader = this.props.translate('welcomeText.header.phrase2');
                 welcomeText = this.props.translate('validateCodeForm.enterAuthenticatorCode');
             } else {
                 const userLogin = Str.removeSMSDomain(lodashGet(this.props, 'credentials.login', ''));
+                welcomeHeader = this.props.translate('welcomeText.header.phrase2');
                 welcomeText = this.props.account.validated
                     ? this.props.translate('welcomeText.welcomeBackEnterMagicCode', {login: userLogin})
                     : this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLogin});
             }
         } else if (showPasswordForm) {
+            welcomeHeader = this.props.translate('welcomeText.header.phrase2');
             welcomeText = this.props.translate('welcomeText.welcomeBack');
         } else if (!showResendValidationForm) {
-            welcomeText = this.props.translate('welcomeText.welcome');
+            welcomeHeader = this.props.isSmallScreenWidth ? this.props.translate('login.hero.header') : this.props.translate('welcomeText.header.phrase1');
+            welcomeText = this.props.isSmallScreenWidth ? this.props.translate('welcomeText.header.phrase1') : '';
         }
 
         return (
             <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout
+                    welcomeHeader={welcomeHeader}
                     welcomeText={welcomeText}
+                    shouldShowWelcomeHeader={showLoginForm || showPasswordForm || showValidateCodeForm || !showResendValidationForm}
                     shouldShowWelcomeText={showLoginForm || showPasswordForm || showValidateCodeForm || !showResendValidationForm}
                 >
                     {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
@@ -128,6 +138,7 @@ SignInPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withWindowDimensions,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
         betas: {key: ONYXKEYS.BETAS},
