@@ -101,7 +101,7 @@ class Picker extends PureComponent {
             isHighlighted: false,
         };
 
-        this.textInput = null;
+        this.root = null;
         this.picker = null;
 
         this.onInputChange = this.onInputChange.bind(this);
@@ -191,7 +191,7 @@ class Picker extends PureComponent {
      * This method is used by Form when scrolling to the input
      */
     measureLayout(...args) {
-        return this.textInput.measureLayout(...args);
+        return this.root.measureLayout(...args);
     }
 
     render() {
@@ -200,6 +200,7 @@ class Picker extends PureComponent {
         return (
             <>
                 <View
+                    ref={el => this.root = el}
                     style={[
                         styles.pickerContainer,
                         this.props.isDisabled && styles.inputDisabled,
@@ -230,7 +231,6 @@ class Picker extends PureComponent {
                         onOpen={this.enableHighlight}
                         onClose={this.disableHighlight}
                         textInputProps={{
-                            ref: el => this.textInput = el,
                             allowFontScaling: false,
                         }}
                         pickerProps={{
