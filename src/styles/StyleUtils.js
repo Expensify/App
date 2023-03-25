@@ -80,6 +80,11 @@ function getAvatarStyle(size) {
     };
 }
 
+/**
+ * Get Font size of '+1' text on avatar overlay
+ * @param {String} size
+ * @returns {Number}
+ */
 function getAvatarExtraFontSize(size) {
     const AVATAR_SIZES = {
         [CONST.AVATAR_SIZE.DEFAULT]: variables.fontSizeNormal,
@@ -95,6 +100,11 @@ function getAvatarExtraFontSize(size) {
     return AVATAR_SIZES[size];
 }
 
+/**
+ * Get Bordersize of Avatar based on avatar size
+ * @param {String} size
+ * @returns {Number}
+ */
 function getAvatarBorderWidth(size) {
     const AVATAR_SIZES = {
         [CONST.AVATAR_SIZE.DEFAULT]: 3,
@@ -768,6 +778,14 @@ function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
     };
 }
 
+/**
+ * Get computed avatar styles based on position and border size
+ * @param {Number} index
+ * @param {Number} overlapSize
+ * @param {Number} borderWidth
+ * @param {Number} borderRadius
+ * @returns {Object}
+ */
 function getHorizontalStackedAvatarStyle(index, overlapSize, borderWidth, borderRadius) {
     return {
         left: -(overlapSize * index),
@@ -777,6 +795,12 @@ function getHorizontalStackedAvatarStyle(index, overlapSize, borderWidth, border
     };
 }
 
+/**
+ * Get computed avatar styles of '+1' overlay based on size
+ * @param {Object} oneAvatarSize
+ * @param {Numer} oneAvatarBorderWidth
+ * @returns {Object}
+ */
 function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth) {
     return {
         borderWidth: oneAvatarBorderWidth,

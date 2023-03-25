@@ -112,8 +112,12 @@ class WorkspaceInviteMessagePage extends React.Component {
         return _.map(filteredPersonalDetails, personalDetail => Str.removeSMSDomain(personalDetail.login));
     }
 
-    openPrivacyURL(e) {
-        e.preventDefault();
+    /**
+     * Opens privacy url as an external link
+     * @param {Object} event
+     */
+    openPrivacyURL(event) {
+        event.preventDefault();
         Link.openExternalLink(CONST.PRIVACY_URL);
     }
 
