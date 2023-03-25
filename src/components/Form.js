@@ -313,47 +313,45 @@ class Form extends React.Component {
 
     render() {
         const scrollViewContent = safeAreaPaddingBottomStyle => (
-            <View ref={this.formContentRef}>
-                <FormSubmit style={StyleSheet.flatten([this.props.style, safeAreaPaddingBottomStyle])} onSubmit={this.submit}>
-                    {this.childrenWrapperWithProps(_.isFunction(this.props.children) ? this.props.children({inputValues: this.state.inputValues}) : this.props.children)}
-                    {this.props.isSubmitButtonVisible && (
-                    <FormAlertWithSubmitButton
-                        buttonText={this.props.submitButtonText}
-                        isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage()) || !_.isEmpty(this.props.formState.errorFields)}
-                        isLoading={this.props.formState.isLoading}
-                        message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
-                        onSubmit={this.submit}
-                        onFixTheErrorsLinkPressed={() => {
-                            const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
-                            const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
-                            const focusInput = this.inputRefs[focusKey];
+            <FormSubmit innerViewRef={this.formContentRef} style={StyleSheet.flatten([this.props.style, safeAreaPaddingBottomStyle])} onSubmit={this.submit}>
+                {this.childrenWrapperWithProps(_.isFunction(this.props.children) ? this.props.children({inputValues: this.state.inputValues}) : this.props.children)}
+                {this.props.isSubmitButtonVisible && (
+                <FormAlertWithSubmitButton
+                    buttonText={this.props.submitButtonText}
+                    isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage()) || !_.isEmpty(this.props.formState.errorFields)}
+                    isLoading={this.props.formState.isLoading}
+                    message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
+                    onSubmit={this.submit}
+                    onFixTheErrorsLinkPressed={() => {
+                        const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
+                        const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
+                        const focusInput = this.inputRefs[focusKey];
 
-                            const formRef = this.formRef.current;
-                            const formContentRef = this.formContentRef.current;
+                        const formRef = this.formRef.current;
+                        const formContentRef = this.formContentRef.current;
 
-                            // Start with dismising the keyobard, so when we focus a non-text input, the keyboard is hidden
-                            Keyboard.dismiss();
+                        // Start with dismising the keyobard, so when we focus a non-text input, the keyboard is hidden
+                        Keyboard.dismiss();
 
-                            // We subtract 10 to scroll slightly above the input
-                            if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
-                                // We measure relative to the content root, not the scroll view, as that gives
-                                // consistent results across mobile and web
-                                focusInput.measureLayout(formContentRef, (x, y) => formRef.scrollTo({y: y - 10, animated: false}));
-                            }
+                        // We subtract 10 to scroll slightly above the input
+                        if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
+                            // We measure relative to the content root, not the scroll view, as that gives
+                            // consistent results across mobile and web
+                            focusInput.measureLayout(formContentRef, (x, y) => formRef.scrollTo({y: y - 10, animated: false}));
+                        }
 
-                            // Focus the input after scrolling, as on the Web it gives a slightly better visual result
-                            if (focusInput.focus && typeof focusInput.focus === 'function') {
-                                focusInput.focus();
-                            }
-                        }}
-                        containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
-                        enabledWhenOffline={this.props.enabledWhenOffline}
-                        isSubmitActionDangerous={this.props.isSubmitActionDangerous}
-                        disablePressOnEnter
-                    />
-                    )}
-                </FormSubmit>
-            </View>
+                        // Focus the input after scrolling, as on the Web it gives a slightly better visual result
+                        if (focusInput.focus && typeof focusInput.focus === 'function') {
+                            focusInput.focus();
+                        }
+                    }}
+                    containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
+                    enabledWhenOffline={this.props.enabledWhenOffline}
+                    isSubmitActionDangerous={this.props.isSubmitActionDangerous}
+                    disablePressOnEnter
+                />
+                )}
+            </FormSubmit>
         );
 
         return (
@@ -365,6 +363,9 @@ class Form extends React.Component {
                         keyboardShouldPersistTaps="handled"
                         scrollToOverflowEnabled={this.props.scrollToOverflowEnabled}
                         ref={this.formRef}
+
+                        // This property is undocumented
+                        innerViewRef={this.formContentRef}
                     >
                         {scrollViewContent(safeAreaPaddingBottomStyle)}
                     </ScrollViewWithContext>
@@ -375,6 +376,7 @@ class Form extends React.Component {
                         keyboardShouldPersistTaps="handled"
                         scrollToOverflowEnabled={this.props.scrollToOverflowEnabled}
                         ref={this.formRef}
+                        innerViewRef={this.formContentRef}
                     >
                         {scrollViewContent(safeAreaPaddingBottomStyle)}
                     </ScrollView>
