@@ -65,6 +65,9 @@ const propTypes = {
     /** An icon to display with the picker */
     icon: PropTypes.func,
 
+    /** Whether we should forward the focus/blur calls to the inner picker * */
+    focusPicker: PropTypes.bool,
+
     /** Callback called when click or tap out of Picker */
     onBlur: PropTypes.func,
 
@@ -90,6 +93,7 @@ const defaultProps = {
             {...(size === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
         />
     ),
+    focusPicker: false,
     onBlur: () => {},
     additionalPickerEvents: () => {},
 };
@@ -102,7 +106,7 @@ class Picker extends PureComponent {
         };
 
         this.root = null;
-        this.picker = null;
+        this.focusablePicker = null;
 
         this.onInputChange = this.onInputChange.bind(this);
         this.enableHighlight = this.enableHighlight.bind(this);
@@ -169,22 +173,23 @@ class Picker extends PureComponent {
     /**
      * This method is used by Form
      */
-    // eslint-disable-next-line rulesdir/prefer-early-return
     blur() {
-        if (Platform.OS === 'web') {
-            this.picker.blur();
+        if (!this.focusablePicker) {
+            return;
         }
+
+        this.focusablePicker.blur();
     }
 
     /**
      * This method is used by Form
      */
-    // eslint-disable-next-line rulesdir/prefer-early-return
     focus() {
-        // On the Web, calling `focus` improves accessibility. It doesn't open the picker.
-        if (Platform.OS === 'web') {
-            this.picker.focus();
+        if (!this.focusablePicker) {
+            return;
         }
+
+        this.focusablePicker.focus();
     }
 
     /**
@@ -234,7 +239,7 @@ class Picker extends PureComponent {
                             allowFontScaling: false,
                         }}
                         pickerProps={{
-                            ref: el => this.picker = el,
+                            ref: this.props.focusPicker ? el => this.focusablePicker = el : undefined,
                             onFocus: this.enableHighlight,
                             onBlur: () => {
                                 this.disableHighlight();
