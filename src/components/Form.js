@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {ScrollView, StyleSheet, View} from 'react-native';
+import {Keyboard, ScrollView, StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -324,20 +324,15 @@ class Form extends React.Component {
                         message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
                         onSubmit={this.submit}
                         onFixTheErrorsLinkPressed={() => {
-                            // Proactively blur all inputs, as on Native we can't expect that all the inputs we'd like
-                            // to focus actually supports focusing or that their focus method blurs other inputs
-                            _.values(this.inputRefs).forEach((input) => {
-                                if (input.blur && typeof input.blur === 'function') {
-                                    input.blur();
-                                }
-                            });
-
                             const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
                             const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
                             const focusInput = this.inputRefs[focusKey];
 
                             const formRef = this.formRef.current;
                             const formContentRef = this.formContentRef.current;
+
+                            // Start with dismising the keyobard, so when we focus a non-text input, the keyboard is hidden
+                            Keyboard.dismiss();
 
                             // We subtract 10 to scroll slightly above the input
                             if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
