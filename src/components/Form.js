@@ -363,9 +363,6 @@ class Form extends React.Component {
                         keyboardShouldPersistTaps="handled"
                         scrollToOverflowEnabled={this.props.scrollToOverflowEnabled}
                         ref={this.formRef}
-
-                        // This property is undocumented
-                        innerViewRef={this.formContentRef}
                     >
                         {scrollViewContent(safeAreaPaddingBottomStyle)}
                     </ScrollViewWithContext>
@@ -376,7 +373,6 @@ class Form extends React.Component {
                         keyboardShouldPersistTaps="handled"
                         scrollToOverflowEnabled={this.props.scrollToOverflowEnabled}
                         ref={this.formRef}
-                        innerViewRef={this.formContentRef}
                     >
                         {scrollViewContent(safeAreaPaddingBottomStyle)}
                     </ScrollView>
