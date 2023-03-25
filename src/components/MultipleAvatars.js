@@ -119,9 +119,7 @@ const MultipleAvatars = (props) => {
                                 style={[styles.justifyContentCenter,
                                     styles.alignItemsCenter,
                                     StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed),
-                                    {
-                                        left: -(overlapSize * index), borderRadius: oneAvatarSize.width, borderWidth: oneAvatarBorderWidth, zIndex: index + 2,
-                                    },
+                                    StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, oneAvatarBorderWidth, oneAvatarSize.width),
                                     (icon.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, icon.type) : {}),
                                 ]}
                             >
@@ -145,9 +143,7 @@ const MultipleAvatars = (props) => {
                                 // Set overlay background color with RGBA value so that the text will not inherit opacity
                                 StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.overlay, variables.overlayOpacity),
                                 styles.horizontalStackedAvatar4Overlay,
-                                {
-                                    borderWidth: oneAvatarBorderWidth, borderRadius: oneAvatarSize.width, left: -((oneAvatarSize.width * 2) + (oneAvatarBorderWidth * 2)), zIndex: 6,
-                                },
+                                StyleUtils.getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth),
                                 (props.icons[3].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, props.icons[3].type) : {}),
                             ]}
                         >

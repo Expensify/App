@@ -768,6 +768,24 @@ function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
     };
 }
 
+function getHorizontalStackedAvatarStyle(index, overlapSize, borderWidth, borderRadius) {
+    return {
+        left: -(overlapSize * index),
+        borderRadius,
+        borderWidth,
+        zIndex: index + 2,
+    };
+}
+
+function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth) {
+    return {
+        borderWidth: oneAvatarBorderWidth,
+        borderRadius: oneAvatarSize.width,
+        left: -((oneAvatarSize.width * 2) + (oneAvatarBorderWidth * 2)),
+        zIndex: 6,
+    };
+}
+
 /**
  * @param {Number} safeAreaPaddingBottom
  * @returns {Object}
@@ -996,6 +1014,8 @@ export {
     getMinimumHeight,
     fade,
     getHorizontalStackedAvatarBorderStyle,
+    getHorizontalStackedAvatarStyle,
+    getHorizontalStackedOverlayAvatarStyle,
     getReportWelcomeBackgroundImageStyle,
     getReportWelcomeTopMarginStyle,
     getReportWelcomeContainerStyle,
