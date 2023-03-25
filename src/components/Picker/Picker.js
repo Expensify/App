@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {PureComponent} from 'react';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import RNPickerSelect from 'react-native-picker-select';
 import Icon from '../Icon';
