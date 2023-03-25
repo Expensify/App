@@ -243,7 +243,7 @@ export default {
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}) => ` para chatear sobre cualquier cosa relacionada con ${workspaceName}.`,
         beginningOfChatHistoryUserRoomPartOne: 'Este es el lugar para colaborar! 🎉\nUsa este espacio para chatear sobre cualquier cosa relacionada con ',
         beginningOfChatHistoryUserRoomPartTwo: '.',
-        beginningOfChatHistory: 'Aquí comienza tu historial de conversaciones con ',
+        beginningOfChatHistory: 'Aquí comienzan tus conversaciones con ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! 🎉 Este es el lugar donde chatear, pedir dinero y pagar.',
@@ -1168,7 +1168,7 @@ export default {
     },
     report: {
         genericAddCommentFailureMessage: 'Error inesperado al agregar el comentario, por favor inténtalo más tarde',
-        roomNoChat: 'Sin actividad todavía',
+        noActivityYet: 'Sin actividad todavía',
     },
     chronos: {
         oooEventSummaryFullDay: ({summary, dayCount, date}) => `${summary} por ${dayCount} ${dayCount === 1 ? 'día' : 'días'} hasta el ${date}`,

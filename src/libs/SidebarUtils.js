@@ -275,7 +275,7 @@ function getOptionData(reportID) {
     }
 
     if (result.isChatRoom || result.isPolicyExpenseChat) {
-        result.alternateText = lastMessageText || Localize.translate(preferredLocale, 'report.roomNoChat');
+        result.alternateText = lastMessageText || Localize.translate(preferredLocale, 'report.noActivityYet');
     } else {
         if (!lastMessageText) {
             // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
