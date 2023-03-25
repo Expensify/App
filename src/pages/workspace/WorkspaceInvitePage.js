@@ -247,7 +247,11 @@ class WorkspaceInvitePage extends React.Component {
             return;
         }
         const logins = _.map(this.state.selectedOptions, option => option.login);
-        const filteredLogins = _.uniq(_.compact(_.map(logins, login => login.toLowerCase().trim())));
+        const filteredLogins = _.chain(logins)
+            .map(login => login.toLowerCase().trim())
+            .compact()
+            .uniq()
+            .value();
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, filteredLogins);
         Navigation.navigate(ROUTES.getWorkspaceInviteMessageRoute(this.props.route.params.policyID));
     }

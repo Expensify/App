@@ -86,8 +86,7 @@ class WorkspaceInviteMessagePage extends React.Component {
     }
 
     onSubmit() {
-        const filteredLogins = _.uniq(_.compact(_.map(this.props.invitedMembersDraft, login => login.toLowerCase().trim())));
-        Policy.addMembersToWorkspace(filteredLogins, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
+        Policy.addMembersToWorkspace(this.props.invitedMembersDraft, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
         Navigation.navigate(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
     }
 
@@ -118,14 +117,6 @@ class WorkspaceInviteMessagePage extends React.Component {
         Link.openExternalLink(CONST.PRIVACY_URL);
     }
 
-    /**
-     * @returns {Boolean}
-     */
-    validate() {
-        // No validation required as the invite message is optional
-        return {};
-    }
-
     render() {
         const policyName = lodashGet(this.props.policy, 'name');
 
@@ -142,8 +133,8 @@ class WorkspaceInviteMessagePage extends React.Component {
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
-                    validate={this.validate}
+                    formID={ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}
+                    validate={() => {}}
                     onSubmit={this.onSubmit}
                     submitButtonText={this.props.translate('common.save')}
                     enabledWhenOffline

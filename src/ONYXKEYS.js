@@ -183,6 +183,7 @@ export default {
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
         DISPLAY_NAME_FORM: 'displayNameForm',
         LEGAL_NAME_FORM: 'legalNameForm',
+        WORKSPACE_INVITE_MESSAGE_FORM: 'workspaceInviteMessageForm',
         DATE_OF_BIRTH_FORM: 'dateOfBirthForm',
         HOME_ADDRESS_FORM: 'homeAddressForm',
         NEW_ROOM_FORM: 'newRoomForm',
