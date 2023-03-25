@@ -14,6 +14,15 @@ const additionalPickerEvents = (onMouseDown, onChange) => ({
 });
 
 export default forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <BasePicker {...props} focusPicker additionalPickerEvents={additionalPickerEvents} ref={ref} />
+    <BasePicker
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+
+        // On the Web, focusing the inner picker improves the accessibility,
+        // but doesn't open the picker (which we don't want), like it does on
+        // Native.
+        shouldFocusPicker
+        additionalPickerEvents={additionalPickerEvents}
+        ref={ref}
+    />
 ));

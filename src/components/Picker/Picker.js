@@ -66,7 +66,7 @@ const propTypes = {
     icon: PropTypes.func,
 
     /** Whether we should forward the focus/blur calls to the inner picker * */
-    focusPicker: PropTypes.bool,
+    shouldFocusPicker: PropTypes.bool,
 
     /** Callback called when click or tap out of Picker */
     onBlur: PropTypes.func,
@@ -93,7 +93,7 @@ const defaultProps = {
             {...(size === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
         />
     ),
-    focusPicker: false,
+    shouldFocusPicker: false,
     onBlur: () => {},
     additionalPickerEvents: () => {},
 };
@@ -106,12 +106,11 @@ class Picker extends PureComponent {
         };
 
         this.root = null;
-        this.focusablePicker = null;
+        this.picker = null;
 
         this.onInputChange = this.onInputChange.bind(this);
         this.enableHighlight = this.enableHighlight.bind(this);
         this.disableHighlight = this.disableHighlight.bind(this);
-        this.blur = this.blur.bind(this);
         this.focus = this.focus.bind(this);
         this.measureLayout = this.measureLayout.bind(this);
 
@@ -171,32 +170,25 @@ class Picker extends PureComponent {
     }
 
     /**
-     * This method is used by Form
-     */
-    blur() {
-        if (!this.focusablePicker) {
-            return;
-        }
-
-        this.focusablePicker.blur();
-    }
-
-    /**
+     * Focuses the picker (if configured to do so)
+     *
      * This method is used by Form
      */
     focus() {
-        if (!this.focusablePicker) {
+        if (!this.props.shouldFocusPicker) {
             return;
         }
 
-        this.focusablePicker.focus();
+        this.picker.focus();
     }
 
     /**
+     * Measure the layout of this component
+     *
      * This method is used by Form when scrolling to the input
      */
     measureLayout(...args) {
-        return this.root.measureLayout(...args);
+        this.root.measureLayout(...args);
     }
 
     render() {
@@ -239,7 +231,7 @@ class Picker extends PureComponent {
                             allowFontScaling: false,
                         }}
                         pickerProps={{
-                            ref: this.props.focusPicker ? el => this.focusablePicker = el : undefined,
+                            ref: el => this.picker = el,
                             onFocus: this.enableHighlight,
                             onBlur: () => {
                                 this.disableHighlight();
