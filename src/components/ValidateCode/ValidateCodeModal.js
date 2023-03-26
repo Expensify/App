@@ -1,40 +1,55 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
+import {compose} from 'underscore';
+import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import {View} from 'react-native';
-import colors from '../styles/colors';
-import styles from '../styles/styles';
-import Icon from './Icon';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import Text from './Text';
-import * as Expensicons from './Icon/Expensicons';
-import * as Illustrations from './Icon/Illustrations';
-import variables from '../styles/variables';
-import TextLink from './TextLink';
+import colors from '../../styles/colors';
+import styles from '../../styles/styles';
+import Icon from '../Icon';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import Text from '../Text';
+import * as Expensicons from '../Icon/Expensicons';
+import * as Illustrations from '../Icon/Illustrations';
+import variables from '../../styles/variables';
+import TextLink from '../TextLink';
+import ONYXKEYS from '../../ONYXKEYS';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
-
-    /** Whether the user has been signed in with the link. */
-    isSuccessfullySignedIn: PropTypes.bool,
 
     /** Code to display. */
     code: PropTypes.string.isRequired,
 
-    /** Whether the user can get signed straight in the App from the current page */
-    shouldShowSignInHere: PropTypes.bool,
+    /** The ID of the account to which the code belongs. */
+    accountID: PropTypes.string.isRequired,
 
-    /** Callback to be called when user clicks the Sign in here link */
-    onSignInHereClick: PropTypes.func,
+    /** Session of currently logged in user */
+    session: PropTypes.shape({
+        /** Currently logged in user authToken */
+        authToken: PropTypes.string,
+    }),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    isSuccessfullySignedIn: false,
-    shouldShowSignInHere: false,
-    onSignInHereClick: () => {},
+    session: {
+        authToken: null,
+    },
 };
 
 class ValidateCodeModal extends PureComponent {
+    constructor(props) {
+        super(props);
+
+        this.signInHere = this.signInHere.bind(this);
+    }
+
+    signInHere() {
+        Session.signInWithValidateCode(this.props.accountID, this.props.code);
+    }
+
     render() {
         return (
             <View style={styles.deeplinkWrapperContainer}>
@@ -42,22 +57,22 @@ class ValidateCodeModal extends PureComponent {
                     <View style={styles.mb2}>
                         <Icon
                             width={variables.modalTopIconWidth}
-                            height={this.props.isSuccessfullySignedIn ? variables.modalTopBigIconHeight : variables.modalTopIconHeight}
-                            src={this.props.isSuccessfullySignedIn ? Illustrations.Abracadabra : Illustrations.MagicCode}
+                            height={variables.modalTopIconHeight}
+                            src={Illustrations.MagicCode}
                         />
                     </View>
                     <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
-                        {this.props.translate(this.props.isSuccessfullySignedIn ? 'validateCodeModal.successfulSignInTitle' : 'validateCodeModal.title')}
+                        {this.props.translate('validateCodeModal.title')}
                     </Text>
                     <View style={[styles.mt2, styles.mb2]}>
                         <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
-                            {this.props.translate(this.props.isSuccessfullySignedIn ? 'validateCodeModal.successfulSignInDescription' : 'validateCodeModal.description')}
-                            {this.props.shouldShowSignInHere
+                            {this.props.translate('validateCodeModal.description')}
+                            {!lodashGet(this.props, 'session.authToken', null)
                                 && (
                                     <>
                                         {this.props.translate('validateCodeModal.or')}
                                         {' '}
-                                        <TextLink onPress={this.props.onSignInHereClick}>
+                                        <TextLink onPress={this.signInHere}>
                                             {this.props.translate('validateCodeModal.signInHere')}
                                         </TextLink>
                                     </>
@@ -65,13 +80,11 @@ class ValidateCodeModal extends PureComponent {
                             {this.props.shouldShowSignInHere ? '!' : '.'}
                         </Text>
                     </View>
-                    {!this.props.isSuccessfullySignedIn && (
-                        <View style={styles.mt6}>
-                            <Text style={styles.magicCodeDigits}>
-                                {this.props.code}
-                            </Text>
-                        </View>
-                    )}
+                    <View style={styles.mt6}>
+                        <Text style={styles.validateCodeDigits}>
+                            {this.props.code}
+                        </Text>
+                    </View>
                 </View>
                 <View style={styles.deeplinkWrapperFooter}>
                     <Icon
@@ -88,4 +101,9 @@ class ValidateCodeModal extends PureComponent {
 
 ValidateCodeModal.propTypes = propTypes;
 ValidateCodeModal.defaultProps = defaultProps;
-export default withLocalize(ValidateCodeModal);
+export default compose(
+    withLocalize,
+    withOnyx({
+        session: {key: ONYXKEYS.SESSION},
+    }),
+)(ValidateCodeModal);
