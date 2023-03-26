@@ -109,9 +109,6 @@ class Picker extends PureComponent {
             isHighlighted: false,
         };
 
-        this.root = null;
-        this.picker = null;
-
         this.onInputChange = this.onInputChange.bind(this);
         this.enableHighlight = this.enableHighlight.bind(this);
         this.disableHighlight = this.disableHighlight.bind(this);
