@@ -330,7 +330,7 @@ class Form extends React.Component {
                         const formRef = this.formRef.current;
                         const formContentRef = this.formContentRef.current;
 
-                        // Start with dismising the keyobard, so when we focus a non-text input, the keyboard is hidden
+                        // Start with dismissing the keyboard, so when we focus a non-text input, the keyboard is hidden
                         Keyboard.dismiss();
 
                         // We subtract 10 to scroll slightly above the input
