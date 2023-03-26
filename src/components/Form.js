@@ -313,7 +313,7 @@ class Form extends React.Component {
 
     render() {
         const scrollViewContent = safeAreaPaddingBottomStyle => (
-            <FormSubmit innerViewRef={this.formContentRef} style={StyleSheet.flatten([this.props.style, safeAreaPaddingBottomStyle])} onSubmit={this.submit}>
+            <FormSubmit ref={this.formContentRef} style={StyleSheet.flatten([this.props.style, safeAreaPaddingBottomStyle])} onSubmit={this.submit}>
                 {this.childrenWrapperWithProps(_.isFunction(this.props.children) ? this.props.children({inputValues: this.state.inputValues}) : this.props.children)}
                 {this.props.isSubmitButtonVisible && (
                 <FormAlertWithSubmitButton
