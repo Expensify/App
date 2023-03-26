@@ -98,6 +98,10 @@ const defaultProps = {
     additionalPickerEvents: () => {},
 };
 
+/**
+ * @property {View} root - a reference to the root View
+ * @property {Object} picker - a reference to @react-native-picker/picker
+ */
 class Picker extends PureComponent {
     constructor(props) {
         super(props);
