@@ -188,6 +188,10 @@ class Picker extends PureComponent {
      * This method is used by Form when scrolling to the input
      */
     measureLayout(...args) {
+        if (!this.root) {
+            return;
+        }
+
         this.root.measureLayout(...args);
     }
 
@@ -259,5 +263,13 @@ Picker.propTypes = propTypes;
 Picker.defaultProps = defaultProps;
 Picker.contextType = ScrollContext;
 
-// eslint-disable-next-line react/jsx-props-no-spreading
-export default React.forwardRef((props, ref) => <Picker {...props} ref={ref} key={props.inputID} />);
+export default React.forwardRef((props, ref) => (
+    <Picker
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+
+        // Forward the ref to Picker, as we implement imperative methods there
+        ref={ref}
+        key={props.inputID}
+    />
+));
