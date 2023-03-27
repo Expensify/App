@@ -55,7 +55,7 @@ export default {
         invite: 'Invitar',
         here: 'aquí',
         date: 'Fecha',
-        dob: 'Fecha de nacimiento',
+        dob: 'Fecha de Nacimiento',
         currentYear: 'Año actual',
         currentMonth: 'Mes actual',
         ssnLast4: 'Últimos 4 dígitos de su SSN',
