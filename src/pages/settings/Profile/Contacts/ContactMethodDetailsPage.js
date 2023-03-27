@@ -135,6 +135,7 @@ class ContactMethodDetailsPage extends Component {
         } else if (!ValidationUtils.isValidValidateCode(this.state.validateCode)) {
             this.setState({formError: 'validateCodeForm.error.incorrectMagicCode'});
         } else {
+            this.setState({formError: ''});
             User.validateSecondaryLogin(this.getContactMethod(), this.state.validateCode);
         }
     }
