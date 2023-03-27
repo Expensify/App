@@ -251,6 +251,7 @@ export default {
         sayHello: '¡Saluda!',
         usePlusButton: '\n\n¡También puedes usar el botón + de abajo para enviar o pedir dinero!',
     },
+    newMessages: 'Mensajes nuevos',
     reportTypingIndicator: {
         isTyping: 'está escribiendo...',
         areTyping: 'están escribiendo...',
@@ -1680,7 +1681,6 @@ export default {
         listOfChats: 'lista de charlas',
         workspaceName: 'Nombre del espacio de trabajo',
         chatUserDisplayNames: 'Nombres para mostrar de los usuarios de chat',
-        newMessages: 'Mensajes nuevos',
         scrollToNewestMessages: 'Desplácese a los mensajes más recientes',
     },
 };
