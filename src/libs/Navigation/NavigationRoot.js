@@ -10,6 +10,7 @@ import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import Log from '../Log';
+import ensureCentralPaneNavigatorOnStack from './ensureCentralPaneNavigatorOnStack';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -60,7 +61,8 @@ const NavigationRoot = (props) => {
         parseAndLogRoute(state);
     };
 
-    const handleInitialState = () => stateRef.current;
+    // If there is saved stateRef and isSmallScreenWidth is false, ensure that there is CentralPaneNavigator on the stack (Report route by default)
+    const handleInitialState = () => (!stateRef.current || props.isSmallScreenWidth ? stateRef.current : ensureCentralPaneNavigatorOnStack(stateRef.current));
 
     return (
         <NavigationContainer

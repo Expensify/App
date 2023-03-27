@@ -1,7 +1,13 @@
+import {
+    getStateFromPath,
+} from '@react-navigation/native';
+import {Dimensions} from 'react-native';
 import ROUTES from '../../ROUTES';
 import SCREENS from '../../SCREENS';
 import CONST from '../../CONST';
 import NAVIGATORS from '../../NAVIGATORS';
+import variables from '../../styles/variables';
+import ensureCentralPaneNavigatorOnStack from './ensureCentralPaneNavigatorOnStack';
 
 export default {
     prefixes: [
@@ -273,5 +279,14 @@ export default {
                 },
             },
         },
+    },
+    getStateFromPath(path, cfg) {
+        const state = getStateFromPath(path, cfg);
+
+        // Default route for the CentralPaneNavigator is the report screen
+        if (Dimensions.get('window').width > variables.mobileResponsiveWidthBreakpoint) {
+            ensureCentralPaneNavigatorOnStack(state);
+        }
+        return state;
     },
 };

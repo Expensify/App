@@ -2,6 +2,7 @@ import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 
 import SCREENS from '../../../../SCREENS';
+import ReportScreenWrapper from '../ReportScreenWrapper';
 
 const Stack = createStackNavigator();
 
@@ -20,10 +21,7 @@ function CentralPaneNavigator() {
                         height: '100%',
                     },
                 }}
-                getComponent={() => {
-                    const ReportScreen = require('../../../../pages/home/ReportScreen').default;
-                    return ReportScreen;
-                }}
+                component={ReportScreenWrapper}
             />
         </Stack.Navigator>
     );

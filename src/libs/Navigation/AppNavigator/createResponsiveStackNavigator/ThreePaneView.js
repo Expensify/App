@@ -34,9 +34,6 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 0,
         left: 0,
-
-        // TODO-NR chagne default color for cards
-        backgroundColor: 'black',
         width: '100%',
         height: '100%',
     },
@@ -65,8 +62,6 @@ const WideView = (props) => {
             </View>
         </View>
     );
-
-    // TODO-NR do we need some more wrapping for descriptor rendering?
 
     return (
         <View style={styles.container}>
