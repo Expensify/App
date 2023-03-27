@@ -9,6 +9,10 @@
         <item name="android:statusBarColor">#061B09</item>
         <item name="colorAccent">@color/accent</item>
         <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
+        <item name="popupTheme">@style/AppTheme.Popup</item>
+        <item name="android:spinnerDropDownItemStyle">@style/TextViewSpinnerDropDownItem</item>
+        <item name="android:datePickerDialogTheme">@style/DatePickerDialogTheme</item>
+        <item name="android:alertDialogTheme">@style/AlertDialogTheme</item>
     </style>
 
     <!-- Themes unique to the boot splash page -->
@@ -18,4 +22,49 @@
         <item name="android:fitsSystemWindows">true</item>
     </style>
 
+    <!-- Themes used by the Picker -->
+    <style name="AppTheme.Popup" parent="Base.ThemeOverlay.AppCompat">
+        <item name="colorBackgroundFloating">@null</item>
+        <item name="android:background">@drawable/picker_background</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="TextViewSpinnerDropDownItem" parent="Widget.AppCompat.DropDownItem.Spinner">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">@dimen/spinner_font_size</item>
+        <item name="android:fontFamily">@font/expneuebold</item>
+    </style>
+
+    <!-- Theme used by the DatePicker dialog -->
+    <style name="DatePickerDialogTheme" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowBackground">@drawable/datepicker_background</item>
+        <item name="android:datePickerStyle">@style/DatePickerStyle</item>
+        <item name="android:fontFamily">@font/expneuebold</item>
+        <item name="colorAccent">@color/accent</item>
+    </style>
+
+    <style name="DatePickerStyle" parent="android:Widget.Material.DatePicker">
+        <item name="android:headerBackground">@color/card_highlight_bg</item> <!-- header background color -->
+    </style>
+
+    <!-- Theme used by the Alert dialog -->
+    <style name="AlertDialogTheme" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/alert_background</item>
+        <item name="android:textAppearanceSmall">@style/AlertTextAppearanceSmall</item>
+        <item name="android:textAppearanceMedium">@style/AlertTextAppearanceMedium</item>
+        <item name="android:textAppearanceLarge">@style/AlertTextAppearanceLarge</item>
+        <item name="colorAccent">@color/accent</item>
+    </style>
+
+    <style name="AlertTextAppearanceSmall" parent="TextAppearance.AppCompat.Small">
+        <item name="android:fontFamily">@font/expneueregular</item>
+    </style>
+
+    <style name="AlertTextAppearanceMedium" parent="TextAppearance.AppCompat.Medium">
+        <item name="android:fontFamily">@font/expneueregular</item>
+    </style>
+
+    <style name="AlertTextAppearanceLarge" parent="TextAppearance.AppCompat.Large">
+        <item name="android:fontFamily">@font/expneuebold</item>
+    </style>
 </resources>
