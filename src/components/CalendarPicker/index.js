@@ -25,6 +25,9 @@ class CalendarPicker extends React.PureComponent {
         if (props.selectedYear) {
             currentDateView = moment(currentDateView).set('year', props.selectedYear).toDate();
         }
+        if (props.selectedMonth != null) {
+            currentDateView = moment(currentDateView).set('month', props.selectedMonth).toDate();
+        }
         if (props.maxDate < currentDateView) {
             currentDateView = props.maxDate;
         } else if (props.minDate > currentDateView) {
@@ -68,6 +71,7 @@ class CalendarPicker extends React.PureComponent {
         const maxYear = moment(this.props.maxDate).year();
         const currentYear = this.state.currentDateView.getFullYear();
         Navigation.navigate(ROUTES.getYearSelectionRoute(minYear, maxYear, currentYear, Navigation.getActiveRoute()));
+        this.props.onYearPickerOpen(this.state.currentDateView);
     }
 
     /**
