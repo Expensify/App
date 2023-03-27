@@ -230,6 +230,8 @@ export default {
         editComment: 'Editar comentario',
         deleteComment: 'Eliminar comentario',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
+    },
+    emojiReactions: {
         addReactionTooltip: 'Añadir una reacción',
     },
     reportActionsView: {

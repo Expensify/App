@@ -231,6 +231,8 @@ export default {
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
+    },
+    emojiReactions: {
         addReactionTooltip: 'Add reaction',
     },
     reportActionsView: {
