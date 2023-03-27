@@ -197,7 +197,7 @@ class ContactMethodDetailsPage extends Component {
                                 <View
                                     style={[styles.mt2, styles.dFlex, styles.flexRow]}
                                 >
-                                    <Text style={[styles.link, styles.mr4]} onPress={this.resendValidateCode}>
+                                    <Text style={[styles.link, styles.mr3]} onPress={this.resendValidateCode}>
                                         {this.props.translate('contacts.resendMagicCode')}
                                     </Text>
                                     {hasMagicCodeBeenSent && (
