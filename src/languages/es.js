@@ -157,7 +157,7 @@ export default {
     deeplinkWrapper: {
         launching: 'Cargando Expensify',
         expired: 'Su sesión ha expirado.',
-        signIn: 'Por favor, inicie sesión de nuevo.',
+        signIn: 'Por favor, inicia sesión de nuevo.',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
