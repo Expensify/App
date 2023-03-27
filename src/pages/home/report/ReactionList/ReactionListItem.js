@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../../styles/styles';
 import colors from '../../../../styles/colors';
@@ -7,7 +7,6 @@ import Avatar from '../../../../components/Avatar';
 import compose from '../../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import {withPersonalDetails} from '../../../../components/OnyxProvider';
-import ControlSelection from '../../../../libs/ControlSelection';
 import Text from '../../../../components/Text';
 import participantPropTypes from '../../../../components/participantPropTypes';
 import * as ReportUtils from '../../../../libs/ReportUtils';
