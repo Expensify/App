@@ -121,7 +121,7 @@ class AddressPage extends Component {
             errors[fieldKey] = this.props.translate('common.error.fieldRequired');
         });
 
-        // If no country is selected, default value is "-"
+        // If no country is selected, default value is an empty string, thus the need for lodash
         const countryDetails = lodashGet(CONST.COUNTRY_ZIP_VALIDATION_REGEX, values.country, {});
 
         // The postal code system might not exist for a country, so no regex either for them.
