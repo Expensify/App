@@ -34,6 +34,7 @@ import ConfirmModal from '../../components/ConfirmModal';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as Link from '../../libs/actions/Link';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import policyMemberPropType from '../policyMemberPropType';
 
 const propTypes = {
     /* Onyx Props */
@@ -80,6 +81,9 @@ const propTypes = {
     /** Information about the user accepting the terms for payments */
     walletTerms: walletTermsPropTypes,
 
+    /** List of policy members */
+    policyMembers: PropTypes.objectOf(policyMemberPropType),
+
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -92,6 +96,9 @@ const defaultProps = {
     },
     betas: [],
     walletTerms: {},
+    bankAccountList: {},
+    cardList: {},
+    policyMembers: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -274,7 +281,7 @@ class InitialSettingsPage extends React.Component {
 
                                     <Pressable style={[styles.mt1, styles.mw100]} onPress={this.openProfileSettings}>
                                         <Tooltip text={this.props.translate('common.profile')}>
-                                            <Text style={[styles.textHeadline]} numberOfLines={1}>
+                                            <Text style={[styles.textHeadline, styles.pre]} numberOfLines={1}>
                                                 {this.props.currentUserPersonalDetails.displayName
                                                     ? this.props.currentUserPersonalDetails.displayName
                                                     : Str.removeSMSDomain(this.props.session.email)}

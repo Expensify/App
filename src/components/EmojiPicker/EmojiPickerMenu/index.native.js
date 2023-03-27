@@ -30,7 +30,7 @@ const propTypes = {
     frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
         code: PropTypes.string.isRequired,
         keywords: PropTypes.arrayOf(PropTypes.string),
-    })).isRequired,
+    })),
 
     /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
@@ -40,7 +40,8 @@ const propTypes = {
 };
 
 const defaultProps = {
-    preferredSkinTone: undefined,
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
+    frequentlyUsedEmojis: [],
 };
 
 class EmojiPickerMenu extends Component {

@@ -4,6 +4,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
@@ -28,6 +29,25 @@ import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
     ...StepPropTypes,
+
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }),
+
+    /** Object with various information about the user */
+    user: PropTypes.shape({
+        /** Whether or not the user is on a public domain email account or not */
+        isFromPublicDomain: PropTypes.bool,
+    }),
+};
+
+const defaultProps = {
+    session: {
+        email: null,
+    },
+    user: {},
 };
 
 class CompanyStep extends React.Component {
@@ -261,6 +281,7 @@ class CompanyStep extends React.Component {
 }
 
 CompanyStep.propTypes = propTypes;
+CompanyStep.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
