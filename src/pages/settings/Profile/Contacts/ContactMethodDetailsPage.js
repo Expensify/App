@@ -194,17 +194,16 @@ class ContactMethodDetailsPage extends Component {
                                 errorRowStyles={[styles.mt2]}
                                 onClose={() => User.clearContactMethodErrors(contactMethod, 'validateCodeSent')}
                             >
-                                <TouchableOpacity
+                                <View
                                     style={[styles.mt2, styles.dFlex, styles.flexRow]}
-                                    onPress={this.resendValidateCode}
                                 >
-                                    <Text style={[styles.link, styles.mr4]}>
+                                    <Text style={[styles.link, styles.mr4]} onPress={this.resendValidateCode}>
                                         {this.props.translate('contacts.resendMagicCode')}
                                     </Text>
                                     {hasMagicCodeBeenSent && (
                                         <Icon src={Expensicons.Checkmark} fill={colors.green} />
                                     )}
-                                </TouchableOpacity>
+                                </View>
                             </OfflineWithFeedback>
                             <OfflineWithFeedback
                                 pendingAction={lodashGet(loginData, 'pendingFields.validateLogin', null)}
