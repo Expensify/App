@@ -15,6 +15,9 @@ const KeyboardAvoidingView = (props) => {
 
     const keyboard = useAnimatedKeyboard();
     const insets = useSafeAreaInsets();
+
+    // makeRemote makes an object that can be used on the UI thread
+    // similar to using `global` in worklet but it's just a local object
     const ctx = useMemo(() => makeRemote({}), []);
 
     const animatedStyle = useAnimatedStyle(() => {
