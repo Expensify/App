@@ -106,7 +106,8 @@ function navigateToSidebarOption(index) {
  * @return {Boolean}
  */
 function isDrawerOpen() {
-    const sidebarLinks = screen.queryAllByLabelText('List of chats');
+    const hintText = Localize.translateLocal('accessibilityHints.listOfChats');
+    const sidebarLinks = screen.queryAllByLabelText(hintText);
     return !lodashGet(sidebarLinks, [0, 'props', 'accessibilityElementsHidden']);
 }
 
@@ -131,7 +132,8 @@ function signInAndGetAppWithUnreadChat() {
     render(<App />);
     return waitForPromisesToResolveWithAct()
         .then(() => {
-            const loginForm = screen.queryAllByLabelText('Login form');
+            const hintText = Localize.translateLocal('accessibilityHints.loginForm');
+            const loginForm = screen.queryAllByLabelText(hintText);
             expect(loginForm).toHaveLength(1);
 
             return TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
@@ -206,7 +208,8 @@ describe('Unread Indicators', () => {
             expect(LocalNotification.showCommentNotification.mock.calls).toHaveLength(0);
 
             // Verify the sidebar links are rendered
-            const sidebarLinks = screen.queryAllByLabelText('List of chats');
+            const sidebarLinksHintText = Localize.translateLocal('accessibilityHints.listOfChats');
+            const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
             expect(sidebarLinks).toHaveLength(1);
             expect(isDrawerOpen()).toBe(true);
 

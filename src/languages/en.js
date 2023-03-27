@@ -1215,5 +1215,7 @@ export default {
         newMessageLineIndicator: 'New message line indicator',
         chatMessage: 'Chat message',
         lastChatMessagePreview: 'Last chat message preview',
+        loginForm: 'Login form',
+        listOfChats: 'List of chats',
     },
 };

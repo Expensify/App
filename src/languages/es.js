@@ -1681,5 +1681,7 @@ export default {
         newMessageLineIndicator: 'Indicador de nueva línea de mensaje',
         chatMessage: 'mensaje de chat',
         lastChatMessagePreview: 'Vista previa del último mensaje de chat',
+        loginForm: 'Formulario de inicio de sesión',
+        listOfChats: 'lista de charlas',
     },
 };
