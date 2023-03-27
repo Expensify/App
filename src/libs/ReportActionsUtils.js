@@ -194,7 +194,7 @@ function getSortedReportActionsForDisplay(reportActions) {
     const sortedReportActions = getSortedReportActions(filteredReportActions, true);
     return _.filter(sortedReportActions, (reportAction) => {
         // Allow all Policy Change reportActions to be displayed
-        if (CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG_REGEX.test(reportAction.actionName)) {
+        if (reportAction.actionName.startsWith(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG)) {
             return true;
         }
 
