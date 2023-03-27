@@ -94,7 +94,7 @@
     "react-native-config": "^1.4.5",
     "react-native-device-info": "^10.3.0",
     "react-native-document-picker": "^8.0.0",
-    "react-native-fast-image": "git+https://github.com/Expensify/react-native-fast-image.git#bef666720ca00272c051a0165a056a2dc07e9deb",
+    "react-native-fast-image": "git+https://github.com/Expensify/react-native-fast-image.git#afedf204bfc253d18f08fdcc5356a2bb82f6a87c",
     "react-native-gesture-handler": "2.9.0",
     "react-native-google-places-autocomplete": "git+https://github.com/Expensify/react-native-google-places-autocomplete.git#e12768f1542e7982d90f6449798f0d6b7f18f192",
     "react-native-haptic-feedback": "^1.13.0",
