@@ -125,6 +125,7 @@ export default {
         areYouSure: '¿Estás seguro?',
         zipCodeExample: 'p. ej. 12345, 12345-1234, 12345 1234',
         websiteExample: 'p. ej. https://www.expensify.com',
+        chatUserDisplayNames: 'Nombres para mostrar de los usuarios de chat',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
@@ -1673,4 +1674,6 @@ export default {
         ZW: 'Zimbabue',
     },
     navigateToChatsList: 'Navegar de regreso a la lista de chats',
+    listOfChatMessages: 'Lista de mensajes de chat',
+    chatWelcomeMessage: 'Mensaje de bienvenida al chat',
 };

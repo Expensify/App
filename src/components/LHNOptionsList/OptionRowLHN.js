@@ -168,7 +168,7 @@ const OptionRowLHN = (props) => {
                                 <View style={contentContainerStyles}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                         <DisplayNames
-                                            accessibilityLabel="Chat user display names"
+                                            accessibilityLabel={props.translate('common.chatUserDisplayNames')}
                                             fullTitle={optionItem.text}
                                             displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
                                             tooltipEnabled

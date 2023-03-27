@@ -126,6 +126,7 @@ export default {
         areYouSure: 'Are you sure?',
         zipCodeExample: 'e.g. 12345, 12345-1234, 12345 1234',
         websiteExample: 'e.g. https://www.expensify.com',
+        chatUserDisplayNames: 'Chat user display names',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
@@ -1207,4 +1208,6 @@ export default {
     allStates: COMMON_CONST.STATES,
     allCountries: CONST.ALL_COUNTRIES,
     navigateToChatsList: 'Navigate back to chats list',
+    listOfChatMessages: 'List of chat messages',
+    chatWelcomeMessage: 'Chat welcome message',
 };

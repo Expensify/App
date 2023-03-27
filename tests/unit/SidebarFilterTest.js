@@ -5,6 +5,7 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
+import * as Localize from '../../src/libs/Localize';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
@@ -295,9 +296,10 @@ describe('Sidebar', () => {
                         .then(() => {
                             if (booleansWhichRemovesActiveReport.indexOf(JSON.stringify(boolArr)) > -1) {
                                 // Only one report visible
+                                const text = Localize.translateLocal('common.chatUserDisplayNames');
+                                const displayNames = screen.queryAllByLabelText(text);
                                 expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(1);
-                                expect(screen.queryAllByLabelText('Chat user display names')).toHaveLength(1);
-                                const displayNames = screen.queryAllByLabelText('Chat user display names');
+                                expect(displayNames).toHaveLength(1);
                                 expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
                             } else {
                                 // Both reports visible
@@ -331,7 +333,8 @@ describe('Sidebar', () => {
 
                 // Then the reports 1 and 2 are shown and 3 is not
                 .then(() => {
-                    const displayNames = screen.queryAllByLabelText('Chat user display names');
+                    const text = Localize.translateLocal('common.chatUserDisplayNames');
+                    const displayNames = screen.queryAllByLabelText(text);
                     expect(displayNames).toHaveLength(2);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
@@ -393,7 +396,8 @@ describe('Sidebar', () => {
 
                 // Then both reports are visible
                 .then(() => {
-                    const displayNames = screen.queryAllByLabelText('Chat user display names');
+                    const text = Localize.translateLocal('common.chatUserDisplayNames');
+                    const displayNames = screen.queryAllByLabelText(text);
                     expect(displayNames).toHaveLength(2);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
@@ -441,7 +445,8 @@ describe('Sidebar', () => {
 
                 // Then neither reports are visible
                 .then(() => {
-                    const displayNames = screen.queryAllByLabelText('Chat user display names');
+                    const text = Localize.translateLocal('common.chatUserDisplayNames');
+                    const displayNames = screen.queryAllByLabelText(text);
                     expect(displayNames).toHaveLength(0);
                 })
 
@@ -461,7 +466,8 @@ describe('Sidebar', () => {
 
                 // Then they are all visible
                 .then(() => {
-                    const displayNames = screen.queryAllByLabelText('Chat user display names');
+                    const text = Localize.translateLocal('common.chatUserDisplayNames');
+                    const displayNames = screen.queryAllByLabelText(text);
                     expect(displayNames).toHaveLength(3);
                 });
         });
@@ -497,7 +503,8 @@ describe('Sidebar', () => {
 
                 // Then neither reports are visible
                 .then(() => {
-                    const displayNames = screen.queryAllByLabelText('Chat user display names');
+                    const text = Localize.translateLocal('common.chatUserDisplayNames');
+                    const displayNames = screen.queryAllByLabelText(text);
                     expect(displayNames).toHaveLength(0);
                 })
 
@@ -514,7 +521,8 @@ describe('Sidebar', () => {
 
                 // Then both rooms are visible
                 .then(() => {
-                    const displayNames = screen.queryAllByLabelText('Chat user display names');
+                    const text = Localize.translateLocal('common.chatUserDisplayNames');
+                    const displayNames = screen.queryAllByLabelText(text);
                     expect(displayNames).toHaveLength(2);
                 });
         });
@@ -595,9 +603,10 @@ describe('Sidebar', () => {
                     .then(() => {
                         if (booleansWhichRemovesActiveReport.indexOf(JSON.stringify(boolArr)) > -1) {
                             // Only one report visible
+                            const text = Localize.translateLocal('common.chatUserDisplayNames');
+                            const displayNames = screen.queryAllByLabelText(text);
                             expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(1);
-                            expect(screen.queryAllByLabelText('Chat user display names')).toHaveLength(1);
-                            const displayNames = screen.queryAllByLabelText('Chat user display names');
+                            expect(displayNames).toHaveLength(1);
                             expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
                         } else {
                             // Both reports visible
