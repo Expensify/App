@@ -276,6 +276,8 @@ export default {
         fabNewChat: 'New chat (Floating action)',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
+        listOfChatMessages: 'List of chat messages',
+        listOfChats: 'List of chats',
     },
     iou: {
         amount: 'Amount',
@@ -608,6 +610,7 @@ export default {
             invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
         },
         cannotGetAccountDetails: 'Couldn\'t retrieve account details, please try to sign in again.',
+        loginForm: 'Login form',
     },
     personalDetails: {
         error: {
@@ -1205,14 +1208,11 @@ export default {
     allCountries: CONST.ALL_COUNTRIES,
     accessibilityHints: {
         navigateToChatsList: 'Navigate back to chats list',
-        listOfChatMessages: 'List of chat messages',
         chatWelcomeMessage: 'Chat welcome message',
         navigatesToChat: 'Navigates to a chat',
         newMessageLineIndicator: 'New message line indicator',
         chatMessage: 'Chat message',
         lastChatMessagePreview: 'Last chat message preview',
-        loginForm: 'Login form',
-        listOfChats: 'List of chats',
         workspaceName: 'Workspace name',
         chatUserDisplayNames: 'Chat user display names',
         scrollToNewestMessages: 'Scroll to newest messages',

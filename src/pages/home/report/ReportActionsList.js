@@ -151,7 +151,7 @@ class ReportActionsList extends React.Component {
         return (
             <Animated.View style={[StyleUtils.fade(this.state.fadeInAnimation), styles.flex1]}>
                 <InvertedFlatList
-                    accessibilityLabel={this.props.translate('accessibilityHints.listOfChatMessages')}
+                    accessibilityLabel={this.props.translate('sidebarScreen.listOfChatMessages')}
                     ref={ReportScrollManager.flatListRef}
                     data={this.props.sortedReportActions}
                     renderItem={this.renderItem}

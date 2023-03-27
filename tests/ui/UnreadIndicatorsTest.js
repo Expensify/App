@@ -52,7 +52,7 @@ beforeAll(() => {
 });
 
 function scrollUpToRevealNewMessagesBadge() {
-    const hintText = Localize.translateLocal('accessibilityHints.listOfChatMessages');
+    const hintText = Localize.translateLocal('sidebarScreen.listOfChatMessages');
     fireEvent.scroll(screen.queryByLabelText(hintText), {
         nativeEvent: {
             contentOffset: {
@@ -106,7 +106,7 @@ function navigateToSidebarOption(index) {
  * @return {Boolean}
  */
 function isDrawerOpen() {
-    const hintText = Localize.translateLocal('accessibilityHints.listOfChats');
+    const hintText = Localize.translateLocal('sidebarScreen.listOfChats');
     const sidebarLinks = screen.queryAllByLabelText(hintText);
     return !lodashGet(sidebarLinks, [0, 'props', 'accessibilityElementsHidden']);
 }
@@ -132,7 +132,7 @@ function signInAndGetAppWithUnreadChat() {
     render(<App />);
     return waitForPromisesToResolveWithAct()
         .then(() => {
-            const hintText = Localize.translateLocal('accessibilityHints.loginForm');
+            const hintText = Localize.translateLocal('loginForm.loginForm');
             const loginForm = screen.queryAllByLabelText(hintText);
             expect(loginForm).toHaveLength(1);
 
@@ -208,7 +208,7 @@ describe('Unread Indicators', () => {
             expect(LocalNotification.showCommentNotification.mock.calls).toHaveLength(0);
 
             // Verify the sidebar links are rendered
-            const sidebarLinksHintText = Localize.translateLocal('accessibilityHints.listOfChats');
+            const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
             const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
             expect(sidebarLinks).toHaveLength(1);
             expect(isDrawerOpen()).toBe(true);
