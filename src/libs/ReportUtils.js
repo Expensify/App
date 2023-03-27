@@ -21,6 +21,7 @@ import linkingConfig from './Navigation/linkingConfig';
 import * as defaultAvatars from '../components/Icon/DefaultAvatars';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
+import * as CollectionUtils from './CollectionUtils';
 
 let sessionEmail;
 Onyx.connect({
@@ -69,6 +70,21 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: val => allReports = val,
+});
+
+const lastReportActions = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    callback: (actions, key) => {
+        if (!key || !actions) {
+            return;
+        }
+        const reportID = CollectionUtils.extractCollectionItemID(key);
+        lastReportActions[reportID] = _.find(
+            ReportActionsUtils.getSortedReportActionsForDisplay(_.toArray(actions)),
+            reportAction => reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+    },
 });
 
 let doesDomainHaveApprovedAccountant;
@@ -435,6 +451,31 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
 }
 
 /**
+ * Gets the last message text from the report.
+ * Looks at reportActions data as the "best source" for information, because the front-end may have optimistic reportActions that the server is not yet aware of.
+ * If reportActions are not loaded for the report, then there can't be any optimistic reportActions, and the lastMessageText rNVP will be accurate as a fallback.
+ *
+ * @param {Object} report
+ * @returns {String}
+ */
+function getLastMessageText(report) {
+    if (!report) {
+        return '';
+    }
+
+    const lastReportAction = lastReportActions[report.reportID];
+    let lastReportActionText = report.lastMessageText;
+    let lastReportActionHtml = report.lastMessageHtml;
+    if (lastReportAction && lastReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT) {
+        lastReportActionText = lodashGet(lastReportAction, 'message[0].text', report.lastMessageText);
+        lastReportActionHtml = lodashGet(lastReportAction, 'message[0].html', report.lastMessageHtml);
+    }
+    return isReportMessageAttachment({text: lastReportActionText, html: lastReportActionHtml})
+        ? `[${Localize.translateLocal('common.attachment')}]`
+        : Str.htmlDecode(lastReportActionText);
+}
+
+/**
  * Trim the last message text to a fixed limit.
  * @param {String} lastMessageText
  * @returns {String}
@@ -568,6 +609,11 @@ function getFullSizeAvatar(avatarURL, login) {
 function getSmallSizeAvatar(avatarURL, login) {
     const source = getAvatar(avatarURL, login);
     if (!_.isString(source)) {
+        return source;
+    }
+
+    // Because other urls than CloudFront do not support dynamic image sizing (_SIZE suffix), the current source is already what we want to use here.
+    if (!CONST.CLOUDFRONT_DOMAIN_REGEX.test(source)) {
         return source;
     }
 
@@ -1669,6 +1715,7 @@ export {
     isIOUOwnedByCurrentUser,
     getIOUTotal,
     canShowReportRecipientLocalTime,
+    getLastMessageText,
     formatReportLastMessageText,
     chatIncludesConcierge,
     isPolicyExpenseChat,
