@@ -5,6 +5,21 @@ import styles from '../styles/styles';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
 import Image from './Image';
 
+const propTypes = {
+    /** Url for image to display */
+    url: PropTypes.string.isRequired,
+
+    /** Any additional styles to apply */
+    // eslint-disable-next-line react/forbid-prop-types
+    style: PropTypes.any,
+
+    /** Callback fired when the image has been measured. */
+    onMeasure: PropTypes.func,
+
+    /** Whether the image requires an authToken */
+    isAuthTokenRequired: PropTypes.bool,
+};
+
 /**
  * Preloads an image by getting the size and passing dimensions via callback.
  * Image size must be provided by parent via width and height props. Useful for
@@ -54,4 +69,5 @@ const ImageWithSizeCalculation = (
     );
 };
 
+ImageWithSizeCalculation.propTypes = propTypes;
 export default React.memo(ImageWithSizeCalculation);
