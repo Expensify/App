@@ -275,8 +275,9 @@ function signInWithShortLivedAuthToken(email, authToken) {
  * @param {String} password This will be removed after passwordless beta ends
  * @param {String} [validateCode] Code for passwordless login
  * @param {String} [twoFactorAuthCode]
+ * @param {String} [preferredLocale] Indicates which language to use when the user lands in the app
  */
-function signIn(password, validateCode, twoFactorAuthCode) {
+function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CONST.DEFAULT_LOCALE) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -308,7 +309,7 @@ function signIn(password, validateCode, twoFactorAuthCode) {
         },
     ];
 
-    const params = {twoFactorAuthCode, email: credentials.login};
+    const params = {twoFactorAuthCode, email: credentials.login, preferredLocale};
 
     // Conditionally pass a password or validateCode to command since we temporarily allow both flows
     if (validateCode) {
