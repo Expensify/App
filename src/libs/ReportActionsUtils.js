@@ -229,11 +229,16 @@ function getSortedReportActionsForDisplay(reportActions) {
 /**
  * In some cases, there can be multiple closed report actions in a chat report.
  * This method returns the last closed report action so we can always show the correct archived report reason.
+ * Additionally, archived #admins and #announce do not have the closed report action so we will return null if none is found.
  *
  * @param {Object} reportActions
- * @returns {Object}
+ * @returns {Object|null}
  */
 function getLastClosedReportAction(reportActions) {
+    // If closed report action is not present, return early
+    if (!_.some(sortedReportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)) {
+        return null;
+    }
     const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
     const sortedReportActions = getSortedReportActions(filteredReportActions);
     return lodashFindLast(sortedReportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
