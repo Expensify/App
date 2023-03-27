@@ -126,7 +126,6 @@ export default {
         areYouSure: 'Are you sure?',
         zipCodeExample: 'e.g. 12345, 12345-1234, 12345 1234',
         websiteExample: 'e.g. https://www.expensify.com',
-        chatUserDisplayNames: 'Chat user display names',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
@@ -253,10 +252,7 @@ export default {
         sayHello: 'Say hello!',
         usePlusButton: '\n\nYou can also use the + button below to send or request money!',
     },
-    floatingMessageCounter: {
-        newMessages: 'New messages',
-        scrollToNewestMessages: 'Scroll to newest messages',
-    },
+    newMessages: 'New messages',
     reportTypingIndicator: {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
@@ -1218,5 +1214,7 @@ export default {
         loginForm: 'Login form',
         listOfChats: 'List of chats',
         workspaceName: 'Workspace name',
+        chatUserDisplayNames: 'Chat user display names',
+        scrollToNewestMessages: 'Scroll to newest messages',
     },
 };

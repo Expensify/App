@@ -305,7 +305,7 @@ describe('Sidebar', () => {
                         .then(() => {
                             if (booleansWhichRemovesActiveReport.indexOf(JSON.stringify(boolArr)) > -1) {
                                 // Only one report visible
-                                const displayNamesHintText = Localize.translateLocal('common.chatUserDisplayNames');
+                                const displayNamesHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                                 const displayNames = screen.queryAllByLabelText(displayNamesHintText);
                                 const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
                                 expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(1);
@@ -344,7 +344,7 @@ describe('Sidebar', () => {
 
                 // Then the reports 1 and 2 are shown and 3 is not
                 .then(() => {
-                    const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                     const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(2);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two');
@@ -410,7 +410,7 @@ describe('Sidebar', () => {
 
                 // Then both reports are visible
                 .then(() => {
-                    const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                     const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(2);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
@@ -459,7 +459,7 @@ describe('Sidebar', () => {
 
                 // Then neither reports are visible
                 .then(() => {
-                    const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                     const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(0);
                 })
@@ -480,7 +480,7 @@ describe('Sidebar', () => {
 
                 // Then they are all visible
                 .then(() => {
-                    const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                     const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(3);
                 });
@@ -517,7 +517,7 @@ describe('Sidebar', () => {
 
                 // Then neither reports are visible
                 .then(() => {
-                    const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                     const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(0);
                 })
@@ -535,7 +535,7 @@ describe('Sidebar', () => {
 
                 // Then both rooms are visible
                 .then(() => {
-                    const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                     const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(2);
                 });
@@ -617,7 +617,7 @@ describe('Sidebar', () => {
                     .then(() => {
                         if (booleansWhichRemovesActiveReport.indexOf(JSON.stringify(boolArr)) > -1) {
                             // Only one report visible
-                            const displayNamesHintText = Localize.translateLocal('common.chatUserDisplayNames');
+                            const displayNamesHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                             const displayNames = screen.queryAllByLabelText(displayNamesHintText);
                             const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
                             expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(1);

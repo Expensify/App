@@ -76,7 +76,7 @@ function scrollUpToRevealNewMessagesBadge() {
  * @return {Boolean}
  */
 function isNewMessagesBadgeVisible() {
-    const hintText = Localize.translateLocal('floatingMessageCounter.scrollToNewestMessages');
+    const hintText = Localize.translateLocal('accessibilityHints.scrollToNewestMessages');
     const badge = screen.queryByAccessibilityHint(hintText);
     return Math.round(badge.props.style.transform[0].translateY) === 10;
 }
@@ -219,7 +219,7 @@ describe('Unread Indicators', () => {
             expect(optionRows).toHaveLength(1);
 
             // And that the text is bold
-            const displayNameHintText = Localize.translateLocal('common.chatUserDisplayNames');
+            const displayNameHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameText = screen.queryByLabelText(displayNameHintText);
             expect(lodashGet(displayNameText, ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
 
@@ -265,7 +265,7 @@ describe('Unread Indicators', () => {
             expect(isDrawerOpen()).toBe(true);
 
             // Verify that the option row in the LHN is no longer bold (since OpenReport marked it as read)
-            const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+            const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
             const updatedDisplayNameText = screen.queryByLabelText(hintText);
             expect(lodashGet(updatedDisplayNameText, ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
 
@@ -354,7 +354,7 @@ describe('Unread Indicators', () => {
             expect(optionRows).toHaveLength(2);
 
             // Verify the text for both chats are bold indicating that nothing has not yet been read
-            const displayNameHintTexts = Localize.translateLocal('common.chatUserDisplayNames');
+            const displayNameHintTexts = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameTexts = screen.queryAllByLabelText(displayNameHintTexts);
             expect(displayNameTexts).toHaveLength(2);
             const firstReportOption = displayNameTexts[0];
@@ -370,7 +370,7 @@ describe('Unread Indicators', () => {
         })
         .then(() => {
             // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
-            const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+            const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameTexts = screen.queryAllByLabelText(hintText);
             expect(displayNameTexts).toHaveLength(2);
             expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
@@ -406,7 +406,7 @@ describe('Unread Indicators', () => {
         .then(navigateToSidebar)
         .then(() => {
             // Verify the report is marked as unread in the sidebar
-            const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+            const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameTexts = screen.queryAllByLabelText(hintText);
             expect(displayNameTexts).toHaveLength(1);
             expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
@@ -418,7 +418,7 @@ describe('Unread Indicators', () => {
         .then(() => navigateToSidebar())
         .then(() => {
             // Verify the report is now marked as read
-            const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+            const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameTexts = screen.queryAllByLabelText(hintText);
             expect(displayNameTexts).toHaveLength(1);
             expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
@@ -442,7 +442,7 @@ describe('Unread Indicators', () => {
             // Verify we are on the LHN and that the chat shows as unread in the LHN
             expect(isDrawerOpen()).toBe(true);
 
-            const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+            const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameTexts = screen.queryAllByLabelText(hintText);
             expect(displayNameTexts).toHaveLength(1);
             expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');
@@ -471,7 +471,7 @@ describe('Unread Indicators', () => {
             // Verify we are on the LHN and that the chat shows as unread in the LHN
             expect(isDrawerOpen()).toBe(true);
 
-            const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+            const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameTexts = screen.queryAllByLabelText(hintText);
             expect(displayNameTexts).toHaveLength(1);
             expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');

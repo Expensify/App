@@ -125,7 +125,6 @@ export default {
         areYouSure: '¿Estás seguro?',
         zipCodeExample: 'p. ej. 12345, 12345-1234, 12345 1234',
         websiteExample: 'p. ej. https://www.expensify.com',
-        chatUserDisplayNames: 'Nombres para mostrar de los usuarios de chat',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
@@ -251,10 +250,6 @@ export default {
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
         usePlusButton: '\n\n¡También puedes usar el botón + de abajo para enviar o pedir dinero!',
-    },
-    floatingMessageCounter: {
-        newMessages: 'Mensajes nuevos',
-        scrollToNewestMessages: 'Desplácese a los mensajes más recientes',
     },
     reportTypingIndicator: {
         isTyping: 'está escribiendo...',
@@ -1684,5 +1679,8 @@ export default {
         loginForm: 'Formulario de inicio de sesión',
         listOfChats: 'lista de charlas',
         workspaceName: 'Nombre del espacio de trabajo',
+        chatUserDisplayNames: 'Nombres para mostrar de los usuarios de chat',
+        newMessages: 'Mensajes nuevos',
+        scrollToNewestMessages: 'Desplácese a los mensajes más recientes',
     },
 };

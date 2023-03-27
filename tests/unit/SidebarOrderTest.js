@@ -115,7 +115,7 @@ describe('Sidebar', () => {
 
                 // Then the component should be rendered with the mostly recently updated report first
                 .then(() => {
-                    const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                     const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
@@ -153,7 +153,7 @@ describe('Sidebar', () => {
                     const pencilIcon = screen.getAllByAccessibilityHint('Pencil Icon');
                     expect(pencilIcon).toHaveLength(1);
 
-                    const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                     const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two'); // this has `hasDraft` flag enabled so it will be on top
@@ -189,7 +189,7 @@ describe('Sidebar', () => {
                 // Then the order of the reports should be 1 > 3 > 2
                 //                                         ^--- (1 goes to the front and pushes other two down)
                 .then(() => {
-                    const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                     const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two');
@@ -233,7 +233,7 @@ describe('Sidebar', () => {
                 // Then the order of the reports should be 2 > 3 > 1
                 //                                         ^--- (2 goes to the front and pushes 3 down)
                 .then(() => {
-                    const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                     const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
@@ -358,7 +358,7 @@ describe('Sidebar', () => {
                 // there is a pencil icon
                 // there is a pinned icon
                 .then(() => {
-                    const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                     const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(3);
                     expect(screen.getAllByAccessibilityHint('Pin Icon')).toHaveLength(1);
@@ -402,7 +402,7 @@ describe('Sidebar', () => {
 
                 // Then the reports are in alphabetical order
                 .then(() => {
-                    const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                     const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
@@ -415,7 +415,7 @@ describe('Sidebar', () => {
 
                 // Then they are still in alphabetical order
                 .then(() => {
-                    const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                     const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(4);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
@@ -458,7 +458,7 @@ describe('Sidebar', () => {
 
                 // Then the reports are in alphabetical order
                 .then(() => {
-                    const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                     const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
@@ -471,7 +471,7 @@ describe('Sidebar', () => {
 
                 // Then they are still in alphabetical order
                 .then(() => {
-                    const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                     const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(4);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
@@ -513,7 +513,7 @@ describe('Sidebar', () => {
 
                 // Then the first report is in last position
                 .then(() => {
-                    const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                     const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
@@ -546,7 +546,7 @@ describe('Sidebar', () => {
 
                 // Then the reports are in alphabetical order
                 .then(() => {
-                    const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                     const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
@@ -559,7 +559,7 @@ describe('Sidebar', () => {
 
                 // Then they are still in alphabetical order
                 .then(() => {
-                    const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                     const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(4);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
@@ -601,7 +601,7 @@ describe('Sidebar', () => {
 
                 // Then the first report is in last position
                 .then(() => {
-                    const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                     const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
@@ -681,7 +681,7 @@ describe('Sidebar', () => {
 
                 // Then the reports are ordered alphabetically since their amounts are the same
                 .then(() => {
-                    const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                     const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
@@ -720,7 +720,7 @@ describe('Sidebar', () => {
 
                 // Then the reports are ordered alphabetically since their lastVisibleActionCreated are the same
                 .then(() => {
-                    const hintText = Localize.translateLocal('common.chatUserDisplayNames');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                     const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(3);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
