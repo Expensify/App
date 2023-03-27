@@ -184,7 +184,7 @@ class ReportActionItem extends Component {
                                 action={this.props.action}
                                 style={[
                                     (!this.props.displayAsGroup && isAttachment) ? styles.mt2 : undefined,
-                                    CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG_REGEX.test(this.props.action.actionName) ? styles.buttonSuccessDisabled : undefined,
+                                    CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG_REGEX.test(this.props.action.actionName) ? styles.colorMuted : undefined,
                                 ]}
                             />
                         ) : (
