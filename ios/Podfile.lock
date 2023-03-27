@@ -234,7 +234,7 @@ PODS:
     - RNPermissions
   - Permission-LocationWhenInUse (3.6.1):
     - RNPermissions
-  - Plaid (2.5.1)
+  - Plaid (4.1.0)
   - PromisesObjC (2.2.0)
   - RCT-Folly (2021.07.22.00):
     - boost
@@ -484,8 +484,8 @@ PODS:
     - React-Core
   - react-native-performance (4.0.0):
     - React-Core
-  - react-native-plaid-link-sdk (7.4.0):
-    - Plaid (~> 2.5.1)
+  - react-native-plaid-link-sdk (10.0.0):
+    - Plaid (~> 4.1.0)
     - React-Core
   - react-native-progress-bar-android (1.0.4):
     - React
@@ -984,7 +984,7 @@ SPEC CHECKSUMS:
   Permission-LocationAccuracy: 76df17de5c6b8bc2eee34e61ee92cdd7a864c73d
   Permission-LocationAlways: 8d99b025c9f73c696e0cdb367e42525f2e9a26f2
   Permission-LocationWhenInUse: 3ba99e45c852763f730eabecec2870c2382b7bd4
-  Plaid: 6beadc0828cfd5396c5905931b9503493bbc139a
+  Plaid: 7d340abeadb46c7aa1a91f896c5b22395a31fcf2
   PromisesObjC: 09985d6d70fbe7878040aa746d78236e6946d2ef
   RCT-Folly: 0080d0a6ebf2577475bda044aa59e2ca1f909cda
   RCTRequired: 329ead02b8edd20fb186d17745a9cadd5ce2922d
@@ -1011,7 +1011,7 @@ SPEC CHECKSUMS:
   react-native-netinfo: 1a6035d3b9780221d407c277ebfb5722ace00658
   react-native-pdf: 33c622cbdf776a649929e8b9d1ce2d313347c4fa
   react-native-performance: 224bd53e6a835fda4353302cf891d088a0af7406
-  react-native-plaid-link-sdk: 77052f329310ff5a36ddda276793f40d27c02bc4
+  react-native-plaid-link-sdk: 9eb0f71dad94b3bdde649c7a384cba93024af46c
   react-native-progress-bar-android: be43138ab7da30d51fc038bafa98e9ed594d0c40
   react-native-progress-view: 4d3bbe6a099ba027b1fedb1548c2c87f74249b70
   react-native-quick-sqlite: a7bd4139fb07194ef8534d1cc14c1aec6daa4d84

@@ -12,24 +12,26 @@ import themeColors from '../styles/themes/default';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
-    animate: PropTypes.bool,
+    shouldAnimate: PropTypes.bool,
 };
 
 const defaultProps = {
-    animate: true,
+    shouldAnimate: true,
 };
 
 const ReportHeaderSkeletonView = props => (
     <View style={[styles.appContentHeader]}>
         <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
-            <Pressable
-                onPress={() => {}}
-                style={[styles.LHNToggle]}
-            >
-                <Icon src={Expensicons.BackArrow} />
-            </Pressable>
+            {props.isSmallScreenWidth && (
+                <Pressable
+                    onPress={() => {}}
+                    style={[styles.LHNToggle]}
+                >
+                    <Icon src={Expensicons.BackArrow} />
+                </Pressable>
+            )}
             <SkeletonViewContentLoader
-                animate={props.animate}
+                animate={props.shouldAnimate}
                 width={styles.w100.width}
                 height={variables.contentHeaderHeight}
                 backgroundColor={themeColors.highlightBG}
