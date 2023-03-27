@@ -98,6 +98,15 @@ const propTypes = {
         expiresAt: PropTypes.string,
     }),
 
+    /** Stores user's preferred skin tone */
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+
+    /** User's frequently used emojis */
+    frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
+        code: PropTypes.string.isRequired,
+        keywords: PropTypes.arrayOf(PropTypes.string),
+    })),
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -112,6 +121,8 @@ const defaultProps = {
     reportActions: [],
     blockedFromConcierge: {},
     personalDetails: {},
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
+    frequentlyUsedEmojis: [],
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -200,7 +211,7 @@ class ReportActionCompose extends React.Component {
                 return;
             }
 
-            this.updateComment('');
+            this.updateComment('', true);
         }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
 
         this.setMaxLines();
@@ -649,11 +660,6 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
-        // Waiting until ONYX variables are loaded before displaying the component
-        if (_.isEmpty(this.props.personalDetails)) {
-            return null;
-        }
-
         const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
         const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
         const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyEmails[0]];

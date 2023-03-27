@@ -93,6 +93,7 @@ class OptionRow extends Component {
         return this.state.isDisabled !== nextState.isDisabled
             || this.props.isDisabled !== nextProps.isDisabled
             || this.props.isSelected !== nextProps.isSelected
+            || this.props.shouldHaveOptionSeparator !== nextProps.shouldHaveOptionSeparator
             || this.props.showSelectedState !== nextProps.showSelectedState
             || this.props.showTitleTooltip !== nextProps.showTitleTooltip
             || !_.isEqual(this.props.option.icons, nextProps.option.icons)
@@ -100,7 +101,11 @@ class OptionRow extends Component {
             || this.props.option.text !== nextProps.option.text
             || this.props.option.alternateText !== nextProps.option.alternateText
             || this.props.option.descriptiveText !== nextProps.option.descriptiveText
-            || this.props.option.brickRoadIndicator !== nextProps.option.brickRoadIndicator;
+            || this.props.option.brickRoadIndicator !== nextProps.option.brickRoadIndicator
+            || this.props.option.shouldShowSubscript !== nextProps.option.shouldShowSubscript
+            || this.props.option.ownerEmail !== nextProps.option.ownerEmail
+            || this.props.option.subtitle !== nextProps.option.subtitle
+            || this.props.option.pendingAction !== nextProps.option.pendingAction;
     }
 
     componentDidUpdate(prevProps) {

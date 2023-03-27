@@ -17,7 +17,7 @@ const propTypes = {
     /** Session of currently logged in user */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
-    }).isRequired,
+    }),
 
     ...withLocalizePropTypes,
 };
@@ -29,6 +29,9 @@ const defaultProps = {
         total: 0,
         ownerEmail: null,
         currency: CONST.CURRENCY.USD,
+    },
+    session: {
+        email: null,
     },
 };
 
