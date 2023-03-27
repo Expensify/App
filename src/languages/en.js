@@ -1217,5 +1217,6 @@ export default {
         lastChatMessagePreview: 'Last chat message preview',
         loginForm: 'Login form',
         listOfChats: 'List of chats',
+        workspaceName: 'Workspace name',
     },
 };

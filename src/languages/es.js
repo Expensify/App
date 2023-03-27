@@ -1683,5 +1683,6 @@ export default {
         lastChatMessagePreview: 'Vista previa del último mensaje de chat',
         loginForm: 'Formulario de inicio de sesión',
         listOfChats: 'lista de charlas',
+        workspaceName: 'Nombre del espacio de trabajo',
     },
 };

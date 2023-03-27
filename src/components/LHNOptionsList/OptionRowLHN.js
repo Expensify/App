@@ -179,7 +179,7 @@ const OptionRowLHN = (props) => {
                                         {optionItem.isChatRoom && (
                                             <TextPill
                                                 style={textPillStyle}
-                                                accessibilityLabel="Workspace name"
+                                                accessibilityLabel={props.translate('accessibilityHints.workspaceName')}
                                                 text={optionItem.subtitle}
                                             />
                                         )}
