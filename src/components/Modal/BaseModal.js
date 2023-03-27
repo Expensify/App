@@ -66,6 +66,7 @@ class BaseModal extends PureComponent {
         if (callHideCallback) {
             this.props.onModalHide();
         }
+        Modal.onModalDidClose();
     }
 
     render() {
