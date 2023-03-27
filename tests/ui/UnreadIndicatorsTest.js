@@ -24,6 +24,7 @@ import * as User from '../../src/libs/actions/User';
 import * as Pusher from '../../src/libs/Pusher/pusher';
 import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
 import CONFIG from '../../src/CONFIG';
+import * as Localize from '../../src/libs/Localize';
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(30000);
@@ -74,7 +75,8 @@ function scrollUpToRevealNewMessagesBadge() {
  * @return {Boolean}
  */
 function isNewMessagesBadgeVisible() {
-    const badge = screen.queryByAccessibilityHint('Scroll to newest messages');
+    const text = Localize.translateLocal('floatingMessageCounter.scrollToNewestMessages');
+    const badge = screen.queryByAccessibilityHint(text);
     return Math.round(badge.props.style.transform[0].translateY) === 10;
 }
 
@@ -82,7 +84,8 @@ function isNewMessagesBadgeVisible() {
  * @return {Promise}
  */
 function navigateToSidebar() {
-    const reportHeaderBackButton = screen.queryByAccessibilityHint('Navigate back to chats list');
+    const text = Localize.translateLocal('navigateToChatsList');
+    const reportHeaderBackButton = screen.queryByAccessibilityHint(text);
     fireEvent(reportHeaderBackButton, 'press');
     return waitForPromisesToResolve();
 }

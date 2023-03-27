@@ -251,7 +251,10 @@ export default {
         sayHello: '¡Saluda!',
         usePlusButton: '\n\n¡También puedes usar el botón + de abajo para enviar o pedir dinero!',
     },
-    newMessages: 'Mensajes nuevos',
+    floatingMessageCounter: {
+        newMessages: 'Mensajes nuevos',
+        scrollToNewestMessages: 'Desplácese a los mensajes más recientes',
+    },
     reportTypingIndicator: {
         isTyping: 'está escribiendo...',
         areTyping: 'están escribiendo...',
@@ -1669,4 +1672,5 @@ export default {
         ZM: 'Zambia',
         ZW: 'Zimbabue',
     },
+    navigateToChatsList: 'Navegar de regreso a la lista de chats',
 };

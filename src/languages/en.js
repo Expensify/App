@@ -252,7 +252,10 @@ export default {
         sayHello: 'Say hello!',
         usePlusButton: '\n\nYou can also use the + button below to send or request money!',
     },
-    newMessages: 'New messages',
+    floatingMessageCounter: {
+        newMessages: 'New messages',
+        scrollToNewestMessages: 'Scroll to newest messages',
+    },
     reportTypingIndicator: {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
@@ -1203,4 +1206,5 @@ export default {
     },
     allStates: COMMON_CONST.STATES,
     allCountries: CONST.ALL_COUNTRIES,
+    navigateToChatsList: 'Navigate back to chats list',
 };
