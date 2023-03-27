@@ -546,9 +546,6 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
                         customUnitID: currentCustomUnit.customUnitID,
                         name: currentCustomUnit.name,
                         attributes: currentCustomUnit.attributes,
-                        errors: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.reimburse.updateCustomUnitError'),
-                        },
                     },
                 },
             },
