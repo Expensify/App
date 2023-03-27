@@ -650,7 +650,6 @@ export default {
             dateShouldBeBefore: ({dateString}) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,
             hasInvalidCharacter: 'Name can only include letters and numbers.',
-            incorrectZipFormat: ({zipFormat}) => `Incorrect zip code format. Acceptable format: ${zipFormat}`,
             incorrectZipFormat: ({zipFormat}) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },

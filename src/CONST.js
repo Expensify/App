@@ -1376,6 +1376,9 @@ const CONST = {
             zipRegex: /^AD[1-7]0\d$/,
             zipFormat: 'AD206, AD403, AD106, AD406',
         },
+
+        // We have kept the empty object for the countries which do not have any zip code validation
+        // to ensure consistency so that the amount of countries displayed and in this object are same
         AE: {},
         AF: {
             zipRegex: /^\d{4}$/,

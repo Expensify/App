@@ -127,7 +127,7 @@ export default {
         yesContinue: 'Sí, Continuar',
         zipCodeExample: 'p. ej. 12345, 12345-1234, 12345 1234',
         websiteExample: 'p. ej. https://www.expensify.com',
-        format: 'Formato:',
+        format: ({zipSampleFormat}) => (zipSampleFormat ? `Formato: ${zipSampleFormat}` : ''),
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
@@ -648,9 +648,8 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `La fecha debe ser posterior a ${dateString}.`,
-            hasInvalidCharacter: 'El nombre solo puede contener letras y números.',
-            incorrectZipFormat: ({zipFormat}) => `Formato de código postal incorrecto. Formato aceptable: ${zipFormat}`,
             incorrectZipFormat: ({zipFormat}) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
+            hasInvalidCharacter: 'El nombre solo puede contener letras y números.',
         },
     },
     resendValidationForm: {
