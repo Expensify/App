@@ -19,7 +19,7 @@ const CONST = {
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
-        ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml', 'mp3', 'mp4', 'mov'],
+        ALLOWED_EXTENSIONS: ['webp', 'jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml', 'mp3', 'mp4', 'mov'],
 
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
         MAX_SIZE: 25165824,
@@ -605,6 +605,10 @@ const CONST = {
     EMOJI_PICKER_SIZE: {
         WIDTH: 320,
         HEIGHT: 416,
+    },
+    CATEGORY_SHORTCUT_BAR_HEIGHT: 40,
+    SMALL_EMOJI_PICKER_SIZE: {
+        WIDTH: '100%',
     },
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 256,
     EMOJI_PICKER_ITEM_HEIGHT: 32,
