@@ -230,7 +230,8 @@ describe('Unread Indicators', () => {
             const welcomeMessageHintText = Localize.translateLocal('accessibilityHints.chatWelcomeMessage');
             const createdAction = screen.queryByLabelText(welcomeMessageHintText);
             expect(createdAction).toBeTruthy();
-            const reportComments = screen.queryAllByLabelText('Chat message');
+            const reportCommentsHintText = Localize.translateLocal('accessibilityHints.chatMessage');
+            const reportComments = screen.queryAllByLabelText(reportCommentsHintText);
             expect(reportComments).toHaveLength(9);
 
             // Since the last read timestamp is the timestamp of action 3 we should have an unread indicator above the next "unread" action which will
@@ -537,7 +538,8 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // Verify the chat preview text matches the last comment from the current user
-                const alternateText = screen.queryAllByLabelText('Last chat message preview');
+                const hintText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
+                const alternateText = screen.queryAllByLabelText(hintText);
                 expect(alternateText).toHaveLength(1);
                 expect(alternateText[0].props.children).toBe('Current User Comment 1');
 
@@ -545,7 +547,8 @@ describe('Unread Indicators', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                const alternateText = screen.queryAllByLabelText('Last chat message preview');
+                const hintText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
+                const alternateText = screen.queryAllByLabelText(hintText);
                 expect(alternateText).toHaveLength(1);
                 expect(alternateText[0].props.children).toBe('Comment 9');
             });

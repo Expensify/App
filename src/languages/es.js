@@ -1679,5 +1679,7 @@ export default {
         chatWelcomeMessage: 'Mensaje de bienvenida al chat',
         navigatesToChat: 'Navega a un chat',
         newMessageLineIndicator: 'Indicador de nueva línea de mensaje',
+        chatMessage: 'mensaje de chat',
+        lastChatMessagePreview: 'Vista previa del último mensaje de chat',
     },
 };

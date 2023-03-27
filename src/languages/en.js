@@ -1213,5 +1213,7 @@ export default {
         chatWelcomeMessage: 'Chat welcome message',
         navigatesToChat: 'Navigates to a chat',
         newMessageLineIndicator: 'New message line indicator',
+        chatMessage: 'Chat message',
+        lastChatMessagePreview: 'Last chat message preview',
     },
 };

@@ -188,7 +188,7 @@ const OptionRowLHN = (props) => {
                                         <Text
                                             style={alternateTextStyle}
                                             numberOfLines={1}
-                                            accessibilityLabel="Last chat message preview"
+                                            accessibilityLabel={props.translate('accessibilityHints.lastChatMessagePreview')}
                                         >
                                             {optionItem.alternateText}
                                         </Text>
