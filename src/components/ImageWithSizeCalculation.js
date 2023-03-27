@@ -1,6 +1,5 @@
-import React, {PureComponent} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import Log from '../libs/Log';
 import styles from '../styles/styles';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
@@ -25,7 +24,7 @@ const ImageWithSizeCalculation = (
             style={[
                 styles.w100,
                 styles.h100,
-                this.props.style,
+                ...this.props.style,
             ]}
         >
             <Image
@@ -37,7 +36,7 @@ const ImageWithSizeCalculation = (
                 isAuthTokenRequired={isAuthTokenRequired}
                 resizeMode={Image.resizeMode.contain}
                 onLoadStart={() => setIsLoading(true)}
-                onLoadEnd={() => setIsLoading(true)}
+                onLoadEnd={() => setIsLoading(false)}
                 onError={() => Log.hmmm('Unable to fetch image to calculate size', {url})}
                 onLoad={(event) => {
                     onMeasure({
