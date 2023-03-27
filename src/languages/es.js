@@ -143,7 +143,7 @@ export default {
         notAllowedExtension: 'Los archivos adjuntos deben ser de uno de los siguientes tipos: ',
     },
     avatarCropModal: {
-        title: 'Editar Foto',
+        title: 'Editar foto',
         description: 'Arrastra, haz zoom y rota tu imagen para que quede como te gusta.',
     },
     composer: {
