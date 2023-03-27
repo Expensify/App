@@ -18,9 +18,11 @@ jobs:
         chunk: [ 1, 2, 3 ]
     name: test (job ${{ fromJSON(matrix.chunk) }})
     steps:
-      - uses: actions/checkout@885641592076c27bfb56c028cd5612cdad63e16d
+      - name: Checkout
+        uses: actions/checkout@885641592076c27bfb56c028cd5612cdad63e16d
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Get number of CPU cores
         id: cpu-cores
@@ -51,9 +53,11 @@ jobs:
     runs-on: ubuntu-latest
     name: Shell tests
     steps:
-      - uses: actions/checkout@885641592076c27bfb56c028cd5612cdad63e16d
+      - name: Checkout
+        uses: actions/checkout@885641592076c27bfb56c028cd5612cdad63e16d
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: getPullRequestsMergedBetween
         run: tests/unit/getPullRequestsMergedBetweenTest.sh
