@@ -229,9 +229,6 @@ class ReportActionItem extends Component {
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOSOOOLIST) {
             return <ChronosOOOListActions action={this.props.action} reportID={this.props.report.reportID} />;
         }
-        if (CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG_REGEX.test(this.props.action.actionName)) {
-            return <PolicyChangeLogActionItem action={this.props.action} />;
-        }
         return (
             <PressableWithSecondaryInteraction
                 pointerEvents={this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? 'none' : 'auto'}
