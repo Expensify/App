@@ -275,7 +275,10 @@ function getOptionData(reportID) {
     }
 
     if (result.isChatRoom || result.isPolicyExpenseChat) {
-        result.alternateText = lastMessageText || subtitle;
+        // Checks to see if the current user is the admin of the policy if in a policy expense chat,
+        // if so the policy name preview will be shown.
+        const isPolicyChatAdmin = result.isPolicyExpenseChat && ReportUtils.isPolicyExpenseChatAdmin(report, policies);
+        result.alternateText = isPolicyChatAdmin ? subtitle : lastMessageText || subtitle;
     } else {
         if (hasMultipleParticipants && !lastMessageText) {
             // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
