@@ -63,7 +63,8 @@ describe('Sidebar', () => {
                 // Then the component should be rendered with an empty list since it will get past the early return
                 .then(() => {
                     expect(screen.toJSON()).not.toBe(null);
-                    expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(0);
+                    const navigatesToChatHintText = Localize.translateLocal('navigatesToChat');
+                    expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(0);
                 });
         });
 

@@ -96,7 +96,8 @@ function navigateToSidebar() {
  * @return {Promise}
  */
 function navigateToSidebarOption(index) {
-    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+    const text = Localize.translateLocal('navigatesToChat');
+    const optionRows = screen.queryAllByAccessibilityHint(text);
     fireEvent(optionRows[index], 'press');
     return waitForPromisesToResolve();
 }
@@ -210,12 +211,13 @@ describe('Unread Indicators', () => {
             expect(isDrawerOpen()).toBe(true);
 
             // Verify there is only one option in the sidebar
-            const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+            const optionRowsHintText = Localize.translateLocal('navigatesToChat');
+            const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
             expect(optionRows).toHaveLength(1);
 
             // And that the text is bold
-            const text = Localize.translateLocal('common.chatUserDisplayNames');
-            const displayNameText = screen.queryByLabelText(text);
+            const displayNameHintText = Localize.translateLocal('common.chatUserDisplayNames');
+            const displayNameText = screen.queryByLabelText(displayNameHintText);
             expect(lodashGet(displayNameText, ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
 
             return navigateToSidebarOption(0);
@@ -341,12 +343,13 @@ describe('Unread Indicators', () => {
         })
         .then(() => {
             // // Verify the new report option appears in the LHN
-            const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+            const optionRowsHintText = Localize.translateLocal('navigatesToChat');
+            const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
             expect(optionRows).toHaveLength(2);
 
             // Verify the text for both chats are bold indicating that nothing has not yet been read
-            const text = Localize.translateLocal('common.chatUserDisplayNames');
-            const displayNameTexts = screen.queryAllByLabelText(text);
+            const displayNameHintTexts = Localize.translateLocal('common.chatUserDisplayNames');
+            const displayNameTexts = screen.queryAllByLabelText(displayNameHintTexts);
             expect(displayNameTexts).toHaveLength(2);
             const firstReportOption = displayNameTexts[0];
             expect(lodashGet(firstReportOption, ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);

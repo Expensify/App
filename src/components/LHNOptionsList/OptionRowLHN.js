@@ -127,7 +127,7 @@ const OptionRowLHN = (props) => {
                             hovered && !props.isFocused ? props.hoverStyle : null,
                         ]}
                     >
-                        <View accessibilityHint="Navigates to a chat" style={sidebarInnerRowStyle}>
+                        <View accessibilityHint={props.translate('navigatesToChat')} style={sidebarInnerRowStyle}>
                             <View
                                 style={[
                                     styles.flexRow,

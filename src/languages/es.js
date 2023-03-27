@@ -1676,4 +1676,5 @@ export default {
     navigateToChatsList: 'Navegar de regreso a la lista de chats',
     listOfChatMessages: 'Lista de mensajes de chat',
     chatWelcomeMessage: 'Mensaje de bienvenida al chat',
+    navigatesToChat: 'Navega a un chat',
 };

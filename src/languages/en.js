@@ -1210,4 +1210,5 @@ export default {
     navigateToChatsList: 'Navigate back to chats list',
     listOfChatMessages: 'List of chat messages',
     chatWelcomeMessage: 'Chat welcome message',
+    navigatesToChat: 'Navigates to a chat',
 };
