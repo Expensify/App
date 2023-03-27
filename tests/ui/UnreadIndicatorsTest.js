@@ -227,15 +227,16 @@ describe('Unread Indicators', () => {
             expect(isDrawerOpen()).toBe(false);
 
             // That the report actions are visible along with the created action
-            const hintText = Localize.translateLocal('accessibilityHints.chatWelcomeMessage');
-            const createdAction = screen.queryByLabelText(hintText);
+            const welcomeMessageHintText = Localize.translateLocal('accessibilityHints.chatWelcomeMessage');
+            const createdAction = screen.queryByLabelText(welcomeMessageHintText);
             expect(createdAction).toBeTruthy();
             const reportComments = screen.queryAllByLabelText('Chat message');
             expect(reportComments).toHaveLength(9);
 
             // Since the last read timestamp is the timestamp of action 3 we should have an unread indicator above the next "unread" action which will
             // have actionID of 4
-            const unreadIndicator = screen.queryAllByLabelText('New message line indicator');
+            const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+            const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
             expect(unreadIndicator).toHaveLength(1);
             const reportActionID = lodashGet(unreadIndicator, [0, 'props', 'data-action-id']);
             expect(reportActionID).toBe('4');
@@ -269,7 +270,8 @@ describe('Unread Indicators', () => {
         })
         .then(() => {
             // Verify the unread indicator is not present
-            const unreadIndicator = screen.queryAllByLabelText('New message line indicator');
+            const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+            const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
             expect(unreadIndicator).toHaveLength(0);
             expect(isDrawerOpen()).toBe(false);
 
@@ -385,7 +387,8 @@ describe('Unread Indicators', () => {
         })
         .then(() => {
             // Verify the indicator appears above the last action
-            const unreadIndicator = screen.queryAllByLabelText('New message line indicator');
+            const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+            const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
             expect(unreadIndicator).toHaveLength(1);
             const reportActionID = lodashGet(unreadIndicator, [0, 'props', 'data-action-id']);
             expect(reportActionID).toBe('3');
@@ -421,7 +424,8 @@ describe('Unread Indicators', () => {
             return navigateToSidebarOption(0);
         })
         .then(() => {
-            const unreadIndicator = screen.queryAllByLabelText('New message line indicator');
+            const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+            const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
             expect(unreadIndicator).toHaveLength(0);
 
             // Scroll up and verify the "New messages" badge is hidden
@@ -444,7 +448,8 @@ describe('Unread Indicators', () => {
             return navigateToSidebarOption(0);
         })
         .then(() => {
-            const unreadIndicator = screen.queryAllByLabelText('New message line indicator');
+            const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+            const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
             expect(unreadIndicator).toHaveLength(1);
 
             // Leave a comment as the current user and verify the indicator is removed
@@ -452,7 +457,8 @@ describe('Unread Indicators', () => {
             return waitForPromisesToResolve();
         })
         .then(() => {
-            const unreadIndicator = screen.queryAllByLabelText('New message line indicator');
+            const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+            const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
             expect(unreadIndicator).toHaveLength(0);
         }));
 
@@ -471,7 +477,8 @@ describe('Unread Indicators', () => {
             return navigateToSidebarOption(0);
         })
         .then(() => {
-            const unreadIndicator = screen.queryAllByLabelText('New message line indicator');
+            const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+            const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
             expect(unreadIndicator).toHaveLength(1);
 
             // Then back to the LHN - then back to the chat again and verify the new line indicator has cleared
@@ -479,7 +486,8 @@ describe('Unread Indicators', () => {
         })
         .then(() => navigateToSidebarOption(0))
         .then(() => {
-            const unreadIndicator = screen.queryAllByLabelText('New message line indicator');
+            const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+            const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
             expect(unreadIndicator).toHaveLength(0);
 
             // Mark a previous comment as unread and verify the unread action indicator returns
@@ -487,7 +495,8 @@ describe('Unread Indicators', () => {
             return waitForPromisesToResolve();
         })
         .then(() => {
-            let unreadIndicator = screen.queryAllByLabelText('New message line indicator');
+            const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+            let unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
             expect(unreadIndicator).toHaveLength(1);
 
             // Trigger the app going inactive and active again
@@ -495,7 +504,7 @@ describe('Unread Indicators', () => {
             AppState.emitCurrentTestState('active');
 
             // Verify the new line is still present
-            unreadIndicator = screen.queryAllByLabelText('New message line indicator');
+            unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
             expect(unreadIndicator).toHaveLength(1);
         }));
 
