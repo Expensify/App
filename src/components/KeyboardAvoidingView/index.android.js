@@ -14,7 +14,7 @@ const defaultProps = {
 const KeyboardAvoidingView = (props) => {
     if (props.shouldApplyToAndroid) {
         return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
+            // eslint-disable-next-line react/jsx-props-no-spreading
             <KeyboardAvoidingViewComponent {...props} />
         );
     }
