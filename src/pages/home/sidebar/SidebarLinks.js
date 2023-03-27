@@ -31,6 +31,7 @@ import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import LHNSkeletonView from '../../../components/LHNSkeletonView';
+import withNavigationFocus from '../../../components/withNavigationFocus';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -132,14 +133,14 @@ class SidebarLinks extends React.Component {
 
     render() {
         const isLoading = _.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.chatReports);
-        const shouldFreeze = this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded;
+        const shouldFreeze = this.props.isSmallScreenWidth && !this.props.isFocused && this.isSidebarLoaded;
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
 
         const skeletonPlaceholder = <LHNSkeletonView shouldAnimate={!shouldFreeze} />;
 
         return (
             <View
-                accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
+                accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isFocused}
                 accessibilityLabel={this.props.translate('sidebarScreen.listOfChats')}
                 style={[styles.flex1, styles.h100]}
             >
@@ -285,6 +286,7 @@ const policySelector = policy => policy && ({
 export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,
+    withNavigationFocus,
     withWindowDimensions,
     withOnyx({
         // Note: It is very important that the keys subscribed to here are the same

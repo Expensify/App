@@ -20,7 +20,6 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import withNavigation from '../../../../components/withNavigation';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import withNavigationFocus from '../../../../components/withNavigationFocus';
-import withDrawerState from '../../../../components/withDrawerState';
 
 /**
  * @param {Object} [policy]
@@ -98,11 +97,6 @@ class FloatingActionButtonAndPopover extends React.Component {
      * @return {Boolean}
      */
     didScreenBecomeInactive(prevProps) {
-        // When the Drawer gets closed and ReportScreen is shown
-        if (!this.props.isDrawerOpen && prevProps.isDrawerOpen) {
-            return true;
-        }
-
         // When any other page is opened over LHN
         if (!this.props.isFocused && prevProps.isFocused) {
             return true;
@@ -118,11 +112,6 @@ class FloatingActionButtonAndPopover extends React.Component {
      * @return {Boolean}
      */
     isScreenInactive() {
-        // When drawer is closed and Report page is open
-        if (this.props.isSmallScreenWidth && !this.props.isDrawerOpen) {
-            return true;
-        }
-
         // When any other page is open
         if (!this.props.isFocused) {
             return true;
@@ -241,7 +230,6 @@ export default compose(
     withLocalize,
     withNavigation,
     withNavigationFocus,
-    withDrawerState,
     withWindowDimensions,
     withOnyx({
         allPolicies: {

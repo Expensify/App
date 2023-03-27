@@ -25,7 +25,6 @@ import compose from '../../libs/compose';
 import networkPropTypes from '../../components/networkPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import withDrawerState, {withDrawerPropTypes} from '../../components/withDrawerState';
 import ReportFooter from './report/ReportFooter';
 import Banner from '../../components/Banner';
 import withLocalize from '../../components/withLocalize';
@@ -35,6 +34,7 @@ import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView'
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import personalDetailsPropType from '../personalDetailsPropType';
+import withNavigationFocus from '../../components/withNavigationFocus';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -80,7 +80,6 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     ...windowDimensionsPropTypes,
-    ...withDrawerPropTypes,
     ...viewportOffsetTopPropTypes,
 };
 
@@ -216,8 +215,7 @@ class ReportScreen extends React.Component {
             || (ReportUtils.isUserCreatedPolicyRoom(this.props.report) && !Permissions.canUsePolicyRooms(this.props.betas));
 
         // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
-        const shouldFreeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
-
+        const shouldFreeze = this.props.isSmallScreenWidth && !this.props.isFocused;
         const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails);
 
         // the moment the ReportScreen becomes unfrozen we want to start the animation of the placeholder skeleton content
@@ -297,7 +295,6 @@ class ReportScreen extends React.Component {
                                         reportActions={this.props.reportActions}
                                         report={this.props.report}
                                         isComposerFullSize={this.props.isComposerFullSize}
-                                        isDrawerOpen={this.props.isDrawerOpen}
                                         parentViewHeight={this.state.skeletonViewContainerHeight}
                                     />
                                     <ReportFooter
@@ -336,7 +333,7 @@ export default compose(
     withViewportOffsetTop,
     withLocalize,
     withWindowDimensions,
-    withDrawerState,
+    withNavigationFocus,
     withNetwork(),
     withOnyx({
         isSidebarLoaded: {

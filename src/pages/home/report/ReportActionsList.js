@@ -3,7 +3,6 @@ import React from 'react';
 import {Animated} from 'react-native';
 import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
-import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import compose from '../../../libs/compose';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
@@ -53,7 +52,6 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
-    ...withDrawerPropTypes,
     ...windowDimensionsPropTypes,
 };
 
@@ -146,7 +144,6 @@ class ReportActionsList extends React.Component {
     render() {
         // Native mobile does not render updates flatlist the changes even though component did update called.
         // To notify there something changes we can use extraData prop to flatlist
-        const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.newMarkerReportActionID : undefined;
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
         return (
             <Animated.View style={[StyleUtils.fade(this.state.fadeInAnimation), styles.flex1]}>
@@ -196,7 +193,7 @@ class ReportActionsList extends React.Component {
                         this.props.onLayout(event);
                     }}
                     onScroll={this.props.onScroll}
-                    extraData={extraData}
+                    extraData={this.props.newMarkerReportActionID}
                 />
             </Animated.View>
         );
@@ -207,7 +204,6 @@ ReportActionsList.propTypes = propTypes;
 ReportActionsList.defaultProps = defaultProps;
 
 export default compose(
-    withDrawerState,
     withWindowDimensions,
     withLocalize,
     withPersonalDetails(),
