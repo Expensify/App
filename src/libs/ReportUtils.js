@@ -472,7 +472,7 @@ function getLastMessageText(report) {
     }
     return isReportMessageAttachment({text: lastReportActionText, html: lastReportActionHtml})
         ? `[${Localize.translateLocal('common.attachment')}]`
-        : Str.htmlDecode(lastReportActionText);
+        : lastReportActionText;
 }
 
 /**
