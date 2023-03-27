@@ -88,7 +88,6 @@ class EmojiPickerMenu extends Component {
 
         this.currentScrollOffset = 0;
         this.firstNonHeaderIndex = 0;
-        this.isShiftKeyPressed = false;
 
         this.state = {
             filteredEmojis: this.emojis,
@@ -167,24 +166,9 @@ class EmojiPickerMenu extends Component {
                 return;
             }
 
-            // Handles the logic regarding tab focus logic when passing from the
-            // emoji list to the header list
-            if (keyBoardEvent.key === 'Tab' && this.isShiftKeyPressed) {
-                if (this.state.highlightedIndex <= this.firstNonHeaderIndex) {
-                    this.setState({highlightedIndex: -1});
-                }
-                return;
-            }
-
-            // Saves the shift key press state so that it can be used to handle the
-            // tab focus logic
-            if (keyBoardEvent.key === 'Shift') {
-                this.isShiftKeyPressed = true;
-            }
-
-            // Save the key and return so that the default behaviour can be executed
+            // Return if the key is related to any tab cycling event so that the default logic
+            // can be executed.
             if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Shift' || keyBoardEvent.key === 'Enter') {
-                this.previousKey = keyBoardEvent.key;
                 return;
             }
 
@@ -198,17 +182,9 @@ class EmojiPickerMenu extends Component {
             }
         };
 
-        this.keyUpHandler = (keyBoardEvent) => {
-            if (keyBoardEvent.key !== 'Shift') {
-                return;
-            }
-            this.isShiftKeyPressed = false;
-        };
-
         // Keyboard events are not bubbling on TextInput in RN-Web, Bubbling was needed for this event to trigger
         // event handler attached to document root. To fix this, trigger event handler in Capture phase.
         document.addEventListener('keydown', this.keyDownHandler, true);
-        document.addEventListener('keyup', this.keyUpHandler, true);
 
         // Re-enable pointer events and hovering over EmojiPickerItems when the mouse moves
         this.mouseMoveHandler = () => {
@@ -243,7 +219,6 @@ class EmojiPickerMenu extends Component {
             return;
         }
 
-        document.removeEventListener('keyup', this.keyUpHandler, true);
         document.removeEventListener('keydown', this.keyDownHandler, true);
         document.removeEventListener('mousemove', this.mouseMoveHandler);
     }
@@ -496,6 +471,11 @@ class EmojiPickerMenu extends Component {
                 }}
                 emoji={emojiCode}
                 onFocus={() => this.setState({highlightedIndex: index})}
+                onBlur={() => this.setState(prevState => ({
+                    // Only clear the highlighted index if the highlighted index is the same,
+                    // meaning that the focus changed to a element that is not an emoji item.
+                    highlightedIndex: prevState.highlightedIndex === index ? -1 : prevState.highlightedIndex,
+                }))}
                 isFocused={isEmojiFocused}
                 isHighlighted={index === this.state.highlightedIndex}
                 isUsingKeyboardMovement={this.state.isUsingKeyboardMovement}

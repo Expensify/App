@@ -22,6 +22,9 @@ const propTypes = {
     /** Handles what to do when the pressable is focused */
     onFocus: PropTypes.func,
 
+    /** Handles what to do when the pressable is blurred */
+    onBlur: PropTypes.func,
+
     /** Whether this menu item is currently highlighted or not */
     isHighlighted: PropTypes.bool,
 
@@ -63,6 +66,7 @@ class EmojiPickerMenuItem extends PureComponent {
                 onHoverIn={this.props.onHoverIn}
                 onHoverOut={this.props.onHoverOut}
                 onFocus={this.props.onFocus}
+                onBlur={this.props.onBlur}
                 ref={ref => this.ref = ref}
                 style={({
                     pressed,
@@ -89,6 +93,7 @@ EmojiPickerMenuItem.defaultProps = {
     onHoverIn: () => {},
     onHoverOut: () => {},
     onFocus: () => {},
+    onBlur: () => {},
 };
 
 // Significantly speeds up re-renders of the EmojiPickerMenu's FlatList
