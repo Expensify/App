@@ -1,7 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
-import {View, ScrollView, TouchableOpacity} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Navigation from '../../../../libs/Navigation/Navigation';
@@ -26,7 +26,7 @@ import Button from '../../../../components/Button';
 import * as ErrorUtils from '../../../../libs/ErrorUtils';
 import themeColors from '../../../../styles/themes/default';
 import NotFoundPage from '../../../ErrorPage/NotFoundPage';
-import * as ValidationUtils from '../../../../libs/ValidationUtils'
+import * as ValidationUtils from '../../../../libs/ValidationUtils';
 
 const propTypes = {
     /* Onyx Props */
