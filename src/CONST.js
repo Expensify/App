@@ -337,7 +337,9 @@ const CONST = {
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
-                POLICYCHANGELOG: 'POLICYCHANGELOG_',
+                POLICYCHANGELOG: {
+                    POLICYCHANGELOG_UPDATE_FIELD: 'POLICYCHANGELOG_UPDATE_FIELD',
+                },
             },
         },
         ARCHIVE_REASON: {
