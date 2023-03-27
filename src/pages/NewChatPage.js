@@ -50,41 +50,25 @@ const NewChatPage = ({
     personalDetails = {},
     reports = {},
 }) => {
-    return (
-        
-    )
-}
+    this.excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
+    const {
+        initialRecentReports,
+        initialPersonalDetails,
+        initialUserToInvite,
+    } = OptionsListUtils.getNewChatOptions(
+        reports,
+        personalDetails,
+        betas,
+        '',
+        [],
+        isGroupChat ? this.excludedGroupEmails : [],
+    );
 
-class NewChatPage extends Component {
-    constructor(props) {
-        super(props);
-
-        this.toggleOption = this.toggleOption.bind(this);
-        this.createChat = this.createChat.bind(this);
-        this.createGroup = this.createGroup.bind(this);
-        this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
-        this.excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
-
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = OptionsListUtils.getNewChatOptions(
-            props.reports,
-            props.personalDetails,
-            props.betas,
-            '',
-            [],
-            this.props.isGroupChat ? this.excludedGroupEmails : [],
-        );
-        this.state = {
-            searchTerm: '',
-            recentReports,
-            personalDetails,
-            selectedOptions: [],
-            userToInvite,
-        };
-    }
+    const [searchTerm, setSearchTerm] = useState('');
+    const [recentReports, setRecentReports] = useState(initialRecentReports);
+    const [personalDetails, setPersonalDetails] = useState(initialPersonalDetails);
+    const [selectedOptions, setSelectedOptions] = useState([]);
+    const [userToInvite, setUserToInvite] = useState(initialUserToInvite);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -92,11 +76,11 @@ class NewChatPage extends Component {
      * @param {Boolean} maxParticipantsReached
      * @returns {Array}
      */
-    getSections(maxParticipantsReached) {
+    function getSections(maxParticipantsReached) {
         const sections = [];
         let indexOffset = 0;
 
-        if (this.props.isGroupChat) {
+        if (isGroupChat) {
             sections.push({
                 title: undefined,
                 data: this.state.selectedOptions,
@@ -144,18 +128,18 @@ class NewChatPage extends Component {
         return sections;
     }
 
-    updateOptionsWithSearchTerm(searchTerm = '') {
+    function updateOptionsWithSearchTerm(searchTerm = '') {
         const {
             recentReports,
             personalDetails,
             userToInvite,
         } = OptionsListUtils.getNewChatOptions(
-            this.props.reports,
-            this.props.personalDetails,
-            this.props.betas,
+            reports,
+            personalDetails,
+            betas,
             searchTerm,
             [],
-            this.props.isGroupChat ? this.excludedGroupEmails : [],
+            isGroupChat ? this.excludedGroupEmails : [],
         );
         this.setState({
             searchTerm,
@@ -163,13 +147,18 @@ class NewChatPage extends Component {
             recentReports,
             personalDetails,
         });
+
+        setSearchTerm(searchTerm);
+        setRecentReports(recentReports);
+        setPersonalDetails(personalDetails);
+        setUserToInvite(userToInvite);
     }
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      * @param {Object} option
      */
-    toggleOption(option) {
+    function toggleOption(option) {
         this.setState((prevState) => {
             const isOptionInList = _.some(prevState.selectedOptions, selectedOption => (
                 selectedOption.login === option.login
@@ -214,7 +203,7 @@ class NewChatPage extends Component {
      *
      * @param {Object} option
      */
-    createChat(option) {
+    function createChat(option) {
         Report.navigateToAndOpenReport([option.login]);
     }
 
@@ -222,17 +211,55 @@ class NewChatPage extends Component {
      * Creates a new group chat with all the selected options and the current user,
      * or navigates to the existing chat if one with those participants already exists.
      */
-    createGroup() {
-        if (!this.props.isGroupChat) {
+    function createGroup() {
+        if (isGroupChat) {
             return;
         }
 
-        const userLogins = _.pluck(this.state.selectedOptions, 'login');
+        const userLogins = _.pluck(selectedOptions, 'login');
         if (userLogins.length < 1) {
             return;
         }
         Report.navigateToAndOpenReport(userLogins);
     }
+
+    return (
+        
+    )
+};
+
+class NewChatPage extends Component {
+    constructor(props) {
+        super(props);
+
+        this.toggleOption = this.toggleOption.bind(this);
+        this.createChat = this.createChat.bind(this);
+        this.createGroup = this.createGroup.bind(this);
+        this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
+        this.excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
+
+        const {
+            recentReports,
+            personalDetails,
+            userToInvite,
+        } = OptionsListUtils.getNewChatOptions(
+            props.reports,
+            props.personalDetails,
+            props.betas,
+            '',
+            [],
+            this.props.isGroupChat ? this.excludedGroupEmails : [],
+        );
+        this.state = {
+            searchTerm: '',
+            recentReports,
+            personalDetails,
+            selectedOptions: [],
+            userToInvite,
+        };
+    }
+
+
 
     render() {
         const maxParticipantsReached = this.state.selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
