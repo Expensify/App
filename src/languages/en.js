@@ -234,6 +234,7 @@ export default {
     },
     emojiReactions: {
         addReactionTooltip: 'Add reaction',
+        reactedWith: 'reacted with',
     },
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'You missed the party in ',

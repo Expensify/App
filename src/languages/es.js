@@ -233,6 +233,7 @@ export default {
     },
     emojiReactions: {
         addReactionTooltip: 'Añadir una reacción',
+        reactedWith: 'reaccionó con',
     },
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'Te perdiste la fiesta en ',
