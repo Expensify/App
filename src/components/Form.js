@@ -269,12 +269,25 @@ class Form extends React.Component {
                 .value() || '';
 
             return React.cloneElement(child, {
-                ref: node => this.inputRefs[inputID] = node,
+                ref: (node) => {
+                    this.inputRefs[inputID] = node;
+
+                    // Call the original ref, if any
+                    const {ref} = child;
+                    if (_.isFunction(ref)) {
+                        ref(node);
+                    }
+                },
                 value: this.state.inputValues[inputID],
                 errorText: this.state.errors[inputID] || fieldErrorMessage,
                 onBlur: () => {
-                    this.setTouchedInput(inputID);
-                    this.validate(this.state.inputValues);
+                    // We delay the validation in order to prevent Checkbox loss of focus when
+                    // the user are focusing a TextInput and proceeds to toggle a CheckBox in
+                    // web and mobile web platforms.
+                    setTimeout(() => {
+                        this.setTouchedInput(inputID);
+                        this.validate(this.state.inputValues);
+                    }, 200);
                 },
                 onInputChange: (value, key) => {
                     const inputKey = key || inputID;

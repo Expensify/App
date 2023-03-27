@@ -45,12 +45,20 @@ const propTypes = {
     /** Route params */
     route: matchType.isRequired,
 
+    /** Session of currently logged in user */
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     // When opening someone else's profile (via deep link) before login, this is empty
     personalDetails: {},
+    session: {
+        email: null,
+    },
 };
 
 /**
@@ -147,7 +155,7 @@ class DetailsPage extends React.PureComponent {
                                     )}
                                 </AttachmentModal>
                                 {details.displayName && (
-                                    <Text style={[styles.textHeadline, styles.mb6]} numberOfLines={1}>
+                                    <Text style={[styles.textHeadline, styles.mb6, styles.pre]} numberOfLines={1}>
                                         {isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
                                     </Text>
                                 )}

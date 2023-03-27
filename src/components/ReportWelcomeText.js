@@ -36,7 +36,7 @@ const propTypes = {
     /* Onyx Props */
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
+    personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
@@ -44,12 +44,17 @@ const propTypes = {
         name: PropTypes.string,
     }),
 
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     report: {},
     policies: {},
+    personalDetails: {},
+    betas: [],
 };
 
 const ReportWelcomeText = (props) => {

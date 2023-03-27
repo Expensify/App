@@ -32,12 +32,13 @@ const propTypes = {
     onEmojiPickerClosed: PropTypes.func,
 
     ...withLocalizePropTypes,
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
 };
 
 const defaultProps = {
     onEmojiPickerClosed: () => {},
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
 /**
