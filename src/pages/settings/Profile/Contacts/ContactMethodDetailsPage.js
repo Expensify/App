@@ -84,9 +84,10 @@ class ContactMethodDetailsPage extends Component {
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
         this.resendValidateCode = this.resendValidateCode.bind(this);
         this.getContactMethod = this.getContactMethod.bind(this);
-        this.validateContactMethod = this.validateContactMethod.bind(this);
+        this.validateAndSubmitCode = this.validateAndSubmitCode.bind(this);
 
         this.state = {
+            formError: '',
             isDeleteModalOpen: false,
             validateCode: '',
         };
@@ -127,8 +128,14 @@ class ContactMethodDetailsPage extends Component {
     /**
      * Attempt to validate this contact method
      */
-    validateContactMethod() {
-        User.validateSecondaryLogin(this.getContactMethod(), this.state.validateCode);
+    validateAndSubmitCode() {
+        if (!this.state.validateCode) {
+            this.setState({formError: 'validateCodeForm.error.pleaseFillMagicCode'});
+        } else if (this.state.validateCode.length !== 6) {
+            this.setState({formError: 'validateCodeForm.error.incorrectMagicCode'});
+        } else {
+            User.validateSecondaryLogin(this.getContactMethod(), this.state.validateCode);
+        }
     }
 
     render() {
@@ -140,6 +147,7 @@ class ContactMethodDetailsPage extends Component {
 
         const isDefaultContactMethod = this.props.session.email === loginData.partnerUserID;
         const hasMagicCodeBeenSent = lodashGet(this.props.loginList, [contactMethod, 'validateCodeSent'], false);
+        const formErrorText = this.state.formError ? this.props.translate(this.state.formError) : '';
 
         return (
             <ScreenWrapper>
@@ -176,6 +184,7 @@ class ContactMethodDetailsPage extends Component {
                                 onChangeText={text => this.setState({validateCode: text})}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                 blurOnSubmit={false}
+                                errorText={formErrorText}
                             />
                             <OfflineWithFeedback
                                 pendingAction={lodashGet(loginData, 'pendingFields.validateCodeSent', null)}
@@ -203,7 +212,7 @@ class ContactMethodDetailsPage extends Component {
                             >
                                 <Button
                                     text={this.props.translate('common.verify')}
-                                    onPress={this.validateContactMethod}
+                                    onPress={this.validateAndSubmitCode}
                                     style={[styles.mt4]}
                                     success
                                     pressOnEnter
