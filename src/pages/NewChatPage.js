@@ -44,6 +44,17 @@ const defaultProps = {
     reports: {},
 };
 
+const NewChatPage = ({
+    isGroupChat = false,
+    betas = [],
+    personalDetails = {},
+    reports = {},
+}) => {
+    return (
+        
+    )
+}
+
 class NewChatPage extends Component {
     constructor(props) {
         super(props);
