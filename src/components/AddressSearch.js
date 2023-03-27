@@ -132,9 +132,10 @@ const AddressSearch = (props) => {
 
         const values = {
             street: props.value ? props.value.trim() : '',
-            // When locality is not returned, many (non-US) countries return the city as
-            // postalTown, otherwise as sublocality. If postalTown is returned, the
-            // sublocality will be a city subdivision so wouldn't be appropriate.
+            // When locality is not returned, many countries return the city as postalTown (e.g. 5 New Street
+            // Square, London), otherwise as sublocality (e.g. 384 Court Street Brooklyn). If postalTown is 
+            // returned, the sublocality will be a city subdivision so shouldn't take precedence (e.g. 
+            // Salagatan, Upssala, Sweden).
             city: locality || postalTown || sublocality,
             zipCode,
             state,
