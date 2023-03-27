@@ -38,7 +38,6 @@ import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnima
 import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosOOOListActions';
 import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
 import * as Report from '../../../libs/actions/Report';
-import PolicyChangeLogActionItem from '../../../components/ReportActionItem/PolicyChangeLogActionItem';
 
 const propTypes = {
     /** Report for this action */
