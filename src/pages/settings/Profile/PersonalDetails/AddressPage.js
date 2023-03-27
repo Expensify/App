@@ -62,7 +62,6 @@ class AddressPage extends Component {
 
         const currentCountry = lodashGet(props.privatePersonalDetails, 'address.country') || '';
         const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountry, 'samples'], '');
-        console.log(currentCountry);
         this.state = {
             isUsaForm: (currentCountry === CONST.COUNTRY.US || currentCountry === CONST.USA_COUNTRY_NAME),
             zipFormat: this.props.translate('common.format', {zipSampleFormat}),
@@ -122,7 +121,7 @@ class AddressPage extends Component {
             errors[fieldKey] = this.props.translate('common.error.fieldRequired');
         });
 
-        // If no country is selected, default value is an empty string, thus the need for lodash
+        // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
         const countryRegexDetails = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, values.country, {});
 
         // The postal code system might not exist for a country, so no regex either for them.
