@@ -319,6 +319,27 @@ function getPolicyName(report, policies) {
 }
 
 /**
+ * Checks if the current user is the admin of the policy related to an
+ * admin expense chat.
+ * @param {Object} report
+ * @param {String} report.policyID
+ * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
+ * @returns {Boolean}
+ */
+function isPolicyExpenseChatAdmin(report, policies) {
+    if (!isPolicyExpenseChat(report)) {
+        return false;
+    }
+
+    const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+    if (!policy) {
+        return false;
+    }
+
+    return policy.role === CONST.POLICY.ROLE.ADMIN;
+}
+
+/**
  * Get either the policyName or domainName the chat is tied to
  * @param {Object} report
  * @param {Object} policiesMap must have onyxkey prefix (i.e 'policy_') for keys
@@ -1666,6 +1687,7 @@ export {
     getPolicyName,
     getPolicyType,
     isArchivedRoom,
+    isPolicyExpenseChatAdmin,
     isPublicRoom,
     isConciergeChatReport,
     hasAutomatedExpensifyEmails,
