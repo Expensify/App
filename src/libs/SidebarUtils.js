@@ -5,6 +5,7 @@ import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from './ReportUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
 import * as Localize from './Localize';
 import CONST from '../CONST';
 import * as OptionsListUtils from './OptionsListUtils';
@@ -61,7 +62,7 @@ Onyx.connect({
             return;
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
-        lastReportActions[reportID] = _.last(_.toArray(actions));
+        lastReportActions[reportID] = _.first(ReportActionsUtils.getSortedReportActionsForDisplay(_.toArray(actions)));
         reportActions[key] = actions;
     },
 });
@@ -243,12 +244,7 @@ function getOptionData(reportID) {
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants);
 
-    let lastMessageTextFromReport = '';
-    if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
-        lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
-    } else {
-        lastMessageTextFromReport = Str.htmlDecode(report ? report.lastMessageText : '');
-    }
+    const lastMessageTextFromReport = ReportUtils.getLastMessageText(report);
 
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action.
@@ -263,7 +259,7 @@ function getOptionData(reportID) {
     let lastMessageText = hasMultipleParticipants && lastActorDetails && (lastActorDetails.login !== currentUserLogin.email)
         ? `${lastActorDetails.displayName}: `
         : '';
-    lastMessageText += report ? lastMessageTextFromReport : '';
+    lastMessageText += lastMessageTextFromReport;
 
     if (result.isPolicyExpenseChat && result.isArchivedRoom) {
         const archiveReason = (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason)
