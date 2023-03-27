@@ -20,10 +20,12 @@ function ActionSheetAwareScrollViewProvider(props) {
         },
     };
 
+    const transitionActionSheetStateWorklet = useWorkletCallback(() => {});
+
     const value = useMemo(() => ({
         currentActionSheetState: initialState,
         transitionActionSheetState: () => {},
-        transitionActionSheetStateWorklet: useWorkletCallback(() => {}),
+        transitionActionSheetStateWorklet,
         resetStateMachine: () => {},
     }), []);
 
