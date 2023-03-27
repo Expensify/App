@@ -220,7 +220,7 @@ function getSortedReportActionsForDisplay(reportActions) {
  */
 function getLastClosedReportAction(reportActions) {
     // If closed report action is not present, return early
-    if (!_.some(sortedReportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)) {
+    if (!_.some(reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)) {
         return null;
     }
     const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
