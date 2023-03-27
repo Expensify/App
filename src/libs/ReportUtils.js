@@ -331,12 +331,11 @@ function isPolicyExpenseChatAdmin(report, policies) {
         return false;
     }
 
-    const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-    if (!policy) {
-        return false;
-    }
+    const policyRole = lodashGet(policies, [
+        `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role',
+    ]);
 
-    return policy.role === CONST.POLICY.ROLE.ADMIN;
+    return policyRole === CONST.POLICY.ROLE.ADMIN;
 }
 
 /**
