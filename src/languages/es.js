@@ -69,7 +69,7 @@ export default {
         stateOrProvince: 'Estado / Provincia',
         country: 'País',
         zip: 'Código postal',
-        zipPostCode: 'Código Postal',
+        zipPostCode: 'Código postal',
         whatThis: '¿Qué es esto?',
         iAcceptThe: 'Acepto los ',
         remove: 'Eliminar',
@@ -906,7 +906,7 @@ export default {
         },
     },
     reimbursementAccountLoadingAnimation: {
-        oneMoment: 'Un Momento',
+        oneMoment: 'Un momento',
         explanationLine: 'Estamos verificando tu información y podrás continuar con los siguientes pasos en unos momentos.',
     },
     session: {
