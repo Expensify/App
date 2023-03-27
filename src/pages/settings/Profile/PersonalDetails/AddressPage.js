@@ -61,7 +61,8 @@ class AddressPage extends Component {
         this.onCountryUpdate = this.onCountryUpdate.bind(this);
 
         const currentCountry = lodashGet(props.privatePersonalDetails, 'address.country') || '';
-        const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_VALIDATION_REGEX, [currentCountry, 'zipFormat'], '');
+        const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountry, 'samples'], '');
+        console.log(currentCountry);
         this.state = {
             isUsaForm: (currentCountry === CONST.COUNTRY.US || currentCountry === CONST.USA_COUNTRY_NAME),
             zipFormat: this.props.translate('common.format', {zipSampleFormat}),
@@ -72,7 +73,7 @@ class AddressPage extends Component {
      * @param {String} newCountry - new country selected in form
      */
     onCountryUpdate(newCountry) {
-        const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_VALIDATION_REGEX, `${newCountry}.zipFormat`, '');
+        const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, `${newCountry}.samples`, '');
         this.setState({
             isUsaForm: newCountry === CONST.COUNTRY.US,
             zipFormat: this.props.translate('common.format', {zipSampleFormat}),
@@ -122,11 +123,11 @@ class AddressPage extends Component {
         });
 
         // If no country is selected, default value is an empty string, thus the need for lodash
-        const countryDetails = lodashGet(CONST.COUNTRY_ZIP_VALIDATION_REGEX, values.country, {});
+        const countryRegexDetails = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, values.country, {});
 
         // The postal code system might not exist for a country, so no regex either for them.
-        const countrySpecificZipRegex = lodashGet(countryDetails, 'zipRegex');
-        const zipFormat = lodashGet(countryDetails, 'zipFormat');
+        const countrySpecificZipRegex = lodashGet(countryRegexDetails, 'regex');
+        const zipFormat = lodashGet(countryRegexDetails, 'samples');
 
         if (countrySpecificZipRegex && !countrySpecificZipRegex.test(values.zipPostCode.trim())) {
             errors.zipPostCode = this.props.translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat});
