@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Animated} from 'react-native';
 import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
@@ -63,42 +63,22 @@ const defaultProps = {
     isLoadingMoreReportActions: false,
 };
 
-class ReportActionsList extends React.Component {
-    constructor(props) {
-        super(props);
-        this.renderItem = this.renderItem.bind(this);
-        this.keyExtractor = this.keyExtractor.bind(this);
-
-        this.state = {
-            fadeInAnimation: new Animated.Value(0),
-            skeletonViewHeight: 0,
-        };
-    }
-
-    componentDidMount() {
-        this.fadeIn();
-    }
-
-    fadeIn() {
-        Animated.timing(this.state.fadeInAnimation, {
-            toValue: 1,
-            duration: 100,
-            useNativeDriver: true,
-        }).start();
-    }
+const ReportActionsList = (props) => {
+    const [fadeInAnimation] = useState(() => new Animated.Value(0));
+    const [skeletonViewHeight, setSkeletonViewHeight] = useState(0);
 
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
      * the height of the smallest report action possible.
      * @return {Number}
      */
-    calculateInitialNumToRender() {
+    const calculateInitialNumToRender = useCallback(() => {
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom
             + variables.fontSizeNormalHeight;
-        const availableHeight = this.props.windowHeight
+        const availableHeight = props.windowHeight
             - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
         return Math.ceil(availableHeight / minimumReportActionHeight);
-    }
+    }, [props.windowHeight]);
 
     /**
      * Create a unique key for each action in the FlatList.
@@ -108,7 +88,7 @@ class ReportActionsList extends React.Component {
      * @param {Object} item.action
      * @return {String}
      */
-    keyExtractor(item) {
+    function keyExtractor(item) {
         return item.reportActionID;
     }
 
@@ -123,87 +103,96 @@ class ReportActionsList extends React.Component {
      *
      * @returns {React.Component}
      */
-    renderItem({
+    function renderItem({
         item: reportAction,
         index,
     }) {
         // When the new indicator should not be displayed we explicitly set it to null
-        const shouldDisplayNewMarker = reportAction.reportActionID === this.props.newMarkerReportActionID;
+        const shouldDisplayNewMarker = reportAction.reportActionID === props.newMarkerReportActionID;
         return (
             <ReportActionItem
-                report={this.props.report}
+                report={props.report}
                 action={reportAction}
-                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, index)}
+                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(props.sortedReportActions, index)}
                 shouldDisplayNewMarker={shouldDisplayNewMarker}
-                isMostRecentIOUReportAction={reportAction.reportActionID === this.props.mostRecentIOUReportActionID}
-                hasOutstandingIOU={this.props.report.hasOutstandingIOU}
+                isMostRecentIOUReportAction={reportAction.reportActionID === props.mostRecentIOUReportActionID}
+                hasOutstandingIOU={props.report.hasOutstandingIOU}
                 index={index}
             />
         );
     }
 
-    render() {
-        // Native mobile does not render updates flatlist the changes even though component did update called.
-        // To notify there something changes we can use extraData prop to flatlist
-        const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.newMarkerReportActionID : undefined;
-        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
-        return (
-            <Animated.View style={[StyleUtils.fade(this.state.fadeInAnimation), styles.flex1]}>
-                <InvertedFlatList
-                    accessibilityLabel="List of chat messages"
-                    ref={ReportScrollManager.flatListRef}
-                    data={this.props.sortedReportActions}
-                    renderItem={this.renderItem}
-                    contentContainerStyle={[
-                        styles.chatContentScrollView,
-                        shouldShowReportRecipientLocalTime && styles.pt0,
-                    ]}
-                    keyExtractor={this.keyExtractor}
-                    initialRowHeight={32}
-                    initialNumToRender={this.calculateInitialNumToRender()}
-                    onEndReached={this.props.loadMoreChats}
-                    onEndReachedThreshold={0.75}
-                    ListFooterComponent={() => {
-                        if (this.props.report.isLoadingMoreReportActions) {
-                            return (
-                                <ReportActionsSkeletonView
-                                    containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3}
-                                />
-                            );
-                        }
+    const fadeIn = useCallback(() => {
+        Animated.timing(fadeInAnimation, {
+            toValue: 1,
+            duration: 100,
+            useNativeDriver: true,
+        }).start();
+    }, [fadeInAnimation]);
 
-                        // Make sure the oldest report action loaded is not the first. This is so we do not show the
-                        // skeleton view above the created action in a newly generated optimistic chat or one with not
-                        // that many comments.
-                        const lastReportAction = _.last(this.props.sortedReportActions) || {};
-                        if (this.props.report.isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
-                            return (
-                                <ReportActionsSkeletonView
-                                    containerHeight={this.state.skeletonViewHeight}
-                                    animate={!this.props.network.isOffline}
-                                />
-                            );
-                        }
+    useEffect(() => {
+        fadeIn();
+    }, []);
 
-                        return null;
-                    }}
-                    keyboardShouldPersistTaps="handled"
-                    onLayout={(event) => {
-                        this.setState({
-                            skeletonViewHeight: event.nativeEvent.layout.height,
-                        });
-                        this.props.onLayout(event);
-                    }}
-                    onScroll={this.props.onScroll}
-                    extraData={extraData}
-                />
-            </Animated.View>
-        );
-    }
-}
+    // Native mobile does not render updates flatlist the changes even though component did update called.
+    // To notify there something changes we can use extraData prop to flatlist
+    const extraData = (!props.isDrawerOpen && props.isSmallScreenWidth) ? props.newMarkerReportActionID : undefined;
+    const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report);
+    return (
+        <Animated.View style={[StyleUtils.fade(fadeInAnimation), styles.flex1]}>
+            <InvertedFlatList
+                accessibilityLabel="List of chat messages"
+                ref={ReportScrollManager.flatListRef}
+                data={props.sortedReportActions}
+                renderItem={renderItem}
+                contentContainerStyle={[
+                    styles.chatContentScrollView,
+                    shouldShowReportRecipientLocalTime && styles.pt0,
+                ]}
+                keyExtractor={keyExtractor}
+                initialRowHeight={32}
+                initialNumToRender={calculateInitialNumToRender()}
+                onEndReached={props.loadMoreChats}
+                onEndReachedThreshold={0.75}
+                ListFooterComponent={() => {
+                    if (props.report.isLoadingMoreReportActions) {
+                        return (
+                            <ReportActionsSkeletonView
+                                containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3}
+                            />
+                        );
+                    }
+
+                    // Make sure the oldest report action loaded is not the first. This is so we do not show the
+                    // skeleton view above the created action in a newly generated optimistic chat or one with not
+                    // that many comments.
+                    const lastReportAction = _.last(props.sortedReportActions) || {};
+                    if (props.report.isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
+                        return (
+                            <ReportActionsSkeletonView
+                                containerHeight={skeletonViewHeight}
+                                animate={!props.network.isOffline}
+                            />
+                        );
+                    }
+
+                    return null;
+                }}
+                keyboardShouldPersistTaps="handled"
+                onLayout={(event) => {
+                    setSkeletonViewHeight(event.nativeEvent.layout.height);
+                    props.onLayout(event);
+                }}
+                onScroll={props.onScroll}
+                extraData={extraData}
+            />
+        </Animated.View>
+    );
+};
 
 ReportActionsList.propTypes = propTypes;
 ReportActionsList.defaultProps = defaultProps;
+ReportActionsList.displayName = 'ReportActionsList';
 
 export default compose(
     withDrawerState,
