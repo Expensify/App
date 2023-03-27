@@ -26,6 +26,7 @@ import Button from '../../../../components/Button';
 import * as ErrorUtils from '../../../../libs/ErrorUtils';
 import themeColors from '../../../../styles/themes/default';
 import NotFoundPage from '../../../ErrorPage/NotFoundPage';
+import * as ValidationUtils from '../../../../libs/ValidationUtils'
 
 const propTypes = {
     /* Onyx Props */
@@ -131,7 +132,7 @@ class ContactMethodDetailsPage extends Component {
     validateAndSubmitCode() {
         if (!this.state.validateCode) {
             this.setState({formError: 'validateCodeForm.error.pleaseFillMagicCode'});
-        } else if (this.state.validateCode.length !== 6) {
+        } else if (!ValidationUtils.isValidValidateCode(this.state.validateCode)) {
             this.setState({formError: 'validateCodeForm.error.incorrectMagicCode'});
         } else {
             User.validateSecondaryLogin(this.getContactMethod(), this.state.validateCode);
