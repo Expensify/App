@@ -13,8 +13,8 @@ import Image from './Image';
  */
 const ImageWithSizeCalculation = (
     url,
-    style = {},
     onMeasure = () => {},
+    style = {},
     isAuthTokenRequired = false,
 ) => {
     const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +24,7 @@ const ImageWithSizeCalculation = (
             style={[
                 styles.w100,
                 styles.h100,
-                ...this.props.style,
+                ...style,
             ]}
         >
             <Image
