@@ -15,8 +15,8 @@ import Reanimated, {
 } from 'react-native-reanimated';
 import {makeRemote} from 'react-native-reanimated/src/reanimated2/core';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import getComponentDisplayName from '../libs/getComponentDisplayName';
-import styles from '../styles/styles';
+import getComponentDisplayName from '../../libs/getComponentDisplayName';
+import styles from '../../styles/styles';
 
 function useStateMachine(stateMachine, initialState) {
     const currentState = useSharedValue(initialState);

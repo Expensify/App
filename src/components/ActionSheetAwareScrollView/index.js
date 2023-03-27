@@ -8,7 +8,7 @@ import {ScrollView} from 'react-native';
 import {
     useWorkletCallback,
 } from 'react-native-reanimated';
-import getComponentDisplayName from '../libs/getComponentDisplayName';
+import getComponentDisplayName from '../../libs/getComponentDisplayName';
 
 const ActionSheetAwareScrollViewContext = createContext();
 function ActionSheetAwareScrollViewProvider(props) {
