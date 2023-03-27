@@ -9,6 +9,7 @@ jobs:
   verifySignedCommits:
     runs-on: ubuntu-latest
     steps:
-      - uses: Expensify/App/.github/actions/javascript/verifySignedCommits@main
+      - name: Verify signed commits
+        uses: Expensify/App/.github/actions/javascript/verifySignedCommits@main
         with:
           GITHUB_TOKEN: ${{ github.token }}
