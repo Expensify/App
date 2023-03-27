@@ -1207,8 +1207,11 @@ export default {
     },
     allStates: COMMON_CONST.STATES,
     allCountries: CONST.ALL_COUNTRIES,
-    navigateToChatsList: 'Navigate back to chats list',
-    listOfChatMessages: 'List of chat messages',
-    chatWelcomeMessage: 'Chat welcome message',
-    navigatesToChat: 'Navigates to a chat',
+    accessibilityHints: {
+        navigateToChatsList: 'Navigate back to chats list',
+        listOfChatMessages: 'List of chat messages',
+        chatWelcomeMessage: 'Chat welcome message',
+        navigatesToChat: 'Navigates to a chat',
+        newMessageLineIndicator: 'New message line indicator',
+    },
 };

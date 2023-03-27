@@ -58,7 +58,7 @@ const ReportActionItemCreated = (props) => {
                     style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
                 />
                 <View
-                    accessibilityLabel={props.translate('chatWelcomeMessage')}
+                    accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}
                 >
                     <Pressable

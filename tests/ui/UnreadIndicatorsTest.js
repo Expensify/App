@@ -52,7 +52,7 @@ beforeAll(() => {
 });
 
 function scrollUpToRevealNewMessagesBadge() {
-    const hintText = Localize.translateLocal('listOfChatMessages');
+    const hintText = Localize.translateLocal('accessibilityHints.listOfChatMessages');
     fireEvent.scroll(screen.queryByLabelText(hintText), {
         nativeEvent: {
             contentOffset: {
@@ -85,7 +85,7 @@ function isNewMessagesBadgeVisible() {
  * @return {Promise}
  */
 function navigateToSidebar() {
-    const hintText = Localize.translateLocal('navigateToChatsList');
+    const hintText = Localize.translateLocal('accessibilityHints.navigateToChatsList');
     const reportHeaderBackButton = screen.queryByAccessibilityHint(hintText);
     fireEvent(reportHeaderBackButton, 'press');
     return waitForPromisesToResolve();
@@ -96,7 +96,7 @@ function navigateToSidebar() {
  * @return {Promise}
  */
 function navigateToSidebarOption(index) {
-    const hintText = Localize.translateLocal('navigatesToChat');
+    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
     const optionRows = screen.queryAllByAccessibilityHint(hintText);
     fireEvent(optionRows[index], 'press');
     return waitForPromisesToResolve();
@@ -211,7 +211,7 @@ describe('Unread Indicators', () => {
             expect(isDrawerOpen()).toBe(true);
 
             // Verify there is only one option in the sidebar
-            const optionRowsHintText = Localize.translateLocal('navigatesToChat');
+            const optionRowsHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
             const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
             expect(optionRows).toHaveLength(1);
 
@@ -227,7 +227,7 @@ describe('Unread Indicators', () => {
             expect(isDrawerOpen()).toBe(false);
 
             // That the report actions are visible along with the created action
-            const hintText = Localize.translateLocal('chatWelcomeMessage');
+            const hintText = Localize.translateLocal('accessibilityHints.chatWelcomeMessage');
             const createdAction = screen.queryByLabelText(hintText);
             expect(createdAction).toBeTruthy();
             const reportComments = screen.queryAllByLabelText('Chat message');
@@ -343,7 +343,7 @@ describe('Unread Indicators', () => {
         })
         .then(() => {
             // // Verify the new report option appears in the LHN
-            const optionRowsHintText = Localize.translateLocal('navigatesToChat');
+            const optionRowsHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
             const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
             expect(optionRows).toHaveLength(2);
 

@@ -1673,8 +1673,11 @@ export default {
         ZM: 'Zambia',
         ZW: 'Zimbabue',
     },
-    navigateToChatsList: 'Navegar de regreso a la lista de chats',
-    listOfChatMessages: 'Lista de mensajes de chat',
-    chatWelcomeMessage: 'Mensaje de bienvenida al chat',
-    navigatesToChat: 'Navega a un chat',
+    accessibilityHints: {
+        navigateToChatsList: 'Navegar de regreso a la lista de chats',
+        listOfChatMessages: 'Lista de mensajes de chat',
+        chatWelcomeMessage: 'Mensaje de bienvenida al chat',
+        navigatesToChat: 'Navega a un chat',
+        newMessageLineIndicator: 'Indicador de nueva línea de mensaje',
+    },
 };

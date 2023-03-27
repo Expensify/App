@@ -93,7 +93,7 @@ const HeaderView = (props) => {
                     <Pressable
                         onPress={props.onNavigationMenuButtonClicked}
                         style={[styles.LHNToggle]}
-                        accessibilityHint={props.translate('navigateToChatsList')}
+                        accessibilityHint={props.translate('accessibilityHints.navigateToChatsList')}
                     >
                         <Tooltip text={props.translate('common.back')} shiftVertical={4}>
                             <Icon src={Expensicons.BackArrow} />
