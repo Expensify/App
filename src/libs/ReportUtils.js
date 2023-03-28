@@ -319,11 +319,10 @@ function getPolicyName(report, policies) {
 }
 
 /**
- * Checks if the current user is the admin of the policy related to an
- * admin expense chat.
+ * Checks if the current user is the admin of the policy given the policy expense chat.
  * @param {Object} report
  * @param {String} report.policyID
- * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
+ * @param {Object} policies must have OnyxKey prefix (i.e 'policy_') for keys
  * @returns {Boolean}
  */
 function isPolicyExpenseChatAdmin(report, policies) {

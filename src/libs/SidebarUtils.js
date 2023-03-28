@@ -275,7 +275,7 @@ function getOptionData(reportID) {
     }
 
     if (result.isChatRoom || result.isPolicyExpenseChat) {
-        // Checks to see if the current user is the admin of the policy if in a policy expense chat,
+        // Checks to see if the current user is the admin of the policy tied to the policy expense chat,
         // if so the policy name preview will be shown.
         const isPolicyChatAdmin = result.isPolicyExpenseChat && ReportUtils.isPolicyExpenseChatAdmin(report, policies);
         result.alternateText = isPolicyChatAdmin ? subtitle : (lastMessageText || subtitle);
