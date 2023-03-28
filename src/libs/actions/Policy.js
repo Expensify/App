@@ -271,7 +271,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID) {
 
     API.write('AddMembersToWorkspace', {
         employees: JSON.stringify(_.map(logins, login => ({email: login}))),
-        
+
         // Escape HTML special chars to enable them to appear in the invite email
         welcomeNote: _.escape(welcomeNote),
         policyID,
