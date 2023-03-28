@@ -66,7 +66,7 @@ function getMockStep(
     mockWithCommand += ` ${message}`;
     if (inputs) {
         for (const input of inputs) {
-            mockWithCommand += `, ${input}="\${{ inputs.${input} }}\${{ github.event.inputs.${input} }}"`;
+            mockWithCommand += `, ${input}="\${{ inputs.${input} && inputs.${input} || github.event.inputs.${input} }}"`;
         }
     }
     if (in_envs) {
