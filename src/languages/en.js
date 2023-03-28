@@ -247,7 +247,7 @@ export default {
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}) => ` to chat about anything ${workspaceName} related.`,
         beginningOfChatHistoryUserRoomPartOne: 'Collaboration starts here! 🎉\nUse this space to chat about anything ',
         beginningOfChatHistoryUserRoomPartTwo: ' related.',
-        beginningOfChatHistory: 'This is the beginning of your chat history with ',
+        beginningOfChatHistory: 'This is the beginning of your chat with ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
@@ -1174,6 +1174,7 @@ export default {
     },
     report: {
         genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
+        noActivityYet: 'No activity yet',
     },
     chronos: {
         oooEventSummaryFullDay: ({summary, dayCount, date}) => `${summary} for ${dayCount} ${dayCount === 1 ? 'day' : 'days'} until ${date}`,
