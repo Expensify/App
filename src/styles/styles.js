@@ -1804,10 +1804,6 @@ const styles = {
         width: variables.avatarSizeSmall,
     },
 
-    horizontalStackedAvatar4Overlay: {
-        borderStyle: 'solid',
-    },
-
     modalViewContainer: {
         alignItems: 'center',
         flex: 1,

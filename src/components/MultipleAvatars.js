@@ -113,7 +113,7 @@ const MultipleAvatars = (props) => {
             {props.shouldStackHorizontally ? (
                 <>
                     {
-                        _.map([...props.icons].splice(0, 4).reverse(), (icon, index) => (
+                        _.map([...props.icons].splice(0, 4), (icon, index) => (
                             <View
                                 key={`stackedAvatars-${index}`}
                                 style={[styles.justifyContentCenter,

@@ -807,6 +807,7 @@ function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWi
         borderRadius: oneAvatarSize.width,
         left: -((oneAvatarSize.width * 2) + (oneAvatarBorderWidth * 2)),
         zIndex: 6,
+        borderStyle: 'solid',
     };
 }
 

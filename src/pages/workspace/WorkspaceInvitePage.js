@@ -323,7 +323,7 @@ class WorkspaceInvitePage extends React.Component {
                                     buttonText={this.props.translate('common.next')}
                                     onSubmit={this.inviteUser}
                                     message={this.props.policy.alertMessage}
-                                    containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb3]}
+                                    containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
                                     enabledWhenOffline
                                     disablePressOnEnter
                                 />

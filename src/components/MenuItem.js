@@ -50,6 +50,7 @@ const defaultProps = {
     brickRoadIndicator: '',
     floatRightAvatars: [],
     shouldStackHorizontally: false,
+    avatarSize: undefined,
 };
 
 const MenuItem = (props) => {

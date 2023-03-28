@@ -137,9 +137,11 @@ class WorkspaceInviteMessagePage extends React.Component {
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}
+
+                    // No validation is required single the invite message is optional.
                     validate={() => ({})}
                     onSubmit={this.onSubmit}
-                    submitButtonText={this.props.translate('common.save')}
+                    submitButtonText={this.props.translate('common.invite')}
                     enabledWhenOffline
                     footerContent={
                         (
@@ -147,7 +149,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 onPress={this.openPrivacyURL}
                                 accessibilityRole="link"
                                 href={CONST.PRIVACY_URL}
-                                style={[styles.mh5, styles.mb3, styles.alignSelfStart]}
+                                style={[styles.mb5, styles.alignSelfStart]}
                             >
                                 <View style={[styles.flexRow]}>
                                     <Text style={[styles.mr1, styles.label, styles.link]}>
