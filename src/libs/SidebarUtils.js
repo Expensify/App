@@ -251,10 +251,14 @@ function getOptionData(reportID) {
     }
 
     // If the last actor's details are not currently saved in Onyx Collection,
-    // then try to get that from the last report action.
+    // then try to get that from the last report action if that action is valid
+    // to get data from (not related to opening or closing the chat).
     let lastActorDetails = personalDetails[report.lastActorEmail] || null;
-    if (!lastActorDetails && lastReportActions[report.reportID] && lastReportActions[report.reportID].actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        const lastActorDisplayName = lodashGet(lastReportActions[report.reportID], 'person[0].text');
+    const actionCreatedOrClosed = [CONST.REPORT.ACTIONS.TYPE.CREATED, CONST.REPORT.ACTIONS.TYPE.CLOSED];
+    const lastReportAction = lastReportActions[report.reportID];
+    const isLastReportActionValid = lastReportAction && !actionCreatedOrClosed.includes(lastReportAction.actionName);
+    if (!lastActorDetails && isLastReportActionValid) {
+        const lastActorDisplayName = lodashGet(lastReportAction, 'person[0].text');
         lastActorDetails = lastActorDisplayName ? {
             displayName: lastActorDisplayName,
             login: report.lastActorEmail,
