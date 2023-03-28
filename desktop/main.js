@@ -408,6 +408,7 @@ const mainWindow = (() => {
 
             app.on('before-quit', () => {
                 // Adding __DEV__ check because we only want to remove it on dev version
+                // https://github.com/Expensify/App/issues/15965#issuecomment-1483182952
                 if (__DEV__) {
                     app.removeAsDefaultProtocolClient('new-expensify');
                 }
