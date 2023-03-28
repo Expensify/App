@@ -21,7 +21,7 @@ const propTypes = {
     /** Session info for the currently logged-in user. */
     session: PropTypes.shape({
 
-        /** Currently logged-in user authToken */
+        /** Currently logged-in user email */
         email: PropTypes.string,
 
         /** Currently logged-in user authToken */
