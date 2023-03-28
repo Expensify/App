@@ -184,16 +184,20 @@ class Picker extends PureComponent {
     }
 
     /**
-     * Measure the layout of this component
+     * Like measure(), but measures the view relative to an ancestor
      *
      * This method is used by Form when scrolling to the input
+     *
+     * @param {Object} relativeToNativeComponentRef - reference to an ancestor
+     * @param {function(x: number, y: number, width: number, height: number): void} onSuccess - callback called on success
+     * @param {function(): void} onFail - callback called on failure
      */
-    measureLayout(...args) {
+    measureLayout(relativeToNativeComponentRef, onSuccess, onFail) {
         if (!this.root) {
             return;
         }
 
-        this.root.measureLayout(...args);
+        this.root.measureLayout(relativeToNativeComponentRef, onSuccess, onFail);
     }
 
     render() {
