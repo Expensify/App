@@ -406,7 +406,13 @@ const mainWindow = (() => {
                 browserWindow.webContents.send(ELECTRON_EVENTS.BLUR);
             });
 
-            app.on('before-quit', () => quitting = true);
+            app.on('before-quit', () => {
+                // Adding __DEV__ check because we only want to remove it on dev version
+                if (__DEV__) {
+                    app.removeAsDefaultProtocolClient('new-expensify');
+                }
+                quitting = true;
+            });
             app.on('activate', () => {
                 if (expectedUpdateVersion && app.getVersion() !== expectedUpdateVersion) {
                     return;
