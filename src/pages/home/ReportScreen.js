@@ -34,6 +34,7 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -217,6 +218,7 @@ class ReportScreen extends React.Component {
         return (
             <ScreenWrapper
                 style={screenWrapperStyle}
+                lockHeight={DeviceCapabilities.canUseTouchScreen()}
             >
                 <Freeze
                     freeze={freeze}
