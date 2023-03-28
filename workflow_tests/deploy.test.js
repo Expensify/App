@@ -240,7 +240,7 @@ describe('test workflow deploy', () => {
     });
 
     it('different event than push - workflow does not execute', async () => {
-        const repoPath = mockGithub.repo.getPath('testdeployWorkflowRepo') || '';
+        const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
         const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
         let act = new eAct.ExtendedAct(repoPath, workflowPath);
         const testMockSteps = {
