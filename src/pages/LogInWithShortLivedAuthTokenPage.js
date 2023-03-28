@@ -35,6 +35,7 @@ const propTypes = {
 
     ...withLocalizePropTypes,
 
+    /** Whether the short lived auth token is valid */
     isTokenValid: PropTypes.bool,
 };
 
