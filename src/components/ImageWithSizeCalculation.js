@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Log from '../libs/Log';
@@ -21,18 +21,13 @@ const propTypes = {
     isAuthTokenRequired: PropTypes.bool,
 };
 
-/**
- * Preloads an image by getting the size and passing dimensions via callback.
- * Image size must be provided by parent via width and height props. Useful for
- * performing some calculation on a network image after fetching dimensions so
- * it can be appropriately resized.
- */
-const ImageWithSizeCalculation = ({
-    url,
-    onMeasure = () => {},
-    style = {},
-    isAuthTokenRequired = false,
-}) => {
+const defaultProps = {
+    style: {},
+    onMeasure: () => {},
+    isAuthTokenRequired: false,
+};
+
+const ImageWithSizeCalculation = (props) => {
     const [isLoading, setIsLoading] = useState(false);
 
     return (
@@ -40,7 +35,7 @@ const ImageWithSizeCalculation = ({
             style={[
                 styles.w100,
                 styles.h100,
-                ...style,
+                ...props.style,
             ]}
         >
             <Image
@@ -48,14 +43,14 @@ const ImageWithSizeCalculation = ({
                     styles.w100,
                     styles.h100,
                 ]}
-                source={{uri: url}}
-                isAuthTokenRequired={isAuthTokenRequired}
+                source={{uri: props.url}}
+                isAuthTokenRequired={props.isAuthTokenRequired}
                 resizeMode={Image.resizeMode.contain}
                 onLoadStart={() => setIsLoading(true)}
                 onLoadEnd={() => setIsLoading(false)}
-                onError={() => Log.hmmm('Unable to fetch image to calculate size', {url})}
+                onError={() => Log.hmmm('Unable to fetch image to calculate size', {props.url})}
                 onLoad={(event) => {
-                    onMeasure({
+                    props.onMeasure({
                         width: event.nativeEvent.width,
                         height: event.nativeEvent.height,
                     });
@@ -72,4 +67,5 @@ const ImageWithSizeCalculation = ({
 
 ImageWithSizeCalculation.displayName = 'ImageWithSizeCalculation';
 ImageWithSizeCalculation.propTypes = propTypes;
+ImageWithSizeCalculation.defaultProps = defaultProps;
 export default React.memo(ImageWithSizeCalculation);
