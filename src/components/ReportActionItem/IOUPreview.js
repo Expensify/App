@@ -87,13 +87,13 @@ const propTypes = {
 
         /** This is either the user's full name, or their login if full name is an empty string */
         displayName: PropTypes.string.isRequired,
-    })).isRequired,
+    })),
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
         /** Currently logged in user email */
         email: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** Information about the user accepting the terms for payments */
     walletTerms: walletTermsPropTypes,
@@ -116,6 +116,10 @@ const defaultProps = {
     walletTerms: {},
     pendingAction: null,
     isHovered: false,
+    personalDetails: {},
+    session: {
+        email: null,
+    },
 };
 
 const IOUPreview = (props) => {

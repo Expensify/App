@@ -154,19 +154,20 @@ export default {
         updateApp: 'Actualizar app',
         updatePrompt: 'Existe una nueva versión de esta aplicación.\nActualiza ahora or reinicia la aplicación más tarde para recibir la última versión.',
     },
-    deeplinkWrapper: {
-        launching: 'Cargando Expensify',
-        redirectedToDesktopApp: 'Te hemos redirigido a la aplicación de escritorio.',
-        youCanAlso: 'También puedes',
-        openLinkInBrowser: 'abrir este enlace en tu navegador',
-    },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
         successfulSignInDescription: 'Vuelve a la pestaña original para continuar.',
         title: 'Aquí está tu código mágico',
         or: ', ¡o',
-        description: 'Por favor, introduzca el código utilizando el dispositivo\nen el que se solicitó originalmente',
+        description: 'Por favor, introduce el código utilizando el dispositivo\nen el que se solicitó originalmente',
         signInHere: 'simplemente inicia sesión aquí',
+        expiredCodeTitle: 'Código mágico caducado',
+        expiredCodeDescription: 'Vuelve al dispositivo original y solicita un nuevo código.',
+        requestNewCode: '¡También puedes',
+        requestNewCodeLink: 'solicitar un nuevo código aquí',
+        successfulNewCodeRequest: 'Código solicitado. Por favor, comprueba su dispositivo.',
+        tfaRequiredTitle: 'Se requiere autenticación\nde dos factores',
+        tfaRequiredDescription: 'Por favor, introduce el código de autenticación de dos factores\ndonde estás intentando iniciar sesión.',
     },
     iOUConfirmationList: {
         whoPaid: '¿Quién pago?',
@@ -226,10 +227,13 @@ export default {
         copyURLToClipboard: 'Copiar URL al portapapeles',
         copyEmailToClipboard: 'Copiar email al portapapeles',
         markAsUnread: 'Marcar como no leído',
-        editComment: 'Editar commentario',
+        editComment: 'Editar comentario',
         deleteComment: 'Eliminar comentario',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
+    },
+    emojiReactions: {
         addReactionTooltip: 'Añadir una reacción',
+        reactedWith: 'reaccionó con',
     },
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'Te perdiste la fiesta en ',
@@ -242,7 +246,7 @@ export default {
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}) => ` para chatear sobre cualquier cosa relacionada con ${workspaceName}.`,
         beginningOfChatHistoryUserRoomPartOne: 'Este es el lugar para colaborar! 🎉\nUsa este espacio para chatear sobre cualquier cosa relacionada con ',
         beginningOfChatHistoryUserRoomPartTwo: '.',
-        beginningOfChatHistory: 'Aquí comienza tu historial de conversaciones con ',
+        beginningOfChatHistory: 'Aquí comienzan tus conversaciones con ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! 🎉 Este es el lugar donde chatear, pedir dinero y pagar.',
@@ -274,6 +278,8 @@ export default {
         fabNewChat: 'Nuevo chat',
         chatPinned: 'Chat fijado',
         draftedMessage: 'Mensaje borrador',
+        listOfChatMessages: 'Lista de mensajes del chat',
+        listOfChats: 'lista de chats',
     },
     iou: {
         amount: 'Importe',
@@ -343,6 +349,7 @@ export default {
     pronounsPage: {
         pronouns: 'Pronombres',
         isShownOnProfile: 'Tus pronombres se muestran en tu perfil.',
+        placeholderText: 'Buscar para ver opciones',
     },
     contacts: {
         contactMethod: 'Método de contacto',
@@ -470,7 +477,7 @@ export default {
             invalidName: 'Por favor ingresa un nombre válido',
             addressZipCode: 'Por favor ingresa un código postal válido',
             debitCardNumber: 'Ingresa un número de tarjeta de débito válido',
-            expirationDate: 'Por favor introduzca una fecha de vencimiento válida',
+            expirationDate: 'Por favor introduce una fecha de vencimiento válida',
             securityCode: 'Ingresa un código de seguridad válido',
             addressStreet: 'Ingresa una dirección de facturación válida que no sea un apartado postal',
             addressState: 'Por favor seleccione un estado',
@@ -606,6 +613,7 @@ export default {
             invalidFormatEmailLogin: 'El email introducido no es válido. Corrígelo e inténtalo de nuevo.',
         },
         cannotGetAccountDetails: 'No se pudieron cargar los detalles de tu cuenta, por favor intenta iniciar sesión de nuevo.',
+        loginForm: 'Formulario de inicio de sesión',
     },
     personalDetails: {
         error: {
@@ -695,7 +703,7 @@ export default {
             routingNumber: 'Ingresa un número de ruta válido',
             accountNumber: 'Ingresa un número de cuenta válido',
             companyType: 'Ingresa un tipo de compañía válido',
-            tooManyAttempts: 'Debido a la gran cantidad de intentos de inicio de sesión, esta opción se ha desactivado temporalmente durante 24 horas. Vuelve a intentarlo más tarde o introduzca los detalles manualmente.',
+            tooManyAttempts: 'Debido a la gran cantidad de intentos de inicio de sesión, esta opción se ha desactivado temporalmente durante 24 horas. Vuelve a intentarlo más tarde o introduce los detalles manualmente.',
             address: 'Ingresa una dirección válida',
             dob: 'Ingresa una fecha de nacimiento válida',
             age: 'Debe ser mayor de 18 años',
@@ -1083,7 +1091,7 @@ export default {
         publicDescription: 'Cualquier persona puede unirse a esta sala',
         createRoom: 'Crea una sala de chat',
         roomAlreadyExistsError: 'Ya existe una sala con este nombre',
-        roomNameReservedError: 'Una sala en este espacio de trabajo ya usa este nombre',
+        roomNameReservedError: ({reservedName}) => `${reservedName} es el nombre una sala por defecto de todos los espacios de trabajo. Por favor elige otro nombre.`,
         roomNameInvalidError: 'Los nombres de las salas solo pueden contener minúsculas, números y guiones',
         pleaseEnterRoomName: 'Por favor, escribe el nombre de una sala',
         pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo',
@@ -1167,6 +1175,7 @@ export default {
     },
     report: {
         genericAddCommentFailureMessage: 'Error inesperado al agregar el comentario, por favor inténtalo más tarde',
+        noActivityYet: 'Sin actividad todavía',
     },
     chronos: {
         oooEventSummaryFullDay: ({summary, dayCount, date}) => `${summary} por ${dayCount} ${dayCount === 1 ? 'día' : 'días'} hasta el ${date}`,
@@ -1667,5 +1676,16 @@ export default {
         ZA: 'Sudáfrica',
         ZM: 'Zambia',
         ZW: 'Zimbabue',
+    },
+    accessibilityHints: {
+        navigateToChatsList: 'Vuelve a la lista de chats',
+        chatWelcomeMessage: 'Mensaje de bienvenida al chat',
+        navigatesToChat: 'Navega a un chat',
+        newMessageLineIndicator: 'Indicador de nueva línea de mensaje',
+        chatMessage: 'mensaje de chat',
+        lastChatMessagePreview: 'Vista previa del último mensaje del chat',
+        workspaceName: 'Nombre del espacio de trabajo',
+        chatUserDisplayNames: 'Nombres de los usuarios del chat',
+        scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
     },
 };

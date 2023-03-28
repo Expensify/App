@@ -7,6 +7,7 @@ import colors from './colors';
 import positioning from './utilities/positioning';
 import styles from './styles';
 import * as ReportUtils from '../libs/ReportUtils';
+import getSafeAreaPaddingTop from '../libs/getSafeAreaPaddingTop';
 
 const workspaceColorOptions = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
@@ -125,11 +126,12 @@ function getDefaultWorspaceAvatarColor(workspaceName) {
  * Takes safe area insets and returns padding to use for a View
  *
  * @param {Object} insets
+ * @param {Boolean} statusBarTranslucent
  * @returns {Object}
  */
-function getSafeAreaPadding(insets) {
+function getSafeAreaPadding(insets, statusBarTranslucent) {
     return {
-        paddingTop: insets.top,
+        paddingTop: getSafeAreaPaddingTop(insets, statusBarTranslucent),
         paddingBottom: insets.bottom * variables.safeInsertPercentage,
         paddingLeft: insets.left * variables.safeInsertPercentage,
         paddingRight: insets.right * variables.safeInsertPercentage,
@@ -456,7 +458,7 @@ function getFontFamilyMonospace({fontStyle, fontWeight}) {
 function getEmojiPickerStyle(isSmallScreenWidth) {
     if (isSmallScreenWidth) {
         return {
-            width: '100%',
+            width: CONST.SMALL_EMOJI_PICKER_SIZE.WIDTH,
         };
     }
     return {
@@ -810,6 +812,18 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth) {
 }
 
 /**
+ * Gets the correct height for emoji picker list based on screen dimensions
+ *
+ * @param {Boolean} hasAdditionalSpace
+ * @returns {Object}
+ */
+function getEmojiPickerListHeight(hasAdditionalSpace) {
+    return {
+        height: hasAdditionalSpace ? CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT,
+    };
+}
+
+/**
  * Gets styles for Emoji Suggestion row
  *
  * @param {Number} highlightedEmojiIndex
@@ -824,16 +838,22 @@ function getEmojiSuggestionItemStyle(
     hovered,
     currentEmojiIndex,
 ) {
+    let backgroundColor;
+
+    if (currentEmojiIndex === highlightedEmojiIndex) {
+        backgroundColor = themeColors.activeComponentBG;
+    } else if (hovered) {
+        backgroundColor = themeColors.hoverComponentBG;
+    }
+
     return [
         {
             height: rowHeight,
             justifyContent: 'center',
         },
-        (currentEmojiIndex === highlightedEmojiIndex && !hovered) || hovered
-            ? {
-                backgroundColor: themeColors.highlightBG,
-            }
-            : {},
+        backgroundColor ? {
+            backgroundColor,
+        } : {},
     ];
 }
 
@@ -959,6 +979,7 @@ export {
     getReportWelcomeBackgroundImageStyle,
     getReportWelcomeTopMarginStyle,
     getReportWelcomeContainerStyle,
+    getEmojiPickerListHeight,
     getEmojiSuggestionItemStyle,
     getEmojiSuggestionContainerStyle,
     getColoredBackgroundStyle,

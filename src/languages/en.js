@@ -155,12 +155,6 @@ export default {
         updateApp: 'Update app',
         updatePrompt: 'A new version of this app is available.\nUpdate now or restart the app at a later time to download the latest changes.',
     },
-    deeplinkWrapper: {
-        launching: 'Launching Expensify',
-        redirectedToDesktopApp: 'We\'ve redirected you to the desktop app.',
-        youCanAlso: 'You can also',
-        openLinkInBrowser: 'open this link in your browser',
-    },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\nyou are signed in!',
         successfulSignInDescription: 'Head back to your original tab to continue.',
@@ -168,6 +162,13 @@ export default {
         description: 'Please enter the code using the device\nwhere it was originally requested',
         or: ', or',
         signInHere: 'just sign in here',
+        expiredCodeTitle: 'Magic code expired',
+        expiredCodeDescription: 'Go back to the original device and request a new code.',
+        requestNewCode: 'You can also',
+        requestNewCodeLink: 'request a new code here',
+        successfulNewCodeRequest: 'Code requested. Please check your device.',
+        tfaRequiredTitle: 'Two factor authentication\nrequired',
+        tfaRequiredDescription: 'Please enter the two-factor authentication code\nwhere you are trying to sign in.',
     },
     iOUConfirmationList: {
         whoPaid: 'Who paid?',
@@ -230,7 +231,10 @@ export default {
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
+    },
+    emojiReactions: {
         addReactionTooltip: 'Add reaction',
+        reactedWith: 'reacted with',
     },
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'You missed the party in ',
@@ -243,7 +247,7 @@ export default {
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}) => ` to chat about anything ${workspaceName} related.`,
         beginningOfChatHistoryUserRoomPartOne: 'Collaboration starts here! 🎉\nUse this space to chat about anything ',
         beginningOfChatHistoryUserRoomPartTwo: ' related.',
-        beginningOfChatHistory: 'This is the beginning of your chat history with ',
+        beginningOfChatHistory: 'This is the beginning of your chat with ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
@@ -275,6 +279,8 @@ export default {
         fabNewChat: 'New chat (Floating action)',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
+        listOfChatMessages: 'List of chat messages',
+        listOfChats: 'List of chats',
     },
     iou: {
         amount: 'Amount',
@@ -344,6 +350,7 @@ export default {
     pronounsPage: {
         pronouns: 'Pronouns',
         isShownOnProfile: 'Your pronouns are shown on your profile.',
+        placeholderText: 'Search to see options',
     },
     contacts: {
         contactMethod: 'Contact method',
@@ -607,6 +614,7 @@ export default {
             invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
         },
         cannotGetAccountDetails: 'Couldn\'t retrieve account details, please try to sign in again.',
+        loginForm: 'Login form',
     },
     personalDetails: {
         error: {
@@ -1082,7 +1090,7 @@ export default {
         publicDescription: 'Anyone can find this room',
         createRoom: 'Create room',
         roomAlreadyExistsError: 'A room with this name already exists',
-        roomNameReservedError: 'A room on this workspace already uses this name',
+        roomNameReservedError: ({reservedName}) => `${reservedName} is a default room on all workspaces. Please choose another name.`,
         roomNameInvalidError: 'Room names can only include lowercase letters, numbers and hyphens',
         pleaseEnterRoomName: 'Please enter a room name',
         pleaseSelectWorkspace: 'Please select a workspace',
@@ -1166,6 +1174,7 @@ export default {
     },
     report: {
         genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
+        noActivityYet: 'No activity yet',
     },
     chronos: {
         oooEventSummaryFullDay: ({summary, dayCount, date}) => `${summary} for ${dayCount} ${dayCount === 1 ? 'day' : 'days'} until ${date}`,
@@ -1202,4 +1211,15 @@ export default {
     },
     allStates: COMMON_CONST.STATES,
     allCountries: CONST.ALL_COUNTRIES,
+    accessibilityHints: {
+        navigateToChatsList: 'Navigate back to chats list',
+        chatWelcomeMessage: 'Chat welcome message',
+        navigatesToChat: 'Navigates to a chat',
+        newMessageLineIndicator: 'New message line indicator',
+        chatMessage: 'Chat message',
+        lastChatMessagePreview: 'Last chat message preview',
+        workspaceName: 'Workspace name',
+        chatUserDisplayNames: 'Chat user display names',
+        scrollToNewestMessages: 'Scroll to newest messages',
+    },
 };

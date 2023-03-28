@@ -571,6 +571,11 @@ function getSmallSizeAvatar(avatarURL, login) {
         return source;
     }
 
+    // Because other urls than CloudFront do not support dynamic image sizing (_SIZE suffix), the current source is already what we want to use here.
+    if (!CONST.CLOUDFRONT_DOMAIN_REGEX.test(source)) {
+        return source;
+    }
+
     // If image source already has _128 at the end, the given avatar URL is already what we want to use here.
     const lastPeriodIndex = source.lastIndexOf('.');
     if (source.substring(lastPeriodIndex - 4, lastPeriodIndex) === '_128') {
@@ -868,12 +873,15 @@ function hasReportNameError(report) {
 }
 
 /**
+ * For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
+ * For longer comments, skip parsing, but still escape the text, and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
+ *
  * @param {String} text
  * @returns {String}
  */
 function getParsedComment(text) {
     const parser = new ExpensiMark();
-    return text.length < CONST.MAX_MARKUP_LENGTH ? parser.replace(text) : text;
+    return text.length < CONST.MAX_MARKUP_LENGTH ? parser.replace(text) : _.escape(text);
 }
 
 /**
@@ -882,8 +890,6 @@ function getParsedComment(text) {
  * @returns {Object}
  */
 function buildOptimisticAddCommentReportAction(text, file) {
-    // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
-    // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     const parser = new ExpensiMark();
     const commentText = getParsedComment(text);
     const isAttachment = _.isEmpty(text) && file !== undefined;
@@ -980,7 +986,6 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
     const who = displayNames.length < 3
         ? displayNames.join(' and ')
         : `${displayNames.slice(0, -1).join(', ')}, and ${_.last(displayNames)}`;
-
     let paymentMethodMessage;
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:

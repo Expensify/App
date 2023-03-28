@@ -275,6 +275,7 @@ const styles = {
         fontWeight: fontWeightBold,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontSize: variables.fontSizeSmall,
+        lineHeight: variables.lineHeightSmall,
     },
 
     textMicroSupporting: {
@@ -775,6 +776,7 @@ const styles = {
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 15,
+        overflow: 'hidden',
     },
 
     calendarDayContainerSelected: {
@@ -1204,11 +1206,6 @@ const styles = {
         alignItems: 'center',
     },
 
-    popoverMenuIconEmphasized: {
-        backgroundColor: themeColors.iconSuccessFill,
-        borderRadius: variables.componentSizeLarge / 2,
-    },
-
     popoverMenuText: {
         fontSize: variables.fontSizeNormal,
         color: themeColors.heading,
@@ -1526,12 +1523,25 @@ const styles = {
     emojiPickerContainer: {
         backgroundColor: themeColors.componentBG,
     },
-
     emojiPickerList: {
-        height: 288,
+        height: CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT,
         width: '100%',
         ...spacing.ph4,
     },
+    emojiPickerListWithPadding: {
+        height: CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT,
+        width: '100%',
+        ...spacing.ph4,
+    },
+    emojiPickerSearchListContainer: {
+        position: 'absolute',
+        top: 60,
+        right: 0,
+        bottom: 4,
+        left: 0,
+        backgroundColor: themeColors.appBG,
+    },
+
     emojiPickerListLandscape: {
         height: 240,
     },
@@ -3042,7 +3052,7 @@ const styles = {
         justifyContent: 'space-between',
     },
 
-    magicCodeDigits: {
+    validateCodeDigits: {
         color: themeColors.text,
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeXXLarge,
@@ -3101,6 +3111,11 @@ const styles = {
         alignSelf: 'center',
         top: 60,
         zIndex: 100,
+    },
+
+    validateCodeMessage: {
+        width: variables.modalContentMaxWidth,
+        textAlign: 'center',
     },
 };
 
