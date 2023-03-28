@@ -474,7 +474,7 @@ class EmojiPickerMenu extends Component {
                 onFocus={() => this.setState({highlightedIndex: index})}
                 onBlur={() => this.setState(prevState => ({
                     // Only clear the highlighted index if the highlighted index is the same,
-                    // meaning that the focus changed to a element that is not an emoji item.
+                    // meaning that the focus changed to an element that is not an emoji item.
                     highlightedIndex: prevState.highlightedIndex === index ? -1 : prevState.highlightedIndex,
                 }))}
                 isFocused={isEmojiFocused}
