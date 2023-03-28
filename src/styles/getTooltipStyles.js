@@ -193,6 +193,7 @@ export default function getTooltipStyles(
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: tooltipFontSize,
             overflow: 'hidden',
+            lineHeight: variables.lineHeightSmall,
         },
         pointerWrapperStyle: {
             position: 'fixed',

@@ -203,7 +203,6 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         transactionID: optimisticReportAction.originalMessage.IOUTransactionID,
         reportActionID: optimisticReportAction.reportActionID,
         createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : 0,
-        shouldKeyReportActionsByID: true,
     }, {optimisticData, successData, failureData});
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
 }
@@ -501,7 +500,6 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, lo
         transactionID: groupData.transactionID,
         reportActionID: groupData.reportActionID,
         createdReportActionID: groupData.createdReportActionID,
-        shouldKeyReportActionsByID: true,
     }, onyxData);
 
     Navigation.dismissModal();
@@ -527,7 +525,6 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
         transactionID: groupData.transactionID,
         reportActionID: groupData.reportActionID,
         createdReportActionID: groupData.createdReportActionID,
-        shouldKeyReportActionsByID: true,
     }, onyxData);
 
     Navigation.navigate(ROUTES.getReportRoute(groupData.chatReportID));

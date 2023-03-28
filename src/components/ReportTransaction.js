@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
 import CONST from '../CONST';
 import * as IOU from '../libs/actions/IOU';
@@ -77,7 +76,7 @@ class ReportTransaction extends Component {
                         wrapperStyles={[styles.reportTransactionWrapper]}
                     >
                         <Text style={[styles.chatItemMessage]}>
-                            {Str.htmlDecode(this.props.action.message[0].html)}
+                            {this.props.action.message[0].text}
                         </Text>
                     </ReportActionItemSingle>
                     {this.props.canBeRejected && (

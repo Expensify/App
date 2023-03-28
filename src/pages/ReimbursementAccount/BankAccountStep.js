@@ -45,6 +45,9 @@ const propTypes = {
         validated: PropTypes.bool,
     }),
 
+    /** If the plaid button has been disabled */
+    isPlaidDisabled: PropTypes.bool,
+
     /* The workspace name */
     policyName: PropTypes.string,
 };
@@ -53,6 +56,7 @@ const defaultProps = {
     receivedRedirectURI: null,
     plaidLinkOAuthToken: '',
     user: {},
+    isPlaidDisabled: false,
     policyName: '',
 };
 

@@ -27,11 +27,18 @@ const propTypes = {
     session: PropTypes.shape({
         /** Email address */
         email: PropTypes.string.isRequired,
-    }).isRequired,
+    }),
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
+
+const defaultProps = {
+    session: {
+        email: null,
+    },
+};
+
 class CloseAccountPage extends Component {
     constructor(props) {
         super(props);
@@ -139,6 +146,7 @@ class CloseAccountPage extends Component {
 }
 
 CloseAccountPage.propTypes = propTypes;
+CloseAccountPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,

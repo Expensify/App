@@ -3,7 +3,8 @@ import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import * as Url from './libs/Url';
 
-const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
+const CLOUDFRONT_DOMAIN = 'cloudfront.net';
+const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com'));
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
@@ -29,7 +30,7 @@ const CONST = {
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
-        ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml', 'mp3', 'mp4', 'mov'],
+        ALLOWED_EXTENSIONS: ['webp', 'jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml', 'mp3', 'mp4', 'mov'],
 
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
         MAX_SIZE: 25165824,
@@ -353,6 +354,7 @@ const CONST = {
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     DEEPLINK_BASE_URL: 'new-expensify://',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
+    CLOUDFRONT_DOMAIN_REGEX: /^https:\/\/\w+\.cloudfront\.net/i,
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
     CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
@@ -392,6 +394,48 @@ const CONST = {
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
+                POLICYCHANGELOG: {
+                    UPDATE_NAME: 'POLICYCHANGELOG_UPDATE_NAME',
+                    UPDATE_CURRENCY: 'POLICYCHANGELOG_UPDATE_CURRENCY',
+                    UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
+                    UPDATE_AUTOHARVESTING: 'POLICYCHANGELOG_UPDATE_AUTOHARVESTING',
+                    UPDATE_AUTOREPORTING_FREQUENCY: 'POLICYCHANGELOG_UPDATE_AUTOREPORTING_FREQUENCY',
+                    UPDATE_DEFAULT_TITLE_ENFORCED: 'POLICYCHANGELOG_UPDATE_DEFAULT_TITLE_ENFORCED',
+                    UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
+                    ADD_REPORT_FIELD: 'POLICYCHANGELOG_ADD_REPORT_FIELD',
+                    DELETE_REPORT_FIELD: 'POLICYCHANGELOG_DELETE_REPORT_FIELD',
+                    UPDATE_DEFAULT_TITLE: 'POLICYCHANGELOG_UPDATE_DEFAULT_TITLE',
+                    ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
+                    DELETE_CATEGORY: 'POLICYCHANGELOG_DELETE_CATEGORY',
+                    SET_CATEGORY_NAME: 'POLICYCHANGELOG_SET_CATEGORY_NAME',
+                    UPDATE_CATEGORY: 'POLICYCHANGELOG_UPDATE_CATEGORY',
+                    ADD_TAG: 'POLICYCHANGELOG_ADD_TAG',
+                    UPDATE_TAG: 'POLICYCHANGELOG_UPDATE_TAG',
+                    DELETE_TAG: 'POLICYCHANGELOG_DELETE_TAG',
+                    UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
+                    UPDATE_TAG_LIST_NAME: 'POLICYCHANGELOG_UPDATE_TAG_LIST_NAME',
+                    IMPORT_TAGS: 'POLICYCHANGELOG_IMPORT_TAGS',
+                    DELETE_ALL_TAGS: 'POLICYCHANGELOG_DELETE_ALL_TAGS',
+                    ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
+                    UPDATE_APPROVER_RULE: 'POLICYCHANGELOG_UPDATE_APPROVER_RULE',
+                    DELETE_APPROVER_RULE: 'POLICYCHANGELOG_DELETE_APPROVER_RULE',
+                    ADD_EMPLOYEE: 'POLICYCHANGELOG_ADD_EMPLOYEE',
+                    DELETE_EMPLOYEE: 'POLICYCHANGELOG_DELETE_EMPLOYEE',
+                    UPDATE_EMPLOYEE: 'POLICYCHANGELOG_UPDATE_EMPLOYEE',
+                    SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
+                    ADD_INTEGRATION: 'POLICYCHANGELOG_ADD_INTEGRATION',
+                    DELETE_INTEGRATION: 'POLICYCHANGELOG_DELETE_INTEGRATION',
+                    UPDATE_ACH_ACCOUNT: 'POLICYCHANGELOG_UPDATE_ACH_ACCOUNT',
+                    UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
+                    SET_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
+                    ADD_CUSTOM_UNIT: 'POLICYCHANGELOG_ADD_CUSTOM_UNIT',
+                    DELETE_CUSTOM_UNIT: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT',
+                    UPDATE_CUSTOM_UNIT: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT',
+                    UPDATE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT_RATE',
+                    ADD_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_ADD_CUSTOM_UNIT_RATE',
+                    DELETE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_RATE',
+                    UPDATE_FIELD: 'POLICYCHANGELOG_UPDATE_FIELD',
+                },
             },
         },
         ARCHIVE_REASON: {
@@ -613,6 +657,8 @@ const CONST = {
 
     EMOJI_FREQUENT_ROW_COUNT: 3,
 
+    EMOJI_DEFAULT_SKIN_TONE: -1,
+
     INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
 
     TOOLTIP_MAX_LINES: 3,
@@ -658,6 +704,10 @@ const CONST = {
     EMOJI_PICKER_SIZE: {
         WIDTH: 320,
         HEIGHT: 416,
+    },
+    CATEGORY_SHORTCUT_BAR_HEIGHT: 40,
+    SMALL_EMOJI_PICKER_SIZE: {
+        WIDTH: '100%',
     },
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 256,
     EMOJI_PICKER_ITEM_HEIGHT: 32,

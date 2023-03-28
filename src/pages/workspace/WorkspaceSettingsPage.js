@@ -1,6 +1,7 @@
 import React from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -23,11 +24,17 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import Avatar from '../../components/Avatar';
 
 const propTypes = {
+    // The currency list constant object from Onyx
+    currencyList: PropTypes.objectOf(PropTypes.shape({
+        // Symbol for the currency
+        symbol: PropTypes.string,
+    })),
     ...policyPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
+    currencyList: {},
     ...policyDefaultProps,
 };
 
