@@ -328,7 +328,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
             lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
         } else {
-            lastMessageTextFromReport = Str.htmlDecode(report ? report.lastMessageText : '');
+            lastMessageTextFromReport = report ? report.lastMessageText : '';
         }
 
         const lastActorDetails = personalDetailMap[report.lastActorEmail] || null;
