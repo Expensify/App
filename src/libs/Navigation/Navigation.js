@@ -12,6 +12,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 import SCREENS from '../../SCREENS';
+import removeKeyboardGoingBack from './removeKeyboardGoingBack';
 
 let resolveNavigationIsReadyPromise;
 const navigationIsReadyPromise = new Promise((resolve) => {
@@ -312,6 +313,22 @@ function setIsReportScreenIsReady() {
     resolveReportScreenIsReadyPromise();
 }
 
+/**
+ * Navigation function with additional logic to remove opened keyboard
+ *
+ * Navigation events are not fired when we are moving to existing screen in stack,
+ * that is why we need to manipulate closing keyboard manually
+ * @param {string} backRoute
+ */
+function drawerGoBack(backRoute) {
+    removeKeyboardGoingBack();
+    if (!backRoute) {
+        goBack();
+        return;
+    }
+    navigate(backRoute);
+}
+
 export default {
     canNavigate,
     navigate,
@@ -334,6 +351,7 @@ export default {
     setIsNavigating,
     isReportScreenReady,
     setIsReportScreenIsReady,
+    drawerGoBack,
 };
 
 export {

@@ -7,7 +7,7 @@ import CONST from '../../CONST';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import ROUTES from '../../ROUTES';
-import drawerGoBack from '../Navigation/drawerGoBack';
+import Navigation from '../Navigation/Navigation';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -110,7 +110,7 @@ function updatePronouns(pronouns) {
             },
         }],
     });
-    drawerGoBack(ROUTES.SETTINGS_PROFILE);
+    Navigation.drawerGoBack(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
@@ -134,7 +134,7 @@ function updateDisplayName(firstName, lastName) {
             },
         }],
     });
-    drawerGoBack(ROUTES.SETTINGS_PROFILE);
+    Navigation.drawerGoBack(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
@@ -152,7 +152,7 @@ function updateLegalName(legalFirstName, legalLastName) {
             },
         }],
     });
-    drawerGoBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.drawerGoBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -168,7 +168,7 @@ function updateDateOfBirth(dob) {
             },
         }],
     });
-    drawerGoBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.drawerGoBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -202,7 +202,7 @@ function updateAddress(street, street2, city, state, zip, country) {
             },
         }],
     });
-    drawerGoBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.drawerGoBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -252,7 +252,7 @@ function updateSelectedTimezone(selectedTimezone) {
             },
         }],
     });
-    drawerGoBack(ROUTES.SETTINGS_TIMEZONE);
+    Navigation.drawerGoBack(ROUTES.SETTINGS_TIMEZONE);
 }
 
 /**
