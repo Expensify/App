@@ -7,6 +7,7 @@ import PopoverWithMeasuredContent from '../../PopoverWithMeasuredContent';
 import compose from '../../../libs/compose';
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../withViewportOffsetTop';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
+import getOperatingSystem from '../../../libs/getOperatingSystem';
 
 const propTypes = {
     ...viewportOffsetTopPropTypes,
@@ -55,7 +56,7 @@ class EmojiPicker extends React.Component {
         }
 
         // Dismiss the keyboard to provide a focus for the emoji picker to avoid selection issues.
-        // on iOS, the keyboard will dismiss automatically when the emoji picker is shown.
+        // On iOS, the keyboard will dismiss automatically when the emoji picker is shown.
         if (getOperatingSystem() !== CONST.OS.IOS) {
             Keyboard.dismiss();
         }
