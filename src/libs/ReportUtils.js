@@ -986,7 +986,6 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
     const who = displayNames.length < 3
         ? displayNames.join(' and ')
         : `${displayNames.slice(0, -1).join(', ')}, and ${_.last(displayNames)}`;
-
     let paymentMethodMessage;
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
