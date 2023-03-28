@@ -106,28 +106,9 @@ class FloatingActionButtonAndPopover extends React.Component {
     }
 
     /**
-     * Check if LHN is inactive.
-     * Used to prevent FAB menu showing after opening any other pages.
-     *
-     * @return {Boolean}
-     */
-    isScreenInactive() {
-        // When any other page is open
-        if (!this.props.isFocused) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
      * Method called when we click the floating action button
      */
     showCreateMenu() {
-        if (this.isScreenInactive()) {
-            // Prevent showing menu when click FAB icon quickly after opening other pages
-            return;
-        }
         this.setState({
             isCreateMenuActive: true,
         });
