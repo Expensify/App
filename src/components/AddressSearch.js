@@ -128,12 +128,14 @@ const AddressSearch = (props) => {
             administrative_area_level_1: 'long_name',
         });
 
+        // Make sure that the order of keys remains such that the country is always set above the state.
+        // Refer to https://github.com/Expensify/App/issues/15633 for more information.
         const values = {
             street: props.value ? props.value.trim() : '',
             city: city || cityFallback,
             zipCode,
-            state,
             country: '',
+            state,
         };
 
         // If the address is not in the US, use the full length state name since we're displaying the address's

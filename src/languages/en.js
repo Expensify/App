@@ -231,7 +231,10 @@ export default {
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
+    },
+    emojiReactions: {
         addReactionTooltip: 'Add reaction',
+        reactedWith: 'reacted with',
     },
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'You missed the party in ',
@@ -276,6 +279,8 @@ export default {
         fabNewChat: 'New chat (Floating action)',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
+        listOfChatMessages: 'List of chat messages',
+        listOfChats: 'List of chats',
     },
     iou: {
         amount: 'Amount',
@@ -345,6 +350,7 @@ export default {
     pronounsPage: {
         pronouns: 'Pronouns',
         isShownOnProfile: 'Your pronouns are shown on your profile.',
+        placeholderText: 'Search to see options',
     },
     contacts: {
         contactMethod: 'Contact method',
@@ -608,6 +614,7 @@ export default {
             invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
         },
         cannotGetAccountDetails: 'Couldn\'t retrieve account details, please try to sign in again.',
+        loginForm: 'Login form',
     },
     personalDetails: {
         error: {
@@ -1203,4 +1210,15 @@ export default {
     },
     allStates: COMMON_CONST.STATES,
     allCountries: CONST.ALL_COUNTRIES,
+    accessibilityHints: {
+        navigateToChatsList: 'Navigate back to chats list',
+        chatWelcomeMessage: 'Chat welcome message',
+        navigatesToChat: 'Navigates to a chat',
+        newMessageLineIndicator: 'New message line indicator',
+        chatMessage: 'Chat message',
+        lastChatMessagePreview: 'Last chat message preview',
+        workspaceName: 'Workspace name',
+        chatUserDisplayNames: 'Chat user display names',
+        scrollToNewestMessages: 'Scroll to newest messages',
+    },
 };

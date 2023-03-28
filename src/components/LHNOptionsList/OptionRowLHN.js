@@ -127,7 +127,7 @@ const OptionRowLHN = (props) => {
                             hovered && !props.isFocused ? props.hoverStyle : null,
                         ]}
                     >
-                        <View accessibilityHint="Navigates to a chat" style={sidebarInnerRowStyle}>
+                        <View accessibilityHint={props.translate('accessibilityHints.navigatesToChat')} style={sidebarInnerRowStyle}>
                             <View
                                 style={[
                                     styles.flexRow,
@@ -168,7 +168,7 @@ const OptionRowLHN = (props) => {
                                 <View style={contentContainerStyles}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                         <DisplayNames
-                                            accessibilityLabel="Chat user display names"
+                                            accessibilityLabel={props.translate('accessibilityHints.chatUserDisplayNames')}
                                             fullTitle={optionItem.text}
                                             displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
                                             tooltipEnabled
@@ -179,7 +179,7 @@ const OptionRowLHN = (props) => {
                                         {optionItem.isChatRoom && (
                                             <TextPill
                                                 style={textPillStyle}
-                                                accessibilityLabel="Workspace name"
+                                                accessibilityLabel={props.translate('accessibilityHints.workspaceName')}
                                                 text={optionItem.subtitle}
                                             />
                                         )}
@@ -188,7 +188,7 @@ const OptionRowLHN = (props) => {
                                         <Text
                                             style={alternateTextStyle}
                                             numberOfLines={1}
-                                            accessibilityLabel="Last chat message preview"
+                                            accessibilityLabel={props.translate('accessibilityHints.lastChatMessagePreview')}
                                         >
                                             {optionItem.alternateText}
                                         </Text>

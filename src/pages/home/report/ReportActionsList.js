@@ -19,6 +19,7 @@ import reportActionPropTypes from './reportActionPropTypes';
 import CONST from '../../../CONST';
 import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
+import withLocalize from '../../../components/withLocalize';
 
 // This is a workaround to a reanimated issue -> https://github.com/software-mansion/react-native-reanimated/issues/3355
 if (process.browser) {
@@ -146,7 +147,7 @@ const ReportActionsList = (props) => {
     return (
         <Animated.View style={[animatedStyles, styles.flex1]}>
             <InvertedFlatList
-                accessibilityLabel="List of chat messages"
+                accessibilityLabel={props.translate('sidebarScreen.listOfChatMessages')}
                 ref={ReportScrollManager.flatListRef}
                 data={props.sortedReportActions}
                 renderItem={renderItem}
@@ -202,6 +203,7 @@ ReportActionsList.displayName = 'ReportActionsList';
 export default compose(
     withDrawerState,
     withWindowDimensions,
+    withLocalize,
     withPersonalDetails(),
     withNetwork(),
 )(ReportActionsList);
