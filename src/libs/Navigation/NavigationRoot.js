@@ -50,16 +50,17 @@ function parseAndLogRoute(state) {
     Navigation.setIsNavigationReady();
 }
 
-const themeContext = useContext(ThemeContext);
-
-if (themeContext == null) { throw new Error('You forgot to wrap this component with <ThemeContext.Provider />'); }
-
-const animatedBackgroundStyle = useAnimatedStyle(() => ({
-    backgroundColor: themeContext.appBG.value,
-}));
-
 const NavigationRoot = (props) => {
     useFlipper(navigationRef);
+
+    const themeContext = useContext(ThemeContext);
+
+    if (themeContext == null) { throw new Error('You forgot to wrap this component with <ThemeContext.Provider />'); }
+
+    const animatedBackgroundStyle = useAnimatedStyle(() => ({
+        backgroundColor: themeContext.appBG.value,
+    }));
+
     return (
         <NavigationContainer
             fallback={(
