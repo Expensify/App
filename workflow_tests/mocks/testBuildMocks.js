@@ -1,0 +1,379 @@
+const utils = require('../utils/utils');
+
+// validateactor
+const TESTBUILD__VALIDATEACTOR__IS_TEAM_MEMBER__TRUE__STEP_MOCK = utils.getMockStep(
+    'Is team member',
+    'Is team member',
+    'VALIDATEACTOR',
+    ['GITHUB_TOKEN', 'username', 'team'],
+    [],
+    {isTeamMember: true},
+);
+const TESTBUILD__VALIDATEACTOR__IS_TEAM_MEMBER__FALSE__STEP_MOCK = utils.getMockStep(
+    'Is team member',
+    'Is team member',
+    'VALIDATEACTOR',
+    ['GITHUB_TOKEN', 'username', 'team'],
+    [],
+    {isTeamMember: false},
+);
+const TESTBUILD__VALIDATEACTOR__SET_HAS_READY_TO_BUILD_LABEL_FLAG__TRUE__STEP_MOCK = utils.getMockStep(
+    'Set HAS_READY_TO_BUILD_LABEL flag',
+    'Set HAS_READY_TO_BUILD_LABEL flag',
+    'VALIDATEACTOR',
+    [],
+    ['PULL_REQUEST_NUMBER', 'GITHUB_TOKEN'],
+    {HAS_READY_TO_BUILD_LABEL: true},
+);
+const TESTBUILD__VALIDATEACTOR__SET_HAS_READY_TO_BUILD_LABEL_FLAG__FALSE__STEP_MOCK = utils.getMockStep(
+    'Set HAS_READY_TO_BUILD_LABEL flag',
+    'Set HAS_READY_TO_BUILD_LABEL flag',
+    'VALIDATEACTOR',
+    [],
+    ['PULL_REQUEST_NUMBER', 'GITHUB_TOKEN'],
+    {HAS_READY_TO_BUILD_LABEL: false},
+);
+const TESTBUILD__VALIDATEACTOR__TEAM_MEMBER_HAS_FLAG__STEP_MOCKS = [
+    TESTBUILD__VALIDATEACTOR__IS_TEAM_MEMBER__TRUE__STEP_MOCK,
+    TESTBUILD__VALIDATEACTOR__SET_HAS_READY_TO_BUILD_LABEL_FLAG__TRUE__STEP_MOCK,
+];
+const TESTBUILD__VALIDATEACTOR__TEAM_MEMBER_NO_FLAG__STEP_MOCKS = [
+    TESTBUILD__VALIDATEACTOR__IS_TEAM_MEMBER__TRUE__STEP_MOCK,
+    TESTBUILD__VALIDATEACTOR__SET_HAS_READY_TO_BUILD_LABEL_FLAG__FALSE__STEP_MOCK,
+];
+const TESTBUILD__VALIDATEACTOR__NO_TEAM_MEMBER_HAS_FLAG__STEP_MOCKS = [
+    TESTBUILD__VALIDATEACTOR__IS_TEAM_MEMBER__FALSE__STEP_MOCK,
+    TESTBUILD__VALIDATEACTOR__SET_HAS_READY_TO_BUILD_LABEL_FLAG__TRUE__STEP_MOCK,
+];
+const TESTBUILD__VALIDATEACTOR__NO_TEAM_MEMBER_NO_FLAG__STEP_MOCKS = [
+    TESTBUILD__VALIDATEACTOR__IS_TEAM_MEMBER__FALSE__STEP_MOCK,
+    TESTBUILD__VALIDATEACTOR__SET_HAS_READY_TO_BUILD_LABEL_FLAG__FALSE__STEP_MOCK,
+];
+
+// getbranchref
+const TESTBUILD__GETBRANCHREF__CHECKOUT__STEP_MOCK = utils.getMockStep(
+    'Checkout',
+    'Checkout',
+    'GETBRANCHREF',
+    [],
+    [],
+);
+const TESTBUILD__GETBRANCHREF__CHECK_IF_PULL_REQUEST_NUMBER_IS_CORRECT__STEP_MOCK = utils.getMockStep(
+    'Check if pull request number is correct',
+    'Check if pull request number is correct',
+    'GETBRANCHREF',
+    [],
+    ['GITHUB_TOKEN'],
+    {REF: 'test-ref'},
+);
+const TESTBUILD__GETBRANCHREF__STEP_MOCKS = [
+    TESTBUILD__GETBRANCHREF__CHECKOUT__STEP_MOCK,
+    TESTBUILD__GETBRANCHREF__CHECK_IF_PULL_REQUEST_NUMBER_IS_CORRECT__STEP_MOCK,
+];
+
+// android
+const TESTBUILD__ANDROID__CHECKOUT__STEP_MOCK = utils.getMockStep(
+    'Checkout',
+    'Checkout',
+    'ANDROID',
+    ['ref'],
+    [],
+);
+const TESTBUILD__ANDROID__SETUP_NODE__STEP_MOCK = utils.getMockStep(
+    'Setup Node',
+    'Setup Node',
+    'ANDROID',
+    [],
+    [],
+);
+const TESTBUILD__ANDROID__SETUP_RUBY__STEP_MOCK = utils.getMockStep(
+    'Setup Ruby',
+    'Setup Ruby',
+    'ANDROID',
+    ['ruby-version', 'bundler-cache'],
+    [],
+);
+const TESTBUILD__ANDROID__DECRYPT_KEYSTORE__STEP_MOCK = utils.getMockStep(
+    'Decrypt keystore',
+    'Decrypt keystore',
+    'ANDROID',
+    [],
+    ['LARGE_SECRET_PASSPHRASE'],
+);
+const TESTBUILD__ANDROID__DECRYPT_JSON_KEY__STEP_MOCK = utils.getMockStep(
+    'Decrypt json key',
+    'Decrypt json key',
+    'ANDROID',
+    [],
+    ['LARGE_SECRET_PASSPHRASE'],
+);
+const TESTBUILD__ANDROID__CONFIGURE_AWS_CREDENTIALS__STEP_MOCK = utils.getMockStep(
+    'Configure AWS Credentials',
+    'Configure AWS Credentials',
+    'ANDROID',
+    ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'],
+    [],
+);
+const TESTBUILD__ANDROID__RUN_FASTLANE_BETA_TEST__STEP_MOCK = utils.getMockStep(
+    'Run Fastlane beta test',
+    'Run Fastlane beta test',
+    'ANDROID',
+    [],
+    ['S3_ACCESS_KEY', 'S3_SECRET_ACCESS_KEY', 'S3_BUCKET', 'S3_REGION'],
+);
+const TESTBUILD__ANDROID__UPLOAD_ARTIFACT__STEP_MOCK = utils.getMockStep(
+    'Upload Artifact',
+    'Upload Artifact',
+    'ANDROID',
+    ['name', 'path'],
+    [],
+);
+const TESTBUILD__ANDROID__STEP_MOCKS = [
+    TESTBUILD__ANDROID__CHECKOUT__STEP_MOCK,
+    TESTBUILD__ANDROID__SETUP_NODE__STEP_MOCK,
+    TESTBUILD__ANDROID__SETUP_RUBY__STEP_MOCK,
+    TESTBUILD__ANDROID__DECRYPT_KEYSTORE__STEP_MOCK,
+    TESTBUILD__ANDROID__DECRYPT_JSON_KEY__STEP_MOCK,
+    TESTBUILD__ANDROID__CONFIGURE_AWS_CREDENTIALS__STEP_MOCK,
+    TESTBUILD__ANDROID__RUN_FASTLANE_BETA_TEST__STEP_MOCK,
+    TESTBUILD__ANDROID__UPLOAD_ARTIFACT__STEP_MOCK,
+];
+
+// ios
+const TESTBUILD__IOS__CHECKOUT__STEP_MOCK = utils.getMockStep(
+    'Checkout',
+    'Checkout',
+    'IOS',
+    ['ref'],
+    [],
+);
+const TESTBUILD__IOS__SETUP_NODE__STEP_MOCK = utils.getMockStep(
+    'Setup Node',
+    'Setup Node',
+    'IOS',
+    [],
+    [],
+);
+const TESTBUILD__IOS__SETUP_RUBY__STEP_MOCK = utils.getMockStep(
+    'Setup Ruby',
+    'Setup Ruby',
+    'IOS',
+    ['ruby-version', 'bundler-cache'],
+    [],
+);
+const TESTBUILD__IOS__INSTALL_COCOAPODS__STEP_MOCK = utils.getMockStep(
+    'Install cocoapods',
+    'Install cocoapods',
+    'IOS',
+    ['timeout_minutes', 'max_attempts', 'command'],
+    [],
+);
+const TESTBUILD__IOS__DECRYPT_PROFILE__STEP_MOCK = utils.getMockStep(
+    'Decrypt profile',
+    'Decrypt profile',
+    'IOS',
+    [],
+    ['LARGE_SECRET_PASSPHRASE'],
+);
+const TESTBUILD__IOS__DECRYPT_CERTIFICATE__STEP_MOCK = utils.getMockStep(
+    'Decrypt certificate',
+    'Decrypt certificate',
+    'IOS',
+    [],
+    ['LARGE_SECRET_PASSPHRASE'],
+);
+const TESTBUILD__IOS__CONFIGURE_AWS_CREDENTIALS__STEP_MOCK = utils.getMockStep(
+    'Configure AWS Credentials',
+    'Configure AWS Credentials',
+    'IOS',
+    ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'],
+    [],
+);
+const TESTBUILD__IOS__RUN_FASTLANE__STEP_MOCK = utils.getMockStep(
+    'Run Fastlane',
+    'Run Fastlane',
+    'IOS',
+    [],
+    ['S3_ACCESS_KEY', 'S3_SECRET_ACCESS_KEY', 'S3_BUCKET', 'S3_REGION'],
+);
+const TESTBUILD__IOS__UPLOAD_ARTIFACT__STEP_MOCK = utils.getMockStep(
+    'Upload Artifact',
+    'Upload Artifact',
+    'IOS',
+    ['name', 'path'],
+    [],
+);
+const TESTBUILD__IOS__STEP_MOCKS = [
+    TESTBUILD__IOS__CHECKOUT__STEP_MOCK,
+    TESTBUILD__IOS__SETUP_NODE__STEP_MOCK,
+    TESTBUILD__IOS__SETUP_RUBY__STEP_MOCK,
+    TESTBUILD__IOS__INSTALL_COCOAPODS__STEP_MOCK,
+    TESTBUILD__IOS__DECRYPT_PROFILE__STEP_MOCK,
+    TESTBUILD__IOS__DECRYPT_CERTIFICATE__STEP_MOCK,
+    TESTBUILD__IOS__CONFIGURE_AWS_CREDENTIALS__STEP_MOCK,
+    TESTBUILD__IOS__RUN_FASTLANE__STEP_MOCK,
+    TESTBUILD__IOS__UPLOAD_ARTIFACT__STEP_MOCK,
+];
+
+// desktop
+const TESTBUILD__DESKTOP__CHECKOUT__STEP_MOCK = utils.getMockStep(
+    'Checkout',
+    'Checkout',
+    'DESKTOP',
+    ['ref', 'fetch-depth'],
+    [],
+);
+const TESTBUILD__DESKTOP__SETUP_NODE__STEP_MOCK = utils.getMockStep(
+    'Setup Node',
+    'Setup Node',
+    'DESKTOP',
+    [],
+    [],
+);
+const TESTBUILD__DESKTOP__DECRYPT_DEVELOPER_ID_CERTIFICATE__STEP_MOCK = utils.getMockStep(
+    'Decrypt Developer ID Certificate',
+    'Decrypt Developer ID Certificate',
+    'DESKTOP',
+    [],
+    ['DEVELOPER_ID_SECRET_PASSPHRASE'],
+);
+const TESTBUILD__DESKTOP__CONFIGURE_AWS_CREDENTIALS__STEP_MOCK = utils.getMockStep(
+    'Configure AWS Credentials',
+    'Configure AWS Credentials',
+    'DESKTOP',
+    ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'],
+    [],
+);
+const TESTBUILD__DESKTOP__BUILD_DESKTOP_APP_FOR_TESTING__STEP_MOCK = utils.getMockStep(
+    'Build desktop app for testing',
+    'Build desktop app for testing',
+    'DESKTOP',
+    [],
+    ['CSC_LINK', 'CSC_KEY_PASSWORD', 'APPLE_ID', 'APPLE_ID_PASSWORD', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'],
+);
+const TESTBUILD__DESKTOP__STEP_MOCKS = [
+    TESTBUILD__DESKTOP__CHECKOUT__STEP_MOCK,
+    TESTBUILD__DESKTOP__SETUP_NODE__STEP_MOCK,
+    TESTBUILD__DESKTOP__DECRYPT_DEVELOPER_ID_CERTIFICATE__STEP_MOCK,
+    TESTBUILD__DESKTOP__CONFIGURE_AWS_CREDENTIALS__STEP_MOCK,
+    TESTBUILD__DESKTOP__BUILD_DESKTOP_APP_FOR_TESTING__STEP_MOCK,
+];
+
+// web
+const TESTBUILD__WEB__CHECKOUT__STEP_MOCK = utils.getMockStep(
+    'Checkout',
+    'Checkout',
+    'WEB',
+    ['fetch-depth', 'ref'],
+    [],
+);
+const TESTBUILD__WEB__SETUP_NODE__STEP_MOCK = utils.getMockStep(
+    'Setup Node',
+    'Setup Node',
+    'WEB',
+    [],
+    [],
+);
+const TESTBUILD__WEB__CONFIGURE_AWS_CREDENTIALS__STEP_MOCK = utils.getMockStep(
+    'Configure AWS Credentials',
+    'Configure AWS Credentials',
+    'WEB',
+    ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'],
+    [],
+);
+const TESTBUILD__WEB__BUILD_WEB_FOR_TESTING__STEP_MOCK = utils.getMockStep(
+    'Build web for testing',
+    'Build web for testing',
+    'WEB',
+    [],
+    [],
+);
+const TESTBUILD__WEB__BUILD_DOCS__STEP_MOCK = utils.getMockStep(
+    'Build docs',
+    'Build docs',
+    'WEB',
+    [],
+    [],
+);
+const TESTBUILD__WEB__DEPLOY_TO_S3_FOR_INTERNAL_TESTING__STEP_MOCK = utils.getMockStep(
+    'Deploy to S3 for internal testing',
+    'Deploy to S3 for internal testing',
+    'WEB',
+    [],
+    [],
+);
+const TESTBUILD__WEB__STEP_MOCKS = [
+    TESTBUILD__WEB__CHECKOUT__STEP_MOCK,
+    TESTBUILD__WEB__SETUP_NODE__STEP_MOCK,
+    TESTBUILD__WEB__CONFIGURE_AWS_CREDENTIALS__STEP_MOCK,
+    TESTBUILD__WEB__BUILD_WEB_FOR_TESTING__STEP_MOCK,
+    TESTBUILD__WEB__BUILD_DOCS__STEP_MOCK,
+    TESTBUILD__WEB__DEPLOY_TO_S3_FOR_INTERNAL_TESTING__STEP_MOCK,
+];
+
+// postgithubcomment
+const TESTBUILD__POSTGITHUBCOMMENT__CHECKOUT__STEP_MOCK = utils.getMockStep(
+    'Checkout',
+    'Checkout',
+    'POSTGITHUBCOMMENT',
+    ['ref'],
+    [],
+);
+const TESTBUILD__POSTGITHUBCOMMENT__DOWNLOAD_ARTIFACT__STEP_MOCK = utils.getMockStep(
+    'Download Artifact',
+    'Download Artifact',
+    'POSTGITHUBCOMMENT',
+    [],
+    [],
+);
+const TESTBUILD__POSTGITHUBCOMMENT__READ_JSONS_WITH_ANDROID_PATHS__STEP_MOCK = utils.getMockStep(
+    'Read JSONs with android paths',
+    'Read JSONs with android paths',
+    'POSTGITHUBCOMMENT',
+    [],
+    [],
+    {android_paths: '{\\"html_path\\": \\"http://dummy.android.link\\"}'},
+);
+const TESTBUILD__POSTGITHUBCOMMENT__READ_JSONS_WITH_IOS_PATHS__STEP_MOCK = utils.getMockStep(
+    'Read JSONs with iOS paths',
+    'Read JSONs with iOS paths',
+    'POSTGITHUBCOMMENT',
+    [],
+    [],
+    {ios_paths: '{\\"html_path\\": \\"http://dummy.ios.link\\"}'},
+);
+const TESTBUILD__POSTGITHUBCOMMENT__MAINTAIN_COMMENT__STEP_MOCK = utils.getMockStep(
+    'maintain-comment',
+    'maintain-comment',
+    'POSTGITHUBCOMMENT',
+    ['token', 'body-include', 'number', 'delete'],
+    [],
+);
+const TESTBUILD__POSTGITHUBCOMMENT__PUBLISH_LINKS_TO_APPS_FOR_DOWNLOAD__STEP_MOCK = utils.getMockStep(
+    'Publish links to apps for download',
+    'Publish links to apps for download',
+    'POSTGITHUBCOMMENT',
+    ['PR_NUMBER', 'GITHUB_TOKEN', 'ANDROID', 'DESKTOP', 'IOS', 'WEB', 'ANDROID_LINK', 'DESKTOP_LINK', 'IOS_LINK', 'WEB_LINK'],
+    [],
+);
+const TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS = [
+    TESTBUILD__POSTGITHUBCOMMENT__CHECKOUT__STEP_MOCK,
+    TESTBUILD__POSTGITHUBCOMMENT__DOWNLOAD_ARTIFACT__STEP_MOCK,
+    TESTBUILD__POSTGITHUBCOMMENT__READ_JSONS_WITH_ANDROID_PATHS__STEP_MOCK,
+    TESTBUILD__POSTGITHUBCOMMENT__READ_JSONS_WITH_IOS_PATHS__STEP_MOCK,
+    TESTBUILD__POSTGITHUBCOMMENT__MAINTAIN_COMMENT__STEP_MOCK,
+    TESTBUILD__POSTGITHUBCOMMENT__PUBLISH_LINKS_TO_APPS_FOR_DOWNLOAD__STEP_MOCK,
+];
+
+module.exports = {
+    TESTBUILD__VALIDATEACTOR__TEAM_MEMBER_HAS_FLAG__STEP_MOCKS,
+    TESTBUILD__VALIDATEACTOR__TEAM_MEMBER_NO_FLAG__STEP_MOCKS,
+    TESTBUILD__VALIDATEACTOR__NO_TEAM_MEMBER_HAS_FLAG__STEP_MOCKS,
+    TESTBUILD__VALIDATEACTOR__NO_TEAM_MEMBER_NO_FLAG__STEP_MOCKS,
+    TESTBUILD__GETBRANCHREF__STEP_MOCKS,
+    TESTBUILD__ANDROID__STEP_MOCKS,
+    TESTBUILD__IOS__STEP_MOCKS,
+    TESTBUILD__DESKTOP__STEP_MOCKS,
+    TESTBUILD__WEB__STEP_MOCKS,
+    TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
+};
