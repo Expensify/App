@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {
     useSharedValue, interpolateColor, useDerivedValue, withSpring,
