@@ -491,13 +491,14 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
  */
 function splitBill(participants, currentUserLogin, amount, comment, currency, locale, existingGroupChatReportID = '') {
     const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale, existingGroupChatReportID);
+    const parsedComment = ReportUtils.getParsedComment(comment);
 
     API.write('SplitBill', {
         reportID: groupData.chatReportID,
         amount: Math.round(amount * 100),
         splits: JSON.stringify(splits),
         currency,
-        comment,
+        comment: parsedComment,
         transactionID: groupData.transactionID,
         reportActionID: groupData.reportActionID,
         createdReportActionID: groupData.createdReportActionID,
@@ -523,7 +524,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
         amount: Math.round(amount * 100),
         splits: JSON.stringify(splits),
         currency,
-        parsedComment,
+        comment: parsedComment,
         transactionID: groupData.transactionID,
         reportActionID: groupData.reportActionID,
         createdReportActionID: groupData.createdReportActionID,
@@ -657,7 +658,6 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
  */
 function getSendMoneyParams(report, amount, currency, comment, paymentMethodType, managerEmail, recipient) {
     const recipientEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login);
-
     const parsedComment = ReportUtils.getParsedComment(comment);
     const newIOUReportDetails = JSON.stringify({
         amount,
