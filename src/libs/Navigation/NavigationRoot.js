@@ -59,6 +59,7 @@ const NavigationRoot = (props) => {
 
     const animatedBackgroundStyle = useAnimatedStyle(() => ({
         backgroundColor: themeContext.appBG.value,
+        flex: 1,
     }));
 
     return (
