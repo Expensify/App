@@ -66,6 +66,7 @@ const EmojiReactionBubble = (props) => {
             ]}
             onPress={props.onPress}
             onLongPress={props.onReactionListOpen}
+            onMouseDown={e => e.preventDefault()}
         >
             <Text style={[
                 styles.emojiReactionText,

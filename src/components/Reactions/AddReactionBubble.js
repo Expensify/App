@@ -90,6 +90,7 @@ const AddReactionBubble = (props) => {
                     StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.sizeScale),
                 ]}
                 onPress={onPress}
+                onMouseDown={e => e.preventDefault()}
             >
                 {({
                     hovered,
