@@ -27,12 +27,12 @@ const propTypes = {
  * performing some calculation on a network image after fetching dimensions so
  * it can be appropriately resized.
  */
-const ImageWithSizeCalculation = (
+const ImageWithSizeCalculation = ({
     url,
     onMeasure = () => {},
     style = {},
     isAuthTokenRequired = false,
-) => {
+}) => {
     const [isLoading, setIsLoading] = useState(false);
 
     return (
