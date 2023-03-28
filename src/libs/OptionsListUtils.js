@@ -501,7 +501,9 @@ function getOptions(reports, personalDetails, {
 
         allReportOptions.push(createOption(logins, personalDetails, report, reportActions, {
             showChatPreviewLine,
-            forcePolicyNamePreview: isPolicyExpenseChat ? isSearchingSomeonesPolicyExpenseChat || isPolicyChatAdmin : forcePolicyNamePreview,
+            forcePolicyNamePreview: isPolicyExpenseChat
+                ? (isSearchingSomeonesPolicyExpenseChat || isPolicyChatAdmin)
+                : forcePolicyNamePreview,
         }));
     });
 
