@@ -278,6 +278,8 @@ export default {
         fabNewChat: 'Nuevo chat',
         chatPinned: 'Chat fijado',
         draftedMessage: 'Mensaje borrador',
+        listOfChatMessages: 'Lista de mensajes del chat',
+        listOfChats: 'lista de chats',
     },
     iou: {
         amount: 'Importe',
@@ -611,6 +613,7 @@ export default {
             invalidFormatEmailLogin: 'El email introducido no es válido. Corrígelo e inténtalo de nuevo.',
         },
         cannotGetAccountDetails: 'No se pudieron cargar los detalles de tu cuenta, por favor intenta iniciar sesión de nuevo.',
+        loginForm: 'Formulario de inicio de sesión',
     },
     personalDetails: {
         error: {
@@ -1672,5 +1675,16 @@ export default {
         ZA: 'Sudáfrica',
         ZM: 'Zambia',
         ZW: 'Zimbabue',
+    },
+    accessibilityHints: {
+        navigateToChatsList: 'Vuelve a la lista de chats',
+        chatWelcomeMessage: 'Mensaje de bienvenida al chat',
+        navigatesToChat: 'Navega a un chat',
+        newMessageLineIndicator: 'Indicador de nueva línea de mensaje',
+        chatMessage: 'mensaje de chat',
+        lastChatMessagePreview: 'Vista previa del último mensaje del chat',
+        workspaceName: 'Nombre del espacio de trabajo',
+        chatUserDisplayNames: 'Nombres de los usuarios del chat',
+        scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
     },
 };
