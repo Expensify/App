@@ -185,7 +185,6 @@ class ContactMethodDetailsPage extends Component {
                                 value={this.state.validateCode}
                                 onChangeText={text => this.setState({validateCode: text})}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                blurOnSubmit={false}
                                 errorText={formErrorText}
                             />
                             <OfflineWithFeedback
