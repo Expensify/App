@@ -71,7 +71,7 @@ class DisplayNames extends PureComponent {
             // No need for any complex text-splitting, just return a simple Text component
             return (
                 <Text
-                    style={this.props.textStyles}
+                    style={[...this.props.textStyles, (this.props.numberOfLines === 1 ? styles.pre : styles.preWrap)]}
                     numberOfLines={this.props.numberOfLines}
                 >
                     {this.props.fullTitle}
@@ -100,7 +100,7 @@ class DisplayNames extends PureComponent {
                             >
                                 {/*  // We need to get the refs to all the names which will be used to correct
                                     the horizontal position of the tooltip */}
-                                <Text ref={el => this.childRefs[index] = el} style={this.props.textStyles}>
+                                <Text ref={el => this.childRefs[index] = el} style={[...this.props.textStyles, styles.pre]}>
                                     {displayName}
                                 </Text>
                             </Tooltip>

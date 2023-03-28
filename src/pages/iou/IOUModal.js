@@ -56,12 +56,9 @@ const propTypes = {
         /** Whether or not transaction creation has resulted to error */
         error: PropTypes.bool,
 
-        /** Flag to show a loading indicator and avoid showing a previously selected currency */
-        isRetrievingCurrency: PropTypes.bool,
-
         // Selected Currency Code of the current IOU
         selectedCurrencyCode: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** Personal details of all the users */
     personalDetails: PropTypes.shape({
@@ -73,7 +70,7 @@ const propTypes = {
 
         /** Avatar url of participant */
         avatar: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** Personal details of the current user */
     currentUserPersonalDetails: PropTypes.shape({
@@ -92,6 +89,12 @@ const defaultProps = {
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
     currentUserPersonalDetails: {
         localCurrencyCode: CONST.CURRENCY.USD,
+    },
+    personalDetails: {},
+    iou: {
+        creatingIOUTransaction: false,
+        error: false,
+        selectedCurrencyCode: null,
     },
 };
 

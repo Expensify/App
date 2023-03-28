@@ -27,7 +27,7 @@ const propTypes = {
     /* Onyx Props */
 
     /** The personal details of the person who is logged in */
-    personalDetails: personalDetailsPropType.isRequired,
+    personalDetails: personalDetailsPropType,
 
     /** The active report */
     report: reportPropTypes.isRequired,
@@ -43,6 +43,10 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
+const defaultProps = {
+    personalDetails: {},
+};
+
 /**
  * Returns all the participants in the active report
  *
@@ -54,8 +58,8 @@ const getAllParticipants = (report, personalDetails) => {
     const {participants} = report;
 
     return _.map(participants, (login) => {
-        const userPersonalDetail = lodashGet(personalDetails, login, {displayName: login, avatar: ''});
         const userLogin = Str.removeSMSDomain(login);
+        const userPersonalDetail = lodashGet(personalDetails, login, {displayName: userLogin, avatar: ''});
 
         return ({
             alternateText: userLogin,
@@ -119,6 +123,7 @@ const ReportParticipantsPage = (props) => {
 };
 
 ReportParticipantsPage.propTypes = propTypes;
+ReportParticipantsPage.defaultProps = defaultProps;
 ReportParticipantsPage.displayName = 'ReportParticipantsPage';
 
 export default compose(
