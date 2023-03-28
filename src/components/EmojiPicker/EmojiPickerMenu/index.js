@@ -169,6 +169,7 @@ class EmojiPickerMenu extends Component {
             // Return if the key is related to any tab cycling event so that the default logic
             // can be executed.
             if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Shift' || keyBoardEvent.key === 'Enter') {
+                this.setState({isUsingKeyboardMovement: true});
                 return;
             }
 
