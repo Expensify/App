@@ -67,7 +67,9 @@ public class MainActivity extends ReactActivity {
   @Override
   public boolean onKeyDown(int keyCode, KeyEvent event) {
     // disabling hardware ESCAPE support which is handled by Android
-    if (event.getKeyCode() == KeyEvent.KEYCODE_ESCAPE) { return false; }
+    if (event.getKeyCode() == KeyEvent.KEYCODE_ESCAPE) { 
+        return false; 
+    }
     KeyCommandModule.getInstance().onKeyDownEvent(keyCode, event);
     return super.onKeyDown(keyCode, event);
   }
