@@ -403,6 +403,6 @@ assertions.assertSomethingDidNotHappen(result, false);
 ### My workflow has many jobs, each with many steps, how do I start testing it without spending hours on setup?
 #### First of all, consider splitting the workflow into several smaller pieces, with the main one acting as coordinator and calling the others. Secondly, you can bootstrap the test with `npm run workflow-test:generate <workflow>.yml`, which will generate mocks and assertions for you, as well as the stub of the test file
 ### After using `workflow-test:generate` the files are incomplete, or they have errors. Why?
-#### Make sure that the workflow file you want to test, has all steps with names, as the bootstrapping script uses step names to locate and mock them - same with assertions
+#### Make sure that the workflow file you want to test, has all steps with names, as the bootstrapping script uses step names to locate and mock them - same with assertions. After you've added the `name` properties to steps, remove the previously generated files and run the command again
 ### I want to just run the test that I am working on, without all the others - how can I do it?
 #### You can pass parameters to the `npm run workflow-test` command as you would with `jest` or `npm test` - `npm run workflow-test -- -i <path/to/testfile>` will run just the tests within `testfile`. You can also filter further with `-t <part_of_test_name>`
