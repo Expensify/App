@@ -118,25 +118,7 @@ function navigate(route = ROUTES.HOME) {
     // A pressed navigation button will remain focused, keeping its tooltip visible, even if it's supposed to be out of view.
     // To prevent that we blur the button manually (especially for Safari, where the mouse leave event is missing).
     // More info: https://github.com/Expensify/App/issues/13146
-    // DomUtils.blurActiveElement();
-
-    // if (route === ROUTES.HOME) {
-    //     if (isLoggedIn && pendingRoute === null) {
-    //         openDrawer();
-    //         return;
-    //     }
-
-    //     // If we're navigating to the signIn page while logged out, pop whatever screen is on top
-    //     // since it's guaranteed that the sign in page will be underneath (since it's the initial route).
-    //     // Also, if we're coming from a link to validate login (pendingRoute is not null), we want to pop the loading screen.
-    //     navigationRef.current.dispatch(StackActions.pop());
-    //     return;
-    // }
-
-    // if (isDrawerRoute(route)) {
-    //     navigationRef.current.dispatch(DeprecatedCustomActions.pushDrawerRoute(route));
-    //     return;
-    // }
+    DomUtils.blurActiveElement();
 
     linkTo(navigationRef.current, route);
 }
