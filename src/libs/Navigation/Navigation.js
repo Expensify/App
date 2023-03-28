@@ -248,12 +248,13 @@ function setIsReportScreenIsReady() {
 function getTopmostReportId() {
     const state = navigationRef.getState();
     const topmostCentralPane = state.routes.findLast(route => route.name === 'CentralPaneNavigator');
+    const hasDirectReportIdParam = topmostCentralPane.params && topmostCentralPane.params.params && topmostCentralPane.params.params.reportID;
 
-    if (!topmostCentralPane.state && !topmostCentralPane.params) {
+    if (!topmostCentralPane.state && !hasDirectReportIdParam) {
         return '';
     }
 
-    if (!topmostCentralPane.state && topmostCentralPane.params && topmostCentralPane.params.params) {
+    if (hasDirectReportIdParam) {
         return topmostCentralPane.params.params.reportID;
     }
 
