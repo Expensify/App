@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Log from '../libs/Log';
 import styles from '../styles/styles';
@@ -69,5 +70,6 @@ const ImageWithSizeCalculation = (
     );
 };
 
+ImageWithSizeCalculation.displayName = 'ImageWithSizeCalculation';
 ImageWithSizeCalculation.propTypes = propTypes;
 export default React.memo(ImageWithSizeCalculation);
