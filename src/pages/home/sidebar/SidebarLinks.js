@@ -198,7 +198,7 @@ class SidebarLinks extends React.Component {
                             ]}
                             data={optionListItems}
                             focusedIndex={_.findIndex(optionListItems, (
-                                option => option.toString() === this.props.reportIDFromRoute
+                                option => option.toString() === Navigation.getTopmostReportId()
                             ))}
                             onSelectRow={this.showReportPage}
                             shouldDisableFocusOptions={this.props.isSmallScreenWidth}
