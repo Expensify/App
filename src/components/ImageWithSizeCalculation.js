@@ -48,7 +48,7 @@ const ImageWithSizeCalculation = (props) => {
                 resizeMode={Image.resizeMode.contain}
                 onLoadStart={() => setIsLoading(true)}
                 onLoadEnd={() => setIsLoading(false)}
-                onError={() => Log.hmmm('Unable to fetch image to calculate size', {props.url})}
+                onError={() => Log.hmmm('Unable to fetch image to calculate size', {url: props.url})}
                 onLoad={(event) => {
                     props.onMeasure({
                         width: event.nativeEvent.width,
