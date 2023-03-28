@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
-import {Animated} from 'react-native';
+import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
@@ -17,9 +17,14 @@ import participantPropTypes from '../../../components/participantPropTypes';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportActionPropTypes from './reportActionPropTypes';
 import CONST from '../../../CONST';
-import * as StyleUtils from '../../../styles/StyleUtils';
 import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
+
+// This is a workaround to a reanimated issue -> https://github.com/software-mansion/react-native-reanimated/issues/3355
+if (process.browser) {
+    // eslint-disable-next-line no-underscore-dangle
+    window._frameTimestamp = null;
+}
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -63,8 +68,26 @@ const defaultProps = {
     isLoadingMoreReportActions: false,
 };
 
+/**
+ * Create a unique key for each action in the FlatList.
+ * We use the reportActionID that is a string representation of a random 64-bit int, which should be
+ * random enough to avoid collisions
+ * @param {Object} item
+ * @param {Object} item.action
+ * @return {String}
+ */
+function keyExtractor(item) {
+    return item.reportActionID;
+}
+
 const ReportActionsList = (props) => {
-    const [fadeInAnimation] = useState(() => new Animated.Value(0));
+    const opacity = useSharedValue(0);
+    const animatedStyles = useAnimatedStyle(() => ({
+        opacity: withTiming(opacity.value, {duration: 100}),
+    }));
+    useEffect(() => {
+        opacity.value = 1;
+    }, []);
     const [skeletonViewHeight, setSkeletonViewHeight] = useState(0);
 
     /**
@@ -80,17 +103,11 @@ const ReportActionsList = (props) => {
         return Math.ceil(availableHeight / minimumReportActionHeight);
     }, [props.windowHeight]);
 
-    /**
-     * Create a unique key for each action in the FlatList.
-     * We use the reportActionID that is a string representation of a random 64-bit int, which should be
-     * random enough to avoid collisions
-     * @param {Object} item
-     * @param {Object} item.action
-     * @return {String}
-     */
-    function keyExtractor(item) {
-        return item.reportActionID;
-    }
+    const report = props.report;
+    const hasOutstandingIOU = props.report.hasOutstandingIOU;
+    const newMarkerReportActionID = props.newMarkerReportActionID;
+    const sortedReportActions = props.sortedReportActions;
+    const mostRecentIOUReportActionID = props.mostRecentIOUReportActionID;
 
     /**
      * Do not move this or make it an anonymous function it is a method
@@ -103,43 +120,31 @@ const ReportActionsList = (props) => {
      *
      * @returns {React.Component}
      */
-    function renderItem({
+    const renderItem = useCallback(({
         item: reportAction,
         index,
-    }) {
+    }) => {
         // When the new indicator should not be displayed we explicitly set it to null
-        const shouldDisplayNewMarker = reportAction.reportActionID === props.newMarkerReportActionID;
+        const shouldDisplayNewMarker = reportAction.reportActionID === newMarkerReportActionID;
         return (
             <ReportActionItem
-                report={props.report}
+                report={report}
                 action={reportAction}
-                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(props.sortedReportActions, index)}
+                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
                 shouldDisplayNewMarker={shouldDisplayNewMarker}
-                isMostRecentIOUReportAction={reportAction.reportActionID === props.mostRecentIOUReportActionID}
-                hasOutstandingIOU={props.report.hasOutstandingIOU}
+                isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
+                hasOutstandingIOU={hasOutstandingIOU}
                 index={index}
             />
         );
-    }
-
-    const fadeIn = useCallback(() => {
-        Animated.timing(fadeInAnimation, {
-            toValue: 1,
-            duration: 100,
-            useNativeDriver: true,
-        }).start();
-    }, [fadeInAnimation]);
-
-    useEffect(() => {
-        fadeIn();
-    }, []);
+    }, [report, hasOutstandingIOU, newMarkerReportActionID, sortedReportActions, mostRecentIOUReportActionID]);
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = (!props.isDrawerOpen && props.isSmallScreenWidth) ? props.newMarkerReportActionID : undefined;
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report);
     return (
-        <Animated.View style={[StyleUtils.fade(fadeInAnimation), styles.flex1]}>
+        <Animated.View style={[animatedStyles, styles.flex1]}>
             <InvertedFlatList
                 accessibilityLabel="List of chat messages"
                 ref={ReportScrollManager.flatListRef}
