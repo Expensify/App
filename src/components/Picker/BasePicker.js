@@ -12,7 +12,7 @@ import themeColors from '../../styles/themes/default';
 import {ScrollContext} from '../ScrollViewWithContext';
 
 const propTypes = {
-    /** Picker label */
+    /** BasePicker label */
     label: PropTypes.string,
 
     /** Should the picker appear disabled? */
@@ -42,11 +42,11 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
-    /** Customize the Picker container */
+    /** Customize the BasePicker container */
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
-    /** Customize the Picker background color */
+    /** Customize the BasePicker background color */
     backgroundColor: PropTypes.string,
 
     /** The ID used to uniquely identify the input in a Form */
@@ -68,10 +68,10 @@ const propTypes = {
     /** Whether we should forward the focus/blur calls to the inner picker * */
     shouldFocusPicker: PropTypes.bool,
 
-    /** Callback called when click or tap out of Picker */
+    /** Callback called when click or tap out of BasePicker */
     onBlur: PropTypes.func,
 
-    /** Additional events passed to the core Picker for specific platforms such as web */
+    /** Additional events passed to the core BasePicker for specific platforms such as web */
     additionalPickerEvents: PropTypes.func,
 };
 
@@ -102,7 +102,7 @@ const defaultProps = {
  * @property {View} root - a reference to the root View
  * @property {Object} picker - a reference to @react-native-picker/picker
  */
-class Picker extends PureComponent {
+class BasePicker extends PureComponent {
     constructor(props) {
         super(props);
         this.state = {
@@ -135,8 +135,8 @@ class Picker extends PureComponent {
     }
 
     /**
-     * Forms use inputID to set values. But Picker passes an index as the second parameter to onInputChange
-     * We are overriding this behavior to make Picker work with Form
+     * Forms use inputID to set values. But BasePicker passes an index as the second parameter to onInputChange
+     * We are overriding this behavior to make BasePicker work with Form
      * @param {String} value
      * @param {Number} index
      */
@@ -264,16 +264,16 @@ class Picker extends PureComponent {
     }
 }
 
-Picker.propTypes = propTypes;
-Picker.defaultProps = defaultProps;
-Picker.contextType = ScrollContext;
+BasePicker.propTypes = propTypes;
+BasePicker.defaultProps = defaultProps;
+BasePicker.contextType = ScrollContext;
 
 export default React.forwardRef((props, ref) => (
-    <Picker
+    <BasePicker
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
 
-        // Forward the ref to Picker, as we implement imperative methods there
+        // Forward the ref to BasePicker, as we implement imperative methods there
         ref={ref}
         key={props.inputID}
     />

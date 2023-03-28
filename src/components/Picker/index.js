@@ -1,5 +1,5 @@
 import React, {forwardRef} from 'react';
-import BasePicker from './Picker';
+import BasePicker from './BasePicker';
 
 const additionalPickerEvents = (onMouseDown, onChange) => ({
     onMouseDown,
