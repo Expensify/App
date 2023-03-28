@@ -314,11 +314,11 @@ function setIsReportScreenIsReady() {
 }
 
 /**
- * Navigation function with additional logic to remove opened keyboard
+ * Navigation function with additional logic to dismiss the opened keyboard
  *
- * Navigation events are not fired when we are moving to existing screen in stack,
+ * Navigation events are not fired when we navigate to an existing screen in the navigation stack,
  * that is why we need to manipulate closing keyboard manually
- * @param {string} backRoute
+ * @param {string} backRoute - Name of the screen to navigate the user to
  */
 function drawerGoBack(backRoute) {
     dismissKeyboardGoingBack();
