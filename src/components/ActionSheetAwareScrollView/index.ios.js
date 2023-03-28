@@ -11,13 +11,76 @@ import Reanimated, {
     Easing,
     KeyboardState,
     useAnimatedKeyboard,
-    useAnimatedStyle, useDerivedValue, withTiming,
+    useAnimatedStyle, useDerivedValue, withTiming, runOnJS,
 } from 'react-native-reanimated';
 import {makeRemote} from 'react-native-reanimated/src/reanimated2/core';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import getComponentDisplayName from '../../libs/getComponentDisplayName';
 import styles from '../../styles/styles';
+import Log from '../../libs/Log';
 
+// When you need to debug state machine change this to true
+const DEBUG_MODE = false;
+
+function log(...params) {
+    'worklet';
+
+    if (DEBUG_MODE) {
+        runOnJS(Log.info)(...params);
+    }
+}
+
+/**
+ * A hook that creates a state machine that can be used with Reanimated Worklets.
+ * You can transition state from worklet or from the JS thread.
+ *
+ * State machines are helpful for managing complex UI interactions. We want to transition
+ * between states based on user actions. But also we want to ignore some actions
+ * when we are in certain states.
+ *
+ * For example:
+ * 1. Initial state is idle. It can react to KEYBOARD_OPEN action.
+ * 2. We open emoji picker. It sends EMOJI_PICKER_OPEN action.
+ * 2. There is no handling for this action in idle state so we do nothing.
+ * 3. We close emoji picker and it sends EMOJI_PICKER_CLOSE action which again does nothing.
+ * 4. We open keyboard. It sends KEYBOARD_OPEN action. idle can react to this action
+ * by transitioning into keyboardOpen state
+ * 5. Our state is keyboardOpen. It can react to KEYBOARD_CLOSE, EMOJI_PICKER_OPEN actions
+ * 6. We open emoji picker again. It sends EMOJI_PICKER_OPEN action which transitions our state
+ * into emojiPickerOpen state. Now we react only to EMOJI_PICKER_CLOSE action.
+ * 7. Before rendering the emoji picker, the app hides the keyboard.
+ * It sends KEYBOARD_CLOSE action. But we ignore it since our emojiPickerOpen state can only handle
+ * EMOJI_PICKER_CLOSE action. so we write the logic for handling hiding the keyboard
+ * but maintaining the offset based on the keyboard state shared value
+ * 7. we close the picker and send EMOJI_PICKER_CLOSE action which transitions us back into keyboardOpen state.
+ *
+ * State machine object example:
+ * const stateMachine = {
+ *   idle: {
+ *       KEYBOARD_OPEN: 'keyboardOpen',
+ *   },
+ *   keyboardOpen: {
+ *       KEYBOARD_CLOSE: 'idle',
+ *       EMOJI_PICKER_OPEN: 'emojiPickerOpen',
+ *   },
+ *   emojiPickerOpen: {
+ *       EMOJI_PICKER_CLOSE: 'keyboardOpen',
+ *   },
+ * }
+ *
+ * Initial state example:
+ * {
+ *     previous: null,
+ *     current: {
+ *         state: 'idle',
+ *         payload: null,
+ *     },
+ * }
+ *
+ * @param {Object} stateMachine - a state machine object
+ * @param {Object} initialState - the initial state of the state machine
+ * @returns {Object} - an object containing the current state, a transition function, and a reset function
+ */
 function useStateMachine(stateMachine, initialState) {
     const currentState = useSharedValue(initialState);
 
@@ -28,21 +91,20 @@ function useStateMachine(stateMachine, initialState) {
 
         const state = currentState.value;
 
-        // uncomment for debugging
-        // console.log('Current STATE: ', state.current.state);
-        // console.log('Next ACTION: ', action.type, action.payload);
+        log('Current STATE: ', state.current.state);
+        log('Next ACTION: ', action.type, action.payload);
 
         const nextMachine = stateMachine[state.current.state];
 
         if (!nextMachine) {
-            // console.log('No next machine found for state: ', state.current.state);
+            log('No next machine found for state: ', state.current.state);
             return;
         }
 
         const nextState = nextMachine[action.type];
 
         if (!nextState) {
-            // console.log('No next state found for action: ', action.type);
+            log('No next state found for action: ', action.type);
             return;
         }
 
@@ -52,7 +114,7 @@ function useStateMachine(stateMachine, initialState) {
             ...action.payload,
         } : action.payload;
 
-        // console.log('Next STATE: ', nextState, nextPayload);
+        log('Next STATE: ', nextState, nextPayload);
 
         currentState.value = {
             previous: state.current,
@@ -64,7 +126,7 @@ function useStateMachine(stateMachine, initialState) {
     });
 
     const resetWorklet = useWorkletCallback(() => {
-        // console.log('RESET STATE MACHINE');
+        log('RESET STATE MACHINE');
         currentState.value = initialState;
     }, []);
 
@@ -150,52 +212,6 @@ const stateMachine = {
     },
 };
 
-function ActionSheetAwareScrollViewProvider(props) {
-    const {
-        currentState, transition, transitionWorklet, reset,
-    } = useStateMachine(stateMachine, {
-        previous: null,
-        current: {
-            state: 'idle',
-            payload: null,
-        },
-    });
-
-    const value = useMemo(() => ({
-        currentActionSheetState: currentState,
-        transitionActionSheetState: transition,
-        transitionActionSheetStateWorklet: transitionWorklet,
-        resetStateMachine: reset,
-    }), []);
-
-    return (
-        <ActionSheetAwareScrollViewContext.Provider
-            value={value}
-        >
-            {props.children}
-        </ActionSheetAwareScrollViewContext.Provider>
-    );
-}
-
-ActionSheetAwareScrollViewProvider.propTypes = {
-    children: PropTypes.node.isRequired,
-};
-
-function withActionSheetAwareScrollViewContext(WrappedComponent) {
-    const WithActionSheetAwareScrollViewContext = forwardRef((props, ref) => (
-        <ActionSheetAwareScrollViewContext.Consumer>
-            {context => (
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                <WrappedComponent {...context} {...props} ref={ref} />
-            )}
-        </ActionSheetAwareScrollViewContext.Consumer>
-    ));
-
-    WithActionSheetAwareScrollViewContext.displayName = `withActionSheetAwareScrollViewContext(${getComponentDisplayName(WrappedComponent)})`;
-
-    return WithActionSheetAwareScrollViewContext;
-}
-
 const config = {
     duration: 350,
     easing: Easing.bezier(0.33, 0.01, 0, 1),
@@ -245,8 +261,8 @@ const ReportKeyboardSpace = (props) => {
         return () => {
             resetStateMachine();
 
-            // we try to use the new API first, but it doesn't work all the time
-            // especially it's bad with hot reloading, so we fallback to the old API
+            // We try to use the new API first, but it doesn't work all the time
+            // Especially it's bad with hot reloading, so we fallback to the old API
             try {
                 removeDidShow();
                 removeDidHide();
@@ -257,9 +273,9 @@ const ReportKeyboardSpace = (props) => {
         };
     }, []);
 
-    // we need this because of the bug in useAnimatedKeyboard
-    // it calls the same state twice which triggers this thing again
-    // this should work after the fix
+    // We need this because of the bug in useAnimatedKeyboard.
+    // It calls the same state twice which triggers this thing again.
+    // This should work after the fix:
     // return withSequence(withTiming(set, {
     //     duration: 0,
     // }), withTiming(animateTo, config));
@@ -305,6 +321,8 @@ const ReportKeyboardSpace = (props) => {
         const previousElementOffset = (previousPayload.fy + safeArea.top + previousPayload.height)
             - (windowHeight - previousPayload.popoverHeight);
 
+        // Depending on the current and sometimes previous state we can return
+        // either animation or just a value
         switch (current.state) {
             case 'keyboardOpen': {
                 if (previous.state === 'keyboardClosingPopover') {
@@ -415,6 +433,63 @@ const ReportKeyboardSpace = (props) => {
 
 ReportKeyboardSpace.displayName = 'ReportKeyboardSpace';
 
+function ActionSheetAwareScrollViewProvider(props) {
+    const {
+        currentState, transition, transitionWorklet, reset,
+    } = useStateMachine(stateMachine, {
+        previous: null,
+        current: {
+            state: 'idle',
+            payload: null,
+        },
+    });
+
+    const value = useMemo(() => ({
+        currentActionSheetState: currentState,
+        transitionActionSheetState: transition,
+        transitionActionSheetStateWorklet: transitionWorklet,
+        resetStateMachine: reset,
+    }), []);
+
+    return (
+        <ActionSheetAwareScrollViewContext.Provider
+            value={value}
+        >
+            {props.children}
+        </ActionSheetAwareScrollViewContext.Provider>
+    );
+}
+
+ActionSheetAwareScrollViewProvider.propTypes = {
+    children: PropTypes.node.isRequired,
+};
+
+/**
+ * A HOC that provides the ActionSheetAwareScrollViewContext to the wrapped component.
+ * Context will include:
+ * - currentActionSheetState - the current state of the state machine
+ * - transitionActionSheetState - a function to transition the state machine
+ * - transitionActionSheetStateWorklet - a worklet function to transition the state machine
+ * - resetStateMachine - a function to reset the state machine to the initial state
+ *
+ * @param {React.Component} WrappedComponent
+ * @returns {React.Component} A wrapped component that has the ActionSheetAwareScrollViewContext
+ */
+function withActionSheetAwareScrollViewContext(WrappedComponent) {
+    const WithActionSheetAwareScrollViewContext = forwardRef((props, ref) => (
+        <ActionSheetAwareScrollViewContext.Consumer>
+            {context => (
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                <WrappedComponent {...context} {...props} ref={ref} />
+            )}
+        </ActionSheetAwareScrollViewContext.Consumer>
+    ));
+
+    WithActionSheetAwareScrollViewContext.displayName = `withActionSheetAwareScrollViewContext(${getComponentDisplayName(WrappedComponent)})`;
+
+    return WithActionSheetAwareScrollViewContext;
+}
+
 const ActionSheetAwareScrollView = forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <ScrollView ref={ref} {...props}>
@@ -434,6 +509,11 @@ ActionSheetAwareScrollView.propTypes = {
 
 export default ActionSheetAwareScrollView;
 
+/**
+ * This function should be used as renderScrollComponent prop for FlatList
+ * @param {Object} props - props that will be passed to the ScrollView from FlatList
+ * @returns {React.ReactElement} - ActionSheetAwareScrollView
+ */
 function renderScrollComponent(props) {
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <ActionSheetAwareScrollView {...props} />;

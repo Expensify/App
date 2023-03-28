@@ -42,6 +42,19 @@ ActionSheetAwareScrollViewProvider.propTypes = {
     children: PropTypes.node.isRequired,
 };
 
+/**
+ * This is used only on iOS. On other platforms this will be no-op functions.
+ *
+ * A HOC that provides the ActionSheetAwareScrollViewContext to the wrapped component.
+ * Context will include:
+ * - currentActionSheetState - the current state of the state machine
+ * - transitionActionSheetState - a function to transition the state machine
+ * - transitionActionSheetStateWorklet - a worklet function to transition the state machine
+ * - resetStateMachine - a function to reset the state machine to the initial state
+ *
+ * @param {React.Component} WrappedComponent
+ * @returns {React.Component} A wrapped component that has the ActionSheetAwareScrollViewContext
+ */
 function withActionSheetAwareScrollViewContext(WrappedComponent) {
     const WithActionSheetAwareScrollViewContext = forwardRef((props, ref) => (
         <ActionSheetAwareScrollViewContext.Consumer>
@@ -73,7 +86,13 @@ ActionSheetAwareScrollView.propTypes = {
 
 export default ActionSheetAwareScrollView;
 
-// mock
+/**
+ * This is only used on iOS. On other platforms it's just undefined to be pass a prop to FlatList
+ *
+ * This function should be used as renderScrollComponent prop for FlatList
+ * @param {Object} props - props that will be passed to the ScrollView from FlatList
+ * @returns {React.ReactElement} - ActionSheetAwareScrollView
+ */
 const renderScrollComponent = undefined;
 
 export {
