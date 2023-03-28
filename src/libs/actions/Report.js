@@ -632,6 +632,15 @@ function saveReportComment(reportID, comment) {
 }
 
 /**
+ * Saves the number of lines for the comment
+ * @param {String} reportID
+ * @param {Number} numberOfLines
+ */
+function saveReportCommentNumberOfLines(reportID, numberOfLines) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`, numberOfLines);
+}
+
+/**
  * Immediate indication whether the report has a draft comment.
  *
  * @param {String} reportID
@@ -934,6 +943,16 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
  */
 function saveReportActionDraft(reportID, reportActionID, draftMessage) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
+}
+
+/**
+ * Saves the number of lines for the report action draft
+ * @param {String} reportID
+ * @param {Number} reportActionID
+ * @param {Number} numberOfLines
+ */
+function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLines) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}_${reportActionID}`, numberOfLines);
 }
 
 /**
@@ -1398,11 +1417,13 @@ export {
     subscribeToReportCommentPushNotifications,
     unsubscribeFromReportChannel,
     saveReportComment,
+    saveReportCommentNumberOfLines,
     broadcastUserIsTyping,
     togglePinnedState,
     editReportComment,
     handleUserDeletedLinks,
     saveReportActionDraft,
+    saveReportActionDraftNumberOfLines,
     deleteReportComment,
     navigateToConciergeChat,
     setReportWithDraft,

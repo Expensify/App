@@ -62,6 +62,9 @@ const propTypes = {
     /** The comment left by the user */
     comment: PropTypes.string,
 
+    /** Number of lines for the comment */
+    numberOfLines: PropTypes.number,
+
     /** The ID of the report actions will be created for */
     reportID: PropTypes.string.isRequired,
 
@@ -116,6 +119,7 @@ const propTypes = {
 const defaultProps = {
     betas: [],
     comment: '',
+    numberOfLines: 1,
     modal: {},
     report: {},
     reportActions: [],
@@ -163,6 +167,7 @@ class ReportActionCompose extends React.Component {
         this.addAttachment = this.addAttachment.bind(this);
         this.insertSelectedEmoji = this.insertSelectedEmoji.bind(this);
         this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
+        this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.comment = props.comment;
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
@@ -562,6 +567,14 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Update the number of lines for a comment in Onyx
+     * @param {Number} numberOfLines
+     */
+    updateNumberOfLines(numberOfLines) {
+        Report.saveReportCommentNumberOfLines(this.props.reportID, numberOfLines);
+    }
+
+    /**
      * Listens for keyboard shortcuts and applies the action
      *
      * @param {Object} e
@@ -829,6 +842,8 @@ class ReportActionCompose extends React.Component {
                                             setIsFullComposerAvailable={this.setIsFullComposerAvailable}
                                             isComposerFullSize={this.props.isComposerFullSize}
                                             value={this.state.value}
+                                            numberOfLines={this.props.numberOfLines}
+                                            onNumberOfLinesChange={this.updateNumberOfLines}
                                             onLayout={(e) => {
                                                 const composerHeight = e.nativeEvent.layout.height;
                                                 if (this.state.composerHeight === composerHeight) {
@@ -930,6 +945,9 @@ export default compose(
         },
         comment: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
+        },
+        numberOfLines: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`,
         },
         modal: {
             key: ONYXKEYS.MODAL,
