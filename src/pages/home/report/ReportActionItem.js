@@ -184,7 +184,7 @@ class ReportActionItem extends Component {
                                 action={this.props.action}
                                 style={[
                                     (!this.props.displayAsGroup && isAttachment) ? styles.mt2 : undefined,
-                                    _.has(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG, this.props.action.actionName) ? styles.colorMuted : undefined,
+                                    _.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), this.props.action.actionName) ? styles.colorMuted : undefined,
                                 ]}
                             />
                         ) : (

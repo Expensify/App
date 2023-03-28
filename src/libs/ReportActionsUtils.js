@@ -194,7 +194,7 @@ function getSortedReportActionsForDisplay(reportActions) {
     const sortedReportActions = getSortedReportActions(filteredReportActions, true);
     return _.filter(sortedReportActions, (reportAction) => {
         // Filter out any unsupported reportAction types
-        if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName) && !_.has(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG, reportAction.actionName)) {
+        if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName) && !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), reportAction.actionName)) {
             return false;
         }
 
