@@ -44,7 +44,8 @@ const propTypes = {
     index: PropTypes.number.isRequired,
 
     /** A ref to forward to the text input */
-    forwardedRef: PropTypes.func,
+    // eslint-disable-next-line react/forbid-prop-types
+    forwardedRef: PropTypes.object,
 
     /** The report currently being looked at */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -259,7 +260,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         multiline
                         ref={(el) => {
                             this.textInput = el;
-                            this.props.forwardedRef(el);
+                            this.props.forwardedRef.current = el;
                         }}
                         nativeID={this.messageEditInput}
                         onChangeText={this.updateDraft} // Debounced saveDraftComment
