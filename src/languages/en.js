@@ -348,6 +348,7 @@ export default {
     pronounsPage: {
         pronouns: 'Pronouns',
         isShownOnProfile: 'Your pronouns are shown on your profile.',
+        placeholderText: 'Search to see options',
     },
     contacts: {
         contactMethod: 'Contact method',
