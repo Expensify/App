@@ -12,7 +12,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 import SCREENS from '../../SCREENS';
-import removeKeyboardGoingBack from './removeKeyboardGoingBack';
+import dismissKeyboardGoingBack from './dismissKeyboardGoingBack';
 
 let resolveNavigationIsReadyPromise;
 const navigationIsReadyPromise = new Promise((resolve) => {
@@ -321,7 +321,7 @@ function setIsReportScreenIsReady() {
  * @param {string} backRoute
  */
 function drawerGoBack(backRoute) {
-    removeKeyboardGoingBack();
+    dismissKeyboardGoingBack();
     if (!backRoute) {
         goBack();
         return;

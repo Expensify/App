@@ -3,7 +3,7 @@ import {Keyboard} from 'react-native';
 /**
  * @private
  */
-export default function removeKeyboardGoingBack() {
+export default function dismissKeyboardGoingBack() {
     const isKeyboardVisible = Keyboard.isVisible();
 
     if (isKeyboardVisible) {
