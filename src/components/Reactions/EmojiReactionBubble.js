@@ -9,12 +9,8 @@ import withCurrentUserPersonalDetails, {
     withCurrentUserPersonalDetailsPropTypes,
 } from '../withCurrentUserPersonalDetails';
 import * as Report from '../../libs/actions/Report';
-import Tooltip from '../Tooltip';
-import ReactionTooltipContent from './ReactionTooltipContent';
 
 const propTypes = {
-    emojiName: PropTypes.string.isRequired,
-
     /**
      * The emoji codes to display in the bubble.
      */
@@ -63,41 +59,31 @@ const defaultProps = {
 const EmojiReactionBubble = (props) => {
     const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, props.reactionUsers);
     return (
-        <Tooltip
-            renderTooltipContent={() => (
-                <ReactionTooltipContent
-                    emojiName={props.emojiName}
-                    emojiCodes={props.emojiCodes}
-                    accountIDs={props.reactionUsers}
-                />
-            )}
+        <Pressable
+            style={({hovered, pressed}) => [
+                styles.emojiReactionBubble,
+                StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, hasUserReacted, props.sizeScale),
+            ]}
+            onPress={props.onPress}
+            onLongPress={props.onReactionListOpen}
         >
-            <Pressable
-                style={({hovered, pressed}) => [
-                    styles.emojiReactionBubble,
-                    StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, hasUserReacted, props.sizeScale),
-                ]}
-                onPress={props.onPress}
-                onLongPress={props.onReactionListOpen}
+            <Text style={[
+                styles.emojiReactionText,
+                StyleUtils.getEmojiReactionTextStyle(props.sizeScale),
+            ]}
             >
-                <Text style={[
-                    styles.emojiReactionText,
-                    StyleUtils.getEmojiReactionTextStyle(props.sizeScale),
-                ]}
-                >
-                    {props.emojiCodes.join('')}
-                </Text>
-                {props.count > 0 && (
-                <Text style={[
-                    styles.reactionCounterText,
-                    StyleUtils.getEmojiReactionCounterTextStyle(hasUserReacted, props.sizeScale),
-                ]}
-                >
-                    {props.count}
-                </Text>
-                )}
-            </Pressable>
-        </Tooltip>
+                {props.emojiCodes.join('')}
+            </Text>
+            {props.count > 0 && (
+            <Text style={[
+                styles.reactionCounterText,
+                StyleUtils.getEmojiReactionCounterTextStyle(hasUserReacted, props.sizeScale),
+            ]}
+            >
+                {props.count}
+            </Text>
+            )}
+        </Pressable>
     );
 };
 
