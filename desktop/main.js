@@ -16,7 +16,7 @@ const {machineId} = require('node-machine-id');
 const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 const checkForUpdates = require('../src/libs/checkForUpdates');
 const CONFIG = require('../src/CONFIG').default;
-const CONST = require('../src/CONST');
+const CONST = require('../src/CONST').default;
 const Localize = require('../src/libs/Localize');
 
 const port = process.env.PORT || 8080;
@@ -80,6 +80,8 @@ let downloadedVersion;
 // because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
 // So we track preferredLocale separately via ELECTRON_EVENTS.LOCALE_UPDATED
 let preferredLocale = CONST.DEFAULT_LOCALE;
+
+const appProtocol = CONST.DEEPLINK_BASE_URL.replace('://', '');
 
 const quitAndInstallWithUpdate = () => {
     if (!downloadedVersion) {
@@ -268,7 +270,7 @@ const mainWindow = (() => {
              * when the app is bundled electron-builder will take care of it.
              */
             if (__DEV__) {
-                app.setAsDefaultProtocolClient('new-expensify');
+                app.setAsDefaultProtocolClient(appProtocol);
             }
 
             browserWindow = new BrowserWindow({
@@ -407,10 +409,10 @@ const mainWindow = (() => {
             });
 
             app.on('before-quit', () => {
-                // Adding __DEV__ check because we only want to remove it on dev version
+                // Adding __DEV__ check because we want links to be handled by dev app only while it's running
                 // https://github.com/Expensify/App/issues/15965#issuecomment-1483182952
                 if (__DEV__) {
-                    app.removeAsDefaultProtocolClient('new-expensify');
+                    app.removeAsDefaultProtocolClient(appProtocol);
                 }
                 quitting = true;
             });
