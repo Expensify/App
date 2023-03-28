@@ -196,6 +196,7 @@ class AttachmentCarousel extends React.Component {
                     <AttachmentView
                         onPress={() => this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
                         source={authSource}
+                        key={authSource}
                         file={this.state.file}
                     />
                 </CarouselActions>

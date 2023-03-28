@@ -126,7 +126,7 @@ class ReportActionItem extends Component {
         // Newline characters need to be removed here because getCurrentSelection() returns html mixed with newlines, and when
         // <br> tags are converted later to markdown, it creates duplicate newline characters. This means that when the content
         // is pasted, there are extra newlines in the content that we want to avoid.
-        const selection = SelectionScraper.getCurrentSelection().replace(/\n/g, '');
+        const selection = SelectionScraper.getCurrentSelection().replace(/<br>\n/g, '<br>');
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
@@ -263,6 +263,7 @@ class ReportActionItem extends Component {
                                     pendingAction={this.props.draftMessage ? null : this.props.action.pendingAction}
                                     errors={this.props.action.errors}
                                     errorRowStyles={[styles.ml10, styles.mr2]}
+                                    needsOffscreenAlphaCompositing={this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU}
                                 >
                                     {!this.props.displayAsGroup
                                         ? (

@@ -322,7 +322,7 @@ class BaseTextInput extends Component {
                                     />
                                     {this.props.secureTextEntry && (
                                         <Checkbox
-                                            style={styles.secureInputShowPasswordButton}
+                                            style={styles.textInputIconContainer}
                                             onPress={this.togglePasswordVisibility}
                                             onMouseDown={e => e.preventDefault()}
                                         >
@@ -331,6 +331,14 @@ class BaseTextInput extends Component {
                                                 fill={themeColors.icon}
                                             />
                                         </Checkbox>
+                                    )}
+                                    {!this.props.secureTextEntry && this.props.icon && (
+                                        <View style={[styles.textInputIconContainer, styles.cursorPointer]}>
+                                            <Icon
+                                                src={this.props.icon}
+                                                fill={themeColors.icon}
+                                            />
+                                        </View>
                                     )}
                                 </View>
                             </View>

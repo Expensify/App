@@ -1,4 +1,4 @@
-import {Linking} from 'react-native';
+import {Linking, InteractionManager} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -449,6 +449,7 @@ function reconnect(reportID) {
                 value: {
                     isLoadingReportActions: true,
                     isLoadingMoreReportActions: false,
+                    reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
                 },
             }],
             successData: [{
@@ -631,6 +632,15 @@ function saveReportComment(reportID, comment) {
 }
 
 /**
+ * Saves the number of lines for the comment
+ * @param {String} reportID
+ * @param {Number} numberOfLines
+ */
+function saveReportCommentNumberOfLines(reportID, numberOfLines) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`, numberOfLines);
+}
+
+/**
  * Immediate indication whether the report has a draft comment.
  *
  * @param {String} reportID
@@ -671,10 +681,10 @@ function handleReportChanged(report) {
         }
     }
 
-    // A report can be missing a name if a comment is received via pusher event
-    // and the report does not yet exist in Onyx (eg. a new DM created with the logged in person)
+    // A report can be missing a name if a comment is received via pusher event and the report does not yet exist in Onyx (eg. a new DM created with the logged in person)
+    // In this case, we call reconnect so that we can fetch the report data without marking it as read
     if (report.reportID && report.reportName === undefined) {
-        openReport(report.reportID);
+        reconnect(report.reportID);
     }
 }
 
@@ -933,6 +943,16 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
  */
 function saveReportActionDraft(reportID, reportActionID, draftMessage) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
+}
+
+/**
+ * Saves the number of lines for the report action draft
+ * @param {String} reportID
+ * @param {Number} reportActionID
+ * @param {Number} numberOfLines
+ */
+function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLines) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}_${reportActionID}`, numberOfLines);
 }
 
 /**
@@ -1366,6 +1386,28 @@ function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = pref
     return addEmojiReaction(reportID, reportAction, emoji, skinTone);
 }
 
+/**
+ * @param {String|null} url
+ */
+function openReportFromDeepLink(url) {
+    InteractionManager.runAfterInteractions(() => {
+        Navigation.isReportScreenReady().then(() => {
+            const route = ReportUtils.getRouteFromLink(url);
+            const reportID = ReportUtils.getReportIDFromLink(url);
+            if (reportID) {
+                Navigation.navigate(ROUTES.getReportRoute(reportID));
+            }
+            if (route === ROUTES.CONCIERGE) {
+                navigateToConciergeChat();
+            }
+        });
+    });
+}
+
+function getCurrentUserAccountID() {
+    return currentUserAccountID;
+}
+
 export {
     addComment,
     addAttachment,
@@ -1375,11 +1417,13 @@ export {
     subscribeToReportCommentPushNotifications,
     unsubscribeFromReportChannel,
     saveReportComment,
+    saveReportCommentNumberOfLines,
     broadcastUserIsTyping,
     togglePinnedState,
     editReportComment,
     handleUserDeletedLinks,
     saveReportActionDraft,
+    saveReportActionDraftNumberOfLines,
     deleteReportComment,
     navigateToConciergeChat,
     setReportWithDraft,
@@ -1390,6 +1434,7 @@ export {
     readNewestAction,
     readOldestAction,
     openReport,
+    openReportFromDeepLink,
     navigateToAndOpenReport,
     openPaymentDetailsPage,
     updatePolicyRoomName,
@@ -1401,4 +1446,5 @@ export {
     removeEmojiReaction,
     toggleEmojiReaction,
     hasAccountIDReacted,
+    getCurrentUserAccountID,
 };

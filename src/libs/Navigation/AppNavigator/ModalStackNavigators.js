@@ -511,6 +511,14 @@ const WalletStatementStackNavigator = createModalStackNavigator([{
     name: 'WalletStatement_Root',
 }]);
 
+const YearPickerStackNavigator = createModalStackNavigator([{
+    getComponent: () => {
+        const YearPickerPage = require('../../../pages/YearPickerPage').default;
+        return YearPickerPage;
+    },
+    name: 'YearPicker_Root',
+}]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
@@ -528,4 +536,5 @@ export {
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
     WalletStatementStackNavigator,
+    YearPickerStackNavigator,
 };
