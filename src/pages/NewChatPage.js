@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {Component} from 'react';
+import React, {useState, useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -62,7 +62,7 @@ const NewChatPage = (props) => {
             props.reports,
             props.personalDetails,
             props.betas,
-            '',
+            searchTerm,
             [],
             props.isGroupChat ? excludedGroupEmails : [],
         );
@@ -70,7 +70,7 @@ const NewChatPage = (props) => {
         setRecentReports(recentReports);
         setPersonalDetails(personalDetails);
         setUserToInvite(userToInvite);
-    }, []);
+    }, [searchTerm]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -128,26 +128,6 @@ const NewChatPage = (props) => {
         }
 
         return sections;
-    }
-
-    function updateOptionsWithSearchTerm(searchTerm = '') {
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = OptionsListUtils.getNewChatOptions(
-            props.reports,
-            props.personalDetails,
-            props.betas,
-            searchTerm,
-            [],
-            props.isGroupChat ? excludedGroupEmails : [],
-        );
-
-        setSearchTerm(searchTerm);
-        setRecentReports(recentReports);
-        setPersonalDetails(personalDetails);
-        setUserToInvite(userToInvite);
     }
 
     /**
@@ -243,8 +223,8 @@ const NewChatPage = (props) => {
                                 sections={sections}
                                 selectedOptions={selectedOptions}
                                 value={searchTerm}
-                                onSelectRow={option => (props.isGroupChat ? this.toggleOption(option) : this.createChat(option))}
-                                onChangeText={this.updateOptionsWithSearchTerm}
+                                onSelectRow={option => (props.isGroupChat ? this.toggleOption(option) : createChat(option))}
+                                onChangeText={setSearchTerm}
                                 headerMessage={headerMessage}
                                 boldStyle
                                 shouldFocusOnSelectRow={props.isGroupChat}
