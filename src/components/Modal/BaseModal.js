@@ -10,6 +10,7 @@ import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './
 import * as Modal from '../../libs/actions/Modal';
 import getModalStyles from '../../styles/getModalStyles';
 import variables from '../../styles/variables';
+import KeyboardAvoidingView from '../KeyboardAvoidingView';
 
 const propTypes = {
     ...modalPropTypes,
@@ -30,17 +31,28 @@ class BaseModal extends PureComponent {
         this.hideModal = this.hideModal.bind(this);
     }
 
+    componentDidMount() {
+        if (!this.props.isVisible) { return; }
+
+        // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
+        Modal.setCloseModal(this.props.onClose);
+    }
+
     componentDidUpdate(prevProps) {
         if (prevProps.isVisible === this.props.isVisible) {
             return;
         }
 
         Modal.willAlertModalBecomeVisible(this.props.isVisible);
+        Modal.setCloseModal(this.props.isVisible ? this.props.onClose : null);
     }
 
     componentWillUnmount() {
         // we don't want to call the onModalHide on unmount
         this.hideModal(this.props.isVisible);
+
+        // To prevent closing any modal already unmounted when this modal still remains as visible state
+        Modal.setCloseModal(null);
     }
 
     /**
@@ -54,6 +66,7 @@ class BaseModal extends PureComponent {
         if (callHideCallback) {
             this.props.onModalHide();
         }
+        Modal.onModalDidClose();
     }
 
     render() {
@@ -120,6 +133,7 @@ class BaseModal extends PureComponent {
                 animationInTiming={this.props.animationInTiming}
                 animationOutTiming={this.props.animationOutTiming}
                 statusBarTranslucent={this.props.statusBarTranslucent}
+                avoidKeyboard={this.props.avoidKeyboard}
             >
                 <SafeAreaInsetsContext.Consumer>
                     {(insets) => {
@@ -128,7 +142,7 @@ class BaseModal extends PureComponent {
                             paddingBottom: safeAreaPaddingBottom,
                             paddingLeft: safeAreaPaddingLeft,
                             paddingRight: safeAreaPaddingRight,
-                        } = StyleUtils.getSafeAreaPadding(insets);
+                        } = StyleUtils.getSafeAreaPadding(insets, this.props.statusBarTranslucent);
 
                         const modalPaddingStyles = StyleUtils.getModalPaddingStyles({
                             safeAreaPaddingTop,
@@ -144,8 +158,7 @@ class BaseModal extends PureComponent {
                             modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
                             modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
                         });
-
-                        return (
+                        const content = (
                             <View
                                 style={{
                                     ...styles.defaultModalContainer,
@@ -156,6 +169,16 @@ class BaseModal extends PureComponent {
                             >
                                 {this.props.children}
                             </View>
+                        );
+
+                        return (
+                            <KeyboardAvoidingView
+                                behavior="padding"
+                                style={styles.w100}
+                                shouldApplyToAndroid
+                            >
+                                {content}
+                            </KeyboardAvoidingView>
                         );
                     }}
                 </SafeAreaInsetsContext.Consumer>

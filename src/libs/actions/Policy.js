@@ -14,6 +14,7 @@ import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import * as ReportUtils from '../ReportUtils';
 import Log from '../Log';
+import * as Report from './Report';
 
 const allPolicies = {};
 Onyx.connect({
@@ -148,6 +149,16 @@ function isAdminOfFreePolicy(policies) {
     return _.some(policies, policy => policy
         && policy.type === CONST.POLICY.TYPE.FREE
         && policy.role === CONST.POLICY.ROLE.ADMIN);
+}
+
+/**
+ * Is the user the owner of the given policy?
+ *
+ * @param {Object} policy
+ * @returns {Boolean}
+ */
+function isPolicyOwner(policy) {
+    return policy.owner === sessionEmail;
 }
 
 /**
@@ -1000,6 +1011,38 @@ function openWorkspaceInvitePage(policyID, clientMemberEmails) {
     });
 }
 
+/**
+ *
+ * @param {String} reportID
+ */
+function leaveRoom(reportID) {
+    API.write('LeaveRoom', {
+        reportID,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS.CLOSED,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS.OPEN,
+                },
+            },
+        ],
+    });
+    Report.navigateToConciergeChat();
+}
+
 export {
     removeMembers,
     addMembersToWorkspace,
@@ -1027,4 +1070,6 @@ export {
     openWorkspaceMembersPage,
     openWorkspaceInvitePage,
     removeWorkspace,
+    isPolicyOwner,
+    leaveRoom,
 };

@@ -14,7 +14,6 @@ import compose from '../../libs/compose';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import Avatar from '../../components/Avatar';
 import * as ReportUtils from '../../libs/ReportUtils';
-import OfflineIndicator from '../../components/OfflineIndicator';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
@@ -26,7 +25,7 @@ const propTypes = {
     credentials: PropTypes.shape({
         /** The email/phone the user logged in with */
         login: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
@@ -44,6 +43,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    credentials: {},
     account: {},
 };
 
@@ -93,7 +93,6 @@ const ResendValidationForm = (props) => {
                     isDisabled={props.network.isOffline}
                 />
             </View>
-            <OfflineIndicator containerStyles={[styles.mv1]} />
         </>
     );
 };

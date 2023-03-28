@@ -23,8 +23,8 @@ import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
-import OfflineIndicator from '../../components/OfflineIndicator';
 import FormHelpMessage from '../../components/FormHelpMessage';
+import Terms from './Terms';
 
 const propTypes = {
     /* Onyx Props */
@@ -38,6 +38,9 @@ const propTypes = {
         isLoading: PropTypes.bool,
     }),
 
+    /** Indicates which locale the user currently has selected */
+    preferredLocale: PropTypes.string,
+
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -47,6 +50,7 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
+    preferredLocale: CONST.DEFAULT_LOCALE,
 };
 
 class PasswordForm extends React.Component {
@@ -160,7 +164,7 @@ class PasswordForm extends React.Component {
             formError: {},
         });
 
-        Session.signIn(password, '', twoFactorCode);
+        Session.signIn(password, '', twoFactorCode, this.props.preferredLocale);
     }
 
     render() {
@@ -225,7 +229,9 @@ class PasswordForm extends React.Component {
                     />
                     <ChangeExpensifyLoginLink onPress={this.clearSignInData} />
                 </View>
-                <OfflineIndicator containerStyles={[styles.mv5]} />
+                <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
+                    <Terms />
+                </View>
             </>
         );
     }
@@ -238,6 +244,7 @@ export default compose(
     withLocalize,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
+        preferredLocale: {key: ONYXKEYS.NVP_PREFERRED_LOCALE},
     }),
     withToggleVisibilityView,
     withNetwork(),

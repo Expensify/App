@@ -19,14 +19,15 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import * as ReportUtils from '../libs/ReportUtils';
 import reportPropTypes from './reportPropTypes';
-import withReportOrNavigateHome from './home/report/withReportOrNavigateHome';
+import withReportOrNotFound from './home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
+import CONST from '../CONST';
 
 const propTypes = {
     /* Onyx Props */
 
     /** The personal details of the person who is logged in */
-    personalDetails: personalDetailsPropType.isRequired,
+    personalDetails: personalDetailsPropType,
 
     /** The active report */
     report: reportPropTypes.isRequired,
@@ -42,6 +43,10 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
+const defaultProps = {
+    personalDetails: {},
+};
+
 /**
  * Returns all the participants in the active report
  *
@@ -53,13 +58,17 @@ const getAllParticipants = (report, personalDetails) => {
     const {participants} = report;
 
     return _.map(participants, (login) => {
-        const userPersonalDetail = lodashGet(personalDetails, login, {displayName: login, avatar: ''});
         const userLogin = Str.removeSMSDomain(login);
+        const userPersonalDetail = lodashGet(personalDetails, login, {displayName: userLogin, avatar: ''});
 
         return ({
             alternateText: userLogin,
             displayName: userPersonalDetail.displayName,
-            icons: [ReportUtils.getAvatar(userPersonalDetail.avatar, login)],
+            icons: [{
+                source: ReportUtils.getAvatar(userPersonalDetail.avatar, login),
+                name: login,
+                type: CONST.ICON_TYPE_AVATAR,
+            }],
             keyForList: userLogin,
             login,
             text: userPersonalDetail.displayName,
@@ -114,11 +123,12 @@ const ReportParticipantsPage = (props) => {
 };
 
 ReportParticipantsPage.propTypes = propTypes;
+ReportParticipantsPage.defaultProps = defaultProps;
 ReportParticipantsPage.displayName = 'ReportParticipantsPage';
 
 export default compose(
     withLocalize,
-    withReportOrNavigateHome,
+    withReportOrNotFound,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,

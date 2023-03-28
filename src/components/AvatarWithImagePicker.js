@@ -57,6 +57,12 @@ const propTypes = {
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.func,
 
+    /** Denotes whether it is an avatar or a workspace avatar */
+    type: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE]),
+
+    /** Image crop vector mask */
+    editorMaskImage: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
@@ -70,6 +76,8 @@ const defaultProps = {
     isUploading: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
     fallbackIcon: Expensicons.FallbackAvatar,
+    type: CONST.ICON_TYPE_AVATAR,
+    editorMaskImage: undefined,
 };
 
 class AvatarWithImagePicker extends React.Component {
@@ -258,6 +266,7 @@ class AvatarWithImagePicker extends React.Component {
                                     source={this.props.source}
                                     fallbackIcon={this.props.fallbackIcon}
                                     size={this.props.size}
+                                    type={this.props.type}
                                 />
                             )
                             : (
@@ -304,6 +313,7 @@ class AvatarWithImagePicker extends React.Component {
                     imageUri={this.state.imageUri}
                     imageName={this.state.imageName}
                     imageType={this.state.imageType}
+                    maskImage={this.props.editorMaskImage}
                 />
             </View>
         );

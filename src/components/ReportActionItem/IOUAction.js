@@ -96,6 +96,7 @@ const IOUAction = (props) => {
                 shouldAllowViewDetails={Boolean(props.action.originalMessage.IOUReportID)}
                 onViewDetailsPressed={launchDetailsModal}
                 checkIfContextMenuActive={props.checkIfContextMenuActive}
+                isHovered={props.isHovered}
             />
             {shouldShowIOUPreview && (
                 <IOUPreview

@@ -1,5 +1,7 @@
 import PropTypes from 'prop-types';
 import userWalletPropTypes from '../../pages/EnablePayments/userWalletPropTypes';
+import bankAccountPropTypes from '../bankAccountPropTypes';
+import cardPropTypes from '../cardPropTypes';
 
 const propTypes = {
     /** Route for the Add Bank Account screen for a given navigation stack */
@@ -25,6 +27,12 @@ const propTypes = {
 
     /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
     chatReportID: PropTypes.string,
+
+    /** List of cards */
+    cardList: PropTypes.objectOf(cardPropTypes),
+
+    /** List of bank accounts */
+    bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 };
 
 const defaultProps = {
@@ -33,6 +41,8 @@ const defaultProps = {
     shouldListenForResize: false,
     isDisabled: false,
     chatReportID: '',
+    bankAccountList: {},
+    cardList: {},
 };
 
 export {propTypes, defaultProps};

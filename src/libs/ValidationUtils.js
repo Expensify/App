@@ -215,16 +215,16 @@ function meetsAgeRequirements(date) {
  * @returns {String}
  */
 function getAgeRequirementError(date, minimumAge, maximumAge) {
-    const recentDate = moment().subtract(minimumAge, 'years');
-    const longAgoDate = moment().subtract(maximumAge, 'years');
+    const recentDate = moment().startOf('day').subtract(minimumAge, 'years');
+    const longAgoDate = moment().startOf('day').subtract(maximumAge, 'years');
     const testDate = moment(date);
     if (!testDate.isValid()) {
         return Localize.translateLocal('common.error.dateInvalid');
     }
-    if (testDate.isBetween(longAgoDate, recentDate)) {
+    if (testDate.isBetween(longAgoDate, recentDate, undefined, [])) {
         return '';
     }
-    if (testDate.isAfter(recentDate)) {
+    if (testDate.isSameOrAfter(recentDate)) {
         return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: recentDate.format(CONST.DATE.MOMENT_FORMAT_STRING)});
     }
     return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: longAgoDate.format(CONST.DATE.MOMENT_FORMAT_STRING)});
@@ -318,14 +318,6 @@ function isValidTwoFactorCode(code) {
 }
 
 /**
- * @param {String} input
- * @returns {Boolean}
- */
-function isPositiveInteger(input) {
-    return CONST.REGEX.POSITIVE_INTEGER.test(input);
-}
-
-/**
  * Checks whether a value is a numeric string including `(`, `)`, `-` and optional leading `+`
  * @param {String} input
  * @returns {Boolean}
@@ -364,6 +356,16 @@ function isValidRoutingNumber(number) {
  */
 function isValidDisplayName(name) {
     return !name.includes(',') && !name.includes(';');
+}
+
+/**
+ * Checks that the provided legal name doesn't contain special characters
+ *
+ * @param {String} name
+ * @returns {Boolean}
+ */
+function isValidLegalName(name) {
+    return CONST.REGEX.ALPHABETIC_CHARS_WITH_NUMBER.test(name);
 }
 
 /**
@@ -446,7 +448,6 @@ export {
     validateIdentity,
     isValidPassword,
     isValidTwoFactorCode,
-    isPositiveInteger,
     isNumericWithSpecialChars,
     isValidPaypalUsername,
     isValidRoutingNumber,
@@ -458,5 +459,6 @@ export {
     isValidTaxID,
     isValidValidateCode,
     isValidDisplayName,
+    isValidLegalName,
     doesContainReservedWord,
 };

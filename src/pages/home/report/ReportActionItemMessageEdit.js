@@ -4,6 +4,7 @@ import {InteractionManager, Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {withOnyx} from 'react-native-onyx';
 import reportActionPropTypes from './reportActionPropTypes';
 import styles from '../../../styles/styles';
 import Composer from '../../../components/Composer';
@@ -24,6 +25,7 @@ import CONST from '../../../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
     /** All the data of the action */
@@ -31,6 +33,9 @@ const propTypes = {
 
     /** Draft message */
     draftMessage: PropTypes.string.isRequired,
+
+    /** Number of lines for the draft message */
+    numberOfLines: PropTypes.number,
 
     /** ReportID that holds the comment we're editing */
     reportID: PropTypes.string.isRequired,
@@ -57,6 +62,7 @@ const defaultProps = {
     forwardedRef: () => {},
     report: {},
     shouldDisableEmojiPicker: false,
+    numberOfLines: 1,
 };
 
 class ReportActionItemMessageEdit extends React.Component {
@@ -69,6 +75,8 @@ class ReportActionItemMessageEdit extends React.Component {
         this.triggerSaveOrCancel = this.triggerSaveOrCancel.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
+        this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
+        this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.saveButtonID = 'saveButton';
         this.cancelButtonID = 'cancelButton';
         this.emojiButtonID = 'emojiButton';
@@ -84,6 +92,7 @@ class ReportActionItemMessageEdit extends React.Component {
                 end: draftMessage.length,
             },
             isFocused: false,
+            hasExceededMaxCommentLength: false,
         };
     }
 
@@ -94,6 +103,16 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     onSelectionChange(e) {
         this.setState({selection: e.nativeEvent.selection});
+    }
+
+    /**
+     * Updates the composer when the comment length is exceeded
+     * Shows red borders and prevents the comment from being sent
+     *
+     * @param {Boolean} hasExceededMaxCommentLength
+     */
+    setExceededMaxCommentLength(hasExceededMaxCommentLength) {
+        this.setState({hasExceededMaxCommentLength});
     }
 
     /**
@@ -122,6 +141,14 @@ class ReportActionItemMessageEdit extends React.Component {
         } else {
             this.debouncedSaveDraft(this.props.action.message[0].html);
         }
+    }
+
+    /**
+     * Update the number of lines for a draft in Onyx
+     * @param {Number} numberOfLines
+     */
+    updateNumberOfLines(numberOfLines) {
+        Report.saveReportActionDraftNumberOfLines(this.props.reportID, this.props.action.reportActionID, numberOfLines);
     }
 
     /**
@@ -217,8 +244,7 @@ class ReportActionItemMessageEdit extends React.Component {
     }
 
     render() {
-        const draftLength = ReportUtils.getCommentLength(this.state.draft);
-        const hasExceededMaxCommentLength = draftLength > CONST.MAX_COMMENT_LENGTH;
+        const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
         return (
             <View style={styles.chatItemMessage}>
                 <View
@@ -247,13 +273,13 @@ class ReportActionItemMessageEdit extends React.Component {
                             toggleReportActionComposeView(false, this.props.isSmallScreenWidth);
                         }}
                         onBlur={(event) => {
+                            this.setState({isFocused: false});
                             const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
 
                             // Return to prevent re-render when save/cancel button is pressed which cancels the onPress event by re-rendering
                             if (_.contains([this.saveButtonID, this.cancelButtonID, this.emojiButtonID], relatedTargetId)) {
                                 return;
                             }
-                            this.setState({isFocused: false});
 
                             if (this.messageEditInput === relatedTargetId) {
                                 return;
@@ -262,6 +288,8 @@ class ReportActionItemMessageEdit extends React.Component {
                         }}
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
+                        numberOfLines={this.props.numberOfLines}
+                        onNumberOfLinesChange={this.updateNumberOfLines}
                     />
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
@@ -290,7 +318,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         onPress={this.publishDraft}
                         text={this.props.translate('common.saveChanges')}
                     />
-                    <ExceededCommentLength commentLength={draftLength} />
+                    <ExceededCommentLength comment={this.state.draft} onExceededMaxCommentLength={this.setExceededMaxCommentLength} />
                 </View>
             </View>
         );
@@ -303,6 +331,12 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withKeyboardState,
+    withOnyx({
+        numberOfLines: {
+            key: ({reportID, action}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}_${action.reportActionID}`,
+            initWithStoredValues: false,
+        },
+    }),
 )(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <ReportActionItemMessageEdit {...props} forwardedRef={ref} />

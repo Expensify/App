@@ -82,6 +82,9 @@ export default {
     // Contains the users's block expiration (if they have one)
     NVP_BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
 
+    // A unique identifier that each user has that's used to send notifications
+    NVP_PRIVATE_PUSH_NOTIFICATION_ID: 'private_pushNotificationID',
+
     // Does this user have push notifications enabled for this device?
     PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
 
@@ -102,6 +105,7 @@ export default {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
+        REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         POLICY: 'policy_',
@@ -158,9 +162,6 @@ export default {
     // Set when we are loading payment methods
     IS_LOADING_PAYMENT_METHODS: 'isLoadingPaymentMethods',
 
-    // The number of minutes a user has to wait for a call.
-    INBOX_CALL_USER_WAIT_TIME: 'inboxCallUserWaitTime',
-
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
@@ -176,7 +177,6 @@ export default {
     // List of Form ids
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
-        REQUEST_CALL_FORM: 'requestCallForm',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
         CLOSE_ACCOUNT_FORM: 'closeAccount',

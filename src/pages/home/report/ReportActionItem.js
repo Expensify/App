@@ -35,6 +35,9 @@ import * as ReportActions from '../../../libs/actions/ReportActions';
 import reportPropTypes from '../../reportPropTypes';
 import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext';
 import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
+import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosOOOListActions';
+import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
+import * as Report from '../../../libs/actions/Report';
 
 const propTypes = {
     /** Report for this action */
@@ -79,6 +82,7 @@ class ReportActionItem extends Component {
         this.checkIfContextMenuActive = this.checkIfContextMenuActive.bind(this);
         this.showPopover = this.showPopover.bind(this);
         this.renderItemContent = this.renderItemContent.bind(this);
+        this.toggleReaction = this.toggleReaction.bind(this);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -122,7 +126,7 @@ class ReportActionItem extends Component {
         // Newline characters need to be removed here because getCurrentSelection() returns html mixed with newlines, and when
         // <br> tags are converted later to markdown, it creates duplicate newline characters. This means that when the content
         // is pasted, there are extra newlines in the content that we want to avoid.
-        const selection = SelectionScraper.getCurrentSelection().replace(/\n/g, '');
+        const selection = SelectionScraper.getCurrentSelection().replace(/<br>\n/g, '<br>');
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
@@ -136,6 +140,10 @@ class ReportActionItem extends Component {
             ReportUtils.isArchivedRoom(this.props.report),
             ReportUtils.chatIncludesChronos(this.props.report),
         );
+    }
+
+    toggleReaction(emoji) {
+        Report.toggleEmojiReaction(this.props.report.reportID, this.props.action, emoji);
     }
 
     /**
@@ -193,7 +201,21 @@ class ReportActionItem extends Component {
                 </ShowContextMenuContext.Provider>
             );
         }
-        return children;
+
+        const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
+        const hasReactions = reactions.length > 0;
+
+        return (
+            <>
+                {children}
+                {hasReactions && (
+                    <ReportActionItemReactions
+                        reactions={reactions}
+                        toggleReaction={this.toggleReaction}
+                    />
+                )}
+            </>
+        );
     }
 
     render() {
@@ -203,6 +225,9 @@ class ReportActionItem extends Component {
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             return <RenameAction action={this.props.action} />;
         }
+        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOSOOOLIST) {
+            return <ChronosOOOListActions action={this.props.action} reportID={this.props.report.reportID} />;
+        }
         return (
             <PressableWithSecondaryInteraction
                 pointerEvents={this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? 'none' : 'auto'}
@@ -211,6 +236,7 @@ class ReportActionItem extends Component {
                 onPressOut={() => ControlSelection.unblock()}
                 onSecondaryInteraction={this.showPopover}
                 preventDefaultContentMenu={!this.props.draftMessage}
+                withoutFocusOnSecondaryInteraction
             >
                 <Hoverable>
                     {hovered => (
@@ -237,6 +263,7 @@ class ReportActionItem extends Component {
                                     pendingAction={this.props.draftMessage ? null : this.props.action.pendingAction}
                                     errors={this.props.action.errors}
                                     errorRowStyles={[styles.ml10, styles.mr2]}
+                                    needsOffscreenAlphaCompositing={this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU}
                                 >
                                     {!this.props.displayAsGroup
                                         ? (
@@ -258,7 +285,6 @@ class ReportActionItem extends Component {
                                 displayAsGroup={this.props.displayAsGroup}
                                 isVisible={
                                     hovered
-                                    && !this.state.isContextMenuActive
                                     && !this.props.draftMessage
                                 }
                                 draftMessage={this.props.draftMessage}

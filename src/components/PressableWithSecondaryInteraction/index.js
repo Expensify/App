@@ -34,6 +34,17 @@ class PressableWithSecondaryInteraction extends Component {
         if (this.props.preventDefaultContentMenu) {
             e.preventDefault();
         }
+
+        /**
+         * This component prevents the tapped element from capturing focus.
+         * We need to blur this element when clicked as it opens modal that implements focus-trapping.
+         * When the modal is closed it focuses back to the last active element.
+         * Therefore it shifts the element to bring it back to focus.
+         * https://github.com/Expensify/App/issues/14148
+        */
+        if (this.props.withoutFocusOnSecondaryInteraction && this.pressableRef) {
+            this.pressableRef.blur();
+        }
         this.props.onSecondaryInteraction(e);
     }
 
@@ -48,6 +59,9 @@ class PressableWithSecondaryInteraction extends Component {
                 onLongPress={(e) => {
                     if (DeviceCapabilities.hasHoverSupport()) {
                         return;
+                    }
+                    if (this.props.withoutFocusOnSecondaryInteraction && this.pressableRef) {
+                        this.pressableRef.blur();
                     }
                     this.props.onSecondaryInteraction(e);
                 }}

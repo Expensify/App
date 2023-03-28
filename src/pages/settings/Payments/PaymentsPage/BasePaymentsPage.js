@@ -199,21 +199,21 @@ class BasePaymentsPage extends React.Component {
                 formattedSelectedPaymentMethod = {
                     title: 'PayPal.me',
                     icon: account.icon,
-                    description: account.username,
+                    description: PaymentUtils.getPaymentMethodDescription(accountType, account),
                     type: CONST.PAYMENT_METHODS.PAYPAL,
                 };
             } else if (accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
                 formattedSelectedPaymentMethod = {
                     title: account.addressName,
                     icon: account.icon,
-                    description: `${this.props.translate('paymentMethodList.accountLastFour')} ${account.accountNumber.slice(-4)}`,
+                    description: PaymentUtils.getPaymentMethodDescription(accountType, account),
                     type: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
                 };
             } else if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 formattedSelectedPaymentMethod = {
                     title: account.addressName,
                     icon: account.icon,
-                    description: `${this.props.translate('paymentMethodList.cardLastFour')} ${account.cardNumber.slice(-4)}`,
+                    description: PaymentUtils.getPaymentMethodDescription(accountType, account),
                     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
                 };
             }
@@ -299,7 +299,7 @@ class BasePaymentsPage extends React.Component {
         LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
     }
 
-    makeDefaultPaymentMethod(password) {
+    makeDefaultPaymentMethod(password = '') {
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
         const paymentMethods = PaymentUtils.formatPaymentMethods(
             this.props.bankAccountList,
@@ -464,10 +464,14 @@ class BasePaymentsPage extends React.Component {
                                     // InteractionManager fires after the currently running animation is completed.
                                     // https://github.com/Expensify/App/issues/7768#issuecomment-1044879541
                                     InteractionManager.runAfterInteractions(() => {
-                                        this.setState({
-                                            shouldShowPasswordPrompt: true,
-                                            passwordButtonText: this.props.translate('paymentsPage.setDefaultConfirmation'),
-                                        });
+                                        if (Permissions.canUsePasswordlessLogins(this.props.betas)) {
+                                            this.makeDefaultPaymentMethod();
+                                        } else {
+                                            this.setState({
+                                                shouldShowPasswordPrompt: true,
+                                                passwordButtonText: this.props.translate('paymentsPage.setDefaultConfirmation'),
+                                            });
+                                        }
                                     });
                                 }}
                                 text={this.props.translate('paymentsPage.setDefaultConfirmation')}

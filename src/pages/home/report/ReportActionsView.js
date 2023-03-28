@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import Log from '../../../libs/Log';
 import * as Report from '../../../libs/actions/Report';
 import reportActionPropTypes from './reportActionPropTypes';
 import Visibility from '../../../libs/Visibility';
@@ -30,13 +29,7 @@ const propTypes = {
     report: reportPropTypes.isRequired,
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
-
-    /** The session of the logged in person */
-    session: PropTypes.shape({
-        /** Email of the logged in person */
-        email: PropTypes.string,
-    }),
+    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool.isRequired,
@@ -50,8 +43,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    reportActions: {},
-    session: {},
+    reportActions: [],
 };
 
 class ReportActionsView extends React.Component {
@@ -63,16 +55,13 @@ class ReportActionsView extends React.Component {
         this.unsubscribeVisibilityListener = null;
         this.hasCachedActions = _.size(props.reportActions) > 0;
 
-        // We need this.sortedAndFilteredReportActions to be set before this.state is initialized because the function to calculate the newMarkerReportActionID uses the sorted report actions
-        this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(props.reportActions);
-
         this.state = {
             isFloatingMessageCounterVisible: false,
-            newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions),
+            newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, props.reportActions),
         };
 
         this.currentScrollOffset = 0;
-        this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(props.reportActions);
+        this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions);
         this.trackScroll = this.trackScroll.bind(this);
         this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
@@ -133,8 +122,7 @@ class ReportActionsView extends React.Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(nextProps.reportActions);
-            this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(nextProps.reportActions);
+            this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOURequestActionID(nextProps.reportActions);
             return true;
         }
 
@@ -204,16 +192,17 @@ class ReportActionsView extends React.Component {
         if (didReportBecomeVisible) {
             this.setState({
                 newMarkerReportActionID: ReportUtils.isUnread(this.props.report)
-                    ? ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions)
+                    ? ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions)
                     : '',
             });
             this.openReportIfNecessary();
         }
 
-        // If the report action marking the unread point is deleted we need to recalculate which action should be the unread marker
-        if (this.state.newMarkerReportActionID && _.isEmpty(lodashGet(this.props.reportActions[this.state.newMarkerReportActionID], 'message[0].html'))) {
+        // If the report is unread, we want to check if the number of actions has decreased. If so, then it seems that one of them was deleted. In this case, if the deleted action was the
+        // one marking the unread point, we need to recalculate which action should be the unread marker.
+        if (ReportUtils.isUnread(this.props.report) && prevProps.reportActions.length > this.props.reportActions.length) {
             this.setState({
-                newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions),
+                newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions),
             });
         }
 
@@ -230,7 +219,7 @@ class ReportActionsView extends React.Component {
         const didManuallyMarkReportAsUnread = (prevProps.report.lastReadTime !== this.props.report.lastReadTime)
             && ReportUtils.isUnread(this.props.report);
         if (didManuallyMarkReportAsUnread) {
-            this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions)});
+            this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions)});
         }
 
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
@@ -255,30 +244,6 @@ class ReportActionsView extends React.Component {
         }
 
         Report.unsubscribeFromReportChannel(this.props.report.reportID);
-    }
-
-    /**
-     * @param {Object} reportActions
-     * @returns {Array}
-     */
-    getSortedReportActionsForDisplay(reportActions) {
-        // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
-        // to prevent bugs during the migration from sequenceNumber -> reportActionID
-        const filteredReportActions = _.filter(reportActions, (reportAction, key) => {
-            if (!reportAction) {
-                return false;
-            }
-
-            if (String(reportAction.sequenceNumber) === key) {
-                Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
-                return false;
-            }
-
-            return true;
-        });
-
-        const sortedReportActions = ReportActionsUtils.getSortedReportActions(filteredReportActions, true);
-        return ReportActionsUtils.filterReportActionsForDisplay(sortedReportActions);
     }
 
     /**
@@ -308,7 +273,7 @@ class ReportActionsView extends React.Component {
             return;
         }
 
-        const oldestReportAction = _.last(this.sortedAndFilteredReportActions);
+        const oldestReportAction = _.last(this.props.reportActions);
 
         // Don't load more chats if we're already at the beginning of the chat history
         if (oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
@@ -372,27 +337,22 @@ class ReportActionsView extends React.Component {
         if (!_.size(this.props.reportActions)) {
             return null;
         }
-
         return (
             <>
-                {!this.props.isComposerFullSize && (
-                    <>
-                        <FloatingMessageCounter
-                            isActive={this.state.isFloatingMessageCounterVisible && !_.isEmpty(this.state.newMarkerReportActionID)}
-                            onClick={this.scrollToBottomAndMarkReportAsRead}
-                        />
-                        <ReportActionsList
-                            report={this.props.report}
-                            onScroll={this.trackScroll}
-                            onLayout={this.recordTimeToMeasureItemLayout}
-                            sortedReportActions={this.sortedAndFilteredReportActions}
-                            mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
-                            isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
-                            loadMoreChats={this.loadMoreChats}
-                            newMarkerReportActionID={this.state.newMarkerReportActionID}
-                        />
-                    </>
-                )}
+                <FloatingMessageCounter
+                    isActive={this.state.isFloatingMessageCounterVisible && !_.isEmpty(this.state.newMarkerReportActionID)}
+                    onClick={this.scrollToBottomAndMarkReportAsRead}
+                />
+                <ReportActionsList
+                    report={this.props.report}
+                    onScroll={this.trackScroll}
+                    onLayout={this.recordTimeToMeasureItemLayout}
+                    sortedReportActions={this.props.reportActions}
+                    mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
+                    isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
+                    loadMoreChats={this.loadMoreChats}
+                    newMarkerReportActionID={this.state.newMarkerReportActionID}
+                />
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                 <CopySelectionHelper />
             </>

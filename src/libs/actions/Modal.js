@@ -1,6 +1,41 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
+let closeModal;
+let onModalClose;
+
+/**
+ * Allows other parts of the app to call modal close function
+ *
+ * @param {Function} [onClose]
+ */
+function setCloseModal(onClose) {
+    closeModal = onClose;
+}
+
+/**
+ * Close modal in other parts of the app
+ *
+ * @param {Function} [onModalCloseCallback]
+ * @param {Boolean} isNavigating
+ */
+function close(onModalCloseCallback, isNavigating = true) {
+    if (!closeModal) {
+        // If modal is already closed, no need to wait for modal close. So immediately call callback.
+        if (onModalCloseCallback) { onModalCloseCallback(); }
+        onModalClose = null;
+        return;
+    }
+    onModalClose = onModalCloseCallback;
+    closeModal(isNavigating);
+}
+
+function onModalDidClose() {
+    if (!onModalClose) { return; }
+    onModalClose();
+    onModalClose = null;
+}
+
 /**
  * Allows other parts of the app to know when a modal has been opened or closed
  *
@@ -21,6 +56,9 @@ function willAlertModalBecomeVisible(isVisible) {
 }
 
 export {
+    setCloseModal,
+    close,
+    onModalDidClose,
     setModalVisibility,
     willAlertModalBecomeVisible,
 };

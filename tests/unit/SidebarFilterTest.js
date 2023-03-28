@@ -58,29 +58,6 @@ describe('Sidebar', () => {
                 });
         });
 
-        it('excludes a report with no message', () => {
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
-
-            // Given a report with no message
-            const report = {
-                ...LHNTestUtils.getFakeReport(),
-                maxSequenceNumber: 1,
-            };
-
-            return waitForPromisesToResolve()
-
-                // When Onyx is updated to contain that report
-                .then(() => Onyx.multiSet({
-                    [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-                }))
-
-                // Then no reports are rendered in the LHN
-                .then(() => {
-                    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
-                    expect(optionRows).toHaveLength(0);
-                });
-        });
-
         it('includes or excludes policy expense chats depending on the beta', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
@@ -444,11 +421,18 @@ describe('Sidebar', () => {
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
+            const betas = [
+                CONST.BETAS.DEFAULT_ROOMS,
+                CONST.BETAS.POLICY_ROOMS,
+                CONST.BETAS.POLICY_EXPENSE_CHAT,
+            ];
+
             return waitForPromisesToResolve()
 
                 // When Onyx is updated to contain that data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                    [ONYXKEYS.BETAS]: betas,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`]: archivedReport,
                     [`${ONYXKEYS.COLLECTION.REPORT}${archivedPolicyRoomReport.reportID}`]: archivedPolicyRoomReport,
@@ -494,11 +478,18 @@ describe('Sidebar', () => {
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
+            const betas = [
+                CONST.BETAS.DEFAULT_ROOMS,
+                CONST.BETAS.POLICY_ROOMS,
+                CONST.BETAS.POLICY_EXPENSE_CHAT,
+            ];
+
             return waitForPromisesToResolve()
 
                 // When Onyx is updated to contain that data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                    [ONYXKEYS.BETAS]: betas,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [`${ONYXKEYS.COLLECTION.REPORT}${policyRoomReport.reportID}`]: policyRoomReport,
                     [`${ONYXKEYS.COLLECTION.REPORT}${userCreatedPolicyRoomReport.reportID}`]: userCreatedPolicyRoomReport,

@@ -87,13 +87,13 @@ const propTypes = {
 
         /** This is either the user's full name, or their login if full name is an empty string */
         displayName: PropTypes.string.isRequired,
-    })).isRequired,
+    })),
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
         /** Currently logged in user email */
         email: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** Information about the user accepting the terms for payments */
     walletTerms: walletTermsPropTypes,
@@ -116,6 +116,10 @@ const defaultProps = {
     walletTerms: {},
     pendingAction: null,
     isHovered: false,
+    personalDetails: {},
+    session: {
+        email: null,
+    },
 };
 
 const IOUPreview = (props) => {
@@ -136,8 +140,16 @@ const IOUPreview = (props) => {
 
     const managerName = ReportUtils.getDisplayNameForParticipant(managerEmail, true);
     const ownerName = ReportUtils.getDisplayNameForParticipant(ownerEmail, true);
-    const managerAvatar = ReportUtils.getAvatar(lodashGet(props.personalDetails, [managerEmail, 'avatar']), managerEmail);
-    const ownerAvatar = ReportUtils.getAvatar(lodashGet(props.personalDetails, [ownerEmail, 'avatar']), ownerEmail);
+    const managerAvatar = {
+        source: ReportUtils.getAvatar(lodashGet(props.personalDetails, [managerEmail, 'avatar']), managerEmail),
+        type: CONST.ICON_TYPE_AVATAR,
+        name: managerEmail,
+    };
+    const ownerAvatar = {
+        source: ReportUtils.getAvatar(lodashGet(props.personalDetails, [ownerEmail, 'avatar']), ownerEmail),
+        type: CONST.ICON_TYPE_AVATAR,
+        name: ownerEmail,
+    };
     const cachedTotal = props.iouReport.total && props.iouReport.currency
         ? props.numberFormat(
             Math.abs(props.iouReport.total) / 100,
@@ -168,7 +180,7 @@ const IOUPreview = (props) => {
             onPressOut={() => ControlSelection.unblock()}
             onLongPress={showContextMenu}
         >
-            <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
+            <View>
                 <OfflineWithFeedback
                     pendingAction={props.pendingAction}
                     errors={props.walletTerms.errors}
@@ -177,8 +189,9 @@ const IOUPreview = (props) => {
                         Report.clearIOUError(props.chatReportID);
                     }}
                     errorRowStyles={[styles.mbn1]}
+                    needsOffscreenAlphaCompositing
                 >
-                    <View>
+                    <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                 <Text style={styles.h1}>

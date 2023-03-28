@@ -129,7 +129,13 @@ class BaseTextInput extends Component {
     onBlur(event) {
         if (this.props.onBlur) { this.props.onBlur(event); }
         this.setState({isFocused: false});
-        this.deactivateLabel();
+
+        // If the text has been supplied by Chrome autofill, the value state is not synced with the value
+        // as Chrome doesn't trigger a change event. When there is autofill text, don't deactivate label.
+        const textWasAutoFilledOnChrome = this.input.matches && this.input.matches(':-webkit-autofill');
+        if (!textWasAutoFilledOnChrome) {
+            this.deactivateLabel();
+        }
     }
 
     /**
@@ -312,7 +318,7 @@ class BaseTextInput extends Component {
                                     />
                                     {this.props.secureTextEntry && (
                                         <Checkbox
-                                            style={styles.secureInputShowPasswordButton}
+                                            style={styles.textInputIconContainer}
                                             onPress={this.togglePasswordVisibility}
                                             onMouseDown={e => e.preventDefault()}
                                         >
@@ -321,6 +327,14 @@ class BaseTextInput extends Component {
                                                 fill={themeColors.icon}
                                             />
                                         </Checkbox>
+                                    )}
+                                    {!this.props.secureTextEntry && this.props.icon && (
+                                        <View style={[styles.textInputIconContainer, styles.cursorPointer]}>
+                                            <Icon
+                                                src={this.props.icon}
+                                                fill={themeColors.icon}
+                                            />
+                                        </View>
                                     )}
                                 </View>
                             </View>
