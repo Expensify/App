@@ -3,12 +3,11 @@ import PropTypes from 'prop-types';
 import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
 import {useFlipper} from '@react-navigation/devtools';
 import Reanimated, {useAnimatedStyle} from 'react-native-reanimated';
-import {ThemeContext} from '@storybook/theming/dist/ts3.9/_modules/@emotion-react-types-index';
+import ThemeContext from '../../styles/themes/ThemeContext';
 import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import Log from '../Log';
 
@@ -53,7 +52,7 @@ function parseAndLogRoute(state) {
 
 const themeContext = useContext(ThemeContext);
 
-if (themeContext == null) { throw 'You forgot to wrap this component with <ThemeContext.Provider />'; }
+if (themeContext == null) { throw new Error('You forgot to wrap this component with <ThemeContext.Provider />'); }
 
 const animatedBackgroundStyle = useAnimatedStyle(() => ({
     backgroundColor: themeContext.appBG.value,
