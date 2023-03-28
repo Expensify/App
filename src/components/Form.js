@@ -277,7 +277,6 @@ class Form extends React.Component {
                 ref: (node) => {
                     this.inputRefs[inputID] = node;
 
-                    // Call the original ref, if any
                     const {ref} = child;
                     if (_.isFunction(ref)) {
                         ref(node);
@@ -285,7 +284,7 @@ class Form extends React.Component {
                 },
                 value: this.state.inputValues[inputID],
                 errorText: this.state.errors[inputID] || fieldErrorMessage,
-                onBlur: () => {
+                onBlur: (event) => {
                     // We delay the validation in order to prevent Checkbox loss of focus when
                     // the user are focusing a TextInput and proceeds to toggle a CheckBox in
                     // web and mobile web platforms.
@@ -293,6 +292,10 @@ class Form extends React.Component {
                         this.setTouchedInput(inputID);
                         this.validate(this.state.inputValues);
                     }, 200);
+
+                    if (_.isFunction(child.props.onBlur)) {
+                        child.props.onBlur(event);
+                    }
                 },
                 onInputChange: (value, key) => {
                     const inputKey = key || inputID;

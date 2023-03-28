@@ -62,7 +62,7 @@ const ReactionTooltipContent = (props) => {
                 styles.fontColorReactionLabel,
             ]}
             >
-                {`reacted with :${props.emojiName}:`}
+                {`${props.translate('emojiReactions.reactedWith')} :${props.emojiName}:`}
             </Text>
         </View>
     );

@@ -1523,12 +1523,25 @@ const styles = {
     emojiPickerContainer: {
         backgroundColor: themeColors.componentBG,
     },
-
     emojiPickerList: {
-        height: 288,
+        height: CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT,
         width: '100%',
         ...spacing.ph4,
     },
+    emojiPickerListWithPadding: {
+        height: CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT,
+        width: '100%',
+        ...spacing.ph4,
+    },
+    emojiPickerSearchListContainer: {
+        position: 'absolute',
+        top: 60,
+        right: 0,
+        bottom: 4,
+        left: 0,
+        backgroundColor: themeColors.appBG,
+    },
+
     emojiPickerListLandscape: {
         height: 240,
     },

@@ -458,7 +458,7 @@ function getFontFamilyMonospace({fontStyle, fontWeight}) {
 function getEmojiPickerStyle(isSmallScreenWidth) {
     if (isSmallScreenWidth) {
         return {
-            width: '100%',
+            width: CONST.SMALL_EMOJI_PICKER_SIZE.WIDTH,
         };
     }
     return {
@@ -812,6 +812,18 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth) {
 }
 
 /**
+ * Gets the correct height for emoji picker list based on screen dimensions
+ *
+ * @param {Boolean} hasAdditionalSpace
+ * @returns {Object}
+ */
+function getEmojiPickerListHeight(hasAdditionalSpace) {
+    return {
+        height: hasAdditionalSpace ? CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT,
+    };
+}
+
+/**
  * Gets styles for Emoji Suggestion row
  *
  * @param {Number} highlightedEmojiIndex
@@ -967,6 +979,7 @@ export {
     getReportWelcomeBackgroundImageStyle,
     getReportWelcomeTopMarginStyle,
     getReportWelcomeContainerStyle,
+    getEmojiPickerListHeight,
     getEmojiSuggestionItemStyle,
     getEmojiSuggestionContainerStyle,
     getColoredBackgroundStyle,
