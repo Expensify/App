@@ -88,7 +88,7 @@ const ValidateSecondaryLoginPage = (props) => {
                     <TextInput
                         label={props.translate('common.magicCode')}
                         value={validateCode}
-                        onChangeText={validateCode => setValidateCode(validateCode)}
+                        onChangeText={code => setValidateCode(code)}
                         textContentType="oneTimeCode"
                     />
                 </View>
@@ -103,16 +103,15 @@ const ValidateSecondaryLoginPage = (props) => {
                     success
                     isDisabled={!validateCode}
                     text={props.translate('validateSecondaryLoginPage.submit')}
-                    onPress={() => {submitForm()}}
+                    onPress={() => submitForm()}
                     pressOnEnter
                 />
             </FixedFooter>
-
         </ScreenWrapper>
     );
-}
+};
 
-ValidateSecondaryLoginPage.displayName = 'ValidateSecondaryLoginPage'
+ValidateSecondaryLoginPage.displayName = 'ValidateSecondaryLoginPage';
 ValidateSecondaryLoginPage.propTypes = propTypes;
 ValidateSecondaryLoginPage.defaultProps = defaultProps;
 
