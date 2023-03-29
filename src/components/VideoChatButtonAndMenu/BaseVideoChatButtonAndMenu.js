@@ -18,6 +18,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import Tooltip from '../Tooltip';
 import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
+import * as ActionSheetAwareScrollView from '../ActionSheetAwareScrollView';
 
 const propTypes = {
     /** Link to open when user wants to create a new google meet meeting */
@@ -36,6 +37,7 @@ class BaseVideoChatButtonAndMenu extends Component {
 
         this.toggleVideoChatMenu = this.toggleVideoChatMenu.bind(this);
         this.measureVideoChatIconPosition = this.measureVideoChatIconPosition.bind(this);
+        this.onPopoverLayout = this.onPopoverLayout.bind(this);
         this.videoChatIconWrapper = null;
         this.menuItemData = [
             {
@@ -73,10 +75,24 @@ class BaseVideoChatButtonAndMenu extends Component {
         this.dimensionsEventListener.remove();
     }
 
+    onPopoverLayout(event) {
+        const {height} = event.nativeEvent.layout;
+        this.props.transitionActionSheetState({
+            type: 'MEASURE_CALL_POPOVER',
+            payload: {
+                popoverHeight: height,
+            },
+        });
+    }
+
     /**
      * Toggles the state variable isVideoChatMenuActive
      */
     toggleVideoChatMenu() {
+        this.props.transitionActionSheetState({
+            type: this.state.isVideoChatMenuActive ? 'CLOSE_CALL_POPOVER' : 'OPEN_CALL_POPOVER',
+        });
+
         this.setState(prevState => ({
             isVideoChatMenuActive: !prevState.isVideoChatMenuActive,
         }));
@@ -133,15 +149,17 @@ class BaseVideoChatButtonAndMenu extends Component {
                         top: this.state.videoChatIconPosition.y + 40,
                     }}
                 >
-                    {_.map(this.menuItemData, ({icon, text, onPress}) => (
-                        <MenuItem
-                            wrapperStyle={styles.mr3}
-                            key={text}
-                            icon={icon}
-                            title={text}
-                            onPress={onPress}
-                        />
-                    ))}
+                    <View onLayout={this.onPopoverLayout}>
+                        {_.map(this.menuItemData, ({icon, text, onPress}) => (
+                            <MenuItem
+                                wrapperStyle={styles.mr3}
+                                key={text}
+                                icon={icon}
+                                title={text}
+                                onPress={onPress}
+                            />
+                        ))}
+                    </View>
                 </Popover>
             </>
         );
@@ -154,4 +172,5 @@ BaseVideoChatButtonAndMenu.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
+    ActionSheetAwareScrollView.withActionSheetAwareScrollViewContext,
 )(BaseVideoChatButtonAndMenu);

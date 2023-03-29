@@ -182,6 +182,7 @@ const stateMachine = {
         OPEN_EMOJI_PICKER_POPOVER: 'keyboardPopoverOpen',
         OPEN_EMOJI_PICKER_POPOVER_STANDALONE: 'emojiPickerWithKeyboardOpen',
         ON_KEYBOARD_CLOSE: 'idle',
+        OPEN_CALL_POPOVER: 'callPopoverWithKeyboardOpen',
     },
     keyboardPopoverOpen: {
         MEASURE_POPOVER: 'keyboardPopoverOpen',
@@ -201,9 +202,13 @@ const stateMachine = {
     },
     emojiPickerWithKeyboardOpen: {
         MEASURE_EMOJI_PICKER_POPOVER: 'emojiPickerWithKeyboardOpen',
-        CLOSE_EMOJI_PICKER_POPOVER_STANDALONE: 'closingStandaloneEmojiPicker',
+        CLOSE_EMOJI_PICKER_POPOVER_STANDALONE: 'closingKeyboardPopover',
     },
-    closingStandaloneEmojiPicker: {
+    callPopoverWithKeyboardOpen: {
+        MEASURE_CALL_POPOVER: 'callPopoverWithKeyboardOpen',
+        CLOSE_CALL_POPOVER: 'closingKeyboardPopover',
+    },
+    closingKeyboardPopover: {
         ON_KEYBOARD_OPEN: 'keyboardOpen',
     },
     keyboardClosingPopover: {
@@ -380,6 +385,7 @@ function ReportKeyboardSpace(props) {
                 return nextOffset;
             }
 
+            case 'callPopoverWithKeyboardOpen':
             case 'emojiPickerWithKeyboardOpen': {
                 if (keyboard.state.value === KeyboardState.CLOSED) {
                     return lastKeyboardValue;
@@ -388,7 +394,7 @@ function ReportKeyboardSpace(props) {
                 return 0;
             }
 
-            case 'closingStandaloneEmojiPicker': {
+            case 'closingKeyboardPopover': {
                 return keyboardHeight;
             }
 
