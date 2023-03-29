@@ -16,7 +16,6 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
 import styles from '../../../../styles/styles';
-import LoginField from './LoginField';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import MenuItem from '../../../../components/MenuItem';
 import Text from '../../../../components/Text';
@@ -138,21 +137,6 @@ const ContactMethodsPage = (props) => {
                     </Text>
                 </View>
                 {loginMenuItems}
-                {/* The below fields will be removed soon, when we implement the new Add Contact Method page */}
-                {!hasEmailLogin && (
-                    <LoginField
-                        label={props.translate('profilePage.emailAddress')}
-                        type={CONST.LOGIN_TYPE.EMAIL}
-                        login={{}}
-                    />
-                )}
-                {!hasPhoneNumberLogin && (
-                    <LoginField
-                        label={props.translate('common.phoneNumber')}
-                        type={CONST.LOGIN_TYPE.PHONE}
-                        login={{}}
-                    />
-                )}
                 <Button
                     style={[styles.buttonCTA, styles.mt6]}
                     iconStyles={[styles.buttonCTAIcon]}
