@@ -849,8 +849,14 @@ PODS:
     - react-native-safe-area-context/common
     - React-RCTFabric
     - ReactCommon/turbomodule/core
-  - react-native-webview (11.23.0):
+  - react-native-webview (12.0.0-rc.2):
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
     - React-Core
+    - React-RCTFabric
+    - ReactCommon/turbomodule/core
   - React-perflogger (0.70.4-alpha.2)
   - React-RCTActionSheet (0.70.4-alpha.2):
     - React-Core/RCTActionSheetHeaders (= 0.70.4-alpha.2)
@@ -1424,7 +1430,7 @@ SPEC CHECKSUMS:
   react-native-quick-sqlite: a7bd4139fb07194ef8534d1cc14c1aec6daa4d84
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: 2f75b317784a1a8e224562941e50ecbc932d2097
-  react-native-webview: e771bc375f789ebfa02a26939a57dbc6fa897336
+  react-native-webview: 36f42990f0c9e10d5ab7be8421fcde97aeafea97
   React-perflogger: b231fb9993c1b5f74e32f0a3473225f9ebaf73d3
   React-RCTActionSheet: 9064b3b78118a253f2d6a63153f6dfff0b38f19f
   React-RCTAnimation: d93c521d4ad6457fc8c1d9830ffb0495286ea036

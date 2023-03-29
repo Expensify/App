@@ -114,7 +114,7 @@
     "react-native-screens": "3.18.2",
     "react-native-svg": "^13.6.0",
     "react-native-web-lottie": "^1.4.4",
-    "react-native-webview": "^11.17.2",
+    "react-native-webview": "git+https://github.com/react-native-webview/react-native-webview/#1ecc5f55f2a853dc01b42ce9b9cb1a06b31b0289",
     "react-pdf": "5.7.2",
     "react-plaid-link": "3.3.2",
     "react-web-config": "^1.0.0",
