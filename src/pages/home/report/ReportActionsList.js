@@ -21,7 +21,8 @@ import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
 import withLocalize from '../../../components/withLocalize';
 
-// This is a workaround to a reanimated issue -> https://github.com/software-mansion/react-native-reanimated/issues/3355
+// Workaround to a reanimated issue -> https://github.com/software-mansion/react-native-reanimated/issues/3355
+// We can remove it as soon as we are on > reanimated 3.0.0+
 if (process.browser) {
     // eslint-disable-next-line no-underscore-dangle
     window._frameTimestamp = null;
