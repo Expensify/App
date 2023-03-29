@@ -7,29 +7,38 @@ import fontFamily from '../../styles/fontFamily';
 import variables from '../../styles/variables';
 
 class BaseText extends React.PureComponent {
-    constructor(props) {
-        super(props);
+    render() {
+        // eslint-disable-next-line react/destructuring-assignment
+        const {
+            color,
+            fontSize,
+            textAlign,
+            children,
+            family,
+            style,
+            ...rest
+        } = this.props;
 
         // If the style prop is an array of styles, we need to mix them all together
-        this.mergedStyles = !_.isArray(props.style) ? props.style : _.reduce(props.style, (finalStyles, s) => ({
-            ...finalStyles,
-            ...s,
-        }), {});
+        const mergedStyles = !_.isArray(this.props.style)
+            ? this.props.style
+            : _.reduce(this.props.style, (finalStyles, s) => ({
+                ...finalStyles,
+                ...s,
+            }), {});
 
-        this.componentStyle = {
-            color: props.color,
-            fontSize: props.fontSize,
-            textAlign: props.textAlign,
-            fontFamily: fontFamily[props.family],
-            ...this.mergedStyles,
+        const componentStyle = {
+            color,
+            fontSize,
+            textAlign,
+            fontFamily: fontFamily[family],
+            ...mergedStyles,
         };
 
-        if (!this.componentStyle.lineHeight && this.componentStyle.fontSize === variables.fontSizeNormal) {
-            this.componentStyle.lineHeight = variables.fontSizeNormalHeight;
+        if (!componentStyle.lineHeight && componentStyle.fontSize === variables.fontSizeNormal) {
+            componentStyle.lineHeight = variables.fontSizeNormalHeight;
         }
-    }
 
-    render() {
         return (
             <RNText
                 allowFontScaling={false}
@@ -39,9 +48,9 @@ class BaseText extends React.PureComponent {
                     }
                     this.props.innerRef(ref);
                 }}
-                style={[this.componentStyle]}
+                style={[componentStyle]}
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...this.props}
+                {...rest}
             >
                 {this.props.children}
             </RNText>
