@@ -1,8 +1,8 @@
 import React, {forwardRef} from 'react';
 import _ from 'underscore';
 // eslint-disable-next-line no-restricted-imports
-import {Text as RNText} from 'react-native';
-import {defaultProps, propTypes} from './baseTextPropTypes';
+import {StyleSheet, Text as RNText} from 'react-native';
+import {defaultProps as baseTextDefaultProps, propTypes as baseTextPropTypes} from './baseTextPropTypes';
 import fontFamily from '../../styles/fontFamily';
 import variables from '../../styles/variables';
 
@@ -16,10 +16,7 @@ const BaseText = forwardRef(({
     ...props
 }, ref) => {
     // If the style prop is an array of styles, we need to mix them all together
-    const mergedStyles = !_.isArray(style) ? style : _.reduce(style, (finalStyles, s) => ({
-        ...finalStyles,
-        ...s,
-    }), {});
+    const mergedStyles = !_.isArray(style) ? style : StyleSheet.flatten(style);
     const componentStyle = {
         color,
         fontSize,
@@ -38,8 +35,8 @@ const BaseText = forwardRef(({
     );
 });
 
-BaseText.propTypes = propTypes;
-BaseText.defaultProps = defaultProps;
+BaseText.propTypes = baseTextPropTypes;
+BaseText.defaultProps = baseTextDefaultProps;
 BaseText.displayName = 'BaseText';
 
 export default BaseText;

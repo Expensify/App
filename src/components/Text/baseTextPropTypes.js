@@ -24,11 +24,12 @@ const propTypes = {
     numberOfLines: PropTypes.number,
 
     /** Any additional styles to apply */
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object, PropTypes.string]),
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     /** A ref to forward to the Text */
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 };
+
 const defaultProps = {
     color: themeColors.text,
     fontSize: variables.fontSizeNormal,
