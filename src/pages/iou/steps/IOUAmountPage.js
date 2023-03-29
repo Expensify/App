@@ -259,14 +259,13 @@ class IOUAmountPage extends React.Component {
 
         return (
             <>
-                <View
-                    style={[
-                        styles.flex1,
-                        styles.flexRow,
-                        styles.w100,
-                        styles.alignItemsCenter,
-                        styles.justifyContentCenter,
-                    ]}
+                <View style={[
+                    styles.flex1,
+                    styles.flexRow,
+                    styles.w100,
+                    styles.alignItemsCenter,
+                    styles.justifyContentCenter,
+                ]}
                 >
                     <TextInputWithCurrencySymbol
                         onBlur={(event) => {
