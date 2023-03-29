@@ -454,18 +454,18 @@ describe('ReportUtils', () => {
             expect(result).toEqual(`@test@${randomPublicDomain}`);
         });
 
-        it('returns null when primaryLogin and displayName are both null', () => {
-            const displayName = null;
-            const primaryLogin = null;
-            const viewerDomain = '+@example.com';
+        it('returns null when primaryLogin the same as the handle', () => {
+            const displayName = 'testuser';
+            const primaryLogin = 'testuser@different.com';
+            const viewerDomain = '+@different.com';
 
             const result = ReportUtils.getPersonHandle(displayName, primaryLogin, viewerDomain);
 
             expect(result).toBeNull();
         });
 
-        it('returns null when primaryLogin is null', () => {
-            const displayName = 'testuser';
+        it('returns null when primaryLogin and displayName are both null', () => {
+            const displayName = null;
             const primaryLogin = null;
             const viewerDomain = '+@example.com';
 
