@@ -217,7 +217,7 @@ const config = {
     easing: Easing.bezier(0.33, 0.01, 0, 1),
 };
 
-const ReportKeyboardSpace = (props) => {
+function ReportKeyboardSpace(props) {
     const safeArea = useSafeAreaInsets();
     const keyboard = useAnimatedKeyboard();
 
@@ -429,7 +429,7 @@ const ReportKeyboardSpace = (props) => {
 
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <Reanimated.View style={[styles.flex1, animatedStyle]} {...props} />;
-};
+}
 
 ReportKeyboardSpace.displayName = 'ReportKeyboardSpace';
 
