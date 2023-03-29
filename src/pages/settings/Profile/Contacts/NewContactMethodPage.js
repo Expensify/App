@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { withOnyx } from 'react-native-onyx';
 import { compose } from 'underscore';
+import lodashGet from 'lodash/get';
 import Button from '../../../../components/Button';
 import FixedFooter from '../../../../components/FixedFooter';
 import HeaderWithCloseButton from "../../../../components/HeaderWithCloseButton";
@@ -55,6 +56,12 @@ class NewContactMethodPage extends Component {
     }
 
     submitForm() {
+
+        // If this login already exists, just go back.
+        if (lodashGet(this.props.loginList, this.state.login, null)) {
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+            return;
+        }
         User.addNewContactMethodAndNavigate(this.state.login, this.state.password);
     }
 
@@ -119,5 +126,6 @@ export default compose(
     withLocalize,
     withOnyx({
         betas: {key: ONYXKEYS.BETAS},
+        loginList: {key: ONYXKEYS.LOGIN_LIST},
     }),
 )(NewContactMethodPage);
