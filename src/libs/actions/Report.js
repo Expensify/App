@@ -829,7 +829,7 @@ const handleUserDeletedLinks = (newCommentText, originalHtml) => {
     }
     const htmlWithAutoLinks = parser.replace(newCommentText);
     const markdownWithAutoLinks = parser.htmlToMarkdown(htmlWithAutoLinks).trim();
-    const markdownOriginalComment = parser.htmlToMarkdown(originalHtml);
+    const markdownOriginalComment = parser.htmlToMarkdown(originalHtml).trim();
     const removedLinks = getRemovedMarkdownLinks(markdownOriginalComment, newCommentText);
     return removeLinks(markdownWithAutoLinks, removedLinks);
 };
