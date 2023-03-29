@@ -30,10 +30,10 @@ import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
 import * as Download from '../../actions/Download';
 import * as Session from '../../actions/Session';
-import RightModalStack from './Navigators/RightModalNavigator';
-import FullScreenModalStack from './Navigators/FullScreenNavigator';
+import RightModalNavigator from './Navigators/RightModalNavigator';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import NAVIGATORS from '../../../NAVIGATORS';
+import FullScreenNavigator from './Navigators/FullScreenNavigator';
 
 let currentUserEmail;
 Onyx.connect({
@@ -152,7 +152,7 @@ class AuthScreens extends React.Component {
     }
 
     render() {
-        const RightModalStackScreenOptions = {
+        const RightModalNavigatorScreenOptions = {
             headerShown: false,
             gestureDirection: 'horizontal',
             animationEnabled: true,
@@ -164,10 +164,6 @@ class AuthScreens extends React.Component {
             // This option is required to make previous screen visible underneath the modal screen
             // https://reactnavigation.org/docs/6.x/stack-navigator#transparent-modals
             presentation: 'transparentModal',
-
-            // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
-            // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
-            isModal: true,
         };
         const url = getCurrentUrl();
         const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : '';
@@ -246,7 +242,7 @@ class AuthScreens extends React.Component {
                 <RootStack.Screen
                     name={NAVIGATORS.FULL_SCREEN_NAVIGATOR}
                     options={defaultScreenOptions}
-                    component={FullScreenModalStack}
+                    component={FullScreenNavigator}
                 />
 
                 {/* Note: Each modal must have it's own stack navigator since we want to be able to navigate to any
@@ -255,8 +251,8 @@ class AuthScreens extends React.Component {
                 use a navigator */}
                 <RootStack.Screen
                     name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
-                    options={RightModalStackScreenOptions}
-                    component={RightModalStack}
+                    options={RightModalNavigatorScreenOptions}
+                    component={RightModalNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
