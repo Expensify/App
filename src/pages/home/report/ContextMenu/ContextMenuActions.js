@@ -40,7 +40,7 @@ const CONTEXT_MENU_TYPES = {
 export default [
     {
         shouldKeepOpen: true,
-        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && _.has(reportAction, 'message') && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU,
+        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && _.has(reportAction, 'message'),
         renderContent: (closePopover, {
             reportID, reportAction, close: closeManually, openContextMenu,
         }) => {
