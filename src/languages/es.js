@@ -32,7 +32,7 @@ export default {
         lastName: 'Apellidos',
         phone: 'teléfono',
         phoneNumber: 'Número de teléfono',
-        phoneNumberPlaceholder: '(prefijo) + (número)',
+        phoneNumberPlaceholder: '(xxx)xxx-xxxx',
         email: 'Email',
         and: 'y',
         details: 'Detalles',
