@@ -2,5 +2,6 @@ import PropTypes from 'prop-types';
 
 export default PropTypes.oneOfType([
     PropTypes.func,
-    PropTypes.shape({current: PropTypes.instanceOf(Element)}),
+    // eslint-disable-next-line react/forbid-prop-types
+    PropTypes.shape({current: PropTypes.any}),
 ]);
