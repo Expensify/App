@@ -22,6 +22,7 @@ class Onfido extends React.Component {
         this.onfidoOut = OnfidoSDK.init({
             token: this.props.sdkToken,
             containerId: CONST.ONFIDO.CONTAINER_ID,
+            useMemoryHistory: true,
             customUI: {
                 fontFamilyTitle: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
                 fontFamilySubtitle: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
@@ -63,16 +64,12 @@ class Onfido extends React.Component {
                     options: {
                         useLiveDocumentCapture: true,
                         forceCrossDevice: true,
-                        showCountrySelection: false,
+                        hideCountrySelection: true,
+                        country: 'USA',
+                        uploadFallback: false,
                         documentTypes: {
                             driving_licence: {
-                                country: null,
-                            },
-                            national_identity_card: {
-                                country: null,
-                            },
-                            residence_permit: {
-                                country: null,
+                                country: 'USA',
                             },
                             passport: true,
                         },

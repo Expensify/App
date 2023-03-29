@@ -17,7 +17,6 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
-import OfflineIndicator from '../../components/OfflineIndicator';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as ErrorUtils from '../../libs/ErrorUtils';
@@ -169,7 +168,7 @@ class LoginForm extends React.Component {
         const serverErrorText = ErrorUtils.getLatestErrorMessage(this.props.account);
         return (
             <>
-                <View accessibilityLabel="Login form" style={[styles.mt3]}>
+                <View accessibilityLabel={this.props.translate('loginForm.loginForm')} style={[styles.mt3]}>
                     <TextInput
                         ref={el => this.input = el}
                         label={this.props.translate('loginForm.phoneOrEmail')}
@@ -211,7 +210,6 @@ class LoginForm extends React.Component {
                         </View>
                     )
                 }
-                <OfflineIndicator containerStyles={[styles.mv1]} />
             </>
         );
     }

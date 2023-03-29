@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="script-src https://kit.fontawesome.com https://cdnjs.cloudflare.com https://cdnjs.cloudflare.com/ajax/libs/tocbot/ 'self'; style-src cdnjs.cloudflare.com ka-f.fontawesome.com 'self' 'unsafe-inline'" >
     <title>Expensify Help</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui">
     <link rel="icon" type="image/png" href="/assets/images/expensify-logo-round.png">
@@ -66,15 +67,15 @@
         </div>
 
         <!-- Concierge button at the bottom of the page -->
-        <a class="card get-help" href="{{ CONCIERGE_CHAT_URL }}" target="_blank">
-            <div class="body">
-                <h3 class="title with-margin">Didn't find what you were looking for?</h3>
-                <p class="description">Concierge is here to answer all your questions.</p>
-            </div>
-            <div class="submit-button">
-                <button class="success">Send a message</button>
-            </div>
-        </a>
+        <div class="get-help">
+            <h2 class="title with-margin">Didn't find what you were looking for?</h2>
+            <p class="description">Concierge is here to answer all your questions.</p>
+            <a href="{{ CONCIERGE_CHAT_URL }}" target="_blank">
+                <div class="submit-button">
+                    <button class="success">Send a message</button>
+                </div>
+            </a>
+        </div>
 
         <div id="footer">
             {% include footer.html %}

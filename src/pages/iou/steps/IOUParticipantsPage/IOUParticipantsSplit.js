@@ -13,10 +13,11 @@ import compose from '../../../../libs/compose';
 import Text from '../../../../components/Text';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 import reportPropTypes from '../../../reportPropTypes';
+import avatarPropTypes from '../../../../components/avatarPropTypes';
 
 const propTypes = {
     /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
@@ -29,7 +30,7 @@ const propTypes = {
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
         hasDraftComment: PropTypes.bool,
-        icons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])),
+        icons: PropTypes.arrayOf(avatarPropTypes),
         searchText: PropTypes.string,
         text: PropTypes.string,
         keyForList: PropTypes.string,
@@ -37,10 +38,10 @@ const propTypes = {
     })),
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** All reports shared with the user */
-    reports: PropTypes.objectOf(reportPropTypes).isRequired,
+    reports: PropTypes.objectOf(reportPropTypes),
 
     /** padding bottom style of safe area */
     safeAreaPaddingBottomStyle: PropTypes.oneOfType([
@@ -53,6 +54,9 @@ const propTypes = {
 
 const defaultProps = {
     participants: [],
+    betas: [],
+    personalDetails: {},
+    reports: {},
     safeAreaPaddingBottomStyle: {},
 };
 

@@ -16,6 +16,7 @@ import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from './withCurrentUserPersonalDetails';
 import * as IOUUtils from '../libs/IOUUtils';
+import avatarPropTypes from './avatarPropTypes';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -44,7 +45,7 @@ const propTypes = {
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
         hasDraftComment: PropTypes.bool,
-        icons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])),
+        icons: PropTypes.arrayOf(avatarPropTypes),
         searchText: PropTypes.string,
         text: PropTypes.string,
         keyForList: PropTypes.string,
@@ -79,7 +80,7 @@ const propTypes = {
     /** Current user session */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
-    }).isRequired,
+    }),
 };
 
 const defaultProps = {
@@ -90,6 +91,9 @@ const defaultProps = {
     comment: '',
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
     canModifyParticipants: false,
+    session: {
+        email: null,
+    },
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -334,9 +338,6 @@ export default compose(
         iou: {key: ONYXKEYS.IOU},
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
 )(IOUConfirmationList);

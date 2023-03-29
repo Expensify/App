@@ -9,6 +9,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as FormActions from '../libs/actions/FormActions';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import styles from '../styles/styles';
+import CONST from '../CONST';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 import FormSubmit from './FormSubmit';
 import SafeAreaConsumer from './SafeAreaConsumer';
@@ -172,7 +173,20 @@ class Form extends React.Component {
     validate(values) {
         FormActions.setErrors(this.props.formID, null);
         FormActions.setErrorFields(this.props.formID, null);
+
+        // Run any validations passed as a prop
         const validationErrors = this.props.validate(values);
+
+        // Validate the input for html tags. It should supercede any other error
+        _.each(values, (inputValue, inputID) => {
+            // Return early if there is no value OR the value is not a string OR there are no HTML characters
+            if (!inputValue || !_.isString(inputValue) || inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX) === -1) {
+                return;
+            }
+
+            // Add a validation error here because it is a string value that contains HTML characters
+            validationErrors[inputID] = this.props.translate('common.error.invalidCharacter');
+        });
 
         if (!_.isObject(validationErrors)) {
             throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');
@@ -241,6 +255,11 @@ class Form extends React.Component {
                 this.state.inputValues[inputID] = defaultValue;
             }
 
+            // We force the form to set the input value from the defaultValue props if there is a saved valid value
+            if (child.props.shouldUseDefaultValue) {
+                this.state.inputValues[inputID] = child.props.defaultValue;
+            }
+
             if (!_.isUndefined(child.props.value)) {
                 this.state.inputValues[inputID] = child.props.value;
             }
@@ -255,12 +274,28 @@ class Form extends React.Component {
                 .value() || '';
 
             return React.cloneElement(child, {
-                ref: node => this.inputRefs[inputID] = node,
+                ref: (node) => {
+                    this.inputRefs[inputID] = node;
+
+                    const {ref} = child;
+                    if (_.isFunction(ref)) {
+                        ref(node);
+                    }
+                },
                 value: this.state.inputValues[inputID],
                 errorText: this.state.errors[inputID] || fieldErrorMessage,
-                onBlur: () => {
-                    this.setTouchedInput(inputID);
-                    this.validate(this.state.inputValues);
+                onBlur: (event) => {
+                    // We delay the validation in order to prevent Checkbox loss of focus when
+                    // the user are focusing a TextInput and proceeds to toggle a CheckBox in
+                    // web and mobile web platforms.
+                    setTimeout(() => {
+                        this.setTouchedInput(inputID);
+                        this.validate(this.state.inputValues);
+                    }, 200);
+
+                    if (_.isFunction(child.props.onBlur)) {
+                        child.props.onBlur(event);
+                    }
                 },
                 onInputChange: (value, key) => {
                     const inputKey = key || inputID;

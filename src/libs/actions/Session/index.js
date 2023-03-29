@@ -17,8 +17,6 @@ import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
 import * as Report from '../Report';
 import DateUtils from '../../DateUtils';
-import Navigation from '../../Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 
 let credentials = {};
 Onyx.connect({
@@ -142,6 +140,39 @@ function resendValidateCode(login = credentials.login) {
 }
 
 /**
+ * Request a new validate / magic code for user to sign in automatically with the link
+ *
+ * @param {String} [login]
+ */
+function resendLinkWithValidateCode(login = credentials.login) {
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: true,
+            message: null,
+        },
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: Localize.translateLocal('validateCodeModal.successfulNewCodeRequest'),
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: null,
+        },
+    }];
+    API.write('RequestNewValidateCode', {email: login}, {optimisticData, successData, failureData});
+}
+
+/**
  * Checks the API to see if an account exists for the given login
  *
  * @param {String} login
@@ -244,8 +275,9 @@ function signInWithShortLivedAuthToken(email, authToken) {
  * @param {String} password This will be removed after passwordless beta ends
  * @param {String} [validateCode] Code for passwordless login
  * @param {String} [twoFactorAuthCode]
+ * @param {String} [preferredLocale] Indicates which language to use when the user lands in the app
  */
-function signIn(password, validateCode, twoFactorAuthCode) {
+function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CONST.DEFAULT_LOCALE) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -277,14 +309,7 @@ function signIn(password, validateCode, twoFactorAuthCode) {
         },
     ];
 
-    const params = {twoFactorAuthCode};
-    if (credentials.login) {
-        // The user initiated the sign in operation on the current device, sign in with the email
-        params.email = credentials.login;
-    } else {
-        // The user is signing in with the accountID and validateCode from the magic link
-        params.accountID = credentials.accountID;
-    }
+    const params = {twoFactorAuthCode, email: credentials.login, preferredLocale};
 
     // Conditionally pass a password or validateCode to command since we temporarily allow both flows
     if (validateCode) {
@@ -296,7 +321,7 @@ function signIn(password, validateCode, twoFactorAuthCode) {
     API.write('SigninUser', params, {optimisticData, successData, failureData});
 }
 
-function signInWithValidateCode(accountID, validateCode) {
+function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -306,15 +331,18 @@ function signInWithValidateCode(accountID, validateCode) {
                 isLoading: true,
             },
         },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {autoAuthState: CONST.AUTO_AUTH_STATE.SIGNING_IN},
+        },
     ];
 
     const successData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
+            value: {isLoading: false},
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -324,28 +352,51 @@ function signInWithValidateCode(accountID, validateCode) {
                 validateCode,
             },
         },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN},
+        },
     ];
 
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
+            value: {isLoading: false},
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {autoAuthState: CONST.AUTO_AUTH_STATE.FAILED},
         },
     ];
 
-    // This is temporary for now. Server should login with the accountID and validateCode
-    API.write('SigninUser', {
-        validateCode,
+    API.write('SigninUserWithLink', {
         accountID,
+        validateCode,
+        twoFactorAuthCode,
     }, {optimisticData, successData, failureData});
 }
 
-function signInWithValidateCodeAndNavigate(accountID, validateCode) {
-    signInWithValidateCode(accountID, validateCode);
-    Navigation.navigate(ROUTES.HOME);
+/**
+ * Initializes the state of the automatic authentication when the user clicks on a magic link.
+ *
+ * This method is called in componentDidMount event of the lifecycle.
+ * When the user gets authenticated, the component is unmounted and then remounted
+ * when AppNavigator switches from PublicScreens to AuthScreens.
+ * That's the reason why autoAuthState initialization is skipped while the last state is SIGNING_IN.
+ *
+ * @param {string} cachedAutoAuthState
+ */
+function initAutoAuthState(cachedAutoAuthState) {
+    Onyx.merge(
+        ONYXKEYS.SESSION,
+        {
+            autoAuthState: cachedAutoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN
+                ? CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN : CONST.AUTO_AUTH_STATE.NOT_STARTED,
+        },
+    );
 }
 
 /**
@@ -567,13 +618,14 @@ export {
     updatePasswordAndSignin,
     signIn,
     signInWithValidateCode,
-    signInWithValidateCodeAndNavigate,
+    initAutoAuthState,
     signInWithShortLivedAuthToken,
     cleanupSession,
     signOut,
     signOutAndRedirectToSignIn,
     resendValidationLink,
     resendValidateCode,
+    resendLinkWithValidateCode,
     resetPassword,
     resendResetPassword,
     clearSignInData,
