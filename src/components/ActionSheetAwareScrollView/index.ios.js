@@ -22,11 +22,11 @@ import Log from '../../libs/Log';
 // When you need to debug state machine change this to true
 const DEBUG_MODE = false;
 
-function log(...params) {
+function log(message, params) {
     'worklet';
 
     if (DEBUG_MODE) {
-        runOnJS(Log.info)(...params);
+        runOnJS(Log.info)(`[StateMachine] ${message}`, false, params);
     }
 }
 
@@ -91,20 +91,20 @@ function useStateMachine(stateMachine, initialState) {
 
         const state = currentState.value;
 
-        log('Current STATE: ', state.current.state);
-        log('Next ACTION: ', action.type, action.payload);
+        log(`Current STATE: ${state.current.state}`);
+        log(`Next ACTION: ${action.type}`, action.payload);
 
         const nextMachine = stateMachine[state.current.state];
 
         if (!nextMachine) {
-            log('No next machine found for state: ', state.current.state);
+            log(`No next machine found for state: ${state.current.state}`);
             return;
         }
 
         const nextState = nextMachine[action.type];
 
         if (!nextState) {
-            log('No next state found for action: ', action.type);
+            log(`No next state found for action: ${action.type}`);
             return;
         }
 
@@ -114,7 +114,7 @@ function useStateMachine(stateMachine, initialState) {
             ...action.payload,
         } : action.payload;
 
-        log('Next STATE: ', nextState, nextPayload);
+        log(`Next STATE: ${nextState}`, nextPayload);
 
         currentState.value = {
             previous: state.current,
