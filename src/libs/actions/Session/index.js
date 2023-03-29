@@ -1,7 +1,8 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import appleAuth from '@invertase/react-native-apple-authentication';
+import appleAuth, {appleAuthAndroid} from '@invertase/react-native-apple-authentication';
+import {Platform} from 'react-native';
 import ONYXKEYS from '../../../ONYXKEYS';
 import redirectToSignIn from '../SignInRedirect';
 import CONFIG from '../../../CONFIG';
@@ -256,6 +257,7 @@ function beginSignIn(login) {
     API.read('BeginSignIn', {email: login}, {optimisticData, successData, failureData});
 }
 
+// TODO: Third-party provider sign-in logic should probably live somewhere else. Authentication lib file? Or new file?
 function iOSAppleSignIn(apiCallback) {
     appleAuth.performRequest({
         requestedOperation: appleAuth.Operation.LOGIN,
@@ -268,13 +270,54 @@ function iOSAppleSignIn(apiCallback) {
                 Log.error('Authentication failed. Original response: ', response);
                 return;
             }
-            apiCallback(response.identityToken);
+            apiCallback(response.identityToken).then(apiResponse => Log.error('API response: ', apiResponse)).catch(apiError => Log.error('API Callback error: ', apiError));
         }).catch((e) => {
             Log.error('Obtaining credential state for user failed. Error: ', e);
         });
     }).catch((e) => {
-        Log.error('Request to Apple failed. Error: ', e);
+        Log.error('Request to sign in with Apple failed. Error: ', e);
     });
+}
+
+// Giving unhandled promise rejection? Not sure why.
+function androidAppleSignIn(apiCallback) {
+    appleAuthAndroid.configure({
+        clientId: 'com.expensify.expensifylite.AppleSignIn',
+        redirectUri: 'https://www.expensify.com/partners/apple/loginCallback',
+        responseType: appleAuthAndroid.ResponseType.ALL,
+        scope: appleAuthAndroid.Scope.ALL,
+    });
+
+    appleAuthAndroid.signIn().then((response) => {
+        apiCallback(response.id_token).then(apiResponse => Log.error('API response: ', apiResponse)).catch(apiError => Log.error('API Callback error: ', apiError));
+    }).catch((e) => {
+        Log.error('Request to sign in with Apple failed. Error: ', e);
+    });
+}
+
+async function aASIasync(apiCallback) {
+    appleAuthAndroid.configure({
+        clientId: 'com.expensify.expensifylite.AppleSignIn',
+        redirectUri: 'https://www.expensify.com/partners/apple/loginCallback',
+        responseType: appleAuthAndroid.ResponseType.ALL,
+        scope: appleAuthAndroid.Scope.ALL,
+    });
+
+    const response = await appleAuthAndroid.signIn();
+    console.log('RESPONSE', response);
+    apiCallback(response.id_token);
+}
+
+function appleSignInForPlatform(apiCallback) {
+    switch (Platform.OS) {
+        case 'ios':
+            iOSAppleSignIn(apiCallback);
+            break;
+        case 'android':
+            aASIasync(apiCallback);
+            break;
+        default:
+    }
 }
 
 /**
@@ -326,7 +369,7 @@ function beginAppleSignIn() {
     ];
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     const apiCallback = idToken => API.makeRequestWithSideEffects('AuthenticateApple', {idToken}, {optimisticData, successData, failureData});
-    iOSAppleSignIn(apiCallback);
+    appleSignInForPlatform(apiCallback);
 }
 
 /**
