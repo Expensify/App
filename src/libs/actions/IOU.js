@@ -855,7 +855,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             value: {
                 iouReportID: null,
             },
-        },    
+        },
     ];
 
     const failureData = [
