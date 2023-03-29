@@ -406,13 +406,6 @@ export default {
         isShownOnProfile: 'Tu zona horaria se muestra en tu perfil.',
         getLocationAutomatically: 'Detecta tu ubicación automáticamente.',
     },
-    addSecondaryLoginPage: {
-        addPhoneNumber: 'Agregar número de teléfono',
-        addEmailAddress: 'Agregar dirección de email',
-        enterPreferredPhoneNumberToSendValidationLink: 'Escribe tu número de teléfono para recibir el enlace de validación.',
-        enterPreferredEmailToSendValidationLink: 'Escribe tu email para recibir el enlace de validación.',
-        sendValidation: 'Enviar validación',
-    },
     newContactMethodPage: {
         description: 'Introduzca su correo electrónico/número de teléfono seguido de su contraseña de Expensify para confirmar.',
         loginPlaceholder: 'Correo electrónico/número de teléfono',

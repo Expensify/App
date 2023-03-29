@@ -407,13 +407,6 @@ export default {
         isShownOnProfile: 'Your timezone is shown on your profile.',
         getLocationAutomatically: 'Automatically determine your location.',
     },
-    addSecondaryLoginPage: {
-        addPhoneNumber: 'Add phone number',
-        addEmailAddress: 'Add email address',
-        enterPreferredPhoneNumberToSendValidationLink: 'Enter your preferred phone number to send a validation link.',
-        enterPreferredEmailToSendValidationLink: 'Enter your preferred email address to send a validation link.',
-        sendValidation: 'Send validation',
-    },
     newContactMethodPage: {
         description: 'Enter your email/phone number followed by your Expensify password to confirm.',
         loginPlaceholder: 'Email/phone number',
