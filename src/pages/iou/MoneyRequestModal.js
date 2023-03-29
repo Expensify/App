@@ -106,9 +106,6 @@ const Steps = {
 };
 
 const MoneyRequestModal = (props) => {
-    const [previousStepIndex, setPreviousStepIndex] = useState(0);
-    const [currentStepIndex, setCurrentStepIndex] = useState(0);
-
     const reportParticipants = lodashGet(props, 'report.participants', []);
     const participantsWithDetails = _.map(OptionsListUtils.getPersonalDetailsForLogins(reportParticipants, props.personalDetails), personalDetails => ({
         login: personalDetails.login,
@@ -125,6 +122,12 @@ const MoneyRequestModal = (props) => {
         payPalMeAddress: lodashGet(personalDetails, 'payPalMeAddress', ''),
         phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
     }));
+
+    // Skip IOUParticipants step if participants are passed in
+    const steps = reportParticipants.length ? [Steps.IOUAmount, Steps.IOUConfirm] : [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm];
+
+    const [previousStepIndex, setPreviousStepIndex] = useState(0);
+    const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [participants, setParticipants] = useState(participantsWithDetails);
     const [amount, setAmount] = useState('');
     const [comment, setComment] = useState('');
@@ -190,7 +193,7 @@ const MoneyRequestModal = (props) => {
             return props.translate(props.hasMultipleParticipants ? 'iou.splitBill' : 'iou.requestMoney');
         }
 
-        return props.translate(this.steps[currentStepIndex]) || '';
+        return props.translate(steps[currentStepIndex]) || '';
     }
 
     /**
@@ -209,7 +212,7 @@ const MoneyRequestModal = (props) => {
      * Navigate to the previous IOU step if possible
      */
     function navigateToNextStep() {
-        if (currentStepIndex >= this.steps.length - 1) {
+        if (currentStepIndex >= steps.length - 1) {
             return;
         }
 
@@ -223,7 +226,7 @@ const MoneyRequestModal = (props) => {
      * @param {String} paymentMethodType
      */
     function sendMoney(paymentMethodType) {
-        const formattedAmount = Math.round(amount * 100);
+        const amountInDollars = Math.round(amount * 100);
         const currency = props.iou.selectedCurrencyCode;
         const trimmedComment = comment.trim();
         const participant = participants[0];
@@ -231,7 +234,7 @@ const MoneyRequestModal = (props) => {
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
             IOU.sendMoneyElsewhere(
                 props.report,
-                formattedAmount,
+                amountInDollars,
                 currency,
                 trimmedComment,
                 props.currentUserPersonalDetails.login,
@@ -243,7 +246,7 @@ const MoneyRequestModal = (props) => {
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
             IOU.sendMoneyViaPaypal(
                 props.report,
-                formattedAmount,
+                amountInDollars,
                 currency,
                 trimmedComment,
                 props.currentUserPersonalDetails.login,
@@ -255,7 +258,7 @@ const MoneyRequestModal = (props) => {
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
             IOU.sendMoneyWithWallet(
                 props.report,
-                formattedAmount,
+                amountInDollars,
                 currency,
                 trimmedComment,
                 props.currentUserPersonalDetails.login,
