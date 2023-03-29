@@ -35,7 +35,7 @@ const ImageWithSizeCalculation = (props) => {
             style={[
                 styles.w100,
                 styles.h100,
-                ...props.style,
+                props.style,
             ]}
         >
             <Image
