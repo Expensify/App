@@ -1589,6 +1589,14 @@ function getReportIDFromLink(url) {
 
 /**
  * @param {Object} report
+ * @returns {Boolean}
+ */
+function canRequestMoney(report) {
+    return (!isPolicyExpenseChat(report) || report.isOwnPolicyExpenseChat);
+}
+
+/**
+ * @param {Object} report
  * @param {Array} reportParticipants
  * @param {Array} betas
  * @returns {Array}
@@ -1613,7 +1621,7 @@ function getIOUOptions(report, reportParticipants, betas) {
     // DM chats that only have 2 people will see the Send / Request money options.
     // Workspace chats should only see the Request money option, as "easy overages" is not available.
     return [
-        CONST.IOU.IOU_TYPE.REQUEST,
+        ...(canRequestMoney(report) ? [CONST.IOU.IOU_TYPE.REQUEST] : []),
         ...(Permissions.canUseIOUSend(betas) && !isPolicyExpenseChat(report) ? [CONST.IOU.IOU_TYPE.SEND] : []),
     ];
 }
@@ -1647,14 +1655,6 @@ function canLeaveRoom(report, isPolicyMember) {
         return false;
     }
     return true;
-}
-
-/**
- * @param {Object} report
- * @returns {Boolean}
- */
-function canRequestMoney(report) {
-    return (!isPolicyExpenseChat(report) || report.isOwnPolicyExpenseChat);
 }
 
 export {
