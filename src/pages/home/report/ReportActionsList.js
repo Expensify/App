@@ -1,7 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {
-    createRef,
-} from 'react';
+import React from 'react';
 import {
     Animated,
 } from 'react-native';
@@ -32,6 +30,7 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
 import * as ActionSheetAwareScrollView from '../../../components/ActionSheetAwareScrollView';
+import withLocalize from '../../../components/withLocalize';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -162,7 +161,7 @@ class ReportActionsList extends React.Component {
         return (
             <Animated.View style={[StyleUtils.fade(this.state.fadeInAnimation), styles.flex1]}>
                 <InvertedFlatList
-                    accessibilityLabel="List of chat messages"
+                    accessibilityLabel={this.props.translate('sidebarScreen.listOfChatMessages')}
                     ref={ReportScrollManager.flatListRef}
                     data={this.props.sortedReportActions}
                     renderItem={this.renderItem}
@@ -221,6 +220,7 @@ ReportActionsList.defaultProps = defaultProps;
 export default compose(
     withDrawerState,
     withWindowDimensions,
+    withLocalize,
     withPersonalDetails(),
     withNetwork(),
 )(ReportActionsList);
