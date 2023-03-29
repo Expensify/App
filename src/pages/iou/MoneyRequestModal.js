@@ -138,12 +138,182 @@ const MoneyRequestModal = (props) => {
 
     });
 
+    /**
+     * Decides our animation type based on whether we're increasing or decreasing
+     * our step index.
+     * @returns {String}
+    */
+    function getDirection() {
+        if (previousStepIndex < currentStepIndex) {
+            return 'in';
+        }
+        if (previousStepIndex > currentStepIndex) {
+            return 'out';
+        }
+
+        // Doesn't animate the step when first opening the modal
+        if (previousStepIndex === currentStepIndex) {
+            return null;
+        }
+    }
+
+    /**
+     * Retrieve title for current step, based upon current step and type of IOU
+     *
+     * @returns {String}
+     */
+    function getTitleForStep() {
+        const currentStepIndex = currentStepIndex;
+        const isSendingMoney = props.iouType === CONST.IOU.IOU_TYPE.SEND;
+        if (currentStepIndex === 1 || currentStepIndex === 2) {
+            const formattedAmount = props.numberFormat(
+                amount, {
+                    style: 'currency',
+                    currency: props.iou.selectedCurrencyCode,
+                },
+            );
+            if (isSendingMoney) {
+                return props.translate('iou.send', {
+                    amount: formattedAmount,
+                });
+            }
+            return props.translate(
+                props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
+                    amount: formattedAmount,
+                },
+            );
+        }
+        if (currentStepIndex === 0) {
+            if (isSendingMoney) {
+                return props.translate('iou.sendMoney');
+            }
+            return props.translate(props.hasMultipleParticipants ? 'iou.splitBill' : 'iou.requestMoney');
+        }
+
+        return props.translate(this.steps[currentStepIndex]) || '';
+    }
+
+    /**
+     * Navigate to the next IOU step if possible
+     */
+    function navigateToPreviousStep() {
+        if (currentStepIndex <= 0) {
+            return;
+        }
+
+        setPreviousStepIndex(currentStepIndex);
+        setCurrentStepIndex(currentStepIndex - 1);
+    }
+
+    /**
+     * Navigate to the previous IOU step if possible
+     */
+    function navigateToNextStep() {
+        if (currentStepIndex >= this.steps.length - 1) {
+            return;
+        }
+
+        setPreviousStepIndex(currentStepIndex);
+        setCurrentStepIndex(currentStepIndex + 1);
+    }
+
+    /**
+     * Checks if user has a GOLD wallet then creates a paid IOU report on the fly
+     *
+     * @param {String} paymentMethodType
+     */
+    function sendMoney(paymentMethodType) {
+        const formattedAmount = Math.round(amount * 100);
+        const currency = props.iou.selectedCurrencyCode;
+        const trimmedComment = comment.trim();
+        const participant = participants[0];
+
+        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            IOU.sendMoneyElsewhere(
+                props.report,
+                formattedAmount,
+                currency,
+                trimmedComment,
+                props.currentUserPersonalDetails.login,
+                participant,
+            );
+            return;
+        }
+
+        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
+            IOU.sendMoneyViaPaypal(
+                props.report,
+                formattedAmount,
+                currency,
+                trimmedComment,
+                props.currentUserPersonalDetails.login,
+                participant,
+            );
+            return;
+        }
+
+        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+            IOU.sendMoneyWithWallet(
+                props.report,
+                formattedAmount,
+                currency,
+                trimmedComment,
+                props.currentUserPersonalDetails.login,
+                participant,
+            );
+        }
+    }
+
+    /**
+     * @param {Array} selectedParticipants
+     */
+    function createTransaction(selectedParticipants) {
+        const reportID = lodashGet(props, 'route.params.reportID', '');
+        const trimmedComment = comment.trim();
+
+        // IOUs created from a group report will have a reportID param in the route.
+        // Since the user is already viewing the report, we don't need to navigate them to the report
+        if (props.hasMultipleParticipants && CONST.REGEX.NUMBER.test(reportID)) {
+            IOU.splitBill(
+                selectedParticipants,
+                props.currentUserPersonalDetails.login,
+                amount,
+                trimmedComment,
+                props.iou.selectedCurrencyCode,
+                props.preferredLocale,
+                reportID,
+            );
+            return;
+        }
+
+        // If the IOU is created from the global create menu, we also navigate the user to the group report
+        if (props.hasMultipleParticipants) {
+            IOU.splitBillAndOpenReport(
+                selectedParticipants,
+                props.currentUserPersonalDetails.login,
+                amount,
+                trimmedComment,
+                props.iou.selectedCurrencyCode,
+                props.preferredLocale,
+            );
+            return;
+        }
+        IOU.requestMoney(
+            props.report,
+            Math.round(amount * 100),
+            props.iou.selectedCurrencyCode,
+            props.currentUserPersonalDetails.login,
+            selectedParticipants[0],
+            trimmedComment,
+        );
+    }
+
     return (
         <div>
             <h1>Money Request Modal</h1>
         </div>
     );
-}
+};
 
 MoneyRequestModal.displayName = 'MoneyRequestModal';
 MoneyRequestModal.propTypes = propTypes;
