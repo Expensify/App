@@ -1601,7 +1601,7 @@ function canRequestMoney(report) {
  * @param {Array} betas
  * @returns {Array}
  */
-function getIOUOptions(report, reportParticipants, betas) {
+function getMoneyRequestOptions(report, reportParticipants, betas) {
     const participants = _.filter(reportParticipants, email => currentUserPersonalDetails.login !== email);
     const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
     const hasMultipleParticipants = participants.length > 1;
@@ -1721,6 +1721,6 @@ export {
     getParsedComment,
     getFullSizeAvatar,
     getSmallSizeAvatar,
-    getIOUOptions,
+    getMoneyRequestOptions,
     canRequestMoney,
 };
