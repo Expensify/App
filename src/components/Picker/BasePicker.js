@@ -185,7 +185,8 @@ class BasePicker extends PureComponent {
         }
 
         // Defer the focusing to work around a bug on Mobile Safari, where focusing the `select` element in the same
-        // task when we scrolled to it left that element in a glitched state
+        // task when we scrolled to it left that element in a glitched state, where the dropdown list can't be opened
+        // until the element gets re-focused
         _.defer(() => {
             this.picker.focus();
         });
