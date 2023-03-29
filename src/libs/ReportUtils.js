@@ -1648,6 +1648,14 @@ function canLeaveRoom(report, isPolicyMember) {
     return true;
 }
 
+/**
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function canRequestMoney(report) {
+    return (!isPolicyExpenseChat(report) || report.isOwnPolicyExpenseChat);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1713,4 +1721,5 @@ export {
     getFullSizeAvatar,
     getSmallSizeAvatar,
     getIOUOptions,
+    canRequestMoney,
 };
