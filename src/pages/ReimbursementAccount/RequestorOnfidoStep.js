@@ -21,10 +21,12 @@ const propTypes = {
     ...StepPropTypes,
 
     /** The token required to initialize the Onfido SDK */
-    onfidoToken: PropTypes.string.isRequired,
+    onfidoToken: PropTypes.string,
 };
 
-const defaultProps = {};
+const defaultProps = {
+    onfidoToken: null,
+};
 
 class RequestorOnfidoStep extends React.Component {
     constructor(props) {

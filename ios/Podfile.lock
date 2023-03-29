@@ -511,7 +511,7 @@ PODS:
     - React-Core
   - react-native-performance (4.0.0):
     - React-Core
-  - react-native-plaid-link-sdk (9.0.2):
+  - react-native-plaid-link-sdk (10.0.0):
     - Plaid (~> 4.1.0)
     - React-Core
   - react-native-progress-bar-android (1.0.4):
@@ -1056,7 +1056,7 @@ SPEC CHECKSUMS:
   react-native-netinfo: 1a6035d3b9780221d407c277ebfb5722ace00658
   react-native-pdf: 33c622cbdf776a649929e8b9d1ce2d313347c4fa
   react-native-performance: 224bd53e6a835fda4353302cf891d088a0af7406
-  react-native-plaid-link-sdk: 0c5a24896870a923c6e3139cf45497cf9b0a76a5
+  react-native-plaid-link-sdk: 9eb0f71dad94b3bdde649c7a384cba93024af46c
   react-native-progress-bar-android: be43138ab7da30d51fc038bafa98e9ed594d0c40
   react-native-progress-view: 4d3bbe6a099ba027b1fedb1548c2c87f74249b70
   react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4

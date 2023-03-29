@@ -47,13 +47,25 @@ const propTypes = {
         }),
     }).isRequired,
 
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }),
+
     ...policyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
     network: networkPropTypes.isRequired,
 };
 
-const defaultProps = policyDefaultProps;
+const defaultProps = {
+    personalDetails: {},
+    session: {
+        email: null,
+    },
+    ...policyDefaultProps,
+};
 
 class WorkspaceMembersPage extends React.Component {
     constructor(props) {
