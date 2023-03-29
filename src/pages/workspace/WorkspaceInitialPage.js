@@ -57,26 +57,25 @@ function dismissError(policyID) {
 }
 
 const WorkspaceInitialPage = (props) => {
+    const policy = props.policy;
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-
-    const hasPolicyCreationError = Boolean(props.policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && props.policy.errors);
+    const hasPolicyCreationError = Boolean(policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.errors);
 
     /**
      * Call the delete policy and hide the modal
      */
     const confirmDeleteAndHideModal = useCallback(() => {
-        const policyReports = _.filter(props.reports, report => report && report.policyID === props.policy.id);
-        Policy.deleteWorkspace(props.policy.id, policyReports, props.policy.name);
+        const policyReports = _.filter(props.reports, report => report && report.policyID === policy.id);
+        Policy.deleteWorkspace(policy.id, policyReports, policy.name);
         setIsDeleteModalOpen(false);
         Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
-    }, [props.reports, props.policy]);
+    }, [props.reports, policy]);
 
-    const policy = props.policy;
-    const policyName = lodashGet(props.policy, 'name', '');
+    const policyName = lodashGet(policy, 'name', '');
     const hasMembersError = PolicyUtils.hasPolicyMemberError(props.policyMemberList);
-    const hasGeneralSettingsError = !_.isEmpty(lodashGet(props.policy, 'errorFields.generalSettings', {}))
-        || !_.isEmpty(lodashGet(props.policy, 'errorFields.avatar', {}));
-    const hasCustomUnitsError = PolicyUtils.hasCustomUnitsError(props.policy);
+    const hasGeneralSettingsError = !_.isEmpty(lodashGet(policy, 'errorFields.generalSettings', {}))
+        || !_.isEmpty(lodashGet(policy, 'errorFields.avatar', {}));
+    const hasCustomUnitsError = PolicyUtils.hasCustomUnitsError(policy);
     const menuItems = [
         {
             translationKey: 'workspace.common.settings',
@@ -127,7 +126,7 @@ const WorkspaceInitialPage = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(props.policy)}
+                    shouldShow={_.isEmpty(policy)}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                 >
                     <HeaderWithCloseButton
@@ -156,9 +155,9 @@ const WorkspaceInitialPage = (props) => {
                         ]}
                     >
                         <OfflineWithFeedback
-                            pendingAction={props.policy.pendingAction}
-                            onClose={() => dismissError(props.policy.id)}
-                            errors={props.policy.errors}
+                            pendingAction={policy.pendingAction}
+                            onClose={() => dismissError(policy.id)}
+                            errors={policy.errors}
                             errorRowStyles={[styles.ph6, styles.pv2]}
                         >
                             <View style={[styles.flex1]}>
@@ -167,13 +166,13 @@ const WorkspaceInitialPage = (props) => {
                                         <Pressable
                                             disabled={hasPolicyCreationError}
                                             style={[styles.pRelative, styles.avatarLarge]}
-                                            onPress={() => openEditor(props.policy.id)}
+                                            onPress={() => openEditor(policy.id)}
                                         >
                                             <Tooltip text={props.translate('workspace.common.settings')}>
                                                 <Avatar
                                                     containerStyles={styles.avatarLarge}
                                                     imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                                    source={props.policy.avatar ? props.policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
+                                                    source={policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
                                                     fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                     name={policyName}
@@ -181,7 +180,7 @@ const WorkspaceInitialPage = (props) => {
                                                 />
                                             </Tooltip>
                                         </Pressable>
-                                        {!_.isEmpty(props.policy.name) && (
+                                        {!_.isEmpty(policy.name) && (
                                             <Pressable
                                                 disabled={hasPolicyCreationError}
                                                 style={[
@@ -189,7 +188,7 @@ const WorkspaceInitialPage = (props) => {
                                                     styles.mt4,
                                                     styles.w100,
                                                 ]}
-                                                onPress={() => openEditor(props.policy.id)}
+                                                onPress={() => openEditor(policy.id)}
                                             >
                                                 <Tooltip text={props.translate('workspace.common.settings')}>
                                                     <Text
@@ -200,7 +199,7 @@ const WorkspaceInitialPage = (props) => {
                                                             styles.pre,
                                                         ]}
                                                     >
-                                                        {props.policy.name}
+                                                        {policy.name}
                                                     </Text>
                                                 </Tooltip>
                                             </Pressable>
