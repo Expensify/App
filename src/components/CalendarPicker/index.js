@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import {View, TouchableOpacity, Pressable} from 'react-native';
 import moment from 'moment';
+import Str from 'expensify-common/lib/str';
 import Text from '../Text';
 import ArrowIcon from './ArrowIcon';
 import styles from '../../styles/styles';
@@ -18,7 +19,7 @@ class CalendarPicker extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        this.monthNames = _.map(moment.localeData(props.preferredLocale).months(), month => month.replace(/^\w/, c => c.toUpperCase()));
+        this.monthNames = _.map(moment.localeData(props.preferredLocale).months(), month => Str.recapitalize(month));
         this.daysOfWeek = _.map(moment.localeData(props.preferredLocale).weekdays(), day => day.toUpperCase());
 
         let currentDateView = props.value;
