@@ -35,8 +35,8 @@ import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView'
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import personalDetailsPropType from '../personalDetailsPropType';
-import EmojiPicker from "../../components/EmojiPicker/EmojiPicker";
-import * as EmojiPickerAction from "../../libs/actions/EmojiPickerAction";
+import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
+import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -309,7 +309,7 @@ class ReportScreen extends React.Component {
                                 <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
                             )}
 
-                            {this.isReportReadyForDisplay() &&
+                            {this.isReportReadyForDisplay() && (
                                 <>
                                     <ReportFooter
                                         errors={addWorkspaceRoomOrChatErrors}
@@ -322,7 +322,7 @@ class ReportScreen extends React.Component {
                                     />
                                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                                 </>
-                            }
+                            )}
                             <PortalHost name={CONST.REPORT.DROP_HOST_NAME} />
                         </View>
                     </FullPageNotFoundView>
