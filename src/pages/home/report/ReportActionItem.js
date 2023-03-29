@@ -53,9 +53,6 @@ const propTypes = {
     /** Is this the most recent IOU Action? */
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 
-    /** Whether there is an outstanding amount in IOU */
-    hasOutstandingIOU: PropTypes.bool,
-
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: PropTypes.bool.isRequired,
 
@@ -70,25 +67,20 @@ const propTypes = {
 
 const defaultProps = {
     draftMessage: '',
-    hasOutstandingIOU: false,
-};
-
-const usePreviousValue = (value) => {
-    const ref = React.useRef();
-    React.useEffect(() => {
-        ref.current = value;
-    }, [value]);
-    return ref.current;
 };
 
 function ReportActionItem(props) {
     const [isContextMenuActive, setIsContextMenuActive] = React.useState(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
-    const previousDraftMessage = usePreviousValue(props.draftMessage);
+    const previousDraftMessage = React.useRef('');
     const textInput = React.useRef();
     const popoverAnchor = React.useRef();
 
     React.useEffect(() => {
-        if (previousDraftMessage || !props.draftMessage) {
+        previousDraftMessage.current = props.draftMessage;
+    }, [props.draftMessage]);
+
+    React.useEffect(() => {
+        if (previousDraftMessage.current || !props.draftMessage) {
             return;
         }
 
@@ -96,7 +88,7 @@ function ReportActionItem(props) {
         // There is an animation when the comment is hidden and the edit form is shown, and there can be bugs on different mobile platforms
         // if the input is given focus in the middle of that animation which can prevent the keyboard from opening.
         focusTextInputAfterAnimation(textInput.current, 100);
-    });
+    }, [props.draftMessage]);
 
     const checkIfContextMenuActive = () => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
