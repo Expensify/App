@@ -13,6 +13,7 @@ import Bolt from '../../../assets/images/bolt.svg';
 import Briefcase from '../../../assets/images/briefcase.svg';
 import Bug from '../../../assets/images/bug.svg';
 import Building from '../../../assets/images/building.svg';
+import Calendar from '../../../assets/images/calendar.svg';
 import Camera from '../../../assets/images/camera.svg';
 import Cash from '../../../assets/images/cash.svg';
 import ChatBubble from '../../../assets/images/chatbubble.svg';
@@ -126,6 +127,7 @@ export {
     Briefcase,
     Bug,
     Building,
+    Calendar,
     Camera,
     Cash,
     ChatBubble,

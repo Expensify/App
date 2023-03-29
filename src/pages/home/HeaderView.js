@@ -46,6 +46,12 @@ const propTypes = {
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
+    /** The details about the account that the user is signing in with */
+    account: PropTypes.shape({
+        /** URL to the assigned guide's appointment booking calendar */
+        guideCalendarLink: PropTypes.string,
+    }),
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -54,6 +60,9 @@ const defaultProps = {
     personalDetails: {},
     policies: {},
     report: null,
+    account: {
+        guideCalendarLink: null,
+    },
 };
 
 const HeaderView = (props) => {
@@ -84,7 +93,7 @@ const HeaderView = (props) => {
                     <Pressable
                         onPress={props.onNavigationMenuButtonClicked}
                         style={[styles.LHNToggle]}
-                        accessibilityHint="Navigate back to chats list"
+                        accessibilityHint={props.translate('accessibilityHints.navigateToChatsList')}
                     >
                         <Tooltip text={props.translate('common.back')} shiftVertical={4}>
                             <Icon src={Expensicons.BackArrow} />
@@ -123,7 +132,7 @@ const HeaderView = (props) => {
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={1}
-                                    textStyles={[styles.headerText, styles.textNoWrap]}
+                                    textStyles={[styles.headerText, styles.pre]}
                                     shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
                                 />
                                 {(isChatRoom || isPolicyExpenseChat) && (
@@ -132,6 +141,7 @@ const HeaderView = (props) => {
                                             styles.sidebarLinkText,
                                             styles.optionAlternateText,
                                             styles.textLabelSupporting,
+                                            styles.pre,
                                         ]}
                                         numberOfLines={1}
                                     >

@@ -1,4 +1,4 @@
-import {Linking} from 'react-native';
+import {Linking, InteractionManager} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -255,7 +255,6 @@ function addActions(reportID, text = '', file) {
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
         file,
-        shouldKeyReportActionsByID: true,
     };
 
     const optimisticData = [
@@ -376,7 +375,6 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
     const params = {
         reportID,
         emailList: participantList ? participantList.join(',') : '',
-        shouldKeyReportActionsByID: true,
     };
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
@@ -440,7 +438,6 @@ function reconnect(reportID) {
     API.write('ReconnectToReport',
         {
             reportID,
-            shouldKeyReportActionsByID: true,
         },
         {
             optimisticData: [{
@@ -517,7 +514,6 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
     API.read('OpenPaymentDetailsPage', {
         reportID: chatReportID,
         iouReportID,
-        shouldKeyReportActionsByID: true,
     }, {
         optimisticData: [
             {
@@ -629,6 +625,15 @@ function togglePinnedState(report) {
  */
 function saveReportComment(reportID, comment) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment);
+}
+
+/**
+ * Saves the number of lines for the comment
+ * @param {String} reportID
+ * @param {Number} numberOfLines
+ */
+function saveReportCommentNumberOfLines(reportID, numberOfLines) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`, numberOfLines);
 }
 
 /**
@@ -760,7 +765,6 @@ function deleteReportComment(reportID, reportAction) {
     const parameters = {
         reportID,
         reportActionID: reportAction.reportActionID,
-        shouldKeyReportActionsByID: true,
     };
     API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
 }
@@ -920,7 +924,6 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         reportID,
         reportComment: htmlForNewComment,
         reportActionID,
-        shouldKeyReportActionsByID: true,
     };
     API.write('UpdateComment', parameters, {optimisticData, successData, failureData});
 }
@@ -934,6 +937,16 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
  */
 function saveReportActionDraft(reportID, reportActionID, draftMessage) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
+}
+
+/**
+ * Saves the number of lines for the report action draft
+ * @param {String} reportID
+ * @param {Number} reportActionID
+ * @param {Number} numberOfLines
+ */
+function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLines) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}_${reportActionID}`, numberOfLines);
 }
 
 /**
@@ -1367,6 +1380,24 @@ function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = pref
     return addEmojiReaction(reportID, reportAction, emoji, skinTone);
 }
 
+/**
+ * @param {String|null} url
+ */
+function openReportFromDeepLink(url) {
+    InteractionManager.runAfterInteractions(() => {
+        Navigation.isReportScreenReady().then(() => {
+            const route = ReportUtils.getRouteFromLink(url);
+            const reportID = ReportUtils.getReportIDFromLink(url);
+            if (reportID) {
+                Navigation.navigate(ROUTES.getReportRoute(reportID));
+            }
+            if (route === ROUTES.CONCIERGE) {
+                navigateToConciergeChat();
+            }
+        });
+    });
+}
+
 function getCurrentUserAccountID() {
     return currentUserAccountID;
 }
@@ -1380,11 +1411,13 @@ export {
     subscribeToReportCommentPushNotifications,
     unsubscribeFromReportChannel,
     saveReportComment,
+    saveReportCommentNumberOfLines,
     broadcastUserIsTyping,
     togglePinnedState,
     editReportComment,
     handleUserDeletedLinks,
     saveReportActionDraft,
+    saveReportActionDraftNumberOfLines,
     deleteReportComment,
     navigateToConciergeChat,
     setReportWithDraft,
@@ -1395,6 +1428,7 @@ export {
     readNewestAction,
     readOldestAction,
     openReport,
+    openReportFromDeepLink,
     navigateToAndOpenReport,
     openPaymentDetailsPage,
     updatePolicyRoomName,

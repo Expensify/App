@@ -32,12 +32,13 @@ const propTypes = {
     onEmojiPickerClosed: PropTypes.func,
 
     ...withLocalizePropTypes,
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
 };
 
 const defaultProps = {
     onEmojiPickerClosed: () => {},
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
 /**
@@ -84,7 +85,7 @@ const MiniQuickEmojiReactions = (props) => {
                 ref={ref}
                 onPress={openEmojiPicker}
                 isDelayButtonStateComplete={false}
-                tooltipText={props.translate('reportActionContextMenu.addReactionTooltip')}
+                tooltipText={props.translate('emojiReactions.addReactionTooltip')}
             >
                 {({hovered, pressed}) => (
                     <Icon

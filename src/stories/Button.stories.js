@@ -23,7 +23,7 @@ const PressOnEnter = (props) => {
     const onPress = useCallback(() => {
         setText('Button Pressed!');
         setTimeout(() => setText(''), 500);
-    });
+    }, []);
     return (
         <Button
         // eslint-disable-next-line react/jsx-props-no-spreading
