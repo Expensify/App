@@ -1025,7 +1025,7 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
     }
 
     return [{
-        html: iouMessage,
+        html: getParsedComment(iouMessage),
         text: iouMessage,
         isEdited: false,
         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
@@ -1709,6 +1709,7 @@ export {
     hashLogin,
     getDefaultWorkspaceAvatar,
     getCommentLength,
+    getParsedComment,
     getFullSizeAvatar,
     getSmallSizeAvatar,
     getIOUOptions,
