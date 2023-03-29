@@ -6,7 +6,8 @@ const propTypes = {
     /** A reference forwarded to the inner View */
     innerRef: PropTypes.oneOfType([
         PropTypes.func,
-        PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
+        // eslint-disable-next-line react/forbid-prop-types
+        PropTypes.shape({current: PropTypes.any}),
     ]),
 
     /* A function to execute when form is submitted with ENTER */
