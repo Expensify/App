@@ -409,10 +409,10 @@ function getPersonHandle(displayName, primaryLogin, viewerDomain) {
         && _.some(PUBLIC_DOMAINS, d => primaryLogin.includes(d));
 
     if (primaryLogin) {
-        const [username, currentDomain] = primaryLogin.split('@');
+        const [username, domain] = primaryLogin.split('@');
         if (CONST.REGEX.POSITIVE_INTEGER.test(username.replace('+', ''))) {
             handle = username.replace('+', '');
-        } else if (isPublicEmail != null && !isPublicEmail && formattedViewerDomain === currentDomain) {
+        } else if (isPublicEmail != null && !isPublicEmail && formattedViewerDomain === domain) {
             handle = username;
         } else {
             handle = primaryLogin;
