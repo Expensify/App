@@ -2,48 +2,37 @@ import React from 'react';
 import BaseText from './BaseText';
 import {defaultProps, propTypes} from './baseTextPropTypes';
 
-class Text extends React.PureComponent {
-    constructor(props) {
-        super(props);
+const Text = (props) => {
+    const [truncatedText, setTruncatedText] = React.useState(typeof props.children === 'string' ? props.children : null);
 
-        this.state = {
-            truncatedText: typeof props.children === 'string' ? props.children : null,
-        };
-
-        this.handleTextLayout = this.handleTextLayout.bind(this);
-    }
-
-    handleTextLayout({nativeEvent: {lines}}) {
-        if (!this.props.numberOfLines || lines.length <= this.props.numberOfLines) {
+    const handleTextLayout = ({nativeEvent: {lines}}) => {
+        if (!props.numberOfLines || lines.length <= props.numberOfLines) {
             return;
         }
 
         let newText = '';
-        for (let index = 0; index < this.props.numberOfLines; index += 1) {
+        for (let index = 0; index < props.numberOfLines; index += 1) {
             newText = `${newText}${lines[index].text}`;
         }
 
-        this.setState({
-            truncatedText: `${newText.slice(0, -3)}...`,
-        });
-    }
+        setTruncatedText(`${newText.slice(0, -3)}...`);
+    };
 
-    render() {
-        return (
-            <BaseText
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...this.props}
-                numberOfLines={null}
-                onTextLayout={this.handleTextLayout}
-            >
-                {typeof this.props.children === 'string' ? this.state.truncatedText : this.props.children}
-            </BaseText>
-        );
-    }
-}
+    return (
+        <BaseText
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            numberOfLines={null}
+            onTextLayout={handleTextLayout}
+        >
+            {typeof props.children === 'string' ? truncatedText : props.children}
+        </BaseText>
+    );
+};
 
 Text.propTypes = propTypes;
 Text.defaultProps = defaultProps;
+Text.displayName = 'Text';
 
 export default React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */

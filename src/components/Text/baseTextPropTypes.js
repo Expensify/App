@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
+import fontFamily from '../../styles/fontFamily';
 import themeColors from '../../styles/themes/default';
 import variables from '../../styles/variables';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** The color of the text */
@@ -22,17 +24,20 @@ const propTypes = {
     numberOfLines: PropTypes.number,
 
     /** Any additional styles to apply */
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.any,
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object, PropTypes.string]),
+
+    /** A ref to forward to the Text */
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 };
 const defaultProps = {
     color: themeColors.text,
     fontSize: variables.fontSizeNormal,
-    family: 'EXP_NEUE',
-    textAlign: 'left',
+    family: fontFamily.EXP_NEUE,
+    textAlign: CONST.DIRECTION.LEFT,
     numberOfLines: null,
     children: null,
     style: {},
+    innerRef: () => {},
 };
 
 export {propTypes, defaultProps};
