@@ -66,24 +66,41 @@ const getLastAccessedReportID = (reports, ignoreDefaultRooms, policies, openOnAd
 class ReportScreenWrapper extends Component {
     constructor(props) {
         super(props);
-        if (!getReportIDFromRoute(props.route)) {
+
+        // if there is no ReportID in route, try to find last accessed and use it for setParams
+        if (!getReportIDFromRoute(this.props.route)) {
             const reportID = getLastAccessedReportID(
-                props.reports,
-                !Permissions.canUseDefaultRooms(props.betas),
-                props.policies,
-                lodashGet(props, 'route.params.openOnAdminRoom', false),
+                this.props.reports,
+                !Permissions.canUseDefaultRooms(this.props.betas),
+                this.props.policies,
+                lodashGet(this.props, 'route.params.openOnAdminRoom', false),
             );
 
+            // it's possible that props.reports aren't fully loaded yet
+            // in that case the reportID is undefined
             if (reportID) {
-                props.navigation.setParams({reportID: String(reportID)});
+                this.props.navigation.setParams({reportID: String(reportID)});
             }
         }
     }
 
     shouldComponentUpdate(nextProps) {
-        // Rerender if the route param raportID is different than the previos one.
-        // It should only happen when we got raportID undefined and we want to fill it with the last accessed raportID
-        if (getReportIDFromRoute(nextProps.route) !== getReportIDFromRoute(this.props.route)) { return true; }
+        // don't update if there is a reportID in the params already
+        if (getReportIDFromRoute(this.props.route)) { return false; }
+
+        // if the reports weren't fully loaded in the contructor
+        // try to get and set reportID again
+        const reportID = getLastAccessedReportID(
+            nextProps.reports,
+            !Permissions.canUseDefaultRooms(nextProps.betas),
+            nextProps.policies,
+            lodashGet(nextProps, 'route.params.openOnAdminRoom', false),
+        );
+
+        if (reportID) {
+            this.props.navigation.setParams({reportID: String(reportID)});
+            return true;
+        }
         return false;
     }
 
