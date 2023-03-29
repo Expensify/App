@@ -310,148 +310,13 @@ const NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__OSBOTIFY = [
     COMMENT_ON_FIRST_PULL_REQUEST_MOCK_STEP,
 ];
 
-// e2e_tests
-// these steps are not getting executed anyway, since Act does not support the selected runner
-const CHECKOUT_MOCK_STEP__E2E_TESTS = utils.getMockStep(
-    'Checkout',
-    'Checking out',
-    'E2E_TESTS',
+const PREDEPLOY__E2EPERFORMANCETESTS__PERFORM_E2E_TESTS__MOCK_STEP = utils.getMockStep(
+    'Perform E2E tests',
+    'Perform E2E tests',
+    'E2EPERFORMANCETESTS',
 );
-const SETUP_NODE_MOCK_STEP = utils.getMockStep(
-    'Setup node',
-    'Setting up node',
-    'E2E_TESTS',
-);
-const SETUP_RUBY_MOCK_STEP = utils.getMockStep(
-    'Setup ruby',
-    'Setting up ruby',
-    'E2E_TESTS',
-);
-const GRADLE_CACHE_MOCK_STEP = utils.getMockStep(
-    'Gradle cache',
-    'Building with gradle',
-    'E2E_TESTS',
-);
-const MAKE_ZIP_MOCK_STEP = utils.getMockStep(
-    'Make zip directory for everything to send to AWS Device Farm',
-    'Creating zip directory',
-    'E2E_TESTS',
-);
-const CHECKOUT_COMPARE_MOCK_STEP = utils.getMockStep(
-    'Checkout "Compare" commit',
-    'Checking out compare commit',
-    'E2E_TESTS',
-);
-const INSTALL_NODE_PACKAGES_MOCK_STEP = utils.getMockStep(
-    'Install node packages',
-    'Installing node packages',
-    'E2E_TESTS',
-);
-const BUILD_COMPARE_APK_MOCK_STEP = utils.getMockStep(
-    'Build "Compare" APK',
-    'Building compare apk',
-    'E2E_TESTS',
-);
-const COPY_COMPARE_APK_MOCK_STEP = utils.getMockStep(
-    'Copy "Compare" APK',
-    'Copying compare apk',
-    'E2E_TESTS',
-);
-const CHECKOUT_BASELINE_COMMIT_MOCK_STEP = utils.getMockStep(
-    'Checkout "Baseline" commit (last release)',
-    'Checking out baseline commit',
-    'E2E_TESTS',
-);
-const BUILD_BASELINE_APK_MOCK_STEP = utils.getMockStep(
-    'Build "Baseline" APK',
-    'Building baseline apk',
-    'E2E_TESTS',
-);
-const COPY_BASELINE_APK_MOCK_STEP = utils.getMockStep(
-    'Copy "Baseline" APK',
-    'Copying baseline apk',
-    'E2E_TESTS',
-);
-const CHECKOUT_PREVIOUS_BRANCH_MOCK_STEP = utils.getMockStep(
-    'Checkout previous branch for source code to run on AWS Device farm',
-    'Checking out previous branch',
-    'E2E_TESTS',
-);
-const COPY_E2E_CODE_MOCK_STEP = utils.getMockStep(
-    'Copy e2e code into zip folder',
-    'Copying e2e tests',
-    'E2E_TESTS',
-);
-const ZIP_EVERYTHING_MOCK_STEP = utils.getMockStep(
-    'Zip everything in the zip directory up',
-    'Zipping everything',
-    'E2E_TESTS',
-);
-const CONFIGURE_AWS_CREDENTIALS_MOCK_STEP = utils.getMockStep(
-    'Configure AWS Credentials',
-    'Configuring AWS credentials',
-    'E2E_TESTS',
-);
-const SCHEDULE_AWS_DEVICE_FARM_MOCK_STEP = utils.getMockStep(
-    'Schedule AWS Device Farm test run',
-    'Scheduling AWS test run',
-    'E2E_TESTS',
-);
-const UNZIP_AWS_DEVICE_FARM_RESULTS_MOCK_STEP = utils.getMockStep(
-    'Unzip AWS Device Farm results',
-    'Unzipping test results',
-    'E2E_TESTS',
-);
-const PRINT_AWS_DEVICE_FARM_RESULTS_MOCK_STEP = utils.getMockStep(
-    'Print AWS Device Farm run results',
-    'Printing test results',
-    'E2E_TESTS',
-);
-const SET_OUTPUT_OF_AWS_DEVICE_FARM_MOCK_STEP = utils.getMockStep(
-    'Set output of AWS Device Farm into GitHub ENV',
-    'Setting AWS output',
-    'E2E_TESTS',
-);
-const GET_MERGED_PULL_REQUEST_MOCK_STEP__E2E_TESTS = utils.getMockStep(
-    'Get merged pull request',
-    'Getting merged pull request',
-    'E2E_TESTS',
-);
-const LEAVE_COMMENT_WITH_AWS_DEVICE_FARM_OUTPUT_MOCK_STEP = utils.getMockStep(
-    'Leave output of AWS Device Farm as a PR comment',
-    'Leaving comment with test results',
-    'E2E_TESTS',
-);
-const CHECK_IF_TESTS_FAILED_MOCK_STEP = utils.getMockStep(
-    'Check if test failed, if so leave a deploy blocker label',
-    'Checking if tests failed',
-    'E2E_TESTS',
-);
-const E2E_TESTS_JOB_MOCK_STEPS = [
-    CHECKOUT_MOCK_STEP__E2E_TESTS,
-    SETUP_NODE_MOCK_STEP,
-    SETUP_RUBY_MOCK_STEP,
-    GRADLE_CACHE_MOCK_STEP,
-    MAKE_ZIP_MOCK_STEP,
-    CHECKOUT_COMPARE_MOCK_STEP,
-    INSTALL_NODE_PACKAGES_MOCK_STEP,
-    BUILD_COMPARE_APK_MOCK_STEP,
-    COPY_COMPARE_APK_MOCK_STEP,
-    CHECKOUT_BASELINE_COMMIT_MOCK_STEP,
-    INSTALL_NODE_PACKAGES_MOCK_STEP,
-    BUILD_BASELINE_APK_MOCK_STEP,
-    COPY_BASELINE_APK_MOCK_STEP,
-    CHECKOUT_PREVIOUS_BRANCH_MOCK_STEP,
-    COPY_E2E_CODE_MOCK_STEP,
-    ZIP_EVERYTHING_MOCK_STEP,
-    CONFIGURE_AWS_CREDENTIALS_MOCK_STEP,
-    SCHEDULE_AWS_DEVICE_FARM_MOCK_STEP,
-    UNZIP_AWS_DEVICE_FARM_RESULTS_MOCK_STEP,
-    PRINT_AWS_DEVICE_FARM_RESULTS_MOCK_STEP,
-    SET_OUTPUT_OF_AWS_DEVICE_FARM_MOCK_STEP,
-    GET_MERGED_PULL_REQUEST_MOCK_STEP__E2E_TESTS,
-    LEAVE_COMMENT_WITH_AWS_DEVICE_FARM_OUTPUT_MOCK_STEP,
-    CHECK_IF_TESTS_FAILED_MOCK_STEP,
+const PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS = [
+    PREDEPLOY__E2EPERFORMANCETESTS__PERFORM_E2E_TESTS__MOCK_STEP,
 ];
 
 module.exports = {
@@ -470,5 +335,5 @@ module.exports = {
     NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
     NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__ONE_PR,
     NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__OSBOTIFY,
-    E2E_TESTS_JOB_MOCK_STEPS,
+    PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
 };
