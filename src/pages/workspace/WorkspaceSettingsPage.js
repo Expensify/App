@@ -7,7 +7,6 @@ import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
-import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
 import * as Expensicons from '../../components/Icon/Expensicons';
@@ -143,11 +142,13 @@ class WorkspaceSettingsPage extends React.Component {
                                     items={this.getCurrencyItems()}
                                     isDisabled={hasVBA}
                                     defaultValue={this.props.policy.outputCurrency}
+                                    hintText={
+                                        hasVBA
+                                            ? this.props.translate('workspace.editor.currencyInputDisabledText')
+                                            : this.props.translate('workspace.editor.currencyInputHelpText')
+                                    }
                                 />
                             </View>
-                            <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
-                                {this.props.translate('workspace.editor.currencyInputHelpText')}
-                            </Text>
                         </OfflineWithFeedback>
                     </Form>
                 )}
