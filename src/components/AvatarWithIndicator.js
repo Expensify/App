@@ -15,15 +15,13 @@ import {policyPropTypes} from '../pages/workspace/withPolicy';
 import walletTermsPropTypes from '../pages/EnablePayments/walletTermsPropTypes';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
+import * as ReportUtils from '../libs/ReportUtils';
 import * as UserUtils from '../libs/UserUtils';
 import themeColors from '../styles/themes/default';
 
 const propTypes = {
     /** URL for the avatar */
     source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
-
-    /** Avatar size */
-    size: PropTypes.string,
 
     /** To show a tooltip on hover */
     tooltipText: PropTypes.string,
@@ -59,7 +57,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    size: 'default',
     tooltipText: '',
     policiesMemberList: {},
     policies: {},
@@ -106,10 +103,7 @@ const AvatarWithIndicator = (props) => {
     return (
         <View style={[styles.sidebarAvatar]}>
             <Tooltip text={props.tooltipText}>
-                <Avatar
-                    source={props.source}
-                    size={props.size}
-                />
+                <Avatar source={ReportUtils.getSmallSizeAvatar(props.source)} />
                 {(shouldShowErrorIndicator || shouldShowInfoIndicator) && (
                     <View style={StyleSheet.flatten(indicatorStyles)} />
                 )}

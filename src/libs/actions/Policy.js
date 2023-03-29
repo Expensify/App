@@ -152,6 +152,16 @@ function isAdminOfFreePolicy(policies) {
 }
 
 /**
+ * Is the user the owner of the given policy?
+ *
+ * @param {Object} policy
+ * @returns {Boolean}
+ */
+function isPolicyOwner(policy) {
+    return policy.owner === sessionEmail;
+}
+
+/**
 * Check if the user has any active free policies (aka workspaces)
 *
 * @param {Array} policies
@@ -261,7 +271,9 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID) {
 
     API.write('AddMembersToWorkspace', {
         employees: JSON.stringify(_.map(logins, login => ({email: login}))),
-        welcomeNote,
+
+        // Escape HTML special chars to enable them to appear in the invite email
+        welcomeNote: _.escape(welcomeNote),
         policyID,
     }, {optimisticData, successData, failureData});
 }
@@ -1060,5 +1072,6 @@ export {
     openWorkspaceMembersPage,
     openWorkspaceInvitePage,
     removeWorkspace,
+    isPolicyOwner,
     leaveRoom,
 };

@@ -15,7 +15,6 @@ import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
 import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
-import emojiHeaderContainerPlatformStyles from './emojiHeaderContainerPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
@@ -165,6 +164,33 @@ const styles = {
         flexBasis: '48%',
     },
 
+    emojiSuggestionsContainer: {
+        backgroundColor: themeColors.appBG,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: themeColors.border,
+        justifyContent: 'center',
+        boxShadow: variables.popoverMenuShadow,
+        position: 'absolute',
+        left: 0,
+        right: 0,
+    },
+    emojiSuggestionContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+
+    emojiSuggestionsEmoji: {
+        fontFamily: fontFamily.EMOJI_TEXT_FONT,
+        fontSize: variables.fontSizeMedium,
+        width: 51,
+        textAlign: 'center',
+    },
+    emojiSuggestionsText: {
+        fontFamily: fontFamily.EMOJI_TEXT_FONT,
+        fontSize: variables.fontSizeMedium,
+    },
+
     unitCol: {
         margin: 0,
         padding: 0,
@@ -249,6 +275,7 @@ const styles = {
         fontWeight: fontWeightBold,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontSize: variables.fontSizeSmall,
+        lineHeight: variables.lineHeightSmall,
     },
 
     textMicroSupporting: {
@@ -297,6 +324,7 @@ const styles = {
 
     textHeadline: {
         ...headlineFont,
+        ...whiteSpace.preWrap,
         color: themeColors.heading,
         fontSize: variables.fontSizeXLarge,
     },
@@ -726,6 +754,39 @@ const styles = {
         height: variables.inputHeight,
     },
 
+    calendarHeader: {
+        height: 50,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingRight: 5,
+    },
+
+    calendarDayRoot: {
+        flex: 1,
+        height: 45,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    calendarDayContainer: {
+        width: 30,
+        height: 30,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 15,
+        overflow: 'hidden',
+    },
+
+    calendarDayContainerSelected: {
+        backgroundColor: themeColors.buttonDefaultBG,
+    },
+
+    calendarButtonDisabled: {
+        opacity: 0.5,
+    },
+
     textInputContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -794,7 +855,7 @@ const styles = {
 
     textInputDesktop: addOutlineWidth({}, 0),
 
-    secureInputShowPasswordButton: {
+    textInputIconContainer: {
         paddingHorizontal: 11,
         justifyContent: 'center',
         margin: 1,
@@ -1016,20 +1077,6 @@ const styles = {
         zIndex: 10,
     }),
 
-    avatarWithIndicator: {
-        errorDot: {
-            borderColor: themeColors.sidebar,
-            borderRadius: 6,
-            borderWidth: 2,
-            position: 'absolute',
-            right: -1,
-            bottom: -1,
-            height: 12,
-            width: 12,
-            zIndex: 10,
-        },
-    },
-
     floatingActionButtonContainer: {
         position: 'absolute',
         right: 20,
@@ -1126,11 +1173,6 @@ const styles = {
         height: variables.componentSizeNormal,
         justifyContent: 'center',
         alignItems: 'center',
-    },
-
-    popoverMenuIconEmphasized: {
-        backgroundColor: themeColors.iconSuccessFill,
-        borderRadius: variables.componentSizeLarge / 2,
     },
 
     popoverMenuText: {
@@ -1381,7 +1423,6 @@ const styles = {
 
     chatItemFullComposeBox: {
         ...flex.flex1,
-        ...spacing.mt4,
         ...sizing.h100,
     },
 
@@ -1394,8 +1435,6 @@ const styles = {
 
     chatFooterFullCompose: {
         flex: 1,
-        flexShrink: 1,
-        flexBasis: '100%',
     },
 
     // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
@@ -1469,7 +1508,6 @@ const styles = {
         height: CONST.EMOJI_PICKER_HEADER_HEIGHT,
         justifyContent: 'center',
         width: '100%',
-        ...emojiHeaderContainerPlatformStyles,
     },
 
     emojiSkinToneTitle: {
@@ -1571,6 +1609,8 @@ const styles = {
     },
 
     navigationModalOverlay: {
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
         position: 'absolute',
         width: '100%',
         height: '100%',
@@ -2136,6 +2176,31 @@ const styles = {
 
     detailsPageSectionContainer: {
         alignSelf: 'flex-start',
+    },
+
+    attachmentModalArrowsContainer: {
+        display: 'flex',
+        justifyContent: 'center',
+        cursor: 'unset',
+        height: '100%',
+        width: '100%',
+    },
+
+    leftAttachmentArrow: {
+        zIndex: 23,
+        position: 'absolute',
+        left: 32,
+    },
+
+    rightAttachmentArrow: {
+        zIndex: 23,
+        position: 'absolute',
+        right: 32,
+    },
+
+    arrowIcon: {
+        height: 52,
+        width: 52,
     },
 
     detailsPageSectionVersion: {
@@ -2747,7 +2812,6 @@ const styles = {
     },
 
     imageCropContainer: {
-        borderRadius: variables.componentBorderRadiusCard,
         overflow: 'hidden',
         alignItems: 'center',
         justifyContent: 'center',
@@ -2822,6 +2886,7 @@ const styles = {
         flexShrink: 0,
         maxWidth: variables.badgeMaxWidth,
         fontSize: variables.fontSizeSmall,
+        ...whiteSpace.pre,
         ...spacing.ph2,
     },
 
@@ -2892,13 +2957,63 @@ const styles = {
         paddingBottom: 45,
     },
 
-    magicCodeDigits: {
+    emojiReactionBubble: {
+        paddingVertical: 2,
+        paddingHorizontal: 8,
+        borderRadius: 28,
+        backgroundColor: themeColors.border,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        alignSelf: 'flex-start',
+        marginTop: 8,
+        marginRight: 4,
+    },
+
+    emojiReactionText: {
+        fontSize: 12,
+        lineHeight: 20,
+        textAlignVertical: 'center',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+    },
+    reactionCounterText: {
+        fontSize: 11,
+        marginLeft: 4,
+        fontWeight: 'bold',
+        color: themeColors.textLight,
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+    },
+
+    fontColorReactionLabel: {
+        color: '#586A64',
+    },
+
+    reactionEmojiTitle: {
+        fontSize: variables.iconSizeLarge,
+        lineHeight: variables.iconSizeXLarge,
+    },
+
+    textReactionSenders: {
+        color: themeColors.dark,
+        ...wordBreak.breakWord,
+    },
+
+    quickReactionsContainer: {
+        gap: 12,
+        flexDirection: 'row',
+        paddingHorizontal: 25,
+        paddingVertical: 12,
+        justifyContent: 'space-between',
+    },
+
+    validateCodeDigits: {
         color: themeColors.text,
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeXXLarge,
         letterSpacing: 4,
     },
-
     footer: {
         backgroundColor: themeColors.midtone,
     },
@@ -2935,6 +3050,29 @@ const styles = {
         width: '100%',
     },
 
+    listPickerSeparator: {
+        height: 1,
+        backgroundColor: themeColors.buttonDefaultBG,
+    },
+
+    datePickerRoot: {
+        position: 'relative',
+        zIndex: 99,
+    },
+
+    datePickerPopover: {
+        position: 'absolute',
+        backgroundColor: themeColors.appBG,
+        width: '100%',
+        alignSelf: 'center',
+        top: 60,
+        zIndex: 100,
+    },
+
+    validateCodeMessage: {
+        width: variables.modalContentMaxWidth,
+        textAlign: 'center',
+    },
 };
 
 export default styles;

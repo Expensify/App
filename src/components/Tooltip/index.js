@@ -150,9 +150,9 @@ class Tooltip extends PureComponent {
         let child = (
             <View
                 ref={el => this.wrapperView = el}
-                style={this.props.containerStyles}
                 onBlur={this.hideTooltip}
-                focusable
+                focusable={this.props.focusable}
+                style={this.props.containerStyles}
             >
                 {this.props.children}
             </View>
@@ -172,10 +172,8 @@ class Tooltip extends PureComponent {
                 onBlur: (el) => {
                     this.hideTooltip();
 
-                    // Call the original onBlur, if any
-                    const {onBlur} = this.props.children;
-                    if (_.isFunction(onBlur)) {
-                        onBlur(el);
+                    if (_.isFunction(this.props.children.props.onBlur)) {
+                        this.props.children.props.onBlur(el);
                     }
                 },
                 focusable: true,

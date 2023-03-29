@@ -31,12 +31,6 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
-    /** The session of the logged in person */
-    session: PropTypes.shape({
-        /** Email of the logged in person */
-        email: PropTypes.string,
-    }),
-
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool.isRequired,
 
@@ -50,7 +44,6 @@ const propTypes = {
 
 const defaultProps = {
     reportActions: [],
-    session: {},
 };
 
 class ReportActionsView extends React.Component {
@@ -68,7 +61,7 @@ class ReportActionsView extends React.Component {
         };
 
         this.currentScrollOffset = 0;
-        this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(props.reportActions);
+        this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions);
         this.trackScroll = this.trackScroll.bind(this);
         this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
@@ -129,7 +122,7 @@ class ReportActionsView extends React.Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(nextProps.reportActions);
+            this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOURequestActionID(nextProps.reportActions);
             return true;
         }
 
@@ -346,24 +339,20 @@ class ReportActionsView extends React.Component {
         }
         return (
             <>
-                {!this.props.isComposerFullSize && (
-                    <>
-                        <FloatingMessageCounter
-                            isActive={this.state.isFloatingMessageCounterVisible && !_.isEmpty(this.state.newMarkerReportActionID)}
-                            onClick={this.scrollToBottomAndMarkReportAsRead}
-                        />
-                        <ReportActionsList
-                            report={this.props.report}
-                            onScroll={this.trackScroll}
-                            onLayout={this.recordTimeToMeasureItemLayout}
-                            sortedReportActions={this.props.reportActions}
-                            mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
-                            isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
-                            loadMoreChats={this.loadMoreChats}
-                            newMarkerReportActionID={this.state.newMarkerReportActionID}
-                        />
-                    </>
-                )}
+                <FloatingMessageCounter
+                    isActive={this.state.isFloatingMessageCounterVisible && !_.isEmpty(this.state.newMarkerReportActionID)}
+                    onClick={this.scrollToBottomAndMarkReportAsRead}
+                />
+                <ReportActionsList
+                    report={this.props.report}
+                    onScroll={this.trackScroll}
+                    onLayout={this.recordTimeToMeasureItemLayout}
+                    sortedReportActions={this.props.reportActions}
+                    mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
+                    isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
+                    loadMoreChats={this.loadMoreChats}
+                    newMarkerReportActionID={this.state.newMarkerReportActionID}
+                />
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                 <CopySelectionHelper />
             </>

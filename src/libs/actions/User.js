@@ -275,6 +275,7 @@ function deleteContactMethod(contactMethod, oldLoginData) {
     API.write('DeleteContactMethod', {
         partnerUserID: contactMethod,
     }, {optimisticData, successData, failureData});
+    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**

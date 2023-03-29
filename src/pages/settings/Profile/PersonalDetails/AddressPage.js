@@ -61,7 +61,7 @@ class AddressPage extends Component {
 
         const currentCountry = lodashGet(props.privatePersonalDetails, 'address.country') || '';
         this.state = {
-            isUsaForm: currentCountry === CONST.USA_COUNTRY_NAME,
+            isUsaForm: (currentCountry === CONST.COUNTRY.US || currentCountry === CONST.USA_COUNTRY_NAME),
         };
     }
 
@@ -69,11 +69,7 @@ class AddressPage extends Component {
      * @param {String} newCountry - new country selected in form
      */
     onCountryUpdate(newCountry) {
-        if (newCountry === CONST.USA_COUNTRY_NAME) {
-            this.setState({isUsaForm: true});
-        } else {
-            this.setState({isUsaForm: false});
-        }
+        this.setState({isUsaForm: newCountry === CONST.COUNTRY.US});
     }
 
     /**
@@ -204,7 +200,7 @@ class AddressPage extends Component {
                         <CountryPicker
                             inputID="country"
                             onValueChange={this.onCountryUpdate}
-                            defaultValue={address.country || ''}
+                            defaultValue={PersonalDetails.getCountryISO(address.country)}
                         />
                     </View>
                 </Form>

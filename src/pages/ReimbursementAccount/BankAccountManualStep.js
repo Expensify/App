@@ -101,6 +101,7 @@ class BankAccountManualStep extends React.Component {
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableInputs}
                         shouldSaveDraft
+                        shouldUseDefaultValue={shouldDisableInputs}
                     />
                     <TextInput
                         inputID="accountNumber"
@@ -110,6 +111,7 @@ class BankAccountManualStep extends React.Component {
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableInputs}
                         shouldSaveDraft
+                        shouldUseDefaultValue={shouldDisableInputs}
                     />
                     <CheckboxWithLabel
                         style={styles.mt4}
@@ -123,7 +125,7 @@ class BankAccountManualStep extends React.Component {
                                     // to call the onPress in the TextLink before the input blur is fired and shift the link element
                                     onMouseDown={e => e.preventDefault()}
                                 >
-                                    {`Expensify ${this.props.translate('common.termsOfService')}`}
+                                    {this.props.translate('common.expensifyTermsOfService')}
                                 </TextLink>
                             </Text>
                         )}

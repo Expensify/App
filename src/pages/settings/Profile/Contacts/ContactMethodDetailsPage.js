@@ -1,7 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
-import {View, ScrollView, TouchableOpacity} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Navigation from '../../../../libs/Navigation/Navigation';
@@ -26,6 +26,8 @@ import colors from '../../../../styles/colors';
 import Button from '../../../../components/Button';
 import * as ErrorUtils from '../../../../libs/ErrorUtils';
 import themeColors from '../../../../styles/themes/default';
+import NotFoundPage from '../../../ErrorPage/NotFoundPage';
+import * as ValidationUtils from '../../../../libs/ValidationUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -51,12 +53,12 @@ const propTypes = {
     /** Current user session */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
-    }).isRequired,
+    }),
 
     /** Route params */
     route: PropTypes.shape({
         params: PropTypes.shape({
-            /** passed via route /settings/profile/contact-methods/:contactMethod/details */
+            /** Passed via route /settings/profile/contact-methods/:contactMethod/details */
             contactMethod: PropTypes.string,
         }),
     }),
@@ -66,6 +68,9 @@ const propTypes = {
 
 const defaultProps = {
     loginList: {},
+    session: {
+        email: null,
+    },
     route: {
         params: {
             contactMethod: '',
@@ -81,19 +86,13 @@ class ContactMethodDetailsPage extends Component {
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
         this.resendValidateCode = this.resendValidateCode.bind(this);
         this.getContactMethod = this.getContactMethod.bind(this);
-        this.validateContactMethod = this.validateContactMethod.bind(this);
+        this.validateAndSubmitCode = this.validateAndSubmitCode.bind(this);
 
         this.state = {
+            formError: '',
             isDeleteModalOpen: false,
             validateCode: '',
         };
-    }
-
-    componentDidMount() {
-        if (this.getContactMethod()) {
-            return;
-        }
-        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
     }
 
     /**
@@ -107,20 +106,18 @@ class ContactMethodDetailsPage extends Component {
 
     /**
      * Toggle delete confirm modal visibility
-     * @param {Boolean} shouldOpen
+     * @param {Boolean} isOpen
      */
-    toggleDeleteModal(shouldOpen) {
-        this.setState({isDeleteModalOpen: shouldOpen});
+    toggleDeleteModal(isOpen) {
+        this.setState({isDeleteModalOpen: isOpen});
     }
 
     /**
      * Delete the contact method and hide the modal
      */
     confirmDeleteAndHideModal() {
-        const contactMethod = this.getContactMethod();
-        User.deleteContactMethod(contactMethod, this.props.loginList[contactMethod]);
         this.toggleDeleteModal(false);
-        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+        User.deleteContactMethod(this.getContactMethod());
     }
 
     /**
@@ -133,20 +130,27 @@ class ContactMethodDetailsPage extends Component {
     /**
      * Attempt to validate this contact method
      */
-    validateContactMethod() {
-        User.validateSecondaryLogin(this.getContactMethod(), this.state.validateCode);
+    validateAndSubmitCode() {
+        if (!this.state.validateCode) {
+            this.setState({formError: 'validateCodeForm.error.pleaseFillMagicCode'});
+        } else if (!ValidationUtils.isValidValidateCode(this.state.validateCode)) {
+            this.setState({formError: 'validateCodeForm.error.incorrectMagicCode'});
+        } else {
+            this.setState({formError: ''});
+            User.validateSecondaryLogin(this.getContactMethod(), this.state.validateCode);
+        }
     }
 
     render() {
         const contactMethod = this.getContactMethod();
         const loginData = this.props.loginList[contactMethod];
         if (!contactMethod || !loginData) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
-            return null;
+            return <NotFoundPage />;
         }
 
-        const isDefaultContactMethod = (this.props.session.email === loginData.partnerUserID);
+        const isDefaultContactMethod = this.props.session.email === loginData.partnerUserID;
         const hasMagicCodeBeenSent = lodashGet(this.props.loginList, [contactMethod, 'validateCodeSent'], false);
+        const formErrorText = this.state.formError ? this.props.translate(this.state.formError) : '';
         const isFailedAddContactMethod = Boolean(lodashGet(loginData, 'errorFields.addedLogin', null));
 
         return (
@@ -157,7 +161,7 @@ class ContactMethodDetailsPage extends Component {
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <ScrollView>
+                <ScrollView keyboardShouldPersistTaps="handled">
                     <ConfirmModal
                         title={this.props.translate('contacts.removeContactMethod')}
                         onConfirm={this.confirmDeleteAndHideModal}
@@ -169,8 +173,8 @@ class ContactMethodDetailsPage extends Component {
                     />
                     {isFailedAddContactMethod && <DotIndicatorMessage style={[styles.mh5]} messages={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')} type="error" />}
                     {!loginData.validatedDate && !isFailedAddContactMethod && (
-                        <View style={[styles.mh5, styles.mb7]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb1, styles.mt3]}>
+                        <View style={[styles.ph5, styles.mt3, styles.mb7]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb1]}>
                                 <Icon src={Expensicons.DotIndicator} fill={colors.green} />
                                 <View style={[styles.flex1, styles.ml4]}>
                                     <Text>
@@ -184,7 +188,7 @@ class ContactMethodDetailsPage extends Component {
                                 value={this.state.validateCode}
                                 onChangeText={text => this.setState({ validateCode: text })}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                blurOnSubmit={false}
+                                errorText={formErrorText}
                             />
                             <OfflineWithFeedback
                                 pendingAction={lodashGet(loginData, 'pendingFields.validateCodeSent', null)}
@@ -192,17 +196,16 @@ class ContactMethodDetailsPage extends Component {
                                 errorRowStyles={[styles.mt2]}
                                 onClose={() => User.clearContactMethodErrors(contactMethod, 'validateCodeSent')}
                             >
-                                <TouchableOpacity
+                                <View
                                     style={[styles.mt2, styles.dFlex, styles.flexRow]}
-                                    onPress={this.resendValidateCode}
                                 >
-                                    <Text style={[styles.link, styles.mr4]}>
+                                    <Text style={[styles.link, styles.mr1]} onPress={this.resendValidateCode}>
                                         {this.props.translate('contacts.resendMagicCode')}
                                     </Text>
                                     {hasMagicCodeBeenSent && (
                                         <Icon src={Expensicons.Checkmark} fill={colors.green} />
                                     )}
-                                </TouchableOpacity>
+                                </View>
                             </OfflineWithFeedback>
                             <OfflineWithFeedback
                                 pendingAction={lodashGet(loginData, 'pendingFields.validateLogin', null)}
@@ -212,15 +215,16 @@ class ContactMethodDetailsPage extends Component {
                             >
                                 <Button
                                     text={this.props.translate('common.verify')}
-                                    onPress={this.validateContactMethod}
+                                    onPress={this.validateAndSubmitCode}
                                     style={[styles.mt4]}
                                     success
+                                    pressOnEnter
                                 />
                             </OfflineWithFeedback>
                         </View>
                     )}
                     {isDefaultContactMethod ? (
-                        <Text style={[styles.ph5]}>
+                        <Text style={[styles.ph5, styles.mv3]}>
                             {this.props.translate('contacts.yourDefaultContactMethod')}
                         </Text>
                     ) : (

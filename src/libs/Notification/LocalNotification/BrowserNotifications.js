@@ -1,6 +1,5 @@
 // Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
 import _ from 'underscore';
-import Str from 'expensify-common/lib/str';
 import focusApp from './focusApp';
 import * as AppUpdate from '../../actions/AppUpdate';
 import EXPENSIFY_ICON_URL from '../../../../assets/images/expensify-logo-round-clearspace.png';
@@ -107,10 +106,10 @@ export default {
      */
     pushReportCommentNotification({reportAction, onClick}, usesIcon = false) {
         const {person, message} = reportAction;
-        const plainTextPerson = Str.htmlDecode(_.map(person, f => f.text).join());
+        const plainTextPerson = _.map(person, f => f.text).join();
 
         // Specifically target the comment part of the message
-        const plainTextMessage = Str.htmlDecode((_.find(message, f => f.type === 'COMMENT') || {}).text);
+        const plainTextMessage = (_.find(message, f => f.type === 'COMMENT') || {}).text;
 
         push({
             title: plainTextPerson,
