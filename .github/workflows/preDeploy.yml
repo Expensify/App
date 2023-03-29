@@ -244,7 +244,10 @@ jobs:
   e2ePerformanceTests:
     needs: [chooseDeployActions]
     if: ${{ needs.chooseDeployActions.outputs.SHOULD_DEPLOY }}
-    uses: Expensify/App/.github/workflows/e2ePerformanceTests.yml@main
-    secrets: inherit
-    with:
-      PR_NUMBER: ${{ needs.chooseDeployActions.outputs.MERGED_PR }}
+    steps:
+    steps:
+      - name: Perform E2E tests
+        uses: Expensify/App/.github/workflows/e2ePerformanceTests.yml@main
+        secrets: inherit
+        with:
+          PR_NUMBER: ${{ needs.chooseDeployActions.outputs.MERGED_PR }}
