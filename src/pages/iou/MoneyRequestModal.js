@@ -105,7 +105,7 @@ const Steps = {
     IOUConfirm: 'iou.confirm',
 };
 
-class IOUModal extends Component {
+class MoneyRequestModal extends Component {
     constructor(props) {
         super(props);
         this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
@@ -209,32 +209,14 @@ class IOUModal extends Component {
     getTitleForStep() {
         const currentStepIndex = this.state.currentStepIndex;
         const isSendingMoney = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
-        if (currentStepIndex === 1 || currentStepIndex === 2) {
-            const formattedAmount = this.props.numberFormat(
-                this.state.amount, {
-                    style: 'currency',
-                    currency: this.props.iou.selectedCurrencyCode,
-                },
-            );
-            if (isSendingMoney) {
-                return this.props.translate('iou.send', {
-                    amount: formattedAmount,
-                });
-            }
-            return this.props.translate(
-                this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
-                    amount: formattedAmount,
-                },
-            );
-        }
+
         if (currentStepIndex === 0) {
             if (isSendingMoney) {
                 return this.props.translate('iou.sendMoney');
             }
             return this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitBill' : 'iou.requestMoney');
         }
-
-        return this.props.translate(this.steps[currentStepIndex]) || '';
+        return this.props.translate('iou.cash');
     }
 
     /**
@@ -515,8 +497,8 @@ class IOUModal extends Component {
     }
 }
 
-IOUModal.propTypes = propTypes;
-IOUModal.defaultProps = defaultProps;
+MoneyRequestModal.propTypes = propTypes;
+MoneyRequestModal.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -533,4 +515,4 @@ export default compose(
             key: ONYXKEYS.PERSONAL_DETAILS,
         },
     }),
-)(IOUModal);
+)(MoneyRequestModal);
