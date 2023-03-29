@@ -25,11 +25,12 @@
 		70CF6E82262E297300711ADC /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 70CF6E81262E297300711ADC /* BootSplash.storyboard */; };
 		9316CFCA15184920AE24E3CC /* ExpensifyMono-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 177D06D4BF2346EB90E37D3D /* ExpensifyMono-Bold.otf */; };
 		95C1920F4FFC403E9C16013C /* ExpensifyNeue-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 38E61473EAA34C598CB6B345 /* ExpensifyNeue-BoldItalic.otf */; };
+		9A65F0F374EC04ABB5FF40AF /* libPods-NewExpensify.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2FD35F00FB84D9FCF60D56A7 /* libPods-NewExpensify.a */; };
 		A5158169CD604A77A22AE02A /* ExpensifyNeue-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = EDFC169F9D7A43BDB924151F /* ExpensifyNeue-Bold.otf */; };
 		B54A7C3AA98189A600323C02 /* libPods-NewExpensify-NewExpensifyTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F679A86058F8C4B331D239C3 /* libPods-NewExpensify-NewExpensifyTests.a */; };
 		BDB853621F354EBB84E619C2 /* ExpensifyNewKansas-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D2AFB39EC1D44BF9B91D3227 /* ExpensifyNewKansas-MediumItalic.otf */; };
 		DD79042B2792E76D004484B4 /* RCTBootSplash.m in Sources */ = {isa = PBXBuildFile; fileRef = DD79042A2792E76D004484B4 /* RCTBootSplash.m */; };
-		E51DC681C7DEE40AEBDDFBFE /* libPods-NewExpensify.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB88D2CA714B85FCB5A805EB /* libPods-NewExpensify.a */; };
+		E51DC681C7DEE40AEBDDFBFE /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
 		E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = E9DF872C2525201700607FDC /* AirshipConfig.plist */; };
 		F0C450EA2705020500FD2970 /* colors.json in Resources */ = {isa = PBXBuildFile; fileRef = F0C450E92705020500FD2970 /* colors.json */; };
 		FF941A8D48F849269AB85C9A /* ExpensifyNewKansas-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 44BF435285B94E5B95F90994 /* ExpensifyNewKansas-Medium.otf */; };
@@ -62,17 +63,19 @@
 		18D050DF262400AF000D658B /* BridgingFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgingFile.swift; sourceTree = "<group>"; };
 		1977066010294D51AEB35F3B /* ExpensifyNeue-Italic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNeue-Italic.otf"; path = "../assets/fonts/native/ExpensifyNeue-Italic.otf"; sourceTree = "<group>"; };
 		1B3F09A4E4EA4CFFA5E4E7CD /* ExpensifyMono-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyMono-Regular.otf"; path = "../assets/fonts/native/ExpensifyMono-Regular.otf"; sourceTree = "<group>"; };
+		2FD35F00FB84D9FCF60D56A7 /* libPods-NewExpensify.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NewExpensify.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		374FB8D528A133A7000D84EF /* OriginImageRequestHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OriginImageRequestHandler.h; path = NewExpensify/OriginImageRequestHandler.h; sourceTree = "<group>"; };
 		374FB8D628A133FE000D84EF /* OriginImageRequestHandler.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = OriginImageRequestHandler.mm; path = NewExpensify/OriginImageRequestHandler.mm; sourceTree = "<group>"; };
+		37F6DD6E91B4C55BD8DDC895 /* Pods-NewExpensify.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debug.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debug.xcconfig"; sourceTree = "<group>"; };
 		38E61473EAA34C598CB6B345 /* ExpensifyNeue-BoldItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNeue-BoldItalic.otf"; path = "../assets/fonts/native/ExpensifyNeue-BoldItalic.otf"; sourceTree = "<group>"; };
-		3EDF186626B8D2CBA203E08D /* libPods-NewExpensify.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NewExpensify.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		391B5D1DB6CFBAC16FD11DC4 /* Pods-NewExpensify.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.release.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.release.xcconfig"; sourceTree = "<group>"; };
 		44BF435285B94E5B95F90994 /* ExpensifyNewKansas-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNewKansas-Medium.otf"; path = "../assets/fonts/native/ExpensifyNewKansas-Medium.otf"; sourceTree = "<group>"; };
 		6BEDED270C49437581EBE50D /* ExpensifyNeue-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNeue-Regular.otf"; path = "../assets/fonts/native/ExpensifyNeue-Regular.otf"; sourceTree = "<group>"; };
 		7041848326A8E40900E09F4D /* RCTStartupTimer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTStartupTimer.h; path = NewExpensify/RCTStartupTimer.h; sourceTree = "<group>"; };
 		7041848426A8E47D00E09F4D /* RCTStartupTimer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RCTStartupTimer.m; path = NewExpensify/RCTStartupTimer.m; sourceTree = "<group>"; };
 		70CF6E81262E297300711ADC /* BootSplash.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = BootSplash.storyboard; path = NewExpensify/BootSplash.storyboard; sourceTree = "<group>"; };
-		A2695CF895D81C31AFB4A074 /* libPods-NewExpensify-NewExpensifyTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NewExpensify-NewExpensifyTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		B66D52EC75F78B8A06F1E035 /* Pods-NewExpensify.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debug.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debug.xcconfig"; sourceTree = "<group>"; };
+		B37C757CE02B734BFED38097 /* Pods-NewExpensify-NewExpensifyTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.debug.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.debug.xcconfig"; sourceTree = "<group>"; };
+		CA3A3642AEED7CF2D4CD3716 /* Pods-NewExpensify-NewExpensifyTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.release.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.release.xcconfig"; sourceTree = "<group>"; };
 		D2AFB39EC1D44BF9B91D3227 /* ExpensifyNewKansas-MediumItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNewKansas-MediumItalic.otf"; path = "../assets/fonts/native/ExpensifyNewKansas-MediumItalic.otf"; sourceTree = "<group>"; };
 		DD7904292792E76D004484B4 /* RCTBootSplash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RCTBootSplash.h; path = NewExpensify/RCTBootSplash.h; sourceTree = "<group>"; };
 		DD79042A2792E76D004484B4 /* RCTBootSplash.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RCTBootSplash.m; path = NewExpensify/RCTBootSplash.m; sourceTree = "<group>"; };
@@ -97,7 +100,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E51DC681C7DEE40AEBDDFBFE /* libPods-NewExpensify.a in Frameworks */,
+				E51DC681C7DEE40AEBDDFBFE /* BuildFile in Frameworks */,
+				9A65F0F374EC04ABB5FF40AF /* libPods-NewExpensify.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -143,8 +147,8 @@
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				ED2971642150620600B7C4FE /* JavaScriptCore.framework */,
-				DB88D2CA714B85FCB5A805EB /* libPods-NewExpensify.a */,
 				F679A86058F8C4B331D239C3 /* libPods-NewExpensify-NewExpensifyTests.a */,
+				2FD35F00FB84D9FCF60D56A7 /* libPods-NewExpensify.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -207,10 +211,10 @@
 		EC29677F0A49C2946A495A33 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				6F61BAB0093EC8A482278928 /* Pods-NewExpensify.debug.xcconfig */,
-				8ADAF93345B632BA54FB6383 /* Pods-NewExpensify.release.xcconfig */,
-				680DF7E28EAEEDBF38A08D88 /* Pods-NewExpensify-NewExpensifyTests.debug.xcconfig */,
-				B4F9EC607B040AD1899A1518 /* Pods-NewExpensify-NewExpensifyTests.release.xcconfig */,
+				37F6DD6E91B4C55BD8DDC895 /* Pods-NewExpensify.debug.xcconfig */,
+				391B5D1DB6CFBAC16FD11DC4 /* Pods-NewExpensify.release.xcconfig */,
+				B37C757CE02B734BFED38097 /* Pods-NewExpensify-NewExpensifyTests.debug.xcconfig */,
+				CA3A3642AEED7CF2D4CD3716 /* Pods-NewExpensify-NewExpensifyTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -586,7 +590,7 @@
 /* Begin XCBuildConfiguration section */
 		00E356F61AD99517003FC87E /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 680DF7E28EAEEDBF38A08D88 /* Pods-NewExpensify-NewExpensifyTests.debug.xcconfig */;
+			baseConfigurationReference = B37C757CE02B734BFED38097 /* Pods-NewExpensify-NewExpensifyTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -611,7 +615,7 @@
 		};
 		00E356F71AD99517003FC87E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = B4F9EC607B040AD1899A1518 /* Pods-NewExpensify-NewExpensifyTests.release.xcconfig */;
+			baseConfigurationReference = CA3A3642AEED7CF2D4CD3716 /* Pods-NewExpensify-NewExpensifyTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -634,7 +638,7 @@
 		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 6F61BAB0093EC8A482278928 /* Pods-NewExpensify.debug.xcconfig */;
+			baseConfigurationReference = 37F6DD6E91B4C55BD8DDC895 /* Pods-NewExpensify.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -666,7 +670,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 8ADAF93345B632BA54FB6383 /* Pods-NewExpensify.release.xcconfig */;
+			baseConfigurationReference = 391B5D1DB6CFBAC16FD11DC4 /* Pods-NewExpensify.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
