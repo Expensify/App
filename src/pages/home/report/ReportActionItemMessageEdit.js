@@ -83,7 +83,7 @@ class ReportActionItemMessageEdit extends React.Component {
         this.messageEditInput = 'messageEditInput';
 
         const parser = new ExpensiMark();
-        const draftMessage = parser.htmlToMarkdown(this.props.draftMessage);
+        const draftMessage = parser.htmlToMarkdown(this.props.draftMessage).trim();
 
         this.state = {
             draft: draftMessage,
