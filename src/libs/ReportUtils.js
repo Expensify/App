@@ -4,6 +4,7 @@ import lodashGet from 'lodash/get';
 import lodashIntersection from 'lodash/intersection';
 import Onyx from 'react-native-onyx';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
@@ -396,6 +397,36 @@ function getRoomWelcomeMessage(report, policiesMap) {
     }
 
     return welcomeMessage;
+}
+
+function getPersonHandle(displayName, primaryLogin, viewerDomain) {
+    let handle = null;
+
+    const formattedViewerDomain = viewerDomain && viewerDomain.startsWith('+@') ? viewerDomain.slice(2) : undefined;
+
+    const isPublicEmail = primaryLogin
+        && formattedViewerDomain
+        && _.some(PUBLIC_DOMAINS, d => primaryLogin.includes(d))
+        && primaryLogin.includes(formattedViewerDomain);
+
+    if (primaryLogin) {
+        const [username, domain] = primaryLogin.split('@');
+        if (CONST.REGEX.POSITIVE_INTEGER.test(username.replace('+', ''))) {
+            handle = username.replace('+', '');
+        } else if (isPublicEmail != null && !isPublicEmail && formattedViewerDomain === domain) {
+            handle = username;
+        } else {
+            handle = primaryLogin;
+        }
+    }
+
+    if (displayName === handle) {
+        handle = null;
+    } else if (handle) {
+        handle = `@${handle}`;
+    }
+
+    return handle;
 }
 
 /**
@@ -1735,6 +1766,7 @@ export {
     getChatByParticipants,
     getAllPolicyReports,
     getIOUReportActionMessage,
+    getPersonHandle,
     getDisplayNameForParticipant,
     isIOUReport,
     chatIncludesChronos,

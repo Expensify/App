@@ -20,6 +20,7 @@ import ControlSelection from '../../../libs/ControlSelection';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import CONST from '../../../CONST';
+import Text from '../../../components/Text';
 
 const propTypes = {
     /** All the data of the action */
@@ -68,6 +69,8 @@ const ReportActionItemSingle = (props) => {
         ? [{type: 'TEXT', text: Str.isSMSLogin(login) ? props.toLocalPhone(displayName) : displayName}]
         : props.action.person;
 
+    const handle = ReportUtils.getPersonHandle(personArray[0].text, actorEmail, props.ownerEmail);
+
     return (
         <View style={props.wrapperStyles}>
             <Pressable
@@ -107,6 +110,7 @@ const ReportActionItemSingle = (props) => {
                                 />
                             ))}
                         </Pressable>
+                        {!!handle && <Text style={[styles.chatItemProfileHandle, styles.mr1]}>{handle}</Text>}
                         <ReportActionItemDate created={props.action.created} />
                     </View>
                 ) : null}
