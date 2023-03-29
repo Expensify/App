@@ -58,6 +58,7 @@ class IOUAmountPage extends React.Component {
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
         this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
+        this.amountButtonID = 'amountButton';
 
         this.state = {
             amount: props.selectedAmount,
@@ -258,15 +259,22 @@ class IOUAmountPage extends React.Component {
 
         return (
             <>
-                <View style={[
-                    styles.flex1,
-                    styles.flexRow,
-                    styles.w100,
-                    styles.alignItemsCenter,
-                    styles.justifyContentCenter,
-                ]}
+                <View
+                    style={[
+                        styles.flex1,
+                        styles.flexRow,
+                        styles.w100,
+                        styles.alignItemsCenter,
+                        styles.justifyContentCenter,
+                    ]}
                 >
                     <TextInputWithCurrencySymbol
+                        onBlur={(event) => {
+                            const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
+                            if (!relatedTargetId) {
+                                this.focusTextInput();
+                            }
+                        }}
                         formattedAmount={formattedAmount}
                         onChangeAmount={this.updateAmount}
                         onCurrencyButtonPress={this.navigateToCurrencySelectionPage}
@@ -293,6 +301,7 @@ class IOUAmountPage extends React.Component {
                         ) : <View />}
 
                     <Button
+                        nativeID={this.amountButtonID}
                         success
                         style={[styles.w100, styles.mt5]}
                         onPress={() => this.props.onStepComplete(this.state.amount)}

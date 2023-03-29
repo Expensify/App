@@ -37,6 +37,9 @@ const propTypes = {
 
     /** Function to call when selection in text input is changed */
     onSelectionChange: PropTypes.func,
+
+    /** Callback that is called when the text input is blurred. */
+    onBlur: PropTypes.func,
 };
 
 const defaultProps = {
@@ -45,6 +48,7 @@ const defaultProps = {
     onCurrencyButtonPress: () => {},
     selection: undefined,
     onSelectionChange: () => {},
+    onBlur: () => {},
 };
 
 function TextInputWithCurrencySymbol(props) {
@@ -60,6 +64,7 @@ function TextInputWithCurrencySymbol(props) {
 
     const amountTextInput = (
         <AmountTextInput
+            onBlur={props.onBlur}
             formattedAmount={props.formattedAmount}
             onChangeAmount={props.onChangeAmount}
             placeholder={props.placeholder}

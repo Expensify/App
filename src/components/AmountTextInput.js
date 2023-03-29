@@ -28,12 +28,16 @@ const propTypes = {
 
     /** Function to call when selection in text input is changed */
     onSelectionChange: PropTypes.func,
+
+    /** Callback that is called when the text input is blurred. */
+    onBlur: PropTypes.func,
 };
 
 const defaultProps = {
     forwardedRef: undefined,
     selection: undefined,
     onSelectionChange: () => {},
+    onBlur: () => {},
 };
 
 function AmountTextInput(props) {
@@ -42,6 +46,7 @@ function AmountTextInput(props) {
             disableKeyboard
             autoGrow
             hideFocusedState
+            onBlur={props.onBlur}
             inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
             textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
             onChangeText={props.onChangeAmount}
