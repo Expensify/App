@@ -1,11 +1,12 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import {useNavigationBuilder, createNavigatorFactory, StackRouter} from '@react-navigation/native';
+import {useNavigationBuilder, createNavigatorFactory} from '@react-navigation/native';
 import {StackView} from '@react-navigation/stack';
 import ThreePaneView from './ThreePaneView';
+import CustomRouter from './CustomRouter';
 
 const propTypes = {
-    isNarrowLayout: PropTypes.bool.isRequired,
+    isSmallScreenWidth: PropTypes.bool.isRequired,
     children: PropTypes.oneOfType([
         PropTypes.func,
         PropTypes.node,
@@ -20,14 +21,15 @@ const defaultProps = {
 function ResponsiveStackNavigator(props) {
     const {
         navigation, state, descriptors, NavigationContent,
-    } = useNavigationBuilder(StackRouter, {
+    } = useNavigationBuilder(CustomRouter, {
         children: props.children,
         // eslint-disable-next-line react/prop-types
         screenOptions: props.screenOptions,
         initialRouteName: props.initialRouteName,
+        isSmallScreenWidth: props.isSmallScreenWidth,
     });
 
-    if (props.isNarrowLayout) {
+    if (props.isSmallScreenWidth) {
         return (
             <NavigationContent>
                 <StackView

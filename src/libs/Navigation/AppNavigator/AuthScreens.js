@@ -170,7 +170,7 @@ class AuthScreens extends React.Component {
 
         return (
             <RootStack.Navigator
-                isNarrowLayout={this.props.isSmallScreenWidth}
+                isSmallScreenWidth={this.props.isSmallScreenWidth}
                 mode="modal"
 
                 // We are disabling the default keyboard handling here since the automatic behavior is to close a
@@ -196,7 +196,7 @@ class AuthScreens extends React.Component {
                         const SidebarScreen = require('../../../pages/home/sidebar/SidebarScreen').default;
                         return SidebarScreen;
                     }}
-                    initialParams={{openOnAdminRoom: openOnAdminRoom === 'true'}}
+                    /* initialParams={{openOnAdminRoom: openOnAdminRoom === 'true'}} */
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.CENTRAL_PANE_NAVIGATOR}
