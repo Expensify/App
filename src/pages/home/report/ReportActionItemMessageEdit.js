@@ -26,6 +26,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import ONYXKEYS from '../../../ONYXKEYS';
+import refPropTypes from '../../../components/refPropTypes';
 
 const propTypes = {
     /** All the data of the action */
@@ -44,8 +45,7 @@ const propTypes = {
     index: PropTypes.number.isRequired,
 
     /** A ref to forward to the text input */
-    // eslint-disable-next-line react/forbid-prop-types
-    forwardedRef: PropTypes.object,
+    forwardedRef: refPropTypes,
 
     /** The report currently being looked at */
     // eslint-disable-next-line react/no-unused-prop-types

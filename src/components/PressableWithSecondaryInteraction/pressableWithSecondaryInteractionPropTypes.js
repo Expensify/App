@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** The function that should be called when this pressable is pressed */
@@ -17,7 +18,7 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 
     /** The ref to the search input (may be null on small screen widths) */
-    forwardedRef: PropTypes.func,
+    forwardedRef: refPropTypes,
 
     /** Prevent the default ContextMenu on web/Desktop */
     preventDefaultContentMenu: PropTypes.bool,
