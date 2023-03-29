@@ -183,42 +183,6 @@ function updateNewsletterSubscription(isSubscribed) {
 }
 
 /**
- * Adds a secondary login to a user's account
- *
- * @param {String} login
- * @param {String} password
- * @returns {Promise}
- */
-function setSecondaryLoginAndNavigate(login, password) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
-
-    return DeprecatedAPI.User_SecondaryLogin_Send({
-        email: login,
-        password,
-    }).then((response) => {
-        if (response.jsonCode === 200) {
-            Onyx.set(ONYXKEYS.LOGIN_LIST, response.loginList);
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
-            return;
-        }
-
-        let error = lodashGet(response, 'message', 'Unable to add secondary login. Please try again.');
-
-        // Replace error with a friendlier message
-        if (error.includes('already belongs to an existing Expensify account.')) {
-            error = 'This login already belongs to an existing Expensify account.';
-        }
-        if (error.includes('I couldn\'t validate the phone number')) {
-            error = Localize.translateLocal('common.error.phoneNumber');
-        }
-
-        Onyx.merge(ONYXKEYS.USER, {error});
-    }).finally(() => {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
-    });
-}
-
-/**
  * Delete a specific contact method
  *
  * @param {String} contactMethod - the contact method being deleted
@@ -731,7 +695,6 @@ export {
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,
-    setSecondaryLoginAndNavigate,
     deleteContactMethod,
     clearContactMethodErrors,
     addNewContactMethodAndNavigate,
