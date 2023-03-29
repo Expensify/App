@@ -91,6 +91,7 @@ class NewContactMethodPage extends Component {
                             ref={el => this.loginInputRef = el}
                             value={this.state.login}
                             onChangeText={this.onLoginChange}
+                            autoCapitalize='none'
                             returnKeyType={Permissions.canUsePasswordlessLogins(this.props.betas) ? 'done' : 'next'}
                         />
                     </View>
