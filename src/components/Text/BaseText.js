@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {forwardRef} from 'react';
 import _ from 'underscore';
 // eslint-disable-next-line no-restricted-imports
 import {Text as RNText} from 'react-native';
@@ -6,7 +6,7 @@ import {defaultProps, propTypes} from './baseTextPropTypes';
 import fontFamily from '../../styles/fontFamily';
 import variables from '../../styles/variables';
 
-const BaseText = React.forwardRef(({
+const BaseText = forwardRef(({
     color,
     fontSize,
     textAlign,

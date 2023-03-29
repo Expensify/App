@@ -1,9 +1,9 @@
-import React from 'react';
+import React, {forwardRef, useState} from 'react';
 import BaseText from './BaseText';
 import {defaultProps, propTypes} from './baseTextPropTypes';
 
 const Text = (props) => {
-    const [truncatedText, setTruncatedText] = React.useState(typeof props.children === 'string' ? props.children : null);
+    const [truncatedText, setTruncatedText] = useState(typeof props.children === 'string' ? props.children : null);
 
     const handleTextLayout = ({nativeEvent: {lines}}) => {
         if (!props.numberOfLines || lines.length <= props.numberOfLines) {
@@ -34,7 +34,7 @@ Text.propTypes = propTypes;
 Text.defaultProps = defaultProps;
 Text.displayName = 'Text';
 
-export default React.forwardRef((props, ref) => (
+export default forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <Text {...props} innerRef={ref} />
 ));
