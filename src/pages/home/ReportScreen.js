@@ -133,7 +133,7 @@ class ReportScreen extends React.Component {
     componentDidMount() {
         this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
             // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
-            // we don't need to call openReport again
+            // we don't need to call openReport
             if (!this.isReportFullyVisible() || this.props.report.isOptimisticReport) {
                 return;
             }
