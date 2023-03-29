@@ -195,7 +195,7 @@ export default function getTooltipStyles(
             overflow: 'hidden',
             lineHeight: variables.lineHeightSmall,
 
-            // To correctly measure the text width it should be rendered freely and not to be bound with parent's width.
+            // To measure tooltip text width correctly we render it freely i.e. text should not wrap to parent's boundaries.
             // More info: https://github.com/Expensify/App/issues/15949#issuecomment-1483011998
             whiteSpace: tooltipContentWidth ? undefined : 'pre',
         },
