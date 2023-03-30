@@ -63,7 +63,7 @@ class MagicCodeInput extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        this.inputNrArray = Array.from(Array(CONST.MAGIC_CODE_LENGTH).keys());
+        this.inputPlaceholderSlots = Array.from(Array(CONST.MAGIC_CODE_LENGTH).keys());
         this.inputRef = null;
 
         this.state = {
@@ -162,8 +162,10 @@ class MagicCodeInput extends React.PureComponent {
             const finalInput = this.composeToString(this.state.numbers);
             this.props.onChange(finalInput);
 
+            // If the input is complete and submit on complete is enabled, waits for a possible state
+            // update and then calls the onSubmit callback.
             if (this.props.shouldSubmitOnComplete && finalInput.length === CONST.MAGIC_CODE_LENGTH) {
-                this.props.onSubmit(finalInput);
+                setTimeout(() => this.props.onSubmit(finalInput), 0);
             }
         });
     }
@@ -220,15 +222,22 @@ class MagicCodeInput extends React.PureComponent {
         return arr;
     }
 
+    /**
+     * Converts an array of strings into a single string. If there are undefined or
+     * empty values, it will replace them with a space.
+     *
+     * @param {Array} value
+     * @returns {String}
+     */
     composeToString(value) {
-        return _.filter(value, v => v !== undefined).join('');
+        return _.map(value, v => ((v === undefined || v === '') ? ' ' : v)).join('');
     }
 
     render() {
         return (
             <>
                 <View style={[styles.flexRow, styles.justifyContentBetween]}>
-                    {_.map(this.inputNrArray, index => (
+                    {_.map(this.inputPlaceholderSlots, index => (
                         <View key={index} style={[styles.w15]}>
                             <TextInput
                                 editable={false}
