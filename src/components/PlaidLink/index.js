@@ -5,13 +5,15 @@ import Log from '../../libs/Log';
 
 const PlaidLink = (props) => {
     const [isPlaidLoaded, setIsPlaidLoaded] = useState(false);
-    const onSuccess = useCallback((publicToken, metadata) => {
-        props.onSuccess({publicToken, metadata});
-    }, []);
+    const onSuccess = props.onSuccess;
+    const onError = props.onError;
+    const successCallback = useCallback((publicToken, metadata) => {
+        onSuccess({publicToken, metadata});
+    }, [onSuccess]);
 
     const {open, ready, error} = usePlaidLink({
         token: props.token,
-        onSuccess,
+        onSuccess: successCallback,
         onExit: (exitError, metadata) => {
             Log.info('[PlaidLink] Exit: ', false, {exitError, metadata});
             props.onExit();
@@ -28,7 +30,7 @@ const PlaidLink = (props) => {
 
     useEffect(() => {
         if (error) {
-            props.onError(error);
+            onError(error);
             return;
         }
 
@@ -41,7 +43,7 @@ const PlaidLink = (props) => {
         }
 
         open();
-    }, [ready, error, isPlaidLoaded]);
+    }, [ready, error, isPlaidLoaded, open, onError]);
 
     return null;
 };
