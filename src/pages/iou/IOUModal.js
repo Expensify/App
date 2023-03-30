@@ -207,11 +207,8 @@ class IOUModal extends Component {
      * @returns {String}
      */
     getTitleForStep() {
-        const currentStepIndex = this.state.currentStepIndex;
-        const isSendingMoney = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
-
-        if (currentStepIndex === 0) {
-            if (isSendingMoney) {
+        if (this.state.currentStepIndex === 0) {
+            if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
                 return this.props.translate('iou.sendMoney');
             }
             return this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitBill' : 'iou.requestMoney');
