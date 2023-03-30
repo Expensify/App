@@ -928,7 +928,7 @@ export default {
         },
     },
     reimbursementAccountLoadingAnimation: {
-        oneMoment: 'One Moment',
+        oneMoment: 'One moment',
         explanationLine: 'We’re taking a look at your information. You will be able to continue with next steps shortly.',
     },
     session: {
