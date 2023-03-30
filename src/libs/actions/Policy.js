@@ -15,6 +15,7 @@ import DateUtils from '../DateUtils';
 import * as ReportUtils from '../ReportUtils';
 import Log from '../Log';
 import * as Report from './Report';
+import Permissions from '../Permissions';
 
 const allPolicies = {};
 Onyx.connect({
@@ -223,15 +224,89 @@ function removeMembers(members, policyID) {
 }
 
 /**
+* Optimistically create a chat for each member of the workspace, creates both optimistic and success data for onyx.
+*
+* @param {String} policyID
+* @param {Array} members
+* @param {Array} betas
+* @returns {Object} - object with onyxSuccessData, onyxOptimisticData, and optimisticReportIDs (map login to reportID)
+*/
+function createPolicyExpenseChats(policyID, members, betas) {
+    const workspaceMembersChats = {
+        onyxSuccessData: [],
+        onyxOptimisticData: [],
+        optimisticReportIDs: {},
+    };
+
+    // If the user is not in the beta, we don't want to create any chats
+    if (!Permissions.canUsePolicyExpenseChat(betas)) {
+        return workspaceMembersChats;
+    }
+
+    _.each(members, (login) => {
+        const optimisticReport = ReportUtils.buildOptimisticChatReport(
+            [login],
+            undefined,
+            CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID,
+            login,
+        );
+        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticReport.ownerEmail);
+
+        workspaceMembersChats.optimisticReportIDs[login] = optimisticReport.reportID;
+        workspaceMembersChats.onyxOptimisticData.push({
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
+            value: {
+                ...optimisticReport,
+                pendingFields: {
+                    createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                isOptimisticReport: true,
+            },
+        });
+        workspaceMembersChats.onyxOptimisticData.push({
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReport.reportID}`,
+            value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
+        });
+        workspaceMembersChats.onyxSuccessData.push({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
+            value: {
+                isLoadingReportActions: false,
+                pendingFields: {
+                    createChat: null,
+                },
+                errorFields: {
+                    createChat: null,
+                },
+                isOptimisticReport: false,
+            },
+        });
+        workspaceMembersChats.onyxSuccessData.push({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReport.reportID}`,
+            value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
+        });
+    });
+    return workspaceMembersChats;
+}
+
+/**
  * Adds members to the specified workspace/policyID
  *
  * @param {Array<String>} memberLogins
  * @param {String} welcomeNote
  * @param {String} policyID
+ * @param {Array<String>} betas
  */
-function addMembersToWorkspace(memberLogins, welcomeNote, policyID) {
+function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`;
     const logins = _.map(memberLogins, memberLogin => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
+
+    // create onyx data for policy expense chats for each new member
+    const membersChats = createPolicyExpenseChats(policyID, logins, betas);
 
     const optimisticData = [
         {
@@ -241,6 +316,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID) {
             // Convert to object with each key containing {pendingAction: ‘add’}
             value: _.object(logins, Array(logins.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})),
         },
+        ...membersChats.onyxOptimisticData,
     ];
 
     const successData = [
@@ -252,6 +328,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID) {
             // need to remove the members since that will be handled by onClose of OfflineWithFeedback.
             value: _.object(logins, Array(logins.length).fill({pendingAction: null, errors: null})),
         },
+        ...membersChats.onyxSuccessData,
     ];
 
     const failureData = [
@@ -275,6 +352,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID) {
         // Escape HTML special chars to enable them to appear in the invite email
         welcomeNote: _.escape(welcomeNote),
         policyID,
+        optimisticReportIDs: JSON.stringify(membersChats.optimisticReportIDs),
     }, {optimisticData, successData, failureData});
 }
 
