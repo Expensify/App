@@ -16,6 +16,7 @@ import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_bac
 import * as StyleUtils from '../../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
+import withLocalize from '../../../components/withLocalize';
 
 const propTypes = {
     /** The id of the report */
@@ -57,7 +58,7 @@ const ReportActionItemCreated = (props) => {
                     style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
                 />
                 <View
-                    accessibilityLabel="Chat welcome message"
+                    accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}
                 >
                     <Pressable
@@ -83,6 +84,7 @@ ReportActionItemCreated.displayName = 'ReportActionItemCreated';
 
 export default compose(
     withWindowDimensions,
+    withLocalize,
     withOnyx({
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,

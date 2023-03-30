@@ -67,13 +67,25 @@ const propTypes = {
     session: PropTypes.shape({
         /** Currently logged in user email */
         email: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** Actions from the ChatReport */
     reportActions: PropTypes.shape(reportActionPropTypes),
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
+
+    /** chatReport associated with iouReport */
+    chatReport: PropTypes.shape({
+        /** Report ID associated with the transaction */
+        reportID: PropTypes.string,
+
+        /** The participants of this report */
+        participants: PropTypes.arrayOf(PropTypes.string),
+
+        /** Whether the chat report has an outstanding IOU */
+        hasOutstandingIOU: PropTypes.bool.isRequired,
+    }),
 
     ...withLocalizePropTypes,
 };
@@ -82,6 +94,12 @@ const defaultProps = {
     iou: {},
     reportActions: {},
     iouReport: undefined,
+    session: {
+        email: null,
+    },
+    chatReport: {
+        participants: [],
+    },
 };
 
 class IOUDetailsModal extends Component {

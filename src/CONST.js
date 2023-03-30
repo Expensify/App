@@ -2,12 +2,14 @@ import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
 import * as Url from './libs/Url';
 
-const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
+const CLOUDFRONT_DOMAIN = 'cloudfront.net';
+const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com'));
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const USA_COUNTRY_NAME = 'United States';
+const CURRENT_YEAR = new Date().getFullYear();
 
 const CONST = {
     ANDROID_PACKAGE_NAME,
@@ -17,13 +19,20 @@ const CONST = {
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
-        ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml', 'mp3', 'mp4', 'mov'],
+        ALLOWED_EXTENSIONS: ['webp', 'jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml', 'mp3', 'mp4', 'mov'],
 
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
         MAX_SIZE: 25165824,
 
         // An arbitrary size, but the same minimum as in the PHP layer
         MIN_SIZE: 240,
+    },
+
+    AUTO_AUTH_STATE: {
+        NOT_STARTED: 'not-started',
+        SIGNING_IN: 'signing-in',
+        JUST_SIGNED_IN: 'just-signed-in',
+        FAILED: 'failed',
     },
 
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
@@ -44,6 +53,23 @@ const CONST = {
     DISPLAY_NAME: {
         MAX_LENGTH: 50,
         RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
+    },
+
+    CALENDAR_PICKER: {
+        // Numbers were arbitrarily picked.
+        MIN_YEAR: CURRENT_YEAR - 100,
+        MAX_YEAR: CURRENT_YEAR + 100,
+    },
+
+    DATE_BIRTH: {
+        MIN_AGE: 5,
+        MAX_AGE: 150,
+    },
+
+    // This is used to enable a rotation/transform style to any component.
+    DIRECTION: {
+        LEFT: 'left',
+        RIGHT: 'right',
     },
 
     // Sizes needed for report empty state background image handling
@@ -271,6 +297,7 @@ const CONST = {
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     DEEPLINK_BASE_URL: 'new-expensify://',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
+    CLOUDFRONT_DOMAIN_REGEX: /^https:\/\/\w+\.cloudfront\.net/i,
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
     CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
@@ -310,6 +337,48 @@ const CONST = {
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
+                POLICYCHANGELOG: {
+                    UPDATE_NAME: 'POLICYCHANGELOG_UPDATE_NAME',
+                    UPDATE_CURRENCY: 'POLICYCHANGELOG_UPDATE_CURRENCY',
+                    UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
+                    UPDATE_AUTOHARVESTING: 'POLICYCHANGELOG_UPDATE_AUTOHARVESTING',
+                    UPDATE_AUTOREPORTING_FREQUENCY: 'POLICYCHANGELOG_UPDATE_AUTOREPORTING_FREQUENCY',
+                    UPDATE_DEFAULT_TITLE_ENFORCED: 'POLICYCHANGELOG_UPDATE_DEFAULT_TITLE_ENFORCED',
+                    UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
+                    ADD_REPORT_FIELD: 'POLICYCHANGELOG_ADD_REPORT_FIELD',
+                    DELETE_REPORT_FIELD: 'POLICYCHANGELOG_DELETE_REPORT_FIELD',
+                    UPDATE_DEFAULT_TITLE: 'POLICYCHANGELOG_UPDATE_DEFAULT_TITLE',
+                    ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
+                    DELETE_CATEGORY: 'POLICYCHANGELOG_DELETE_CATEGORY',
+                    SET_CATEGORY_NAME: 'POLICYCHANGELOG_SET_CATEGORY_NAME',
+                    UPDATE_CATEGORY: 'POLICYCHANGELOG_UPDATE_CATEGORY',
+                    ADD_TAG: 'POLICYCHANGELOG_ADD_TAG',
+                    UPDATE_TAG: 'POLICYCHANGELOG_UPDATE_TAG',
+                    DELETE_TAG: 'POLICYCHANGELOG_DELETE_TAG',
+                    UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
+                    UPDATE_TAG_LIST_NAME: 'POLICYCHANGELOG_UPDATE_TAG_LIST_NAME',
+                    IMPORT_TAGS: 'POLICYCHANGELOG_IMPORT_TAGS',
+                    DELETE_ALL_TAGS: 'POLICYCHANGELOG_DELETE_ALL_TAGS',
+                    ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
+                    UPDATE_APPROVER_RULE: 'POLICYCHANGELOG_UPDATE_APPROVER_RULE',
+                    DELETE_APPROVER_RULE: 'POLICYCHANGELOG_DELETE_APPROVER_RULE',
+                    ADD_EMPLOYEE: 'POLICYCHANGELOG_ADD_EMPLOYEE',
+                    DELETE_EMPLOYEE: 'POLICYCHANGELOG_DELETE_EMPLOYEE',
+                    UPDATE_EMPLOYEE: 'POLICYCHANGELOG_UPDATE_EMPLOYEE',
+                    SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
+                    ADD_INTEGRATION: 'POLICYCHANGELOG_ADD_INTEGRATION',
+                    DELETE_INTEGRATION: 'POLICYCHANGELOG_DELETE_INTEGRATION',
+                    UPDATE_ACH_ACCOUNT: 'POLICYCHANGELOG_UPDATE_ACH_ACCOUNT',
+                    UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
+                    SET_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
+                    ADD_CUSTOM_UNIT: 'POLICYCHANGELOG_ADD_CUSTOM_UNIT',
+                    DELETE_CUSTOM_UNIT: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT',
+                    UPDATE_CUSTOM_UNIT: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT',
+                    UPDATE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT_RATE',
+                    ADD_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_ADD_CUSTOM_UNIT_RATE',
+                    DELETE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_RATE',
+                    UPDATE_FIELD: 'POLICYCHANGELOG_UPDATE_FIELD',
+                },
             },
         },
         ARCHIVE_REASON: {
@@ -469,6 +538,9 @@ const CONST = {
         MAX_RETRY_WAIT_TIME_MS: 10 * 1000,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
+        COMMAND: {
+            RECONNECT_APP: 'ReconnectApp',
+        },
     },
     NVP: {
         IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
@@ -527,6 +599,8 @@ const CONST = {
     EMOJI_NUM_PER_ROW: 8,
 
     EMOJI_FREQUENT_ROW_COUNT: 3,
+
+    EMOJI_DEFAULT_SKIN_TONE: -1,
 
     INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
 
@@ -595,6 +669,7 @@ const CONST = {
             3: 100,
         },
     },
+    LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EMAIL: {
         CONCIERGE: 'concierge@expensify.com',

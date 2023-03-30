@@ -58,11 +58,12 @@ const MenuItem = (props) => {
         (props.icon ? styles.ml3 : undefined),
         (props.shouldShowBasicTitle ? undefined : styles.textStrong),
         (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
+        styles.pre,
     ], props.style);
     const descriptionTextStyle = StyleUtils.combineStyles([
         styles.textLabelSupporting,
         (props.icon ? styles.ml3 : undefined),
-        styles.breakAll,
+        styles.breakWord,
         styles.lineHeightNormal,
     ], props.style);
 
