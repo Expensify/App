@@ -976,6 +976,7 @@ function updateNotificationPreference(reportID, previousValue, newValue) {
  * Navigates to the 1:1 report with Concierge
  */
 function navigateToConciergeChat() {
+    console.log('NO NAWIGUJ')
     // If we don't have a chat with Concierge then create it
     if (!conciergeChatReportID) {
         navigateToAndOpenReport([CONST.EMAIL.CONCIERGE]);
