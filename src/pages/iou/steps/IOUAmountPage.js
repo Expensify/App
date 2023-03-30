@@ -58,7 +58,6 @@ class IOUAmountPage extends React.Component {
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
         this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
-        this.amountButtonID = 'amountButton';
         this.amountViewID = 'amountView';
 
         this.state = {
@@ -306,7 +305,6 @@ class IOUAmountPage extends React.Component {
                         ) : <View />}
 
                     <Button
-                        nativeID={this.amountButtonID}
                         success
                         style={[styles.w100, styles.mt5]}
                         onPress={() => this.props.onStepComplete(this.state.amount)}
