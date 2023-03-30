@@ -105,7 +105,8 @@ class OptionRow extends Component {
             || this.props.option.shouldShowSubscript !== nextProps.option.shouldShowSubscript
             || this.props.option.ownerEmail !== nextProps.option.ownerEmail
             || this.props.option.subtitle !== nextProps.option.subtitle
-            || this.props.option.pendingAction !== nextProps.option.pendingAction;
+            || this.props.option.pendingAction !== nextProps.option.pendingAction
+            || this.props.option.customIcon !== nextProps.option.customIcon;
     }
 
     componentDidUpdate(prevProps) {
