@@ -59,6 +59,7 @@ class IOUAmountPage extends React.Component {
         this.focusTextInput = this.focusTextInput.bind(this);
         this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
         this.amountButtonID = 'amountButton';
+        this.amountViewID = 'amountView';
 
         this.state = {
             amount: props.selectedAmount,
@@ -259,21 +260,26 @@ class IOUAmountPage extends React.Component {
 
         return (
             <>
-                <View style={[
-                    styles.flex1,
-                    styles.flexRow,
-                    styles.w100,
-                    styles.alignItemsCenter,
-                    styles.justifyContentCenter,
-                ]}
-                >
-                    <TextInputWithCurrencySymbol
-                        onBlur={(event) => {
-                            const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
-                            if (!relatedTargetId) {
+                <View
+                    nativeID={this.amountViewID}
+                    onMouseDown={(event) => {
+                        const relatedTargetId = lodashGet(event, 'nativeEvent.srcElement.id');
+                        if (_.contains([this.amountViewID], relatedTargetId)) {
+                            event.preventDefault();
+                            if (!this.textInput.isFocused()) {
                                 this.textInput.focus();
                             }
-                        }}
+                        }
+                    }}
+                    style={[
+                        styles.flex1,
+                        styles.flexRow,
+                        styles.w100,
+                        styles.alignItemsCenter,
+                        styles.justifyContentCenter,
+                    ]}
+                >
+                    <TextInputWithCurrencySymbol
                         formattedAmount={formattedAmount}
                         onChangeAmount={this.updateAmount}
                         onCurrencyButtonPress={this.navigateToCurrencySelectionPage}
