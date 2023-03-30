@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Animated} from 'react-native';
+import {View, Animated, Pressable} from 'react-native';
 import moment from 'moment';
 import _ from 'underscore';
 import TextInput from '../TextInput';
@@ -10,6 +10,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import {propTypes as datePickerPropTypes, defaultProps as defaultDatePickerProps} from './datePickerPropTypes';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import Log from '../../libs/Log';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -115,7 +116,7 @@ class NewDatePicker extends React.Component {
 
     render() {
         return (
-            <View
+            <Pressable
                 ref={ref => this.wrapperRef = ref}
                 onBlur={(event) => {
                     if (this.wrapperRef && event.relatedTarget && this.wrapperRef.contains(event.relatedTarget)) {
@@ -169,7 +170,7 @@ class NewDatePicker extends React.Component {
                     </Animated.View>
                     )
                 }
-            </View>
+            </Pressable>
         );
     }
 }
