@@ -29,7 +29,7 @@ SubmitOnComplete.args = {
     label: 'Submits when the magic code input is complete',
     name: 'SubmitOnComplete',
     shouldSubmitOnComplete: true,
-    onSubmit: () => console.debug('Submitted!'),
+    onFulfill: () => console.debug('Submitted!'),
 };
 
 export default story;
