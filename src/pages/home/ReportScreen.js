@@ -36,6 +36,7 @@ import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView'
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import personalDetailsPropType from '../personalDetailsPropType';
+import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -134,7 +135,7 @@ class ReportScreen extends React.Component {
         this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
             // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
             // we don't need to call openReport
-            if (!this.isReportFullyVisible() || this.props.report.isOptimisticReport) {
+            if (!getIsReportFullyVisible(this.props.isDrawerOpen, this.props.isSmallScreenWidth) || this.props.report.isOptimisticReport) {
                 return;
             }
 
@@ -213,16 +214,6 @@ class ReportScreen extends React.Component {
 
     chatWithAccountManager() {
         Navigation.navigate(ROUTES.getReportRoute(this.props.accountManagerReportID));
-    }
-
-    /**
-     * When the app is visible and the LHN is not opening in small-screen devices we can assume that the report is fully visible.
-     *
-     * @returns {Boolean}
-     */
-    isReportFullyVisible() {
-        const isSidebarCoveringReportView = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
-        return Visibility.isVisible() && !isSidebarCoveringReportView;
     }
 
     render() {

@@ -23,6 +23,7 @@ import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
+import getIsReportFullyVisibleUtil from '../../../libs/getIsReportFullyVisible';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -248,8 +249,7 @@ class ReportActionsView extends React.Component {
      * @returns {Boolean}
      */
     getIsReportFullyVisible() {
-        const isSidebarCoveringReportView = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
-        return Visibility.isVisible() && !isSidebarCoveringReportView;
+        return getIsReportFullyVisibleUtil(this.props.isDrawerOpen, this.props.isSmallScreenWidth);
     }
 
     // If the report is optimistic (AKA not yet created) we don't need to call openReport again
