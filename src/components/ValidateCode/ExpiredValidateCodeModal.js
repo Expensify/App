@@ -1,5 +1,6 @@
 import React, {PureComponent} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import _, {compose} from 'underscore';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
@@ -17,7 +18,27 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
+    /** The details about the account that the user is signing in with */
+    account: PropTypes.shape({
+        /** An error message to display to the user */
+        errors: PropTypes.objectOf(PropTypes.string),
+
+        /** The message to be displayed when code requested */
+        message: PropTypes.string,
+    }),
+
+    /** The credentials of the logged in person */
+    credentials: PropTypes.shape({
+        /** The email the user logged in with */
+        login: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    account: {},
+    credentials: {},
 };
 
 class ExpiredValidateCodeModal extends PureComponent {
@@ -103,6 +124,7 @@ class ExpiredValidateCodeModal extends PureComponent {
 }
 
 ExpiredValidateCodeModal.propTypes = propTypes;
+ExpiredValidateCodeModal.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({

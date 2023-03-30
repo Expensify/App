@@ -106,6 +106,7 @@ class PronounsPage extends Component {
 
     render() {
         const filteredPronounsList = this.getFilteredPronouns();
+        const headerMessage = this.state.searchValue.trim() && !filteredPronounsList.length ? this.props.translate('common.noResultsFound') : '';
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -122,6 +123,8 @@ class PronounsPage extends Component {
                         </Text>
                         <OptionsSelector
                             textInputLabel={this.props.translate('pronounsPage.pronouns')}
+                            placeholderText={this.props.translate('pronounsPage.placeholderText')}
+                            headerMessage={headerMessage}
                             sections={[{data: filteredPronounsList}]}
                             value={this.state.searchValue}
                             onSelectRow={this.updatePronouns}

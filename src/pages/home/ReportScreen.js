@@ -34,6 +34,7 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import personalDetailsPropType from '../personalDetailsPropType';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -72,6 +73,12 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** The account manager report ID */
+    accountManagerReportID: PropTypes.string,
+
+    /** All of the personal details for everyone */
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
+
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
     ...viewportOffsetTopPropTypes,
@@ -87,6 +94,8 @@ const defaultProps = {
     isComposerFullSize: false,
     betas: [],
     policies: {},
+    accountManagerReportID: null,
+    personalDetails: {},
 };
 
 /**
@@ -191,14 +200,6 @@ class ReportScreen extends React.Component {
     }
 
     render() {
-        if (ReportUtils.isDefaultRoom(this.props.report) && !ReportUtils.canSeeDefaultRoom(this.props.report, this.props.policies, this.props.betas)) {
-            return null;
-        }
-
-        if (!Permissions.canUsePolicyRooms(this.props.betas) && ReportUtils.isUserCreatedPolicyRoom(this.props.report)) {
-            return null;
-        }
-
         // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to be pending, or to have errors for the same report at the same time, so
         // simply looking up the first truthy value for each case will get the relevant property if it's set.
         const reportID = getReportID(this.props.route);
@@ -208,6 +209,11 @@ class ReportScreen extends React.Component {
 
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
+
+        // Users not in the Default Room or Policy Room Betas can't view the report
+        const shouldHideReport = (
+            ReportUtils.isDefaultRoom(this.props.report) && !ReportUtils.canSeeDefaultRoom(this.props.report, this.props.policies, this.props.betas))
+            || (ReportUtils.isUserCreatedPolicyRoom(this.props.report) && !Permissions.canUsePolicyRooms(this.props.betas));
 
         // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
         const shouldFreeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
@@ -235,7 +241,7 @@ class ReportScreen extends React.Component {
                     )}
                 >
                     <FullPageNotFoundView
-                        shouldShow={!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading}
+                        shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading) || shouldHideReport}
                         subtitleKey="notFound.noAccess"
                         shouldShowCloseButton={false}
                         shouldShowBackButton={this.props.isSmallScreenWidth}
@@ -290,7 +296,6 @@ class ReportScreen extends React.Component {
                                     <ReportActionsView
                                         reportActions={this.props.reportActions}
                                         report={this.props.report}
-                                        session={this.props.session}
                                         isComposerFullSize={this.props.isComposerFullSize}
                                         isDrawerOpen={this.props.isDrawerOpen}
                                         parentViewHeight={this.state.skeletonViewContainerHeight}
@@ -336,9 +341,6 @@ export default compose(
     withOnyx({
         isSidebarLoaded: {
             key: ONYXKEYS.IS_SIDEBAR_LOADED,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
         reportActions: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,

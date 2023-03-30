@@ -143,6 +143,12 @@ describe('ReportActionsUtils', () => {
                 },
                 {
                     created: '2022-11-09 22:27:01.825',
+                    reportActionID: '8049485084562457',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.UPDATE_FIELD,
+                    message: [{html: 'updated the Approval Mode from "Submit and Approve" to "Submit and Close"'}],
+                },
+                {
+                    created: '2022-11-08 22:27:01.825',
                     reportActionID: '1661970171066218',
                     actionName: 'REIMBURSED',
                     message: [{html: 'Hello world'}],

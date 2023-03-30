@@ -32,7 +32,7 @@ export default {
         lastName: 'Apellidos',
         phone: 'teléfono',
         phoneNumber: 'Número de teléfono',
-        phoneNumberPlaceholder: '(prefijo) + (número)',
+        phoneNumberPlaceholder: '(xxx)xxx-xxxx',
         email: 'Email',
         and: 'y',
         details: 'Detalles',
@@ -55,7 +55,7 @@ export default {
         invite: 'Invitar',
         here: 'aquí',
         date: 'Fecha',
-        dob: 'Fecha de Nacimiento',
+        dob: 'Fecha de nacimiento',
         currentYear: 'Año actual',
         currentMonth: 'Mes actual',
         ssnLast4: 'Últimos 4 dígitos de su SSN',
@@ -69,7 +69,7 @@ export default {
         stateOrProvince: 'Estado / Provincia',
         country: 'País',
         zip: 'Código postal',
-        zipPostCode: 'Código Postal',
+        zipPostCode: 'Código postal',
         whatThis: '¿Qué es esto?',
         iAcceptThe: 'Acepto los ',
         remove: 'Eliminar',
@@ -123,6 +123,8 @@ export default {
         youAppearToBeOffline: 'Parece que estás desconectado.',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
         areYouSure: '¿Estás seguro?',
+        verify: 'Verifique',
+        yesContinue: 'Sí, Continuar',
         zipCodeExample: 'p. ej. 12345, 12345-1234, 12345 1234',
         websiteExample: 'p. ej. https://www.expensify.com',
     },
@@ -143,7 +145,7 @@ export default {
         notAllowedExtension: 'Los archivos adjuntos deben ser de uno de los siguientes tipos: ',
     },
     avatarCropModal: {
-        title: 'Editar Foto',
+        title: 'Editar foto',
         description: 'Arrastra, haz zoom y rota tu imagen para que quede como te gusta.',
     },
     composer: {
@@ -153,12 +155,6 @@ export default {
     baseUpdateAppModal: {
         updateApp: 'Actualizar app',
         updatePrompt: 'Existe una nueva versión de esta aplicación.\nActualiza ahora or reinicia la aplicación más tarde para recibir la última versión.',
-    },
-    deeplinkWrapper: {
-        launching: 'Cargando Expensify',
-        redirectedToDesktopApp: 'Te hemos redirigido a la aplicación de escritorio.',
-        youCanAlso: 'También puedes',
-        openLinkInBrowser: 'abrir este enlace en tu navegador',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
@@ -236,7 +232,10 @@ export default {
         editComment: 'Editar comentario',
         deleteComment: 'Eliminar comentario',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
+    },
+    emojiReactions: {
         addReactionTooltip: 'Añadir una reacción',
+        reactedWith: 'reaccionó con',
     },
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'Te perdiste la fiesta en ',
@@ -249,7 +248,7 @@ export default {
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}) => ` para chatear sobre cualquier cosa relacionada con ${workspaceName}.`,
         beginningOfChatHistoryUserRoomPartOne: 'Este es el lugar para colaborar! 🎉\nUsa este espacio para chatear sobre cualquier cosa relacionada con ',
         beginningOfChatHistoryUserRoomPartTwo: '.',
-        beginningOfChatHistory: 'Aquí comienza tu historial de conversaciones con ',
+        beginningOfChatHistory: 'Aquí comienzan tus conversaciones con ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! 🎉 Este es el lugar donde chatear, pedir dinero y pagar.',
@@ -281,6 +280,8 @@ export default {
         fabNewChat: 'Nuevo chat',
         chatPinned: 'Chat fijado',
         draftedMessage: 'Mensaje borrador',
+        listOfChatMessages: 'Lista de mensajes del chat',
+        listOfChats: 'lista de chats',
     },
     iou: {
         amount: 'Importe',
@@ -350,10 +351,25 @@ export default {
     pronounsPage: {
         pronouns: 'Pronombres',
         isShownOnProfile: 'Tus pronombres se muestran en tu perfil.',
+        placeholderText: 'Buscar para ver opciones',
     },
     contacts: {
         contactMethod: 'Método de contacto',
         contactMethods: 'Métodos de contacto',
+        helpTextBeforeEmail: 'Añade más formas de que la gente te encuentre y reenvía los recibos a ',
+        helpTextAfterEmail: ' desde varias direcciones de correo electrónico.',
+        pleaseVerify: 'Por favor verifica este método de contacto',
+        getInTouch: 'Utilizaremos este método de contacto cuando necesitemos contactarte.',
+        enterMagicCode: ({contactMethod}) => `Por favor, introduce el código mágico enviado a ${contactMethod}`,
+        yourDefaultContactMethod: 'Este es tu método de contacto predeterminado. No podrás eliminarlo hasta que añadas otro método de contacto y lo marques como predeterminado pulsando "Establecer como predeterminado".',
+        removeContactMethod: 'Eliminar método de contacto',
+        removeAreYouSure: '¿Estás seguro de que quieres eliminar este método de contacto? Esta acción no se puede deshacer.',
+        resendMagicCode: 'Reenviar código mágico',
+        genericFailureMessages: {
+            requestContactMethodValidateCode: 'No se ha podido enviar un nuevo código mágico. Espera un rato y vuelve a intentarlo.',
+            validateSecondaryLogin: 'No se ha podido validar el método de contacto con el código mágico provisto. Solicita un nuevo código y vuelve a intentarlo.',
+            deleteContactMethod: 'No se ha podido eliminar el método de contacto. Por favor contacta con Concierge para obtener ayuda.',
+        },
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -613,6 +629,7 @@ export default {
             invalidFormatEmailLogin: 'El email introducido no es válido. Corrígelo e inténtalo de nuevo.',
         },
         cannotGetAccountDetails: 'No se pudieron cargar los detalles de tu cuenta, por favor intenta iniciar sesión de nuevo.',
+        loginForm: 'Formulario de inicio de sesión',
     },
     personalDetails: {
         error: {
@@ -912,7 +929,7 @@ export default {
         },
     },
     reimbursementAccountLoadingAnimation: {
-        oneMoment: 'Un Momento',
+        oneMoment: 'Un momento',
         explanationLine: 'Estamos verificando tu información y podrás continuar con los siguientes pasos en unos momentos.',
     },
     session: {
@@ -1031,6 +1048,7 @@ export default {
             nameIsRequiredError: 'Debes definir un nombre para tu espacio de trabajo.',
             currencyInputLabel: 'Moneda por defecto',
             currencyInputHelpText: 'Todas los gastos en este espacio de trabajo serán convertidos a esta moneda.',
+            currencyInputDisabledText: 'La moneda predeterminada no se puede cambiar porque este espacio de trabajo está vinculado a una cuenta bancaria en USD.',
             save: 'Guardar',
             genericFailureMessage: 'Se produjo un error al guardar el espacio de trabajo. Por favor, inténtalo de nuevo.',
             avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
@@ -1174,6 +1192,7 @@ export default {
     },
     report: {
         genericAddCommentFailureMessage: 'Error inesperado al agregar el comentario, por favor inténtalo más tarde',
+        noActivityYet: 'Sin actividad todavía',
     },
     chronos: {
         oooEventSummaryFullDay: ({summary, dayCount, date}) => `${summary} por ${dayCount} ${dayCount === 1 ? 'día' : 'días'} hasta el ${date}`,
@@ -1674,5 +1693,16 @@ export default {
         ZA: 'Sudáfrica',
         ZM: 'Zambia',
         ZW: 'Zimbabue',
+    },
+    accessibilityHints: {
+        navigateToChatsList: 'Vuelve a la lista de chats',
+        chatWelcomeMessage: 'Mensaje de bienvenida al chat',
+        navigatesToChat: 'Navega a un chat',
+        newMessageLineIndicator: 'Indicador de nueva línea de mensaje',
+        chatMessage: 'mensaje de chat',
+        lastChatMessagePreview: 'Vista previa del último mensaje del chat',
+        workspaceName: 'Nombre del espacio de trabajo',
+        chatUserDisplayNames: 'Nombres de los usuarios del chat',
+        scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
     },
 };
