@@ -128,6 +128,7 @@ const MoneyRequestModal = (props) => {
 
     const prevCreatingIOUTransactionStatusRef = useRef();
     const prevNetworkStatusRef = useRef();
+    const prevSelectedCurrencyCodeRef = useRef();
 
     const [previousStepIndex, setPreviousStepIndex] = useState(0);
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -148,26 +149,34 @@ const MoneyRequestModal = (props) => {
         prevNetworkStatusRef.current = props.network.isOffline;
     }, [props.network.isOffline]);
 
+    useEffect(() => {
+        prevSelectedCurrencyCodeRef.current = lodashGet(props, 'iou.selectedCurrencyCode');
+    }, [props.iou.selectedCurrencyCode]);
 
     useEffect(() => {
-        const wasCreatingIOUTransaction = prevCreatingIOUTransactionStatusRef.current;
-        const isCurrentlyCreatingIOUTransaction = lodashGet(props, 'iou.creatingIOUTransaction');
-        const iouError = lodashGet(props, 'iou.error');
+        const isDoneCreatingIOUTransaction = prevCreatingIOUTransactionStatusRef.current && !lodashGet(props, 'iou.creatingIOUTransaction');
 
         // User came back online, so we can try to create the IOU transaction again
         if (prevNetworkStatusRef.current && !props.network.isOffline) {
             PersonalDetails.openIOUModalPage();
         }
 
-        // We successfully created the IOU transaction, so we can dismiss the modal
-        if (wasCreatingIOUTransaction && !lodashGet(props, 'iou.creatingIOUTransaction') && !iouError) {
-            Navigation.dismissModal();
+        const selectedCurrencyCode = lodashGet(props, 'iou.selectedCurrencyCode');
+        if (prevSelectedCurrencyCodeRef.current !== selectedCurrencyCode) {
+            IOU.setIOUSelectedCurrency(selectedCurrencyCode);
         }
 
-        // We failed to create the IOU transaction, so we can show the error modal
-        if (wasCreatingIOUTransaction && !lodashGet(props, 'iou.creatingIOUTransaction') && iouError) {
+        if (!isDoneCreatingIOUTransaction) {
+            return;
+        }
 
-    });
+        // At this point, we're done creating the IOU transaction, but we need to check if it was successful
+        if (lodashGet(props, 'iou.error') === true) {
+            setCurrentStepIndex(0);
+        } else {
+            Navigation.dismissModal();
+        }
+    }, [props.iou, props.network.isOffline]);
 
     /**
      * Decides our animation type based on whether we're increasing or decreasing
