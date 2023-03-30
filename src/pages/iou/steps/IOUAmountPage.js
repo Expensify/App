@@ -181,7 +181,7 @@ class IOUAmountPage extends React.Component {
      * @param {String} key
      */
     updateAmountNumberPad(key) {
-        this.focusTextInput();
+        this.textInput.focus();
 
         // Backspace button is pressed
         if (key === '<' || key === 'Backspace') {
