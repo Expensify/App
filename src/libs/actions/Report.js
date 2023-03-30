@@ -715,8 +715,6 @@ function deleteReportComment(reportID, reportAction) {
     // Similarly, if we are deleting the last read comment we will want to update the lastVisibleActionCreated to use the previous visible message.
     let optimisticReport = {
         lastMessageText: '',
-        lastMessageHtml: '',
-        lastActorEmail: '',
         lastVisibleActionCreated: '',
     };
     const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
