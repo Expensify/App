@@ -245,7 +245,6 @@ jobs:
     needs: [chooseDeployActions]
     if: ${{ needs.chooseDeployActions.outputs.SHOULD_DEPLOY }}
     steps:
-    steps:
       - name: Perform E2E tests
         uses: Expensify/App/.github/workflows/e2ePerformanceTests.yml@main
         secrets: inherit
