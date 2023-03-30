@@ -10,7 +10,7 @@ import participantPropTypes from '../../../../components/participantPropTypes';
 import {
     propTypes as reactionPropTypes,
     defaultProps as reactionDefaultProps,
-} from './HeaderReactionList/reactionPropTypes';
+} from './reactionPropTypes';
 
 const propTypes = {
 
