@@ -145,7 +145,7 @@ function dismissModal() {
     }
     const rootState = navigationRef.getRootState();
     const lastRoute = _.last(rootState.routes);
-    if (lastRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+    if (lastRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || lastRoute.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
         navigationRef.current.dispatch(StackActions.pop());
     } else {
         Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
