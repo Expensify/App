@@ -47,6 +47,9 @@ const propTypes = {
     /* Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** Indicated whether the report data is loading */
+    isLoading: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 const defaultProps = {
@@ -54,6 +57,7 @@ const defaultProps = {
     onShowCreateMenu: () => {},
     allPolicies: {},
     betas: [],
+    isLoading: false,
 };
 
 /**
@@ -207,7 +211,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                                 onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
                             },
                         ] : []),
-                        ...(!Policy.hasActiveFreePolicy(this.props.allPolicies) ? [
+                        ...(!this.props.isLoading && !Policy.hasActiveFreePolicy(this.props.allPolicies) ? [
                             {
                                 icon: Expensicons.NewWorkspace,
                                 iconWidth: 46,
@@ -246,6 +250,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isLoading: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(FloatingActionButtonAndPopover);

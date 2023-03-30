@@ -79,7 +79,7 @@ const AddReactionBubble = (props) => {
     };
 
     return (
-        <Tooltip text={props.translate('reportActionContextMenu.addReactionTooltip')} focusable={false}>
+        <Tooltip text={props.translate('emojiReactions.addReactionTooltip')} focusable={false}>
             <Pressable
                 ref={ref}
                 style={({
@@ -90,6 +90,9 @@ const AddReactionBubble = (props) => {
                     StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.sizeScale),
                 ]}
                 onPress={onPress}
+
+                // Prevent text input blur when Add reaction is clicked
+                onMouseDown={e => e.preventDefault()}
             >
                 {({
                     hovered,
