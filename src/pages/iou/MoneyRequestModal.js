@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -126,6 +126,9 @@ const MoneyRequestModal = (props) => {
     // Skip IOUParticipants step if participants are passed in
     const steps = reportParticipants.length ? [Steps.IOUAmount, Steps.IOUConfirm] : [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm];
 
+    const prevCreatingIOUTransactionStatusRef = useRef();
+    const prevNetworkStatusRef = useRef();
+
     const [previousStepIndex, setPreviousStepIndex] = useState(0);
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [participants, setParticipants] = useState(participantsWithDetails);
@@ -138,6 +141,31 @@ const MoneyRequestModal = (props) => {
     }, []);
 
     useEffect(() => {
+        prevCreatingIOUTransactionStatusRef.current = lodashGet(props, 'iou.creatingIOUTransaction');
+    }, [props.iou]);
+
+    useEffect(() => {
+        prevNetworkStatusRef.current = props.network.isOffline;
+    }, [props.network.isOffline]);
+
+
+    useEffect(() => {
+        const wasCreatingIOUTransaction = prevCreatingIOUTransactionStatusRef.current;
+        const isCurrentlyCreatingIOUTransaction = lodashGet(props, 'iou.creatingIOUTransaction');
+        const iouError = lodashGet(props, 'iou.error');
+
+        // User came back online, so we can try to create the IOU transaction again
+        if (prevNetworkStatusRef.current && !props.network.isOffline) {
+            PersonalDetails.openIOUModalPage();
+        }
+
+        // We successfully created the IOU transaction, so we can dismiss the modal
+        if (wasCreatingIOUTransaction && !lodashGet(props, 'iou.creatingIOUTransaction') && !iouError) {
+            Navigation.dismissModal();
+        }
+
+        // We failed to create the IOU transaction, so we can show the error modal
+        if (wasCreatingIOUTransaction && !lodashGet(props, 'iou.creatingIOUTransaction') && iouError) {
 
     });
 
