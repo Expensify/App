@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import CONST from '../CONST';
 
 /**
@@ -55,27 +56,48 @@ function getLatestErrorMessage(onyxData) {
 }
 
 /**
+ * @param {Object} onyxData
+ * @param {Object} onyxData.errorFields
+ * @param {String} fieldName
+ * @returns {Object}
+ */
+function getLatestErrorField(onyxData, fieldName) {
+    const errorsForField = lodashGet(onyxData, ['errorFields', fieldName], {});
+
+    if (_.isEmpty(errorsForField)) {
+        return {};
+    }
+    return _.chain(errorsForField)
+        .keys()
+        .sortBy()
+        .reverse()
+        .map(key => ({[key]: errorsForField[key]}))
+        .first()
+        .value();
+}
+
+/**
  * Method used to generate error message for given inputID
  * @param {Object} errors - An object containing current errors in the form
  * @param {String} inputID
  * @param {String} message - Message to assign to the inputID errors
- * @returns {Object} - An object containing the errors for each inputID
+ *
  */
 function addErrorMessage(errors, inputID, message) {
     const errorList = errors;
-
+    if (!message || !inputID) {
+        return;
+    }
     if (_.isEmpty(errorList[inputID])) {
         errorList[inputID] = message;
     } else {
         errorList[inputID] = `${errorList[inputID]}\n${message}`;
     }
-
-    return errorList;
 }
 
 export {
-    // eslint-disable-next-line import/prefer-default-export
     getAuthenticateErrorMessage,
     getLatestErrorMessage,
+    getLatestErrorField,
     addErrorMessage,
 };
