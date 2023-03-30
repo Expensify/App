@@ -23,10 +23,12 @@ import DateUtils from '../DateUtils';
 import * as Session from './Session';
 
 let currentUserAccountID = '';
+let currentEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         currentUserAccountID = lodashGet(val, 'accountID', '');
+        currentEmail = lodashGet(val, 'email', '');
     },
 });
 
@@ -654,6 +656,70 @@ function generateStatementPDF(period) {
     });
 }
 
+function setContactMethodAsDefault(newDefaultContactMethod) {
+    const oldDefaultContactMethod = currentEmail;
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                email: newDefaultContactMethod,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.LOGIN_LIST,
+            value: {
+                [newDefaultContactMethod]: {
+                    pendingFields: {
+                        defaultLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                    errorFields: {
+                        defaultLogin: null,
+                    },
+                },
+            },
+        },
+    ];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [newDefaultContactMethod]: {
+                pendingFields: {
+                    defaultLogin: null,
+                },
+            },
+        },
+    }];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                email: oldDefaultContactMethod,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.LOGIN_LIST,
+            value: {
+                [newDefaultContact]: {
+                    pendingFields: {
+                        defaultLogin: null,
+                    },
+                    errorFields: {
+                        defaultLogin: {
+                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.setDefaultContactMethod'),
+                        },
+                    },
+                },
+            },
+        },
+    ];
+    API.write('SetContactMethodAsDefault', {partnerUserID: newDefaultContactMethod}, {optimisticData, successData, failureData});
+}
+
 export {
     updatePassword,
     closeAccount,
@@ -678,4 +744,5 @@ export {
     deletePaypalMeAddress,
     addPaypalMeAddress,
     updateChatPriorityMode,
+    setContactMethodAsDefault,
 };
