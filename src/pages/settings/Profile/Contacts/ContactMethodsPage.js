@@ -63,7 +63,7 @@ const ContactMethodsPage = (props) => {
     let hasEmailLogin = false;
 
     const loginMenuItems = _.map(props.loginList, (login, loginName) => {
-        const pendingAction = lodashGet(login, 'pendingFields.deletedLogin', null);
+        const pendingAction = lodashGet(login, 'pendingFields.deletedLogin', null) || lodashGet(login, 'pendingFields.addedLogin', null);
         if (!login.partnerUserID && _.isEmpty(pendingAction)) {
             return null;
         }
