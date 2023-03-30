@@ -3,6 +3,8 @@ import CONST from '../CONST';
 import withEnvironment, {environmentPropTypes} from './withEnvironment';
 import Badge from './Badge';
 import styles from '../styles/styles';
+import * as Environment from '../libs/Environment/Environment';
+import pkg from '../../package.json';
 
 const ENVIRONMENT_SHORT_FORM = {
     [CONST.ENVIRONMENT.DEV]: 'DEV',
@@ -16,11 +18,13 @@ const EnvironmentBadge = (props) => {
         return null;
     }
 
+    const text = Environment.isInternalTestBuild() ? `${pkg.version}-PR.${CONST.PULL_REQUEST_NUMBER}` : ENVIRONMENT_SHORT_FORM[props.environment];
+
     return (
         <Badge
             success={props.environment === CONST.ENVIRONMENT.STAGING}
             error={props.environment !== CONST.ENVIRONMENT.STAGING}
-            text={ENVIRONMENT_SHORT_FORM[props.environment]}
+            text={text}
             badgeStyles={[styles.alignSelfCenter]}
         />
     );

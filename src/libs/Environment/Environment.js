@@ -26,6 +26,15 @@ function isDevelopment() {
 }
 
 /**
+ * Are we running an internal test build?
+ *
+ * @return {boolean}
+ */
+function isInternalTestBuild() {
+    return lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.STAGING && lodashGet(Config, 'PULL_REQUEST_NUMBER', '');
+}
+
+/**
  * Get the URL based on the environment we are in
  *
  * @returns {Promise}
@@ -49,6 +58,7 @@ function getOldDotEnvironmentURL() {
 
 export {
     getEnvironment,
+    isInternalTestBuild,
     isDevelopment,
     getEnvironmentURL,
     getOldDotEnvironmentURL,

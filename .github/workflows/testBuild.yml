@@ -71,6 +71,9 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
+      - name: Add PULL_REQUEST_NUMBER to .env.staging file
+        run: echo PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER >> .env.staging
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
@@ -120,6 +123,9 @@ jobs:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
+
+      - name: Add PULL_REQUEST_NUMBER to .env.staging file
+        run: echo PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER >> .env.staging
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -178,6 +184,9 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
           fetch-depth: 0
 
+      - name: Add PULL_REQUEST_NUMBER to .env.staging file
+        run: echo PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER >> .env.staging
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Decrypt Developer ID Certificate
@@ -213,6 +222,9 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
+
+      - name: Add PULL_REQUEST_NUMBER to .env.staging file
+        run: echo PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER >> .env.staging
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
