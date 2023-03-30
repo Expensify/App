@@ -186,7 +186,7 @@ class ContactMethodDetailsPage extends Component {
                                 label={this.props.translate('common.magicCode')}
                                 name="validateCode"
                                 value={this.state.validateCode}
-                                onChangeText={text => this.setState({ validateCode: text })}
+                                onChangeText={text => this.setState({validateCode: text})}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                 errorText={formErrorText}
                             />

@@ -3,7 +3,6 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import moment from 'moment';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
@@ -189,7 +188,6 @@ function updateNewsletterSubscription(isSubscribed) {
  * @param {Object} oldLoginData
  */
 function deleteContactMethod(contactMethod, oldLoginData) {
-
     // If the contact method failed to be added to the account, then it should only be deleted locally.
     if (lodashGet(oldLoginData, 'errorFields.addedLogin', null)) {
         Onyx.merge(ONYXKEYS.LOGIN_LIST, {[contactMethod]: null});
@@ -264,9 +262,8 @@ function clearContactMethodErrors(contactMethod, fieldName) {
 /**
  * Adds a secondary login to a user's account
  *
- * @param {String} login
+ * @param {String} contactMethod
  * @param {String} password
- * @returns {Promise}
  */
 function addNewContactMethodAndNavigate(contactMethod, password) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
