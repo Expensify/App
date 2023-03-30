@@ -44,6 +44,7 @@ class CategoryShortcutButton extends PureComponent {
                 ])}
             >
                 <Tooltip
+                    focusable={false}
                     containerStyles={[styles.flex1, styles.alignSelfStretch, styles.alignItemsCenter, styles.justifyContentCenter]}
                     text={this.props.translate(`emojiPicker.headers.${this.props.code}`)}
                     shiftVertical={-4}
