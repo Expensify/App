@@ -52,6 +52,7 @@ const ReactionTooltipContent = (props) => {
                 styles.mt1,
                 styles.textMicroBold,
                 styles.textReactionSenders,
+                styles.textAlignCenter,
             ]}
             >
                 {namesString}
