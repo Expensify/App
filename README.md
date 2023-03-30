@@ -61,7 +61,7 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
 ## Running the MacOS desktop app 🖥
-* To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
+* To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder..
 
 ## Troubleshooting
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
