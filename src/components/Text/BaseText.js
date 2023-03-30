@@ -16,7 +16,7 @@ const BaseText = forwardRef(({
     ...props
 }, ref) => {
     // If the style prop is an array of styles, we need to mix them all together
-    const mergedStyles = !_.isArray(style) ? style : StyleSheet.flatten(style);
+    const mergedStyles = StyleSheet.flatten(style);
     const componentStyle = {
         color,
         fontSize,
