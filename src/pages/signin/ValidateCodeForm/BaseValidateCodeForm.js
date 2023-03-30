@@ -220,7 +220,7 @@ class BaseValidateCodeForm extends React.Component {
                             name="validateCode"
                             value={this.state.validateCode}
                             onChange={text => this.onTextInput(text, 'validateCode')}
-                            onSubmit={this.validateAndSubmitForm}
+                            onFulfill={this.validateAndSubmitForm}
                             errorText={this.state.formError.validateCode ? this.props.translate(this.state.formError.validateCode) : ''}
                             autoFocus
                         />

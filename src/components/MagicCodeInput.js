@@ -43,7 +43,7 @@ const propTypes = {
     onChange: PropTypes.func,
 
     /** Function to call when the input is submitted or fully complete */
-    onSubmit: PropTypes.func,
+    onFulfill: PropTypes.func,
 };
 
 const defaultProps = {
@@ -56,7 +56,7 @@ const defaultProps = {
     shouldSubmitOnComplete: true,
     nativeID: '',
     onChange: () => {},
-    onSubmit: () => {},
+    onFulfill: () => {},
 };
 
 class MagicCodeInput extends React.PureComponent {
@@ -70,7 +70,7 @@ class MagicCodeInput extends React.PureComponent {
             input: '',
             focusedIndex: 0,
             editIndex: 0,
-            numbers: props.value ? this.decomposeString(props.value) : Array(CONST.MAGIC_CODE_LENGTH).fill(''),
+            numbers: props.value ? this.decomposeString(props.value) : Array(CONST.MAGIC_CODE_LENGTH).fill(CONST.MAGIC_CODE_EMPTY_CHAR),
         };
 
         this.onChangeText = this.onChangeText.bind(this);
@@ -164,8 +164,8 @@ class MagicCodeInput extends React.PureComponent {
 
             // If the input is complete and submit on complete is enabled, waits for a possible state
             // update and then calls the onSubmit callback.
-            if (this.props.shouldSubmitOnComplete && finalInput.length === CONST.MAGIC_CODE_LENGTH) {
-                setTimeout(() => this.props.onSubmit(finalInput), 0);
+            if (this.props.shouldSubmitOnComplete && _.filter(this.state.numbers, n => ValidationUtils.isNumeric(n)).length === CONST.MAGIC_CODE_LENGTH) {
+                setTimeout(() => this.props.onFulfill(finalInput), 0);
             }
         });
     }
@@ -185,7 +185,9 @@ class MagicCodeInput extends React.PureComponent {
         if (keyValue === 'Backspace' && this.state.input.length < 2) {
             this.setState(({numbers, focusedIndex, editIndex}) => ({
                 input: '',
-                numbers: focusedIndex === 0 ? [] : [...numbers.slice(0, focusedIndex), ''],
+                numbers: focusedIndex === 0
+                    ? Array(CONST.MAGIC_CODE_LENGTH).fill(CONST.MAGIC_CODE_EMPTY_CHAR)
+                    : [...numbers.slice(0, focusedIndex), CONST.MAGIC_CODE_EMPTY_CHAR],
                 focusedIndex: Math.max(0, focusedIndex - 1),
                 editIndex: Math.max(0, editIndex - 1),
             }));
@@ -203,7 +205,7 @@ class MagicCodeInput extends React.PureComponent {
             }));
         } else if (keyValue === 'Enter') {
             this.setState({input: ''});
-            this.props.onSubmit(this.composeToString(this.state.numbers));
+            this.props.onFulfill(this.composeToString(this.state.numbers));
         }
     }
 
@@ -215,9 +217,9 @@ class MagicCodeInput extends React.PureComponent {
      * @returns {Array}
      */
     decomposeString(value) {
-        let arr = _.map(value.trim().split('').slice(0, CONST.MAGIC_CODE_LENGTH), v => (ValidationUtils.isNumeric(v) ? v : ''));
+        let arr = _.map(value.split('').slice(0, CONST.MAGIC_CODE_LENGTH), v => (ValidationUtils.isNumeric(v) ? v : CONST.MAGIC_CODE_EMPTY_CHAR));
         if (arr.length < CONST.MAGIC_CODE_LENGTH) {
-            arr = arr.concat(Array(CONST.MAGIC_CODE_LENGTH - arr.length).fill(''));
+            arr = arr.concat(Array(CONST.MAGIC_CODE_LENGTH - arr.length).fill(CONST.MAGIC_CODE_EMPTY_CHAR));
         }
         return arr;
     }
@@ -230,7 +232,7 @@ class MagicCodeInput extends React.PureComponent {
      * @returns {String}
      */
     composeToString(value) {
-        return _.map(value, v => ((v === undefined || v === '') ? ' ' : v)).join('');
+        return _.map(value, v => ((v === undefined || v === '') ? CONST.MAGIC_CODE_EMPTY_CHAR : v)).join('');
     }
 
     render() {
