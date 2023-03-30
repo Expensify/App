@@ -262,12 +262,12 @@ class IOUAmountPage extends React.Component {
                 <View
                     nativeID={this.amountViewID}
                     onMouseDown={(event) => {
-                        const relatedTargetId = lodashGet(event, 'nativeEvent.srcElement.id');
-                        if (_.contains([this.amountViewID], relatedTargetId)) {
-                            event.preventDefault();
-                            if (!this.textInput.isFocused()) {
-                                this.textInput.focus();
-                            }
+                        if (lodashGet(event, 'nativeEvent.target.id') !== this.amountViewID) {
+                            return;
+                        }
+                        event.preventDefault();
+                        if (!this.textInput.isFocused()) {
+                            this.textInput.focus();
                         }
                     }}
                     style={[
