@@ -9,8 +9,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import CONST from '../CONST';
 import styles from '../styles/styles';
 import {computeHorizontalShift, computeVerticalShift} from '../styles/getPopoverWithMeasuredContentStyles';
-import compose from '../libs/compose';
-import {withActionSheetAwareScrollViewContext} from './ActionSheetAwareScrollView';
+import * as ActionSheetAwareScrollView from './ActionSheetAwareScrollView';
 
 const propTypes = {
     // All popover props except:
@@ -124,8 +123,8 @@ class PopoverWithMeasuredContent extends Component {
         this.popoverHeight = nativeEvent.layout.height;
         this.setState({isContentMeasured: true});
 
-        this.props.transitionActionSheetState({
-            type: 'MEASURE_POPOVER',
+        this.context.transitionActionSheetState({
+            type: ActionSheetAwareScrollView.Actions.MEASURE_POPOVER,
             payload: {
                 popoverHeight: this.popoverHeight,
             },
@@ -217,7 +216,6 @@ class PopoverWithMeasuredContent extends Component {
 PopoverWithMeasuredContent.propTypes = propTypes;
 PopoverWithMeasuredContent.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withActionSheetAwareScrollViewContext,
-)(PopoverWithMeasuredContent);
+PopoverWithMeasuredContent.contextType = ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext;
+
+export default withWindowDimensions(PopoverWithMeasuredContent);

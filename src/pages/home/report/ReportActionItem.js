@@ -112,8 +112,8 @@ class ReportActionItem extends Component {
 
     onPressOpenPicker(openPicker) {
         this.popoverAnchor.measureInWindow((fx, fy, width, height) => {
-            this.props.transitionActionSheetState({
-                type: 'OPEN_EMOJI_PICKER_POPOVER',
+            this.context.transitionActionSheetState({
+                type: ActionSheetAwareScrollView.Actions.OPEN_EMOJI_PICKER_POPOVER,
                 payload: {
                     fy,
                     height,
@@ -121,8 +121,8 @@ class ReportActionItem extends Component {
             });
 
             openPicker(undefined, undefined, () => {
-                this.props.transitionActionSheetState({
-                    type: 'CLOSE_EMOJI_PICKER_POPOVER',
+                this.context.transitionActionSheetState({
+                    type: ActionSheetAwareScrollView.Actions.CLOSE_EMOJI_PICKER_POPOVER,
                 });
             });
         });
@@ -130,8 +130,8 @@ class ReportActionItem extends Component {
 
     onShowContextMenu(callback) {
         this.popoverAnchor.measureInWindow((fx, fy, width, height) => {
-            this.props.transitionActionSheetState({
-                type: 'POPOVER_OPEN',
+            this.context.transitionActionSheetState({
+                type: ActionSheetAwareScrollView.Actions.POPOVER_OPEN,
                 payload: {
                     fy,
                     height,
@@ -146,7 +146,7 @@ class ReportActionItem extends Component {
         this.setState({isContextMenuActive: ReportActionContextMenu.isActiveReportAction(this.props.action.reportActionID)});
 
         this.props.transitionActionSheetState({
-            type: 'CLOSE_POPOVER',
+            type: ActionSheetAwareScrollView.Actions.CLOSE_POPOVER,
         });
     }
 
@@ -349,6 +349,7 @@ class ReportActionItem extends Component {
 }
 ReportActionItem.propTypes = propTypes;
 ReportActionItem.defaultProps = defaultProps;
+ReportActionItem.contextType = ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext;
 
 export default compose(
     withWindowDimensions,
@@ -362,5 +363,4 @@ export default compose(
             return lodashGet(drafts, draftKey, '');
         },
     }),
-    ActionSheetAwareScrollView.withActionSheetAwareScrollViewContext,
 )(ReportActionItem);

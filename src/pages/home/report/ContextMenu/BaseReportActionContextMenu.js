@@ -75,7 +75,7 @@ class BaseReportActionContextMenu extends React.Component {
                         reportID: this.props.reportID,
                         draftMessage: this.props.draftMessage,
                         selection: this.props.selection,
-                        transitionActionSheetState: this.props.transitionActionSheetState,
+                        transitionActionSheetState: this.context.transitionActionSheetState,
                         close: () => this.setState({shouldKeepOpen: false}),
                         openContextMenu: () => this.setState({shouldKeepOpen: true}),
                     };
@@ -112,10 +112,10 @@ class BaseReportActionContextMenu extends React.Component {
 
 BaseReportActionContextMenu.propTypes = propTypes;
 BaseReportActionContextMenu.defaultProps = defaultProps;
+BaseReportActionContextMenu.contextType = ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext;
 
 export default compose(
     withLocalize,
     withBetas(),
-    ActionSheetAwareScrollView.withActionSheetAwareScrollViewContext,
     withWindowDimensions,
 )(BaseReportActionContextMenu);

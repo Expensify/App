@@ -77,8 +77,8 @@ class BaseVideoChatButtonAndMenu extends Component {
 
     onPopoverLayout(event) {
         const {height} = event.nativeEvent.layout;
-        this.props.transitionActionSheetState({
-            type: 'MEASURE_CALL_POPOVER',
+        this.context.transitionActionSheetState({
+            type: ActionSheetAwareScrollView.Actions.MEASURE_CALL_POPOVER,
             payload: {
                 popoverHeight: height,
             },
@@ -89,8 +89,10 @@ class BaseVideoChatButtonAndMenu extends Component {
      * Toggles the state variable isVideoChatMenuActive
      */
     toggleVideoChatMenu() {
-        this.props.transitionActionSheetState({
-            type: this.state.isVideoChatMenuActive ? 'CLOSE_CALL_POPOVER' : 'OPEN_CALL_POPOVER',
+        this.context.transitionActionSheetState({
+            type: this.state.isVideoChatMenuActive
+                ? ActionSheetAwareScrollView.Actions.CLOSE_CALL_POPOVER
+                : ActionSheetAwareScrollView.Actions.OPEN_CALL_POPOVER,
         });
 
         this.setState(prevState => ({
@@ -168,9 +170,9 @@ class BaseVideoChatButtonAndMenu extends Component {
 
 BaseVideoChatButtonAndMenu.propTypes = propTypes;
 BaseVideoChatButtonAndMenu.defaultProps = defaultProps;
+BaseVideoChatButtonAndMenu.contextType = ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext;
 
 export default compose(
     withWindowDimensions,
     withLocalize,
-    ActionSheetAwareScrollView.withActionSheetAwareScrollViewContext,
 )(BaseVideoChatButtonAndMenu);

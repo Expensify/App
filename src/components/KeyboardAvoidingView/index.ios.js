@@ -7,7 +7,6 @@ import {
     KeyboardAvoidingView as RNKeyboardAvoidingView,
 } from 'react-native';
 import Reanimated, {KeyboardState, useAnimatedKeyboard, useAnimatedStyle} from 'react-native-reanimated';
-import {makeRemote} from 'react-native-reanimated/src/reanimated2/core';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const KeyboardAvoidingView = (props) => {
@@ -16,9 +15,8 @@ const KeyboardAvoidingView = (props) => {
     const keyboard = useAnimatedKeyboard();
     const insets = useSafeAreaInsets();
 
-    // makeRemote makes an object that can be used on the UI thread
     // similar to using `global` in worklet but it's just a local object
-    const ctx = useMemo(() => makeRemote({}), []);
+    const ctx = useMemo(() => ({}), []);
 
     const animatedStyle = useAnimatedStyle(() => {
         let value = 0;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
@@ -9,8 +9,7 @@ import Tooltip from '../Tooltip';
 import Icon from '../Icon';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
-import compose from '../../libs/compose';
-import {withActionSheetAwareScrollViewContext} from '../ActionSheetAwareScrollView';
+import * as ActionSheetAwareScrollView from '../ActionSheetAwareScrollView';
 
 const propTypes = {
     /** Flag to disable the emoji picker button */
@@ -28,16 +27,18 @@ const defaultProps = {
 };
 
 const EmojiPickerButton = (props) => {
+    const actionSheetContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
+
     let emojiPopoverAnchor = null;
 
     const onPress = () => {
-        props.transitionActionSheetState({
-            type: 'OPEN_EMOJI_PICKER_POPOVER_STANDALONE',
+        actionSheetContext.transitionActionSheetState({
+            type: ActionSheetAwareScrollView.Actions.OPEN_EMOJI_PICKER_POPOVER_STANDALONE,
         });
 
         const onHide = () => {
-            props.transitionActionSheetState({
-                type: 'CLOSE_EMOJI_PICKER_POPOVER_STANDALONE',
+            actionSheetContext.transitionActionSheetState({
+                type: ActionSheetAwareScrollView.Actions.CLOSE_EMOJI_PICKER_POPOVER_STANDALONE,
             });
 
             if (props.onModalHide) {
@@ -74,7 +75,5 @@ const EmojiPickerButton = (props) => {
 EmojiPickerButton.propTypes = propTypes;
 EmojiPickerButton.defaultProps = defaultProps;
 EmojiPickerButton.displayName = 'EmojiPickerButton';
-export default compose(
-    withLocalize,
-    withActionSheetAwareScrollViewContext,
-)(EmojiPickerButton);
+
+export default withLocalize(EmojiPickerButton);

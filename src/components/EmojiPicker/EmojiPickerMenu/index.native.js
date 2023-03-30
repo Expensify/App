@@ -68,17 +68,12 @@ class EmojiPickerMenu extends Component {
         this.scrollToHeader = this.scrollToHeader.bind(this);
         this.getItemLayout = this.getItemLayout.bind(this);
         this.onLayout = this.onLayout.bind(this);
-
-        this.state = {
-            filteredEmojis: this.emojis,
-            headerIndices: this.headerRowIndices,
-        };
     }
 
     onLayout(event) {
         const {height} = event.nativeEvent.layout;
-        this.props.transitionActionSheetState({
-            type: 'MEASURE_EMOJI_PICKER_POPOVER',
+        this.context.transitionActionSheetState({
+            type: ActionSheetAwareScrollView.Actions.MEASURE_EMOJI_PICKER_POPOVER,
             payload: {
                 popoverHeight: height,
             },
@@ -199,11 +194,11 @@ class EmojiPickerMenu extends Component {
 
 EmojiPickerMenu.propTypes = propTypes;
 EmojiPickerMenu.defaultProps = defaultProps;
+EmojiPickerMenu.contextType = ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext;
 
 export default compose(
     withWindowDimensions,
     withLocalize,
-    ActionSheetAwareScrollView.withActionSheetAwareScrollViewContext,
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,

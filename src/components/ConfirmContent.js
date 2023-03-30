@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
@@ -8,7 +8,6 @@ import Button from './Button';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Text from './Text';
 import * as ActionSheetAwareScrollView from './ActionSheetAwareScrollView';
-import compose from '../libs/compose';
 
 const propTypes = {
     /** Title of the modal */
@@ -57,11 +56,13 @@ const defaultProps = {
 };
 
 const ConfirmContent = (props) => {
+    const actionSheetContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
+
     const onLayout = (event) => {
         const {height} = event.nativeEvent.layout;
 
-        props.transitionActionSheetState({
-            type: 'MEASURE_CONFIRM_MODAL',
+        actionSheetContext.transitionActionSheetState({
+            type: ActionSheetAwareScrollView.Actions.MEASURE_CONFIRM_MODAL,
             payload: {
                 popoverHeight: height,
             },
@@ -103,7 +104,5 @@ const ConfirmContent = (props) => {
 ConfirmContent.propTypes = propTypes;
 ConfirmContent.defaultProps = defaultProps;
 ConfirmContent.displayName = 'ConfirmContent';
-export default compose(
-    ActionSheetAwareScrollView.withActionSheetAwareScrollViewContext,
-    withLocalize,
-)(ConfirmContent);
+
+export default withLocalize(ConfirmContent);
