@@ -36,7 +36,7 @@ const QuickEmojiReactions = (props) => {
                 undefined,
                 () => {
                     props.transitionActionSheetState({
-                        type: 'CLOSE_EMOJI_PICKER_POPOVER',
+                        type: ActionSheetAwareScrollView.Actions.CLOSE_EMOJI_PICKER_POPOVER,
                     });
                 },
             );
@@ -45,7 +45,7 @@ const QuickEmojiReactions = (props) => {
 
     const onEmojiSelected = (emoji) => {
         props.transitionActionSheetState({
-            type: 'CLOSE_EMOJI_PICKER_POPOVER',
+            type: ActionSheetAwareScrollView.Actions.CLOSE_EMOJI_PICKER_POPOVER,
         });
 
         props.onEmojiSelected(emoji);

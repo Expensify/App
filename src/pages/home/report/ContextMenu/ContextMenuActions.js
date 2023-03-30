@@ -19,6 +19,7 @@ import * as Environment from '../../../../libs/Environment/Environment';
 import Permissions from '../../../../libs/Permissions';
 import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReactions';
 import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickEmojiReactions';
+import * as ActionSheetAwareScrollView from '../../../../components/ActionSheetAwareScrollView';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -227,7 +228,7 @@ export default [
 
             if (closePopover) {
                 transitionActionSheetState({
-                    type: 'EDIT_REPORT',
+                    type: ActionSheetAwareScrollView.Actions.EDIT_REPORT,
                 });
 
                 // Hide popover, then call editAction
@@ -248,12 +249,12 @@ export default [
         onPress: (closePopover, {reportID, reportAction, transitionActionSheetState}) => {
             if (closePopover) {
                 transitionActionSheetState({
-                    type: 'SHOW_DELETE_CONFIRM_MODAL',
+                    type: ActionSheetAwareScrollView.Actions.SHOW_DELETE_CONFIRM_MODAL,
                 });
 
                 const onClose = () => {
                     transitionActionSheetState({
-                        type: 'CLOSE_CONFIRM_MODAL',
+                        type: ActionSheetAwareScrollView.Actions.CLOSE_CONFIRM_MODAL,
                     });
                 };
 
