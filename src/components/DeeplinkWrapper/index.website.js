@@ -83,6 +83,8 @@ class DeeplinkWrapper extends PureComponent {
             const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
             this.openRouteInDesktopApp(expensifyDeeplinkUrl);
         }).catch(() => {
+            // If the request is successful, we call the updateAppInstallationCheckStatus before the prompt pops up.
+            // If not, we only need to make sure that the state will be updated.
             this.updateAppInstallationCheckStatus();
         });
     }
