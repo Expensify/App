@@ -1382,6 +1382,4 @@ const CONST = {
     },
 };
 
-console.warn(JSON.stringify(CONST))
-
 export default CONST;
