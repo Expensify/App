@@ -271,7 +271,7 @@ class IOUAmountPage extends React.Component {
                         onBlur={(event) => {
                             const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
                             if (!relatedTargetId) {
-                                this.focusTextInput();
+                                this.textInput.focus();
                             }
                         }}
                         formattedAmount={formattedAmount}
