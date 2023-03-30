@@ -80,19 +80,6 @@ const ContactMethodsPage = (props) => {
             indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
         }
 
-        // Temporary checks to determine if we need to show specific LoginField
-        // components. This check will be removed soon by this follow up PR:
-        // https://github.com/Expensify/App/pull/15330
-        // Also we still use login.partnerUserID here even though it could have been
-        // deleted optimistically because if the deletion is pending, we want to show
-        // the option to add a new phone or email login, so we don't want to find
-        // that login type in the list here.
-        if (Str.isValidPhone(Str.removeSMSDomain(login.partnerUserID))) {
-            hasPhoneNumberLogin = true;
-        } else if (Str.isValidEmail(login.partnerUserID)) {
-            hasEmailLogin = true;
-        }
-
         // Default to using login key if we deleted login.partnerUserID optimistically
         // but still need to show the pending login being deleted while offline.
         const partnerUserID = login.partnerUserID || loginName;

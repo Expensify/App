@@ -15,7 +15,7 @@ import withLocalize, { withLocalizePropTypes } from '../../../../components/with
 import Navigation from '../../../../libs/Navigation/Navigation';
 import Permissions from '../../../../libs/Permissions';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import ROUTES from "../../../../ROUTES";
+import ROUTES from '../../../../ROUTES';
 import styles from '../../../../styles/styles';
 import * as User from '../../../../libs/actions/User';
 import * as LoginUtils from '../../../../libs/LoginUtils';
@@ -23,6 +23,8 @@ import * as LoginUtils from '../../../../libs/LoginUtils';
 const propTypes = {
     ...withLocalizePropTypes,
 };
+const defaultProps = {}
+
 class NewContactMethodPage extends Component {
     constructor(props) {
         super(props);
@@ -54,7 +56,6 @@ class NewContactMethodPage extends Component {
     }
 
     submitForm() {
-
         // If this login already exists, just go back.
         if (lodashGet(this.props.loginList, this.state.login, null)) {
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
@@ -89,19 +90,21 @@ class NewContactMethodPage extends Component {
                             ref={el => this.loginInputRef = el}
                             value={this.state.login}
                             onChangeText={this.onLoginChange}
-                            autoCapitalize='none'
+                            autoCapitalize="none"
                             returnKeyType={Permissions.canUsePasswordlessLogins(this.props.betas) ? 'done' : 'next'}
                         />
                     </View>
                     {!Permissions.canUsePasswordlessLogins(this.props.betas)
-                        && (<View style={[styles.ph5, styles.mb6]}>
-                            <TextInput
-                                label={this.props.translate('common.password')}
-                                value={this.state.password}
-                                onChangeText={password => this.setState({password})}
-                                returnKeyType="done"
-                            />
-                        </View>)}
+                        && (
+                            <View style={[styles.ph5, styles.mb6]}>
+                                <TextInput
+                                    label={this.props.translate('common.password')}
+                                    value={this.state.password}
+                                    onChangeText={password => this.setState({password})}
+                                    returnKeyType="done"
+                                />
+                            </View>
+                        )}
                 </ScrollView>
                 <FixedFooter style={[styles.flexGrow0]}>
                     <Button
@@ -119,11 +122,12 @@ class NewContactMethodPage extends Component {
 
 NewContactMethodPage.displayName = 'NewContactMethodPage';
 NewContactMethodPage.propTypes = propTypes;
+NewContactMethodPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
     withOnyx({
-        betas: { key: ONYXKEYS.BETAS },
-        loginList: { key: ONYXKEYS.LOGIN_LIST },
+        betas: {key: ONYXKEYS.BETAS},
+        loginList: {key: ONYXKEYS.LOGIN_LIST},
     }),
 )(NewContactMethodPage);
