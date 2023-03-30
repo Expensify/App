@@ -89,7 +89,7 @@ const ReportActionsList = (props) => {
     }));
     useEffect(() => {
         opacity.value = 1;
-    }, []);
+    }, [opacity]);
     const [skeletonViewHeight, setSkeletonViewHeight] = useState(0);
 
     /**
