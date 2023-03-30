@@ -1588,6 +1588,8 @@ function getReportIDFromLink(url) {
 }
 
 /**
+ * Users can request money in policy expense chats only if they are in a role of a member in the chat (in other words, if it's their policy expense chat)
+ *
  * @param {Object} report
  * @returns {Boolean}
  */
