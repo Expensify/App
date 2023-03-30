@@ -33,7 +33,7 @@ const defaultProps = {
 };
 
 const renderItem = ({item}) => <ReactionListItem item={item} />;
-const keyExtractor = item => `${item.accountID}`;
+const keyExtractor = (item, index) => `${item.login}+${index}`;
 const getItemLayout = (_, index) => ({
     index,
     length: CONST.REACTION_LIST_ITEM_HEIGHT,
