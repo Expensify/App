@@ -12,7 +12,7 @@ import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton'
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Text from '../../../../components/Text';
 import TextInput from '../../../../components/TextInput';
-import withLocalize, { withLocalizePropTypes } from '../../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import Permissions from '../../../../libs/Permissions';
 import ONYXKEYS from '../../../../ONYXKEYS';
