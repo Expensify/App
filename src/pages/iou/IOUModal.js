@@ -105,7 +105,7 @@ const Steps = {
     IOUConfirm: 'iou.confirm',
 };
 
-class MoneyRequestModal extends Component {
+class IOUModal extends Component {
     constructor(props) {
         super(props);
         this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
@@ -497,8 +497,8 @@ class MoneyRequestModal extends Component {
     }
 }
 
-MoneyRequestModal.propTypes = propTypes;
-MoneyRequestModal.defaultProps = defaultProps;
+IOUModal.propTypes = propTypes;
+IOUModal.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -515,4 +515,4 @@ export default compose(
             key: ONYXKEYS.PERSONAL_DETAILS,
         },
     }),
-)(MoneyRequestModal);
+)(IOUModal);

@@ -175,6 +175,8 @@ class ReportScreen extends React.Component {
     fetchReportIfNeeded() {
         const reportIDFromPath = getReportID(this.props.route);
 
+        debugger;
+
         // Report ID will be empty when the reports collection is empty.
         // This could happen when we are loading the collection for the first time after logging in.
         if (!reportIDFromPath) {
@@ -213,7 +215,9 @@ class ReportScreen extends React.Component {
         // Users not in the Default Room or Policy Room Betas can't view the report
         const shouldHideReport = (
             ReportUtils.isDefaultRoom(this.props.report) && !ReportUtils.canSeeDefaultRoom(this.props.report, this.props.policies, this.props.betas))
-            || (ReportUtils.isUserCreatedPolicyRoom(this.props.report) && !Permissions.canUsePolicyRooms(this.props.betas));
+            || (ReportUtils.isUserCreatedPolicyRoom(this.props.report) && !Permissions.canUsePolicyRooms(this.props.betas)) && false;
+
+        console.log(">>>>", shouldHideReport);
 
         // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
         const shouldFreeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
