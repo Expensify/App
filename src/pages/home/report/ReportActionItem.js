@@ -38,6 +38,7 @@ import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnima
 import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosOOOListActions';
 import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
 import * as Report from '../../../libs/actions/Report';
+import withLocalize from '../../../components/withLocalize';
 
 const propTypes = {
     /** Report for this action */
@@ -182,7 +183,10 @@ class ReportActionItem extends Component {
                         ? (
                             <ReportActionItemMessage
                                 action={this.props.action}
-                                style={(!this.props.displayAsGroup && isAttachment) ? [styles.mt2] : undefined}
+                                style={[
+                                    (!this.props.displayAsGroup && isAttachment) ? styles.mt2 : undefined,
+                                    _.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), this.props.action.actionName) ? styles.colorMuted : undefined,
+                                ]}
                             />
                         ) : (
                             <ReportActionItemMessageEdit
@@ -240,7 +244,7 @@ class ReportActionItem extends Component {
             >
                 <Hoverable>
                     {hovered => (
-                        <View accessibilityLabel="Chat message">
+                        <View accessibilityLabel={this.props.translate('accessibilityHints.chatMessage')}>
                             {this.props.shouldDisplayNewMarker && (
                                 <UnreadActionIndicator reportActionID={this.props.action.reportActionID} />
                             )}
@@ -305,6 +309,7 @@ ReportActionItem.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
+    withLocalize,
     withNetwork(),
     withBlockedFromConcierge({propName: 'blockedFromConcierge'}),
     withReportActionsDrafts({
