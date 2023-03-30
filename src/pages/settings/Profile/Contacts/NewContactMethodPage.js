@@ -1,8 +1,9 @@
-import React, { Component } from 'react';
-import { View } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
-import { withOnyx } from 'react-native-onyx';
-import { compose } from 'underscore';
+import React, {Component} from 'react';
+import PropTypes from 'prop-types';
+import {View} from 'react-native';
+import {ScrollView} from 'react-native-gesture-handler';
+import {withOnyx} from 'react-native-onyx';
+import {compose} from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import Button from '../../../../components/Button';
@@ -21,9 +22,34 @@ import * as User from '../../../../libs/actions/User';
 import * as LoginUtils from '../../../../libs/LoginUtils';
 
 const propTypes = {
+    /* Onyx Props */
+
+    betas: PropTypes.array,
+
+    /** Login list for the user that is signed in */
+    loginList: PropTypes.shape({
+        /** The partner creating the account. It depends on the source: website, mobile, integrations, ... */
+        partnerName: PropTypes.string,
+
+        /** Phone/Email associated with user */
+        partnerUserID: PropTypes.string,
+
+        /** The date when the login was validated, used to show the brickroad status */
+        validatedDate: PropTypes.string,
+
+        /** Field-specific server side errors keyed by microtime */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+
+        /** Field-specific pending states for offline UI status */
+        pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+    }),
+
     ...withLocalizePropTypes,
 };
-const defaultProps = {}
+const defaultProps = {
+    betas: [],
+    loginList: {},
+};
 
 class NewContactMethodPage extends Component {
     constructor(props) {
@@ -39,7 +65,7 @@ class NewContactMethodPage extends Component {
     }
 
     onLoginChange(login) {
-        this.setState({ login });
+        this.setState({login});
     }
 
     /**
