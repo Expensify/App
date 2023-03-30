@@ -24,7 +24,8 @@ import * as LoginUtils from '../../../../libs/LoginUtils';
 const propTypes = {
     /* Onyx Props */
 
-    betas: PropTypes.array,
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** Login list for the user that is signed in */
     loginList: PropTypes.shape({
@@ -146,7 +147,6 @@ class NewContactMethodPage extends Component {
     }
 }
 
-NewContactMethodPage.displayName = 'NewContactMethodPage';
 NewContactMethodPage.propTypes = propTypes;
 NewContactMethodPage.defaultProps = defaultProps;
 
