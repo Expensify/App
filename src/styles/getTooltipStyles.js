@@ -194,6 +194,10 @@ export default function getTooltipStyles(
             fontSize: tooltipFontSize,
             overflow: 'hidden',
             lineHeight: variables.lineHeightSmall,
+
+            // To measure tooltip text width correctly we render it freely i.e. text should not wrap to parent's boundaries.
+            // More info: https://github.com/Expensify/App/issues/15949#issuecomment-1483011998
+            ...(tooltipContentWidth ? {} : styles.pre),
         },
         pointerWrapperStyle: {
             position: 'fixed',
