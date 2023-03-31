@@ -2,7 +2,7 @@ const utils = require('../utils/utils');
 
 const assertlockStagingDeploysJobExecuted = (workflowResult, didExecute = true, isSuccessful = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout',
             true,
             null,
@@ -11,7 +11,7 @@ const assertlockStagingDeploysJobExecuted = (workflowResult, didExecute = true, 
             [{key: 'ref', value: 'main'}, {key: 'fetch-depth', value: '0'}, {key: 'token', value: '***'}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Wait for staging deploys to finish',
             true,
             null,
@@ -20,7 +20,7 @@ const assertlockStagingDeploysJobExecuted = (workflowResult, didExecute = true, 
             [{key: 'GITHUB_TOKEN', value: '***'}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Comment in StagingDeployCash to give Applause the 🟢 to begin QA',
             true,
             null,
@@ -40,7 +40,7 @@ const assertlockStagingDeploysJobExecuted = (workflowResult, didExecute = true, 
     }
 
     const failProdSteps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Announce failed workflow',
             true,
             null,
@@ -62,7 +62,7 @@ const assertlockStagingDeploysJobExecuted = (workflowResult, didExecute = true, 
 
 const assertlockStagingDeploysJobFailedAfterFirstStep = (workflowResult) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout',
             true,
             null,
@@ -71,7 +71,7 @@ const assertlockStagingDeploysJobFailedAfterFirstStep = (workflowResult) => {
             [{key: 'ref', value: 'main'}, {key: 'fetch-depth', value: '0'}, {key: 'token', value: '***'}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Wait for staging deploys to finish',
             false,
             null,
@@ -80,7 +80,7 @@ const assertlockStagingDeploysJobFailedAfterFirstStep = (workflowResult) => {
             [{key: 'GITHUB_TOKEN', value: '***'}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Announce failed workflow',
             true,
             null,

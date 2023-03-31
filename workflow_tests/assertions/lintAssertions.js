@@ -2,7 +2,7 @@ const utils = require('../utils/utils');
 
 const assertLintJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout',
             true,
             null,
@@ -11,7 +11,7 @@ const assertLintJobExecuted = (workflowResult, didExecute = true) => {
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Setup Node',
             true,
             null,
@@ -20,7 +20,7 @@ const assertLintJobExecuted = (workflowResult, didExecute = true) => {
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Lint JavaScript with ESLint',
             true,
             null,
@@ -29,7 +29,7 @@ const assertLintJobExecuted = (workflowResult, didExecute = true) => {
             [],
             [{key: 'CI', value: 'true'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Lint shell scripts with ShellCheck',
             true,
             null,

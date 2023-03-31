@@ -169,7 +169,7 @@ describe('test workflow preDeploy', () => {
             );
             const testMockSteps = {
                 lint: [
-                    utils.getMockStep(
+                    utils.createMockStep(
                         'Run lint workflow',
                         'Running lint workflow - Lint workflow failed',
                         'LINT',
@@ -198,7 +198,7 @@ describe('test workflow preDeploy', () => {
                 });
             expect(result).toEqual(expect.arrayContaining(
                 [
-                    utils.getStepAssertion(
+                    utils.createStepAssertion(
                         'Run lint workflow',
                         false,
                         null,
@@ -211,7 +211,7 @@ describe('test workflow preDeploy', () => {
             assertions.assertIsExpensifyEmployeeJobExecuted(result);
             expect(result).toEqual(expect.arrayContaining(
                 [
-                    utils.getStepAssertion(
+                    utils.createStepAssertion(
                         'Announce failed workflow in Slack',
                         true,
                         null,
@@ -219,7 +219,7 @@ describe('test workflow preDeploy', () => {
                         'Announcing failed workflow in slack',
                         [{key: 'SLACK_WEBHOOK', value: '***'}],
                     ),
-                    utils.getStepAssertion(
+                    utils.createStepAssertion(
                         'Exit failed workflow',
                         false,
                         '',
@@ -248,7 +248,7 @@ describe('test workflow preDeploy', () => {
             const testMockSteps = {
                 lint: mocks.LINT_JOB_MOCK_STEPS,
                 test: [
-                    utils.getMockStep(
+                    utils.createMockStep(
                         'Run test workflow',
                         'Running test workflow - Test workflow failed',
                         'TEST',
@@ -277,7 +277,7 @@ describe('test workflow preDeploy', () => {
             assertions.assertLintJobExecuted(result);
             expect(result).toEqual(expect.arrayContaining(
                 [
-                    utils.getStepAssertion(
+                    utils.createStepAssertion(
                         'Run test workflow',
                         false,
                         null,
@@ -289,7 +289,7 @@ describe('test workflow preDeploy', () => {
             assertions.assertIsExpensifyEmployeeJobExecuted(result);
             expect(result).toEqual(expect.arrayContaining(
                 [
-                    utils.getStepAssertion(
+                    utils.createStepAssertion(
                         'Announce failed workflow in Slack',
                         true,
                         null,
@@ -297,7 +297,7 @@ describe('test workflow preDeploy', () => {
                         'Announcing failed workflow in slack',
                         [{key: 'SLACK_WEBHOOK', value: '***'}],
                     ),
-                    utils.getStepAssertion(
+                    utils.createStepAssertion(
                         'Exit failed workflow',
                         false,
                         '',

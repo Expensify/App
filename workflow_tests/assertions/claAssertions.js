@@ -2,7 +2,7 @@ const utils = require('../utils/utils');
 
 const assertCLAJobExecuted = (workflowResult, commentBody = '', githubRepository = '', didExecute = true, runAssitant = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'CLA comment check',
             true,
             null,
@@ -11,7 +11,7 @@ const assertCLAJobExecuted = (workflowResult, commentBody = '', githubRepository
             [{key: 'text', value: commentBody}, {key: 'regex', value: '\\s*I have read the CLA Document and I hereby sign the CLA\\s*'}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'CLA comment re-check',
             true,
             null,
@@ -31,7 +31,7 @@ const assertCLAJobExecuted = (workflowResult, commentBody = '', githubRepository
     }
 
     const assistantSteps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'CLA Assistant',
             true,
             null,

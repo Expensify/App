@@ -2,7 +2,7 @@ const utils = require('../utils/utils');
 
 const assertWarnCPLabelJobExecuted = (workflowResult, didExecute = true, isSuccessful = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Comment on PR to explain the CP Staging label',
             true,
             null,
@@ -24,7 +24,7 @@ const assertWarnCPLabelJobExecuted = (workflowResult, didExecute = true, isSucce
     }
 
     const failedSteps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Announce failed workflow in Slack',
             true,
             null,

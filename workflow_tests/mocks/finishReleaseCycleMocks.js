@@ -1,7 +1,7 @@
 const utils = require('../utils/utils');
 
 // validate
-const FINISHRELEASECYCLE__VALIDATE__VALIDATE_ACTOR_IS_DEPLOYER_TRUE__STEP_MOCK = utils.getMockStep(
+const FINISHRELEASECYCLE__VALIDATE__VALIDATE_ACTOR_IS_DEPLOYER_TRUE__STEP_MOCK = utils.createMockStep(
     'Validate actor is deployer',
     'Validating if actor is deployer',
     'VALIDATE',
@@ -9,7 +9,7 @@ const FINISHRELEASECYCLE__VALIDATE__VALIDATE_ACTOR_IS_DEPLOYER_TRUE__STEP_MOCK =
     [],
     {isTeamMember: true},
 );
-const FINISHRELEASECYCLE__VALIDATE__VALIDATE_ACTOR_IS_DEPLOYER_FALSE__STEP_MOCK = utils.getMockStep(
+const FINISHRELEASECYCLE__VALIDATE__VALIDATE_ACTOR_IS_DEPLOYER_FALSE__STEP_MOCK = utils.createMockStep(
     'Validate actor is deployer',
     'Validating if actor is deployer',
     'VALIDATE',
@@ -18,14 +18,14 @@ const FINISHRELEASECYCLE__VALIDATE__VALIDATE_ACTOR_IS_DEPLOYER_FALSE__STEP_MOCK 
     {isTeamMember: false},
 );
 // eslint-disable-next-line rulesdir/no-negated-variables
-const FINISHRELEASECYCLE__VALIDATE__REOPEN_AND_COMMENT_ON_ISSUE_NOT_A_TEAM_MEMBER__STEP_MOCK = utils.getMockStep(
+const FINISHRELEASECYCLE__VALIDATE__REOPEN_AND_COMMENT_ON_ISSUE_NOT_A_TEAM_MEMBER__STEP_MOCK = utils.createMockStep(
     'Reopen and comment on issue (not a team member)',
     'Reopening issue - not a team member',
     'VALIDATE',
     ['GITHUB_TOKEN', 'ISSUE_NUMBER', 'COMMENT'],
     [],
 );
-const FINISHRELEASECYCLE__VALIDATE__CHECK_FOR_ANY_DEPLOY_BLOCKERS_FALSE__STEP_MOCK = utils.getMockStep(
+const FINISHRELEASECYCLE__VALIDATE__CHECK_FOR_ANY_DEPLOY_BLOCKERS_FALSE__STEP_MOCK = utils.createMockStep(
     'Check for any deploy blockers',
     'Checking for deploy blockers',
     'VALIDATE',
@@ -33,7 +33,7 @@ const FINISHRELEASECYCLE__VALIDATE__CHECK_FOR_ANY_DEPLOY_BLOCKERS_FALSE__STEP_MO
     [],
     {HAS_DEPLOY_BLOCKERS: false},
 );
-const FINISHRELEASECYCLE__VALIDATE__CHECK_FOR_ANY_DEPLOY_BLOCKERS_TRUE__STEP_MOCK = utils.getMockStep(
+const FINISHRELEASECYCLE__VALIDATE__CHECK_FOR_ANY_DEPLOY_BLOCKERS_TRUE__STEP_MOCK = utils.createMockStep(
     'Check for any deploy blockers',
     'Checking for deploy blockers',
     'VALIDATE',
@@ -41,7 +41,7 @@ const FINISHRELEASECYCLE__VALIDATE__CHECK_FOR_ANY_DEPLOY_BLOCKERS_TRUE__STEP_MOC
     [],
     {HAS_DEPLOY_BLOCKERS: true},
 );
-const FINISHRELEASECYCLE__VALIDATE__REOPEN_AND_COMMENT_ON_ISSUE_HAS_BLOCKERS__STEP_MOCK = utils.getMockStep(
+const FINISHRELEASECYCLE__VALIDATE__REOPEN_AND_COMMENT_ON_ISSUE_HAS_BLOCKERS__STEP_MOCK = utils.createMockStep(
     'Reopen and comment on issue (has blockers)',
     'Reopening issue - blockers',
     'VALIDATE',
@@ -76,7 +76,7 @@ const FINISHRELEASECYCLE__VALIDATE__NOT_TEAM_MEMBER_BLOCKERS__STEP_MOCKS = [
 ];
 
 // updateproduction
-const FINISHRELEASECYCLE__UPDATEPRODUCTION__UPDATE_PRODUCTION_BRANCH__STEP_MOCK = utils.getMockStep(
+const FINISHRELEASECYCLE__UPDATEPRODUCTION__UPDATE_PRODUCTION_BRANCH__STEP_MOCK = utils.createMockStep(
     'Update production branch',
     'Updating production branch',
     'UPDATEPRODUCTION',
@@ -88,7 +88,7 @@ const FINISHRELEASECYCLE__UPDATEPRODUCTION__STEP_MOCKS = [
 ];
 
 // createnewpatchversion
-const FINISHRELEASECYCLE__CREATENEWPATCHVERSION__CREATE_NEW_VERSION__STEP_MOCK = utils.getMockStep(
+const FINISHRELEASECYCLE__CREATENEWPATCHVERSION__CREATE_NEW_VERSION__STEP_MOCK = utils.createMockStep(
     'Create new version',
     'Creating new version',
     'CREATENEWPATCHVERSION',
@@ -101,28 +101,28 @@ const FINISHRELEASECYCLE__CREATENEWPATCHVERSION__STEP_MOCKS = [
 ];
 
 // createnewstagingdeploycash
-const FINISHRELEASECYCLE__CREATENEWSTAGINGDEPLOYCASH__UPDATE_STAGING_BRANCH_TO_TRIGGER_STAGING_DEPLOY__STEP_MOCK = utils.getMockStep(
+const FINISHRELEASECYCLE__CREATENEWSTAGINGDEPLOYCASH__UPDATE_STAGING_BRANCH_TO_TRIGGER_STAGING_DEPLOY__STEP_MOCK = utils.createMockStep(
     'Update staging branch to trigger staging deploy',
     'Updating staging branch',
     'CREATENEWSTAGINGDEPLOYCASH',
     ['TARGET_BRANCH', 'OS_BOTIFY_TOKEN', 'GPG_PASSPHRASE'],
     [],
 );
-const FINISHRELEASECYCLE__CREATENEWSTAGINGDEPLOYCASH__TAG_VERSION__STEP_MOCK = utils.getMockStep(
+const FINISHRELEASECYCLE__CREATENEWSTAGINGDEPLOYCASH__TAG_VERSION__STEP_MOCK = utils.createMockStep(
     'Tag version',
     'Tagging version',
     'CREATENEWSTAGINGDEPLOYCASH',
     [],
     [],
 );
-const FINISHRELEASECYCLE__CREATENEWSTAGINGDEPLOYCASH__CREATE_NEW_STAGINGDEPLOYCASH__STEP_MOCK = utils.getMockStep(
+const FINISHRELEASECYCLE__CREATENEWSTAGINGDEPLOYCASH__CREATE_NEW_STAGINGDEPLOYCASH__STEP_MOCK = utils.createMockStep(
     'Create new StagingDeployCash',
     'Creating new StagingDeployCash',
     'CREATENEWSTAGINGDEPLOYCASH',
     ['GITHUB_TOKEN', 'NPM_VERSION'],
     [],
 );
-const FINISHRELEASECYCLE__CREATENEWSTAGINGDEPLOYCASH__ANNOUNCE_FAILED_WORKFLOW_IN_SLACK__STEP_MOCK = utils.getMockStep(
+const FINISHRELEASECYCLE__CREATENEWSTAGINGDEPLOYCASH__ANNOUNCE_FAILED_WORKFLOW_IN_SLACK__STEP_MOCK = utils.createMockStep(
     'Announce failed workflow in Slack',
     'Announcing failed workflow',
     'CREATENEWSTAGINGDEPLOYCASH',

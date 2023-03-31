@@ -98,7 +98,7 @@ describe('test workflow deployBlocker', () => {
                     const testMockSteps = {
                         deployBlocker: utils.deepCopy(mocks.DEPLOYBLOCKER__DEPLOYBLOCKER__STEP_MOCKS),
                     };
-                    testMockSteps.deployBlocker[2] = utils.getMockStep(
+                    testMockSteps.deployBlocker[2] = utils.createMockStep(
                         'Update StagingDeployCash with new deploy blocker',
                         'Update StagingDeployCash with new deploy blocker',
                         'DEPLOYBLOCKER',

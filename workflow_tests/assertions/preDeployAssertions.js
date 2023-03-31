@@ -2,7 +2,7 @@ const utils = require('../utils/utils');
 
 const assertLintJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Run lint workflow',
             true,
             null,
@@ -22,7 +22,7 @@ const assertLintJobExecuted = (workflowResult, didExecute = true) => {
 
 const assertTestJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Run test workflow',
             true,
             null,
@@ -42,7 +42,7 @@ const assertTestJobExecuted = (workflowResult, didExecute = true) => {
 
 const assertIsExpensifyEmployeeJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Get merged pull request',
             true,
             null,
@@ -50,7 +50,7 @@ const assertIsExpensifyEmployeeJobExecuted = (workflowResult, didExecute = true)
             'Getting merged pull request',
             [{key: 'github_token', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Check whether the actor is member of Expensify/expensify team',
             true,
             null,
@@ -71,7 +71,7 @@ const assertIsExpensifyEmployeeJobExecuted = (workflowResult, didExecute = true)
 
 const assertNewContributorWelcomeMessageJobExecuted = (workflowResult, didExecute = true, isOsBotify = false, isFirstPr = false) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout',
             true,
             null,
@@ -79,7 +79,7 @@ const assertNewContributorWelcomeMessageJobExecuted = (workflowResult, didExecut
             'Checking out',
             [{key: 'token', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Get merged pull request',
             true,
             null,
@@ -87,7 +87,7 @@ const assertNewContributorWelcomeMessageJobExecuted = (workflowResult, didExecut
             'Getting merged pull request',
             [{key: 'github_token', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             isOsBotify ? 'Get PR count for OSBotify' : 'Get PR count for Dummy Author',
             true,
             null,
@@ -98,7 +98,7 @@ const assertNewContributorWelcomeMessageJobExecuted = (workflowResult, didExecut
     ];
     if (isFirstPr) {
         steps.push(
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 isOsBotify ? 'Comment on OSBotify\\\'s first pull request!' : 'Comment on Dummy Author\\\'s first pull request!',
                 true,
                 null,
@@ -120,7 +120,7 @@ const assertNewContributorWelcomeMessageJobExecuted = (workflowResult, didExecut
 
 const assertChooseDeployActionsJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Get merged pull request',
             true,
             null,
@@ -128,7 +128,7 @@ const assertChooseDeployActionsJobExecuted = (workflowResult, didExecute = true)
             'Getting merged pull request',
             [{key: 'github_token', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Check if StagingDeployCash is locked',
             true,
             null,
@@ -136,17 +136,17 @@ const assertChooseDeployActionsJobExecuted = (workflowResult, didExecute = true)
             'Checking StagingDeployCash',
             [{key: 'GITHUB_TOKEN', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Check if merged pull request was an automated PR',
             true,
             '',
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Check if merged pull request has `CP Staging` label',
             true,
             '',
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Check if merged pull request should trigger a deploy',
             true,
             '',
@@ -164,7 +164,7 @@ const assertChooseDeployActionsJobExecuted = (workflowResult, didExecute = true)
 
 const assertSkipDeployJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Comment on deferred PR',
             true,
             null,
@@ -185,7 +185,7 @@ const assertSkipDeployJobExecuted = (workflowResult, didExecute = true) => {
 
 const assertCreateNewVersionJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Create new version',
             true,
             null,
@@ -205,7 +205,7 @@ const assertCreateNewVersionJobExecuted = (workflowResult, didExecute = true) =>
 
 const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true, shouldCp = false) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Run turnstyle',
             true,
             null,
@@ -216,7 +216,7 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true, shoul
     ];
     if (shouldCp) {
         steps.push(
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Cherry-pick PR to staging',
                 true,
                 null,
@@ -227,7 +227,7 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true, shoul
         );
     } else {
         steps.push(
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Update staging branch from main',
                 true,
                 null,
@@ -238,7 +238,7 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true, shoul
         );
     }
     steps.push(
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout staging',
             true,
             null,
@@ -246,14 +246,14 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true, shoul
             'Checking out staging',
             [{key: 'ref', value: 'staging'}, {key: 'fetch-depth', value: '0'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Tag staging',
             true,
             null,
             'UPDATE_STAGING',
             'Tagging staging',
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Update StagingDeployCash',
             true,
             null,
@@ -261,7 +261,7 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true, shoul
             'Updating StagingDeployCash',
             [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'NPM_VERSION', value: '1.2.3'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Find open StagingDeployCash',
             true,
             null,
@@ -273,7 +273,7 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true, shoul
     );
     if (shouldCp) {
         steps.push(
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Comment in StagingDeployCash to alert Applause that a new pull request has been cherry-picked',
                 true,
                 null,
@@ -282,7 +282,7 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true, shoul
                 null,
                 [{key: 'GITHUB_TOKEN', value: '***'}],
             ),
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Wait for staging deploys to finish',
                 true,
                 null,
@@ -290,7 +290,7 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true, shoul
                 'Waiting for staging deploy to finish',
                 [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'TAG', value: '1.2.3'}],
             ),
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Comment in StagingDeployCash to alert Applause that cherry-picked pull request has been deployed.',
                 true,
                 null,
@@ -313,7 +313,7 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true, shoul
 
 const assertUpdateStagingJobFailed = (workflowResult, didFail = false) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Announce failed workflow in Slack',
             true,
             null,

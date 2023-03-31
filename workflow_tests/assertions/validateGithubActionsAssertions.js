@@ -2,7 +2,7 @@ const utils = require('../utils/utils');
 
 const assertVerifyJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout',
             true,
             null,
@@ -11,7 +11,7 @@ const assertVerifyJobExecuted = (workflowResult, didExecute = true) => {
             [{key: 'fetch-depth', value: '0'}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Setup Node',
             true,
             null,
@@ -20,7 +20,7 @@ const assertVerifyJobExecuted = (workflowResult, didExecute = true) => {
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Verify Javascript Action Builds',
             true,
             null,
@@ -29,7 +29,7 @@ const assertVerifyJobExecuted = (workflowResult, didExecute = true) => {
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Validate actions and workflows',
             true,
             null,

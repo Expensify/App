@@ -2,7 +2,7 @@ const utils = require('../utils/utils');
 
 const assertVerifyActorJobExecuted = (workflowResult, username, didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Check if user is deployer',
             true,
             null,
@@ -23,7 +23,7 @@ const assertVerifyActorJobExecuted = (workflowResult, username, didExecute = tru
 
 const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProduction = true, isSuccessful = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout',
             true,
             null,
@@ -31,14 +31,14 @@ const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProductio
             'Checking out',
             [{key: 'fetch-depth', value: '0'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Setup Node',
             true,
             null,
             'ANDROID',
             'Setting up Node',
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Setup Ruby',
             true,
             null,
@@ -46,7 +46,7 @@ const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProductio
             'Setting up Ruby',
             [{key: 'ruby-version', value: '2.7'}, {key: 'bundler-cache', value: 'true'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Decrypt keystore',
             true,
             null,
@@ -55,7 +55,7 @@ const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProductio
             null,
             [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Decrypt json key',
             true,
             null,
@@ -64,7 +64,7 @@ const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProductio
             null,
             [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Set version in ENV',
             true,
             null,
@@ -74,7 +74,7 @@ const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProductio
     ];
     if (!isProduction) {
         steps.push(
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Run Fastlane beta',
                 true,
                 null,
@@ -86,7 +86,7 @@ const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProductio
         );
     } else {
         steps.push(
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Run Fastlane production',
                 true,
                 null,
@@ -98,7 +98,7 @@ const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProductio
         );
     }
     steps.push(
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Archive Android sourcemaps',
             true,
             null,
@@ -109,7 +109,7 @@ const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProductio
     );
     if (!isProduction) {
         steps.push(
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Upload Android version to Browser Stack',
                 true,
                 null,
@@ -130,7 +130,7 @@ const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProductio
     }
 
     const failProdSteps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Warn deployers if Android production deploy failed',
             true,
             null,
@@ -152,7 +152,7 @@ const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProductio
 
 const assertDesktopJobExecuted = (workflowResult, didExecute = true, isProduction = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout',
             true,
             null,
@@ -160,14 +160,14 @@ const assertDesktopJobExecuted = (workflowResult, didExecute = true, isProductio
             'Checking out',
             [{key: 'fetch-depth', value: '0'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Setup Node',
             true,
             null,
             'DESKTOP',
             'Setting up Node',
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Decrypt Developer ID Certificate',
             true,
             null,
@@ -179,7 +179,7 @@ const assertDesktopJobExecuted = (workflowResult, didExecute = true, isProductio
     ];
     if (isProduction) {
         steps.push(
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Build production desktop app',
                 true,
                 null,
@@ -191,7 +191,7 @@ const assertDesktopJobExecuted = (workflowResult, didExecute = true, isProductio
         );
     } else {
         steps.push(
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Build staging desktop app',
                 true,
                 null,
@@ -214,7 +214,7 @@ const assertDesktopJobExecuted = (workflowResult, didExecute = true, isProductio
 
 const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = true, isSuccessful = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout',
             true,
             null,
@@ -222,14 +222,14 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
             'Checking out',
             [{key: 'fetch-depth', value: '0'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Setup Node',
             true,
             null,
             'IOS',
             'Setting up Node',
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Setup Ruby',
             true,
             null,
@@ -237,7 +237,7 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
             'Setting up Ruby',
             [{key: 'ruby-version', value: '2.7'}, {key: 'bundler-cache', value: 'true'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Install cocoapods',
             true,
             null,
@@ -245,7 +245,7 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
             'Installing cocoapods',
             [{key: 'timeout_minutes', value: '10'}, {key: 'max_attempts', value: '5'}, {key: 'command', value: 'cd ios && pod install'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Decrypt profile',
             true,
             null,
@@ -254,7 +254,7 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
             null,
             [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Decrypt certificate',
             true,
             null,
@@ -263,7 +263,7 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
             null,
             [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Decrypt App Store Connect API key',
             true,
             null,
@@ -275,7 +275,7 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
     ];
     if (!isProduction) {
         steps.push(
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Run Fastlane',
                 true,
                 null,
@@ -287,7 +287,7 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
         );
     }
     steps.push(
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Archive iOS sourcemaps',
             true,
             null,
@@ -298,7 +298,7 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
     );
     if (!isProduction) {
         steps.push(
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Upload iOS version to Browser Stack',
                 true,
                 null,
@@ -310,14 +310,14 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
         );
     } else {
         steps.push(
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Set iOS version in ENV',
                 true,
                 null,
                 'IOS',
                 'Setting iOS version',
             ),
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Run Fastlane for App Store release',
                 true,
                 null,
@@ -338,7 +338,7 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
     }
 
     const failProdSteps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Warn deployers if iOS production deploy failed',
             true,
             null,
@@ -360,7 +360,7 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
 
 const assertWebJobExecuted = (workflowResult, didExecute = true, isProduction = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout',
             true,
             null,
@@ -368,21 +368,21 @@ const assertWebJobExecuted = (workflowResult, didExecute = true, isProduction = 
             'Checking out',
             [{key: 'fetch-depth', value: '0'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Setup Node',
             true,
             null,
             'WEB',
             'Setting up Node',
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Setup Cloudflare CLI',
             true,
             null,
             'WEB',
             'Setting up Cloudflare CLI',
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Configure AWS Credentials',
             true,
             null,
@@ -393,7 +393,7 @@ const assertWebJobExecuted = (workflowResult, didExecute = true, isProduction = 
     ];
     if (isProduction) {
         steps.push(
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Build web for production',
                 true,
                 null,
@@ -403,7 +403,7 @@ const assertWebJobExecuted = (workflowResult, didExecute = true, isProduction = 
         );
     } else {
         steps.push(
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Build web for staging',
                 true,
                 null,
@@ -413,7 +413,7 @@ const assertWebJobExecuted = (workflowResult, didExecute = true, isProduction = 
         );
     }
     steps.push(
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Build docs',
             true,
             null,
@@ -423,14 +423,14 @@ const assertWebJobExecuted = (workflowResult, didExecute = true, isProduction = 
     );
     if (isProduction) {
         steps.push(
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Deploy production to S3',
                 true,
                 null,
                 'WEB',
                 'Deploying production to S3',
             ),
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Purge production Cloudflare cache',
                 true,
                 null,
@@ -442,14 +442,14 @@ const assertWebJobExecuted = (workflowResult, didExecute = true, isProduction = 
         );
     } else {
         steps.push(
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Deploy staging to S3',
                 true,
                 null,
                 'WEB',
                 'Deploying staging to S3',
             ),
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Purge staging Cloudflare cache',
                 true,
                 null,
@@ -472,7 +472,7 @@ const assertWebJobExecuted = (workflowResult, didExecute = true, isProduction = 
 
 const assertPostSlackOnFailureJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Post Slack message on failure',
             true,
             null,
@@ -493,21 +493,21 @@ const assertPostSlackOnFailureJobExecuted = (workflowResult, didExecute = true) 
 
 const assertPostSlackOnSuccessJobExecuted = (workflowResult, didExecute = true, isProduction = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout',
             true,
             null,
             'POST_SLACK_SUCCESS',
             'Checking out',
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Set version',
             true,
             null,
             'POST_SLACK_SUCCESS',
             'Setting version',
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Announces the deploy in the #announce Slack room',
             true,
             null,
@@ -516,7 +516,7 @@ const assertPostSlackOnSuccessJobExecuted = (workflowResult, didExecute = true, 
             [{key: 'status', value: 'custom'}],
             [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'SLACK_WEBHOOK_URL', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Announces the deploy in the #deployer Slack room',
             true,
             null,
@@ -528,7 +528,7 @@ const assertPostSlackOnSuccessJobExecuted = (workflowResult, didExecute = true, 
     ];
     if (isProduction) {
         steps.push(
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Announces the deploy in the #expensify-open-source Slack room',
                 true,
                 null,
@@ -551,7 +551,7 @@ const assertPostSlackOnSuccessJobExecuted = (workflowResult, didExecute = true, 
 
 const assertPostGithubCommentJobExecuted = (workflowResult, didExecute = true, isProduction = true, didDeploy = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout',
             true,
             null,
@@ -559,21 +559,21 @@ const assertPostGithubCommentJobExecuted = (workflowResult, didExecute = true, i
             'Checking out',
             [{key: 'fetch-depth', value: '0'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Setup Node',
             true,
             null,
             'POST_GITHUB_COMMENT',
             'Setting up Node',
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Set version',
             true,
             null,
             'POST_GITHUB_COMMENT',
             'Setting version',
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Get Release Pull Request List',
             true,
             null,
@@ -581,7 +581,7 @@ const assertPostGithubCommentJobExecuted = (workflowResult, didExecute = true, i
             'Getting release pull request list',
             [{key: 'TAG', value: '1.2.3'}, {key: 'GITHUB_TOKEN', value: '***'}, {key: 'IS_PRODUCTION_DEPLOY', value: isProduction ? 'true' : 'false'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Comment on issues',
             true,
             null,

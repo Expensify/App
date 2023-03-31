@@ -169,8 +169,8 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
 
 module.exports = {
     setUpActParams,
-    getMockStep: createMockStep,
-    getStepAssertion: createStepAssertion,
+    createMockStep,
+    createStepAssertion,
     setJobRunners,
     deepCopy,
     FILES_TO_COPY_INTO_TEST_REPO,

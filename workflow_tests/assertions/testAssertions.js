@@ -2,7 +2,7 @@ const utils = require('../utils/utils');
 
 const assertJestJobExecuted = (workflowResult, didExecute = true, timesExecuted = 3) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout',
             true,
             null,
@@ -11,7 +11,7 @@ const assertJestJobExecuted = (workflowResult, didExecute = true, timesExecuted 
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Setup Node',
             true,
             null,
@@ -20,7 +20,7 @@ const assertJestJobExecuted = (workflowResult, didExecute = true, timesExecuted 
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Get number of CPU cores',
             true,
             null,
@@ -29,7 +29,7 @@ const assertJestJobExecuted = (workflowResult, didExecute = true, timesExecuted 
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Cache Jest cache',
             true,
             null,
@@ -38,7 +38,7 @@ const assertJestJobExecuted = (workflowResult, didExecute = true, timesExecuted 
             [{key: 'path', value: '.jest-cache'}, {key: 'key', value: 'Linux-jest'}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Jest tests',
             true,
             null,
@@ -70,7 +70,7 @@ const assertJestJobExecuted = (workflowResult, didExecute = true, timesExecuted 
 };
 const assertShellTestsJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout',
             true,
             null,
@@ -79,7 +79,7 @@ const assertShellTestsJobExecuted = (workflowResult, didExecute = true) => {
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Setup Node',
             true,
             null,
@@ -88,7 +88,7 @@ const assertShellTestsJobExecuted = (workflowResult, didExecute = true) => {
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'getPullRequestsMergedBetween',
             true,
             null,

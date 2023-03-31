@@ -2,7 +2,7 @@ const utils = require('../utils/utils');
 
 const assertChecklistJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'authorChecklist.js',
             true,
             null,
