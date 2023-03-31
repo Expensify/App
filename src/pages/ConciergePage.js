@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {useFocusEffect} from '@react-navigation/native';
 import ONYXKEYS from '../ONYXKEYS';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import Navigation from '../libs/Navigation/Navigation';
@@ -27,11 +28,13 @@ const defaultProps = {
  *     - Else re-route to the login page
  */
 const ConciergePage = (props) => {
-    if (_.has(props.session, 'authToken')) {
-        Report.navigateToConciergeChat();
-    } else {
-        Navigation.navigate();
-    }
+    useFocusEffect(() => {
+        if (_.has(props.session, 'authToken')) {
+            Report.navigateToConciergeChat();
+        } else {
+            Navigation.navigate();
+        }
+    });
 
     return <FullScreenLoadingIndicator />;
 };
