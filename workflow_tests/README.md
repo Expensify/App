@@ -21,6 +21,7 @@ running `act pull_request -e event_data.json` with `event_data.json` having `{"a
 
 ## Setup
 - Install dependencies from `package.json` file with `npm install`
+- Make sure you have fulfilled the [prerequisites](https://github.com/nektos/act#necessary-prerequisites-for-running-act) for running `Act`
 - Install `Act` with `brew install act` and follow the documentation on [first Act run](https://github.com/nektos/act#first-act-run)
 - Set the environment variable `ACT_BINARY` to the path to your `Act` executable (`which act` if you're not sure what the path is)
 - You should be ready to run the tests now with `npm test -- --config=workflow_tests/jest.config.js`
