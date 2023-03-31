@@ -22,7 +22,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    preferredLocale: CONST.DEFAULT_LOCALE,
+    preferredLocale: CONST.LOCALES.DEFAULT,
     size: 'normal',
 };
 

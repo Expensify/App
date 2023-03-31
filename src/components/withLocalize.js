@@ -62,7 +62,7 @@ const localeProviderPropTypes = {
 };
 
 const localeProviderDefaultProps = {
-    preferredLocale: CONST.DEFAULT_LOCALE,
+    preferredLocale: CONST.LOCALES.DEFAULT,
     currentUserPersonalDetails: {},
 };
 

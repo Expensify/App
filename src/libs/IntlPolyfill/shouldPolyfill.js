@@ -7,7 +7,7 @@ import CONST from '../../CONST';
  */
 function oldCurrencyData() {
     return (
-        new Intl.NumberFormat(CONST.DEFAULT_LOCALE, {
+        new Intl.NumberFormat(CONST.LOCALES.DEFAULT, {
             style: CONST.POLYFILL_TEST.STYLE,
             currency: CONST.POLYFILL_TEST.CURRENCY,
             currencyDisplay: CONST.POLYFILL_TEST.FORMAT,

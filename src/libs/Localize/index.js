@@ -19,7 +19,7 @@ LocaleListener.connect();
  * @param {Object} [phraseParameters] Parameters to supply if the phrase is a template literal.
  * @returns {String}
  */
-function translate(desiredLanguage = CONST.DEFAULT_LOCALE, phraseKey, phraseParameters = {}) {
+function translate(desiredLanguage = CONST.LOCALES.DEFAULT, phraseKey, phraseParameters = {}) {
     const languageAbbreviation = desiredLanguage.substring(0, 2);
     let translatedPhrase;
 
@@ -36,12 +36,12 @@ function translate(desiredLanguage = CONST.DEFAULT_LOCALE, phraseKey, phrasePara
     if (translatedPhrase) {
         return Str.result(translatedPhrase, phraseParameters);
     }
-    if (languageAbbreviation !== 'en') {
+    if (languageAbbreviation !== CONST.LOCALES.DEFAULT) {
         Log.alert(`${phraseKey} was not found in the ${languageAbbreviation} locale`);
     }
 
     // Phrase is not translated, search it in default language (en)
-    const defaultLanguageDictionary = lodashGet(translations, 'en', {});
+    const defaultLanguageDictionary = lodashGet(translations, CONST.LOCALES.DEFAULT, {});
     translatedPhrase = lodashGet(defaultLanguageDictionary, phraseKey);
     if (translatedPhrase) {
         return Str.result(translatedPhrase, phraseParameters);

@@ -1,8 +1,9 @@
 import {render, fireEvent, within} from '@testing-library/react-native';
 import moment from 'moment';
 import CalendarPicker from '../../src/components/CalendarPicker';
+import CONST from '../../src/CONST';
 
-moment.locale('en');
+moment.locale(CONST.LOCALES.EN);
 const monthNames = moment.localeData().months();
 
 jest.mock('@react-navigation/native', () => ({
@@ -13,7 +14,7 @@ jest.mock('@react-navigation/native', () => ({
 // eslint-disable-next-line arrow-body-style
 const MockedCalendarPicker = (props) => {
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <CalendarPicker {...props} translate={() => ''} preferredLocale="en" />;
+    return <CalendarPicker {...props} translate={() => ''} preferredLocale={CONST.LOCALES.EN} />;
 };
 
 describe('CalendarPicker', () => {

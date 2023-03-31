@@ -1,4 +1,5 @@
 import moment from 'moment';
+import CONST from '../../CONST';
 
 /**
  * Generates a matrix representation of a month's calendar given the year and month.
@@ -26,7 +27,7 @@ export default function generateMonthMatrix(year, month) {
 
     // Get the number of days in the month and the first day of the month
     const daysInMonth = moment([year, month]).daysInMonth();
-    const firstDay = moment([year, month, 1]).locale('en');
+    const firstDay = moment([year, month, 1]).locale(CONST.LOCALES.EN);
 
     // Create a matrix to hold the calendar days
     const matrix = [];
@@ -39,7 +40,7 @@ export default function generateMonthMatrix(year, month) {
 
     // Add calendar days to the matrix
     for (let i = 1; i <= daysInMonth; i++) {
-        const day = moment([year, month, i]).locale('en');
+        const day = moment([year, month, i]).locale(CONST.LOCALES.EN);
         currentWeek.push(day.date());
 
         // Start a new row when the current week is full

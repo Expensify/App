@@ -9,7 +9,7 @@
   "scripts": {
     "postinstall": "npx patch-package && cd desktop && npm install",
     "clean": "npx react-native clean-project-auto",
-    "android": "scripts/set-pusher-suffix.sh && npx react-native run-android --port=8083",
+    "android": "scripts/set-pusher-suffix.sh && npx react-native run-android --port=8082",
     "ios": "scripts/set-pusher-suffix.sh && npx react-native run-ios --port=8082",
     "ipad": "npx react-native run-ios --port=8082 --simulator=\"iPad Pro (12.9-inch) (4th generation)\"",
     "ipad-sm": "npx react-native run-ios --port=8082 --simulator=\"iPad Pro (9.7-inch)\"",
@@ -101,6 +101,7 @@
     "react-native-image-pan-zoom": "^2.1.12",
     "react-native-image-picker": "^5.0.2",
     "react-native-image-size": "git+https://github.com/Expensify/react-native-image-size#6b5ab5110dc3ed554f8eafbc38d7d87c17147972",
+    "react-native-localize": "^2.2.6",
     "react-native-modal": "^13.0.0",
     "react-native-onyx": "1.0.36",
     "react-native-pdf": "^6.6.2",

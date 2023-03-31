@@ -1,12 +1,13 @@
 import exampleCheckImageEn from '../../../assets/images/example-check-image-en.png';
 import exampleCheckImageEs from '../../../assets/images/example-check-image-es.png';
+import CONST from '../../CONST';
 
 const images = {
-    en: exampleCheckImageEn,
-    es: exampleCheckImageEs,
+    [CONST.LOCALES.EN]: exampleCheckImageEn,
+    [CONST.LOCALES.ES]: exampleCheckImageEs,
 };
 
-function exampleCheckImage(languageKey = 'en') {
+function exampleCheckImage(languageKey = CONST.LOCALES.EN) {
     return images[languageKey];
 }
 

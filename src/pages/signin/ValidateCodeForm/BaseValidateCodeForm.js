@@ -61,7 +61,7 @@ const propTypes = {
 const defaultProps = {
     account: {},
     credentials: {},
-    preferredLocale: CONST.DEFAULT_LOCALE,
+    preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
 class BaseValidateCodeForm extends React.Component {
