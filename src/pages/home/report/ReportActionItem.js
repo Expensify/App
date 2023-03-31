@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {
-    useState, useRef, useEffect, memo,
+    useState, useRef, useEffect, memo, useCallback,
 } from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -77,12 +77,6 @@ function ReportActionItem(props) {
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
 
-    // We need to store the previous value of draftMessage because we use it in the subsequent useEffect hook
-    // to decide whether we should focus the text input
-    useEffect(() => {
-        previousDraftMessageRef.current = props.draftMessage;
-    }, [props.draftMessage]);
-
     useEffect(() => {
         if (previousDraftMessageRef.current || !props.draftMessage) {
             return;
@@ -94,16 +88,22 @@ function ReportActionItem(props) {
         focusTextInputAfterAnimation(textInputRef.current, 100);
     }, [props.draftMessage]);
 
-    const toggleContextMenuFromActiveReportAction = () => {
+    // We need to store the previous value of draftMessage because we use it in the subsequent useEffect hook
+    // to decide whether we should focus the text input
+    useEffect(() => {
+        previousDraftMessageRef.current = props.draftMessage;
+    }, [props.draftMessage]);
+
+    const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
-    };
+    }, [props.action.reportActionID]);
 
     /**
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
      */
-    const showPopover = (event) => {
+    const showPopover = useCallback((event) => {
         // Block menu on the message being Edited
         if (props.draftMessage) {
             return;
@@ -128,18 +128,18 @@ function ReportActionItem(props) {
             ReportUtils.isArchivedRoom(props.report),
             ReportUtils.chatIncludesChronos(props.report),
         );
-    };
+    }, [props.draftMessage, props.report, props.action, toggleContextMenuFromActiveReportAction]);
 
-    const toggleReaction = (emoji) => {
+    const toggleReaction = useCallback((emoji) => {
         Report.toggleEmojiReaction(props.report.reportID, props.action, emoji);
-    };
+    }, [props.report, props.action]);
 
     /**
      * Get the content of ReportActionItem
      * @param {Boolean} hovered whether the ReportActionItem is hovered
      * @returns {Object} child component(s)
      */
-    const renderItemContent = (hovered = false) => {
+    function renderItemContent(hovered = false) {
         let children;
         if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
             children = (
@@ -207,7 +207,7 @@ function ReportActionItem(props) {
                 )}
             </>
         );
-    };
+    }
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         return <ReportActionItemCreated reportID={props.report.reportID} />;
