@@ -123,6 +123,7 @@ const defaultProps = {
     session: {
         email: null,
     },
+    shouldShowPendingConversionMessage: false,
 };
 
 const IOUPreview = (props) => {
