@@ -16,6 +16,7 @@ import AnchorForCommentsOnly from '../../AnchorForCommentsOnly';
 import AnchorForAttachmentsOnly from '../../AnchorForAttachmentsOnly';
 import * as Url from '../../../libs/Url';
 import ROUTES from '../../../ROUTES';
+import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
 
 const AnchorRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
@@ -77,7 +78,7 @@ const AnchorRenderer = (props) => {
     if (isAttachment) {
         return (
             <AnchorForAttachmentsOnly
-                source={attrHref}
+                source={tryResolveUrlFromApiRoot(attrHref)}
                 displayName={displayName}
             />
         );
