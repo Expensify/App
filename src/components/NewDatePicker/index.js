@@ -1,7 +1,6 @@
 import React from 'react';
 import {View, Animated} from 'react-native';
 import moment from 'moment';
-import _ from 'underscore';
 import TextInput from '../TextInput';
 import CalendarPicker from '../CalendarPicker';
 import CONST from '../../CONST';
