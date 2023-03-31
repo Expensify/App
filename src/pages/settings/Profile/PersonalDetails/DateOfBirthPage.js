@@ -52,6 +52,13 @@ class DateOfBirthPage extends Component {
 
     componentDidMount() {
         this.props.navigation.addListener('focus', this.getYearFromRouteParams);
+
+        setTimeout(() => {
+            if (!this.datePicker) {
+                return;
+            }
+            this.datePicker.showPicker();
+        }, 1);
     }
 
     componentWillUnmount() {
@@ -67,10 +74,7 @@ class DateOfBirthPage extends Component {
         if (params && params.year) {
             this.setState({selectedYear: params.year});
             if (this.datePicker) {
-                this.datePicker.focus();
-                if (_.isFunction(this.datePicker.click)) {
-                    this.datePicker.click();
-                }
+                this.datePicker.showPicker();
             }
         }
     }
