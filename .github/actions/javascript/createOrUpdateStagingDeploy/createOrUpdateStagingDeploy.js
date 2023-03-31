@@ -136,6 +136,7 @@ const run = function () {
                 _.pluck(_.where(internalQAPRList, {isResolved: true}), 'url'),
                 didVersionChange ? false : currentStagingDeployCashData.isTimingDashboardChecked,
                 didVersionChange ? false : currentStagingDeployCashData.isFirebaseChecked,
+                didVersionChange ? false : currentStagingDeployCashData.isGHStatusChecked,
             );
         })
         .then((body) => {
