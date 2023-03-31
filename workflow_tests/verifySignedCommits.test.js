@@ -8,18 +8,7 @@ const eAct = require('./utils/ExtendedAct');
 jest.setTimeout(60 * 1000);
 let mockGithub;
 const FILES_TO_COPY_INTO_TEST_REPO = [
-    {
-        src: path.resolve(__dirname, '..', '.github', 'actions'),
-        dest: '.github/actions',
-    },
-    {
-        src: path.resolve(__dirname, '..', '.github', 'libs'),
-        dest: '.github/libs',
-    },
-    {
-        src: path.resolve(__dirname, '..', '.github', 'scripts'),
-        dest: '.github/scripts',
-    },
+    ...utils.deepCopy(utils.FILES_TO_COPY_INTO_TEST_REPO),
     {
         src: path.resolve(__dirname, '..', '.github', 'workflows', 'verifySignedCommits.yml'),
         dest: '.github/workflows/verifySignedCommits.yml',
