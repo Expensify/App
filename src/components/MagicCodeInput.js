@@ -274,7 +274,6 @@ class MagicCodeInput extends React.PureComponent {
                                     inputMode="numeric"
                                     textContentType="oneTimeCode"
                                     name={this.props.name}
-                                    caretHidden
                                     maxLength={CONST.MAGIC_CODE_LENGTH}
                                     value={this.state.input}
                                     autoComplete={this.props.autoComplete}
