@@ -24,8 +24,21 @@ running `act pull_request -e event_data.json` with `event_data.json` having `{"a
 - Make sure you have fulfilled the [prerequisites](https://github.com/nektos/act#necessary-prerequisites-for-running-act) for running `Act`
 - Install `Act` with `brew install act` and follow the documentation on [first Act run](https://github.com/nektos/act#first-act-run)
 - Set the environment variable `ACT_BINARY` to the path to your `Act` executable (`which act` if you're not sure what the path is)
-- You should be ready to run the tests now with `npm test -- --config=workflow_tests/jest.config.js`
+- You should be ready to run the tests now with `npm run workflow-test`
 - You can pre-generate new mocks/assertions/test files for a given workflow by running `npm run workflow-test:generate <workflow_file>`
+
+## Running
+- To run the workflow tests simply use
+  - `npm run workflow-test`
+  - this will run all the tests sequentially, which can take some time
+- To run a specific test suite you can use
+  - `npm run workflow-test -- -i <path_to_test_file>`
+  - this will run only the test from that specific test file
+- To run a specific test or subset of tests use
+  - `npm run workflow-test -- -t "<test_name_substring>"`
+  - this will run only the tests having `<test_name_substring>` in their name/description
+- You can combine these like `npm run workflow-test -- -i workflow_tests/preDeploy.test.js -t "single specific test"`
+- You can also use all other options which are normally usable with `jest`
 
 ## File structure
 The testing framework file structure within the repository is as follows:
