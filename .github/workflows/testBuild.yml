@@ -72,7 +72,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
       - name: Add PULL_REQUEST_NUMBER to .env.staging file
-        run: echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER >> .env.staging"
+        run: echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.staging
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -125,7 +125,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
       - name: Add PULL_REQUEST_NUMBER to .env.staging file
-        run: echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER >> .env.staging"
+        run: echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.staging
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -185,7 +185,7 @@ jobs:
           fetch-depth: 0
 
       - name: Add PULL_REQUEST_NUMBER to .env.staging file
-        run: echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER >> .env.staging"
+        run: echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.staging
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -224,7 +224,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
       - name: Add PULL_REQUEST_NUMBER to .env.staging file
-        run: echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER >> .env.staging"
+        run: echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.staging
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
