@@ -28,7 +28,7 @@ class BaseTextInput extends Component {
         const activeLabel = props.forceActiveLabel || value.length > 0 || props.prefixCharacter;
 
         this.state = {
-            isFocused: props.focused,
+            isFocused: false,
             labelTranslateY: new Animated.Value(activeLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y),
             labelScale: new Animated.Value(activeLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE),
             passwordHidden: props.secureTextEntry,
@@ -73,10 +73,6 @@ class BaseTextInput extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.focused !== this.props.focused) {
-            this.setState({isFocused: this.props.focused});
-        }
-
         // Activate or deactivate the label when value is changed programmatically from outside
         const inputValue = _.isUndefined(this.props.value) ? this.input.value : this.props.value;
         if ((_.isUndefined(inputValue) || this.state.value === inputValue) && _.isEqual(prevProps.selection, this.props.selection)) {

@@ -37,9 +37,6 @@ const propTypes = {
     /** Should the input auto focus? */
     autoFocus: PropTypes.bool,
 
-    /** Is the input focused */
-    focused: PropTypes.bool,
-
     /** Disable the virtual keyboard  */
     disableKeyboard: PropTypes.bool,
 
@@ -95,7 +92,6 @@ const defaultProps = {
     inputStyle: [],
     autoFocus: false,
     autoCorrect: true,
-    focused: false,
 
     /**
      * To be able to function as either controlled or uncontrolled component we should not

@@ -2259,6 +2259,12 @@ const styles = {
         backgroundColor: themeColors.checkBox,
     },
 
+    magicCodeInput: {
+        fontSize: variables.fontSizeXLarge,
+        color: themeColors.heading,
+        lineHeight: variables.inputHeight,
+    },
+
     iouAmountText: {
         ...headlineFont,
         fontSize: variables.iouAmountTextSize,

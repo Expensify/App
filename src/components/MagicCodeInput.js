@@ -5,6 +5,7 @@ import _ from 'underscore';
 import styles from '../styles/styles';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import CONST from '../CONST';
+import Text from './Text';
 import TextInput from './TextInput';
 import FormHelpMessage from './FormHelpMessage';
 
@@ -36,9 +37,6 @@ const propTypes = {
     /* Should submit when the input is complete */
     shouldSubmitOnComplete: PropTypes.bool,
 
-    /** Id to use for this button */
-    nativeID: PropTypes.string,
-
     /** Function to call when the input is changed  */
     onChange: PropTypes.func,
 
@@ -54,7 +52,6 @@ const defaultProps = {
     forwardedRef: undefined,
     errorText: '',
     shouldSubmitOnComplete: true,
-    nativeID: '',
     onChange: () => {},
     onFulfill: () => {},
 };
@@ -64,7 +61,7 @@ class MagicCodeInput extends React.PureComponent {
         super(props);
 
         this.inputPlaceholderSlots = Array.from(Array(CONST.MAGIC_CODE_LENGTH).keys());
-        this.inputRef = null;
+        this.inputRefs = {};
 
         this.state = {
             input: '',
@@ -88,10 +85,10 @@ class MagicCodeInput extends React.PureComponent {
         }
 
         if (this.props.shouldDelayFocus) {
-            this.focusTimeout = setTimeout(() => this.inputRef.focus(), CONST.ANIMATED_TRANSITION);
-            return;
+            this.focusTimeout = setTimeout(() => this.inputRefs[0].focus(), CONST.ANIMATED_TRANSITION);
         }
-        this.inputRef.focus();
+
+        this.inputRefs[0].focus();
     }
 
     componentDidUpdate(prevProps) {
@@ -124,7 +121,6 @@ class MagicCodeInput extends React.PureComponent {
             focusedIndex: index,
             editIndex: index,
         });
-        this.inputRef.focus();
     }
 
     /**
@@ -141,16 +137,17 @@ class MagicCodeInput extends React.PureComponent {
             return;
         }
 
-        const numbersArr = value.trim().split('');
         this.setState((prevState) => {
+            const numbersArr = value.trim().split('').slice(0, CONST.MAGIC_CODE_LENGTH - prevState.editIndex);
             const numbers = [
                 ...prevState.numbers.slice(0, prevState.editIndex),
-                ...numbersArr.slice(0, CONST.MAGIC_CODE_LENGTH - prevState.editIndex),
+                ...numbersArr,
+                ...prevState.numbers.slice(numbersArr.length + prevState.editIndex, CONST.MAGIC_CODE_LENGTH),
             ];
 
             // Updates the focused input taking into consideration the last input
             // edited and the number of digits added by the user.
-            const focusedIndex = Math.min(prevState.editIndex + (numbersArr.length - 1), CONST.MAGIC_CODE_LENGTH - 1);
+            const focusedIndex = Math.min(prevState.editIndex + (numbersArr.length - 1) + 1, CONST.MAGIC_CODE_LENGTH - 1);
 
             return {
                 numbers,
@@ -162,10 +159,11 @@ class MagicCodeInput extends React.PureComponent {
             const finalInput = this.composeToString(this.state.numbers);
             this.props.onChange(finalInput);
 
-            // If the input is complete and submit on complete is enabled, waits for a possible state
-            // update and then calls the onSubmit callback.
+            // Blurs the input and removes focus from the last input and, if it should submit
+            // on complete, it will call the onFulfill callback.
             if (this.props.shouldSubmitOnComplete && _.filter(this.state.numbers, n => ValidationUtils.isNumeric(n)).length === CONST.MAGIC_CODE_LENGTH) {
-                setTimeout(() => this.props.onFulfill(finalInput), 0);
+                this.inputRefs[this.state.focusedIndex].blur();
+                this.setState({focusedIndex: undefined}, () => this.props.onFulfill(finalInput));
             }
         });
     }
@@ -179,18 +177,36 @@ class MagicCodeInput extends React.PureComponent {
      * @param {Object} event
      */
     onKeyPress({nativeEvent: {key: keyValue}}) {
-        // Handles the delete character logic if the current input is less than 2 characters,
-        // meaning that it's the last character to be deleted or it's a character being
-        // deleted in the middle of the input, which should delete all the characters after it.
-        if (keyValue === 'Backspace' && this.state.input.length < 2) {
-            this.setState(({numbers, focusedIndex, editIndex}) => ({
-                input: '',
-                numbers: focusedIndex === 0
-                    ? Array(CONST.MAGIC_CODE_LENGTH).fill(CONST.MAGIC_CODE_EMPTY_CHAR)
-                    : [...numbers.slice(0, focusedIndex), CONST.MAGIC_CODE_EMPTY_CHAR],
-                focusedIndex: Math.max(0, focusedIndex - 1),
-                editIndex: Math.max(0, editIndex - 1),
-            }));
+        if (keyValue === 'Backspace') {
+            this.setState(({numbers, focusedIndex}) => {
+                // If the currently focused index already has a value, it will delete
+                // that value but maintain the focus on the same input.
+                if (numbers[focusedIndex] !== CONST.MAGIC_CODE_EMPTY_CHAR) {
+                    return {
+                        input: '',
+                        numbers: [
+                            ...numbers.slice(0, focusedIndex),
+                            CONST.MAGIC_CODE_EMPTY_CHAR,
+                            ...numbers.slice(focusedIndex + 1, CONST.MAGIC_CODE_LENGTH),
+                        ],
+                    };
+                }
+
+                // Deletes the value of the previous input and focuses on it.
+                const hasInputs = _.filter(numbers, n => ValidationUtils.isNumeric(n)).length !== 0;
+                return {
+                    input: '',
+                    numbers: focusedIndex === 0 && !hasInputs
+                        ? Array(CONST.MAGIC_CODE_LENGTH).fill(CONST.MAGIC_CODE_EMPTY_CHAR)
+                        : [
+                            ...numbers.slice(0, focusedIndex - 1),
+                            CONST.MAGIC_CODE_EMPTY_CHAR,
+                            ...numbers.slice(focusedIndex, CONST.MAGIC_CODE_LENGTH),
+                        ],
+                    focusedIndex: Math.max(0, focusedIndex - 1),
+                    editIndex: Math.max(0, focusedIndex - 1),
+                };
+            });
         } else if (keyValue === 'ArrowLeft') {
             this.setState(prevState => ({
                 input: '',
@@ -241,35 +257,37 @@ class MagicCodeInput extends React.PureComponent {
                 <View style={[styles.flexRow, styles.justifyContentBetween]}>
                     {_.map(this.inputPlaceholderSlots, index => (
                         <View key={index} style={[styles.w15]}>
-                            <TextInput
-                                editable={false}
-                                focused={this.state.focusedIndex === index}
-                                value={this.state.numbers[index] || ''}
-                                maxLength={1}
-                                blurOnSubmit={false}
-                                onPress={event => this.onFocus(event, index)}
-                                inputStyle={[styles.iouAmountTextInput, styles.textAlignCenter]}
-                            />
+                            <View
+                                style={[
+                                    styles.textInputContainer,
+                                    this.state.focusedIndex === index ? styles.borderColorFocus : {},
+                                ]}
+                            >
+                                <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>
+                                    {this.state.numbers[index] || ''}
+                                </Text>
+                            </View>
+                            <View style={[StyleSheet.absoluteFillObject, styles.w100, styles.opacity0]}>
+                                <TextInput
+                                    ref={ref => this.inputRefs[index] = ref}
+                                    autoFocus={this.props.autoFocus}
+                                    inputMode="numeric"
+                                    textContentType="oneTimeCode"
+                                    name={this.props.name}
+                                    caretHidden
+                                    maxLength={CONST.MAGIC_CODE_LENGTH}
+                                    value={this.state.input}
+                                    autoComplete={this.props.autoComplete}
+                                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                                    onChangeText={this.onChangeText}
+                                    onKeyPress={this.onKeyPress}
+                                    onPress={event => this.onFocus(event, index)}
+                                    onFocus={event => this.onFocus(event, index)}
+                                    onBlur={() => this.setState({focusedIndex: undefined})}
+                                />
+                            </View>
                         </View>
                     ))}
-                </View>
-                <View style={[StyleSheet.absoluteFillObject, styles.w15, styles.opacity0]}>
-                    <TextInput
-                        ref={el => this.inputRef = el}
-                        autoFocus={this.props.autoFocus}
-                        inputMode="numeric"
-                        textContentType="oneTimeCode"
-                        name={this.props.name}
-                        maxLength={CONST.MAGIC_CODE_LENGTH}
-                        value={this.state.input}
-                        autoComplete={this.props.autoComplete}
-                        nativeID={this.props.nativeID}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                        onPress={event => this.onFocus(event, 0)}
-                        onChangeText={this.onChangeText}
-                        onKeyPress={this.onKeyPress}
-                        onBlur={() => this.setState({focusedIndex: undefined})}
-                    />
                 </View>
                 {!_.isEmpty(this.props.errorText) && (
                     <FormHelpMessage isError message={this.props.errorText} />
