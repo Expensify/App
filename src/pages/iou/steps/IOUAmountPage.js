@@ -59,6 +59,8 @@ class IOUAmountPage extends React.Component {
         this.focusTextInput = this.focusTextInput.bind(this);
         this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
         this.amountViewID = 'amountView';
+        this.numPadContainerViewID = 'numPadContainerView';
+        this.numPadViewID = 'numPadView';
 
         this.state = {
             amount: props.selectedAmount,
@@ -81,6 +83,23 @@ class IOUAmountPage extends React.Component {
 
     componentWillUnmount() {
         this.unsubscribeNavFocus();
+    }
+
+    /**
+     * Key event handlers that short cut to saving/canceling.
+     *
+     * @param {Event} event
+     * @param {Array<string>} nativeIds
+     */
+    onMouseDown(event, nativeIds) {
+        const relatedTargetId = lodashGet(event, 'nativeEvent.target.id');
+        if (!_.contains(nativeIds, relatedTargetId)) {
+            return;
+        }
+        event.preventDefault();
+        if (!this.textInput.isFocused()) {
+            this.textInput.focus();
+        }
     }
 
     /**
@@ -263,15 +282,7 @@ class IOUAmountPage extends React.Component {
             <>
                 <View
                     nativeID={this.amountViewID}
-                    onMouseDown={(event) => {
-                        if (lodashGet(event, 'nativeEvent.target.id') !== this.amountViewID) {
-                            return;
-                        }
-                        event.preventDefault();
-                        if (!this.textInput.isFocused()) {
-                            this.textInput.focus();
-                        }
-                    }}
+                    onMouseDown={event => this.onMouseDown(event, [this.amountViewID])}
                     style={[
                         styles.flex1,
                         styles.flexRow,
@@ -297,10 +308,15 @@ class IOUAmountPage extends React.Component {
                         }}
                     />
                 </View>
-                <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}>
+                <View
+                    onMouseDown={event => this.onMouseDown(event, [this.numPadContainerViewID, this.numPadViewID])}
+                    style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
+                    nativeID={this.numPadContainerViewID}
+                >
                     {DeviceCapabilities.canUseTouchScreen()
                         ? (
                             <BigNumberPad
+                                nativeID={this.numPadViewID}
                                 numberPressed={this.updateAmountNumberPad}
                                 longPressHandlerStateChanged={this.updateLongPressHandlerState}
                             />
