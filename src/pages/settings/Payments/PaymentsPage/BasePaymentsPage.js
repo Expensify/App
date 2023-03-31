@@ -34,6 +34,7 @@ import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import ConfirmContent from '../../../../components/ConfirmContent';
 import Button from '../../../../components/Button';
 import themeColors from '../../../../styles/themes/default';
+import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
@@ -390,7 +391,7 @@ class BasePaymentsPage extends React.Component {
         // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
         const isPopoverBottomMount = this.state.anchorPositionTop === 0 || this.props.isSmallScreenWidth;
         return (
-            <ScreenWrapper>
+            <ScreenWrapper lockHeight={DeviceCapabilities.canUseTouchScreen()}>
                 <HeaderWithCloseButton
                     title={this.props.translate('common.payments')}
                     shouldShowBackButton
