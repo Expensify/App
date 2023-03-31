@@ -32,7 +32,7 @@ export default {
         lastName: 'Apellidos',
         phone: 'teléfono',
         phoneNumber: 'Número de teléfono',
-        phoneNumberPlaceholder: '(prefijo) + (número)',
+        phoneNumberPlaceholder: '(xxx)xxx-xxxx',
         email: 'Email',
         and: 'y',
         details: 'Detalles',
@@ -55,7 +55,7 @@ export default {
         invite: 'Invitar',
         here: 'aquí',
         date: 'Fecha',
-        dob: 'Fecha de Nacimiento',
+        dob: 'Fecha de nacimiento',
         currentYear: 'Año actual',
         currentMonth: 'Mes actual',
         ssnLast4: 'Últimos 4 dígitos de su SSN',
@@ -69,7 +69,7 @@ export default {
         stateOrProvince: 'Estado / Provincia',
         country: 'País',
         zip: 'Código postal',
-        zipPostCode: 'Código Postal',
+        zipPostCode: 'Código postal',
         whatThis: '¿Qué es esto?',
         iAcceptThe: 'Acepto los ',
         remove: 'Eliminar',
@@ -145,7 +145,7 @@ export default {
         notAllowedExtension: 'Los archivos adjuntos deben ser de uno de los siguientes tipos: ',
     },
     avatarCropModal: {
-        title: 'Editar Foto',
+        title: 'Editar foto',
         description: 'Arrastra, haz zoom y rota tu imagen para que quede como te gusta.',
     },
     composer: {
@@ -929,7 +929,7 @@ export default {
         },
     },
     reimbursementAccountLoadingAnimation: {
-        oneMoment: 'Un Momento',
+        oneMoment: 'Un momento',
         explanationLine: 'Estamos verificando tu información y podrás continuar con los siguientes pasos en unos momentos.',
     },
     session: {
