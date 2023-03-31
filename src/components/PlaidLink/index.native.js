@@ -1,13 +1,10 @@
-import {useEffect, useRef} from 'react';
+import {useEffect} from 'react';
 import {openLink, useDeepLinkRedirector, usePlaidEmitter} from 'react-native-plaid-link-sdk';
 import Log from '../../libs/Log';
 import CONST from '../../CONST';
 import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
 
 const PlaidLink = (props) => {
-    // We are stashing initial props in a ref since we don't want a new token to trigger the link to open again
-    // and just want openLink() to be called once
-    const propsRef = useRef(props.token);
     useDeepLinkRedirector();
     usePlaidEmitter((event) => {
         Log.info('[PlaidLink] Handled Plaid Event: ', false, event);
@@ -18,16 +15,17 @@ const PlaidLink = (props) => {
     useEffect(() => {
         openLink({
             tokenConfig: {
-                token: propsRef.current.token,
+                token: props.token,
             },
             onSuccess: ({publicToken, metadata}) => {
-                propsRef.current.onSuccess({publicToken, metadata});
+                props.onSuccess({publicToken, metadata});
             },
             onExit: (exitError, metadata) => {
                 Log.info('[PlaidLink] Exit: ', false, {exitError, metadata});
-                propsRef.current.onExit();
+                props.onExit();
             },
         });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     return null;
 };
