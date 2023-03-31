@@ -252,7 +252,7 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                testMockSteps.android[3] = utils.getMockStep(
+                testMockSteps.android[3] = utils.createMockStep(
                     'Decrypt keystore',
                     'Decrypt keystore',
                     'ANDROID',
@@ -306,7 +306,7 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                testMockSteps.iOS[3] = utils.getMockStep(
+                testMockSteps.iOS[3] = utils.createMockStep(
                     'Install cocoapods',
                     'Install cocoapods',
                     'IOS',
@@ -360,7 +360,7 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                testMockSteps.desktop[2] = utils.getMockStep(
+                testMockSteps.desktop[2] = utils.createMockStep(
                     'Decrypt Developer ID Certificate',
                     'Decrypt Developer ID Certificate',
                     'DESKTOP',
@@ -414,7 +414,7 @@ describe('test workflow testBuild', () => {
                     web: utils.deepCopy(mocks.TESTBUILD__WEB__STEP_MOCKS),
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                testMockSteps.web[2] = utils.getMockStep(
+                testMockSteps.web[2] = utils.createMockStep(
                     'Configure AWS Credentials',
                     'Configure AWS Credentials',
                     'WEB',

@@ -2,7 +2,7 @@ const utils = require('../utils/utils');
 
 const assertDeployBlockerJobExecuted = (workflowResult, issueTitle, issueNumber, didExecute = true, isSuccessful = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout',
             true,
             null,
@@ -11,7 +11,7 @@ const assertDeployBlockerJobExecuted = (workflowResult, issueTitle, issueNumber,
             [{key: 'fetch-depth', value: '0'}, {key: 'token', value: '***'}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Get URL, title, & number of new deploy blocker (issue)',
             true,
             null,
@@ -20,7 +20,7 @@ const assertDeployBlockerJobExecuted = (workflowResult, issueTitle, issueNumber,
             [],
             [{key: 'TITLE', value: issueTitle}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Update StagingDeployCash with new deploy blocker',
             true,
             null,
@@ -29,7 +29,7 @@ const assertDeployBlockerJobExecuted = (workflowResult, issueTitle, issueNumber,
             [{key: 'GITHUB_TOKEN', value: '***'}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Give the issue/PR the Hourly, Engineering labels',
             true,
             null,
@@ -38,7 +38,7 @@ const assertDeployBlockerJobExecuted = (workflowResult, issueTitle, issueNumber,
             [{key: 'add-labels', value: 'Hourly, Engineering'}, {key: 'remove-labels', value: 'Daily, Weekly, Monthly'}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Comment on deferred PR',
             true,
             null,
@@ -60,7 +60,7 @@ const assertDeployBlockerJobExecuted = (workflowResult, issueTitle, issueNumber,
     }
 
     const successSteps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Post the issue in the #expensify-open-source slack room',
             true,
             null,
@@ -80,7 +80,7 @@ const assertDeployBlockerJobExecuted = (workflowResult, issueTitle, issueNumber,
     }
 
     const failedSteps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Announce failed workflow in Slack',
             true,
             null,

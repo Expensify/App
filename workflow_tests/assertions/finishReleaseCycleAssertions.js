@@ -2,7 +2,7 @@ const utils = require('../utils/utils');
 
 const assertValidateJobExecuted = (workflowResult, username = 'Dummy Author', issueNumber = '', didExecute = true, isTeamMember = true, hasBlockers = false) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Validate actor is deployer',
             true,
             null,
@@ -18,7 +18,7 @@ const assertValidateJobExecuted = (workflowResult, username = 'Dummy Author', is
     ];
     if (isTeamMember) {
         steps.push(
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Check for any deploy blockers',
                 true,
                 null,
@@ -43,7 +43,7 @@ const assertValidateJobExecuted = (workflowResult, username = 'Dummy Author', is
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const notTeamMemberSteps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Reopen and comment on issue (not a team member)',
             true,
             null,
@@ -67,7 +67,7 @@ const assertValidateJobExecuted = (workflowResult, username = 'Dummy Author', is
     }
 
     const blockerSteps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Reopen and comment on issue (has blockers)',
             true,
             null,
@@ -92,7 +92,7 @@ const assertValidateJobExecuted = (workflowResult, username = 'Dummy Author', is
 
 const assertUpdateProductionJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Update production branch',
             true,
             null,
@@ -118,7 +118,7 @@ const assertUpdateProductionJobExecuted = (workflowResult, didExecute = true) =>
 
 const assertCreateNewPatchVersionJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Create new version',
             true,
             null,
@@ -140,7 +140,7 @@ const assertCreateNewPatchVersionJobExecuted = (workflowResult, didExecute = tru
 
 const assertCreateNewStagingDeployCashJobExecuted = (workflowResult, newVersion = '', didExecute = true, isSuccessful = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Update staging branch to trigger staging deploy',
             true,
             null,
@@ -153,7 +153,7 @@ const assertCreateNewStagingDeployCashJobExecuted = (workflowResult, newVersion 
             ],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Tag version',
             true,
             null,
@@ -162,7 +162,7 @@ const assertCreateNewStagingDeployCashJobExecuted = (workflowResult, newVersion 
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Create new StagingDeployCash',
             true,
             null,
@@ -189,7 +189,7 @@ const assertCreateNewStagingDeployCashJobExecuted = (workflowResult, newVersion 
     }
 
     const failProdSteps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Announce failed workflow in Slack',
             true,
             null,

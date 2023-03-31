@@ -2,7 +2,7 @@ const utils = require('../utils/utils');
 
 const assertVerifySignedCommitsJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Verify signed commits',
             true,
             null,

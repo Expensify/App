@@ -1,7 +1,7 @@
 const utils = require('../utils/utils');
 
 // verifysignedcommits
-const VERIFYSIGNEDCOMMITS__VERIFYSIGNEDCOMMITS__VERIFY_SIGNED_COMMITS__STEP_MOCK = utils.getMockStep(
+const VERIFYSIGNEDCOMMITS__VERIFYSIGNEDCOMMITS__VERIFY_SIGNED_COMMITS__STEP_MOCK = utils.createMockStep(
     'Verify signed commits',
     'Verify signed commits',
     'VERIFYSIGNEDCOMMITS',

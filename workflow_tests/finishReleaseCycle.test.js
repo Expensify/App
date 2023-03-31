@@ -106,7 +106,7 @@ describe('test workflow finishReleaseCycle', () => {
                                 createNewPatchVersion: mocks.FINISHRELEASECYCLE__CREATENEWPATCHVERSION__STEP_MOCKS,
                                 createNewStagingDeployCash: mocks.FINISHRELEASECYCLE__CREATENEWSTAGINGDEPLOYCASH__STEP_MOCKS,
                             };
-                            testMockSteps.createNewStagingDeployCash[2] = utils.getMockStep(
+                            testMockSteps.createNewStagingDeployCash[2] = utils.createMockStep(
                                 'Create new StagingDeployCash',
                                 'Creating new StagingDeployCash',
                                 'CREATENEWSTAGINGDEPLOYCASH',

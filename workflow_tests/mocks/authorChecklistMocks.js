@@ -1,7 +1,7 @@
 const utils = require('../utils/utils');
 
 // checklist
-const AUTHORCHECKLIST__CHECKLIST__AUTHORCHECKLIST_JS__STEP_MOCK = utils.getMockStep(
+const AUTHORCHECKLIST__CHECKLIST__AUTHORCHECKLIST_JS__STEP_MOCK = utils.createMockStep(
     'authorChecklist.js',
     'Running authorChecklist.js',
     'CHECKLIST',

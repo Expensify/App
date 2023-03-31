@@ -83,7 +83,7 @@ describe('test workflow warnCPLabel', () => {
                 const testMockSteps = {
                     warnCPLabel: utils.deepCopy(mocks.WARNCPLABEL__WARNCPLABEL__STEP_MOCKS),
                 };
-                testMockSteps.warnCPLabel[0] = utils.getMockStep(
+                testMockSteps.warnCPLabel[0] = utils.createMockStep(
                     'Comment on PR to explain the CP Staging label',
                     'Comment on PR to explain the CP Staging label',
                     'WARNCPLABEL',

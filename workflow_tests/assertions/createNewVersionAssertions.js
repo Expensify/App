@@ -2,7 +2,7 @@ const utils = require('../utils/utils');
 
 const assertValidateActorJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Get user permissions',
             true,
             null,
@@ -23,7 +23,7 @@ const assertValidateActorJobExecuted = (workflowResult, didExecute = true) => {
 };
 const assertCreateNewVersionJobExecuted = (workflowResult, semverLevel = 'BUILD', didExecute = true, isSuccessful = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Check out',
             true,
             null,
@@ -32,7 +32,7 @@ const assertCreateNewVersionJobExecuted = (workflowResult, semverLevel = 'BUILD'
             [{key: 'fetch-depth', value: '0'}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Setup git for OSBotify',
             true,
             null,
@@ -41,7 +41,7 @@ const assertCreateNewVersionJobExecuted = (workflowResult, semverLevel = 'BUILD'
             [{key: 'GPG_PASSPHRASE', value: '***'}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Run turnstyle',
             true,
             null,
@@ -50,7 +50,7 @@ const assertCreateNewVersionJobExecuted = (workflowResult, semverLevel = 'BUILD'
             [{key: 'poll-interval-seconds', value: '10'}],
             [{key: 'GITHUB_TOKEN', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Create new branch',
             true,
             null,
@@ -59,7 +59,7 @@ const assertCreateNewVersionJobExecuted = (workflowResult, semverLevel = 'BUILD'
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Generate version',
             true,
             null,
@@ -68,7 +68,7 @@ const assertCreateNewVersionJobExecuted = (workflowResult, semverLevel = 'BUILD'
             [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'SEMVER_LEVEL', value: semverLevel}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Commit new version',
             true,
             null,
@@ -77,7 +77,7 @@ const assertCreateNewVersionJobExecuted = (workflowResult, semverLevel = 'BUILD'
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Update main branch',
             true,
             null,
@@ -104,7 +104,7 @@ const assertCreateNewVersionJobExecuted = (workflowResult, semverLevel = 'BUILD'
     }
 
     const failedSteps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Announce failed workflow in Slack',
             true,
             null,

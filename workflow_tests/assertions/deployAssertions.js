@@ -2,7 +2,7 @@ const utils = require('../utils/utils');
 
 const assertValidateJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Get merged pull request',
             true,
             null,
@@ -28,7 +28,7 @@ const assertValidateJobExecuted = (workflowResult, didExecute = true) => {
 
 const assertDeployStagingJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout staging branch',
             true,
             null,
@@ -36,7 +36,7 @@ const assertDeployStagingJobExecuted = (workflowResult, didExecute = true) => {
             'Checking out staging branch',
             [{key: 'ref', value: 'staging'}, {key: 'token', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Setup git for OSBotify',
             true,
             null,
@@ -44,14 +44,14 @@ const assertDeployStagingJobExecuted = (workflowResult, didExecute = true) => {
             'Setting up git for OSBotify',
             [{key: 'GPG_PASSPHRASE', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Tag version',
             true,
             null,
             'DEPLOY_STAGING',
             'Tagging new version',
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             '🚀 Push tags to trigger staging deploy 🚀',
             true,
             null,
@@ -71,7 +71,7 @@ const assertDeployStagingJobExecuted = (workflowResult, didExecute = true) => {
 
 const assertDeployProductionJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout',
             true,
             null,
@@ -79,7 +79,7 @@ const assertDeployProductionJobExecuted = (workflowResult, didExecute = true) =>
             'Checking out',
             [{key: 'fetch-depth', value: '0'}, {key: 'token', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Setup git for OSBotify',
             true,
             null,
@@ -87,21 +87,21 @@ const assertDeployProductionJobExecuted = (workflowResult, didExecute = true) =>
             'Setting up git for OSBotify',
             [{key: 'GPG_PASSPHRASE', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout production branch',
             true,
             null,
             'DEPLOY_PRODUCTION',
             'Checking out production branch',
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Get current app version',
             true,
             null,
             'DEPLOY_PRODUCTION',
             'Getting current app version',
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Get Release Pull Request List',
             true,
             null,
@@ -109,7 +109,7 @@ const assertDeployProductionJobExecuted = (workflowResult, didExecute = true) =>
             'Getting release PR list',
             [{key: 'TAG', value: '1.2.3'}, {key: 'GITHUB_TOKEN', value: '***'}, {key: 'IS_PRODUCTION_DEPLOY', value: 'true'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Generate Release Body',
             true,
             null,
@@ -117,7 +117,7 @@ const assertDeployProductionJobExecuted = (workflowResult, didExecute = true) =>
             'Generating release body',
             [{key: 'PR_LIST', value: '[1.2.1, 1.2.2]'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             '🚀 Create release to trigger production deploy 🚀',
             true,
             null,

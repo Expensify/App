@@ -2,7 +2,7 @@ const utils = require('../utils/utils');
 
 const assertValidateActorJobExecuted = (workflowResult, username = 'Dummy Author', didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Check if user is deployer',
             true,
             null,
@@ -24,7 +24,7 @@ const assertValidateActorJobExecuted = (workflowResult, username = 'Dummy Author
 
 const assertCreateNewVersionJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Create new version',
             true,
             null,
@@ -58,7 +58,7 @@ const assertCherryPickJobExecuted = (
     isSuccessful = true,
 ) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout staging branch',
             true,
             null,
@@ -67,7 +67,7 @@ const assertCherryPickJobExecuted = (
             [{key: 'ref', value: 'staging'}, {key: 'token', value: '***'}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Set up git for OSBotify',
             true,
             null,
@@ -76,7 +76,7 @@ const assertCherryPickJobExecuted = (
             [{key: 'GPG_PASSPHRASE', value: '***'}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Create branch for new pull request',
             true,
             null,
@@ -85,7 +85,7 @@ const assertCherryPickJobExecuted = (
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Get merge commit for CP pull request',
             true,
             null,
@@ -94,12 +94,12 @@ const assertCherryPickJobExecuted = (
             [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'USER', value: user}, {key: 'PULL_REQUEST_NUMBER', value: pullRequestNumber}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Save correct NEW_VERSION to env',
             true,
             inputNewVersion ? `New version is ${inputNewVersion}` : 'New version is',
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Get merge commit for version-bump pull request',
             true,
             null,
@@ -108,7 +108,7 @@ const assertCherryPickJobExecuted = (
             [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'USER', value: 'OSBotify'}, {key: 'TITLE_REGEX', value: `Update version to ${newVersion}`}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Cherry-pick the version-bump to new branch',
             true,
             null,
@@ -117,7 +117,7 @@ const assertCherryPickJobExecuted = (
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Cherry-pick the merge commit of target PR to new branch',
             true,
             null,
@@ -126,7 +126,7 @@ const assertCherryPickJobExecuted = (
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Push changes to CP branch',
             true,
             null,
@@ -135,7 +135,7 @@ const assertCherryPickJobExecuted = (
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Create Pull Request',
             true,
             null,
@@ -144,7 +144,7 @@ const assertCherryPickJobExecuted = (
             [],
             [{key: 'GITHUB_TOKEN', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Check if ShortVersionString is up to date',
             true,
             null,
@@ -153,7 +153,7 @@ const assertCherryPickJobExecuted = (
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Check if pull request is mergeable',
             true,
             null,
@@ -173,7 +173,7 @@ const assertCherryPickJobExecuted = (
     }
 
     const conflictsSteps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Auto-assign PR if there are merge conflicts or if the bundle versions are mismatched',
             true,
             null,
@@ -193,7 +193,7 @@ const assertCherryPickJobExecuted = (
     }
 
     const manualMergeSteps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Assign the PR to the deployer',
             true,
             null,
@@ -202,7 +202,7 @@ const assertCherryPickJobExecuted = (
             [],
             [{key: 'GITHUB_TOKEN', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'If PR has merge conflicts, comment with instructions for assignee',
             true,
             null,
@@ -222,7 +222,7 @@ const assertCherryPickJobExecuted = (
     }
 
     const autoMergeSteps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Auto-approve the PR',
             true,
             null,
@@ -242,7 +242,7 @@ const assertCherryPickJobExecuted = (
     }
 
     const versionMismatchSteps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'If PR has a bundle version mismatch, comment with the instructions for assignee',
             true,
             null,
@@ -262,7 +262,7 @@ const assertCherryPickJobExecuted = (
     }
 
     const failedSteps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Announces a CP failure in the #announce Slack room',
             true,
             null,
@@ -282,7 +282,7 @@ const assertCherryPickJobExecuted = (
     }
 
     const autoMergeableSteps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Auto-merge the PR',
             true,
             null,

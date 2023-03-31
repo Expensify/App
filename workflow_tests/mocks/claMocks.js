@@ -1,7 +1,7 @@
 const utils = require('../utils/utils');
 
 // cla
-const CLA__CLA__CLA_COMMENT_CHECK__NO_MATCH__STEP_MOCK = utils.getMockStep(
+const CLA__CLA__CLA_COMMENT_CHECK__NO_MATCH__STEP_MOCK = utils.createMockStep(
     'CLA comment check',
     'CLA comment check',
     'CLA',
@@ -9,7 +9,7 @@ const CLA__CLA__CLA_COMMENT_CHECK__NO_MATCH__STEP_MOCK = utils.getMockStep(
     [],
     {match: ''},
 );
-const CLA__CLA__CLA_COMMENT_CHECK__MATCH__STEP_MOCK = utils.getMockStep(
+const CLA__CLA__CLA_COMMENT_CHECK__MATCH__STEP_MOCK = utils.createMockStep(
     'CLA comment check',
     'CLA comment check',
     'CLA',
@@ -17,7 +17,7 @@ const CLA__CLA__CLA_COMMENT_CHECK__MATCH__STEP_MOCK = utils.getMockStep(
     [],
     {match: 'I have read the CLA Document and I hereby sign the CLA'},
 );
-const CLA__CLA__CLA_COMMENT_RE_CHECK__NO_MATCH__STEP_MOCK = utils.getMockStep(
+const CLA__CLA__CLA_COMMENT_RE_CHECK__NO_MATCH__STEP_MOCK = utils.createMockStep(
     'CLA comment re-check',
     'CLA comment re-check',
     'CLA',
@@ -25,7 +25,7 @@ const CLA__CLA__CLA_COMMENT_RE_CHECK__NO_MATCH__STEP_MOCK = utils.getMockStep(
     [],
     {match: ''},
 );
-const CLA__CLA__CLA_COMMENT_RE_CHECK__MATCH__STEP_MOCK = utils.getMockStep(
+const CLA__CLA__CLA_COMMENT_RE_CHECK__MATCH__STEP_MOCK = utils.createMockStep(
     'CLA comment re-check',
     'CLA comment re-check',
     'CLA',
@@ -33,7 +33,7 @@ const CLA__CLA__CLA_COMMENT_RE_CHECK__MATCH__STEP_MOCK = utils.getMockStep(
     [],
     {match: 'recheck'},
 );
-const CLA__CLA__CLA_ASSISTANT__STEP_MOCK = utils.getMockStep(
+const CLA__CLA__CLA_ASSISTANT__STEP_MOCK = utils.createMockStep(
     'CLA Assistant',
     'CLA Assistant',
     'CLA',

@@ -114,7 +114,7 @@ describe('test workflow lockDeploys', () => {
                         const testMockSteps = {
                             lockStagingDeploys: mocks.LOCKDEPLOYS__LOCKSTAGINGDEPLOYS__STEP_MOCKS,
                         };
-                        testMockSteps.lockStagingDeploys[1] = utils.getMockStep(
+                        testMockSteps.lockStagingDeploys[1] = utils.createMockStep(
                             'Wait for staging deploys to finish',
                             'Waiting for staging deploys to finish',
                             'LOCKSTAGINGDEPLOYS',

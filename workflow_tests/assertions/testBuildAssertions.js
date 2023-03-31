@@ -2,7 +2,7 @@ const utils = require('../utils/utils');
 
 const assertValidateActorJobExecuted = (workflowResult, actor = 'Dummy Actor', pullRequestNumber = '1234', didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Is team member',
             true,
             null,
@@ -11,7 +11,7 @@ const assertValidateActorJobExecuted = (workflowResult, actor = 'Dummy Actor', p
             [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'username', value: actor}, {key: 'team', value: 'Expensify/expensify'}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Set HAS_READY_TO_BUILD_LABEL flag',
             true,
             null,
@@ -32,7 +32,7 @@ const assertValidateActorJobExecuted = (workflowResult, actor = 'Dummy Actor', p
 };
 const assertGetBranchRefJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout',
             true,
             null,
@@ -41,7 +41,7 @@ const assertGetBranchRefJobExecuted = (workflowResult, didExecute = true) => {
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Check if pull request number is correct',
             true,
             null,
@@ -62,7 +62,7 @@ const assertGetBranchRefJobExecuted = (workflowResult, didExecute = true) => {
 };
 const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, failsAt = -1) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout',
             true,
             null,
@@ -71,7 +71,7 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
             [{key: 'ref', value: ref}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Setup Node',
             true,
             null,
@@ -80,7 +80,7 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Setup Ruby',
             true,
             null,
@@ -89,7 +89,7 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
             [{key: 'ruby-version', value: '2.7'}, {key: 'bundler-cache', value: true}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Decrypt keystore',
             true,
             null,
@@ -98,7 +98,7 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
             [],
             [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Decrypt json key',
             true,
             null,
@@ -107,7 +107,7 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
             [],
             [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Configure AWS Credentials',
             true,
             null,
@@ -116,7 +116,7 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
             [{key: 'AWS_ACCESS_KEY_ID', value: '***'}, {key: 'AWS_SECRET_ACCESS_KEY', value: '***'}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Run Fastlane beta test',
             true,
             null,
@@ -130,7 +130,7 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
                 {key: 'S3_REGION', value: 'us-east-1'},
             ],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Upload Artifact',
             true,
             null,
@@ -161,7 +161,7 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
 };
 const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, failsAt = -1) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout',
             true,
             null,
@@ -170,7 +170,7 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             [{key: 'ref', value: ref}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Setup Node',
             true,
             null,
@@ -179,7 +179,7 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Setup Ruby',
             true,
             null,
@@ -188,7 +188,7 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             [{key: 'ruby-version', value: '2.7'}, {key: 'bundler-cache', value: true}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Install cocoapods',
             true,
             null,
@@ -201,7 +201,7 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             ],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Decrypt profile',
             true,
             null,
@@ -210,7 +210,7 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             [],
             [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Decrypt certificate',
             true,
             null,
@@ -219,7 +219,7 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             [],
             [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Configure AWS Credentials',
             true,
             null,
@@ -228,7 +228,7 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             [{key: 'AWS_ACCESS_KEY_ID', value: '***'}, {key: 'AWS_SECRET_ACCESS_KEY', value: '***'}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Run Fastlane',
             true,
             null,
@@ -242,7 +242,7 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
                 {key: 'S3_REGION', value: 'us-east-1'},
             ],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Upload Artifact',
             true,
             null,
@@ -273,7 +273,7 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
 };
 const assertDesktopJobExecuted = (workflowResult, ref = '', didExecute = true, failsAt = -1) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout',
             true,
             null,
@@ -282,7 +282,7 @@ const assertDesktopJobExecuted = (workflowResult, ref = '', didExecute = true, f
             [{key: 'ref', value: ref}, {key: 'fetch-depth', value: '0'}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Setup Node',
             true,
             null,
@@ -291,7 +291,7 @@ const assertDesktopJobExecuted = (workflowResult, ref = '', didExecute = true, f
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Decrypt Developer ID Certificate',
             true,
             null,
@@ -300,7 +300,7 @@ const assertDesktopJobExecuted = (workflowResult, ref = '', didExecute = true, f
             [],
             [{key: 'DEVELOPER_ID_SECRET_PASSPHRASE', value: '***'}],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Configure AWS Credentials',
             true,
             null,
@@ -309,7 +309,7 @@ const assertDesktopJobExecuted = (workflowResult, ref = '', didExecute = true, f
             [{key: 'AWS_ACCESS_KEY_ID', value: '***'}, {key: 'AWS_SECRET_ACCESS_KEY', value: '***'}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Build desktop app for testing',
             true,
             null,
@@ -347,7 +347,7 @@ const assertDesktopJobExecuted = (workflowResult, ref = '', didExecute = true, f
 };
 const assertWebJobExecuted = (workflowResult, ref = '', didExecute = true, failsAt = -1) => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout',
             true,
             null,
@@ -356,7 +356,7 @@ const assertWebJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             [{key: 'fetch-depth', value: '0'}, {key: 'ref', value: ref}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Setup Node',
             true,
             null,
@@ -365,7 +365,7 @@ const assertWebJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Configure AWS Credentials',
             true,
             null,
@@ -374,7 +374,7 @@ const assertWebJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             [{key: 'AWS_ACCESS_KEY_ID', value: '***'}, {key: 'AWS_SECRET_ACCESS_KEY', value: '***'}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Build web for testing',
             true,
             null,
@@ -383,7 +383,7 @@ const assertWebJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Build docs',
             true,
             null,
@@ -392,7 +392,7 @@ const assertWebJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             [],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Deploy to S3 for internal testing',
             true,
             null,
@@ -423,7 +423,7 @@ const assertWebJobExecuted = (workflowResult, ref = '', didExecute = true, fails
 };
 const assertPostGithubCommentJobExecuted = (workflowResult, ref = '', pullRequestNumber = '1234', didExecute = true, androidStatus = 'success', iOSStatus = 'success', desktopStatus = 'success', webStatus = 'success') => {
     const steps = [
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Checkout',
             true,
             null,
@@ -432,7 +432,7 @@ const assertPostGithubCommentJobExecuted = (workflowResult, ref = '', pullReques
             [{key: 'ref', value: ref}],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Download Artifact',
             true,
             null,
@@ -444,7 +444,7 @@ const assertPostGithubCommentJobExecuted = (workflowResult, ref = '', pullReques
     ];
     if (androidStatus === 'success') {
         steps.push(
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Read JSONs with android paths',
                 true,
                 null,
@@ -457,7 +457,7 @@ const assertPostGithubCommentJobExecuted = (workflowResult, ref = '', pullReques
     }
     if (iOSStatus === 'success') {
         steps.push(
-            utils.getStepAssertion(
+            utils.createStepAssertion(
                 'Read JSONs with iOS paths',
                 true,
                 null,
@@ -469,7 +469,7 @@ const assertPostGithubCommentJobExecuted = (workflowResult, ref = '', pullReques
         );
     }
     steps.push(
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'maintain-comment',
             true,
             null,
@@ -483,7 +483,7 @@ const assertPostGithubCommentJobExecuted = (workflowResult, ref = '', pullReques
             ],
             [],
         ),
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             'Publish links to apps for download',
             true,
             null,
