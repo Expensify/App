@@ -107,7 +107,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 
         // Somehow it's possible for the logins coming from report.participants to contain undefined values so we use compact to remove them.
         .compact()
-        .each(logins, (login) => {
+        .each((login) => {
             let personalDetail = personalDetails[login];
             if (!personalDetail) {
                 personalDetail = {
