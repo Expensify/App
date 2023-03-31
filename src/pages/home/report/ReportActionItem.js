@@ -1,6 +1,8 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React from 'react';
+import React, {
+    useState, useRef, useEffect, memo,
+} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import CONST from '../../../CONST';
@@ -70,27 +72,29 @@ const defaultProps = {
 };
 
 function ReportActionItem(props) {
-    const [isContextMenuActive, setIsContextMenuActive] = React.useState(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
-    const previousDraftMessage = React.useRef('');
-    const textInput = React.useRef();
-    const popoverAnchor = React.useRef();
+    const [isContextMenuActive, setIsContextMenuActive] = useState(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
+    const previousDraftMessageRef = useRef('');
+    const textInputRef = useRef();
+    const popoverAnchorRef = useRef();
 
-    React.useEffect(() => {
-        previousDraftMessage.current = props.draftMessage;
+    // We need to store the previous value of draftMessage because we use it in the subsequent useEffect hook
+    // to decide whether we should focus the text input
+    useEffect(() => {
+        previousDraftMessageRef.current = props.draftMessage;
     }, [props.draftMessage]);
 
-    React.useEffect(() => {
-        if (previousDraftMessage.current || !props.draftMessage) {
+    useEffect(() => {
+        if (previousDraftMessageRef.current || !props.draftMessage) {
             return;
         }
 
         // Only focus the input when user edits a message, skip it for existing drafts being edited of the report.
         // There is an animation when the comment is hidden and the edit form is shown, and there can be bugs on different mobile platforms
         // if the input is given focus in the middle of that animation which can prevent the keyboard from opening.
-        focusTextInputAfterAnimation(textInput.current, 100);
+        focusTextInputAfterAnimation(textInputRef.current, 100);
     }, [props.draftMessage]);
 
-    const checkIfContextMenuActive = () => {
+    const toggleContextMenuFromActiveReportAction = () => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
     };
 
@@ -115,12 +119,12 @@ function ReportActionItem(props) {
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
             selection,
-            popoverAnchor.current,
+            popoverAnchorRef.current,
             props.report.reportID,
             props.action,
             props.draftMessage,
             undefined,
-            checkIfContextMenuActive,
+            toggleContextMenuFromActiveReportAction,
             ReportUtils.isArchivedRoom(props.report),
             ReportUtils.chatIncludesChronos(props.report),
         );
@@ -144,8 +148,8 @@ function ReportActionItem(props) {
                     action={props.action}
                     isMostRecentIOUReportAction={props.isMostRecentIOUReportAction}
                     isHovered={hovered}
-                    contextMenuAnchor={popoverAnchor}
-                    checkIfContextMenuActive={checkIfContextMenuActive}
+                    contextMenuAnchor={popoverAnchorRef}
+                    checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                 />
             );
         } else {
@@ -156,10 +160,10 @@ function ReportActionItem(props) {
             children = (
                 <ShowContextMenuContext.Provider
                     value={{
-                        anchor: popoverAnchor.current,
+                        anchor: popoverAnchorRef.current,
                         reportID: props.report.reportID,
                         action: props.action,
-                        checkIfContextMenuActive,
+                        toggleContextMenuFromActiveReportAction,
                     }}
                 >
                     {!props.draftMessage
@@ -177,7 +181,7 @@ function ReportActionItem(props) {
                                 draftMessage={props.draftMessage}
                                 reportID={props.report.reportID}
                                 index={props.index}
-                                ref={textInput}
+                                ref={textInputRef}
                                 report={props.report}
                                 shouldDisableEmojiPicker={
                                     (ReportUtils.chatIncludesConcierge(props.report) && User.isBlockedFromConcierge(props.blockedFromConcierge))
@@ -217,7 +221,7 @@ function ReportActionItem(props) {
     return (
         <PressableWithSecondaryInteraction
             pointerEvents={props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? 'none' : 'auto'}
-            ref={popoverAnchor}
+            ref={popoverAnchorRef}
             onPressIn={() => props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
             onSecondaryInteraction={showPopover}
@@ -289,26 +293,23 @@ function ReportActionItem(props) {
 ReportActionItem.propTypes = propTypes;
 ReportActionItem.defaultProps = defaultProps;
 
-export default React.memo(
-    compose(
-        withWindowDimensions,
-        withLocalize,
-        withNetwork(),
-        withBlockedFromConcierge({propName: 'blockedFromConcierge'}),
-        withReportActionsDrafts({
-            propName: 'draftMessage',
-            transformValue: (drafts, props) => {
-                const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.report.reportID}_${props.action.reportActionID}`;
-                return lodashGet(drafts, draftKey, '');
-            },
-        }),
-    )(ReportActionItem),
-    (prevProps, nextProps) => (
-        prevProps.displayAsGroup === nextProps.displayAsGroup
-            && prevProps.draftMessage === nextProps.draftMessage
-            && prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction
-            && prevProps.hasOutstandingIOU === nextProps.hasOutstandingIOU
-            && prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker
-            && _.isEqual(prevProps.action, nextProps.action)
-    ),
-);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+    withNetwork(),
+    withBlockedFromConcierge({propName: 'blockedFromConcierge'}),
+    withReportActionsDrafts({
+        propName: 'draftMessage',
+        transformValue: (drafts, props) => {
+            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.report.reportID}_${props.action.reportActionID}`;
+            return lodashGet(drafts, draftKey, '');
+        },
+    }),
+)(memo(ReportActionItem, (prevProps, nextProps) => (
+    prevProps.displayAsGroup === nextProps.displayAsGroup
+        && prevProps.draftMessage === nextProps.draftMessage
+        && prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction
+        && prevProps.hasOutstandingIOU === nextProps.hasOutstandingIOU
+        && prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker
+        && _.isEqual(prevProps.action, nextProps.action)
+)));
