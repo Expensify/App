@@ -49,7 +49,7 @@ function setUpActParams(
     return updated_act;
 }
 
-function getMockStep(
+function createMockStep(
     name,
     message,
     job_id = null,
@@ -94,7 +94,7 @@ function getMockStep(
     };
 }
 
-function getStepAssertion(
+function createStepAssertion(
     name,
     isSuccessful = true,
     expectedOutput = null,
@@ -169,8 +169,8 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
 
 module.exports = {
     setUpActParams,
-    getMockStep,
-    getStepAssertion,
+    getMockStep: createMockStep,
+    getStepAssertion: createStepAssertion,
     setJobRunners,
     deepCopy,
     FILES_TO_COPY_INTO_TEST_REPO,
