@@ -218,7 +218,7 @@ class ACHContractStep extends React.Component {
                                 defaultValue={this.props.getDefaultStateForField('hasOtherBeneficialOwners', false)}
                                 shouldSaveDraft
                             />
-                            {inputValues.hasOtherBeneficialOwners && (
+                            {Boolean(inputValues.hasOtherBeneficialOwners) && (
                                 <View style={[styles.mb2]}>
                                     {_.map(this.state.beneficialOwners, (ownerKey, index) => (
                                         <View key={index} style={[styles.p5, styles.border, styles.mb2]}>

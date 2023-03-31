@@ -25,4 +25,7 @@ export default PropTypes.shape({
 
     // An additional avatar url - not the main avatar url but used within a message.
     iconUrl: PropTypes.string,
+
+    // Fragment edited flag
+    isEdited: PropTypes.bool,
 });

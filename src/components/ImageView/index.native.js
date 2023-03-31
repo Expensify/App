@@ -175,7 +175,7 @@ class ImageView extends PureComponent {
                     });
                 }}
             >
-                {this.state.containerHeight && (
+                {Boolean(this.state.containerHeight) && (
                     <ImageZoom
                         ref={el => this.zoom = el}
                         onClick={() => this.props.onPress()}

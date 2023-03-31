@@ -125,7 +125,7 @@ class LoginField extends Component {
                         </View>
                     )}
                 </View>
-                {note && (
+                {Boolean(note) && (
                     <Text style={[styles.textLabel, styles.colorMuted]}>
                         {note}
                     </Text>

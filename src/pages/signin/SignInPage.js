@@ -116,7 +116,7 @@ class SignInPage extends Component {
                     ) : (
                         <PasswordForm isVisible={showPasswordForm} />
                     )}
-                    {showResendValidationForm && <ResendValidationForm />}
+                    {Boolean(showResendValidationForm) && <ResendValidationForm />}
                 </SignInPageLayout>
             </SafeAreaView>
         );

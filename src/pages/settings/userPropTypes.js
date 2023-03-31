@@ -7,6 +7,9 @@ export default PropTypes.shape({
     /** Whether or not the user is on a public domain email account or not */
     isFromPublicDomain: PropTypes.bool,
 
+    /** */
+    isCheckingDomain: PropTypes.bool,
+
     /** Whether the form is being submitted */
     loading: PropTypes.bool,
 });

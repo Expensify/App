@@ -179,7 +179,7 @@ class Picker extends PureComponent {
         if (this.props.isDisabled) {
             return (
                 <View>
-                    {this.props.label && (
+                    {Boolean(this.props.label) && (
                         <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
                             {this.props.label}
                         </Text>
@@ -187,7 +187,7 @@ class Picker extends PureComponent {
                     <Text numberOfLines={1}>
                         {this.props.value}
                     </Text>
-                    {this.props.hintText
+                    {Boolean(this.props.hintText)
                     && (
                         <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
                             {this.props.hintText}
@@ -255,7 +255,7 @@ class Picker extends PureComponent {
                     />
                 </View>
                 <FormHelpMessage message={this.props.errorText} />
-                {this.props.hintText
+                {Boolean(this.props.hintText)
                     && (
                         <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
                             {this.props.hintText}

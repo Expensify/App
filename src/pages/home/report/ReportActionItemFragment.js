@@ -129,7 +129,7 @@ const ReportActionItemFragment = (props) => {
                     style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >
                     {StyleUtils.convertToLTR(Str.htmlDecode(text))}
-                    {props.fragment.isEdited && (
+                    {Boolean(props.fragment.isEdited) && (
                     <Text
                         fontSize={variables.fontSizeSmall}
                         color={themeColors.textSupporting}

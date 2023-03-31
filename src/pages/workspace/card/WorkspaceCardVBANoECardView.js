@@ -57,7 +57,7 @@ const WorkspaceCardVBANoECardView = props => (
                 success
             />
         </Section>
-        {props.user.isCheckingDomain && (
+        {Boolean(props.user.isCheckingDomain) && (
             <Text style={[styles.m5, styles.formError]}>
                 {props.translate('workspace.card.checkingDomain')}
             </Text>

@@ -65,7 +65,7 @@ const getLongTermsSections = () => _.map(termsData, (section, index) => (
             <View style={[styles.flex4]}>
                 <Text>{section.title}</Text>
                 {
-                    section.subTitle
+                    Boolean(section.subTitle)
                     && (
                         <Text style={[styles.textMicroSupporting, styles.mt1]}>
                             {section.subTitle}
@@ -78,7 +78,7 @@ const getLongTermsSections = () => _.map(termsData, (section, index) => (
                     {section.rightText}
                 </Text>
                 {
-                    section.subRightText
+                    Boolean(section.subRightText)
                     && (
                         <Text style={[styles.textMicroSupporting, styles.mt1, styles.textAlignRight]}>
                             {section.subRightText}

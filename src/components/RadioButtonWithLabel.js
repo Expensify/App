@@ -67,12 +67,12 @@ const RadioButtonWithLabel = (props) => {
                         styles.alignItemsCenter,
                     ]}
                 >
-                    {props.label && (
+                    {Boolean(props.label) && (
                         <Text style={[styles.ml1]}>
                             {props.label}
                         </Text>
                     )}
-                    {LabelComponent && (<LabelComponent />)}
+                    {Boolean(LabelComponent) && (<LabelComponent />)}
                 </TouchableOpacity>
             </View>
             <FormHelpMessage message={props.errorText} />

@@ -271,7 +271,7 @@ class OptionRow extends Component {
                                     {this.props.showSelectedState && <SelectCircle isChecked={this.props.isSelected} />}
                                 </View>
                             </View>
-                            {this.props.option.customIcon && (
+                            {Boolean(this.props.option.customIcon) && (
                                 <View
                                     style={[styles.flexRow, styles.alignItemsCenter]}
                                     accessible={false}

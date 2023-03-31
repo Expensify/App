@@ -300,7 +300,7 @@ class InitialSettingsPage extends React.Component {
                                             </Text>
                                         </Tooltip>
                                     </Pressable>
-                                    {this.props.currentUserPersonalDetails.displayName && (
+                                    {Boolean(this.props.currentUserPersonalDetails.displayName) && (
                                         <Text
                                             style={[styles.textLabelSupporting, styles.mt1]}
                                             numberOfLines={1}
