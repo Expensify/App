@@ -60,6 +60,11 @@ function getDisplayName(key, modifiers) {
 _.each(CONST.KEYBOARD_SHORTCUTS, (shortcut) => {
     const shortcutTrigger = lodashGet(shortcut, ['trigger', operatingSystem], lodashGet(shortcut, 'trigger.DEFAULT'));
 
+    // If there is no trigger for the current OS nor a default trigger, then we don't need to do anything
+    if (!shortcutTrigger) {
+        return;
+    }
+
     KeyCommand.addListener(
         shortcutTrigger,
         (keycommandEvent, event) => bindHandlerToKeydownEvent(getDisplayName, eventHandlers, keycommandEvent, event),
