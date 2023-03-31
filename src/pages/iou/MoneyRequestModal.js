@@ -162,6 +162,7 @@ const MoneyRequestModal = (props) => {
             PersonalDetails.openIOUModalPage();
         }
 
+        // If the curency code is updated, also update the IOU selected currency
         const selectedCurrencyCode = lodashGet(props, 'iou.selectedCurrencyCode');
         if (prevSelectedCurrencyCodeRef.current !== selectedCurrencyCode) {
             IOU.setIOUSelectedCurrency(selectedCurrencyCode);
@@ -348,11 +349,54 @@ const MoneyRequestModal = (props) => {
         );
     }
 
-    const currentStep = this.steps[this.state.currentStepIndex];
-        const reportID = lodashGet(this.props, 'route.params.reportID', '');
+    function renderHeader() {
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
+            <View style={[styles.headerBar]}>
+                <View style={[
+                    styles.dFlex,
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.flexGrow1,
+                    styles.justifyContentBetween,
+                    styles.overflowHidden,
+                ]}
+                >
+                    {currentStepIndex > 0
+                        && (
+                        <View style={[styles.mr2]}>
+                            <Tooltip text={props.translate('common.back')}>
+                                <TouchableOpacity
+                                    onPress={navigateToPreviousStep}
+                                    style={[styles.touchableButtonImage]}
+                                >
+                                    <Icon src={Expensicons.BackArrow} />
+                                </TouchableOpacity>
+                            </Tooltip>
+                        </View>
+                        )}
+                    <Header title={getTitleForStep()} />
+                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
+                        <Tooltip text={props.translate('common.close')}>
+                            <TouchableOpacity
+                                onPress={() => Navigation.dismissModal()}
+                                style={[styles.touchableButtonImage]}
+                                accessibilityRole="button"
+                                accessibilityLabel={props.translate('common.close')}
+                            >
+                                <Icon src={Expensicons.Close} />
+                            </TouchableOpacity>
+                        </Tooltip>
+                    </View>
+                </View>
+            </View>
+        );
+    }
+
+    const currentStep = steps[currentStepIndex];
+    const reportID = lodashGet(props, 'route.params.reportID', '');
+    return (
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
                         <View style={[styles.pRelative, styles.flex1]}>
                             {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
@@ -360,34 +404,34 @@ const MoneyRequestModal = (props) => {
                                 <>
                                     {currentStep === Steps.IOUAmount && (
                                         <AnimatedStep
-                                            direction={this.getDirection()}
+                                            direction={getDirection()}
                                             style={[styles.flex1, safeAreaPaddingBottomStyle]}
                                         >
-                                            {this.renderHeader()}
+                                            {renderHeader()}
                                             <IOUAmountPage
                                                 onStepComplete={(amount) => {
-                                                    this.setState({amount});
-                                                    this.navigateToNextStep();
+                                                    setAmount(amount);
+                                                    navigateToNextStep();
                                                 }}
                                                 reportID={reportID}
-                                                hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                                selectedAmount={this.state.amount}
-                                                navigation={this.props.navigation}
-                                                iouType={this.props.iouType}
+                                                hasMultipleParticipants={props.hasMultipleParticipants}
+                                                selectedAmount={amount}
+                                                navigation={props.navigation}
+                                                iouType={props.iouType}
                                             />
                                         </AnimatedStep>
                                     )}
                                     {currentStep === Steps.IOUParticipants && (
                                         <AnimatedStep
                                             style={[styles.flex1]}
-                                            direction={this.getDirection()}
+                                            direction={getDirection()}
                                         >
-                                            {this.renderHeader()}
+                                            {renderHeader()}
                                             <IOUParticipantsPage
-                                                participants={this.state.participants}
-                                                hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                                onAddParticipants={this.addParticipants}
-                                                onStepComplete={this.navigateToNextStep}
+                                                participants={participants}
+                                                hasMultipleParticipants={props.hasMultipleParticipants}
+                                                onAddParticipants={addParticipants}
+                                                onStepComplete={navigateToNextStep}
                                                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                                             />
                                         </AnimatedStep>
@@ -395,33 +439,26 @@ const MoneyRequestModal = (props) => {
                                     {currentStep === Steps.IOUConfirm && (
                                         <AnimatedStep
                                             style={[styles.flex1, safeAreaPaddingBottomStyle]}
-                                            direction={this.getDirection()}
+                                            direction={getDirection()}
                                         >
-                                            {this.renderHeader()}
+                                            {renderHeader()}
                                             <IOUConfirmPage
                                                 onConfirm={(selectedParticipants) => {
-                                                    // Prevent creating multiple transactions if the button is pressed repeatedly
-                                                    if (this.creatingIOUTransaction) {
-                                                        return;
-                                                    }
-                                                    this.creatingIOUTransaction = true;
-                                                    this.createTransaction(selectedParticipants);
+                                                    // TODO: ADD HANDLING TO DISABLE BUTTON FUNCTIONALITY WHILE REQUEST IS IN FLIGHT
+                                                    createTransaction(selectedParticipants);
                                                     ReportScrollManager.scrollToBottom();
                                                 }}
                                                 onSendMoney={(paymentMethodType) => {
-                                                    if (this.creatingIOUTransaction) {
-                                                        return;
-                                                    }
-                                                    this.creatingIOUTransaction = true;
-                                                    this.sendMoney(paymentMethodType);
+                                                    // TODO: ADD HANDLING TO DISABLE BUTTON FUNCTIONALITY WHILE REQUEST IS IN FLIGHT
+                                                    sendMoney(paymentMethodType);
                                                     ReportScrollManager.scrollToBottom();
                                                 }}
-                                                hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                                participants={_.filter(this.state.participants, email => this.props.currentUserPersonalDetails.login !== email.login)}
-                                                iouAmount={this.state.amount}
-                                                comment={this.state.comment}
-                                                onUpdateComment={this.updateComment}
-                                                iouType={this.props.iouType}
+                                                hasMultipleParticipants={props.hasMultipleParticipants}
+                                                participants={_.filter(participants, email => props.currentUserPersonalDetails.login !== email.login)}
+                                                iouAmount={amount}
+                                                comment={comment}
+                                                onUpdateComment={comment => setComment(comment)}
+                                                iouType={props.iouType}
 
                                                 // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
                                                 // This is because when there is a group of people, say they are on a trip, and you have some shared expenses with some of the people,
