@@ -58,6 +58,9 @@ class IOUAmountPage extends React.Component {
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
         this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
+        this.amountViewID = 'amountView';
+        this.numPadContainerViewID = 'numPadContainerView';
+        this.numPadViewID = 'numPadView';
 
         this.state = {
             amount: props.selectedAmount,
@@ -80,6 +83,23 @@ class IOUAmountPage extends React.Component {
 
     componentWillUnmount() {
         this.unsubscribeNavFocus();
+    }
+
+    /**
+     * Event occurs when a user presses a mouse button over an DOM element.
+     *
+     * @param {Event} event
+     * @param {Array<string>} nativeIds
+     */
+    onMouseDown(event, nativeIds) {
+        const relatedTargetId = lodashGet(event, 'nativeEvent.target.id');
+        if (!_.contains(nativeIds, relatedTargetId)) {
+            return;
+        }
+        event.preventDefault();
+        if (!this.textInput.isFocused()) {
+            this.textInput.focus();
+        }
     }
 
     /**
@@ -180,7 +200,9 @@ class IOUAmountPage extends React.Component {
      * @param {String} key
      */
     updateAmountNumberPad(key) {
-        this.focusTextInput();
+        if (!this.textInput.isFocused()) {
+            this.textInput.focus();
+        }
 
         // Backspace button is pressed
         if (key === '<' || key === 'Backspace') {
@@ -258,13 +280,16 @@ class IOUAmountPage extends React.Component {
 
         return (
             <>
-                <View style={[
-                    styles.flex1,
-                    styles.flexRow,
-                    styles.w100,
-                    styles.alignItemsCenter,
-                    styles.justifyContentCenter,
-                ]}
+                <View
+                    nativeID={this.amountViewID}
+                    onMouseDown={event => this.onMouseDown(event, [this.amountViewID])}
+                    style={[
+                        styles.flex1,
+                        styles.flexRow,
+                        styles.w100,
+                        styles.alignItemsCenter,
+                        styles.justifyContentCenter,
+                    ]}
                 >
                     <TextInputWithCurrencySymbol
                         formattedAmount={formattedAmount}
@@ -283,10 +308,15 @@ class IOUAmountPage extends React.Component {
                         }}
                     />
                 </View>
-                <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}>
+                <View
+                    onMouseDown={event => this.onMouseDown(event, [this.numPadContainerViewID, this.numPadViewID])}
+                    style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
+                    nativeID={this.numPadContainerViewID}
+                >
                     {DeviceCapabilities.canUseTouchScreen()
                         ? (
                             <BigNumberPad
+                                nativeID={this.numPadViewID}
                                 numberPressed={this.updateAmountNumberPad}
                                 longPressHandlerStateChanged={this.updateLongPressHandlerState}
                             />
