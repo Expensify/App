@@ -12,7 +12,6 @@ import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
-import SCREENS from '../../SCREENS';
 import NAVIGATORS from '../../NAVIGATORS';
 
 let resolveNavigationIsReadyPromise;
@@ -62,14 +61,6 @@ function canNavigate(methodName, params = {}) {
     }
     Log.hmmm(`[Navigation] ${methodName} failed because navigation ref was not yet ready`, params);
     return false;
-}
-
-/*
- * Sets Navigation State
- * @param {Boolean} isNavigatingValue
- */
-function setIsNavigating(isNavigatingValue) {
-    isNavigating = isNavigatingValue;
 }
 
 /**
