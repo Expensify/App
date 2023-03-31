@@ -88,7 +88,7 @@ function ReportActionItem(props) {
         focusTextInputAfterAnimation(textInputRef.current, 100);
     }, [props.draftMessage]);
 
-    // We need to store the previous value of draftMessage because we use it in the subsequent useEffect hook
+    // We need to store the previous value of draftMessage because we use it in the above useEffect hook
     // to decide whether we should focus the text input
     useEffect(() => {
         previousDraftMessageRef.current = props.draftMessage;
