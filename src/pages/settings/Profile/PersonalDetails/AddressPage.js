@@ -129,7 +129,11 @@ class AddressPage extends Component {
         const zipFormat = lodashGet(countryRegexDetails, 'samples');
 
         if (countrySpecificZipRegex && !countrySpecificZipRegex.test(values.zipPostCode.trim())) {
-            errors.zipPostCode = this.props.translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat});
+            if (_.isEmpty(values.zipPostCode.trim())) {
+                errors.zipPostCode = this.props.translate('common.error.fieldRequired');
+            } else {
+                errors.zipPostCode = this.props.translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat});
+            }
         } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values.zipPostCode.trim())) {
             errors.zipPostCode = this.props.translate('privatePersonalDetails.error.incorrectZipFormat');
         }
