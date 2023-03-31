@@ -337,9 +337,6 @@ export default compose(
             key: ({reportID, action}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}_${action.reportActionID}`,
             initWithStoredValues: false,
         },
-        preferredSkinTone: {
-            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        },
     }),
 )(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
