@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import * as RNLocalize from 'react-native-localize';
 import Log from '../Log';
 import Config from '../../CONFIG';
 import translations from '../../languages/translations';
@@ -87,8 +88,20 @@ function arrayToString(anArray) {
     return aString;
 }
 
+/**
+ * Returns the user device's preferred language.
+ *
+ * @return {String}
+ */
+function getDevicePreferredLocale() {
+    return lodashGet(
+        RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES]), 'languageTag', CONST.LOCALES.DEFAULT,
+    );
+}
+
 export {
     translate,
     translateLocal,
     arrayToString,
+    getDevicePreferredLocale,
 };

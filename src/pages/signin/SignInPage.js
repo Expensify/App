@@ -4,7 +4,6 @@ import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import * as RNLocalize from 'react-native-localize';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
@@ -17,7 +16,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import Performance from '../../libs/Performance';
 import * as App from '../../libs/actions/App';
 import Permissions from '../../libs/Permissions';
-import CONST from '../../CONST';
+import * as Localize from '../../libs/Localize';
 
 const propTypes = {
     /* Onyx Props */
@@ -53,14 +52,8 @@ const defaultProps = {
 class SignInPage extends Component {
     componentDidMount() {
         Performance.measureTTI();
-        this.setDevicePreferredLocale();
-    }
 
-    setDevicePreferredLocale() {
-        const preferredLocale = lodashGet(
-            RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES]), 'languageTag', CONST.LOCALES.DEFAULT,
-        );
-        App.setLocale(preferredLocale);
+        App.setLocale(Localize.getDevicePreferredLocale());
     }
 
     render() {

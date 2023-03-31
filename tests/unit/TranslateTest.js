@@ -3,7 +3,7 @@ const {error: AnnotationError} = require('@actions/core');
 const Localize = require('../../src/libs/Localize');
 const CONFIG = require('../../src/CONFIG');
 const translations = require('../../src/languages/translations');
-const CONST = require('../../src/CONST');
+const CONST = require('../../src/CONST').default;
 
 const originalTranslations = _.clone(translations);
 translations.default = {
