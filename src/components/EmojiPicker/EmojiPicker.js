@@ -1,17 +1,9 @@
 import React from 'react';
 import {Dimensions, Keyboard} from 'react-native';
 import _ from 'underscore';
-import EmojiPickerMenu from '../EmojiPickerMenu';
-import CONST from '../../../CONST';
-import PopoverWithMeasuredContent from '../../PopoverWithMeasuredContent';
-import compose from '../../../libs/compose';
-import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../withViewportOffsetTop';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
-
-const propTypes = {
-    ...viewportOffsetTopPropTypes,
-    ...windowDimensionsPropTypes,
-};
+import EmojiPickerMenu from './EmojiPickerMenu';
+import CONST from '../../CONST';
+import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
 
 const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -184,7 +176,6 @@ class EmojiPicker extends React.Component {
                 }}
                 anchorOrigin={this.state.emojiPopoverAnchorOrigin}
                 measureContent={this.measureContent}
-                outerStyle={{maxHeight: this.props.windowHeight, marginTop: this.props.viewportOffsetTop}}
             >
                 <EmojiPickerMenu
                     onEmojiSelected={this.selectEmoji}
@@ -195,9 +186,4 @@ class EmojiPicker extends React.Component {
     }
 }
 
-EmojiPicker.propTypes = propTypes;
-
-export default compose(
-    withViewportOffsetTop,
-    withWindowDimensions,
-)(EmojiPicker);
+export default EmojiPicker;

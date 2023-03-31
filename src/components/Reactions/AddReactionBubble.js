@@ -90,6 +90,9 @@ const AddReactionBubble = (props) => {
                     StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.sizeScale),
                 ]}
                 onPress={onPress}
+
+                // Prevent text input blur when Add reaction is clicked
+                onMouseDown={e => e.preventDefault()}
             >
                 {({
                     hovered,
