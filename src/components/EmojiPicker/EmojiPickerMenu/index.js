@@ -168,6 +168,13 @@ class EmojiPickerMenu extends Component {
                 return;
             }
 
+            // Return if the key is related to any tab cycling event so that the default logic
+            // can be executed.
+            if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Shift' || keyBoardEvent.key === 'Enter') {
+                this.setState({isUsingKeyboardMovement: true});
+                return;
+            }
+
             // We allow typing in the search box if any key is pressed apart from Arrow keys.
             if (this.searchInput && !this.searchInput.isFocused()) {
                 this.setState({selectTextOnFocus: false});
@@ -425,16 +432,6 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
-     * Return a unique key for each emoji item
-     *
-     * @param {Object} item
-     * @returns {String}
-     */
-    keyExtractor(item) {
-        return (`emoji_picker_${item.code}`);
-    }
-
-    /**
      * Given an emoji item object, render a component based on its type.
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
      * so that the sticky headers function properly.
@@ -463,6 +460,8 @@ class EmojiPickerMenu extends Component {
             ? types[this.props.preferredSkinTone]
             : code;
 
+        const isEmojiFocused = index === this.state.highlightedIndex && this.state.isUsingKeyboardMovement;
+
         return (
             <EmojiPickerMenuItem
                 onPress={emoji => this.addToFrequentAndSelectEmoji(emoji, item)}
@@ -474,6 +473,13 @@ class EmojiPickerMenu extends Component {
                     this.setState({highlightedIndex: -1});
                 }}
                 emoji={emojiCode}
+                onFocus={() => this.setState({highlightedIndex: index})}
+                onBlur={() => this.setState(prevState => ({
+                    // Only clear the highlighted index if the highlighted index is the same,
+                    // meaning that the focus changed to an element that is not an emoji item.
+                    highlightedIndex: prevState.highlightedIndex === index ? -1 : prevState.highlightedIndex,
+                }))}
+                isFocused={isEmojiFocused}
                 isHighlighted={index === this.state.highlightedIndex}
                 isUsingKeyboardMovement={this.state.isUsingKeyboardMovement}
             />
@@ -487,20 +493,21 @@ class EmojiPickerMenu extends Component {
                 style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
-                <View style={[styles.ph4, styles.pb1, styles.pt2]}>
-                    <TextInput
-                        label={this.props.translate('common.search')}
-                        onChangeText={this.filterEmojis}
-                        defaultValue=""
-                        ref={el => this.searchInput = el}
-                        autoFocus={!this.isMobileLandscape() || this.props.isSmallScreenWidth}
-                        selectTextOnFocus={this.state.selectTextOnFocus}
-                        onSelectionChange={this.onSelectionChange}
-                        onFocus={() => this.setState({isFocused: true, highlightedIndex: -1, isUsingKeyboardMovement: false})}
-                        onBlur={() => this.setState({isFocused: false})}
-                        autoCorrect={false}
-                    />
-                </View>
+                {!this.props.isSmallScreenWidth && (
+                    <View style={[styles.ph4, styles.pb1, styles.pt2]}>
+                        <TextInput
+                            label={this.props.translate('common.search')}
+                            onChangeText={this.filterEmojis}
+                            defaultValue=""
+                            ref={el => this.searchInput = el}
+                            autoFocus
+                            selectTextOnFocus={this.state.selectTextOnFocus}
+                            onSelectionChange={this.onSelectionChange}
+                            onFocus={() => this.setState({isFocused: true, highlightedIndex: -1, isUsingKeyboardMovement: false})}
+                            onBlur={() => this.setState({isFocused: false})}
+                        />
+                    </View>
+                )}
                 {!isFiltered && (
                     <CategoryShortcutBar
                         headerEmojis={this.headerEmojis}
@@ -512,10 +519,11 @@ class EmojiPickerMenu extends Component {
                         <Text
                             style={[
                                 styles.disabledText,
-                                styles.emojiPickerListWithPadding,
+                                styles.emojiPickerList,
                                 styles.dFlex,
                                 styles.alignItemsCenter,
                                 styles.justifyContentCenter,
+                                styles.flexGrow1,
                                 this.isMobileLandscape() && styles.emojiPickerListLandscape,
                             ]}
                         >
@@ -527,11 +535,10 @@ class EmojiPickerMenu extends Component {
                             ref={el => this.emojiList = el}
                             data={this.state.filteredEmojis}
                             renderItem={this.renderItem}
-                            keyExtractor={this.keyExtractor}
+                            keyExtractor={item => `emoji_picker_${item.code}`}
                             numColumns={CONST.EMOJI_NUM_PER_ROW}
                             style={[
                                 styles.emojiPickerList,
-                                StyleUtils.getEmojiPickerListHeight(isFiltered),
                                 this.isMobileLandscape() && styles.emojiPickerListLandscape,
                             ]}
                             extraData={
