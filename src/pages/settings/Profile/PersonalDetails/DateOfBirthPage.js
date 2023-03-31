@@ -58,7 +58,7 @@ class DateOfBirthPage extends Component {
                 return;
             }
             this.datePicker.showPicker();
-        }, 1);
+        }, 100);
     }
 
     componentWillUnmount() {
