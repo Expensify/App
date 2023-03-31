@@ -67,7 +67,7 @@ const ReportActionItemSingle = (props) => {
     const personArray = displayName
         ? [{
             type: 'TEXT',
-            text: Str.isSMSLogin(login) ? props.formatPhoneNumber(Str.removeSMSDomain(displayName)) : displayName
+            text: Str.isSMSLogin(login) ? props.formatPhoneNumber(Str.removeSMSDomain(displayName)) : displayName,
         }]
         : props.action.person;
 
@@ -110,7 +110,7 @@ const ReportActionItemSingle = (props) => {
                                 />
                             ))}
                         </Pressable>
-                        <ReportActionItemDate created={props.action.created}/>
+                        <ReportActionItemDate created={props.action.created} />
                     </View>
                 ) : null}
                 {props.children}
