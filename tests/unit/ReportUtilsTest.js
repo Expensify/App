@@ -391,4 +391,21 @@ describe('ReportUtils', () => {
             expect(iouOptions.includes(CONST.IOU.IOU_TYPE.SEND)).toBe(true);
         });
     });
+
+    describe('getReportIDFromLink', () => {
+        it('should get the correct reportID from a deep link', () => {
+            expect(ReportUtils.getReportIDFromLink('new-expensify://r/75431276')).toBe('75431276');
+            expect(ReportUtils.getReportIDFromLink('https://www.expensify.cash/r/75431276')).toBe('75431276');
+            expect(ReportUtils.getReportIDFromLink('https://staging.new.expensify.com/r/75431276')).toBe('75431276');
+            expect(ReportUtils.getReportIDFromLink('http://localhost/r/75431276')).toBe('75431276');
+            expect(ReportUtils.getReportIDFromLink('http://localhost:8080/r/75431276')).toBe('75431276');
+            expect(ReportUtils.getReportIDFromLink('https://staging.expensify.cash/r/75431276')).toBe('75431276');
+            expect(ReportUtils.getReportIDFromLink('https://new.expensify.com/r/75431276')).toBe('75431276');
+        });
+
+        it('shouldn\'t get the correct reportID from a deep link', () => {
+            expect(ReportUtils.getReportIDFromLink('new-expensify-not-valid://r/75431276')).toBe('');
+            expect(ReportUtils.getReportIDFromLink('new-expensify://settings')).toBe('');
+        });
+    });
 });

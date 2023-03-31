@@ -45,6 +45,9 @@ const propTypes = {
         login: PropTypes.string,
     }),
 
+    /** Indicates which locale the user currently has selected */
+    preferredLocale: PropTypes.string,
+
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -58,6 +61,7 @@ const propTypes = {
 const defaultProps = {
     account: {},
     credentials: {},
+    preferredLocale: CONST.DEFAULT_LOCALE,
 };
 
 class BaseValidateCodeForm extends React.Component {
@@ -180,7 +184,7 @@ class BaseValidateCodeForm extends React.Component {
         if (accountID) {
             Session.signInWithValidateCode(accountID, this.state.validateCode, this.state.twoFactorAuthCode);
         } else {
-            Session.signIn('', this.state.validateCode, this.state.twoFactorAuthCode);
+            Session.signIn('', this.state.validateCode, this.state.twoFactorAuthCode, this.props.preferredLocale);
         }
     }
 
@@ -271,6 +275,7 @@ export default compose(
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
         credentials: {key: ONYXKEYS.CREDENTIALS},
+        preferredLocale: {key: ONYXKEYS.NVP_PREFERRED_LOCALE},
     }),
     withToggleVisibilityView,
     withNetwork(),

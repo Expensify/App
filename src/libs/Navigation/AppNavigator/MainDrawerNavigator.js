@@ -4,7 +4,6 @@ import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 
-import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import ONYXKEYS from '../../../ONYXKEYS';
 import SCREENS from '../../../SCREENS';
 import Permissions from '../../Permissions';
@@ -17,6 +16,8 @@ import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import BaseDrawerNavigator from './BaseDrawerNavigator';
 import * as ReportUtils from '../../ReportUtils';
 import reportPropTypes from '../../../pages/reportPropTypes';
+import Navigation from '../Navigation';
+import {withNavigationPropTypes} from '../../../components/withNavigation';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
@@ -39,6 +40,8 @@ const propTypes = {
             openOnAdminRoom: PropTypes.bool,
         }),
     }).isRequired,
+
+    ...withNavigationPropTypes,
 };
 
 const defaultProps = {
@@ -91,6 +94,14 @@ class MainDrawerNavigator extends Component {
             return false;
         }
 
+        // Update the report screen initial params after the reports are available
+        // to show the correct report instead of the "no access" report.
+        // https://github.com/Expensify/App/issues/12698#issuecomment-1352632883
+        if (!this.initialParams.reportID) {
+            const state = this.props.navigation.getState();
+            const reportScreenKey = lodashGet(state, 'routes[0].state.routes[0].key', '');
+            Navigation.setParams(initialNextParams, reportScreenKey);
+        }
         this.initialParams = initialNextParams;
         return true;
     }
@@ -105,14 +116,6 @@ class MainDrawerNavigator extends Component {
     }
 
     render() {
-        // Wait until reports are fetched and there is a reportID in initialParams
-        if (!this.initialParams.reportID) {
-            return <FullScreenLoadingIndicator />;
-        }
-
-        // After the app initializes and reports are available the home navigation is mounted
-        // This way routing information is updated (if needed) based on the initial report ID resolved.
-        // This is usually needed after login/create account and re-launches
         return (
             <BaseDrawerNavigator
                 drawerContent={({navigation, state}) => {
