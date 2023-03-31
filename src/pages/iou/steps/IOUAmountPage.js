@@ -86,7 +86,7 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
-     * Key event handlers that short cut to saving/canceling.
+     * Event occurs when a user presses a mouse button over an DOM element.
      *
      * @param {Event} event
      * @param {Array<string>} nativeIds
