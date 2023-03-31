@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
-import _ from 'underscore';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
