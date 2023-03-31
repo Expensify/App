@@ -1,5 +1,6 @@
 const yaml = require('yaml');
 const fs = require('fs');
+const path = require('path');
 
 function setUpActParams(
     act,
@@ -151,10 +152,26 @@ function deepCopy(originalObject) {
     return JSON.parse(JSON.stringify(originalObject));
 }
 
+const FILES_TO_COPY_INTO_TEST_REPO = [
+    {
+        src: path.resolve(__dirname, '..', '..', '.github', 'actions'),
+        dest: '.github/actions',
+    },
+    {
+        src: path.resolve(__dirname, '..', '..', '.github', 'libs'),
+        dest: '.github/libs',
+    },
+    {
+        src: path.resolve(__dirname, '..', '..', '.github', 'scripts'),
+        dest: '.github/scripts',
+    },
+];
+
 module.exports = {
     setUpActParams,
     getMockStep,
     getStepAssertion,
     setJobRunners,
     deepCopy,
+    FILES_TO_COPY_INTO_TEST_REPO,
 };
