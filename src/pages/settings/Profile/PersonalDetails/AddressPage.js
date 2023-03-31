@@ -190,16 +190,6 @@ class AddressPage extends Component {
                         />
                     </View>
                     <View style={styles.mb4}>
-                        <TextInput
-                            inputID="zipPostCode"
-                            label={this.props.translate('common.zipPostCode')}
-                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                            defaultValue={address.zip || ''}
-                            maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
-                            hint={this.state.zipFormat}
-                        />
-                    </View>
-                    <View style={styles.mb4}>
                         {this.state.isUsaForm ? (
                             <StatePicker
                                 inputID="state"
@@ -213,6 +203,16 @@ class AddressPage extends Component {
                                 maxLength={CONST.FORM_CHARACTER_LIMIT}
                             />
                         )}
+                    </View>
+                    <View style={styles.mb4}>
+                        <TextInput
+                            inputID="zipPostCode"
+                            label={this.props.translate('common.zipPostCode')}
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                            defaultValue={address.zip || ''}
+                            maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+                            hint={this.state.zipFormat}
+                        />
                     </View>
                     <View>
                         <CountryPicker
