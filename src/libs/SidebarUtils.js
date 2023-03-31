@@ -9,6 +9,7 @@ import * as Localize from './Localize';
 import CONST from '../CONST';
 import * as OptionsListUtils from './OptionsListUtils';
 import * as CollectionUtils from './CollectionUtils';
+import formatPhoneNumber from './formatPhoneNumber';
 
 // Note: It is very important that the keys subscribed to here are the same
 // keys that are connected to SidebarLinks withOnyx(). If there was a key missing from SidebarLinks and it's data was updated
@@ -240,6 +241,9 @@ function getOptionData(reportID) {
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
 
+    const login = Str.removeSMSDomain(personalDetail.login);
+    const formattedLogin = Str.isSMSLogin(login) ? formatPhoneNumber(login) : login;
+
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants);
 
@@ -293,7 +297,7 @@ function getOptionData(reportID) {
                 }).join(' ');
         }
 
-        result.alternateText = lastMessageText || Str.removeSMSDomain(personalDetail.login);
+        result.alternateText = lastMessageText || formattedLogin;
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);

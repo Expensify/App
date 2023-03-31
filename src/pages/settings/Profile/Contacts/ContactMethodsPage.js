@@ -96,13 +96,15 @@ const ContactMethodsPage = (props) => {
         // Default to using login key if we deleted login.partnerUserID optimistically
         // but still need to show the pending login being deleted while offline.
         const partnerUserID = login.partnerUserID || loginName;
+        const menuItemTitle = Str.isSMSLogin(partnerUserID) ? props.formatPhoneNumber(Str.removeSMSDomain(partnerUserID)) : partnerUserID;
+
         return (
             <OfflineWithFeedback
                 pendingAction={pendingAction}
                 key={partnerUserID}
             >
                 <MenuItem
-                    title={Str.removeSMSDomain(partnerUserID)}
+                    title={menuItemTitle}
                     description={description}
                     onPress={() => Navigation.navigate(ROUTES.getEditContactMethodRoute(partnerUserID))}
                     brickRoadIndicator={indicator}

@@ -64,7 +64,7 @@ describe('ReportUtils', () => {
                     pronouns: 'She/her',
                 },
                 {
-                    displayName: '2223334444',
+                    displayName: '(222) 333-4444',
                     tooltip: '+12223334444',
                     pronouns: undefined,
                 },
@@ -89,7 +89,7 @@ describe('ReportUtils', () => {
                     pronouns: 'She/her',
                 },
                 {
-                    displayName: '2223334444',
+                    displayName: '(222) 333-4444',
                     tooltip: '+12223334444',
                     pronouns: undefined,
                 },
@@ -114,14 +114,14 @@ describe('ReportUtils', () => {
             test('SMS', () => {
                 expect(ReportUtils.getReportName({
                     participants: [currentUserEmail, '+12223334444@expensify.sms'],
-                })).toBe('2223334444');
+                })).toBe('(222) 333-4444');
             });
         });
 
         test('Group DM', () => {
             expect(ReportUtils.getReportName({
                 participants: [currentUserEmail, 'ragnar@vikings.net', 'floki@vikings.net', 'lagertha@vikings.net', '+12223334444@expensify.sms'],
-            })).toBe('Ragnar, floki@vikings.net, Lagertha, 2223334444');
+            })).toBe('Ragnar, floki@vikings.net, Lagertha, (222) 333-4444');
         });
 
         describe('Default Policy Room', () => {

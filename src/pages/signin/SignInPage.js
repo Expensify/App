@@ -92,9 +92,13 @@ class SignInPage extends Component {
                 welcomeText = this.props.translate('validateCodeForm.enterAuthenticatorCode');
             } else {
                 const userLogin = Str.removeSMSDomain(lodashGet(this.props, 'credentials.login', ''));
+
+                // replacing spaces with "hard spaces" to prevent breaking the number
+                const userLoginToDisplay = Str.isSMSLogin(userLogin) ? this.props.formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
+
                 welcomeText = this.props.account.validated
-                    ? this.props.translate('welcomeText.welcomeBackEnterMagicCode', {login: userLogin})
-                    : this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLogin});
+                    ? this.props.translate('welcomeText.welcomeBackEnterMagicCode', {login: userLoginToDisplay})
+                    : this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
             }
         } else if (showPasswordForm) {
             welcomeText = this.props.translate('welcomeText.welcomeBack');

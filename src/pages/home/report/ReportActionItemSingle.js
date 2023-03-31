@@ -65,7 +65,10 @@ const ReportActionItemSingle = (props) => {
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
     // we should stop referring to the report history items entirely for this information.
     const personArray = displayName
-        ? [{type: 'TEXT', text: Str.isSMSLogin(login) ? props.toLocalPhone(displayName) : displayName}]
+        ? [{
+            type: 'TEXT',
+            text: Str.isSMSLogin(login) ? props.formatPhoneNumber(Str.removeSMSDomain(displayName)) : displayName
+        }]
         : props.action.person;
 
     return (
@@ -107,7 +110,7 @@ const ReportActionItemSingle = (props) => {
                                 />
                             ))}
                         </Pressable>
-                        <ReportActionItemDate created={props.action.created} />
+                        <ReportActionItemDate created={props.action.created}/>
                     </View>
                 ) : null}
                 {props.children}
