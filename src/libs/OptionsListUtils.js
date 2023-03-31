@@ -494,9 +494,16 @@ function getOptions(reports, personalDetails, {
             reportMapForLogins[logins[0]] = report;
         }
         const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
+
+        // Checks to see if the current user is the admin of the policy, if so the policy
+        // name preview will be shown.
+        const isPolicyChatAdmin = ReportUtils.isPolicyExpenseChatAdmin(report, policies);
+
         allReportOptions.push(createOption(logins, personalDetails, report, reportActions, {
             showChatPreviewLine,
-            forcePolicyNamePreview: isPolicyExpenseChat ? isSearchingSomeonesPolicyExpenseChat : forcePolicyNamePreview,
+            forcePolicyNamePreview: isPolicyExpenseChat
+                ? (isSearchingSomeonesPolicyExpenseChat || isPolicyChatAdmin)
+                : forcePolicyNamePreview,
         }));
     });
 

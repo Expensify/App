@@ -78,12 +78,16 @@ const propTypes = {
 
     /** Additional events passed to the core Picker for specific platforms such as web */
     additionalPickerEvents: PropTypes.func,
+
+    /** Hint text that appears below the picker */
+    hintText: PropTypes.string,
 };
 
 const defaultProps = {
     label: '',
     isDisabled: false,
     errorText: '',
+    hintText: '',
     containerStyles: [],
     backgroundColor: undefined,
     inputID: undefined,
@@ -172,6 +176,27 @@ class Picker extends PureComponent {
     render() {
         const hasError = !_.isEmpty(this.props.errorText);
 
+        if (this.props.isDisabled) {
+            return (
+                <View>
+                    {this.props.label && (
+                        <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
+                            {this.props.label}
+                        </Text>
+                    )}
+                    <Text numberOfLines={1}>
+                        {this.props.value}
+                    </Text>
+                    {this.props.hintText
+                    && (
+                        <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
+                            {this.props.hintText}
+                        </Text>
+                    )}
+                </View>
+            );
+        }
+
         return (
             <>
                 <View
@@ -230,6 +255,12 @@ class Picker extends PureComponent {
                     />
                 </View>
                 <FormHelpMessage message={this.props.errorText} />
+                {this.props.hintText
+                    && (
+                        <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
+                            {this.props.hintText}
+                        </Text>
+                    )}
             </>
         );
     }
