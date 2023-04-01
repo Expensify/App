@@ -137,7 +137,7 @@ const MoneyRequestModal = (props) => {
     const [comment, setComment] = useState('');
 
     useEffect(() => {
-        PersonalDetails.openIOUModalPage();
+        PersonalDetails.openMoneyRequestModalPage();
         IOU.setIOUSelectedCurrency(props.currentUserPersonalDetails.localCurrencyCode);
     }, []);
 
@@ -158,7 +158,7 @@ const MoneyRequestModal = (props) => {
 
         // User came back online, so we can try to create the IOU transaction again
         if (prevNetworkStatusRef.current && !props.network.isOffline) {
-            PersonalDetails.openIOUModalPage();
+            PersonalDetails.openMoneyRequestModalPage();
         }
 
         // If the curency code is updated, also update the IOU selected currency

@@ -258,8 +258,8 @@ function updateSelectedTimezone(selectedTimezone) {
 /**
  * Fetches the local currency based on location and sets currency code/symbol to Onyx
  */
-function openIOUModalPage() {
-    API.read('OpenIOUModalPage');
+function openMoneyRequestModalPage() {
+    API.read('OpenMoneyRequestModalPage');
 }
 
 /**
@@ -368,7 +368,7 @@ export {
     getDisplayName,
     updateAvatar,
     deleteAvatar,
-    openIOUModalPage,
+    openMoneyRequestModalPage,
     openPersonalDetailsPage,
     extractFirstAndLastNameFromAvailableDetails,
     updateDisplayName,
