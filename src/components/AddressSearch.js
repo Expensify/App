@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import {LogBox, ScrollView, View} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
@@ -90,6 +90,7 @@ const defaultProps = {
 // Reference: https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/609#issuecomment-886133839
 const AddressSearch = (props) => {
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
+    const containerRef = useRef();
     const query = {language: props.preferredLocale, types: 'address'};
     if (props.isLimitedToUSA) {
         query.components = 'country:us';
@@ -193,7 +194,7 @@ const AddressSearch = (props) => {
             // here: https://github.com/FaridSafi/react-native-google-places-autocomplete#use-inside-a-scrollview-or-flatlist
             keyboardShouldPersistTaps="always"
         >
-            <View style={styles.w100}>
+            <View style={styles.w100} ref={containerRef}>
                 <GooglePlacesAutocomplete
                     disableScroll
                     fetchDetails
@@ -233,7 +234,12 @@ const AddressSearch = (props) => {
                         defaultValue: props.defaultValue,
                         inputID: props.inputID,
                         shouldSaveDraft: props.shouldSaveDraft,
-                        onBlur: props.onBlur,
+                        onBlur: (event) => {
+                            if (!(containerRef.current && event.target && containerRef.current.contains(event.relatedTarget))) {
+                                setDisplayListViewBorder(false);
+                            }
+                            props.onBlur(event);
+                        },
                         autoComplete: 'off',
                         onInputChange: (text) => {
                             if (props.inputID) {
