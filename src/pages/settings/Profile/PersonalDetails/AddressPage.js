@@ -128,11 +128,13 @@ class AddressPage extends Component {
         const countrySpecificZipRegex = lodashGet(countryRegexDetails, 'regex');
         const zipFormat = lodashGet(countryRegexDetails, 'samples');
 
-        if (countrySpecificZipRegex && !countrySpecificZipRegex.test(values.zipPostCode.trim())) {
-            if (_.isEmpty(values.zipPostCode.trim())) {
-                errors.zipPostCode = this.props.translate('common.error.fieldRequired');
-            } else {
-                errors.zipPostCode = this.props.translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat});
+        if (countrySpecificZipRegex) {
+            if (!countrySpecificZipRegex.test(values.zipPostCode.trim())) {
+                if (ValidationUtils.isRequiredFulfilled(values.zipPostCode.trim())) {
+                    errors.zipPostCode = this.props.translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat});
+                } else {
+                    errors.zipPostCode = this.props.translate('common.error.fieldRequired');
+                }
             }
         } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values.zipPostCode.trim())) {
             errors.zipPostCode = this.props.translate('privatePersonalDetails.error.incorrectZipFormat');
@@ -212,7 +214,7 @@ class AddressPage extends Component {
                         <TextInput
                             inputID="zipPostCode"
                             label={this.props.translate('common.zipPostCode')}
-                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                            autoCapitalize="characters"
                             defaultValue={address.zip || ''}
                             maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                             hint={this.state.zipFormat}
