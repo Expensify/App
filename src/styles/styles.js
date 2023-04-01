@@ -3061,8 +3061,8 @@ const styles = {
         flex.flex1,
         flex.flexColumn,
         flex.justifyContentBetween,
+        spacing.pt5,
         safeAreaPaddingBottomStyle,
-        {backgroundColor: themeColors.appBG},
     ],
 };
 
