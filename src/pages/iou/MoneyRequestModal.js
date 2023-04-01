@@ -30,7 +30,6 @@ import {withNetwork} from '../../components/OnyxProvider';
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as ReportScrollManager from '../../libs/ReportScrollManager';
-import MoneyRequestHeader from './MoneyRequestHeader';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -366,7 +365,7 @@ const MoneyRequestModal = (props) => {
                         <View style={[styles.mr2]}>
                             <Tooltip text={props.translate('common.back')}>
                                 <TouchableOpacity
-                                    onPress={navigateToPreviousStep}
+                                    onPress={() => navigateToPreviousStep}
                                     style={[styles.touchableButtonImage]}
                                 >
                                     <Icon src={Expensicons.BackArrow} />
@@ -396,87 +395,86 @@ const MoneyRequestModal = (props) => {
     const reportID = lodashGet(props, 'route.params.reportID', '');
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
-                    <>
-                        <View style={[styles.pRelative, styles.flex1]}>
-                            {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
-                            {didScreenTransitionEnd && (
-                                <>
-                                    {currentStep === Steps.IOUAmount && (
-                                        <AnimatedStep
-                                            direction={getDirection()}
-                                            style={[styles.flex1, safeAreaPaddingBottomStyle]}
-                                        >
-                                            {renderHeader()}
-                                            <IOUAmountPage
-                                                onStepComplete={(amount) => {
-                                                    setAmount(amount);
-                                                    navigateToNextStep();
-                                                }}
-                                                reportID={reportID}
-                                                hasMultipleParticipants={props.hasMultipleParticipants}
-                                                selectedAmount={amount}
-                                                navigation={props.navigation}
-                                                iouType={props.iouType}
-                                            />
-                                        </AnimatedStep>
-                                    )}
-                                    {currentStep === Steps.IOUParticipants && (
-                                        <AnimatedStep
-                                            style={[styles.flex1]}
-                                            direction={getDirection()}
-                                        >
-                                            {renderHeader()}
-                                            <IOUParticipantsPage
-                                                participants={participants}
-                                                hasMultipleParticipants={props.hasMultipleParticipants}
-                                                onAddParticipants={addParticipants}
-                                                onStepComplete={navigateToNextStep}
-                                                safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                                            />
-                                        </AnimatedStep>
-                                    )}
-                                    {currentStep === Steps.IOUConfirm && (
-                                        <AnimatedStep
-                                            style={[styles.flex1, safeAreaPaddingBottomStyle]}
-                                            direction={getDirection()}
-                                        >
-                                            {renderHeader()}
-                                            <IOUConfirmPage
-                                                onConfirm={(selectedParticipants) => {
-                                                    // TODO: ADD HANDLING TO DISABLE BUTTON FUNCTIONALITY WHILE REQUEST IS IN FLIGHT
-                                                    createTransaction(selectedParticipants);
-                                                    ReportScrollManager.scrollToBottom();
-                                                }}
-                                                onSendMoney={(paymentMethodType) => {
-                                                    // TODO: ADD HANDLING TO DISABLE BUTTON FUNCTIONALITY WHILE REQUEST IS IN FLIGHT
-                                                    sendMoney(paymentMethodType);
-                                                    ReportScrollManager.scrollToBottom();
-                                                }}
-                                                hasMultipleParticipants={props.hasMultipleParticipants}
-                                                participants={_.filter(participants, email => props.currentUserPersonalDetails.login !== email.login)}
-                                                iouAmount={amount}
-                                                comment={comment}
-                                                onUpdateComment={comment => setComment(comment)}
-                                                iouType={props.iouType}
+            {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
+                <>
+                    <View style={[styles.pRelative, styles.flex1]}>
+                        {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
+                        {didScreenTransitionEnd && (
+                            <>
+                                {currentStep === Steps.IOUAmount && (
+                                <AnimatedStep
+                                    direction={getDirection()}
+                                    style={[styles.flex1, safeAreaPaddingBottomStyle]}
+                                >
+                                    {renderHeader()}
+                                    <IOUAmountPage
+                                        onStepComplete={(value) => {
+                                            setAmount(value);
+                                            navigateToNextStep();
+                                        }}
+                                        reportID={reportID}
+                                        hasMultipleParticipants={props.hasMultipleParticipants}
+                                        selectedAmount={amount}
+                                        navigation={props.navigation}
+                                        iouType={props.iouType}
+                                    />
+                                </AnimatedStep>
+                                )}
+                                {currentStep === Steps.IOUParticipants && (
+                                <AnimatedStep
+                                    style={[styles.flex1]}
+                                    direction={getDirection()}
+                                >
+                                    {renderHeader()}
+                                    <IOUParticipantsPage
+                                        participants={participants}
+                                        hasMultipleParticipants={props.hasMultipleParticipants}
+                                        onAddParticipants={selectedParticipants => setParticipants(selectedParticipants)}
+                                        onStepComplete={() => navigateToNextStep}
+                                        safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                                    />
+                                </AnimatedStep>
+                                )}
+                                {currentStep === Steps.IOUConfirm && (
+                                <AnimatedStep
+                                    style={[styles.flex1, safeAreaPaddingBottomStyle]}
+                                    direction={getDirection()}
+                                >
+                                    {renderHeader()}
+                                    <IOUConfirmPage
+                                        onConfirm={(selectedParticipants) => {
+                                            // TODO: ADD HANDLING TO DISABLE BUTTON FUNCTIONALITY WHILE REQUEST IS IN FLIGHT
+                                            createTransaction(selectedParticipants);
+                                            ReportScrollManager.scrollToBottom();
+                                        }}
+                                        onSendMoney={(paymentMethodType) => {
+                                            // TODO: ADD HANDLING TO DISABLE BUTTON FUNCTIONALITY WHILE REQUEST IS IN FLIGHT
+                                            sendMoney(paymentMethodType);
+                                            ReportScrollManager.scrollToBottom();
+                                        }}
+                                        hasMultipleParticipants={props.hasMultipleParticipants}
+                                        participants={_.filter(participants, email => props.currentUserPersonalDetails.login !== email.login)}
+                                        iouAmount={amount}
+                                        comment={comment}
+                                        onUpdateComment={value => setComment(value)}
+                                        iouType={props.iouType}
 
                                                 // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
                                                 // This is because when there is a group of people, say they are on a trip, and you have some shared expenses with some of the people,
                                                 // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
                                                 // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
                                                 // the floating-action-button (since it is something that exists outside the context of a report).
-                                                canModifyParticipants={!_.isEmpty(reportID)}
-                                            />
-                                        </AnimatedStep>
-                                    )}
-                                </>
-                            )}
-                        </View>
-                    </>
-                )}
-            </ScreenWrapper>
-        );
-    }
+                                        canModifyParticipants={!_.isEmpty(reportID)}
+                                    />
+                                </AnimatedStep>
+                                )}
+                            </>
+                        )}
+                    </View>
+                </>
+            )}
+        </ScreenWrapper>
+    );
 };
 
 MoneyRequestModal.displayName = 'MoneyRequestModal';
