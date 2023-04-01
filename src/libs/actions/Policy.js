@@ -45,6 +45,13 @@ Onyx.connect({
     },
 });
 
+let allReports;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: val => allReports = val,
+});
+
 let lastAccessedWorkspacePolicyID = null;
 Onyx.connect({
     key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
@@ -206,16 +213,60 @@ function removeMembers(members, policyID) {
         return;
     }
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`;
-    const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: membersListKey,
-        value: _.object(members, Array(members.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
-    }];
-    const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: membersListKey,
-        value: _.object(members, Array(members.length).fill({errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericRemove')}})),
-    }];
+    const policyExpenseChatIDs = _.filter(allReports, 
+        report => report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && _.includes(members, report.ownerEmail))
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: membersListKey,
+            value: _.object(members, Array(members.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
+        },
+        ..._.map(policyExpenseChatIDs, ({reportID}) => ({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+                hasDraft: false,
+                oldPolicyName: allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`].name,
+            },
+        })),
+
+        // Add closed actions to all chat reports linked to this policy
+        ..._.map(policyExpenseChatIDs, ({reportID, ownerEmail}) => {
+            const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(
+                ownerEmail,
+                policyName,
+                CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY,
+            );
+            const optimisticReportActions = {};
+            optimisticReportActions[optimisticClosedReportAction.reportActionID] = optimisticClosedReportAction;
+            return {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: optimisticReportActions,
+            };
+        }),
+    ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: membersListKey,
+            value: _.object(members, Array(members.length).fill({errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericRemove')}})),
+        },
+        ..._.map(policyExpenseChatIDs, ({
+            reportID, stateNum, statusNum, hasDraft, oldPolicyName,
+        }) => ({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                stateNum,
+                statusNum,
+                hasDraft,
+                oldPolicyName,
+            },
+        })),
+    ];
     API.write('DeleteMembersFromWorkspace', {
         emailList: members.join(','),
         policyID,
@@ -233,6 +284,31 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID) {
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`;
     const logins = _.map(memberLogins, memberLogin => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
 
+    let expenseChatData = [];
+    let expenseReportActionData = {};
+
+    _.forEach(logins, (memberLogin) => {
+        const policyExpenseChat = buildOptimisticChatReport(
+            [memberLogin],
+            '',
+            CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID,
+            memberLogin,
+            true,
+            policyName,
+        );
+        expenseChatData = [
+            ...expenseChatData,
+            policyExpenseChat
+        ];
+        expenseReportActionData = {
+            ...expenseReportActionData,
+            [policyExpenseChat.reportID]: {
+                [expenseReportCreatedAction.reportActionID]: buildOptimisticCreatedReportAction(memberLogin),
+            }
+        };
+    })
+
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -241,6 +317,26 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID) {
             // Convert to object with each key containing {pendingAction: ‘add’}
             value: _.object(logins, Array(logins.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})),
         },
+        ..._.map(expenseChatData, (report) => {
+            return {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+                value: {
+                    pendingFields: {
+                        addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                    ...report,
+                },
+            };
+            
+        }),
+        ..._.map(expenseChatData, (report) => {
+            return {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+                value: expenseReportActionData[report.reportID],
+            };
+        })
     ];
 
     const successData = [
@@ -252,6 +348,29 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID) {
             // need to remove the members since that will be handled by onClose of OfflineWithFeedback.
             value: _.object(logins, Array(logins.length).fill({pendingAction: null, errors: null})),
         },
+        ..._.map(expenseChatData, (report) => {
+            return {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+                value: {
+                    pendingFields: {
+                        addWorkspaceRoom: null,
+                    },
+                    pendingAction: null,
+                },
+            };
+        }),
+        ..._.map(expenseChatData, (report) => {
+            return {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+                value: {
+                    [_.keys(expenseReportActionData[report.reportID])[0]]: {
+                        pendingAction: null,
+                    },
+                },
+            };
+        })
     ];
 
     const failureData = [
@@ -267,6 +386,25 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID) {
                 },
             })),
         },
+        ..._.map(expenseChatData, (report) => {
+            return {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+                value: {
+                    pendingFields: {
+                        addWorkspaceRoom: null,
+                    },
+                    ...report,
+                },
+            };
+        }),
+        ..._.map(expenseChatData, (report) => {
+            return {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+                value: expenseReportActionData[report.reportID],
+            };
+        })
     ];
 
     API.write('AddMembersToWorkspace', {
