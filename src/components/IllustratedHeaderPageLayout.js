@@ -41,7 +41,7 @@ const IllustratedHeaderPageLayout = (props) => {
                         style={[styles.illustratedPageHeader, StyleUtils.getBackgroundColorStyle(props.backgroundColor)]}>
                         {_.isFunction(props.illustration)
                             ? props.illustration()
-                            : <Lottie source={props.illustration} style={{width: 50, height: 50}} autoPlay loop />
+                            : <Lottie source={props.illustration} style={{width: 250, height: 250}} autoPlay loop />
                         }
                     </View>
                     <ScrollView contentContainerStyle={styles.illustratedPageBottomHalf(safeAreaPaddingBottomStyle)}>

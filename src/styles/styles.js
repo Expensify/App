@@ -3054,6 +3054,7 @@ const styles = {
 
     illustratedPageHeader: {
         height: 220,
+        ...flex.centerContent,
     },
 
     illustratedPageBottomHalf: (safeAreaPaddingBottomStyle) => [

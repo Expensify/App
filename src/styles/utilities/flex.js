@@ -123,4 +123,9 @@ export default {
     flexBasisAuto: {
         flexBasis: 'auto',
     },
+
+    centerContent: {
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
 };
