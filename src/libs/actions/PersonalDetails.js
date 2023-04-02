@@ -259,7 +259,7 @@ function updateSelectedTimezone(selectedTimezone) {
  * Fetches the local currency based on location and sets currency code/symbol to Onyx
  */
 function openMoneyRequestModalPage() {
-    API.read('OpenMoneyRequestModalPage');
+    API.read('OpenIOUModalPage');
 }
 
 /**
