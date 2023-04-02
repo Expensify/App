@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect, useMemo, useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {
     View,
@@ -93,6 +93,7 @@ const propTypes = {
     isFocused: PropTypes.bool.isRequired,
 
     /** Whether user interactions should be disabled */
+    // TODO: Should be isDisabled
     disabled: PropTypes.bool,
 
     // The NVP describing a user's block status
@@ -146,6 +147,281 @@ const getMaxArrowIndex = (numRows, isEmojiPickerLarge) => {
     return emojiRowCount - 1;
 };
 
+const ReportActionComposeHook = (props) => {
+    // TODO: Pass to composer
+    const composer = useRef();
+    ReportActionComposeFocusManager.composerRef.current = composer;
+
+    const [comment, setComment] = useState(props.comment);
+    const [isCommentTooLong, setIsCommentTooLong] = useState(ReportUtils.getCommentLength(comment) > CONST.MAX_COMMENT_LENGTH);
+    const [selection, setSelection] = useState({start: props.comment.length, end: props.comment.length});
+    const [isFocused, setIsFocused] = useState(willBlurTextInputOnTapOutside() && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible);
+    const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(props.isComposerFullSize);
+    const [shouldClearTextInput, setShouldClearTextInput] = useState(false);
+    const [isMenuVisible, setIsMenuVisible] = useState(false);
+    const [suggestedEmojis, setSuggestedEmojis] = useState([]);
+    const [highlightedEmojiIndex, setHighlightedEmojiIndex] = useState(0);
+    const [lastColonIndex, setLastColonIndex] = useState(-1);
+    const [shouldShowEmojiSuggestionMenu, setShouldShowEmojiSuggestionMenu] = useState(false);
+    const [isDraggingOver, setIsDraggingOver] = useState(false);
+
+    // TODO: try to derive composerHeight from the ref rather than using state
+    const [composerHeight, setComposerHeight] = useState(0);
+
+    // TODO: Correctly initialize isEmojiPickerLarge
+    const [isEmojiPickerLarge, setIsEmojiPickerLarge] = useState(false);
+
+    const chatIncludesConcierge = useMemo(() => ReportUtils.chatIncludesConcierge(props.report), [props.report.participants]);
+    const isUserBlockedFromConcierge = useMemo(() => (
+         User.isBlockedFromConcierge(props.blockedFromConcierge) && chatIncludesConcierge
+    ), [props.blockedFromConcierge, chatIncludesConcierge]);
+    const conciergePlaceHolderRandomIndex = useMemo(
+        () => _.random(props.translate('reportActionCompose.conciergePlaceholderOptions').length - (props.isSmallScreenWidth ? 4 : 1)),
+    [props.isSmallScreenWidth, props.translate]);
+
+    /**
+     * Get the placeholder to display in the chat input.
+     *
+     * @return {String}
+     */
+    const getInputPlaceholder = useCallback(() => {
+        if (chatIncludesConcierge) {
+            return isUserBlockedFromConcierge
+                ? props.translate('reportActionCompose.blockedFromConcierge')
+                : props.translate('reportActionCompose.conciergePlaceholderOptions')[conciergePlaceHolderRandomIndex];
+        }
+
+        return props.translate('reportActionCompose.writeSomething');
+    }, [conciergePlaceHolderRandomIndex, props.report.participants, props.blockedFromConcierge]);
+
+    /**
+     * Focus the composer text input.
+     * @param {Boolean} [shouldDelay=false]
+     */
+    const focus = useCallback((shouldDelay = false) => {
+        // There could be other animations running while we trigger manual focus.
+        // This prevents focus from making those animations janky.
+        InteractionManager.runAfterInteractions(() => {
+            if (!composer.current) {
+                return;
+            }
+
+            if (!shouldDelay) {
+                composer.current.focus();
+            } else {
+                // Keyboard is not opened after Emoji Picker is closed
+                // SetTimeout is used as a workaround
+                // https://github.com/react-native-modal/react-native-modal/issues/114
+                // We carefully chose a delay. 100ms is found enough for keyboard to open.
+                setTimeout(() => composer.current.focus(), 100);
+            }
+        });
+    }, [composer.current]);
+
+    const debouncedSaveReportComment = useCallback(_.debounce((newComment) => {
+        Report.saveReportComment(props.reportID, newComment || '')
+    }, 1000), [props.reportID]);
+
+    /**
+     * @param {String} newComment
+     * @param {Boolean} shouldDebounceSaveComment
+     */
+    const updateComment = useCallback((newComment, shouldDebounceSaveComment = false) => {
+        const commentAfterReplacingEmojis = EmojiUtils.replaceEmojis(commentAfterReplacingEmojis, props.isSmallScreenWidth);
+        setComment(prevComment => {
+            if (newComment !== commentAfterReplacingEmojis) {
+                setSelection((prevSelection) => {
+                    const remainder = comment.slice(prevSelection.end).length;
+                    return ({
+                        start: commentAfterReplacingEmojis.length - remainder,
+                        end: commentAfterReplacingEmojis.length - remainder,
+                    });
+                })
+            }
+
+            // Check if a draft has been created or deleted
+            if (prevComment.length === 0 && commentAfterReplacingEmojis.length !== 0) {
+                Report.setReportWithDraft(props.reportID, true);
+            } else if (commentAfterReplacingEmojis.length === 0) {
+                Report.setReportWithDraft(props.reportID, false);
+            }
+
+            if (shouldDebounceSaveComment) {
+                debouncedSaveReportComment(commentAfterReplacingEmojis);
+            } else {
+                Report.saveReportComment(props.reportID, commentAfterReplacingEmojis || '');
+            }
+
+            if (commentAfterReplacingEmojis) {
+                this.debouncedBroadcastUserIsTyping();
+            }
+
+            return commentAfterReplacingEmojis;
+        });
+    }, [props.reportID, props.isSmallScreenWidth]);
+
+    /**
+     * @returns {String}
+     */
+    const prepareCommentAndResetComposer = () => {
+        const trimmedComment = comment.trim();
+
+        // Don't submit empty comments or comments that exceed the character limit
+        if (/^(\s)*$/.test(trimmedComment) || ReportUtils.getCommentLength(trimmedComment) > CONST.MAX_COMMENT_LENGTH) {
+            return '';
+        }
+
+        updateComment('');
+        setShouldClearTextInput(true);
+        if (props.isComposerFullSize) {
+            Report.setIsComposerFullSize(props.reportID, false);
+        }
+        setIsFullComposerAvailable(true);
+
+        return trimmedComment;
+    };
+
+    /**
+     * Sync the comment state with props.comment. This can change when:
+     *
+     * - The report changes
+     * - The comment is edited from another tab
+     */
+    useEffect(() => {
+        updateComment(props.comment);
+    }, [props.comment, props.reportID]);
+
+    /**
+     * Update the composer when the comment length is exceeded.
+     * Shows red borders and prevents the comment from being sent.
+     * Kept in separate state and debounced because ReportUtils.getCommentLength is an expensive calculation.
+     */
+    useEffect(_.debounce(
+        () => setIsCommentTooLong(ReportUtils.getCommentLength(comment) > CONST.MAX_COMMENT_LENGTH),
+        CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME
+    ), [comment]);
+
+    /**
+     * Register a callback used outside of this component to give focus back to the compose input.
+     * TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
+     */
+    useEffect(() => {
+        ReportActionComposeFocusManager.onComposerFocus(() => {
+            if (!willBlurTextInputOnTapOutside() || !props.isFocused) {
+                return;
+            }
+
+            focus(false);
+        });
+        return () => ReportActionComposeFocusManager.clear();
+    }, []);
+
+    useEffect(() => {
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        return KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
+            if (!isFocused || comment.length === 0) {
+                return;
+            }
+
+            updateComment('', true);
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+    }, []);
+
+    // TODO: This is kind of an anti-pattern. We should trigger this from wherever the navigation action happens
+    //       Also, drawer is being ripped out soon so this should be fine for now
+    const wasDrawerOpen = useRef(props.isDrawerOpen);
+    useEffect(() => {
+        const sidebarOpened = props.isDrawerOpen && !wasDrawerOpen;
+        if !(sidebarOpened) {
+            return;
+        }
+        toggleReportActionComposeView(true);
+    }, [props.isDrawerOpen]);
+
+    // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
+    // We avoid doing this on native platforms since the software keyboard popping open creates a jarring UX.
+    // TODO: Should create usePrevious hook?
+    const wasModalVisible = useRef(props.modal.isVisible);
+    useEffect(() => {
+        if (willBlurTextInputOnTapOutside() && props.isFocused && wasModalVisible && !props.modal.isVisible) {
+            focus();
+        }
+    }, [props.isFocused, props.modal.isVisible]);
+
+    const reportParticipants = useMemo(() => (
+        _.without(lodashGet(props.report, 'participants', []), props.currentUserPersonalDetails.login)
+    ), [props.report.participants, props.currentUserPersonalDetails.login]);
+
+    const reportRecipient = useMemo(() => {
+        const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
+        return props.personalDetails[participantsWithoutExpensifyEmails[0]];
+    }, [reportParticipants, props.personalDetails]);
+
+    const shouldShowReportRecipientLocalTime = useMemo(() => (
+        ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report)
+        && !props.isComposerFullSize
+    ), [reportRecipient, props.isComposerFullSize]);
+
+    const shouldUseFocusedColor = !isUserBlockedFromConcierge && !props.isDisabled && (isFocused || isDraggingOver);
+
+    let maxLines = props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
+    if (props.isComposerFullSize) {
+        maxLines = CONST.COMPOSER.MAX_LINES_FULL;
+    }
+
+    return (
+        <View style={[
+            shouldShowReportRecipientLocalTime && !lodashGet(props.network, 'isOffline') && styles.chatItemComposeWithFirstRow,
+            props.isComposerFullSize && styles.chatItemFullComposeRow,
+        ]}>
+            {shouldShowReportRecipientLocalTime && <ParticipantLocalTime participant={reportParticipant} />}
+            <View style={[
+                shouldUseFocusedColor ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+                styles.flexRow,
+                styles.chatItemComposeBox,
+                isComposerFullSize && styles.chatItemFullComposeBox,
+                isCommentTooLong && styles.borderColorDanger,
+            ]}>
+                <AttachmentModal
+                    headerTitle={props.translate('reportActionCompose.sendAttachment')}
+                    onConfirm={(file) => {
+                        const trimmedComment = prepareCommentAndResetComposer();
+                        Report.addAttachment(props.reportID, file, trimmedComment);
+                        setShouldClearTextInput(false);
+                    }}
+                >
+                    {({displayFileInModal}) => (
+                        <>
+                            <AttachmentPicker>
+
+                            </AttachmentPicker>
+                            <View style={[styles.textInputComposeSpacing]}>
+                                <DragAndDrop
+                                    dropZoneId={CONST.REPORT.DROP_NATIVE_ID}
+                                    activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}
+                                    onDragEnter={() => setIsDraggingOver(true)}
+                                    onDragLeave={() => setIsDraggingOver(false)}
+                                    onDrop={(e) => {
+                                        e.preventDefault();
+                                        const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+                                        displayFileInModal(file);
+                                        setIsDraggingOver(false);
+                                    }}
+                                    disabled={props.disabled}
+                                >
+                                    <Composer
+
+                                    />
+                                </DragAndDrop>
+                            </View>
+                        </>
+                    )}
+                </AttachmentModal>
+            </View>
+        </View>
+    );
+}
+
 class ReportActionCompose extends React.Component {
     constructor(props) {
         super(props);
@@ -170,7 +446,7 @@ class ReportActionCompose extends React.Component {
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.comment = props.comment;
 
-        // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
+        // React Native will retain focus on an input for native devices but web/mWeb behave differently, so we have some focus management
         // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
         this.willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutside();
 
