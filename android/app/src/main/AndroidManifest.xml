@@ -16,7 +16,7 @@
       android:roundIcon="@mipmap/ic_launcher_round"
       android:allowBackup="false"
       android:resizeableActivity="false"
-      android:theme="@style/AppTheme"
+      android:theme="@style/BootTheme"
       tools:replace="android:supportsRtl">
 
       <activity
@@ -26,13 +26,6 @@
         android:launchMode="singleTask"
         android:exported="true"
         android:windowSoftInputMode="adjustResize">
-      </activity>
-
-      <activity
-        android:name=".bootsplash.BootSplashActivity"
-        android:theme="@style/BootTheme"
-        android:exported="true"
-        android:launchMode="singleTask">
 
         <intent-filter android:autoVerify="true">
             <action android:name="android.intent.action.MAIN" />
