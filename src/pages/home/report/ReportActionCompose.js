@@ -179,20 +179,12 @@ const ReportActionComposeHook = (props) => {
         () => _.random(props.translate('reportActionCompose.conciergePlaceholderOptions').length - (props.isSmallScreenWidth ? 4 : 1)),
     [props.isSmallScreenWidth, props.translate]);
 
-    /**
-     * Get the placeholder to display in the chat input.
-     *
-     * @return {String}
-     */
-    const getInputPlaceholder = useCallback(() => {
-        if (chatIncludesConcierge) {
-            return isUserBlockedFromConcierge
-                ? props.translate('reportActionCompose.blockedFromConcierge')
-                : props.translate('reportActionCompose.conciergePlaceholderOptions')[conciergePlaceHolderRandomIndex];
-        }
-
-        return props.translate('reportActionCompose.writeSomething');
-    }, [conciergePlaceHolderRandomIndex, props.report.participants, props.blockedFromConcierge]);
+    let placeholder = props.translate('reportActionCompose.writeSomething');
+    if (chatIncludesConcierge) {
+        placeholder = isUserBlockedFromConcierge
+            ? props.translate('reportActionCompose.blockedFromConcierge')
+            : props.translate('reportActionCompose.conciergePlaceholderOptions')[conciergePlaceHolderRandomIndex];
+    }
 
     /**
      * Focus the composer text input.
@@ -259,6 +251,49 @@ const ReportActionComposeHook = (props) => {
             return commentAfterReplacingEmojis;
         });
     }, [props.reportID, props.isSmallScreenWidth]);
+
+    const triggerHotkeyActions = useCallback((e) => {
+        // Do not trigger actions for mobileWeb or native clients that have the keyboard open because for those devices,
+        // we want the return key to insert newlines rather than submit the form
+        if (!e || props.isSmallScreenWidth || props.isKeyboardShown) {
+            return;
+        }
+
+        if ((e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && suggestedEmojis.length) {
+            e.preventDefault();
+            // TODO insertSelectedEmoji
+            return;
+        }
+
+        if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && suggestedEmojis.length) {
+            e.preventDefault();
+            // TODO: resetSuggestedEmojis
+            return;
+        }
+
+        if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
+            e.preventDefault();
+            // TODO: submitForm
+        }
+
+        if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && composer.current?.selectionStart === 0 && comment.length === 0 && !chatIncludesConcierge) {
+            e.preventDefault();
+            // TODO: improper sorting of reportActions here
+            const lastReportAction = _.find(props.reportActions, action => ReportUtils.canEditReportAction(action));
+            if (lastReportAction && lastReportAction !== -1) {
+                Report.saveReportActionDraft(props.reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
+            }
+        }
+    }, [
+        props.isSmallScreenWidth,
+        props.isKeyboardShown,
+        suggestedEmojis,
+        composer.current?.selectionStart,
+        comment,
+        chatIncludesConcierge,
+        props.reportActions,
+        props.reportID,
+    ]);
 
     /**
      * @returns {String}
@@ -410,7 +445,14 @@ const ReportActionComposeHook = (props) => {
                                     disabled={props.disabled}
                                 >
                                     <Composer
-
+                                        ref={composer}
+                                        autoFocus={!this.props.modal.isVisible && (willBlurTextInputOnTapOutside() || _.size(props.reportActions) === 1)}
+                                        multiline
+                                        textAlignVertical="top"
+                                        placeholder={placeholder}
+                                        placeholderTextColor={themeColors.placeholderText}
+                                        onChangeText={newComment => updateComment(newComment, true)}
+                                        onKeyPress={}
                                     />
                                 </DragAndDrop>
                             </View>
