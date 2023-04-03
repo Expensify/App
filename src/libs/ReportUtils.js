@@ -399,6 +399,13 @@ function getRoomWelcomeMessage(report, policiesMap) {
     return welcomeMessage;
 }
 
+/**
+ * Function to get the handle of a person based on their display name, primary login, and viewer domain.
+ * @param {String} displayName the display name of the person
+ * @param {String} primaryLogin the primary login of the person, in the format of "username@domain"
+ * @param {String} viewerDomain the domain of the viewer
+ * @returns {String | null} the handle of the person, in the format of "@username", or null if no handle can be determined
+ */
 function getPersonHandle(displayName, primaryLogin, viewerDomain) {
     let handle = null;
 
