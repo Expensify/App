@@ -51,13 +51,6 @@ class DateOfBirthPage extends Component {
 
     componentDidMount() {
         this.props.navigation.addListener('focus', this.getYearFromRouteParams);
-
-        setTimeout(() => {
-            if (!this.datePicker) {
-                return;
-            }
-            this.datePicker.showPicker();
-        }, 100);
     }
 
     componentWillUnmount() {
@@ -137,6 +130,7 @@ class DateOfBirthPage extends Component {
                     enabledWhenOffline
                 >
                     <NewDatePicker
+                        autoFocus
                         ref={ref => this.datePicker = ref}
                         inputID="dob"
                         label={this.props.translate('common.date')}
