@@ -17,7 +17,6 @@ import DisplayNames from '../../components/DisplayNames';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import participantPropTypes from '../../components/participantPropTypes';
 import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
-import IOUBadge from '../../components/IOUBadge';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import * as ReportUtils from '../../libs/ReportUtils';
@@ -93,7 +92,7 @@ const HeaderView = (props) => {
                     <Pressable
                         onPress={props.onNavigationMenuButtonClicked}
                         style={[styles.LHNToggle]}
-                        accessibilityHint="Navigate back to chats list"
+                        accessibilityHint={props.translate('accessibilityHints.navigateToChatsList')}
                     >
                         <Tooltip text={props.translate('common.back')} shiftVertical={4}>
                             <Icon src={Expensicons.BackArrow} />
@@ -161,10 +160,6 @@ const HeaderView = (props) => {
                             )}
                         </Pressable>
                         <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                            {props.report.hasOutstandingIOU && (
-                                <IOUBadge iouReportID={props.report.iouReportID} />
-                            )}
-
                             {shouldShowCallButton && <VideoChatButtonAndMenu isConcierge={isConcierge} guideCalendarLink={guideCalendarLink} />}
                             <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
                                 <Pressable
