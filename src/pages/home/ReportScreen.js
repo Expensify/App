@@ -121,8 +121,6 @@ class ReportScreen extends React.Component {
     constructor(props) {
         super(props);
 
-        this.unsubscribeVisibilityListener = null;
-
         this.onSubmitComment = this.onSubmitComment.bind(this);
         this.chatWithAccountManager = this.chatWithAccountManager.bind(this);
         this.dismissBanner = this.dismissBanner.bind(this);
