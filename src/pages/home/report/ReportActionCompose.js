@@ -164,7 +164,7 @@ class ReportActionCompose extends React.Component {
         this.isEmojiCode = this.isEmojiCode.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
-        this.getIOUOptions = this.getIOUOptions.bind(this);
+        this.getMoneyRequestOptions = this.getMoneyRequestOptions.bind(this);
         this.addAttachment = this.addAttachment.bind(this);
         this.insertSelectedEmoji = this.insertSelectedEmoji.bind(this);
         this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
@@ -338,7 +338,7 @@ class ReportActionCompose extends React.Component {
      * @param {Array} reportParticipants
      * @returns {Array<object>}
      */
-    getIOUOptions(reportParticipants) {
+    getMoneyRequestOptions(reportParticipants) {
         const options = {
             [CONST.IOU.IOU_TYPE.SPLIT]: {
                 icon: Expensicons.Receipt,
@@ -356,7 +356,7 @@ class ReportActionCompose extends React.Component {
                 onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
             },
         };
-        return _.map(ReportUtils.getIOUOptions(this.props.report, reportParticipants, this.props.betas), option => options[option]);
+        return _.map(ReportUtils.getMoneyRequestOptions(this.props.report, reportParticipants, this.props.betas), option => options[option]);
     }
 
     /**
@@ -549,7 +549,7 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(comment, shouldDebounceSaveComment) {
-        const newComment = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth);
+        const newComment = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
         this.setState((prevState) => {
             const newState = {
                 isCommentEmpty: !!newComment.match(/^(\s)*$/),
@@ -801,7 +801,7 @@ class ReportActionCompose extends React.Component {
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
                                                 anchorPosition={styles.createMenuPositionReportActionCompose}
-                                                menuItems={[...this.getIOUOptions(reportParticipants),
+                                                menuItems={[...this.getMoneyRequestOptions(reportParticipants),
                                                     {
                                                         icon: Expensicons.Paperclip,
                                                         text: this.props.translate('reportActionCompose.addAttachment'),
