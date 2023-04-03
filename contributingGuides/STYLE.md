@@ -618,6 +618,24 @@ There are several ways to use and declare refs and we prefer the [callback metho
 
 We love React and learning about all the new features that are regularly being added to the API. However, we try to keep our organization's usage of React limited to the most stable set of features that React offers. We do this mainly for **consistency** and so our engineers don't have to spend extra time trying to figure out how everything is working. That said, if you aren't sure if we have adopted something please ask us first.
 
+# React Hooks: Frequently Asked Questions
+
+## Are Hooks a Replacement for HOCs or Render Props?
+
+In most cases, a custom hook is a better pattern to use than an HOC or Render Prop. They are easier to create, understand, use and document. However, there might still be a case for a HOC e.g. if you have a component that abstracts some conditional rendering logic.
+
+## Where should I put my inline functions? I'm getting a lint error related to `jsx-no-bind`...
+
+If your inline function does not have any dependencies (i.e. props or state that it depends on) it can be removed from the component and moved to the top of the file. If it does have dependencies, then we should wrap it in `useCallback()` and pass the dependencies as an argument. At one time, we questioned whether there is some performance penalty to using `useCallback()` as a pre-optimization and the conclusion was that there is generally a higher potential cost to not using it vs. using it.
+
+## Is there an equivalent to `componentDidUpdate()` when using hooks?
+
+The short answer is no. A longer answer is that sometimes we need to check not only that a dependency has changed, but how it has changed in order to run a side effect. For example, a prop had a value of an empty string on a previous render, but now is non-empty. The generally accepted practice is to store the "previous" value in a `ref` so the comparison can be made in a `useEffect()` call.
+
+## What is the `exhaustive-deps` lint rule? Can I ignore it?
+
+A `useEffect()` that does not include referenced props or state in its dependency array is [usually a mistake](https://legacy.reactjs.org/docs/hooks-faq.html#is-it-safe-to-omit-functions-from-the-list-of-dependencies) as often we want effects to re-run when those dependencies change. However, there are some cases where we might actually only want to re-run the effect when only some of those dependencies change. We determined the best practice here should be to allow disabling the “next line” with a comment `//eslint-disable-next-line react-hooks/exhaustive-deps` and an additional comment explanation so the next developer can understand why the rule was not used.
+
 # Onyx Best Practices
 
 [Onyx Documentation](https://github.com/expensify/react-native-onyx)
