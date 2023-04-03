@@ -1,21 +1,21 @@
 import React, {
     useContext, useEffect, useState,
 } from 'react';
-import {Dimensions, Keyboard} from 'react-native';
+import {useWindowDimensions, Keyboard} from 'react-native';
 import Reanimated, {
     useWorkletCallback,
-    Easing,
     KeyboardState,
     useAnimatedKeyboard,
-    useAnimatedStyle, useDerivedValue, withTiming,
+    useAnimatedStyle, useDerivedValue, withSpring,
 } from 'react-native-reanimated';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../../styles/styles';
 import {Actions, States, ActionSheetAwareScrollViewContext} from './ActionSheetAwareScrollViewContext';
 
 const config = {
-    duration: 350,
-    easing: Easing.bezier(0.33, 0.01, 0, 1),
+    mass: 3,
+    stiffness: 1000,
+    damping: 500,
 };
 
 function ActionSheetKeyboardSpace(props) {
@@ -23,16 +23,19 @@ function ActionSheetKeyboardSpace(props) {
     const keyboard = useAnimatedKeyboard();
 
     // similar to using `global` in worklet but it's just a local object
-    const [ctx] = useState({});
-    const windowHeight = Dimensions.get('screen').height;
+    const [syncLocalWorkletState] = useState({
+        shouldRunAnimation: false,
+        keyboardValue: 0,
+    });
+    const {height: windowHeight} = useWindowDimensions();
     const {
         currentActionSheetState, transitionActionSheetStateWorklet: transition, transitionActionSheetState, resetStateMachine,
     } = useContext(ActionSheetAwareScrollViewContext);
 
     useEffect(() => {
-        // sometimes it might trigger multiple times the same actions
+        // Sometimes it triggers multiple times the same action
         let lastAction = null;
-        const onDidShow = () => {
+        const removeDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
             if (lastAction === 'keyboardDidShow') {
                 return;
             }
@@ -42,10 +45,9 @@ function ActionSheetKeyboardSpace(props) {
             transitionActionSheetState({
                 type: Actions.ON_KEYBOARD_OPEN,
             });
-        };
-        const removeDidShow = Keyboard.addListener('keyboardDidShow', onDidShow);
+        });
 
-        const onDidHide = () => {
+        const removeDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
             if (lastAction === 'keyboardDidHide') {
                 return;
             }
@@ -55,20 +57,18 @@ function ActionSheetKeyboardSpace(props) {
             transitionActionSheetState({
                 type: Actions.ON_KEYBOARD_CLOSE,
             });
-        };
-        const removeDidHide = Keyboard.addListener('keyboardDidHide', onDidHide);
+        });
 
         return () => {
             resetStateMachine();
 
-            // We try to use the new API first, but it doesn't work all the time
-            // Especially it's bad with hot reloading, so we fallback to the old API
+            // we use try catch because when you do multiple hot reloads
+            // the keyboard listeners can be removed already
             try {
-                removeDidShow();
-                removeDidHide();
-            } catch (err) {
-                Keyboard.removeSubscription(onDidShow);
-                Keyboard.removeSubscription(onDidHide);
+                removeDidShowListener();
+                removeDidHideListener();
+            } catch {
+                // noop
             }
         };
     }, []);
@@ -78,14 +78,14 @@ function ActionSheetKeyboardSpace(props) {
     // This should work after the fix:
     // return withSequence(withTiming(set, {
     //     duration: 0,
-    // }), withTiming(animateTo, config));
-    const setAndTiming = useWorkletCallback((set, animateTo) => (!ctx.shouldRunAnimation
+    // }), withSpring(animateTo, config));
+    const setAndTiming = useWorkletCallback((set, animateTo) => (!syncLocalWorkletState.shouldRunAnimation
         ? (() => {
-            ctx.shouldRunAnimation = true;
+            syncLocalWorkletState.shouldRunAnimation = true;
             return set;
         })()
-        : withTiming(animateTo, config, () => {
-            ctx.shouldRunAnimation = false;
+        : withSpring(animateTo, config, () => {
+            syncLocalWorkletState.shouldRunAnimation = false;
         })));
 
     const translateY = useDerivedValue(() => {
@@ -101,9 +101,9 @@ function ActionSheetKeyboardSpace(props) {
 
         // sometimes we need to know the last keyboard height
         if (keyboard.state.value === KeyboardState.OPEN && keyboardHeight !== 0) {
-            ctx.keyboardValue = keyboardHeight;
+            syncLocalWorkletState.keyboardValue = keyboardHeight;
         }
-        const lastKeyboardValue = (ctx.keyboardValue || 0);
+        const lastKeyboardValue = syncLocalWorkletState.keyboardValue;
 
         const {popoverHeight, fy, height} = current.payload || {};
 
@@ -126,7 +126,7 @@ function ActionSheetKeyboardSpace(props) {
         switch (current.state) {
             case States.KEYBOARD_OPEN: {
                 if (previous.state === States.KEYBOARD_CLOSING_POPOVER) {
-                    return withTiming(0, config, () => {
+                    return withSpring(0, config, () => {
                         transition({
                             type: Actions.END_TRANSITION,
                         });
@@ -137,7 +137,7 @@ function ActionSheetKeyboardSpace(props) {
             }
 
             case States.POPOVER_CLOSED:
-                return withTiming(0, config, () => {
+                return withSpring(0, config, () => {
                     transition({
                         type: Actions.END_TRANSITION,
                     });
@@ -148,7 +148,7 @@ function ActionSheetKeyboardSpace(props) {
             case States.POPOVER_OPEN: {
                 if (popoverHeight) {
                     if (Number.isNaN(previousElementOffset) || elementOffset > previousElementOffset) {
-                        return withTiming(elementOffset < 0 ? 0 : elementOffset, config);
+                        return withSpring(elementOffset < 0 ? 0 : elementOffset, config);
                     }
 
                     return previousElementOffset;
@@ -171,7 +171,7 @@ function ActionSheetKeyboardSpace(props) {
                     const previousOffset = invertedKeyboardHeight + previousElementOffset;
 
                     if (Number.isNaN(previousOffset) || nextOffset > previousOffset) {
-                        return withTiming(nextOffset, config);
+                        return withSpring(nextOffset, config);
                     }
 
                     return previousOffset;
@@ -180,17 +180,18 @@ function ActionSheetKeyboardSpace(props) {
                 return nextOffset;
             }
 
+            case States.ATTACHMENTS_POPOVER_WITH_KEYBOARD_OPEN:
             case States.CALL_POPOVER_WITH_KEYBOARD_OPEN:
             case States.EMOJI_PICKER_WITH_KEYBOARD_OPEN: {
-                if (keyboard.state.value === KeyboardState.CLOSED) {
-                    return lastKeyboardValue;
+                if (keyboard.state.value === KeyboardState.OPEN) {
+                    return 0;
                 }
 
-                return 0;
+                return lastKeyboardValue;
             }
 
             case States.CLOSING_KEYBOARD_POPOVER: {
-                return keyboardHeight;
+                return invertedKeyboardHeight;
             }
 
             case States.KEYBOARD_CLOSING_POPOVER: {

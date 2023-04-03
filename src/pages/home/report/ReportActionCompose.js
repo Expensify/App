@@ -51,6 +51,7 @@ import EmojiSuggestions from '../../../components/EmojiSuggestions';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
+import * as ActionSheetAwareScrollView from '../../../components/ActionSheetAwareScrollView';
 
 const propTypes = {
     /** Beta features list */
@@ -168,6 +169,7 @@ class ReportActionCompose extends React.Component {
         this.insertSelectedEmoji = this.insertSelectedEmoji.bind(this);
         this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
+        this.measurePopover = this.measurePopover.bind(this);
         this.comment = props.comment;
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
@@ -295,6 +297,10 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} isMenuVisible
      */
     setMenuVisibility(isMenuVisible) {
+        this.context.transitionActionSheetState({
+            type: isMenuVisible ? ActionSheetAwareScrollView.Actions.SHOW_ATTACHMENTS_POPOVER : ActionSheetAwareScrollView.Actions.CLOSE_ATTACHMENTS_POPOVER,
+        });
+
         this.setState({isMenuVisible});
     }
 
@@ -379,6 +385,20 @@ class ReportActionCompose extends React.Component {
         if (this.state && this.state.shouldShowSuggestionMenu) {
             this.setState({shouldShowSuggestionMenu: false});
         }
+    }
+
+    /**
+     * Measure the size of the popover's content.
+     *
+     * @param {Object} nativeEvent
+     */
+    measurePopover({nativeEvent}) {
+        this.context.transitionActionSheetState({
+            type: ActionSheetAwareScrollView.Actions.MEASURE_POPOVER,
+            payload: {
+                popoverHeight: nativeEvent.layout.height,
+            },
+        });
     }
 
     /**
@@ -710,7 +730,7 @@ class ReportActionCompose extends React.Component {
                     >
                         {({displayFileInModal}) => (
                             <>
-                                <AttachmentPicker>
+                                <AttachmentPicker onLayout={this.measurePopover}>
                                     {({openPicker}) => (
                                         <>
                                             <View style={[
@@ -775,6 +795,7 @@ class ReportActionCompose extends React.Component {
                                                 </Tooltip>
                                             </View>
                                             <PopoverMenu
+                                                onLayout={this.measurePopover}
                                                 animationInTiming={CONST.ANIMATION_IN_TIMING}
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}
@@ -785,6 +806,10 @@ class ReportActionCompose extends React.Component {
                                                         icon: Expensicons.Paperclip,
                                                         text: this.props.translate('reportActionCompose.addAttachment'),
                                                         onSelected: () => {
+                                                            this.context.transitionActionSheetState({
+                                                                type: ActionSheetAwareScrollView.Actions.SHOW_ATTACHMENTS_PICKER_POPOVER,
+                                                            });
+
                                                             openPicker({
                                                                 onPicked: displayFileInModal,
                                                             });
@@ -929,6 +954,7 @@ class ReportActionCompose extends React.Component {
 
 ReportActionCompose.propTypes = propTypes;
 ReportActionCompose.defaultProps = defaultProps;
+ReportActionCompose.contextType = ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext;
 
 export default compose(
     withWindowDimensions,

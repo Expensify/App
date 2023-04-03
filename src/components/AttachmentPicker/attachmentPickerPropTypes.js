@@ -22,6 +22,9 @@ const propTypes = {
      * */
     children: PropTypes.func.isRequired,
 
+    /** Optional callback attached to popover's children container */
+    onLayout: PropTypes.func,
+
     /** The types of files that can be selected with this picker. */
     type: PropTypes.oneOf([CONST.ATTACHMENT_PICKER_TYPE.FILE, CONST.ATTACHMENT_PICKER_TYPE.IMAGE]),
 };

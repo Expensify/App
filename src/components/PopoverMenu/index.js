@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import React, {PureComponent} from 'react';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Popover from '../Popover';
 import styles from '../../styles/styles';
@@ -17,6 +18,9 @@ import CONST from '../../CONST';
 const propTypes = {
     ...createMenuPropTypes,
     ...windowDimensionsPropTypes,
+
+    /** Optional callback passed to popover's children container */
+    onLayout: PropTypes.func,
 };
 
 class PopoverMenu extends PureComponent {
@@ -96,7 +100,7 @@ class PopoverMenu extends PureComponent {
                 disableAnimation={this.props.disableAnimation}
                 fromSidebarMediumScreen={this.props.fromSidebarMediumScreen}
             >
-                <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
+                <View onLayout={this.props.onLayout} style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                     {!_.isEmpty(this.props.headerText) && (
                         <View style={styles.createMenuItem}>
                             <Text

@@ -307,6 +307,7 @@ class AttachmentPicker extends Component {
         return (
             <>
                 <Popover
+                    onLayout={this.props.onLayout}
                     onClose={this.close}
                     isVisible={this.state.isVisible}
                     anchorPosition={styles.createMenuPosition}
