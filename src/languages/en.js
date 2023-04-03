@@ -341,8 +341,6 @@ export default {
     },
     profilePage: {
         profile: 'Profile',
-        john: 'John',
-        doe: 'Doe',
         preferredPronouns: 'Preferred pronouns',
         selectYourPronouns: 'Select your pronouns',
         selfSelectYourPronoun: 'Self-select your pronoun',
@@ -402,8 +400,6 @@ export default {
     displayNamePage: {
         headerTitle: 'Display name',
         isShownOnProfile: 'Your display name is shown on your profile.',
-        john: 'John',
-        doe: 'Doe',
     },
     timezonePage: {
         timezone: 'Timezone',
