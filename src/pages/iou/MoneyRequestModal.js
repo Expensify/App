@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {useState, useEffect, useRef} from 'react';
-import {View, TouchableOpacity} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -8,11 +8,9 @@ import Str from 'expensify-common/lib/str';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage/IOUParticipantsPage';
 import IOUConfirmPage from './steps/IOUConfirmPage';
-import Header from '../../components/Header';
+import ModalHeader from './ModalHeader';
 import styles from '../../styles/styles';
-import Icon from '../../components/Icon';
 import * as IOU from '../../libs/actions/IOU';
-import * as Expensicons from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -21,7 +19,6 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import AnimatedStep from '../../components/AnimatedStep';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import Tooltip from '../../components/Tooltip';
 import CONST from '../../CONST';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
@@ -335,51 +332,10 @@ const MoneyRequestModal = (props) => {
         );
     }
 
-    function renderHeader() {
-        return (
-            <View style={[styles.headerBar]}>
-                <View style={[
-                    styles.dFlex,
-                    styles.flexRow,
-                    styles.alignItemsCenter,
-                    styles.flexGrow1,
-                    styles.justifyContentBetween,
-                    styles.overflowHidden,
-                ]}
-                >
-                    {currentStepIndex > 0
-                        && (
-                        <View style={[styles.mr2]}>
-                            <Tooltip text={props.translate('common.back')}>
-                                <TouchableOpacity
-                                    onPress={() => navigateToPreviousStep}
-                                    style={[styles.touchableButtonImage]}
-                                >
-                                    <Icon src={Expensicons.BackArrow} />
-                                </TouchableOpacity>
-                            </Tooltip>
-                        </View>
-                        )}
-                    <Header title={getTitleForStep()} />
-                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
-                        <Tooltip text={props.translate('common.close')}>
-                            <TouchableOpacity
-                                onPress={() => Navigation.dismissModal()}
-                                style={[styles.touchableButtonImage]}
-                                accessibilityRole="button"
-                                accessibilityLabel={props.translate('common.close')}
-                            >
-                                <Icon src={Expensicons.Close} />
-                            </TouchableOpacity>
-                        </Tooltip>
-                    </View>
-                </View>
-            </View>
-        );
-    }
-
     const currentStep = steps[currentStepIndex];
     const reportID = lodashGet(props, 'route.params.reportID', '');
+    const shouldShowBackButton = currentStepIndex > 0;
+    const modalHeader = <ModalHeader title={getTitleForStep()} shouldShowBackButton={shouldShowBackButton} onBackButtonPress={() => navigateToPreviousStep()} />;
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
@@ -393,7 +349,7 @@ const MoneyRequestModal = (props) => {
                                     direction={getDirection()}
                                     style={[styles.flex1, safeAreaPaddingBottomStyle]}
                                 >
-                                    {renderHeader()}
+                                    {modalHeader}
                                     <IOUAmountPage
                                         onStepComplete={(value) => {
                                             setAmount(value);
@@ -412,7 +368,7 @@ const MoneyRequestModal = (props) => {
                                     style={[styles.flex1]}
                                     direction={getDirection()}
                                 >
-                                    {renderHeader()}
+                                    {modalHeader}
                                     <IOUParticipantsPage
                                         participants={participants}
                                         hasMultipleParticipants={props.hasMultipleParticipants}
@@ -427,7 +383,7 @@ const MoneyRequestModal = (props) => {
                                     style={[styles.flex1, safeAreaPaddingBottomStyle]}
                                     direction={getDirection()}
                                 >
-                                    {renderHeader()}
+                                    {modalHeader}
                                     <IOUConfirmPage
                                         onConfirm={(selectedParticipants) => {
                                             // TODO: ADD HANDLING TO DISABLE BUTTON FUNCTIONALITY WHILE REQUEST IS IN FLIGHT

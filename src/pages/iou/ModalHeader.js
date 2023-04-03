@@ -27,7 +27,7 @@ const defaultProps = {
     onBackButtonPress: () => Navigation.goBack(),
 };
 
-const ModalHeader = (props) => (
+const ModalHeader = props => (
     <View style={[styles.headerBar]}>
         <View style={[
             styles.dFlex,
