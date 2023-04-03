@@ -89,7 +89,13 @@ function getChatType(report) {
  * @returns {string}
  */
 function getReportParticipantsTitle(logins) {
-    return _.map(logins, login => Str.removeSMSDomain(login)).join(', ');
+    return _.chain(logins)
+
+        // Somehow it's possible for the logins coming from report.participants to contain undefined values so we use compact to remove them.
+        .compact()
+        .map(login => Str.removeSMSDomain(login))
+        .value()
+        .join(', ');
 }
 
 /**
