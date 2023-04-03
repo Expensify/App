@@ -157,6 +157,11 @@ export default {
         updateApp: 'Actualizar app',
         updatePrompt: 'Existe una nueva versión de esta aplicación.\nActualiza ahora or reinicia la aplicación más tarde para recibir la última versión.',
     },
+    deeplinkWrapper: {
+        launching: 'Cargando Expensify',
+        expired: 'Tu sesión ha expirado.',
+        signIn: 'Por favor, inicia sesión de nuevo.',
+    },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
         successfulSignInDescription: 'Vuelve a la pestaña original para continuar.',
