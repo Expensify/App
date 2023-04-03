@@ -1,25 +1,14 @@
-import _ from 'underscore';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import deeplinkRoutes from './deeplinkRoutes';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
 import * as Browser from '../../libs/Browser';
-import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     /** Children to render. */
     children: PropTypes.node.isRequired,
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-};
-
-const defaultProps = {
-    betas: [],
 };
 
 class DeeplinkWrapper extends PureComponent {
@@ -51,18 +40,7 @@ class DeeplinkWrapper extends PureComponent {
             }
         }, 500);
 
-        // check if pathname matches with deeplink routes
-        const matchedRoute = _.find(deeplinkRoutes, (route) => {
-            if (route.isDisabled && route.isDisabled(this.props.betas)) {
-                return false;
-            }
-            const routeRegex = new RegExp(route.pattern);
-            return routeRegex.test(window.location.pathname);
-        });
-
-        if (matchedRoute) {
-            this.openRouteInDesktopApp();
-        }
+        this.openRouteInDesktopApp();
     }
 
     openRouteInDesktopApp() {
@@ -113,7 +91,4 @@ class DeeplinkWrapper extends PureComponent {
 }
 
 DeeplinkWrapper.propTypes = propTypes;
-DeeplinkWrapper.defaultProps = defaultProps;
-export default withOnyx({
-    betas: {key: ONYXKEYS.BETAS},
-})(DeeplinkWrapper);
+export default DeeplinkWrapper;
