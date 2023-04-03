@@ -38,7 +38,7 @@ const propTypes = {
     shouldSubmitOnComplete: PropTypes.bool,
 
     /** Function to call when the input is changed  */
-    onChange: PropTypes.func,
+    onChangeText: PropTypes.func,
 
     /** Function to call when the input is submitted or fully complete */
     onFulfill: PropTypes.func,
@@ -52,7 +52,7 @@ const defaultProps = {
     forwardedRef: undefined,
     errorText: '',
     shouldSubmitOnComplete: true,
-    onChange: () => {},
+    onChangeText: () => {},
     onFulfill: () => {},
 };
 
@@ -157,7 +157,7 @@ class MagicCodeInput extends React.PureComponent {
             };
         }, () => {
             const finalInput = this.composeToString(this.state.numbers);
-            this.props.onChange(finalInput);
+            this.props.onChangeText(finalInput);
 
             // Blurs the input and removes focus from the last input and, if it should submit
             // on complete, it will call the onFulfill callback.
@@ -270,12 +270,13 @@ class MagicCodeInput extends React.PureComponent {
                             <View style={[StyleSheet.absoluteFillObject, styles.w100, styles.opacity0]}>
                                 <TextInput
                                     ref={ref => this.inputRefs[index] = ref}
-                                    autoFocus={this.props.autoFocus}
+                                    autoFocus={index === 0 && this.props.autoFocus}
                                     inputMode="numeric"
                                     textContentType="oneTimeCode"
                                     name={this.props.name}
                                     maxLength={CONST.MAGIC_CODE_LENGTH}
                                     value={this.state.input}
+                                    hideFocusedState
                                     autoComplete={this.props.autoComplete}
                                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                     onChangeText={this.onChangeText}
