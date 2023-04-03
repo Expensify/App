@@ -2,7 +2,7 @@ import React from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {
-    View, FlatList, TouchableOpacity,
+    View, TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -32,6 +32,9 @@ import networkPropTypes from '../../components/networkPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import FormHelpMessage from '../../components/FormHelpMessage';
 import TextInput from '../../components/TextInput';
+import KeyboardDismissingFlatList from '../../components/KeyboardDismissingFlatList';
+import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -46,13 +49,25 @@ const propTypes = {
         }),
     }).isRequired,
 
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }),
+
     ...policyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
     network: networkPropTypes.isRequired,
 };
 
-const defaultProps = policyDefaultProps;
+const defaultProps = {
+    personalDetails: {},
+    session: {
+        email: null,
+    },
+    ...policyDefaultProps,
+};
 
 class WorkspaceMembersPage extends React.Component {
     constructor(props) {
@@ -114,6 +129,7 @@ class WorkspaceMembersPage extends React.Component {
      * Open the modal to invite a user
      */
     inviteUser() {
+        this.updateSearchValue('');
         Navigation.navigate(ROUTES.getWorkspaceInviteRoute(this.props.route.params.policyID));
     }
 
@@ -153,15 +169,14 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     /**
-     * Add or remove all users from the selectedEmployees list
+     * Add or remove all users passed from the selectedEmployees list
+     * @param {Object} memberList
      */
-    toggleAllUsers() {
-        let policyMemberList = lodashGet(this.props, 'policyMemberList', {});
-        policyMemberList = _.filter(_.keys(policyMemberList), policyMember => policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
+    toggleAllUsers(memberList) {
+        const emailList = _.keys(memberList);
         this.setState(prevState => ({
-            selectedEmployees: !_.every(removableMembers, member => _.contains(prevState.selectedEmployees, member))
-                ? removableMembers
+            selectedEmployees: !_.every(emailList, memberEmail => _.contains(prevState.selectedEmployees, memberEmail))
+                ? emailList
                 : [],
         }), () => this.validate());
     }
@@ -235,11 +250,11 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     /**
-     * @param {String} value
+     * @param {String} [value = '']
      * @param {String} keyword
      * @returns {Boolean}
      */
-    isKeywordMatch(value, keyword) {
+    isKeywordMatch(value = '', keyword) {
         return value.trim().toLowerCase().includes(keyword);
     }
 
@@ -306,12 +321,9 @@ class WorkspaceMembersPage extends React.Component {
 
     render() {
         const policyMemberList = lodashGet(this.props, 'policyMemberList', {});
-        const removableMembers = [];
+        const removableMembers = {};
         let data = [];
         _.each(policyMemberList, (policyMember, email) => {
-            if (email !== this.props.session.email && email !== this.props.policy.owner && policyMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                removableMembers.push(email);
-            }
             const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email});
             data.push({
                 ...policyMember,
@@ -325,6 +337,25 @@ class WorkspaceMembersPage extends React.Component {
             || this.isKeywordMatch(member.phoneNumber, searchValue)
             || this.isKeywordMatch(member.firstName, searchValue)
             || this.isKeywordMatch(member.lastName, searchValue));
+
+        data = _.reject(data, (member) => {
+            // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
+            if (PolicyUtils.isExpensifyTeam(lodashGet(this.props.policy, 'owner'))) {
+                return;
+            }
+
+            // We don't want to show guides as policy members unless the user is not a guide. Some customers get confused when they
+            // see random people added to their policy, but guides having access to the policies help set them up.
+            const isCurrentUserExpensifyTeam = PolicyUtils.isExpensifyTeam(this.props.currentUserPersonalDetails.login);
+            return !isCurrentUserExpensifyTeam && PolicyUtils.isExpensifyTeam(member.login);
+        });
+
+        _.each(data, (member) => {
+            if (member.login === this.props.session.email || member.login === this.props.policy.owner || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                return;
+            }
+            removableMembers[member.login] = member;
+        });
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
 
@@ -343,6 +374,7 @@ class WorkspaceMembersPage extends React.Component {
                             subtitle={policyName}
                             onCloseButtonPress={() => Navigation.dismissModal()}
                             onBackButtonPress={() => {
+                                this.updateSearchValue('');
                                 Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
                             }}
                             shouldShowGetAssistanceButton
@@ -388,8 +420,9 @@ class WorkspaceMembersPage extends React.Component {
                                     <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
                                         <View style={[styles.peopleRowCell]}>
                                             <Checkbox
-                                                isChecked={removableMembers.length !== 0 && _.every(removableMembers, member => _.contains(this.state.selectedEmployees, member))}
-                                                onPress={() => this.toggleAllUsers()}
+                                                isChecked={!_.isEmpty(removableMembers)
+                                                    && _.every(_.keys(removableMembers), memberEmail => _.contains(this.state.selectedEmployees, memberEmail))}
+                                                onPress={() => this.toggleAllUsers(removableMembers)}
                                             />
                                         </View>
                                         <View style={[styles.peopleRowCell, styles.flex1]}>
@@ -398,7 +431,7 @@ class WorkspaceMembersPage extends React.Component {
                                             </Text>
                                         </View>
                                     </View>
-                                    <FlatList
+                                    <KeyboardDismissingFlatList
                                         renderItem={this.renderItem}
                                         data={data}
                                         keyExtractor={item => item.login}
@@ -409,13 +442,11 @@ class WorkspaceMembersPage extends React.Component {
                                     />
                                 </View>
                             ) : (
-                                !_.isEmpty(policyMemberList) && (
-                                    <View style={[styles.ph5]}>
-                                        <Text style={[styles.textLabel, styles.colorMuted]}>
-                                            {this.props.translate('common.noResultsFound')}
-                                        </Text>
-                                    </View>
-                                )
+                                <View style={[styles.ph5]}>
+                                    <Text style={[styles.textLabel, styles.colorMuted]}>
+                                        {this.props.translate('common.noResultsFound')}
+                                    </Text>
+                                </View>
                             )}
                         </View>
                     </FullPageNotFoundView>
@@ -441,4 +472,5 @@ export default compose(
             key: ONYXKEYS.SESSION,
         },
     }),
+    withCurrentUserPersonalDetails,
 )(WorkspaceMembersPage);

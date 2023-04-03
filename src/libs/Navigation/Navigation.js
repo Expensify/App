@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {Keyboard} from 'react-native';
-import {DrawerActions, getPathFromState, StackActions} from '@react-navigation/native';
+import {CommonActions, DrawerActions, getPathFromState} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
 import DomUtils from '../DomUtils';
@@ -11,6 +11,7 @@ import DeprecatedCustomActions from './DeprecatedCustomActions';
 import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
+import SCREENS from '../../SCREENS';
 
 let resolveNavigationIsReadyPromise;
 const navigationIsReadyPromise = new Promise((resolve) => {
@@ -23,13 +24,12 @@ let drawerIsReadyPromise = new Promise((resolve) => {
 });
 
 let resolveReportScreenIsReadyPromise;
-const reportScreenIsReadyPromise = new Promise((resolve) => {
+let reportScreenIsReadyPromise = new Promise((resolve) => {
     resolveReportScreenIsReadyPromise = resolve;
 });
 
 let isLoggedIn = false;
 let pendingRoute = null;
-let isNavigating = false;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -55,25 +55,11 @@ function setDidTapNotification() {
  * @returns {Boolean}
  */
 function canNavigate(methodName, params = {}) {
-    if (navigationRef.isReady() && !isNavigating) {
+    if (navigationRef.isReady()) {
         return true;
     }
-
-    if (isNavigating) {
-        Log.hmmm(`[Navigation] ${methodName} failed because navigation is progress`, params);
-        return false;
-    }
-
     Log.hmmm(`[Navigation] ${methodName} failed because navigation ref was not yet ready`, params);
     return false;
-}
-
-/**
- * Sets Navigation State
- * @param {Boolean} isNavigatingValue
- */
-function setIsNavigating(isNavigatingValue) {
-    isNavigating = isNavigatingValue;
 }
 
 /**
@@ -128,7 +114,6 @@ function goBack(shouldOpenDrawer = true) {
         }
         return;
     }
-
     navigationRef.current.goBack();
 }
 
@@ -173,7 +158,7 @@ function navigate(route = ROUTES.HOME) {
         // If we're navigating to the signIn page while logged out, pop whatever screen is on top
         // since it's guaranteed that the sign in page will be underneath (since it's the initial route).
         // Also, if we're coming from a link to validate login (pendingRoute is not null), we want to pop the loading screen.
-        navigationRef.current.dispatch(StackActions.pop());
+        navigationRef.current.dispatch(CommonActions.reset({index: 0, routes: [{name: SCREENS.HOME}]}));
         return;
     }
 
@@ -183,6 +168,19 @@ function navigate(route = ROUTES.HOME) {
     }
 
     linkTo(navigationRef.current, route);
+}
+
+/**
+ * Update route params for the specified route.
+ *
+ * @param {Object} params
+ * @param {String} routeKey
+ */
+function setParams(params, routeKey) {
+    navigationRef.current.dispatch({
+        ...CommonActions.setParams(params),
+        source: routeKey,
+    });
 }
 
 /**
@@ -267,6 +265,12 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
+function resetIsReportScreenReadyPromise() {
+    reportScreenIsReadyPromise = new Promise((resolve) => {
+        resolveReportScreenIsReadyPromise = resolve;
+    });
+}
+
 /**
  * @returns {Promise}
  */
@@ -295,6 +299,7 @@ function setIsReportScreenIsReady() {
 export default {
     canNavigate,
     navigate,
+    setParams,
     dismissModal,
     isActiveRoute,
     getActiveRoute,
@@ -308,8 +313,8 @@ export default {
     isDrawerReady,
     setIsDrawerReady,
     resetDrawerIsReadyPromise,
+    resetIsReportScreenReadyPromise,
     isDrawerRoute,
-    setIsNavigating,
     isReportScreenReady,
     setIsReportScreenIsReady,
 };

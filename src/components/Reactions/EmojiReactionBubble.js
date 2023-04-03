@@ -35,7 +35,7 @@ const propTypes = {
     /**
      * The account ids of the users who reacted.
      */
-    reactionUsers: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number])),
+    reactionUsers: PropTypes.arrayOf(PropTypes.string),
 
     /**
      * The default size of the reaction bubble is defined
@@ -60,12 +60,15 @@ const EmojiReactionBubble = (props) => {
     const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, props.reactionUsers);
     return (
         <Pressable
-            style={({hovered}) => [
+            style={({hovered, pressed}) => [
                 styles.emojiReactionBubble,
-                StyleUtils.getEmojiReactionBubbleStyle(hovered, hasUserReacted, props.sizeScale),
+                StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, hasUserReacted, props.sizeScale),
             ]}
             onPress={props.onPress}
             onLongPress={props.onReactionListOpen}
+
+            // Prevent text input blur when emoji reaction is clicked
+            onMouseDown={e => e.preventDefault()}
         >
             <Text style={[
                 styles.emojiReactionText,
@@ -75,13 +78,13 @@ const EmojiReactionBubble = (props) => {
                 {props.emojiCodes.join('')}
             </Text>
             {props.count > 0 && (
-                <Text style={[
-                    styles.reactionCounterText,
-                    StyleUtils.getEmojiReactionCounterTextStyle(hasUserReacted, props.sizeScale),
-                ]}
-                >
-                    {props.count}
-                </Text>
+            <Text style={[
+                styles.reactionCounterText,
+                StyleUtils.getEmojiReactionCounterTextStyle(hasUserReacted, props.sizeScale),
+            ]}
+            >
+                {props.count}
+            </Text>
             )}
         </Pressable>
     );

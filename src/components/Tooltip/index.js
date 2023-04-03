@@ -172,10 +172,8 @@ class Tooltip extends PureComponent {
                 onBlur: (el) => {
                     this.hideTooltip();
 
-                    // Call the original onBlur, if any
-                    const {onBlur} = this.props.children;
-                    if (_.isFunction(onBlur)) {
-                        onBlur(el);
+                    if (_.isFunction(this.props.children.props.onBlur)) {
+                        this.props.children.props.onBlur(el);
                     }
                 },
                 focusable: true,

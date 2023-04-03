@@ -50,6 +50,9 @@ const propTypes = {
     /** Modal visibility */
     isVisible: PropTypes.bool.isRequired,
 
+    /** Image crop vector mask */
+    maskImage: PropTypes.func,
+
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -60,6 +63,7 @@ const defaultProps = {
     imageType: '',
     onClose: () => {},
     onSave: () => {},
+    maskImage: undefined,
 };
 
 // This component can't be written using class since reanimated API uses hooks.
@@ -73,6 +77,11 @@ const AvatarCropModal = (props) => {
     const translateSlider = useSharedValue(0);
     const isPressableEnabled = useSharedValue(true);
 
+    // The previous offset values are maintained to recalculate the offset value in proportion
+    // to the container size, especially when the window size is first decreased and then increased
+    const prevMaxOffsetX = useSharedValue(0);
+    const prevMaxOffsetY = useSharedValue(0);
+
     const [imageContainerSize, setImageContainerSize] = useState(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const [sliderContainerSize, setSliderContainerSize] = useState(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const [isImageContainerInitialized, setIsImageContainerInitialized] = useState(false);
@@ -82,8 +91,11 @@ const AvatarCropModal = (props) => {
     const initializeImageContainer = useCallback((event) => {
         setIsImageContainerInitialized(true);
         const {height, width} = event.nativeEvent.layout;
-        setImageContainerSize(Math.floor(Math.min(height - styles.imageCropRotateButton.height, width)));
-    }, [props.isSmallScreenWidth]);
+
+        // Even if the browser height is reduced too much, the relative height should not be negative
+        const relativeHeight = Math.max(height - styles.imageCropRotateButton.height, CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
+        setImageContainerSize(Math.floor(Math.min(relativeHeight, width)));
+    }, []);
 
     // An onLayout callback, that initializes the slider container size, for proper render of a slider
     const initializeSliderContainer = useCallback((event) => {
@@ -99,19 +111,22 @@ const AvatarCropModal = (props) => {
         scale.value = CONST.AVATAR_CROP_MODAL.MIN_SCALE;
         rotation.value = 0;
         translateSlider.value = 0;
+        prevMaxOffsetX.value = 0;
+        prevMaxOffsetY.value = 0;
         setImageContainerSize(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
         setSliderContainerSize(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
         setIsImageContainerInitialized(false);
         setIsImageInitialized(false);
-    }, []);
+    }, [originalImageHeight, originalImageWidth, prevMaxOffsetX, prevMaxOffsetY, rotation, scale, translateSlider, translateX, translateY]);
 
     // In order to calculate proper image position/size/animation, we have to know its size.
     // And we have to update image size if image url changes.
+    const imageUri = props.imageUri;
     useEffect(() => {
-        if (!props.imageUri) {
+        if (!imageUri) {
             return;
         }
-        Image.getSize(props.imageUri, (width, height) => {
+        Image.getSize(imageUri, (width, height) => {
             // We need to have image sizes in shared values to properly calculate position/size/animation
             originalImageHeight.value = height;
             originalImageWidth.value = width;
@@ -123,7 +138,7 @@ const AvatarCropModal = (props) => {
             translateSlider.value += 0.01;
             rotation.value += 360;
         });
-    }, [props.imageUri]);
+    }, [imageUri, originalImageHeight, originalImageWidth, rotation, translateSlider]);
 
     /**
      * Validates that value is within the provided mix/max range.
@@ -166,6 +181,8 @@ const AvatarCropModal = (props) => {
         const maxOffsetY = (height - imageContainerSize) / 2;
         translateX.value = clamp(offsetX, [maxOffsetX * -1, maxOffsetX]);
         translateY.value = clamp(offsetY, [maxOffsetY * -1, maxOffsetY]);
+        prevMaxOffsetX.value = maxOffsetX;
+        prevMaxOffsetY.value = maxOffsetY;
     }, [imageContainerSize, scale, clamp]);
 
     /**
@@ -198,6 +215,38 @@ const AvatarCropModal = (props) => {
             updateImageOffset(newX, newY);
         },
     }, [imageContainerSize, updateImageOffset, translateX, translateY]);
+
+    // This effect is needed to recalculate the maximum offset values
+    // when the browser window is resized.
+    useEffect(() => {
+        // If no panning has happened and the value is 0, do an early return.
+        if (!prevMaxOffsetX.value && !prevMaxOffsetY.value) {
+            return;
+        }
+        const {height, width} = getDisplayedImageSize();
+        const maxOffsetX = (width - imageContainerSize) / 2;
+        const maxOffsetY = (height - imageContainerSize) / 2;
+
+        // Since interpolation is expensive, we only want to do it if
+        // image has been panned across X or Y axis by the user.
+        if (prevMaxOffsetX) {
+            translateX.value = interpolate(
+                translateX.value,
+                [prevMaxOffsetX.value * -1, prevMaxOffsetX.value],
+                [maxOffsetX * -1, maxOffsetX],
+            );
+        }
+
+        if (prevMaxOffsetY) {
+            translateY.value = interpolate(
+                translateY.value,
+                [prevMaxOffsetY.value * -1, prevMaxOffsetY.value],
+                [maxOffsetY * -1, maxOffsetY],
+            );
+        }
+        prevMaxOffsetX.value = maxOffsetX;
+        prevMaxOffsetY.value = maxOffsetY;
+    }, [getDisplayedImageSize, imageContainerSize, prevMaxOffsetX, prevMaxOffsetY, translateX, translateY]);
 
     /**
      * Calculates new scale value and updates images offset to ensure
@@ -235,7 +284,7 @@ const AvatarCropModal = (props) => {
             [CONST.AVATAR_CROP_MODAL.MIN_SCALE, CONST.AVATAR_CROP_MODAL.MAX_SCALE],
             [0, sliderContainerSize],
         );
-    }, [sliderContainerSize]);
+    }, [scale.value, sliderContainerSize, translateSlider]);
 
     // Rotates the image by changing the rotation value by 90 degrees
     // and updating the position so the image remains in the same place after rotation
@@ -250,7 +299,7 @@ const AvatarCropModal = (props) => {
             originalImageWidth.value,
             originalImageHeight.value,
         ];
-    }, []);
+    }, [originalImageHeight.value, originalImageWidth.value, rotation, translateX.value, translateY.value]);
 
     // Crops an image that was provided in the imageUri prop, using the current position/scale
     // then calls onSave and onClose callbacks
@@ -285,7 +334,7 @@ const AvatarCropModal = (props) => {
                 props.onClose();
                 props.onSave(newImage);
             });
-    }, [props.imageUri, props.imageName, props.imageType, imageContainerSize]);
+    }, [originalImageHeight.value, originalImageWidth.value, scale.value, translateX.value, imageContainerSize, translateY.value, props, rotation.value]);
 
     /**
      * @param {Number} locationX
@@ -315,7 +364,6 @@ const AvatarCropModal = (props) => {
             isVisible={props.isVisible}
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             onModalHide={resetState}
-            statusBarTranslucent={false}
         >
             {props.isSmallScreenWidth && <HeaderGap />}
             <HeaderWithCloseButton
@@ -339,6 +387,7 @@ const AvatarCropModal = (props) => {
                                 translateY={translateY}
                                 translateX={translateX}
                                 rotation={rotation}
+                                maskImage={props.maskImage}
                             />
                             <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
                                 <Icon src={Expensicons.Zoom} fill={themeColors.icons} />

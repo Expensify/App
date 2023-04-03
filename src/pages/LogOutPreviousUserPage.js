@@ -13,14 +13,20 @@ const propTypes = {
     session: PropTypes.shape({
         /** The user's email for the current session */
         email: PropTypes.string,
-    }).isRequired,
+    }),
+};
+
+const defaultProps = {
+    session: {
+        email: null,
+    },
 };
 
 class LogOutPreviousUserPage extends Component {
     componentDidMount() {
         Linking.getInitialURL()
             .then((transitionURL) => {
-                const sessionEmail = lodashGet(this.props.session, 'email', '');
+                const sessionEmail = this.props.session.email;
                 const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL, sessionEmail);
 
                 if (isLoggingInAsNewUser) {
@@ -46,7 +52,7 @@ class LogOutPreviousUserPage extends Component {
 }
 
 LogOutPreviousUserPage.propTypes = propTypes;
-
+LogOutPreviousUserPage.defaultProps = defaultProps;
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,

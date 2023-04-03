@@ -156,8 +156,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1001028302
-        versionName "1.2.83-2"
+        versionCode 1001029400
+        versionName "1.2.94-0"
         buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
 
         if (isNewArchitectureEnabled()) {
@@ -332,6 +332,10 @@ dependencies {
 
     // Plaid SDK
     implementation project(':react-native-plaid-link-sdk')
+
+    // Fixes a version conflict between airship and react-native-plaid-link-sdk
+    implementation "androidx.work:work-runtime-ktx:2.8.0"
+    
     // This okhttp3 dependency prevents the app from crashing - See https://github.com/plaid/react-native-plaid-link-sdk/issues/74#issuecomment-648435002
     implementation "com.squareup.okhttp3:okhttp-urlconnection:4.+"
 }

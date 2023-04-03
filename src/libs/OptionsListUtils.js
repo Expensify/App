@@ -10,6 +10,7 @@ import * as Localize from './Localize';
 import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
 import Navigation from './Navigation/Navigation';
+import * as LoginUtils from './LoginUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -102,22 +103,26 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
     if (!personalDetails) {
         return personalDetailsForLogins;
     }
-    _.each(logins, (login) => {
-        let personalDetail = personalDetails[login];
-        if (!personalDetail) {
-            personalDetail = {
-                login,
-                displayName: Str.removeSMSDomain(login),
-                avatar: ReportUtils.getDefaultAvatar(login),
-            };
-        }
+    _.chain(logins)
 
-        if (login === CONST.EMAIL.CONCIERGE) {
-            personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
-        }
+        // Somehow it's possible for the logins coming from report.participants to contain undefined values so we use compact to remove them.
+        .compact()
+        .each((login) => {
+            let personalDetail = personalDetails[login];
+            if (!personalDetail) {
+                personalDetail = {
+                    login,
+                    displayName: Str.removeSMSDomain(login),
+                    avatar: ReportUtils.getDefaultAvatar(login),
+                };
+            }
 
-        personalDetailsForLogins[login] = personalDetail;
-    });
+            if (login === CONST.EMAIL.CONCIERGE) {
+                personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
+            }
+
+            personalDetailsForLogins[login] = personalDetail;
+        });
     return personalDetailsForLogins;
 }
 
@@ -327,7 +332,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
             lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
         } else {
-            lastMessageTextFromReport = Str.htmlDecode(report ? report.lastMessageText : '');
+            lastMessageTextFromReport = report ? report.lastMessageText : '';
         }
 
         const lastActorDetails = personalDetailMap[report.lastActorEmail] || null;
@@ -493,9 +498,16 @@ function getOptions(reports, personalDetails, {
             reportMapForLogins[logins[0]] = report;
         }
         const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
+
+        // Checks to see if the current user is the admin of the policy, if so the policy
+        // name preview will be shown.
+        const isPolicyChatAdmin = ReportUtils.isPolicyExpenseChatAdmin(report, policies);
+
         allReportOptions.push(createOption(logins, personalDetails, report, reportActions, {
             showChatPreviewLine,
-            forcePolicyNamePreview: isPolicyExpenseChat ? isSearchingSomeonesPolicyExpenseChat : forcePolicyNamePreview,
+            forcePolicyNamePreview: isPolicyExpenseChat
+                ? (isSearchingSomeonesPolicyExpenseChat || isPolicyChatAdmin)
+                : forcePolicyNamePreview,
         }));
     });
 
@@ -580,9 +592,8 @@ function getOptions(reports, personalDetails, {
 
     // If the phone number doesn't have an international code then let's prefix it with the
     // current user's international code based on their IP address.
-    const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
-        ? `+${countryCodeByIP}${searchValue}`
-        : searchValue;
+    const login = LoginUtils.appendCountryCode(searchValue);
+
     if (login && (noOptions || noOptionsMatchExactly)
         && !isCurrentUser({login})
         && _.every(selectedOptions, option => option.login !== login)
@@ -764,14 +775,16 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
         return Localize.translate(preferredLocale, 'common.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS});
     }
 
-    if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !Str.isValidPhone(searchValue)) {
+    const isValidPhone = Str.isValidPhone(LoginUtils.appendCountryCode(searchValue));
+
+    if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone) {
         return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
     }
 
     // Without a search value, it would be very confusing to see a search validation message.
     // Therefore, this skips the validation when there is no search value.
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
-        if (/^\d+$/.test(searchValue) && !Str.isValidPhone(searchValue)) {
+        if (/^\d+$/.test(searchValue) && !isValidPhone) {
             return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
         }
 

@@ -3,13 +3,13 @@ import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import RNPickerSelect from 'react-native-picker-select';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import FormHelpMessage from './FormHelpMessage';
-import Text from './Text';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import {ScrollContext} from './ScrollViewWithContext';
+import Icon from '../Icon';
+import * as Expensicons from '../Icon/Expensicons';
+import FormHelpMessage from '../FormHelpMessage';
+import Text from '../Text';
+import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
+import {ScrollContext} from '../ScrollViewWithContext';
 
 const propTypes = {
     /** Picker label */
@@ -75,12 +75,19 @@ const propTypes = {
             current: PropTypes.element,
         }),
     ]),
+
+    /** Additional events passed to the core Picker for specific platforms such as web */
+    additionalPickerEvents: PropTypes.func,
+
+    /** Hint text that appears below the picker */
+    hintText: PropTypes.string,
 };
 
 const defaultProps = {
     label: '',
     isDisabled: false,
     errorText: '',
+    hintText: '',
     containerStyles: [],
     backgroundColor: undefined,
     inputID: undefined,
@@ -97,16 +104,19 @@ const defaultProps = {
     ),
     onBlur: () => {},
     innerRef: () => {},
+    additionalPickerEvents: () => {},
 };
 
 class Picker extends PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            isOpen: false,
+            isHighlighted: false,
         };
 
         this.onInputChange = this.onInputChange.bind(this);
+        this.enableHighlight = this.enableHighlight.bind(this);
+        this.disableHighlight = this.disableHighlight.bind(this);
 
         // Windows will reuse the text color of the select for each one of the options
         // so we might need to color accordingly so it doesn't blend with the background.
@@ -151,8 +161,41 @@ class Picker extends PureComponent {
         this.props.onInputChange(this.props.items[0].value, 0);
     }
 
+    enableHighlight() {
+        this.setState({
+            isHighlighted: true,
+        });
+    }
+
+    disableHighlight() {
+        this.setState({
+            isHighlighted: false,
+        });
+    }
+
     render() {
         const hasError = !_.isEmpty(this.props.errorText);
+
+        if (this.props.isDisabled) {
+            return (
+                <View>
+                    {this.props.label && (
+                        <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
+                            {this.props.label}
+                        </Text>
+                    )}
+                    <Text numberOfLines={1}>
+                        {this.props.value}
+                    </Text>
+                    {this.props.hintText
+                    && (
+                        <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
+                            {this.props.hintText}
+                        </Text>
+                    )}
+                </View>
+            );
+        }
 
         return (
             <>
@@ -161,7 +204,7 @@ class Picker extends PureComponent {
                         styles.pickerContainer,
                         this.props.isDisabled && styles.inputDisabled,
                         ...this.props.containerStyles,
-                        this.state.isOpen && styles.borderColorFocus,
+                        this.state.isHighlighted && styles.borderColorFocus,
                         hasError && styles.borderColorDanger,
                     ]}
                 >
@@ -184,15 +227,22 @@ class Picker extends PureComponent {
                         Icon={() => this.props.icon(this.props.size)}
                         disabled={this.props.isDisabled}
                         fixAndroidTouchableBug
-                        onOpen={() => this.setState({isOpen: true})}
-                        onClose={() => this.setState({isOpen: false})}
+                        onOpen={this.enableHighlight}
+                        onClose={this.disableHighlight}
                         textInputProps={{allowFontScaling: false}}
                         pickerProps={{
-                            onFocus: () => this.setState({isOpen: true}),
+                            onFocus: this.enableHighlight,
                             onBlur: () => {
-                                this.setState({isOpen: false});
+                                this.disableHighlight();
                                 this.props.onBlur();
                             },
+                            ...this.props.additionalPickerEvents(
+                                this.enableHighlight,
+                                (value, index) => {
+                                    this.onInputChange(value, index);
+                                    this.disableHighlight();
+                                },
+                            ),
                         }}
                         ref={(el) => {
                             if (!_.isFunction(this.props.innerRef)) {
@@ -205,6 +255,12 @@ class Picker extends PureComponent {
                     />
                 </View>
                 <FormHelpMessage message={this.props.errorText} />
+                {this.props.hintText
+                    && (
+                        <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
+                            {this.props.hintText}
+                        </Text>
+                    )}
             </>
         );
     }
