@@ -47,6 +47,7 @@ class NewDatePicker extends React.Component {
     componentDidMount() {
         if (this.props.autoFocus) {
             this.showPicker();
+            this.textInputRef.focus();
         }
 
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
