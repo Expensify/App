@@ -172,7 +172,14 @@ class Form extends React.Component {
      */
     validate(values) {
         const trimmedValues = {};
-        _.each(values, (inputValue, inputID) => !_.isEmpty(inputValue) && (trimmedValues[inputID] = inputValue.trim()));
+        _.each(values, (inputValue, inputID) => {
+            if (_.isString(inputValue)) {
+                (trimmedValues[inputID] = inputValue.trim());
+            } else {
+                trimmedValues[inputID] = inputValue;
+            }
+        });
+
         FormActions.setErrors(this.props.formID, null);
         FormActions.setErrorFields(this.props.formID, null);
 
