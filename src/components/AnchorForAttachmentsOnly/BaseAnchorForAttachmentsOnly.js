@@ -22,7 +22,9 @@ const propTypes = {
     onPressOut: PropTypes.func,
 
     /** If a file download is happening */
-    download: PropTypes.bool,
+    download: PropTypes.shape({
+        isDownloading: PropTypes.bool.isRequired,
+    }),
 
     ...anchorForAttachmentsOnlyPropTypes,
 };
@@ -30,7 +32,7 @@ const propTypes = {
 const defaultProps = {
     onPressIn: undefined,
     onPressOut: undefined,
-    download: false,
+    download: {isDownloading: false},
     ...anchorForAttachmentsOnlyDefaultProps,
 };
 

@@ -275,9 +275,12 @@ function getOptionData(reportID) {
     }
 
     if (result.isChatRoom || result.isPolicyExpenseChat) {
-        result.alternateText = lastMessageText || subtitle;
+        // Checks to see if the current user is the admin of the policy tied to the policy expense chat,
+        // if so the policy name preview will be shown.
+        const isPolicyChatAdmin = result.isPolicyExpenseChat && ReportUtils.isPolicyExpenseChatAdmin(report, policies);
+        result.alternateText = isPolicyChatAdmin ? subtitle : (lastMessageText || Localize.translate(preferredLocale, 'report.noActivityYet'));
     } else {
-        if (hasMultipleParticipants && !lastMessageText) {
+        if (!lastMessageText) {
             // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
             // We also add a fullstop after the final name, the word "and" before the final name and commas between all previous names.
             lastMessageText = Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistory')
