@@ -136,18 +136,18 @@ const MoneyRequestModal = (props) => {
     const [comment, setComment] = useState('');
 
     useEffect(() => {
-        // If we're currently creating an IOU transaction, then we don't want to do anything
+        // We only want to check if we just finished creating an IOU transaction
+        // We check it within this effect because we're sending the request optimistically but if an error occurs from the API, we will update the iou state with the error later
         if (!prevCreatingIOUTransactionStatusRef.current || lodashGet(props.iou, 'creatingIOUTransaction')) {
             return;
         }
 
-        // At this point, we're done creating the IOU transaction, but we need to check if it was successful
         if (lodashGet(props.iou, 'error') === true) {
             setCurrentStepIndex(0);
         } else {
             Navigation.dismissModal();
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- props.iou will always exist
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- props.iou will always exist from Onyx
     }, [props.iou]);
 
     useEffect(() => {
