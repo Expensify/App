@@ -171,12 +171,12 @@ class Form extends React.Component {
      * @returns {Object} - An object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
     validate(values) {
-        const trimmedValues = {};
+        const trimmedStringValues = {};
         _.each(values, (inputValue, inputID) => {
             if (_.isString(inputValue)) {
-                (trimmedValues[inputID] = inputValue.trim());
+                (trimmedStringValues[inputID] = inputValue.trim());
             } else {
-                trimmedValues[inputID] = inputValue;
+                trimmedStringValues[inputID] = inputValue;
             }
         });
 
@@ -184,10 +184,10 @@ class Form extends React.Component {
         FormActions.setErrorFields(this.props.formID, null);
 
         // Run any validations passed as a prop
-        const validationErrors = this.props.validate(trimmedValues);
+        const validationErrors = this.props.validate(trimmedStringValues);
 
         // Validate the input for html tags. It should supercede any other error
-        _.each(trimmedValues, (inputValue, inputID) => {
+        _.each(trimmedStringValues, (inputValue, inputID) => {
             // Return early if there is no value OR the value is not a string OR there are no HTML characters
             if (!inputValue || !_.isString(inputValue) || inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX) === -1) {
                 return;
