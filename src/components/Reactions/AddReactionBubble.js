@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {Pressable, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Tooltip from '../Tooltip';
@@ -56,7 +56,7 @@ const defaultProps = {
 };
 
 const AddReactionBubble = (props) => {
-    const ref = React.createRef();
+    const ref = useRef();
 
     const onPress = () => {
         const openPicker = (refParam, anchorOrigin) => {

@@ -194,4 +194,7 @@ export default {
 
     // Is app in beta version
     IS_BETA: 'isBeta',
+
+    // Whether the auth token is valid
+    IS_TOKEN_VALID: 'isTokenValid',
 };
