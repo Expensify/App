@@ -136,9 +136,8 @@ const MoneyRequestModal = (props) => {
     const [comment, setComment] = useState('');
 
     useEffect(() => {
-        const isDoneCreatingIOUTransaction = prevCreatingIOUTransactionStatusRef.current && !lodashGet(props.iou, 'creatingIOUTransaction');
-
-        if (!isDoneCreatingIOUTransaction) {
+        // If we're currently creating an IOU transaction, then we don't want to do anything
+        if (!prevCreatingIOUTransactionStatusRef.current || lodashGet(props.iou, 'creatingIOUTransaction')) {
             return;
         }
 
@@ -161,6 +160,7 @@ const MoneyRequestModal = (props) => {
     }, [props.network.isOffline]);
 
     useEffect(() => {
+        // Used to store previous prop values to compare on next render
         prevNetworkStatusRef.current = props.network.isOffline;
         prevCreatingIOUTransactionStatusRef.current = lodashGet(props.iou, 'creatingIOUTransaction');
     });
@@ -220,7 +220,7 @@ const MoneyRequestModal = (props) => {
     }
 
     /**
-     * Navigate to the next IOU step if possible
+     * Navigate to the previous IOU step if possible
      */
     function navigateToPreviousStep() {
         if (currentStepIndex <= 0) {
@@ -231,8 +231,9 @@ const MoneyRequestModal = (props) => {
         setCurrentStepIndex(currentStepIndex - 1);
     }
 
+
     /**
-     * Navigate to the previous IOU step if possible
+     * Navigate to the next IOU step if possible
      */
     function navigateToNextStep() {
         if (currentStepIndex >= steps.length - 1) {
@@ -416,7 +417,7 @@ const MoneyRequestModal = (props) => {
                                         participants={participants}
                                         hasMultipleParticipants={props.hasMultipleParticipants}
                                         onAddParticipants={selectedParticipants => setParticipants(selectedParticipants)}
-                                        onStepComplete={() => navigateToNextStep}
+                                        onStepComplete={() => navigateToNextStep()}
                                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                                     />
                                 </AnimatedStep>
