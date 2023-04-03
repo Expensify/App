@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import React from 'react';
 import stylePropTypes from '../../styles/stylePropTypes';
 
 const propTypes = {
