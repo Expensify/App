@@ -31,6 +31,7 @@ const defaultProps = {
     shouldShowDescriptionOnTop: false,
     wrapperStyle: [],
     style: {},
+    titleStyle: {},
     success: false,
     icon: undefined,
     iconWidth: undefined,
@@ -59,7 +60,7 @@ const MenuItem = (props) => {
         (props.shouldShowBasicTitle ? undefined : styles.textStrong),
         (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
         styles.pre,
-    ], props.style);
+    ], props.style, props.titleStyle);
     const descriptionTextStyle = StyleUtils.combineStyles([
         styles.textLabelSupporting,
         (props.icon ? styles.ml3 : undefined),

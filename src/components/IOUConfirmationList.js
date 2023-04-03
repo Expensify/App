@@ -17,6 +17,7 @@ import ROUTES from '../ROUTES';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from './withCurrentUserPersonalDetails';
 import * as IOUUtils from '../libs/IOUUtils';
 import avatarPropTypes from './avatarPropTypes';
+import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -206,12 +207,7 @@ class IOUConfirmationList extends Component {
                 indexOffset: 1,
             });
         } else {
-            const formattedParticipants = OptionsListUtils.getIOUConfirmationOptionsFromParticipants(this.props.participants,
-                this.props.numberFormat(this.props.iouAmount, {
-                    style: 'currency',
-                    currency: this.props.iou.selectedCurrencyCode,
-                }));
-
+            const formattedParticipants = this.getParticipantsWithoutAmount(this.props.participants);
             sections.push({
                 title: this.props.translate('common.to'),
                 data: formattedParticipants,
@@ -285,6 +281,10 @@ class IOUConfirmationList extends Component {
         const shouldDisableButton = selectedParticipants.length === 0;
         const recipient = this.state.participants[0];
         const canModifyParticipants = this.props.canModifyParticipants && this.props.hasMultipleParticipants;
+        const formattedAmount = this.props.numberFormat(this.props.iouAmount, {
+            style: 'currency',
+            currency: this.props.iou.selectedCurrencyCode,
+        });
 
         return (
             <OptionsSelector
@@ -322,7 +322,16 @@ class IOUConfirmationList extends Component {
                             options={this.getSplitOrRequestOptions()}
                         />
                     )}
-            />
+            >
+                <MenuItemWithTopDescription // TODO: Get rid of the padding that's coming from popoverItem within MenuItem for this one.
+                    shouldShowRightIcon
+                    title={formattedAmount}
+                    description={this.props.translate('iou.amount')}
+                    interactive={false}
+                    onPress={() => {}} // TODO: Make this go to edit amount!
+                    titleStyle={styles.iouConfirmationAmount}
+                />
+            </OptionsSelector>
         );
     }
 }
