@@ -277,7 +277,7 @@ class MagicCodeInput extends React.PureComponent {
                                     maxLength={CONST.MAGIC_CODE_LENGTH}
                                     value={this.state.input}
                                     hideFocusedState
-                                    autoComplete={this.props.autoComplete}
+                                    autoComplete={index === 0 ? this.props.autoComplete : 'off'}
                                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                     onChangeText={this.onChangeText}
                                     onKeyPress={this.onKeyPress}
