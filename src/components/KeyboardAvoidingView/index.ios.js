@@ -1,7 +1,7 @@
 /*
  * The KeyboardAvoidingView is only used on ios
  */
-import React, {useMemo} from 'react';
+import React, {useState} from 'react';
 import {
     StyleSheet,
     KeyboardAvoidingView as RNKeyboardAvoidingView,
@@ -16,7 +16,7 @@ const KeyboardAvoidingView = (props) => {
     const insets = useSafeAreaInsets();
 
     // similar to using `global` in worklet but it's just a local object
-    const ctx = useMemo(() => ({}), []);
+    const [ctx] = useState({});
 
     const animatedStyle = useAnimatedStyle(() => {
         let value = 0;
@@ -60,7 +60,7 @@ const KeyboardAvoidingView = (props) => {
     });
 
     return (
-        <Reanimated.View style={StyleSheet.compose(props.style, animatedStyle)}>
+        <Reanimated.View style={[StyleSheet.flatten(props.style), animatedStyle]}>
             {props.children}
         </Reanimated.View>
     );

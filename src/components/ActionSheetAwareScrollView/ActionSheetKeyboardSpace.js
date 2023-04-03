@@ -1,5 +1,5 @@
 import React, {
-    useContext, useEffect, useMemo,
+    useContext, useEffect, useState,
 } from 'react';
 import {Dimensions, Keyboard} from 'react-native';
 import Reanimated, {
@@ -23,7 +23,7 @@ function ActionSheetKeyboardSpace(props) {
     const keyboard = useAnimatedKeyboard();
 
     // similar to using `global` in worklet but it's just a local object
-    const ctx = useMemo(() => ({}), []);
+    const [ctx] = useState({});
     const windowHeight = Dimensions.get('screen').height;
     const {
         currentActionSheetState, transitionActionSheetStateWorklet: transition, transitionActionSheetState, resetStateMachine,

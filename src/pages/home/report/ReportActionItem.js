@@ -145,7 +145,7 @@ class ReportActionItem extends Component {
     checkIfContextMenuActive() {
         this.setState({isContextMenuActive: ReportActionContextMenu.isActiveReportAction(this.props.action.reportActionID)});
 
-        this.props.transitionActionSheetState({
+        this.context.transitionActionSheetState({
             type: ActionSheetAwareScrollView.Actions.CLOSE_POPOVER,
         });
     }
