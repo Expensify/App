@@ -454,6 +454,16 @@ describe('ReportUtils', () => {
             expect(result).toEqual(`@test@${randomPublicDomain}`);
         });
 
+        it('returns null if displayName is the same as primaryLogin and it is phone number', () => {
+            const displayName = '+00123123123';
+            const primaryLogin = '+00123123123';
+            const viewerDomain = '+@gmail.com';
+
+            const result = ReportUtils.getPersonHandle(displayName, primaryLogin, viewerDomain);
+
+            expect(result).toBeNull();
+        });
+
         it('returns null when primaryLogin the same as the handle', () => {
             const displayName = 'testuser';
             const primaryLogin = 'testuser@different.com';
