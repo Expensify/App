@@ -1423,7 +1423,7 @@ function canSeeDefaultRoom(report, policies, betas) {
         return true;
     }
 
-    // Include any public announce rooms, since they could include people we don't know to add to the beta
+    // Include any public announce rooms, since they could include people who should have access but we don't know to add to the beta
     if (report.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE) {
         return true;
     }
