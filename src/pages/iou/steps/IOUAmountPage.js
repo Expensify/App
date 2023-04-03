@@ -124,9 +124,9 @@ class IOUAmountPage extends React.Component {
      */
     getNewState(prevState, newAmount) {
         if (!this.validateAmount(newAmount)) {
-            // return prevState with shallow copy of selection object
-            // to set the cursor in the same position if move to end after maxLength reach.
-            return {...prevState, selection: {...prevState.selection}};
+            // Use a shallow copy of selection to trigger setSelection
+            // More info: https://github.com/Expensify/App/issues/16385
+            return {amount: prevState.amount, selection: {...prevState.selection}};
         }
         const selection = this.getNewSelection(prevState.selection, prevState.amount.length, newAmount.length);
         return {amount: this.stripCommaFromAmount(newAmount), selection};
