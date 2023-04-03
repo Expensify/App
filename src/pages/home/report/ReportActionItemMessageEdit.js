@@ -55,7 +55,7 @@ const propTypes = {
     shouldDisableEmojiPicker: PropTypes.bool,
 
     /** Stores user's preferred skin tone */
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -67,6 +67,7 @@ const defaultProps = {
     report: {},
     shouldDisableEmojiPicker: false,
     numberOfLines: 1,
+    preferredSkinTone: -1,
 };
 
 class ReportActionItemMessageEdit extends React.Component {
