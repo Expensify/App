@@ -134,7 +134,10 @@ const getCurrentSelection = () => {
     const domRepresentation = parseDocument(getHTMLOfSelection());
     domRepresentation.children = _.map(domRepresentation.children, replaceNodes);
 
-    const newHtml = render(domRepresentation);
+    // Newline characters need to be removed here because the HTML could contain both newlines and <br> tags, and when
+    // <br> tags are converted later to markdown, it creates duplicate newline characters. This means that when the content
+    // is pasted, there are extra newlines in the content that we want to avoid.
+    const newHtml = render(domRepresentation).replace(/<br>\n/g, '<br>');
     return newHtml || '';
 };
 
