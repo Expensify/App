@@ -12,12 +12,9 @@ export default function linkTo(navigation, path) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
 
-    // TODO-NR: We need to figure out how to use ensureCentralPaneOnStack in a way that doesn't cause problem with linkTo function
-
-    // const state = linkingConfig.getStateFromPath
-    //     ? linkingConfig.getStateFromPath(normalizedPath, linkingConfig.config)
-    //     : getStateFromPath(normalizedPath, linkingConfig.config);
-    const state = getStateFromPath(normalizedPath, linkingConfig.config);
+    const state = linkingConfig.getStateFromPath
+        ? linkingConfig.getStateFromPath(normalizedPath, linkingConfig.config)
+        : getStateFromPath(normalizedPath, linkingConfig.config);
 
     if (!state) {
         throw new Error('Failed to parse the path to a navigation state.');
