@@ -52,6 +52,7 @@ const ReactionTooltipContent = (props) => {
                 styles.mt1,
                 styles.textMicroBold,
                 styles.textReactionSenders,
+                styles.textAlignCenter,
             ]}
             >
                 {namesString}
@@ -62,7 +63,7 @@ const ReactionTooltipContent = (props) => {
                 styles.fontColorReactionLabel,
             ]}
             >
-                {`reacted with :${props.emojiName}:`}
+                {`${props.translate('emojiReactions.reactedWith')} :${props.emojiName}:`}
             </Text>
         </View>
     );
