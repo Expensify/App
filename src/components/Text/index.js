@@ -1,14 +1,14 @@
 import React, {forwardRef} from 'react';
 import BaseText from './BaseText';
-import {defaultProps as baseTextDefaultProps, propTypes as baseTextPropTypes} from './baseTextPropTypes';
+import {defaultProps, propTypes} from './baseTextPropTypes';
 
 const Text = props => (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <BaseText {...props} />
+    <BaseText {...props} ref={props.innerRef} />
 );
 
-Text.propTypes = baseTextPropTypes;
-Text.defaultProps = baseTextDefaultProps;
+Text.propTypes = propTypes;
+Text.defaultProps = defaultProps;
 Text.displayName = 'Text';
 
 export default forwardRef((props, ref) => (
