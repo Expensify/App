@@ -67,7 +67,7 @@ const defaultProps = {
     report: {},
     shouldDisableEmojiPicker: false,
     numberOfLines: 1,
-    preferredSkinTone: -1,
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
 class ReportActionItemMessageEdit extends React.Component {

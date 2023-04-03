@@ -74,7 +74,7 @@ const propTypes = {
 const defaultProps = {
     draftMessage: '',
     hasOutstandingIOU: false,
-    preferredSkinTone: -1,
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
 class ReportActionItem extends Component {

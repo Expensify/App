@@ -193,7 +193,7 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
  * @param {Number} preferredSkinTone
  * @returns {String}
  */
-function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = -1) {
+function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE) {
     let newText = text;
     const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
     if (!emojiData || emojiData.length === 0) {
