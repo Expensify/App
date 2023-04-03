@@ -5,6 +5,7 @@ import React, {
 } from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -64,11 +65,16 @@ const propTypes = {
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
+    /** Stores user's preferred skin tone */
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     draftMessage: '',
+    hasOutstandingIOU: false,
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
 function ReportActionItem(props) {
@@ -111,10 +117,7 @@ function ReportActionItem(props) {
 
         setIsContextMenuActive(true);
 
-        // Newline characters need to be removed here because getCurrentSelection() returns html mixed with newlines, and when
-        // <br> tags are converted later to markdown, it creates duplicate newline characters. This means that when the content
-        // is pasted, there are extra newlines in the content that we want to avoid.
-        const selection = SelectionScraper.getCurrentSelection().replace(/<br>\n/g, '<br>');
+        const selection = SelectionScraper.getCurrentSelection();
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
@@ -183,6 +186,9 @@ function ReportActionItem(props) {
                                 index={props.index}
                                 ref={textInputRef}
                                 report={props.report}
+
+                                // Avoid defining within component due to an existing Onyx bug
+                                preferredSkinTone={props.preferredSkinTone}
                                 shouldDisableEmojiPicker={
                                     (ReportUtils.chatIncludesConcierge(props.report) && User.isBlockedFromConcierge(props.blockedFromConcierge))
                                     || ReportUtils.isArchivedRoom(props.report)
@@ -303,6 +309,11 @@ export default compose(
         transformValue: (drafts, props) => {
             const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.report.reportID}_${props.action.reportActionID}`;
             return lodashGet(drafts, draftKey, '');
+        },
+    }),
+    withOnyx({
+        preferredSkinTone: {
+            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },
     }),
 )(memo(ReportActionItem, (prevProps, nextProps) => (

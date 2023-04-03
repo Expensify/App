@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/onyx-props-must-have-default */
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
@@ -54,6 +55,9 @@ const propTypes = {
     /** Whether or not the emoji picker is disabled */
     shouldDisableEmojiPicker: PropTypes.bool,
 
+    /** Stores user's preferred skin tone */
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
     ...keyboardStatePropTypes,
@@ -64,6 +68,7 @@ const defaultProps = {
     report: {},
     shouldDisableEmojiPicker: false,
     numberOfLines: 1,
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
 class ReportActionItemMessageEdit extends React.Component {
@@ -122,7 +127,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} draft
      */
     updateDraft(draft) {
-        const newDraft = EmojiUtils.replaceEmojis(draft, this.props.isSmallScreenWidth);
+        const newDraft = EmojiUtils.replaceEmojis(draft, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
         this.setState((prevState) => {
             const newState = {draft: newDraft};
             if (draft !== newDraft) {
