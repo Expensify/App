@@ -228,7 +228,6 @@ const MoneyRequestModal = (props) => {
         setCurrentStepIndex(currentStepIndex - 1);
     }
 
-
     /**
      * Navigate to the next IOU step if possible
      */
