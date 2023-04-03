@@ -103,22 +103,26 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
     if (!personalDetails) {
         return personalDetailsForLogins;
     }
-    _.each(logins, (login) => {
-        let personalDetail = personalDetails[login];
-        if (!personalDetail) {
-            personalDetail = {
-                login,
-                displayName: Str.removeSMSDomain(login),
-                avatar: ReportUtils.getDefaultAvatar(login),
-            };
-        }
+    _.chain(logins)
 
-        if (login === CONST.EMAIL.CONCIERGE) {
-            personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
-        }
+        // Somehow it's possible for the logins coming from report.participants to contain undefined values so we use compact to remove them.
+        .compact()
+        .each((login) => {
+            let personalDetail = personalDetails[login];
+            if (!personalDetail) {
+                personalDetail = {
+                    login,
+                    displayName: Str.removeSMSDomain(login),
+                    avatar: ReportUtils.getDefaultAvatar(login),
+                };
+            }
 
-        personalDetailsForLogins[login] = personalDetail;
-    });
+            if (login === CONST.EMAIL.CONCIERGE) {
+                personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
+            }
+
+            personalDetailsForLogins[login] = personalDetail;
+        });
     return personalDetailsForLogins;
 }
 
