@@ -275,8 +275,6 @@ function getOptionData(reportID) {
     }
 
     if (result.isChatRoom || result.isPolicyExpenseChat) {
-        // Checks to see if the current user is the admin of the policy tied to the policy expense chat,
-        // if so the policy name preview will be shown.
         result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
     } else {
         if (!lastMessageText) {
