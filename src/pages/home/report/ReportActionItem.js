@@ -73,7 +73,6 @@ const propTypes = {
 
 const defaultProps = {
     draftMessage: '',
-    hasOutstandingIOU: false,
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
