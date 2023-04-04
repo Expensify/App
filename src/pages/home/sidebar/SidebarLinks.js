@@ -32,6 +32,7 @@ import reportPropTypes from '../../reportPropTypes';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import LHNSkeletonView from '../../../components/LHNSkeletonView';
 import withNavigationFocus from '../../../components/withNavigationFocus';
+import withCurrentReportId from '../../../components/withCurrentReportId';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -198,7 +199,7 @@ class SidebarLinks extends React.Component {
                             ]}
                             data={optionListItems}
                             focusedIndex={_.findIndex(optionListItems, (
-                                option => option.toString() === Navigation.getTopmostReportId()
+                                option => option.toString() === this.props.currentReportId
                             ))}
                             onSelectRow={this.showReportPage}
                             shouldDisableFocusOptions={this.props.isSmallScreenWidth}
@@ -288,6 +289,7 @@ export default compose(
     withCurrentUserPersonalDetails,
     withNavigationFocus,
     withWindowDimensions,
+    withCurrentReportId,
     withOnyx({
         // Note: It is very important that the keys subscribed to here are the same
         // keys that are subscribed to at the top of SidebarUtils.js. If there was a key missing from here and data was updated

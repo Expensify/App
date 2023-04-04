@@ -236,8 +236,7 @@ function setIsReportScreenIsReady() {
     resolveReportScreenIsReadyPromise();
 }
 
-function getTopmostReportId() {
-    const state = navigationRef.getState();
+function getTopmostReportId(state = navigationRef.getState()) {
     const topmostCentralPane = state.routes.findLast(route => route.name === 'CentralPaneNavigator');
     if (!topmostCentralPane) {
         return;
@@ -252,8 +251,11 @@ function getTopmostReportId() {
         return topmostCentralPane.params.params.reportID;
     }
 
-    const topmostReportId = topmostCentralPane.state.routes.findLast(route => route.name === 'Report').params.reportID;
-    return topmostReportId;
+    const topmostReport = topmostCentralPane.state.routes.findLast(route => route.name === 'Report').params;
+
+    if (topmostReport && topmostReport.reportID) {
+        return topmostReport.reportID;
+    }
 }
 
 export default {
