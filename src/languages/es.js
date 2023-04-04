@@ -13,7 +13,7 @@ export default {
         new: 'Nuevo',
         search: 'Buscar',
         next: 'Siguiente',
-        previous: 'Previo',
+        previous: 'Anterior',
         goBack: 'Volver',
         add: 'Agregar',
         resend: 'Reenviar',
