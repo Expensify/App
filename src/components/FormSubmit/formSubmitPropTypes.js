@@ -2,6 +2,13 @@ import PropTypes from 'prop-types';
 import stylePropTypes from '../../styles/stylePropTypes';
 
 const propTypes = {
+    /** A reference forwarded to the inner View */
+    innerRef: PropTypes.oneOfType([
+        PropTypes.func,
+        // eslint-disable-next-line react/forbid-prop-types
+        PropTypes.shape({current: PropTypes.any}),
+    ]),
+
     /* A function to execute when form is submitted with ENTER */
     onSubmit: PropTypes.func.isRequired,
 
@@ -13,6 +20,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    innerRef: undefined,
     style: [],
 };
 
