@@ -1,31 +1,55 @@
 import _ from 'underscore';
 import CONST from '../CONST';
 
+function getCurrencyDecimals(currency) {
+    const formatted = Intl.NumberFormat('en', {style: 'currency', currency}).format(0);
+    const decimalPointIndex = formatted.indexOf('.');
+    return decimalPointIndex === -1
+        ? 0
+        : Math.min(formatted.length - decimalPointIndex - 1, 2);
+}
+
+function getCurrencyUnits(currency) {
+    return 10 ** getCurrencyDecimals(currency);
+}
+
 /**
  * Calculates the amount per user given a list of participants
  * @param {Array} participants - List of logins for the participants in the chat. It should not include the current user's login.
  * @param {Number} total - IOU total amount
+ * @param {String} currency - IOU currency
  * @param {Boolean} isDefaultUser - Whether we are calculating the amount for the current user
+ * @param {Boolean} shouldConvertTo2DigitsFormat - Whether to convert the amount to 2-digits format
  * @returns {Number}
  */
-function calculateAmount(participants, total, isDefaultUser = false) {
+function calculateAmount(participants, total, currency, isDefaultUser = false, shouldConvertTo2DigitsFormat = false) {
     // Convert to cents before working with iouAmount to avoid
     // javascript subtraction with decimal problem -- when dealing with decimals,
     // because they are encoded as IEEE 754 floating point numbers, some of the decimal
     // numbers cannot be represented with perfect accuracy.
-    // Cents is temporary and there must be support for other currencies in the future
-    const iouAmount = Math.round(parseFloat(total * 100));
+    // Currencies that do not have minor units (i.e. no decimal place) are also supported.
+    // https://github.com/Expensify/App/issues/15878
+    const currencyUnits = getCurrencyUnits(currency);
+    const iouAmount = Math.round(parseFloat(total * currencyUnits));
+
     const totalParticipants = participants.length + 1;
     const amountPerPerson = Math.round(iouAmount / totalParticipants);
 
     if (!isDefaultUser) {
+        if (shouldConvertTo2DigitsFormat) {
+            return (amountPerPerson * 100) / currencyUnits;
+        }
         return amountPerPerson;
     }
 
     const sumAmount = amountPerPerson * totalParticipants;
     const difference = iouAmount - sumAmount;
 
-    return iouAmount !== sumAmount ? (amountPerPerson + difference) : amountPerPerson;
+    const finalAmount = iouAmount !== sumAmount ? (amountPerPerson + difference) : amountPerPerson;
+    if (shouldConvertTo2DigitsFormat) {
+        return (finalAmount * 100) / currencyUnits;
+    }
+    return finalAmount;
 }
 
 /**

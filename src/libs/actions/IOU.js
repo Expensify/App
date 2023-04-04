@@ -311,8 +311,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     ];
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
-    const splitAmount = IOUUtils.calculateAmount(participants, amount);
-    const splits = [{email: currentUserEmail, amount: IOUUtils.calculateAmount(participants, amount, true)}];
+    const splitAmount = IOUUtils.calculateAmount(participants, amount, currency, false, true);
+    const splits = [{email: currentUserEmail, amount: IOUUtils.calculateAmount(participants, amount, currency, true, true)}];
 
     const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
