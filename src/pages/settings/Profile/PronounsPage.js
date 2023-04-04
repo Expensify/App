@@ -110,7 +110,7 @@ class PronounsPage extends Component {
      * @param {Object} selectedPronouns
      */
     updatePronouns(selectedPronouns) {
-        PersonalDetails.updatePronouns(selectedPronouns.keyForList === this.initiallyFocusedOption.keyForList ? '' : selectedPronouns.value);
+        PersonalDetails.updatePronouns(selectedPronouns.keyForList === this.initiallyFocusedOption.keyForList ? '' : lodashGet(selectedPronouns, 'value', ''));
     }
 
     render() {
