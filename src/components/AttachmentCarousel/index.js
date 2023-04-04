@@ -18,6 +18,7 @@ import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes
 import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
 import Tooltip from '../Tooltip';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import compose from '../../libs/compose';
 
 const propTypes = {
@@ -31,6 +32,7 @@ const propTypes = {
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -57,7 +59,6 @@ class AttachmentCarousel extends React.Component {
             shouldShowArrow: this.canUseTouchScreen,
             isForwardDisabled: true,
             isBackDisabled: true,
-            layout: {},
         };
 
         this.scrollRef = React.createRef();
@@ -164,12 +165,8 @@ class AttachmentCarousel extends React.Component {
         });
     }
 
-    onMainLayout = ({nativeEvent}) => {
-        this.setState({layout: nativeEvent.layout});
-    }
-
     getItemLayout = (data, index) => {
-        const width = this.state.layout.width;
+        const width = this.props.windowWidth;
         return ({
             length: width,
             offset: width * index,
@@ -177,24 +174,19 @@ class AttachmentCarousel extends React.Component {
         });
     }
 
-    renderItem = ({item}) => {
-        console.log('item: ', item);
-
-        return (
-            <CarouselItem
-                onPress={() => this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
-                source={item.source}
-                file={item.file}
-            />
-        );
-    }
+    renderItem = ({item}) => (
+        <CarouselItem
+            onPress={() => this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
+            source={item.source}
+            file={item.file}
+        />
+    )
 
     render() {
         const isPageSet = Number.isInteger(this.state.page);
 
         return (
             <View
-                onLayout={this.onMainLayout}
                 style={[styles.attachmentModalArrowsContainer]}
                 onMouseEnter={() => this.toggleArrowsVisibility(true)}
                 onMouseLeave={() => this.toggleArrowsVisibility(false)}
@@ -240,13 +232,13 @@ class AttachmentCarousel extends React.Component {
                 >
                     <VirtualizedList
                         horizontal
+                        scrollEnabled={false}
                         ref={this.scrollRef}
                         initialScrollIndex={this.state.page}
-                        initialNumToRender={1}
-                        windowSize={5}
+                        initialNumToRender={3}
+                        windowSize={3}
                         data={this.state.attachments}
                         contentContainerStyle={[styles.flex1]}
-                        style={[styles.flex1]}
                         CellRendererComponent={CellRendererComponent}
                         renderItem={this.renderItem}
                         getItemLayout={this.getItemLayout}
@@ -283,4 +275,5 @@ export default compose(
         },
     }),
     withLocalize,
+    withWindowDimensions,
 )(AttachmentCarousel);
