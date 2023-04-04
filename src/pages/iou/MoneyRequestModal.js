@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {
-    useState, useEffect, useRef, useCallback,
+    useState, useEffect, useRef, useCallback, useMemo,
 } from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -174,7 +174,7 @@ const MoneyRequestModal = (props) => {
      * our step index.
      * @returns {String|null}
     */
-    const getDirection = useCallback(() => {
+    const direction = useMemo(() => {
         if (previousStepIndex < currentStepIndex) {
             return 'in';
         }
@@ -193,7 +193,7 @@ const MoneyRequestModal = (props) => {
      *
      * @returns {String}
      */
-    const getTitleForStep = useCallback(() => {
+    const titleForStep = useMemo(() => {
         const isSendingMoney = props.iouType === CONST.IOU.IOU_TYPE.SEND;
         if (currentStepIndex === 1 || currentStepIndex === 2) {
             const formattedAmount = props.numberFormat(
@@ -223,8 +223,6 @@ const MoneyRequestModal = (props) => {
         return props.translate(steps[currentStepIndex]) || '';
         // eslint-disable-next-line react-hooks/exhaustive-deps -- props does not need to be a dependency as it will always exist
     }, [amount, currentStepIndex, props.hasMultipleParticipants, props.iou.selectedCurrencyCode, props.iouType, props.numberFormat, steps]);
-
-
 
     /**
      * Navigate to the previous request step if possible
@@ -344,7 +342,7 @@ const MoneyRequestModal = (props) => {
     const currentStep = steps[currentStepIndex];
     const reportID = lodashGet(props, 'route.params.reportID', '');
     const shouldShowBackButton = currentStepIndex > 0;
-    const modalHeader = <ModalHeader title={getTitleForStep} shouldShowBackButton={shouldShowBackButton} onBackButtonPress={navigateToPreviousStep} />;
+    const modalHeader = <ModalHeader title={titleForStep} shouldShowBackButton={shouldShowBackButton} onBackButtonPress={navigateToPreviousStep} />;
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
@@ -355,7 +353,7 @@ const MoneyRequestModal = (props) => {
                             <>
                                 {currentStep === Steps.IOUAmount && (
                                     <AnimatedStep
-                                        direction={getDirection}
+                                        direction={direction}
                                         style={[styles.flex1, safeAreaPaddingBottomStyle]}
                                     >
                                         {modalHeader}
@@ -375,7 +373,7 @@ const MoneyRequestModal = (props) => {
                                 {currentStep === Steps.IOUParticipants && (
                                     <AnimatedStep
                                         style={[styles.flex1]}
-                                        direction={getDirection}
+                                        direction={direction}
                                     >
                                         {modalHeader}
                                         <IOUParticipantsPage
@@ -390,7 +388,7 @@ const MoneyRequestModal = (props) => {
                                 {currentStep === Steps.IOUConfirm && (
                                     <AnimatedStep
                                         style={[styles.flex1, safeAreaPaddingBottomStyle]}
-                                        direction={getDirection}
+                                        direction={direction}
                                     >
                                         {modalHeader}
                                         <IOUConfirmPage
