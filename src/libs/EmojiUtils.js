@@ -202,7 +202,7 @@ function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CON
     for (let i = 0; i < emojiData.length; i++) {
         const checkEmoji = emojisTrie.search(emojiData[i].slice(1, -1));
         if (checkEmoji && checkEmoji.metaData.code) {
-            let emojiReplacement = this.getEmojiCodeWithSkinColor(checkEmoji.metaData, preferredSkinTone);
+            let emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData, preferredSkinTone);
 
             // If this is the last emoji in the message and it's the end of the message so far,
             // add a space after it so the user can keep typing easily.
