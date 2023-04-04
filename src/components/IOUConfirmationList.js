@@ -323,12 +323,13 @@ class IOUConfirmationList extends Component {
                         />
                     )}
             >
-                <MenuItemWithTopDescription // TODO: Get rid of the padding that's coming from popoverItem within MenuItem for this one.
+                <MenuItemWithTopDescription
                     shouldShowRightIcon
                     title={formattedAmount}
                     description={this.props.translate('iou.amount')}
                     interactive={false}
                     onPress={() => {}} // TODO: Make this go to edit amount!
+                    style={styles.iouMenuItem}
                     titleStyle={styles.iouConfirmationAmount}
                 />
             </OptionsSelector>
