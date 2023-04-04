@@ -7,7 +7,6 @@ import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import * as Expensicons from '../Icon/Expensicons';
 import {propTypes as datePickerPropTypes, defaultProps as defaultDatePickerProps} from './datePickerPropTypes';
-import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
@@ -45,19 +44,11 @@ class NewDatePicker extends React.Component {
     }
 
     componentDidMount() {
-        if (this.props.autoFocus) {
-            this.showPicker();
-            this.textInputRef.focus();
+        if (!this.props.autoFocus) {
+            return;
         }
-
-        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
-            if (!this.state.isPickerVisible) {
-                return;
-            }
-            this.hidePicker();
-            this.textInputRef.blur();
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, () => !this.state.isPickerVisible);
+        this.showPicker();
+        this.textInputRef.focus();
     }
 
     componentWillUnmount() {
@@ -121,12 +112,6 @@ class NewDatePicker extends React.Component {
         return (
             <View
                 ref={ref => this.wrapperRef = ref}
-                onBlur={(event) => {
-                    if (this.wrapperRef && event.relatedTarget && this.wrapperRef.contains(event.relatedTarget)) {
-                        return;
-                    }
-                    this.hidePicker();
-                }}
                 style={styles.datePickerRoot}
             >
                 <View style={[this.props.isSmallScreenWidth ? styles.flex2 : {}]}>
