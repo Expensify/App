@@ -186,6 +186,22 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
 }
 
 /**
+ * Given an emoji item object, return an emoji code based on its type.
+ *
+ * @param {Object} item
+ * @param {Number} preferredSkinToneIndex
+ * @returns {String}
+ */
+const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
+    const {code, types} = item;
+    if (types && types[preferredSkinToneIndex]) {
+        return types[preferredSkinToneIndex];
+    }
+
+    return code;
+};
+
+/**
  * Replace any emoji name in a text with the emoji icon.
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  * @param {String} text
@@ -202,7 +218,7 @@ function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CON
     for (let i = 0; i < emojiData.length; i++) {
         const checkEmoji = emojisTrie.search(emojiData[i].slice(1, -1));
         if (checkEmoji && checkEmoji.metaData.code) {
-            let emojiReplacement = this.getEmojiCodeWithSkinColor(checkEmoji.metaData, preferredSkinTone);
+            let emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData, preferredSkinTone);
 
             // If this is the last emoji in the message and it's the end of the message so far,
             // add a space after it so the user can keep typing easily.
@@ -247,22 +263,6 @@ function suggestEmojis(text, limit = 5) {
     }
     return [];
 }
-
-/**
- * Given an emoji item object, return an emoji code based on its type.
- *
- * @param {Object} item
- * @param {Number} preferredSkinToneIndex
- * @returns {String}
- */
-const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
-    const {code, types} = item;
-    if (types && types[preferredSkinToneIndex]) {
-        return types[preferredSkinToneIndex];
-    }
-
-    return code;
-};
 
 export {
     getHeaderEmojis,
