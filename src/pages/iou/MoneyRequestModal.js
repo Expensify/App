@@ -150,7 +150,6 @@ const MoneyRequestModal = (props) => {
         } else {
             Navigation.dismissModal();
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- props.iou will always exist from Onyx
     }, [props.iou]);
 
     useEffect(() => {
