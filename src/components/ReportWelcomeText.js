@@ -36,7 +36,7 @@ const propTypes = {
     /* Onyx Props */
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
+    personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
@@ -44,12 +44,17 @@ const propTypes = {
         name: PropTypes.string,
     }),
 
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     report: {},
     policies: {},
+    personalDetails: {},
+    betas: [],
 };
 
 const ReportWelcomeText = (props) => {
@@ -63,7 +68,7 @@ const ReportWelcomeText = (props) => {
         isMultipleParticipant,
     );
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, props.policies);
-    const iouOptions = ReportUtils.getIOUOptions(props.report, participants, props.betas);
+    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participants, props.betas);
     return (
         <>
             <View>
@@ -127,7 +132,7 @@ const ReportWelcomeText = (props) => {
                         ))}
                     </Text>
                 )}
-                {(iouOptions.includes(CONST.IOU.IOU_TYPE.SEND) || iouOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)) && (
+                {(moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)) && (
                     <Text>
                         {/* Need to confirm copy for the below with marketing, and then add to translations. */}
                         {props.translate('reportActionsView.usePlusButton')}

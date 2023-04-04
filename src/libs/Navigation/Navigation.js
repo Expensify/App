@@ -30,7 +30,6 @@ let reportScreenIsReadyPromise = new Promise((resolve) => {
 
 let isLoggedIn = false;
 let pendingRoute = null;
-let isNavigating = false;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -56,25 +55,11 @@ function setDidTapNotification() {
  * @returns {Boolean}
  */
 function canNavigate(methodName, params = {}) {
-    if (navigationRef.isReady() && !isNavigating) {
+    if (navigationRef.isReady()) {
         return true;
     }
-
-    if (isNavigating) {
-        Log.hmmm(`[Navigation] ${methodName} failed because navigation is progress`, params);
-        return false;
-    }
-
     Log.hmmm(`[Navigation] ${methodName} failed because navigation ref was not yet ready`, params);
     return false;
-}
-
-/**
- * Sets Navigation State
- * @param {Boolean} isNavigatingValue
- */
-function setIsNavigating(isNavigatingValue) {
-    isNavigating = isNavigatingValue;
 }
 
 /**
@@ -129,7 +114,6 @@ function goBack(shouldOpenDrawer = true) {
         }
         return;
     }
-
     navigationRef.current.goBack();
 }
 
@@ -184,6 +168,19 @@ function navigate(route = ROUTES.HOME) {
     }
 
     linkTo(navigationRef.current, route);
+}
+
+/**
+ * Update route params for the specified route.
+ *
+ * @param {Object} params
+ * @param {String} routeKey
+ */
+function setParams(params, routeKey) {
+    navigationRef.current.dispatch({
+        ...CommonActions.setParams(params),
+        source: routeKey,
+    });
 }
 
 /**
@@ -302,6 +299,7 @@ function setIsReportScreenIsReady() {
 export default {
     canNavigate,
     navigate,
+    setParams,
     dismissModal,
     isActiveRoute,
     getActiveRoute,
@@ -317,7 +315,6 @@ export default {
     resetDrawerIsReadyPromise,
     resetIsReportScreenReadyPromise,
     isDrawerRoute,
-    setIsNavigating,
     isReportScreenReady,
     setIsReportScreenIsReady,
 };

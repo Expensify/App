@@ -105,6 +105,7 @@ export default {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
+        REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         POLICY: 'policy_',
@@ -193,4 +194,7 @@ export default {
 
     // Is app in beta version
     IS_BETA: 'isBeta',
+
+    // Whether the auth token is valid
+    IS_TOKEN_VALID: 'isTokenValid',
 };

@@ -275,6 +275,7 @@ const styles = {
         fontWeight: fontWeightBold,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontSize: variables.fontSizeSmall,
+        lineHeight: variables.lineHeightSmall,
     },
 
     textMicroSupporting: {
@@ -775,6 +776,7 @@ const styles = {
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 15,
+        overflow: 'hidden',
     },
 
     calendarDayContainerSelected: {
@@ -1062,49 +1064,18 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
-    statusIndicator: {
+    statusIndicator: (backgroundColor = themeColors.danger) => ({
         borderColor: themeColors.sidebar,
-        backgroundColor: themeColors.danger,
-        borderRadius: 6,
-        borderWidth: 2,
-        position: 'absolute',
-        right: -1,
-        bottom: -1,
-        height: 12,
-        width: 12,
-        zIndex: 10,
-    },
-
-    statusIndicatorLarge: {
-        borderColor: themeColors.componentBG,
-        backgroundColor: themeColors.danger,
+        backgroundColor,
         borderRadius: 8,
         borderWidth: 2,
         position: 'absolute',
-        right: 4,
-        bottom: 4,
+        right: -2,
+        top: -1,
         height: 16,
         width: 16,
         zIndex: 10,
-    },
-
-    statusIndicatorOnline: {
-        backgroundColor: themeColors.success,
-    },
-
-    avatarWithIndicator: {
-        errorDot: {
-            borderColor: themeColors.sidebar,
-            borderRadius: 6,
-            borderWidth: 2,
-            position: 'absolute',
-            right: -1,
-            bottom: -1,
-            height: 12,
-            width: 12,
-            zIndex: 10,
-        },
-    },
+    }),
 
     floatingActionButtonContainer: {
         position: 'absolute',
@@ -3037,7 +3008,7 @@ const styles = {
         justifyContent: 'space-between',
     },
 
-    magicCodeDigits: {
+    validateCodeDigits: {
         color: themeColors.text,
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeXXLarge,
@@ -3096,6 +3067,11 @@ const styles = {
         alignSelf: 'center',
         top: 60,
         zIndex: 100,
+    },
+
+    validateCodeMessage: {
+        width: variables.modalContentMaxWidth,
+        textAlign: 'center',
     },
 };
 

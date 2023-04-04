@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 
@@ -75,10 +76,20 @@ function shouldShowPolicy(policy, isOffline) {
     );
 }
 
+/**
+ * @param {string} email
+ * @returns {boolean}
+ */
+function isExpensifyTeam(email) {
+    const emailDomain = Str.extractEmailDomain(email);
+    return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
+}
+
 export {
     hasPolicyMemberError,
     hasPolicyError,
     hasCustomUnitsError,
     getPolicyBrickRoadIndicatorStatus,
     shouldShowPolicy,
+    isExpensifyTeam,
 };

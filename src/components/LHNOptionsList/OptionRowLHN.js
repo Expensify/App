@@ -13,7 +13,6 @@ import * as Expensicons from '../Icon/Expensicons';
 import MultipleAvatars from '../MultipleAvatars';
 import Hoverable from '../Hoverable';
 import DisplayNames from '../DisplayNames';
-import IOUBadge from '../IOUBadge';
 import colors from '../../styles/colors';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Text from '../Text';
@@ -155,7 +154,7 @@ const OptionRowLHN = (props) => {
                             hovered && !props.isFocused ? props.hoverStyle : null,
                         ]}
                     >
-                        <View accessibilityHint="Navigates to a chat" style={sidebarInnerRowStyle}>
+                        <View accessibilityHint={props.translate('accessibilityHints.navigatesToChat')} style={sidebarInnerRowStyle}>
                             <View
                                 style={[
                                     styles.flexRow,
@@ -196,7 +195,7 @@ const OptionRowLHN = (props) => {
                                 <View style={contentContainerStyles}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                         <DisplayNames
-                                            accessibilityLabel="Chat user display names"
+                                            accessibilityLabel={props.translate('accessibilityHints.chatUserDisplayNames')}
                                             fullTitle={optionItem.text}
                                             displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
                                             tooltipEnabled
@@ -207,7 +206,7 @@ const OptionRowLHN = (props) => {
                                         {optionItem.isChatRoom && (
                                             <TextPill
                                                 style={textPillStyle}
-                                                accessibilityLabel="Workspace name"
+                                                accessibilityLabel={props.translate('accessibilityHints.workspaceName')}
                                                 text={optionItem.subtitle}
                                             />
                                         )}
@@ -216,7 +215,7 @@ const OptionRowLHN = (props) => {
                                         <Text
                                             style={alternateTextStyle}
                                             numberOfLines={1}
-                                            accessibilityLabel="Last chat message preview"
+                                            accessibilityLabel={props.translate('accessibilityHints.lastChatMessagePreview')}
                                         >
                                             {optionItem.alternateText}
                                         </Text>
@@ -253,7 +252,7 @@ const OptionRowLHN = (props) => {
                                     <Icon src={Expensicons.Pencil} height={16} width={16} />
                                 </View>
                             )}
-                            {optionItem.hasOutstandingIOU && <IOUBadge iouReportID={optionItem.iouReportID} />}
+                            {optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner && <Icon src={Expensicons.DotIndicator} fill={colors.green} />}
                             {optionItem.isPinned && (
                                 <View
                                     style={styles.ml2}

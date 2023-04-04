@@ -180,14 +180,21 @@ function updateDateOfBirth(dob) {
  * @param {String} country
  */
 function updateAddress(street, street2, city, state, zip, country) {
-    API.write('UpdateHomeAddress', {
+    const parameters = {
         addressStreet: street,
         addressStreet2: street2,
         addressCity: city,
         addressState: state,
         addressZipCode: zip,
         addressCountry: country,
-    }, {
+    };
+
+    // State names for the United States are in the form of two-letter ISO codes
+    // State names for other countries except US have full names, so we provide two different params to be handled by server
+    if (country !== CONST.COUNTRY.US) {
+        parameters.addressStateLong = state;
+    }
+    API.write('UpdateHomeAddress', parameters, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
