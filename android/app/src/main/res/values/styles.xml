@@ -77,6 +77,7 @@
 
     <style name="BootTheme" parent="Theme.SplashScreen">
         <item name="windowSplashScreenAnimatedIcon">@mipmap/bootsplash_logo</item>
+        <item name="android:statusBarColor">@color/bootsplash_background</item>
         <item name="windowSplashScreenBackground">@color/bootsplash_background</item>
     </style>
 
