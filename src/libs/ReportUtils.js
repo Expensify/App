@@ -402,24 +402,24 @@ function getRoomWelcomeMessage(report, policiesMap) {
 /**
  * Function to get the handle of a person based on their display name, primary login, and viewer domain.
  * @param {String} displayName the display name of the person
- * @param {String} primaryLogin the primary login of the person, in the format of "username@domain"
- * @param {String} viewerDomain the domain of the viewer
+ * @param {String} primaryLogin the primary login of the person, in the format of "username@domain.com"
+ * @param {String} viewerDomain the domain of the viewer in the format of "+@domain.com"
  * @returns {String | null} the handle of the person, in the format of "@username", or null if no handle can be determined
  */
 function getPersonHandle(displayName, primaryLogin, viewerDomain) {
     let handle = null;
 
-    const formattedViewerDomain = viewerDomain && viewerDomain.startsWith('+@') ? viewerDomain.slice(2) : undefined;
+    const normalizedViewerDomain = viewerDomain && viewerDomain.startsWith('+@') ? viewerDomain.slice(2) : undefined;
 
     const isPublicEmail = primaryLogin
-        && formattedViewerDomain
+        && normalizedViewerDomain
         && _.some(PUBLIC_DOMAINS, d => primaryLogin.includes(d));
 
     if (primaryLogin) {
-        const [username, domain] = primaryLogin.split('@');
+        const [username, userDomain] = primaryLogin.split('@');
         if (CONST.REGEX.POSITIVE_INTEGER.test(username.replace('+', '')) && displayName !== username) {
             handle = username.replace('+', '');
-        } else if (isPublicEmail != null && !isPublicEmail && formattedViewerDomain === domain) {
+        } else if (isPublicEmail != null && !isPublicEmail && normalizedViewerDomain === userDomain) {
             handle = username;
         } else {
             handle = primaryLogin;

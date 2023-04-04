@@ -39,6 +39,9 @@ const propTypes = {
     /** Show header for action */
     showHeader: PropTypes.bool,
 
+    /** Current domain of report */
+    currentDomain: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -46,6 +49,7 @@ const defaultProps = {
     personalDetails: {},
     wrapperStyles: [styles.chatItem],
     showHeader: true,
+    currentDomain: null,
 };
 
 const showUserDetails = (email) => {
@@ -69,7 +73,7 @@ const ReportActionItemSingle = (props) => {
         ? [{type: 'TEXT', text: Str.isSMSLogin(login) ? props.toLocalPhone(displayName) : displayName}]
         : props.action.person;
 
-    const handle = ReportUtils.getPersonHandle(personArray[0].text, actorEmail, props.ownerEmail);
+    const handle = ReportUtils.getPersonHandle(lodashGet(personArray, '[0].text', null), actorEmail, props.currentDomain);
 
     return (
         <View style={props.wrapperStyles}>
@@ -110,7 +114,7 @@ const ReportActionItemSingle = (props) => {
                                 />
                             ))}
                         </Pressable>
-                        {!!handle && <Text style={[styles.chatItemProfileHandle, styles.mr1]}>{handle}</Text>}
+                        {!!handle && <Text numberOfLines={1} ellipsizeMode="head" style={[styles.chatItemProfileHandle, styles.flexShrink1, styles.mr1]}>{handle}</Text>}
                         <ReportActionItemDate created={props.action.created} />
                     </View>
                 ) : null}

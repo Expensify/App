@@ -276,7 +276,7 @@ class ReportActionItem extends Component {
                                 >
                                     {!this.props.displayAsGroup
                                         ? (
-                                            <ReportActionItemSingle ownerEmail={this.props.report.ownerEmail} action={this.props.action} showHeader={!this.props.draftMessage}>
+                                            <ReportActionItemSingle currentDomain={this.props.report.ownerEmail} action={this.props.action} showHeader={!this.props.draftMessage}>
                                                 {this.renderItemContent(hovered || this.state.isContextMenuActive)}
                                             </ReportActionItemSingle>
                                         )
