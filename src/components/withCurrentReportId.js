@@ -24,7 +24,7 @@ class CurrentReportIdContextProvider extends React.Component {
 
     /**
      * The context this component exposes to child components
-     * @returns {object} translation util functions and locale
+     * @returns {object} currentReportId to share between central pane and drawer
      */
     getContextValue() {
         return {
