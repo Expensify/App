@@ -23,6 +23,7 @@ import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
+import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -72,21 +73,19 @@ class ReportActionsView extends React.Component {
 
     componentDidMount() {
         this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
-            if (!this.getIsReportFullyVisible()) {
+            if (!this.isReportFullyVisible()) {
                 return;
             }
 
             // If the app user becomes active and they have no unread actions we clear the new marker to sync their device
             // e.g. they could have read these messages on another device and only just become active here
-            this.openReportIfNecessary();
-
             const hasUnreadActions = ReportUtils.isUnread(this.props.report);
             if (!hasUnreadActions) {
                 this.setState({newMarkerReportActionID: ''});
             }
         });
 
-        if (this.getIsReportFullyVisible()) {
+        if (this.isReportFullyVisible()) {
             this.openReportIfNecessary();
         }
 
@@ -102,7 +101,7 @@ class ReportActionsView extends React.Component {
 
                 // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
                 this.setState({newMarkerReportActionID: ''});
-            } else if (this.getIsReportFullyVisible()) {
+            } else if (this.isReportFullyVisible()) {
                 // We use the scroll position to determine whether the report should be marked as read and the new line indicator reset.
                 // If the user is scrolled up and no new line marker is set we will set it otherwise we will do nothing so the new marker
                 // stays in it's previous position.
@@ -170,7 +169,7 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const isReportFullyVisible = this.getIsReportFullyVisible();
+        const isReportFullyVisible = this.isReportFullyVisible();
 
         // When returning from offline to online state we want to trigger a request to OpenReport which
         // will fetch the reportActions data and mark the report as read. If the report is not fully visible
@@ -249,9 +248,8 @@ class ReportActionsView extends React.Component {
     /**
      * @returns {Boolean}
      */
-    getIsReportFullyVisible() {
-        const isSidebarCoveringReportView = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
-        return Visibility.isVisible() && !isSidebarCoveringReportView;
+    isReportFullyVisible() {
+        return getIsReportFullyVisible(this.props.isDrawerOpen, this.props.isSmallScreenWidth);
     }
 
     // If the report is optimistic (AKA not yet created) we don't need to call openReport again
