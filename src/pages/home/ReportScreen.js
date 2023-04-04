@@ -321,10 +321,7 @@ class ReportScreen extends React.Component {
                             {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
                             we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
                             {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions || isLoading) && (
-                                <>
-                                    <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
-                                    <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
-                                </>
+                                <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
                             )}
 
                             {this.isReportReadyForDisplay() && (
@@ -338,6 +335,7 @@ class ReportScreen extends React.Component {
                                         isComposerFullSize={this.props.isComposerFullSize}
                                         onSubmitComment={this.onSubmitComment}
                                     />
+                                    <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                                 </>
                             )}
 
