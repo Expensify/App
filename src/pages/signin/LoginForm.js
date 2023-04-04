@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
+import {GoogleSigninButton} from 'react-native-google-signin/google-signin';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
@@ -170,7 +171,7 @@ class LoginForm extends React.Component {
             <>
                 <View accessibilityLabel={this.props.translate('loginForm.loginForm')} style={[styles.mt3]}>
                     <TextInput
-                        ref={el => this.input = el}
+                        ref={el => (this.input = el)}
                         label={this.props.translate('loginForm.phoneOrEmail')}
                         value={this.state.login}
                         autoCompleteType="username"
@@ -185,18 +186,16 @@ class LoginForm extends React.Component {
                         errorText={formErrorText}
                     />
                 </View>
-                {!_.isEmpty(this.props.account.success) && (
-                    <Text style={[styles.formSuccess]}>
-                        {this.props.account.success}
-                    </Text>
-                )}
+                {!_.isEmpty(this.props.account.success) && <Text style={[styles.formSuccess]}>{this.props.account.success}</Text>}
                 {!_.isEmpty(this.props.closeAccount.success) && (
 
                     // DotIndicatorMessage mostly expects onyxData errors, so we need to mock an object so that the messages looks similar to prop.account.errors
                     <DotIndicatorMessage style={[styles.mv2]} type="success" messages={{0: this.props.closeAccount.success}} />
                 )}
-                { // We need to unmount the submit button when the component is not visible so that the Enter button
-                  // key handler gets unsubscribed and does not conflict with the Password Form
+                {
+
+                    // We need to unmount the submit button when the component is not visible so that the Enter button
+                    // key handler gets unsubscribed and does not conflict with the Password Form
                     this.props.isVisible && (
                         <View style={[styles.mt5]}>
                             <FormAlertWithSubmitButton
@@ -207,6 +206,14 @@ class LoginForm extends React.Component {
                                 isAlertVisible={!_.isEmpty(serverErrorText)}
                                 containerStyles={[styles.mh0]}
                             />
+                            <GoogleSigninButton
+                                style={{width: 192, height: 48}}
+                                size={GoogleSigninButton.Size.Wide}
+                                color={GoogleSigninButton.Color.Dark}
+                                onPress={Session.beginGoogleSignIn}
+                                disabled={this.state.isSigninInProgress}
+                            />
+                            ;
                         </View>
                     )
                 }
