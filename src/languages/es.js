@@ -148,6 +148,8 @@ export default {
     avatarCropModal: {
         title: 'Editar foto',
         description: 'Arrastra, haz zoom y rota tu imagen para que quede como te gusta.',
+        rotateImage: 'Girar',
+        zoomImage: 'Zoom',
     },
     composer: {
         noExtensionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',

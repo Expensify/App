@@ -149,6 +149,8 @@ export default {
     avatarCropModal: {
         title: 'Edit photo',
         description: 'Drag, zoom, and rotate your image to your preferred specifications',
+        rotateImage: 'Rotate',
+        zoomImage: 'Zoom',
     },
     composer: {
         noExtensionFoundForMimeType: 'No extension found for mime type',
