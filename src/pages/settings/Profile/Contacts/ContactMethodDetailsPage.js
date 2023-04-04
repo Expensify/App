@@ -225,19 +225,26 @@ class ContactMethodDetailsPage extends Component {
                             {this.props.translate('contacts.yourDefaultContactMethod')}
                         </Text>
                     ) : (
-                        <OfflineWithFeedback
-                            pendingAction={lodashGet(loginData, 'pendingFields.deletedLogin', null)}
-                            errors={ErrorUtils.getLatestErrorField(loginData, 'deletedLogin')}
-                            errorRowStyles={[styles.mt6]}
-                            onClose={() => User.clearContactMethodErrors(contactMethod, 'deletedLogin')}
-                        >
+                        <>
+                            <OfflineWithFeedback
+                                pendingAction={lodashGet(loginData, 'pendingFields.deletedLogin', null)}
+                                errors={ErrorUtils.getLatestErrorField(loginData, 'deletedLogin')}
+                                errorRowStyles={[styles.mt6]}
+                                onClose={() => User.clearContactMethodErrors(contactMethod, 'deletedLogin')}
+                            >
+                                <MenuItem
+                                    title={this.props.translate('common.remove')}
+                                    icon={Expensicons.Trashcan}
+                                    iconFill={themeColors.danger}
+                                    onPress={() => this.toggleDeleteModal(true)}
+                                />
+                            </OfflineWithFeedback>
                             <MenuItem
-                                title={this.props.translate('common.remove')}
+                                title="Set as default"
                                 icon={Expensicons.Trashcan}
-                                iconFill={themeColors.danger}
-                                onPress={() => this.toggleDeleteModal(true)}
+                                onPress={() => User.setContactMethodAsDefault(contactMethod)}
                             />
-                        </OfflineWithFeedback>
+                        </>
                     )}
                 </ScrollView>
             </ScreenWrapper>
