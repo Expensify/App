@@ -1,4 +1,4 @@
-import React, {forwardRef, useState} from 'react';
+import React, {forwardRef, useEffect, useState} from 'react';
 import BaseText from './BaseText';
 import {defaultProps, propTypes} from './baseTextPropTypes';
 
@@ -6,6 +6,10 @@ const Text = (props) => {
     // eslint-disable-next-line react/destructuring-assignment
     const {numberOfLines, ...rest} = props;
     const [truncatedText, setTruncatedText] = useState(typeof props.children === 'string' ? props.children : null);
+
+    useEffect(() => {
+        setTruncatedText(typeof props.children === 'string' ? props.children : null);
+    }, [props.children]);
 
     const handleTextLayout = ({nativeEvent: {lines}}) => {
         if (!numberOfLines || lines.length <= numberOfLines) {
