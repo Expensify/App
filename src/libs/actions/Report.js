@@ -366,10 +366,18 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             isOptimisticReport: false,
         },
     };
+    const reportFailureData = {
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            isLoadingReportActions: false,
+        },
+    };
 
     const onyxData = {
         optimisticData: [optimisticReportData],
         successData: [reportSuccessData],
+        failureData: [reportFailureData],
     };
 
     const params = {
