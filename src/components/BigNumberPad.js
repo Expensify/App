@@ -14,11 +14,15 @@ const propTypes = {
     /** Callback to inform parent modal whether user is long pressing the "<" (backspace) button */
     longPressHandlerStateChanged: PropTypes.func,
 
+    /** Used to locate this view from native classes. */
+    nativeID: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     longPressHandlerStateChanged: () => {},
+    nativeID: 'numPadView',
 };
 
 const padNumbers = [
@@ -57,7 +61,7 @@ class BigNumberPad extends React.PureComponent {
 
     render() {
         return (
-            <View style={[styles.flexColumn, styles.w100]}>
+            <View style={[styles.flexColumn, styles.w100]} nativeID={this.props.nativeID}>
                 {_.map(padNumbers, (row, rowIndex) => (
                     <View key={`NumberPadRow-${rowIndex}`} style={[styles.flexRow, styles.mt3]}>
                         {_.map(row, (column, columnIndex) => {
