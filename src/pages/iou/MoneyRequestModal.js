@@ -29,7 +29,7 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import * as ReportScrollManager from '../../libs/ReportScrollManager';
 
 /**
- * IOU modal for requesting money and splitting bills.
+ * Money request modal for requesting money and splitting bills.
  */
 const propTypes = {
     /** Whether the IOU is for a single request or a group bill split */
