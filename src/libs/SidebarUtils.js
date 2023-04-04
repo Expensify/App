@@ -5,6 +5,7 @@ import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from './ReportUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
 import * as Localize from './Localize';
 import CONST from '../CONST';
 import * as OptionsListUtils from './OptionsListUtils';
@@ -52,6 +53,7 @@ Onyx.connect({
     callback: val => betas = val,
 });
 
+const visibleReportActionItems = {};
 const lastReportActions = {};
 const reportActions = {};
 Onyx.connect({
@@ -62,6 +64,13 @@ Onyx.connect({
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
         lastReportActions[reportID] = _.last(_.toArray(actions));
+
+        // The report is only visible if it is the last action not deleted that
+        // does not match a closed or created state.
+        visibleReportActionItems[reportID] = _.first(_.filter(
+            ReportActionsUtils.getSortedReportActionsForDisplay(_.toArray(actions)),
+            action => (action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED),
+        ));
         reportActions[key] = actions;
     },
 });
@@ -250,15 +259,12 @@ function getOptionData(reportID) {
         lastMessageTextFromReport = Str.htmlDecode(report ? report.lastMessageText : '');
     }
 
-    let lastActorDetails = personalDetails[report.lastActorEmail] || null;
-
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action if that action is valid
-    // to get data from (not related to opening or closing the chat).
-    const actionCreatedOrClosed = [CONST.REPORT.ACTIONS.TYPE.CREATED, CONST.REPORT.ACTIONS.TYPE.CLOSED];
-    const isLastReportActionValid = lastReportActions[report.reportID] && !actionCreatedOrClosed.includes(lastReportActions[report.reportID].actionName);
-    if (!lastActorDetails && isLastReportActionValid) {
-        const lastActorDisplayName = lodashGet(lastReportActions[report.reportID], 'person[0].text');
+    // to get data from.
+    let lastActorDetails = personalDetails[report.lastActorEmail] || null;
+    if (!lastActorDetails && visibleReportActionItems[result.reportID]) {
+        const lastActorDisplayName = lodashGet(visibleReportActionItems[report.reportID], 'person[0].text');
         lastActorDetails = lastActorDisplayName ? {
             displayName: lastActorDisplayName,
             login: report.lastActorEmail,
