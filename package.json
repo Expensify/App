@@ -60,6 +60,7 @@
     "@react-native-firebase/app": "^12.3.0",
     "@react-native-firebase/crashlytics": "^12.3.0",
     "@react-native-firebase/perf": "^12.3.0",
+    "@react-native-google-signin/google-signin": "github:react-native-google-signin/google-signin",
     "@react-native-picker/picker": "^2.4.3",
     "@react-navigation/drawer": "github:Expensify/react-navigation#react-navigation-drawer-v6.5.0-alpha1-gitpkg",
     "@react-navigation/native": "6.0.13",
