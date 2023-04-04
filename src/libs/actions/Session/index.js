@@ -637,8 +637,7 @@ function authenticatePusher(socketID, channelName, callback) {
 }
 
 /**
- * Request a new validate / magic code for user to sign in via passwordless flow
- *
+ * Request a new validation link / magic code to unlink an unvalidated secondary login from a primary login
  */
 function requestUnlinkValidationLink() {
     const optimisticData = [{

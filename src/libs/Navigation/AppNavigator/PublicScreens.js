@@ -6,6 +6,7 @@ import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import LogInWithShortLivedAuthTokenPage from '../../../pages/LogInWithShortLivedAuthTokenPage';
 import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
+import UnlinkLoginPage from '../../../pages/UnlinkLoginPage';
 
 const RootStack = createStackNavigator();
 
@@ -25,6 +26,11 @@ const PublicScreens = () => (
             name="ValidateLogin"
             options={defaultScreenOptions}
             component={ValidateLoginPage}
+        />
+        <RootStack.Screen
+            name="UnlinkLogin"
+            options={defaultScreenOptions}
+            component={UnlinkLoginPage}
         />
         <RootStack.Screen
             name="SetPassword"
