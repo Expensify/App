@@ -25,7 +25,6 @@ import reportPropTypes from './reportPropTypes';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import Form from '../components/Form';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
-import ROUTES from "../ROUTES";
 
 const propTypes = {
     /** Route params */
