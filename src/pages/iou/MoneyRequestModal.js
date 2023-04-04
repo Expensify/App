@@ -29,7 +29,7 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import * as ReportScrollManager from '../../libs/ReportScrollManager';
 
 /**
- * Money request modal for requesting money and splitting bills.
+ * A modal used for requesting money, splitting bills or sending money.
  */
 const propTypes = {
     /** Whether the IOU is for a single request or a group bill split */
@@ -171,7 +171,7 @@ const MoneyRequestModal = (props) => {
     /**
      * Decides our animation type based on whether we're increasing or decreasing
      * our step index.
-     * @returns {String}
+     * @returns {String|null}
     */
     function getDirection() {
         if (previousStepIndex < currentStepIndex) {
@@ -350,71 +350,71 @@ const MoneyRequestModal = (props) => {
                         {didScreenTransitionEnd && (
                             <>
                                 {currentStep === Steps.IOUAmount && (
-                                <AnimatedStep
-                                    direction={getDirection()}
-                                    style={[styles.flex1, safeAreaPaddingBottomStyle]}
-                                >
-                                    {modalHeader}
-                                    <IOUAmountPage
-                                        onStepComplete={(value) => {
-                                            setAmount(value);
-                                            navigateToNextStep();
-                                        }}
-                                        reportID={reportID}
-                                        hasMultipleParticipants={props.hasMultipleParticipants}
-                                        selectedAmount={amount}
-                                        navigation={props.navigation}
-                                        iouType={props.iouType}
-                                    />
-                                </AnimatedStep>
+                                    <AnimatedStep
+                                        direction={getDirection()}
+                                        style={[styles.flex1, safeAreaPaddingBottomStyle]}
+                                    >
+                                        {modalHeader}
+                                        <IOUAmountPage
+                                            onStepComplete={(value) => {
+                                                setAmount(value);
+                                                navigateToNextStep();
+                                            }}
+                                            reportID={reportID}
+                                            hasMultipleParticipants={props.hasMultipleParticipants}
+                                            selectedAmount={amount}
+                                            navigation={props.navigation}
+                                            iouType={props.iouType}
+                                        />
+                                    </AnimatedStep>
                                 )}
                                 {currentStep === Steps.IOUParticipants && (
-                                <AnimatedStep
-                                    style={[styles.flex1]}
-                                    direction={getDirection()}
-                                >
-                                    {modalHeader}
-                                    <IOUParticipantsPage
-                                        participants={participants}
-                                        hasMultipleParticipants={props.hasMultipleParticipants}
-                                        onAddParticipants={selectedParticipants => setParticipants(selectedParticipants)}
-                                        onStepComplete={() => navigateToNextStep()}
-                                        safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                                    />
-                                </AnimatedStep>
+                                    <AnimatedStep
+                                        style={[styles.flex1]}
+                                        direction={getDirection()}
+                                    >
+                                        {modalHeader}
+                                        <IOUParticipantsPage
+                                            participants={participants}
+                                            hasMultipleParticipants={props.hasMultipleParticipants}
+                                            onAddParticipants={selectedParticipants => setParticipants(selectedParticipants)}
+                                            onStepComplete={() => navigateToNextStep()}
+                                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                                        />
+                                    </AnimatedStep>
                                 )}
                                 {currentStep === Steps.IOUConfirm && (
-                                <AnimatedStep
-                                    style={[styles.flex1, safeAreaPaddingBottomStyle]}
-                                    direction={getDirection()}
-                                >
-                                    {modalHeader}
-                                    <IOUConfirmPage
-                                        onConfirm={(selectedParticipants) => {
-                                            // TODO: ADD HANDLING TO DISABLE BUTTON FUNCTIONALITY WHILE REQUEST IS IN FLIGHT
-                                            createTransaction(selectedParticipants);
-                                            ReportScrollManager.scrollToBottom();
-                                        }}
-                                        onSendMoney={(paymentMethodType) => {
-                                            // TODO: ADD HANDLING TO DISABLE BUTTON FUNCTIONALITY WHILE REQUEST IS IN FLIGHT
-                                            sendMoney(paymentMethodType);
-                                            ReportScrollManager.scrollToBottom();
-                                        }}
-                                        hasMultipleParticipants={props.hasMultipleParticipants}
-                                        participants={_.filter(participants, email => props.currentUserPersonalDetails.login !== email.login)}
-                                        iouAmount={amount}
-                                        comment={comment}
-                                        onUpdateComment={value => setComment(value)}
-                                        iouType={props.iouType}
+                                    <AnimatedStep
+                                        style={[styles.flex1, safeAreaPaddingBottomStyle]}
+                                        direction={getDirection()}
+                                    >
+                                        {modalHeader}
+                                        <IOUConfirmPage
+                                            onConfirm={(selectedParticipants) => {
+                                                // TODO: ADD HANDLING TO DISABLE BUTTON FUNCTIONALITY WHILE REQUEST IS IN FLIGHT
+                                                createTransaction(selectedParticipants);
+                                                ReportScrollManager.scrollToBottom();
+                                            }}
+                                            onSendMoney={(paymentMethodType) => {
+                                                // TODO: ADD HANDLING TO DISABLE BUTTON FUNCTIONALITY WHILE REQUEST IS IN FLIGHT
+                                                sendMoney(paymentMethodType);
+                                                ReportScrollManager.scrollToBottom();
+                                            }}
+                                            hasMultipleParticipants={props.hasMultipleParticipants}
+                                            participants={_.filter(participants, email => props.currentUserPersonalDetails.login !== email.login)}
+                                            iouAmount={amount}
+                                            comment={comment}
+                                            onUpdateComment={value => setComment(value)}
+                                            iouType={props.iouType}
 
-                                                // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
-                                                // This is because when there is a group of people, say they are on a trip, and you have some shared expenses with some of the people,
-                                                // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
-                                                // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
-                                                // the floating-action-button (since it is something that exists outside the context of a report).
-                                        canModifyParticipants={!_.isEmpty(reportID)}
-                                    />
-                                </AnimatedStep>
+                                            // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
+                                            // This is because when there is a group of people, say they are on a trip, and you have some shared expenses with some of the people,
+                                            // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
+                                            // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
+                                            // the floating-action-button (since it is something that exists outside the context of a report).
+                                            canModifyParticipants={!_.isEmpty(reportID)}
+                                        />
+                                    </AnimatedStep>
                                 )}
                             </>
                         )}

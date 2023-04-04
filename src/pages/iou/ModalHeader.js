@@ -10,7 +10,7 @@ import Tooltip from '../../components/Tooltip';
 import Navigation from '../../libs/Navigation/Navigation';
 
 const propTypes = {
-    /** Title of the Header */
+    /** Title of the header */
     title: PropTypes.string.isRequired,
 
     /** Should we show the back button? */
