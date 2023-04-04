@@ -153,10 +153,17 @@ class IOUConfirmationList extends Component {
     getParticipantsWithAmount(participants) {
         return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
             participants,
-            this.props.numberFormat(IOUUtils.calculateAmount(participants, this.props.iouAmount, this.props.iou.selectedCurrencyCode) / IOUUtils.getCurrencyUnits(this.props.iou.selectedCurrencyCode), {
-                style: 'currency',
-                currency: this.props.iou.selectedCurrencyCode,
-            }),
+            this.props.numberFormat(
+                IOUUtils.calculateAmount(
+                    participants,
+                    this.props.iouAmount,
+                    this.props.iou.selectedCurrencyCode,
+                ) / IOUUtils.getCurrencyUnits(this.props.iou.selectedCurrencyCode),
+                {
+                    style: 'currency',
+                    currency: this.props.iou.selectedCurrencyCode,
+                },
+            ),
         );
     }
 
@@ -187,10 +194,18 @@ class IOUConfirmationList extends Component {
 
             const formattedMyPersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(
                 this.props.currentUserPersonalDetails,
-                this.props.numberFormat(IOUUtils.calculateAmount(selectedParticipants, this.props.iouAmount, this.props.iou.selectedCurrencyCode, true) / IOUUtils.getCurrencyUnits(this.props.iou.selectedCurrencyCode), {
-                    style: 'currency',
-                    currency: this.props.iou.selectedCurrencyCode,
-                }),
+                this.props.numberFormat(
+                    IOUUtils.calculateAmount(
+                        selectedParticipants,
+                        this.props.iouAmount,
+                        this.props.iou.selectedCurrencyCode,
+                        true,
+                    ) / IOUUtils.getCurrencyUnits(this.props.iou.selectedCurrencyCode),
+                    {
+                        style: 'currency',
+                        currency: this.props.iou.selectedCurrencyCode,
+                    },
+                ),
             );
 
             sections.push({
