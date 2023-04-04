@@ -58,4 +58,7 @@ function formatPhoneNumber(number) {
     return parsed.number.international;
 }
 
-export default formatPhoneNumber;
+export {
+    // eslint-disable-next-line import/prefer-default-export
+    formatPhoneNumber,
+};

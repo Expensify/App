@@ -20,7 +20,7 @@ import linkingConfig from './Navigation/linkingConfig';
 import * as defaultAvatars from '../components/Icon/DefaultAvatars';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
-import formatPhoneNumber from './formatPhoneNumber';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 
 let sessionEmail;
 Onyx.connect({
@@ -748,7 +748,7 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
     const loginWithoutSMSDomain = Str.removeSMSDomain(personalDetails.login);
     let longName = personalDetails.displayName || loginWithoutSMSDomain;
     if (longName === loginWithoutSMSDomain && Str.isSMSLogin(longName)) {
-        longName = formatPhoneNumber(longName);
+        longName = LocalePhoneNumber.formatPhoneNumber(longName);
     }
     const shortName = personalDetails.firstName || longName;
 

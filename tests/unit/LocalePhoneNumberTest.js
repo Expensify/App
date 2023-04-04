@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import formatPhoneNumber from '../../src/libs/formatPhoneNumber';
+import * as LocalePhoneNumber from '../../src/libs/LocalePhoneNumber';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 
 const ES_NUMBER = '+34702474537';
@@ -21,11 +21,11 @@ describe('formatPhoneNumber', () => {
         afterEach(() => Onyx.clear());
 
         it('Should display a number from the same region formatted locally', () => {
-            expect(formatPhoneNumber(US_NUMBER)).toBe('(833) 240-3627');
+            expect(LocalePhoneNumber.formatPhoneNumber(US_NUMBER)).toBe('(833) 240-3627');
         });
 
         it('Should display a number from another region formatted internationally', () => {
-            expect(formatPhoneNumber(ES_NUMBER)).toBe('+34 702 47 45 37');
+            expect(LocalePhoneNumber.formatPhoneNumber(ES_NUMBER)).toBe('+34 702 47 45 37');
         });
     });
 
@@ -39,11 +39,11 @@ describe('formatPhoneNumber', () => {
         afterEach(() => Onyx.clear());
 
         it('should display a number from the same region formatted locally', () => {
-            expect(formatPhoneNumber(ES_NUMBER)).toBe('702 47 45 37');
+            expect(LocalePhoneNumber.formatPhoneNumber(ES_NUMBER)).toBe('702 47 45 37');
         });
 
         it('should display a number from another region formatted internationally', () => {
-            expect(formatPhoneNumber(US_NUMBER)).toBe('+1 833-240-3627');
+            expect(LocalePhoneNumber.formatPhoneNumber(US_NUMBER)).toBe('+1 833-240-3627');
         });
     });
 });

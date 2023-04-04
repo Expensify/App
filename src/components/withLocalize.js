@@ -12,7 +12,7 @@ import * as LocaleDigitUtils from '../libs/LocaleDigitUtils';
 import CONST from '../CONST';
 import compose from '../libs/compose';
 import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
-import formatPhoneNumber from '../libs/formatPhoneNumber';
+import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
 
 const LocaleContext = createContext(null);
 
@@ -127,7 +127,7 @@ class LocaleContextProvider extends React.Component {
      * @returns {String}
      */
     formatPhoneNumber(phoneNumber) {
-        return formatPhoneNumber(phoneNumber);
+        return LocalePhoneNumber.formatPhoneNumber(phoneNumber);
     }
 
     /**
