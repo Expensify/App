@@ -323,6 +323,10 @@ class ReportScreen extends React.Component {
                                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                                 </>
                             )}
+
+                            {!this.isReportReadyForDisplay() && (
+                                <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
+                            )}
                             <PortalHost name={CONST.REPORT.DROP_HOST_NAME} />
                         </View>
                     </FullPageNotFoundView>
