@@ -35,7 +35,7 @@ const QuickEmojiReactions = (props) => {
                 ReportActionComposeFocusManager.composerRef.current,
                 undefined,
                 () => {
-                    props.transitionActionSheetState({
+                    actionSheetContext.transitionActionSheetState({
                         type: ActionSheetAwareScrollView.Actions.CLOSE_EMOJI_PICKER_POPOVER,
                     });
                 },
@@ -44,7 +44,7 @@ const QuickEmojiReactions = (props) => {
     };
 
     const onEmojiSelected = (emoji) => {
-        props.transitionActionSheetState({
+        actionSheetContext.transitionActionSheetState({
             type: ActionSheetAwareScrollView.Actions.CLOSE_EMOJI_PICKER_POPOVER,
         });
 
