@@ -63,12 +63,14 @@ Onyx.connect({
             return;
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
-        lastReportActions[reportID] = _.last(_.toArray(actions));
+
+        const actionsArray = _.toArray(actions);
+        lastReportActions[reportID] = _.last(actionsArray);
 
         // The report is only visible if it is the last action not deleted that
         // does not match a closed or created state.
         visibleReportActionItems[reportID] = _.first(_.filter(
-            ReportActionsUtils.getSortedReportActionsForDisplay(_.toArray(actions)),
+            ReportActionsUtils.getSortedReportActionsForDisplay(actionsArray),
             action => (action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED),
         ));
         reportActions[key] = actions;
