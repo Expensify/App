@@ -412,6 +412,8 @@ describe('ReportUtils', () => {
     });
 
     describe('getPersonHandle', () => {
+        const getRandomPublicDomain = () => PUBLIC_DOMAINS[Math.floor(Math.random() * PUBLIC_DOMAINS.length)];
+
         it("returns front of email handle if primaryLogin is on viewer's domain and is not public email", () => {
             const displayName = 'Test User';
             const primaryLogin = 'testUser@different.com';
@@ -435,16 +437,16 @@ describe('ReportUtils', () => {
         it('returns phone number handle if primaryLogin is phone number', () => {
             const displayName = 'Test User';
             const primaryLogin = '+00123123123';
-            const viewerDomain = '+@gmail.com';
+            const viewerDomain = `+@${getRandomPublicDomain()}`;
 
             const result = ReportUtils.getPersonHandle(displayName, primaryLogin, viewerDomain);
 
             expect(result).toEqual('@00123123123');
         });
 
-        it('returns front of email if primary login is public domain', () => {
+        it('returns full email handle if primary login is public domain', () => {
             // This case will never happen in real life because there is no public domain chat.
-            const randomPublicDomain = PUBLIC_DOMAINS[Math.floor(Math.random() * PUBLIC_DOMAINS.length)];
+            const randomPublicDomain = getRandomPublicDomain();
             const displayName = 'Test User';
             const primaryLogin = `test@${randomPublicDomain}`;
             const viewerDomain = `+@${randomPublicDomain}`;
@@ -457,9 +459,8 @@ describe('ReportUtils', () => {
         it('returns null if displayName is the same as primaryLogin and it is phone number', () => {
             const displayName = '+00123123123';
             const primaryLogin = '+00123123123';
-            const viewerDomain = '+@gmail.com';
 
-            const result = ReportUtils.getPersonHandle(displayName, primaryLogin, viewerDomain);
+            const result = ReportUtils.getPersonHandle(displayName, primaryLogin);
 
             expect(result).toBeNull();
         });
@@ -478,6 +479,47 @@ describe('ReportUtils', () => {
             const displayName = null;
             const primaryLogin = null;
             const viewerDomain = '+@example.com';
+
+            const result = ReportUtils.getPersonHandle(displayName, primaryLogin, viewerDomain);
+
+            expect(result).toBeNull();
+        });
+
+        it('returns full email handle when displayName is null but primary login private email domain', () => {
+            const displayName = null;
+            const primaryLogin = 'testuser@different.com';
+            const viewerDomain = '+@example.com';
+
+            const result = ReportUtils.getPersonHandle(displayName, primaryLogin, viewerDomain);
+
+            expect(result).toEqual('@testuser@different.com');
+        });
+
+        it("returns front of email when displayName is null and primaryLogin is on viewer's domain and is not public email", () => {
+            const displayName = null;
+            const primaryLogin = 'testuser@different.com';
+            const viewerDomain = '+@different.com';
+
+            const result = ReportUtils.getPersonHandle(displayName, primaryLogin, viewerDomain);
+
+            expect(result).toEqual('@testuser');
+        });
+
+        it('returns full email handle when displayName is null and primary login is public domain', () => {
+            const randomPublicDomain = getRandomPublicDomain();
+            const displayName = null;
+            const primaryLogin = `test@${randomPublicDomain}`;
+            const viewerDomain = `+@${randomPublicDomain}`;
+
+            const result = ReportUtils.getPersonHandle(displayName, primaryLogin, viewerDomain);
+
+            expect(result).toEqual(`@test@${randomPublicDomain}`);
+        });
+
+        it('returns null when all params are null', () => {
+            const displayName = null;
+            const primaryLogin = null;
+            const viewerDomain = null;
 
             const result = ReportUtils.getPersonHandle(displayName, primaryLogin, viewerDomain);
 
