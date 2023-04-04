@@ -133,6 +133,12 @@ const MoneyRequestModal = (props) => {
     const [comment, setComment] = useState('');
 
     useEffect(() => {
+        PersonalDetails.openMoneyRequestModalPage();
+        IOU.setIOUSelectedCurrency(props.currentUserPersonalDetails.localCurrencyCode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- props.currentUserPersonalDetails will always exist from Onyx
+    }, []);
+
+    useEffect(() => {
         // We only want to check if we just finished creating an IOU transaction
         // We check it within this effect because we're sending the request optimistically but if an error occurs from the API, we will update the iou state with the error later
         if (!prevCreatingIOUTransactionStatusRef.current || lodashGet(props.iou, 'creatingIOUTransaction')) {
