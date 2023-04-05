@@ -444,7 +444,7 @@ const ReportActionCompose = (props) => {
     const wasDrawerOpen = useRef(props.isDrawerOpen);
     useEffect(() => {
         const sidebarOpened = props.isDrawerOpen && !wasDrawerOpen;
-        if !(sidebarOpened) {
+        if (!sidebarOpened) {
             return;
         }
         toggleReportActionComposeView(true);
