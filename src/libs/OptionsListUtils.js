@@ -451,8 +451,8 @@ function getOptions(reports, personalDetails, {
     showChatPreviewLine = false,
     sortPersonalDetailsByAlphaAsc = true,
     forcePolicyNamePreview = false,
-    excludeOwnedWorkspaceChats = true,
-    excludeManagedWorkspaceChats = true,
+    includeOwnedWorkspaceChats = false,
+    includeManagedWorkspaceChats = false,
 }) {
     let recentReportOptions = [];
     let personalDetailsOptions = [];
@@ -493,11 +493,11 @@ function getOptions(reports, personalDetails, {
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const logins = report.participants || [];
 
-        if (isPolicyExpenseChat && excludeOwnedWorkspaceChats && report.isOwnPolicyExpenseChat) {
+        if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;
         }
 
-        if (isPolicyExpenseChat && excludeManagedWorkspaceChats && !report.isOwnPolicyExpenseChat) {
+        if (isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !includeManagedWorkspaceChats) {
             return;
         }
 
@@ -547,7 +547,7 @@ function getOptions(reports, personalDetails, {
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
             const reportOption = allReportOptions[i];
-            const isCurrentUserOwnedPolicyExpenseChatThatShouldShow = (reportOption.isPolicyExpenseChat && (reportOption.ownerEmail === currentUserLogin) && !excludeOwnedWorkspaceChats);
+            const isCurrentUserOwnedPolicyExpenseChatThatShouldShow = (reportOption.isPolicyExpenseChat && (reportOption.ownerEmail === currentUserLogin) && includeOwnedWorkspaceChats);
 
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
             if (!isCurrentUserOwnedPolicyExpenseChatThatShouldShow && recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
@@ -677,8 +677,8 @@ function getSearchOptions(
         showChatPreviewLine: true,
         includePersonalDetails: true,
         forcePolicyNamePreview: true,
-        excludeOwnedWorkspaceChats: false,
-        excludeManagedWorkspaceChats: false,
+        includeOwnedWorkspaceChats: true,
+        includeManagedWorkspaceChats: true,
     });
 }
 
@@ -723,11 +723,11 @@ function getIOUConfirmationOptionsFromParticipants(
  *
  * @param {Object} reports
  * @param {Object} personalDetails
- * @param {Array<String>} betas
- * @param {String} searchValue
- * @param {Array} selectedOptions
- * @param {Array} excludeLogins
- * @param {Boolean} excludeOwnedWorkspaceChats
+ * @param {Array<String>} [betas]
+ * @param {String} [searchValue]
+ * @param {Array} [selectedOptions]
+ * @param {Array} [excludeLogins]
+ * @param {Boolean} [includeOwnedWorkspaceChats]
  * @returns {Object}
  */
 function getNewChatOptions(
@@ -737,9 +737,7 @@ function getNewChatOptions(
     searchValue = '',
     selectedOptions = [],
     excludeLogins = [],
-
-    // We'll set this to false when reusing this method in MoneyRequestModal
-    excludeOwnedWorkspaceChats = true,
+    includeOwnedWorkspaceChats = false,
 ) {
     return getOptions(reports, personalDetails, {
         betas,
@@ -749,7 +747,7 @@ function getNewChatOptions(
         includePersonalDetails: true,
         maxRecentReportsToShow: 5,
         excludeLogins,
-        excludeOwnedWorkspaceChats,
+        includeOwnedWorkspaceChats,
     });
 }
 
