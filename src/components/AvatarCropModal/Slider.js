@@ -26,7 +26,7 @@ const defaultProps = {
 
 // This component can't be written using class since reanimated API uses hooks.
 const Slider = (props) => {
-    const [enableTooltipView, setEnableTooltipView] = useState(true);
+    const [tooltipIsVisible, setTooltipIsVisible] = useState(true);
 
     // A reanimated memoized style, which tracks
     // a translateX shared value and updates the slider position.
@@ -39,12 +39,12 @@ const Slider = (props) => {
     return (
         <View ref={ControlSelection.blockElement} style={styles.sliderBar}>
             <PanGestureHandler
-                onBegan={() => setEnableTooltipView(false)}
-                onEnded={() => setEnableTooltipView(true)}
+                onBegan={() => setTooltipIsVisible(false)}
+                onEnded={() => setTooltipIsVisible(true)}
                 onGestureEvent={props.onGesture}
             >
                 <Animated.View style={[styles.sliderKnob, rSliderStyle]}>
-                    { enableTooltipView && (
+                    { tooltipIsVisible && (
                         <Tooltip text={props.translate('avatarCropModal.zoomImage')} shiftVertical={-2}>
                             <View style={[styles.sliderKnobTooltipView]} />
                         </Tooltip>
