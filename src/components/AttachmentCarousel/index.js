@@ -1,11 +1,12 @@
 import React from 'react';
-import {View, FlatList} from 'react-native';
+import {View, FlatList, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
+import CarouselActions from './CarouselActions';
 import Button from '../Button';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import AttachmentView from '../AttachmentView';
@@ -19,7 +20,6 @@ import Tooltip from '../Tooltip';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import compose from '../../libs/compose';
-import CarouselActions from './CarouselActions';
 
 const propTypes = {
     /** source is used to determine the starting index in the array of attachments */
@@ -201,8 +201,23 @@ class AttachmentCarousel extends React.Component {
      * @returns {JSX.Element}
      */
     renderCell(props) {
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        return <View {...props} style={[props.style, styles.h100, {width: this.props.windowWidth}]} />;
+        const style = [props.style, styles.h100, {width: this.props.windowWidth}];
+
+        // Touch screen devices can toggle between showing and hiding the arrows by tapping on the image/container
+        // Other devices toggle the arrows through hovering (mouse) instead (see render() root element)
+        if (!this.canUseTouchScreen) {
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            return <View {...props} style={style} />;
+        }
+
+        return (
+            <Pressable
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                onPress={() => this.setState(current => ({shouldShowArrow: !current.shouldShowArrow}))}
+                style={style}
+            />
+        );
     }
 
     /**
@@ -212,14 +227,7 @@ class AttachmentCarousel extends React.Component {
      */
     renderItem({item}) {
         const authSource = addEncryptedAuthTokenToURL(item.source);
-
-        return (
-            <AttachmentView
-                onPress={() => this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
-                source={authSource}
-                file={item.file}
-            />
-        );
+        return <AttachmentView source={authSource} file={item.file} />;
     }
 
     render() {
