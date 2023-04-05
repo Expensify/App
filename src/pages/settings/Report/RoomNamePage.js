@@ -14,6 +14,9 @@ import compose from '../../../libs/compose';
 import * as RoomNameInputUtils from '../../../libs/RoomNameInputUtils';
 import withReportOrNotFound from '../../home/report/withReportOrNotFound';
 import reportPropTypes from '../../reportPropTypes';
+import ROUTES from "../../../ROUTES";
+import * as ValidationUtils from "../../../libs/ValidationUtils";
+import _ from "underscore/underscore-node.mjs";
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -27,6 +30,7 @@ class RoomNamePage extends Component {
     constructor(props) {
         super(props);
         this.updateRoomName = this.updateRoomName.bind(this);
+        this.validate = this.validate.bind(this);
     }
 
     /**
@@ -38,19 +42,34 @@ class RoomNamePage extends Component {
         RoomNameInputUtils.modifyRoomName(values.roomName);
     }
 
+    /**
+     * @param {Object} values
+     * @param {String} values.roomName
+     * @returns {Object} - An object containing the errors for each inputID
+     */
+    validate(values) {
+        const errors = {};
+        if (_.isEmpty(values.roomName)) {
+            errors.roomName = this.props.translate('common.error.fieldRequired');
+        }
+
+        return errors;
+    }
+
     render() {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('newRoomPage.roomName')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.getReportSettingsRoute(this.props.report.reportID)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.getReportSettingsRoute(this.props.report.reportID))}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}
-                    onSubmit={this.updateDisplayName}
+                    onSubmit={this.updateRoomName}
+                    validate={this.validate}
                     submitButtonText={this.props.translate('common.save')}
                     enabledWhenOffline
                 >
