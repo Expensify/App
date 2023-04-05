@@ -1,6 +1,15 @@
 import _ from 'underscore';
 import CONST from '../CONST';
 
+/**
+ * Returns the number of digits after the decimal separator
+ * for a specific currency following ISO 4217.
+ * For currencies that have decimal places > 2, floor to 2 instead:
+ * https://github.com/Expensify/App/issues/15878#issuecomment-1496291464
+ *
+ * @param {String} currency - IOU currency
+ * @returns {Number}
+ */
 function getCurrencyDecimals(currency) {
     const formatted = Intl.NumberFormat('en', {style: 'currency', currency}).format(0);
     const decimalPointIndex = formatted.indexOf('.');
@@ -162,4 +171,5 @@ export {
     getIOUReportActions,
     isIOUReportPendingCurrencyConversion,
     getCurrencyUnits,
+    getCurrencyDecimals,
 };

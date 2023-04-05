@@ -131,3 +131,17 @@ describe('isIOUReportPendingCurrencyConversion', () => {
     });
 });
 
+describe('getCurrencyDecimals', () => {
+    test('Currency decimals smaller than or equal 2', () => {
+        expect(IOUUtils.getCurrencyDecimals('JPY')).toBe(0);
+        expect(IOUUtils.getCurrencyDecimals('USD')).toBe(2);
+    });
+
+    test('Currency decimals larger than 2 should return 2', () => {
+        // Actual: 3
+        expect(IOUUtils.getCurrencyDecimals('LYD')).toBe(2);
+
+        // Actual: 4
+        expect(IOUUtils.getCurrencyDecimals('UYW')).toBe(2);
+    });
+});
