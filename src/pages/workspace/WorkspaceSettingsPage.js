@@ -21,6 +21,8 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import Form from '../../components/Form';
 import * as ReportUtils from '../../libs/ReportUtils';
 import Avatar from '../../components/Avatar';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     // The currency list constant object from Onyx
@@ -64,6 +66,7 @@ class WorkspaceSettingsPage extends React.Component {
         const outputCurrency = values.currency;
         Policy.updateGeneralSettings(this.props.policy.id, values.name, outputCurrency);
         Keyboard.dismiss();
+        Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.policy.id));
     }
 
     validate(values) {
