@@ -452,7 +452,6 @@ function getOptions(reports, personalDetails, {
     sortPersonalDetailsByAlphaAsc = true,
     forcePolicyNamePreview = false,
     includeOwnedWorkspaceChats = false,
-    includeManagedWorkspaceChats = false,
 }) {
     let recentReportOptions = [];
     let personalDetailsOptions = [];
@@ -497,9 +496,6 @@ function getOptions(reports, personalDetails, {
             return;
         }
 
-        if (isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !includeManagedWorkspaceChats) {
-            return;
-        }
 
         // Save the report in the map if this is a single participant so we can associate the reportID with the
         // personal detail option later. Individuals should not be associated with single participant
@@ -678,7 +674,6 @@ function getSearchOptions(
         includePersonalDetails: true,
         forcePolicyNamePreview: true,
         includeOwnedWorkspaceChats: true,
-        includeManagedWorkspaceChats: true,
     });
 }
 
