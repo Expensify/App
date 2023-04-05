@@ -139,7 +139,7 @@ class TimezoneSelectPage extends Component {
                             sections={[{data: this.state.timezoneOptions, indexOffset: 0, isDisabled: this.timezone.automatic}]}
                             shouldHaveOptionSeparator
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                            initiallyFocusedOptionKey={this.currentSelectedTimezone}
+                            initiallyFocusedOptionKey={_.get(_.filter(this.state.timezoneOptions, tz => tz.text === this.timezone.selected)[0], 'keyForList')}
                         />
                     </>
                 )}
