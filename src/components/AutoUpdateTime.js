@@ -3,7 +3,7 @@
  * The time auto-update logic is extracted to this component to avoid re-rendering a more complex component, e.g. DetailsPage.
  */
 import {View} from 'react-native';
-import {useState, useCallback} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import DateUtils from '../libs/DateUtils';
@@ -23,8 +23,6 @@ const propTypes = {
 };
 
 function AutoUpdateTime(props) {
-    const [currentUserLocalTime, setCurrentUserLocalTime] = useState(getCurrentUserLocalTime());
-
     /**
      * @returns {moment} Returns the locale moment object
      */
@@ -35,6 +33,9 @@ function AutoUpdateTime(props) {
             props.timezone.selected,
         )
     ), [props.preferredLocale, props.timezone.selected]);
+
+    const [currentUserLocalTime, setCurrentUserLocalTime] = useState(getCurrentUserLocalTime());
+    const timerRef = useRef(null);
 
     /**
      * @returns {string} Returns the timezone name in string, e.g.: GMT +07
@@ -53,16 +54,23 @@ function AutoUpdateTime(props) {
      * Update the user's local time at the top of every minute
      */
     const updateCurrentTime = useCallback(() => {
-        let timer = null;
-        if (timer) {
-            clearTimeout(timer);
-            timer = null;
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+            timerRef.current = null;
         }
         const millisecondsUntilNextMinute = (60 - currentUserLocalTime.seconds()) * 1000;
-        timer = setTimeout(() => {
+        timerRef.current = setTimeout(() => {
             setCurrentUserLocalTime(getCurrentUserLocalTime());
         }, millisecondsUntilNextMinute);
     }, [currentUserLocalTime, getCurrentUserLocalTime]);
+
+    useEffect(() => {
+        updateCurrentTime();
+
+        return () => {
+            clearTimeout(timerRef.current);
+        };
+    }, [updateCurrentTime]);
 
     return (
         <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
@@ -78,41 +86,6 @@ function AutoUpdateTime(props) {
     );
 }
 
-// class AutoUpdateTime extends PureComponent {
-//     constructor(props) {
-//         this.updateCurrentTime = this.updateCurrentTime.bind(this);
-//     }
-
-//     componentDidMount() {
-//         this.updateCurrentTime();
-//     }
-
-//     componentDidUpdate() {
-//         // Make sure the interval is up to date every time the component updates
-//         this.updateCurrentTime();
-//     }
-
-//     componentWillUnmount() {
-//         clearTimeout(this.timer);
-//     }
-
-//     /**
-//      * Update the user's local time at the top of every minute
-//      */
-//     updateCurrentTime() {
-//         if (this.timer) {
-//             clearTimeout(this.timer);
-//             this.timer = null;
-//         }
-//         const millisecondsUntilNextMinute = (60 - this.state.currentUserLocalTime.seconds()) * 1000;
-//         this.timer = setTimeout(() => {
-//             this.setState({
-//                 currentUserLocalTime: this.getCurrentUserLocalTime(),
-//             });
-//         }, millisecondsUntilNextMinute);
-//     }
-
-// }
-
 AutoUpdateTime.propTypes = propTypes;
+AutoUpdateTime.displayName = 'AutoUpdateTime';
 export default withLocalize(AutoUpdateTime);
