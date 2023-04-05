@@ -656,6 +656,11 @@ function generateStatementPDF(period) {
     });
 }
 
+/**
+ * Sets a contact method / secondary login as the user's "Default" contact method
+ *
+ * @param {String} newDefaultContactMethod
+ */
 function setContactMethodAsDefault(newDefaultContactMethod) {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData = [
