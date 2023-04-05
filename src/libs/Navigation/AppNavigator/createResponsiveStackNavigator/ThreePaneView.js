@@ -3,10 +3,12 @@ import _ from 'underscore';
 import {
     View, Pressable, StyleSheet,
 } from 'react-native';
+import PropTypes from 'prop-types';
 import SCREENS from '../../../../SCREENS';
 import themeColors from '../../../../styles/themes/default';
 import NAVIGATORS from '../../../../NAVIGATORS';
 import * as StyleUtils from '../../../../styles/StyleUtils';
+import {withNavigationPropTypes} from '../../../../components/withNavigation';
 
 const RIGHT_PANEL_WIDTH = 375;
 const LEFT_PANEL_WIDTH = 350;
@@ -40,7 +42,17 @@ const styles = StyleSheet.create({
     },
 });
 
-// TODO-NR prop types
+const propTypes = {
+    /* State from useNavigationBuilder */
+    // eslint-disable-next-line react/forbid-prop-types
+    state: PropTypes.object.isRequired,
+
+    /* Descriptors from useNavigationBuilder */
+    // eslint-disable-next-line react/forbid-prop-types
+    descriptors: PropTypes.object.isRequired,
+
+    ...withNavigationPropTypes,
+};
 
 const ThreePaneView = (props) => {
     const lastCentralPaneIndex = _.findLastIndex(props.state.routes, {name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR});
@@ -101,5 +113,8 @@ const ThreePaneView = (props) => {
         </View>
     );
 };
+
+ThreePaneView.propTypes = propTypes;
+ThreePaneView.displayName = 'ThreePaneView';
 
 export default ThreePaneView;

@@ -927,7 +927,7 @@ function getDirectionStyle(direction) {
 }
 
 /**
- * Returns a style object with display flex or none basing on the condition value. 
+ * Returns a style object with display flex or none basing on the condition value.
  *
  * @param {boolean} condition
  * @returns {Object}
