@@ -30,7 +30,6 @@ class NewDatePicker extends React.Component {
 
         this.setDate = this.setDate.bind(this);
         this.showPicker = this.showPicker.bind(this);
-        this.hidePicker = this.hidePicker.bind(this);
         this.setCurrentSelectedMonth = this.setCurrentSelectedMonth.bind(this);
 
         this.opacity = new Animated.Value(0);
@@ -74,7 +73,6 @@ class NewDatePicker extends React.Component {
     setDate(selectedDate) {
         this.setState({selectedDate}, () => {
             this.props.onInputChange(moment(selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
-            this.hidePicker();
             this.textInputRef.blur();
         });
     }
@@ -89,22 +87,6 @@ class NewDatePicker extends React.Component {
                 duration: 100,
                 useNativeDriver: true,
             }).start();
-        });
-    }
-
-    /**
-     * Function to animate and hide the picker.
-     */
-    hidePicker() {
-        Animated.timing(this.opacity, {
-            toValue: 0,
-            duration: 100,
-            useNativeDriver: true,
-        }).start((animationResult) => {
-            if (!animationResult.finished) {
-                return;
-            }
-            this.setState({isPickerVisible: false}, this.props.onHidePicker);
         });
     }
 
