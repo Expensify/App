@@ -157,6 +157,13 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
         .substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
 }
 
+/**
+ * Checks if a reportAction is deprecated.
+ *
+ * @param {Object} reportAction
+ * @param {String} key
+ * @returns {Boolean}
+ */
 function isReportActionDeprecated(reportAction, key) {
     if (!reportAction) {
         return true;
@@ -172,6 +179,14 @@ function isReportActionDeprecated(reportAction, key) {
     return false;
 }
 
+/**
+ * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
+ * and supported type, it's not deleted and also not closed.
+ *
+ * @param {Object} reportAction
+ * @param {String} key
+ * @returns {Boolean}
+ */
 function isReportActionForDisplay(reportAction, key) {
     if (isReportActionDeprecated(reportAction, key)) {
         return false;
