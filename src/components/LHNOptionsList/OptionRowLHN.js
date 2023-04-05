@@ -130,7 +130,6 @@ const OptionRowLHN = (props) => {
             <Hoverable>
                 {hovered => (
                     <PressableWithSecondaryInteraction
-                        pointerEvents="auto"
                         ref={el => popoverAnchor = el}
                         onPress={(e) => {
                             if (e) {
@@ -140,7 +139,6 @@ const OptionRowLHN = (props) => {
                             props.onSelectRow(optionItem, popoverAnchor);
                         }}
                         onSecondaryInteraction={e => showPopover(e)}
-                        preventDefaultContentMenu
                         withoutFocusOnSecondaryInteraction
                         activeOpacity={0.8}
                         style={[
