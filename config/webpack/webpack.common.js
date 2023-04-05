@@ -23,6 +23,7 @@ const includeModules = [
     'react-native-flipper',
     'react-native-google-places-autocomplete',
     '@react-navigation/drawer',
+    '@invertase/react-native-apple-authentication',
 ].join('|');
 
 const envToLogoSuffixMap = {
@@ -143,6 +144,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                  */
                 exclude: [
                     new RegExp(`node_modules/(?!(${includeModules})/).*|.native.js$`),
+                    '//node_modules/@invertase/react-native-apple-authentication/lib',
                 ],
             },
 
