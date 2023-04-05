@@ -26,6 +26,8 @@ import withReportOrNotFound from '../../home/report/withReportOrNotFound';
 import Form from '../../../components/Form';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import RoomNamePage from "./RoomNamePage";
+import MenuItemWithTopDescription from "../../../components/MenuItemWithTopDescription";
+import ROUTES from "../../../ROUTES";
 
 const propTypes = {
     /** Route params */
@@ -208,10 +210,10 @@ class ReportSettingsPage extends Component {
                                                 </View>
                                             )
                                                 : (
-                                                    <RoomNamePage
-                                                        inputID="newRoomName"
-                                                        roomName={this.props.report.reportName}
-                                                        reportID={this.props.report.reportID}
+                                                    <MenuItemWithTopDescription
+                                                        title={this.props.report.reportName}
+                                                        description={this.props.translate('newRoomPage.roomName')}
+                                                        onPress={() => Navigation.navigate(ROUTES.getReportSettingsRoute(this.props.report.reportID))}
                                                     />
                                                 )}
                                         </View>
