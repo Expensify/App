@@ -308,7 +308,7 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
                 partnerUserID: contactMethod,
                 errorFields: {
                     addedLogin: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.addContactMethod'),
+                        [DateUtils.getMicroseconds()]: `${Localize.translateLocal('contacts.failedNewContact')} ${Localize.translateLocal('common.conciergeHelp')}`,
                     },
                 },
                 pendingFields: {

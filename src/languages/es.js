@@ -365,12 +365,11 @@ export default {
         removeContactMethod: 'Eliminar método de contacto',
         removeAreYouSure: '¿Estás seguro de que quieres eliminar este método de contacto? Esta acción no se puede deshacer.',
         resendMagicCode: 'Reenviar código mágico',
-        failedNewContact: 'Error al añadir este método de contacto',
+        failedNewContact: 'Hubo un error al añadir este método de contacto.',
         genericFailureMessages: {
             requestContactMethodValidateCode: 'No se ha podido enviar un nuevo código mágico. Espera un rato y vuelve a intentarlo.',
             validateSecondaryLogin: 'No se ha podido validar el método de contacto con el código mágico provisto. Solicita un nuevo código y vuelve a intentarlo.',
             deleteContactMethod: 'No se ha podido eliminar el método de contacto. Por favor contacta con Concierge para obtener ayuda.',
-            addContactMethod: 'No se ha podido añadir el método de contacto. Ponte en contacto con Conserjería para obtener ayuda.',
         },
         newContactMethod: 'Nuevo método de contacto',
     },
@@ -405,10 +404,6 @@ export default {
         timezone: 'Zona horaria',
         isShownOnProfile: 'Tu zona horaria se muestra en tu perfil.',
         getLocationAutomatically: 'Detecta tu ubicación automáticamente.',
-    },
-    newContactMethodPage: {
-        description: 'Introduzca su correo electrónico/número de teléfono seguido de su contraseña de Expensify para confirmar.',
-        loginPlaceholder: 'Correo electrónico/número de teléfono',
     },
     initialSettingsPage: {
         about: 'Acerca de',

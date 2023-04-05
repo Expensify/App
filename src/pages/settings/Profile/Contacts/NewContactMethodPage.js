@@ -109,11 +109,11 @@ class NewContactMethodPage extends Component {
                 />
                 <ScrollView>
                     <Text style={[styles.ph5, styles.mb5]}>
-                        {this.props.translate('newContactMethodPage.description')}
+                        {this.props.translate('common.pleaseEnterEmailOrPhoneNumber')}
                     </Text>
                     <View style={[styles.ph5, styles.mb6]}>
                         <TextInput
-                            label={this.props.translate('newContactMethodPage.loginPlaceholder')}
+                            label={`${this.props.translate('common.email')}/${this.props.translate('common.phoneNumber')}`}
                             ref={el => this.loginInputRef = el}
                             value={this.state.login}
                             onChangeText={this.onLoginChange}
