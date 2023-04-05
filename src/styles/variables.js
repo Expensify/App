@@ -56,6 +56,7 @@ export default {
     fontSizeNormalHeight: getValueUsingPixelRatio(20, 28),
     fontSizeSignInHeroLarge: 48,
     fontSizeSignInHeroMedium: 38,
+    fontSizeSignInHeroXSmall: 26,
     fontSizeSignInHeroSmall: 28,
     fontSizeSignInHeroBody: 20,
     lineHeightHero: 40,
@@ -118,5 +119,9 @@ export default {
     signInHeroContentMaxWidth: 1360,
     signInContentMinHeight: 800,
     signInLogoHeight: 34,
+    signInLogoWidth: 120,
+    signInLogoWidthLargeScreen: 144,
+    signInLogoWidthPill: 132,
+    signInLogoWidthLargeScreenPill: 162,
     modalContentMaxWidth: 360,
 };

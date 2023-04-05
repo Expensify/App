@@ -1,5 +1,5 @@
-/* eslint-disable import/no-duplicates */
 import React from 'react';
+import {View} from 'react-native';
 import ProductionLogo from '../../assets/images/expensify-wordmark.svg';
 import DevLogo from '../../assets/images/expensify-logo--dev.svg';
 import StagingLogo from '../../assets/images/expensify-logo--staging.svg';
@@ -9,14 +9,13 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import compose from '../libs/compose';
 import themeColors from '../styles/themes/default';
 import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
+import variables from '../styles/variables';
 
 const propTypes = {
     ...environmentPropTypes,
     ...windowDimensionsPropTypes,
 };
-
-// 144 -> 162
-// 120 -> 130
 
 const logoComponents = {
     [CONST.ENVIRONMENT.DEV]: DevLogo,
@@ -25,21 +24,30 @@ const logoComponents = {
 };
 
 const ExpensifyWordmark = (props) => {
-    const logoSizes = {
-        [CONST.ENVIRONMENT.DEV]: props.isSmallScreenWidth ? 132 : 144,
-        [CONST.ENVIRONMENT.STAGING]: 132,
-        [CONST.ENVIRONMENT.PRODUCTION]: 120,
+    const logoPillWidth = props.isSmallScreenWidth ? variables.signInLogoWidthPill : variables.signInLogoWidthLargeScreenPill;
+    const logoPillLeftMargin = props.isSmallScreenWidth ? styles.ml3 : {};
+
+    const logoWidth = {
+        [CONST.ENVIRONMENT.DEV]: logoPillWidth,
+        [CONST.ENVIRONMENT.STAGING]: logoPillWidth,
+        [CONST.ENVIRONMENT.PRODUCTION]: props.isSmallScreenWidth ? variables.signInLogoWidth : variables.signInLogoWidthLargeScreen,
     };
 
     const logoMargins = {
-        [CONST.ENVIRONMENT.DEV]: styles.ml3,
-        [CONST.ENVIRONMENT.STAGING]: styles.ml3,
+        [CONST.ENVIRONMENT.DEV]: logoPillLeftMargin,
+        [CONST.ENVIRONMENT.STAGING]: logoPillLeftMargin,
         [CONST.ENVIRONMENT.PRODUCTION]: {},
     };
 
     // PascalCase is required for React components, so capitalize the const here
     const LogoComponent = logoComponents[props.environment];
-    return (<LogoComponent width={logoSizes[props.environment]} height="100%" fill={themeColors.success} styles={logoMargins[props.environment]} />);
+    return (
+        <>
+            <View style={[StyleUtils.getWidthStyle(logoWidth[props.environment]), styles.h100, logoMargins[props.environment]]}>
+                <LogoComponent fill={themeColors.success} />
+            </View>
+        </>
+    );
 };
 
 ExpensifyWordmark.displayName = 'ExpensifyWordmark';

@@ -30,7 +30,7 @@ const WelcomeText = (props) => {
         <>
             <Text style={[textSize, styles.textStrong, styles.mb1]}>
                 {props.welcomeHeader}
-                {/* {props.translate('welcomeText.welcome')} */}
+                {props.translate('welcomeText.welcome')}
             </Text>
             <Text style={[textSize]}>
                 {props.welcomeBody}

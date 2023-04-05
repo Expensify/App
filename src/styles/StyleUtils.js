@@ -801,6 +801,18 @@ function getReportWelcomeTopMarginStyle(isSmallScreenWidth) {
 }
 
 /**
+ * Gets the correct top margin size for the chat welcome message based on screen dimensions
+ *
+ * @param {Number} fontSize
+ * @returns {Object}
+ */
+function getFontSizeStyle(fontSize) {
+    return {
+        fontSize,
+    };
+}
+
+/**
  * Gets the correct size for the empty state container based on screen dimensions
  *
  * @param {Boolean} isSmallScreenWidth
@@ -988,4 +1000,5 @@ export {
     getEmojiReactionTextStyle,
     getEmojiReactionCounterTextStyle,
     getDirectionStyle,
+    getFontSizeStyle,
 };

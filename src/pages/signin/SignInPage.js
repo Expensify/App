@@ -93,25 +93,38 @@ class SignInPage extends Component {
         if (showValidateCodeForm) {
             if (this.props.account.requiresTwoFactorAuth) {
                 // We will only know this after a user signs in successfully, without their 2FA code
-                welcomeHeader = !this.props.isSmallScreenWidth ? this.props.translate('welcomeText.header.phrase2') : '';
 
-                // welcomeHeader = this.props.translate('welcomeText.header.phrase2');
+                if (this.props.account.validated) {
+                    welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcomeBack');
+                } else {
+                    welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcome');
+                }
+
+                // welcomeHeader = this.props.translate('welcomeText.welcomeBack');
                 welcomeText = this.props.translate('validateCodeForm.enterAuthenticatorCode');
             } else {
                 const userLogin = Str.removeSMSDomain(lodashGet(this.props, 'credentials.login', ''));
 
-                // welcomeHeader = this.props.translate('welcomeText.header.phrase2');
-                welcomeHeader = !this.props.isSmallScreenWidth ? this.props.translate('welcomeText.header.phrase2') : '';
-                welcomeText = this.props.account.validated
-                    ? this.props.translate('welcomeText.welcomeBackEnterMagicCode', {login: userLogin})
-                    : this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLogin});
+                if (this.props.account.validated) {
+                    welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcomeBack');
+                    welcomeText = this.props.isSmallScreenWidth
+                        ? `${this.props.translate('welcomeText.welcomeBack')} ${this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLogin})}`
+                        : this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLogin});
+                } else {
+                    welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcome');
+                    welcomeText = this.props.isSmallScreenWidth
+                        ? `${this.props.translate('welcomeText.welcome')} ${this.props.translate('welcomeText.newFaceEnterMagicCode', {login: userLogin})}`
+                        : this.props.translate('welcomeText.newFaceEnterMagicCode', {login: userLogin});
+                }
             }
         } else if (showPasswordForm) {
-            welcomeHeader = !this.props.isSmallScreenWidth ? this.props.translate('welcomeText.header.phrase2') : '';
-            welcomeText = this.props.translate('welcomeText.welcomeBack');
+            welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcomeBack');
+            welcomeText = this.props.isSmallScreenWidth
+                ? `${this.props.translate('welcomeText.welcomeBack')} ${this.props.translate('welcomeText.enterPassword')}`
+                : this.props.translate('welcomeText.enterPassword');
         } else if (!showResendValidationForm) {
-            welcomeHeader = this.props.isSmallScreenWidth ? this.props.translate('login.hero.header') : this.props.translate('welcomeText.header.phrase1');
-            welcomeText = this.props.isSmallScreenWidth ? this.props.translate('welcomeText.header.phrase1') : '';
+            welcomeHeader = this.props.isSmallScreenWidth ? this.props.translate('login.hero.header') : this.props.translate('welcomeText.getStarted');
+            welcomeText = this.props.isSmallScreenWidth ? this.props.translate('welcomeText.getStarted') : '';
         }
 
         return (

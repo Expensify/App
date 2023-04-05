@@ -53,27 +53,34 @@ const SignInPageContent = props => (
 
             <View style={[styles.flexGrow2]}>
                 <SignInPageForm style={[styles.alignSelfStretch]}>
-                    <View style={[
-                        styles.componentHeightLarge,
-                        props.isSmallScreenWidth ? styles.alignItemsCenter : {},
-                        StyleUtils.getHeight(variables.signInLogoHeight),
-                        ...(props.isSmallScreenWidth ? [styles.mb2] : [styles.mt6, styles.mb5]),
-                        !props.isSmallScreenWidth ? styles.alignSelfStart : {},
-                    ]}
-                    >
-                        <ExpensifyWordmark width={props.isSmallScreenWidth ? 120 : 144} />
-                    </View>
-                    <View style={[styles.mv5, styles.signInPageWelcomeTextContainer]}>
-                        {(props.shouldShowWelcomeHeader && props.welcomeHeader) && (
-                            <Text style={[styles.loginHeroHeader, {fontSize: 26}, !props.isSmallScreenWidth ? styles.textAlignLeft : {}]}>
-                                {props.welcomeHeader}
-                            </Text>
-                        )}
-                        {(props.shouldShowWelcomeText && props.welcomeText) && (
-                            <Text style={[styles.mv5, styles.loginHeroBody, styles.textNormal, !props.isSmallScreenWidth ? styles.textAlignLeft : {}]}>
-                                {props.welcomeText}
-                            </Text>
-                        )}
+                    <View style={[props.isSmallScreenWidth ? styles.gap8 : styles.gap15]}>
+                        <View style={[
+                            props.isSmallScreenWidth ? styles.alignItemsCenter : {},
+
+                            // ...(props.isSmallScreenWidth ? [styles.mb2] : [styles.mt6, styles.mb5]),
+                            !props.isSmallScreenWidth ? styles.alignSelfStart : {},
+                        ]}
+                        >
+                            <ExpensifyWordmark />
+                        </View>
+                        <View style={[styles.gap5, styles.signInPageWelcomeTextContainer]}>
+                            {(props.shouldShowWelcomeHeader && props.welcomeHeader) ? (
+                                <Text style={[
+                                    styles.loginHeroHeader,
+                                    StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroXSmall),
+                                    !props.welcomeText ? styles.mb5 : {},
+                                    !props.isSmallScreenWidth ? styles.textAlignLeft : {},
+                                ]}
+                                >
+                                    {props.welcomeHeader}
+                                </Text>
+                            ) : undefined}
+                            {(props.shouldShowWelcomeText && props.welcomeText) ? (
+                                <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !props.isSmallScreenWidth ? styles.textAlignLeft : {}]}>
+                                    {props.welcomeText}
+                                </Text>
+                            ) : undefined}
+                        </View>
                     </View>
                     {props.children}
                 </SignInPageForm>
