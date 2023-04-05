@@ -22,6 +22,7 @@ import reportActionPropTypes from './report/reportActionPropTypes';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
 import {withNetwork} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
+import Visibility from '../../libs/Visibility';
 import networkPropTypes from '../../components/networkPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
@@ -35,6 +36,7 @@ import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView'
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import personalDetailsPropType from '../personalDetailsPropType';
+import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 
@@ -130,6 +132,16 @@ class ReportScreen extends React.Component {
     }
 
     componentDidMount() {
+        this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
+            // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
+            // we don't need to call openReport
+            if (!getIsReportFullyVisible(this.props.isDrawerOpen, this.props.isSmallScreenWidth) || this.props.report.isOptimisticReport) {
+                return;
+            }
+
+            Report.openReport(this.props.report.reportID);
+        });
+
         this.fetchReportIfNeeded();
         toggleReportActionComposeView(true);
         Navigation.setIsReportScreenIsReady();
@@ -151,6 +163,9 @@ class ReportScreen extends React.Component {
     }
 
     componentWillUnmount() {
+        if (this.unsubscribeVisibilityListener) {
+            this.unsubscribeVisibilityListener();
+        }
         Navigation.resetIsReportScreenReadyPromise();
     }
 
