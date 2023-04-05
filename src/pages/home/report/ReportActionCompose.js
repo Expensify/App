@@ -166,6 +166,9 @@ const ReportActionCompose = (props) => {
     // TODO: try to derive composerHeight from the ref rather than using state
     const [composerHeight, setComposerHeight] = useState(0);
 
+    // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
+    const hasEnoughSpaceForLargeSuggestion = useMemo(() => props.windowHeight / composerHeight >= 6.8, [props.windowHeight, composerHeight]);
+
     // TODO: Correctly initialize isEmojiPickerLarge
     const [isEmojiPickerLarge, setIsEmojiPickerLarge] = useState(false);
 
@@ -177,7 +180,7 @@ const ReportActionCompose = (props) => {
     const conciergePlaceHolderRandomIndex = useMemo(
         () => _.random(props.translate('reportActionCompose.conciergePlaceholderOptions').length - (props.isSmallScreenWidth ? 4 : 1)),
     [props.isSmallScreenWidth, props.translate]);
-    const colonIndex = useMemo(() => comment.substring(0, selection.end).lastIndexOf(':'), [comment, selection]);
+    const colonIndex = useMemo(() => comment.substring(0, selection.end).lastIndexOf(':'), [comment, selection.end]);
 
     let placeholder = props.translate('reportActionCompose.writeSomething');
     if (chatIncludesConcierge) {
@@ -361,18 +364,16 @@ const ReportActionCompose = (props) => {
     ]);
 
     const calculateEmojiSuggestion = useCallback(() => {
-        // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
-        const hasEnoughSpaceForLargeSuggestion = props.windowHeight / composerHeight >= 6.8;
         const isEmojiPickerLarge = !props.isSmallScreenWidth || hasEnoughSpaceForLargeSuggestion;
 
         LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
 
-        const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString);
+        const newSuggestedEmojis = EmojiUtils.suggestEmojis(comment.substring(0, selection.end));
         setSuggestedEmojis(newSuggestedEmojis);
         setShouldShowEmojiSuggestionMenu(!_.isEmpty(newSuggestedEmojis))
         setHighlightedEmojiIndex(0);
         setIsEmojiPickerLarge(isEmojiPickerLarge);
-    }, [comment, selection, composerHeight, props.windowHeight, props.isSmallScreenWidth]);
+    }, [comment, selection, props.isSmallScreenWidth, hasEnoughSpaceForLargeSuggestion]);
 
     const addEmojiToTextBox = useCallback((emoji) => {
         const emojiWithSpace = `${emoji} `;
