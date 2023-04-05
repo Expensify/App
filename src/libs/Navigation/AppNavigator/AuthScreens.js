@@ -152,14 +152,17 @@ class AuthScreens extends React.Component {
     }
 
     render() {
-        const rightModalNavigatorScreenOptions = {
+        const commonScreenOptions = {
             headerShown: false,
             gestureDirection: 'horizontal',
             animationEnabled: true,
-
-            cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
             cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, false, props),
             cardOverlayEnabled: true,
+        };
+
+        const rightModalNavigatorScreenOptions = {
+            ...commonScreenOptions,
+            cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
         };
         const url = getCurrentUrl();
         const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : '';
@@ -179,7 +182,7 @@ class AuthScreens extends React.Component {
                 <RootStack.Screen
                     name={SCREENS.HOME}
                     options={{
-                        headerShown: false,
+                        ...commonScreenOptions,
                         title: 'New Expensify',
 
                         // Prevent unnecessary scrolling
@@ -198,7 +201,7 @@ class AuthScreens extends React.Component {
                 <RootStack.Screen
                     name={NAVIGATORS.CENTRAL_PANE_NAVIGATOR}
                     options={{
-                        headerShown: false,
+                        ...commonScreenOptions,
                         title: 'New Expensify',
 
                         // Prevent unnecessary scrolling
