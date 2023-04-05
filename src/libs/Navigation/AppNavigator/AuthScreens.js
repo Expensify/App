@@ -209,6 +209,7 @@ class AuthScreens extends React.Component {
                             overflow: 'hidden',
                             height: '100%',
                         },
+                        cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, false, props),
                     }}
                     component={CentralPaneNavigator}
                 />
