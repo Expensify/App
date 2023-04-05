@@ -288,11 +288,6 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
         key: ONYXKEYS.LOGIN_LIST,
         value: {
             [contactMethod]: {
-                partnerUserID: contactMethod,
-                validatedDate: '',
-                errorFields: {
-                    addedLogin: null,
-                },
                 pendingFields: {
                     addedLogin: null,
                 },
