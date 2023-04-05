@@ -172,7 +172,9 @@ class AttachmentCarousel extends React.Component {
             return;
         }
 
-        this.scrollRef.current.scrollToIndex({index: nextIndex, animated: true});
+        // The sliding transition is a bit too much on web, because of the wider and bigger images,
+        // so we only enable it for mobile
+        this.scrollRef.current.scrollToIndex({index: nextIndex, animated: this.canUseTouchScreen});
     }
 
     /**
@@ -200,7 +202,7 @@ class AttachmentCarousel extends React.Component {
      */
     renderCell(props) {
         // eslint-disable-next-line react/jsx-props-no-spreading
-        return <View {...props} style={[props.style, styles.flex1]} />;
+        return <View {...props} style={[props.style, styles.h100, {width: this.props.windowWidth}]} />;
     }
 
     /**
@@ -265,26 +267,26 @@ class AttachmentCarousel extends React.Component {
                 <FlatList
                     listKey="AttachmentCarousel"
                     horizontal
-                    disableIntervalMomentum
-                    pagingEnabled
-                    inverted={this.canUseTouchScreen}
+                    inverted
                     decelerationRate="fast"
                     showsHorizontalScrollIndicator={false}
                     bounces={false}
+
+                    // Scroll only one image at a time no matter how fast the user swipes
+                    disableIntervalMomentum
+                    pagingEnabled
                     snapToAlignment="start"
                     snapToInterval={this.props.windowWidth}
 
                     // Enable scrolling by swiping on mobile (touch) devices only
-                    // disable scroll for desktop/browsers because they add their own scrollbars
+                    // disable scroll for desktop/browsers because they add their scrollbars
                     scrollEnabled={this.canUseTouchScreen}
                     ref={this.scrollRef}
                     initialScrollIndex={this.state.page}
                     initialNumToRender={3}
-                    windowSize={7}
+                    windowSize={5}
                     maxToRenderPerBatch={3}
-                    updateCellsBatchingPeriod={250}
                     data={this.state.attachments}
-                    contentContainerStyle={[styles.flexGrow1]}
                     CellRendererComponent={this.renderCell}
                     renderItem={this.renderItem}
                     getItemLayout={this.getItemLayout}
