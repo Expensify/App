@@ -90,13 +90,7 @@ function Expensify(props) {
     const [isOnyxMigrated, setIsOnyxMigrated] = React.useState(false);
     const [isSplashShown, setIsSplashShown] = React.useState(true);
 
-    /**
-     * @returns {boolean}
-     */
-    const isAuthenticated = () => {
-        const authToken = lodashGet(props, 'session.authToken', null);
-        return Boolean(authToken);
-    };
+    const isAuthenticated = Boolean(lodashGet(props, 'session.authToken', null));
 
     const reportBootSplashStatus = () => {
         BootSplash
@@ -107,7 +101,7 @@ function Expensify(props) {
 
                 if (status === 'visible') {
                     const propsToLog = _.omit(props, ['children', 'session']);
-                    propsToLog.isAuthenticated = isAuthenticated();
+                    propsToLog.isAuthenticated = isAuthenticated;
                     Log.alert('[BootSplash] splash screen is still visible', {propsToLog}, false);
                 }
             });
@@ -144,7 +138,7 @@ function Expensify(props) {
         migrateOnyx()
             .then(() => {
                 // In case of a crash that led to disconnection, we want to remove all the push notifications.
-                if (!isAuthenticated()) {
+                if (!isAuthenticated) {
                     PushNotification.clearNotifications();
                 }
 
@@ -160,14 +154,14 @@ function Expensify(props) {
             if (!appStateChangeListener.current) { return; }
             appStateChangeListener.current.remove();
         };
-    }, [isAuthenticated(), reportBootSplashStatus()]);
+    }, [isAuthenticated]);
 
     React.useEffect(() => {
         if (!isNavigationReady || !isSplashShown) {
             return;
         }
 
-        const shouldHideSplash = !isAuthenticated() || props.isSidebarLoaded;
+        const shouldHideSplash = !isAuthenticated || props.isSidebarLoaded;
 
         if (shouldHideSplash) {
             BootSplash.hide();
@@ -177,7 +171,7 @@ function Expensify(props) {
             // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
             Linking.getInitialURL().then(url => Report.openReportFromDeepLink(url));
         }
-    }, [props.isSidebarLoaded, isNavigationReady, isSplashShown, isAuthenticated()]);
+    }, [props.isSidebarLoaded, isNavigationReady, isSplashShown, isAuthenticated]);
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
@@ -211,7 +205,7 @@ function Expensify(props) {
 
             <NavigationRoot
                 onReady={setNavigationReady}
-                authenticated={isAuthenticated()}
+                authenticated={isAuthenticated}
             />
         </DeeplinkWrapper>
     );
