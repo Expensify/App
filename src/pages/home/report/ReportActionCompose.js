@@ -42,12 +42,14 @@ import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import OfflineIndicator from '../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
+import withNavigation from '../../../components/withNavigation';
 import withNavigationFocus from '../../../components/withNavigationFocus';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import ReportDropUI from './ReportDropUI';
 import DragAndDrop from '../../../components/DragAndDrop';
 import reportPropTypes from '../../reportPropTypes';
 import EmojiSuggestions from '../../../components/EmojiSuggestions';
+import * as Welcome from '../../../libs/actions/Welcome';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
@@ -221,6 +223,12 @@ class ReportActionCompose extends React.Component {
 
         this.setMaxLines();
         this.updateComment(this.comment);
+
+        // Show popover on Workspace Welcome
+        Welcome.show({
+            routes: lodashGet(this.props.navigation.getState(), 'routes', []),
+            showPopoverMenu: this.showPopoverMenu
+        });
     }
 
     componentDidUpdate(prevProps) {
@@ -672,6 +680,14 @@ class ReportActionCompose extends React.Component {
         this.props.onSubmit(comment);
     }
 
+    /**
+     * Used by Welcome.show to show Popover on Workspace Welcome
+     *
+     */
+    showPopoverMenu() {
+        this.setMenuVisibility(true);
+    }
+
     render() {
         const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
         const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
@@ -933,6 +949,7 @@ ReportActionCompose.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withDrawerState,
+    withNavigation,
     withNavigationFocus,
     withLocalize,
     withNetwork(),
