@@ -687,14 +687,14 @@ function unlinkLogin(accountID, validateCode) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
+                message: Localize.translateLocal('unlinkLoginForm.succesfullyUnlinkedLogin'),
             },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.CREDENTIALS,
             value: {
-                accountID,
-                validateCode,
+                login: '',
             },
         },
     ];
@@ -705,6 +705,9 @@ function unlinkLogin(accountID, validateCode) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
+                errors: {
+                    [DateUtils.getMicroseconds()]: Localize.translateLocal('unlinkLoginForm.unlinkFailedMessage'),
+                },
             },
         },
     ];

@@ -665,6 +665,8 @@ export default {
         noLongerHaveAccess: ({primaryLogin}) => `If you no longer have access to ${primaryLogin}, please unlink your accounts.`,
         unlink: 'Unlink',
         linkSent: 'Link sent!',
+        succesfullyUnlinkedLogin: 'Secondary login successfully unlinked!',
+        unlinkFailedMessage: 'It looks like there was an error with your link or it has expired.',
     },
     detailsPage: {
         localTime: 'Local time',
