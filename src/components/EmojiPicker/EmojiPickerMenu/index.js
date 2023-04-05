@@ -390,7 +390,7 @@ class EmojiPickerMenu extends Component {
      * @param {String} searchTerm
      */
     filterEmojis(searchTerm) {
-        const normalizedSearchTerm = searchTerm.toLowerCase().trim();
+        const normalizedSearchTerm = searchTerm.toLowerCase().trim().replaceAll(':', '');
         if (this.emojiList) {
             this.emojiList.scrollToOffset({offset: 0, animated: false});
         }
