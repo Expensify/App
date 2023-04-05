@@ -23,6 +23,7 @@ const propTypes = {
 };
 
 function AutoUpdateTime(props) {
+    const [currentUserLocalTime, setCurrentUserLocalTime] = useState(getCurrentUserLocalTime());
     return (
         <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
             <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
