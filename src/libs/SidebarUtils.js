@@ -247,7 +247,7 @@ function getOptionData(reportID) {
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
         lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
     } else {
-        lastMessageTextFromReport = Str.htmlDecode(report ? report.lastMessageText : '');
+        lastMessageTextFromReport = report ? report.lastMessageText : '';
     }
 
     // If the last actor's details are not currently saved in Onyx Collection,
