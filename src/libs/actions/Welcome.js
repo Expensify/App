@@ -98,9 +98,10 @@ Onyx.connect({
  *
  * @param {Object} params
  * @param {Object} params.routes
- * @param {Function} params.showCreateMenu
+ * @param {Function} [params.showCreateMenu]
+ * @param {Function} [params.showPopoverMenu]
  */
-function show({routes, showCreateMenu}) {
+function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => {}}) {
     isReadyPromise.then(() => {
         if (!isFirstTimeNewExpensifyUser) {
             return;
@@ -121,6 +122,7 @@ function show({routes, showCreateMenu}) {
         const workspaceChatReport = _.find(allReports, report => ReportUtils.isPolicyExpenseChat(report) && report.ownerEmail === email);
         if (workspaceChatReport && !isDisplayingWorkspaceRoute) {
             Navigation.navigate(ROUTES.getReportRoute(workspaceChatReport.reportID));
+            showPopoverMenu();
             return;
         }
 
