@@ -84,7 +84,7 @@ class NewContactMethodPage extends Component {
 
     submitForm() {
         // If this login already exists, just go back.
-        if (lodashGet(this.props.loginList, this.state.login, null)) {
+        if (lodashGet(this.props.loginList, this.state.login)) {
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
             return;
         }
