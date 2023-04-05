@@ -61,6 +61,7 @@ class IOUParticipantsRequest extends Component {
             '',
             [],
             CONST.EXPENSIFY_EMAILS,
+            false,
         );
 
         this.state = {
@@ -120,6 +121,7 @@ class IOUParticipantsRequest extends Component {
             searchTerm,
             [],
             CONST.EXPENSIFY_EMAILS,
+            false,
         );
         this.setState({
             searchTerm,
