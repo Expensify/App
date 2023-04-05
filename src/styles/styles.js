@@ -1036,7 +1036,6 @@ const styles = {
     },
 
     signInBackgroundMobile: {
-        // width: '100%',
         position: 'absolute',
         bottom: 0,
         left: 0,
@@ -3053,8 +3052,6 @@ const styles = {
     footerWrapper: {
         fontSize: variables.fontSizeNormal,
         paddingTop: 64,
-
-        // paddingHorizontal: 32,
         maxWidth: 1100, // Match footer across all Expensify platforms
     },
 

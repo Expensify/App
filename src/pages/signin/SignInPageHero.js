@@ -13,11 +13,11 @@ const propTypes = {
 
 const SignInPageHero = props => (
     <View style={[
-        StyleUtils.getHeight(props.windowHeight < 750 ? 750 : props.windowHeight),
+        StyleUtils.getHeight(props.windowHeight < variables.signInContentMinHeight ? variables.signInContentMinHeight : props.windowHeight),
         StyleUtils.getMinimumHeight(variables.signInContentMinHeight),
         props.windowWidth <= variables.tabletResponsiveWidthBreakpoint ? styles.flexColumn : styles.flexColumn,
         styles.pt20,
-        {maxWidth: 740}, // width of text / image container
+        StyleUtils.getMaximumWidth(variables.signInContextMaxWidth),
         styles.alignSelfCenter,
     ]}
     >

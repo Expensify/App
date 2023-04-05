@@ -209,8 +209,8 @@ export default {
     },
     login: {
         hero: {
-            header: '',
-            body: '',
+            header: 'Divida las facturas, solicite pagos y chatee con sus amigos.',
+            body: 'Bienvenido al futuro de Expensify, tu nuevo lugar de referencia para la colaboración financiera con amigos y compañeros de equipo por igual.',
         },
     },
     reportActionCompose: {

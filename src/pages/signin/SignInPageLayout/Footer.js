@@ -19,8 +19,6 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import * as Session from '../../../libs/actions/Session';
 import SignInGradient from '../../../../assets/images/home-fade-gradient--mobile.svg';
 
-// import GradientBG from '../../../../assets/images/home-fade-gradient.svg';
-
 const propTypes = {
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
@@ -159,23 +157,7 @@ const Footer = (props) => {
 
     return (
         <View style={[styles.flex1]}>
-            {/* <GradientBG
-                height="100%"
-                style={{
-                    position: 'absolute',
-                    left: 0,
-                    top: 0,
-                }}
-            /> */}
             <View style={[props.isSmallScreenWidth ? StyleUtils.getBackgroundColorStyle(themeColors.signInPage) : {}]}>
-                {/* <GradientBG
-                    height="100%"
-                    style={{
-                        position: 'absolute',
-                        left: -100,
-                        top: 0,
-                    }}
-                /> */}
                 {props.isSmallScreenWidth ? (
                     <View style={[styles.signInPageGradientMobile]}>
                         <SignInGradient height="100%" />
