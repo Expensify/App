@@ -132,8 +132,6 @@ const MoneyRequestModal = (props) => {
 
     useEffect(() => {
         PersonalDetails.openMoneyRequestModalPage();
-        IOU.setIOUSelectedCurrency(props.currentUserPersonalDetails.localCurrencyCode);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- props.currentUserPersonalDetails will always exist from Onyx and we don't want this effect to run again
     }, []);
 
     /**
