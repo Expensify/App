@@ -22,10 +22,10 @@ const propTypes = {
     /** Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
 
-    /** Callback to add participants in IOUModal */
+    /** Callback to add participants in MoneyRequestModal */
     onAddParticipants: PropTypes.func.isRequired,
 
-    /** Selected participants from IOUModal with login */
+    /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
