@@ -23,7 +23,6 @@ const propTypes = {
 };
 
 function AutoUpdateTime(props) {
-    let timer;
     const [currentUserLocalTime, setCurrentUserLocalTime] = useState(getCurrentUserLocalTime());
 
     /**
@@ -50,6 +49,21 @@ function AutoUpdateTime(props) {
         return `GMT ${currentUserLocalTime.zoneAbbr()}`;
     }, [currentUserLocalTime]);
 
+    /**
+     * Update the user's local time at the top of every minute
+     */
+    const updateCurrentTime = useCallback(() => {
+        let timer = null;
+        if (timer) {
+            clearTimeout(timer);
+            timer = null;
+        }
+        const millisecondsUntilNextMinute = (60 - currentUserLocalTime.seconds()) * 1000;
+        timer = setTimeout(() => {
+            setCurrentUserLocalTime(getCurrentUserLocalTime());
+        }, millisecondsUntilNextMinute);
+    }, [currentUserLocalTime, getCurrentUserLocalTime]);
+
     return (
         <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
             <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
@@ -66,13 +80,7 @@ function AutoUpdateTime(props) {
 
 // class AutoUpdateTime extends PureComponent {
 //     constructor(props) {
-//         super(props);
-//         this.getCurrentUserLocalTime = this.getCurrentUserLocalTime.bind(this);
 //         this.updateCurrentTime = this.updateCurrentTime.bind(this);
-//         this.getTimezoneName = this.getTimezoneName.bind(this);
-//         this.state = {
-//             currentUserLocalTime: this.getCurrentUserLocalTime(),
-//         };
 //     }
 
 //     componentDidMount() {
@@ -86,30 +94,6 @@ function AutoUpdateTime(props) {
 
 //     componentWillUnmount() {
 //         clearTimeout(this.timer);
-//     }
-
-//     /**
-//      * @returns {moment} Returns the locale moment object
-//      */
-//     getCurrentUserLocalTime() {
-//         return DateUtils.getLocalMomentFromDatetime(
-//             this.props.preferredLocale,
-//             null,
-//             this.props.timezone.selected,
-//         );
-//     }
-
-//     /**
-//      * @returns {string} Returns the timezone name in string, e.g.: GMT +07
-//      */
-//     getTimezoneName() {
-//         // With non-GMT timezone, moment.zoneAbbr() will return the name of that timezone, so we can use it directly.
-//         if (Number.isNaN(Number(this.state.currentUserLocalTime.zoneAbbr()))) {
-//             return this.state.currentUserLocalTime.zoneAbbr();
-//         }
-
-//         // With GMT timezone, moment.zoneAbbr() will return a number, so we need to display it as GMT {abbreviations} format, e.g.: GMT +07
-//         return `GMT ${this.state.currentUserLocalTime.zoneAbbr()}`;
 //     }
 
 //     /**
@@ -128,20 +112,6 @@ function AutoUpdateTime(props) {
 //         }, millisecondsUntilNextMinute);
 //     }
 
-//     render() {
-//         return (
-//             <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-//                 <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
-//                     {this.props.translate('detailsPage.localTime')}
-//                 </Text>
-//                 <Text numberOfLines={1}>
-//                     {this.state.currentUserLocalTime.format('LT')}
-//                     {' '}
-//                     {this.getTimezoneName()}
-//                 </Text>
-//             </View>
-//         );
-//     }
 // }
 
 AutoUpdateTime.propTypes = propTypes;
