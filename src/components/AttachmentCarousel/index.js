@@ -153,7 +153,7 @@ class AttachmentCarousel extends React.Component {
             const nextIndex = page - deltaSlide;
             const {source, file} = this.getAttachment(attachments[nextIndex]);
             this.props.onNavigate({source: addEncryptedAuthTokenToURL(source), file});
-            this.scrollRef.current.scrollToIndex({index: nextIndex, animated: false});
+            this.scrollRef.current.scrollToIndex({index: nextIndex, animated: true});
             return {
                 page: nextIndex,
                 source,
@@ -248,7 +248,7 @@ class AttachmentCarousel extends React.Component {
                     ref={this.scrollRef}
                     initialScrollIndex={this.state.page}
                     initialNumToRender={3}
-                    windowSize={15}
+                    windowSize={7}
                     maxToRenderPerBatch={3}
                     updateCellsBatchingPeriod={250}
                     data={this.state.attachments}
