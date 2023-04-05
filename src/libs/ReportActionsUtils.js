@@ -187,7 +187,7 @@ function isReportActionDeprecated(reportAction, key) {
  * @param {String} key
  * @returns {Boolean}
  */
-function isReportActionForDisplay(reportAction, key) {
+function shouldReportActionBeVisible(reportAction, key) {
     if (isReportActionDeprecated(reportAction, key)) {
         return false;
     }
@@ -228,7 +228,7 @@ function filterOutDeprecatedReportActions(reportActions) {
  * @returns {Array}
  */
 function getSortedReportActionsForDisplay(reportActions) {
-    const filteredReportActions = _.filter(reportActions, (reportAction, key) => isReportActionForDisplay(reportAction, key));
+    const filteredReportActions = _.filter(reportActions, (reportAction, key) => shouldReportActionBeVisible(reportAction, key));
     return getSortedReportActions(filteredReportActions, true);
 }
 
@@ -256,7 +256,7 @@ export {
     getLastVisibleMessageText,
     getMostRecentIOURequestActionID,
     isDeletedAction,
-    isReportActionForDisplay,
+    shouldReportActionBeVisible,
     isReportActionDeprecated,
     isConsecutiveActionMadeByPreviousActor,
     getSortedReportActionsForDisplay,
