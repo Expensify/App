@@ -21,6 +21,7 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import Form from '../../components/Form';
 import * as ReportUtils from '../../libs/ReportUtils';
 import Avatar from '../../components/Avatar';
+import * as ValidationUtils from '../../libs/ValidationUtils';
 
 const propTypes = {
     // The currency list constant object from Onyx
@@ -72,6 +73,8 @@ class WorkspaceSettingsPage extends React.Component {
 
         if (!name || !name.length) {
             errors.name = this.props.translate('workspace.editor.nameIsRequiredError');
+        } else if (ValidationUtils.getTextByteLength(name) > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
+            errors.name = this.props.translate('workspace.editor.nameCharacterLimit', {limit: CONST.WORKSPACE_NAME_CHARACTER_LIMIT});
         }
 
         return errors;

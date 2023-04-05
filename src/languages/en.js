@@ -1048,6 +1048,7 @@ export default {
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             nameIsRequiredError: 'You need to define a name for your workspace.',
+            nameCharacterLimit: ({limit}) => `Exceeds the maximum length of ${limit} characters`,
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
             currencyInputDisabledText: 'The default currency can\'t be changed because this workspace is linked to a USD bank account.',

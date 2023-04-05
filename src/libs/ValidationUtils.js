@@ -430,6 +430,18 @@ function isValidTaxID(taxID) {
     return taxID && CONST.REGEX.TAX_ID.test(taxID.replace(CONST.REGEX.NON_NUMERIC, ''));
 }
 
+/**
+ * Returns C's strlen to match with backend validation
+ *
+ * @param {String} text
+ * @returns {Number}
+ */
+function getTextByteLength(text) {
+    const encoder = new TextEncoder();
+    const encodedText = encoder.encode(text);
+    return encodedText.byteLength;
+}
+
 export {
     meetsAgeRequirements,
     getAgeRequirementError,
@@ -461,4 +473,5 @@ export {
     isValidDisplayName,
     isValidLegalName,
     doesContainReservedWord,
+    getTextByteLength,
 };
