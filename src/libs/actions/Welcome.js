@@ -119,7 +119,10 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => {}}) {
         const isDisplayingWorkspaceRoute = isWorkspaceRoute || exitingToWorkspaceRoute;
 
         // We want to display the Workspace chat first since that means a user is already in a Workspace and doesn't need to create another one
-        const workspaceChatReport = _.find(allReports, report => ReportUtils.isPolicyExpenseChat(report) && report.ownerEmail === email);
+        const workspaceChatReport = _.find(
+            allReports,
+            report => ReportUtils.isPolicyExpenseChat(report) && report.ownerEmail === email && report.statusNum !== CONST.REPORT.STATUS.CLOSED
+        );
         if (workspaceChatReport && !isDisplayingWorkspaceRoute) {
             Navigation.navigate(ROUTES.getReportRoute(workspaceChatReport.reportID));
             showPopoverMenu();
