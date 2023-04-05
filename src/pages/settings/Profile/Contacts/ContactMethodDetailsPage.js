@@ -241,7 +241,7 @@ class ContactMethodDetailsPage extends Component {
                             </OfflineWithFeedback>
                             <MenuItem
                                 title="Set as default"
-                                icon={Expensicons.Trashcan}
+                                icon={Expensicons.CircleCheck}
                                 onPress={() => User.setContactMethodAsDefault(contactMethod)}
                             />
                         </>
