@@ -37,11 +37,10 @@ class ImageView extends PureComponent {
         super(props);
 
         this.state = {
-            isLoaded: false,
+            isLoading: true,
             imageWidth: 0,
             imageHeight: 0,
             interactionPromise: undefined,
-            containerHeight: props.windowHeight,
         };
 
         // Use the default double click interval from the ImageZoom library
@@ -122,7 +121,7 @@ class ImageView extends PureComponent {
             const maxDimensionsScale = 11;
             imageWidth = Math.min(imageWidth, (containerWidth * maxDimensionsScale));
             imageHeight = Math.min(imageHeight, (containerHeight * maxDimensionsScale));
-            this.setState({imageHeight, imageWidth, isLoaded: true});
+            this.setState({imageHeight, imageWidth, isLoading: false});
         });
     }
 
@@ -146,14 +145,18 @@ class ImageView extends PureComponent {
     }
 
     imageLoadingStart() {
+        if (this.state.isLoading) {
+            return;
+        }
         this.resetImageZoom();
+        this.setState({imageHeight: 0, imageWidth: 0, isLoading: true});
     }
 
     render() {
         // Default windowHeight accounts for the modal header height
         const windowHeight = this.props.windowHeight - variables.contentHeaderHeight;
         const hasImageDimensions = this.state.imageWidth !== 0 && this.state.imageHeight !== 0;
-        const shouldShowLoadingIndicator = !this.state.isLoaded || !hasImageDimensions;
+        const shouldShowLoadingIndicator = this.state.isLoading || !hasImageDimensions;
 
         // Zoom view should be loaded only after measuring actual image dimensions, otherwise it causes blurred images on Android
         return (
