@@ -153,7 +153,7 @@ const ReportActionCompose = (props) => {
     const [comment, setComment] = useState(props.comment);
     const [isCommentTooLong, setIsCommentTooLong] = useState(ReportUtils.getCommentLength(comment) > CONST.MAX_COMMENT_LENGTH);
     const [selection, setSelection] = useState({start: props.comment.length, end: props.comment.length});
-    const [isFocused, setIsFocused] = useState(willBlurTextInputOnTapOutside() && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible);
+    const [isFocused, setIsFocused] = useState(willBlurTextInputOnTapOutside() && !props.modal.isVisible && !props.modal.willAlertModalBecomeVisible);
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(props.isComposerFullSize);
     const [shouldClearTextInput, setShouldClearTextInput] = useState(false);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -619,7 +619,7 @@ const ReportActionCompose = (props) => {
                                 >
                                     <Composer
                                         ref={composer}
-                                        autoFocus={!this.props.modal.isVisible && (willBlurTextInputOnTapOutside() || _.size(props.reportActions) === 1)}
+                                        autoFocus={!props.modal.isVisible && (willBlurTextInputOnTapOutside() || _.size(props.reportActions) === 1)}
                                         multiline
                                         textAlignVertical="top"
                                         placeholder={placeholder}
@@ -636,7 +636,7 @@ const ReportActionCompose = (props) => {
                                         onPasteFile={displayFileInModal}
                                         shouldClear={shouldClearTextInput}
                                         onClear={() => setShouldClearTextInput(false)}
-                                        isDisabled={(this.props.isDrawerOpen && this.props.isSmallScreenWidth) || isUserBlockedFromConcierge || props.isDisabled}
+                                        isDisabled={(props.isDrawerOpen && props.isSmallScreenWidth) || isUserBlockedFromConcierge || props.isDisabled}
                                         selection={selection}
                                         onSelectionChange={(e) => {
                                             setSelection(e.nativeEvent.selection);
