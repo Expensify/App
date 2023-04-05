@@ -1,3 +1,4 @@
+/* eslint-disable es/no-optional-chaining */
 import _ from 'lodash';
 import lodashGet from 'lodash/get';
 import {Keyboard} from 'react-native';
@@ -237,25 +238,23 @@ function setIsReportScreenIsReady() {
 }
 
 function getTopmostReportId(state = navigationRef.getState()) {
-    const topmostCentralPane = state.routes.findLast(route => route.name === 'CentralPaneNavigator');
+    const topmostCentralPane = state.routes?.findLast(route => route.name === 'CentralPaneNavigator');
     if (!topmostCentralPane) {
         return;
     }
-    const hasDirectReportIdParam = topmostCentralPane.params && topmostCentralPane.params.params && topmostCentralPane.params.params.reportID;
+    const directReportIdParam = topmostCentralPane.params?.params?.reportID;
 
-    if (!topmostCentralPane.state && !hasDirectReportIdParam) {
+    if (!topmostCentralPane.state && !directReportIdParam) {
         return;
     }
 
-    if (hasDirectReportIdParam) {
-        return topmostCentralPane.params.params.reportID;
+    if (directReportIdParam) {
+        return directReportIdParam;
     }
 
-    const topmostReport = topmostCentralPane.state.routes.findLast(route => route.name === 'Report').params;
+    const topmostReportID = topmostCentralPane.state.routes?.findLast(route => route.name === 'Report')?.params?.reportID;
 
-    if (topmostReport && topmostReport.reportID) {
-        return topmostReport.reportID;
-    }
+    return topmostReportID;
 }
 
 export default {
