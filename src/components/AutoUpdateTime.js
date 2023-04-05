@@ -3,7 +3,7 @@
  * The time auto-update logic is extracted to this component to avoid re-rendering a more complex component, e.g. DetailsPage.
  */
 import {View} from 'react-native';
-import React, {PureComponent} from 'react';
+import {useState, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import DateUtils from '../libs/DateUtils';
@@ -23,6 +23,7 @@ const propTypes = {
 };
 
 function AutoUpdateTime(props) {
+    let timer;
     const [currentUserLocalTime, setCurrentUserLocalTime] = useState(getCurrentUserLocalTime());
 
     /**
@@ -36,15 +37,28 @@ function AutoUpdateTime(props) {
         )
     ), [props.preferredLocale, props.timezone.selected]);
 
+    /**
+     * @returns {string} Returns the timezone name in string, e.g.: GMT +07
+     */
+    const getTimezoneName = useCallback(() => {
+        // With non-GMT timezone, moment.zoneAbbr() will return the name of that timezone, so we can use it directly.
+        if (Number.isNaN(Number(currentUserLocalTime.zoneAbbr()))) {
+            return currentUserLocalTime.zoneAbbr();
+        }
+
+        // With GMT timezone, moment.zoneAbbr() will return a number, so we need to display it as GMT {abbreviations} format, e.g.: GMT +07
+        return `GMT ${currentUserLocalTime.zoneAbbr()}`;
+    }, [currentUserLocalTime]);
+
     return (
         <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
             <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
                 {props.translate('detailsPage.localTime')}
             </Text>
             <Text numberOfLines={1}>
-                {this.state.currentUserLocalTime.format('LT')}
+                {currentUserLocalTime.format('LT')}
                 {' '}
-                {this.getTimezoneName()}
+                {getTimezoneName()}
             </Text>
         </View>
     );
