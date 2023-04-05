@@ -6,7 +6,6 @@ import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Permissions from '../../Permissions';
 
-// Screens
 import ReportScreen from '../../../pages/home/ReportScreen';
 import * as ReportUtils from '../../ReportUtils';
 import reportPropTypes from '../../../pages/reportPropTypes';
@@ -67,7 +66,7 @@ class ReportScreenWrapper extends Component {
     constructor(props) {
         super(props);
 
-        // if there is no ReportID in route, try to find last accessed and use it for setParams
+        // If there is no ReportID in route, try to find last accessed and use it for setParams
         if (!getReportIDFromRoute(this.props.route)) {
             const reportID = getLastAccessedReportID(
                 this.props.reports,
@@ -76,7 +75,7 @@ class ReportScreenWrapper extends Component {
                 lodashGet(this.props, 'route.params.openOnAdminRoom', false),
             );
 
-            // it's possible that props.reports aren't fully loaded yet
+            // It's possible that props.reports aren't fully loaded yet
             // in that case the reportID is undefined
             if (reportID) {
                 this.props.navigation.setParams({reportID: String(reportID)});
@@ -85,10 +84,10 @@ class ReportScreenWrapper extends Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        // don't update if there is a reportID in the params already
+        // Don't update if there is a reportID in the params already
         if (getReportIDFromRoute(this.props.route)) { return false; }
 
-        // if the reports weren't fully loaded in the contructor
+        // If the reports weren't fully loaded in the contructor
         // try to get and set reportID again
         const reportID = getLastAccessedReportID(
             nextProps.reports,

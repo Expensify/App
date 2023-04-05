@@ -11,8 +11,6 @@ const withCurrentReportIdPropTypes = {
     children: PropTypes.node.isRequired,
 };
 
-const currentReportIdDefaultProps = {};
-
 class CurrentReportIdContextProvider extends React.Component {
     constructor(props) {
         super(props);
@@ -51,7 +49,6 @@ class CurrentReportIdContextProvider extends React.Component {
 }
 
 CurrentReportIdContextProvider.propTypes = withCurrentReportIdPropTypes;
-CurrentReportIdContextProvider.defaultProps = currentReportIdDefaultProps;
 
 export default function withCurrentReportId(WrappedComponent) {
     const WithCurrentReportId = forwardRef((props, ref) => (

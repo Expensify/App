@@ -12,10 +12,13 @@ const propTypes = {
         PropTypes.node,
     ]).isRequired,
     initialRouteName: PropTypes.oneOf([PropTypes.string, PropTypes.undefined]),
+    // eslint-disable-next-line react/forbid-prop-types
+    screenOptions: PropTypes.object,
 };
 
 const defaultProps = {
     initialRouteName: undefined,
+    screenOptions: undefined,
 };
 
 function ResponsiveStackNavigator(props) {
@@ -23,14 +26,13 @@ function ResponsiveStackNavigator(props) {
         navigation, state, descriptors, NavigationContent,
     } = useNavigationBuilder(CustomRouter, {
         children: props.children,
-        // eslint-disable-next-line react/prop-types
         screenOptions: props.screenOptions,
         initialRouteName: props.initialRouteName,
         isSmallScreenWidth: props.isSmallScreenWidth,
     });
 
-    if (props.isSmallScreenWidth) {
-        return (
+    return props.isSmallScreenWidth
+        ? (
             <NavigationContent>
                 <StackView
                     // eslint-disable-next-line react/jsx-props-no-spreading
@@ -40,19 +42,17 @@ function ResponsiveStackNavigator(props) {
                     navigation={navigation}
                 />
             </NavigationContent>
-        );
-    }
-    return (
-        <NavigationContent>
-            <ThreePaneView
+        ) : (
+            <NavigationContent>
+                <ThreePaneView
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-                state={state}
-                descriptors={descriptors}
-                navigation={navigation}
-            />
-        </NavigationContent>
-    );
+                    {...props}
+                    state={state}
+                    descriptors={descriptors}
+                    navigation={navigation}
+                />
+            </NavigationContent>
+        );
 }
 
 ResponsiveStackNavigator.defaultProps = defaultProps;

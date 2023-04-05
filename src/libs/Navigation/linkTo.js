@@ -31,13 +31,13 @@ export default function linkTo(navigation, path) {
 
     const action = getActionFromState(state, linkingConfig.config);
 
-    // if action type is different than NAVIGATE we can't change it to the PUSH safely
+    // If action type is different than NAVIGATE we can't change it to the PUSH safely
     if (action.type === 'NAVIGATE') {
-        // if this action is navigating to the report screen - push
+        // If this action is navigating to the report screen - push
         if (action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
             action.type = 'PUSH';
         } else if (action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && _.last(root.getState().routes).name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
-            // if this action is navigating to the RightModalNavigator and the last route on the root navigator is not RightModalNavigator then push
+            // If this action is navigating to the RightModalNavigator and the last route on the root navigator is not RightModalNavigator then push
             action.type = 'PUSH';
         }
     }

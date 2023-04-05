@@ -15,7 +15,7 @@ function CentralPaneNavigator() {
                     headerShown: false,
                     title: 'New Expensify',
 
-                    // prevent unnecessary scrolling
+                    // Prevent unnecessary scrolling
                     cardStyle: {
                         overflow: 'hidden',
                         height: '100%',

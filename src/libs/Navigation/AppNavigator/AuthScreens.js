@@ -152,7 +152,7 @@ class AuthScreens extends React.Component {
     }
 
     render() {
-        const RightModalNavigatorScreenOptions = {
+        const rightModalNavigatorScreenOptions = {
             headerShown: false,
             gestureDirection: 'horizontal',
             animationEnabled: true,
@@ -160,10 +160,6 @@ class AuthScreens extends React.Component {
             cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
             cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, false, props),
             cardOverlayEnabled: true,
-
-            // This option is required to make previous screen visible underneath the modal screen
-            // https://reactnavigation.org/docs/6.x/stack-navigator#transparent-modals
-            presentation: 'transparentModal',
         };
         const url = getCurrentUrl();
         const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : '';
@@ -186,7 +182,7 @@ class AuthScreens extends React.Component {
                         headerShown: false,
                         title: 'New Expensify',
 
-                        // prevent unnecessary scrolling
+                        // Prevent unnecessary scrolling
                         cardStyle: {
                             overflow: 'hidden',
                             height: '100%',
@@ -196,6 +192,7 @@ class AuthScreens extends React.Component {
                         const SidebarScreen = require('../../../pages/home/sidebar/SidebarScreen').default;
                         return SidebarScreen;
                     }}
+
                     /* initialParams={{openOnAdminRoom: openOnAdminRoom === 'true'}} */
                 />
                 <RootStack.Screen
@@ -204,7 +201,7 @@ class AuthScreens extends React.Component {
                         headerShown: false,
                         title: 'New Expensify',
 
-                        // prevent unnecessary scrolling
+                        // Prevent unnecessary scrolling
                         cardStyle: {
                             overflow: 'hidden',
                             height: '100%',
@@ -245,14 +242,9 @@ class AuthScreens extends React.Component {
                     options={defaultScreenOptions}
                     component={FullScreenNavigator}
                 />
-
-                {/* Note: Each modal must have it's own stack navigator since we want to be able to navigate to any
-                modal subscreens e.g. `/settings/profile` and this will allow us to navigate while inside the modal. We
-                are also using a custom navigator on web so even if a modal does not have any subscreens it still must
-                use a navigator */}
                 <RootStack.Screen
                     name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
-                    options={RightModalNavigatorScreenOptions}
+                    options={rightModalNavigatorScreenOptions}
                     component={RightModalNavigator}
                     listeners={modalScreenListeners}
                 />

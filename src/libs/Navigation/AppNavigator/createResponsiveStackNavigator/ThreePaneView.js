@@ -6,6 +6,7 @@ import {
 import SCREENS from '../../../../SCREENS';
 import themeColors from '../../../../styles/themes/default';
 import NAVIGATORS from '../../../../NAVIGATORS';
+import * as StyleUtils from '../../../../styles/StyleUtils';
 
 const RIGHT_PANEL_WIDTH = 375;
 const LEFT_PANEL_WIDTH = 350;
@@ -41,9 +42,7 @@ const styles = StyleSheet.create({
 
 // TODO-NR prop types
 
-const displayIfTrue = condition => ({display: condition ? 'flex' : 'none'});
-
-const WideView = (props) => {
+const ThreePaneView = (props) => {
     const lastCentralPaneIndex = _.findLastIndex(props.state.routes, {name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR});
 
     const renderRightPanel = ({key, shouldDisplay, children}) => (
@@ -51,7 +50,7 @@ const WideView = (props) => {
             key={key}
             style={[
                 styles.rightPanelContainer,
-                displayIfTrue(shouldDisplay),
+                StyleUtils.displayIfTrue(shouldDisplay),
             ]}
         >
             <Pressable style={{flex: 1}} onPress={() => props.navigation.goBack()} />
@@ -72,19 +71,21 @@ const WideView = (props) => {
                             {props.descriptors[route.key].render()}
                         </View>
                     );
-                } if (route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
+                }
+                if (route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
                     return (
                         <View
                             key={route.key}
                             style={[
                                 styles.centralPanelContainer,
-                                displayIfTrue(lastCentralPaneIndex === i),
+                                StyleUtils.displayIfTrue(lastCentralPaneIndex === i),
                             ]}
                         >
                             {props.descriptors[route.key].render()}
                         </View>
                     );
-                } if (route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+                }
+                if (route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
                     return renderRightPanel({
                         key: route.key,
                         shouldDisplay: props.state.index === i,
@@ -101,4 +102,4 @@ const WideView = (props) => {
     );
 };
 
-export default WideView;
+export default ThreePaneView;

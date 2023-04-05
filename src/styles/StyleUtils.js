@@ -926,6 +926,14 @@ function getDirectionStyle(direction) {
     return {};
 }
 
+/**
+ * Returns a style object with display flex or none basing on the condition value. 
+ *
+ * @param {boolean} condition
+ * @returns {Object}
+ */
+const displayIfTrue = condition => ({display: condition ? 'flex' : 'none'});
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -976,4 +984,5 @@ export {
     getEmojiReactionTextStyle,
     getEmojiReactionCounterTextStyle,
     getDirectionStyle,
+    displayIfTrue,
 };
