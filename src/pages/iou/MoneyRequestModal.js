@@ -344,10 +344,10 @@ const MoneyRequestModal = (props) => {
     const reportID = lodashGet(props, 'route.params.reportID', '');
     const shouldShowBackButton = currentStepIndex > 0;
     const modalHeader = <ModalHeader title={titleForStep} shouldShowBackButton={shouldShowBackButton} onBackButtonPress={navigateToPreviousStep} />;
-    const lockHeight = DeviceCapabilities.canUseTouchScreen() && currentStep === Steps.IOUAmount;
+    const enableMaxHeight = DeviceCapabilities.canUseTouchScreen() && currentStep !== Steps.IOUAmount;
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false} lockHeight={lockHeight}>
+        <ScreenWrapper includeSafeAreaPaddingBottom={false} enableMaxHeight={enableMaxHeight}>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
                     <View style={[styles.pRelative, styles.flex1]}>

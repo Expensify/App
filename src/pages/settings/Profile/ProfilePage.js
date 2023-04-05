@@ -82,7 +82,7 @@ const ProfilePage = (props) => {
     ];
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false} lockHeight>
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
                 title={props.translate('common.profile')}
                 shouldShowBackButton

@@ -51,7 +51,6 @@ class BaseSidebarScreen extends Component {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.sidebar]}
-                lockHeight
             >
                 {({insets}) => (
                     <>

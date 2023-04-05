@@ -245,7 +245,6 @@ class ReportScreen extends React.Component {
         return (
             <ScreenWrapper
                 style={screenWrapperStyle}
-                lockHeight={DeviceCapabilities.canUseTouchScreen()}
             >
                 <Freeze
                     freeze={shouldFreeze}
