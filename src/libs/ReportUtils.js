@@ -89,7 +89,13 @@ function getChatType(report) {
  * @returns {string}
  */
 function getReportParticipantsTitle(logins) {
-    return _.map(logins, login => Str.removeSMSDomain(login)).join(', ');
+    return _.chain(logins)
+
+        // Somehow it's possible for the logins coming from report.participants to contain undefined values so we use compact to remove them.
+        .compact()
+        .map(login => Str.removeSMSDomain(login))
+        .value()
+        .join(', ');
 }
 
 /**
@@ -316,6 +322,25 @@ function getPolicyName(report, policies) {
     return policy.name
         || report.oldPolicyName
         || Localize.translateLocal('workspace.common.unavailable');
+}
+
+/**
+ * Checks if the current user is the admin of the policy given the policy expense chat.
+ * @param {Object} report
+ * @param {String} report.policyID
+ * @param {Object} policies must have OnyxKey prefix (i.e 'policy_') for keys
+ * @returns {Boolean}
+ */
+function isPolicyExpenseChatAdmin(report, policies) {
+    if (!isPolicyExpenseChat(report)) {
+        return false;
+    }
+
+    const policyRole = lodashGet(policies, [
+        `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role',
+    ]);
+
+    return policyRole === CONST.POLICY.ROLE.ADMIN;
 }
 
 /**
@@ -1676,6 +1701,7 @@ export {
     getPolicyName,
     getPolicyType,
     isArchivedRoom,
+    isPolicyExpenseChatAdmin,
     isPublicRoom,
     isConciergeChatReport,
     hasAutomatedExpensifyEmails,
