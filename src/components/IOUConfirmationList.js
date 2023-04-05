@@ -25,10 +25,10 @@ const propTypes = {
     /** Callback to parent modal to send money */
     onSendMoney: PropTypes.func.isRequired,
 
-    /** Callback to update comment from IOUModal */
+    /** Callback to update comment from MoneyRequestModal */
     onUpdateComment: PropTypes.func,
 
-    /** Comment value from IOUModal */
+    /** Comment value from MoneyRequestModal */
     comment: PropTypes.string,
 
     /** Should we request a single or multiple participant selection from user */
@@ -40,7 +40,7 @@ const propTypes = {
     /** IOU type */
     iouType: PropTypes.string,
 
-    /** Selected participants from IOUModal with login */
+    /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
