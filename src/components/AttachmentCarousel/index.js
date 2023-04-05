@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, VirtualizedList} from 'react-native';
+import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -41,10 +41,6 @@ const defaultProps = {
     onNavigate: () => {},
 };
 
-function CellRendererComponent(props) {
-    return <View {...props} style={[props.style, styles.w100]} />;
-}
-
 class AttachmentCarousel extends React.Component {
     constructor(props) {
         super(props);
@@ -61,11 +57,12 @@ class AttachmentCarousel extends React.Component {
             isBackDisabled: true,
         };
 
-        this.scrollRef = React.createRef();
-    }
+        this.state = {
+            ...this.state,
+            ...this.makeStateWithReports(),
+        };
 
-    componentDidMount() {
-        this.makeStateWithReports();
+        this.scrollRef = React.createRef();
     }
 
     componentDidUpdate(prevProps) {
@@ -74,7 +71,9 @@ class AttachmentCarousel extends React.Component {
         if (previousReportActionsCount === currentReportActionsCount) {
             return;
         }
-        this.makeStateWithReports();
+
+        const nextState = this.makeStateWithReports();
+        this.setState(nextState);
     }
 
     /**
@@ -104,7 +103,7 @@ class AttachmentCarousel extends React.Component {
      * This is called when there are new reports to set the state
      */
     makeStateWithReports() {
-        let page = this.state.page;
+        let page = 0;
         const actions = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions), true);
 
         /**
@@ -133,12 +132,12 @@ class AttachmentCarousel extends React.Component {
             }
         });
 
-        this.setState({
+        return {
             page,
             attachments,
             isForwardDisabled: page === 0,
             isBackDisabled: page === attachments.length - 1,
-        });
+        };
     }
 
     /**
@@ -166,7 +165,7 @@ class AttachmentCarousel extends React.Component {
     }
 
     getItemLayout = (data, index) => {
-        const width = this.props.windowWidth;
+        const width = this.width || this.props.windowWidth;
         return ({
             length: width,
             offset: width * index,
@@ -174,24 +173,33 @@ class AttachmentCarousel extends React.Component {
         });
     }
 
-    renderItem = ({item}) => (
-        <CarouselItem
-            onPress={() => this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
-            source={item.source}
-            file={item.file}
-        />
-    )
-
-    render() {
-        const isPageSet = Number.isInteger(this.state.page);
+    renderItem = ({item}) => {
+        const authSource = addEncryptedAuthTokenToURL(item.source);
 
         return (
+            <AttachmentView
+                onPress={() => this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
+                source={authSource}
+                file={item.file}
+            />
+        );
+    }
+
+    renderCell = props => (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <View {...props} style={[props.style, styles.flex1]} />
+    )
+
+    keyExtractor = item => item.source
+
+    render() {
+        return (
             <View
-                style={[styles.attachmentModalArrowsContainer]}
+                style={[styles.attachmentModalArrowsContainer, styles.flex1]}
                 onMouseEnter={() => this.toggleArrowsVisibility(true)}
                 onMouseLeave={() => this.toggleArrowsVisibility(false)}
             >
-                {(isPageSet && this.state.shouldShowArrow) && (
+                {this.state.shouldShowArrow && (
                     <>
                         {!this.state.isBackDisabled && (
                             <View style={styles.leftAttachmentArrow}>
@@ -223,45 +231,37 @@ class AttachmentCarousel extends React.Component {
                         )}
                     </>
                 )}
-                <CarouselActions
-                    styles={[styles.attachmentModalArrowsContainer]}
-                    canSwipeLeft={!this.state.isBackDisabled}
-                    canSwipeRight={!this.state.isForwardDisabled}
-                    onPress={() => this.canUseTouchScreen && this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
-                    onCycleThroughAttachments={this.cycleThroughAttachments}
-                >
-                    <VirtualizedList
-                        horizontal
-                        scrollEnabled={false}
-                        ref={this.scrollRef}
-                        initialScrollIndex={this.state.page}
-                        initialNumToRender={3}
-                        windowSize={3}
-                        data={this.state.attachments}
-                        contentContainerStyle={[styles.flex1]}
-                        CellRendererComponent={CellRendererComponent}
-                        renderItem={this.renderItem}
-                        getItemLayout={this.getItemLayout}
-                        keyExtractor={item => item.source}
-                        getItemCount={() => this.state.attachments.length}
-                        getItem={(data, i) => this.getAttachment(data[i])}
-                    />
-                </CarouselActions>
+                <FlatList
+                    horizontal
+                    disableIntervalMomentum
+                    inverted={this.canUseTouchScreen}
+                    pagingEnabled
+                    decelerationRate="fast"
+                    showsHorizontalScrollIndicator={false}
+                    bounces={false}
+                    snapToAlignment="start"
+                    snapToInterval={this.width || this.props.windowWidth}
+
+                    // Enable scrolling by swiping on mobile (touch) devices only
+                    // disable scroll for desktop/browsers because they add their own scrollbars
+                    scrollEnabled={this.canUseTouchScreen}
+                    ref={this.scrollRef}
+                    initialScrollIndex={this.state.page}
+                    initialNumToRender={3}
+                    windowSize={15}
+                    maxToRenderPerBatch={3}
+                    updateCellsBatchingPeriod={250}
+                    data={this.state.attachments}
+                    contentContainerStyle={[styles.flexGrow1]}
+                    CellRendererComponent={this.renderCell}
+                    renderItem={this.renderItem}
+                    getItemLayout={this.getItemLayout}
+                    keyExtractor={this.keyExtractor}
+                    listKey="AttachmentCarousel"
+                />
             </View>
         );
     }
-}
-
-function CarouselItem(props) {
-    const authSource = addEncryptedAuthTokenToURL(props.source);
-
-    return (
-        <AttachmentView
-            onPress={props.onPress}
-            source={authSource}
-            file={props.file}
-        />
-    );
 }
 
 AttachmentCarousel.propTypes = propTypes;
