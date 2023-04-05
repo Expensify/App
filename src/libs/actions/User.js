@@ -299,7 +299,6 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
         key: ONYXKEYS.LOGIN_LIST,
         value: {
             [contactMethod]: {
-                partnerUserID: contactMethod,
                 errorFields: {
                     addedLogin: {
                         [DateUtils.getMicroseconds()]: `${Localize.translateLocal('contacts.failedNewContact')} ${Localize.translateLocal('common.conciergeHelp')}`,
