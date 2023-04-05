@@ -399,7 +399,7 @@ const AvatarCropModal = (props) => {
                                 >
                                     <Slider sliderValue={translateSlider} onGesture={panSliderGestureEventHandler} />
                                 </Pressable>
-                                <Tooltip text={props.translate('common.rotateImage')} shiftVertical={-2}>
+                                <Tooltip text={props.translate('common.rotate')} shiftVertical={-2}>
                                     <Button
                                         medium
                                         icon={Expensicons.Rotate}
