@@ -205,14 +205,13 @@ export default {
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
         enterPassword: 'Please enter your password',
-        welcomeNewFaceEnterMagicCode: ({login}) => `Welcome! It's always great to see a new face around here! Please enter the magic code sent to ${login}`,
         newFaceEnterMagicCode: ({login}) => `It's always great to see a new face around here! Please enter the magic code sent to ${login}`,
         welcomeEnterMagicCode: ({login}) => `Please enter the magic code sent to ${login}`,
     },
     login: {
         hero: {
-            header: 'Split bills, request payments, and chat with friends.',
-            body: 'Welcome to the future of Expensify, your new go-to place for financial collaboration with friends and teammates alike.',
+            header: 'Divida las facturas, solicite pagos y chatee con sus amigos.',
+            body: 'Bienvenido al futuro de Expensify, tu nuevo lugar de referencia para la colaboración financiera con amigos y compañeros de equipo por igual.',
         },
     },
     reportActionCompose: {
