@@ -146,6 +146,23 @@ const getMaxArrowIndex = (numRows, isEmojiPickerLarge) => {
     return emojiRowCount - 1;
 };
 
+/**
+ * Save draft report comment. Debounced to happen at most once per second.
+ * @param {String} reportID
+ * @param {String} comment
+ */
+const debouncedSaveReportComment = _.debounce((reportID, comment) => {
+    Report.saveReportComment(reportID, comment || '');
+}, 1000);
+
+/**
+ * Broadcast that the user is typing. Debounced to limit how often we publish client events.
+ * @param {String} reportID
+ */
+const debouncedBroadcastUserIsTyping = _.debounce((reportID) => {
+    Report.broadcastUserIsTyping(reportID);
+}, 100);
+
 const ReportActionCompose = (props) => {
     const composer = useRef();
     ReportActionComposeFocusManager.composerRef.current = composer;
@@ -211,10 +228,6 @@ const ReportActionCompose = (props) => {
         });
     }, [composer.current]);
 
-    const debouncedSaveReportComment = useCallback(_.debounce((newComment) => {
-        Report.saveReportComment(props.reportID, newComment || '')
-    }, 1000), [props.reportID]);
-
     /**
      * @param {String} newComment
      * @param {Boolean} shouldDebounceSaveComment
@@ -240,13 +253,13 @@ const ReportActionCompose = (props) => {
             }
 
             if (shouldDebounceSaveComment) {
-                debouncedSaveReportComment(commentAfterReplacingEmojis);
+                debouncedSaveReportComment(props.reportID, commentAfterReplacingEmojis);
             } else {
                 Report.saveReportComment(props.reportID, commentAfterReplacingEmojis || '');
             }
 
             if (commentAfterReplacingEmojis) {
-                this.debouncedBroadcastUserIsTyping();
+                debouncedBroadcastUserIsTyping(props.reportID);
             }
 
             return commentAfterReplacingEmojis;
@@ -306,7 +319,6 @@ const ReportActionCompose = (props) => {
         // Since we're submitting the form here which should clear the composer
         // We don't really care about saving the draft the user was typing
         // We need to make sure an empty draft gets saved instead
-        // TODO: need to validate if this works as expected
         debouncedSaveReportComment.cancel();
 
         prepareCommentAndResetComposer();
@@ -316,7 +328,7 @@ const ReportActionCompose = (props) => {
         }
 
         props.onSubmit(newComment);
-    }, [debouncedSaveReportComment]);
+    }, [props.onSubmit]);
 
     const triggerHotkeyActions = useCallback((e) => {
         // Do not trigger actions for mobileWeb or native clients that have the keyboard open because for those devices,
