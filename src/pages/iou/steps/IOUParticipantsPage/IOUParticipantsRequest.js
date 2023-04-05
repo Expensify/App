@@ -79,7 +79,11 @@ class IOUParticipantsRequest extends Component {
             searchTerm,
             [],
             CONST.EXPENSIFY_EMAILS,
-            this.props.iouType !== CONST.IOU.MONEY_REQUEST_TYPE.SEND,
+
+            // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
+            // sees the option to request money from their admin on their own Workspace Chat. These will always be shown in the "Recents" section of the selector
+            // along with any other recent chats.
+            this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
         );
     }
 
