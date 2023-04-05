@@ -14,7 +14,6 @@ import * as Expensicons from '../Icon/Expensicons';
 import MultipleAvatars from '../MultipleAvatars';
 import Hoverable from '../Hoverable';
 import DisplayNames from '../DisplayNames';
-import IOUBadge from '../IOUBadge';
 import colors from '../../styles/colors';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Text from '../Text';
@@ -225,7 +224,7 @@ const OptionRowLHN = (props) => {
                                     <Icon src={Expensicons.Pencil} height={16} width={16} />
                                 </View>
                             )}
-                            {optionItem.hasOutstandingIOU && <IOUBadge iouReportID={optionItem.iouReportID} />}
+                            {optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner && <Icon src={Expensicons.DotIndicator} fill={colors.green} />}
                             {optionItem.isPinned && (
                                 <View
                                     style={styles.ml2}
