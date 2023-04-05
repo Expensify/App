@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {
-    useState, useEffect, useRef, useCallback, useMemo,
+    useState, useEffect, useCallback, useMemo,
 } from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -13,7 +13,6 @@ import IOUConfirmPage from './steps/IOUConfirmPage';
 import ModalHeader from './ModalHeader';
 import styles from '../../styles/styles';
 import * as IOU from '../../libs/actions/IOU';
-import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
@@ -43,9 +42,6 @@ const propTypes = {
     /** The report passed via the route */
     // eslint-disable-next-line react/no-unused-prop-types
     report: reportPropTypes,
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
 
     // Holds data related to request view state, rather than the underlying request data.
     iou: PropTypes.shape({
@@ -398,7 +394,6 @@ MoneyRequestModal.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withNetwork(),
     withCurrentUserPersonalDetails,
     withOnyx({
         report: {
