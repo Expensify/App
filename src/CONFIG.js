@@ -84,4 +84,5 @@ export default {
     DEV_PORT: process.env.PORT || 8080,
     E2E_TESTING: lodashGet(Config, 'E2E_TESTING', 'false') === 'true',
     SEND_CRASH_REPORTS: lodashGet(Config, 'SEND_CRASH_REPORTS', 'false') === 'true',
+    IS_USING_WEB_PROXY: getPlatform() === 'web' && useWebProxy,
 };

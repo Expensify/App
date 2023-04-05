@@ -168,6 +168,13 @@ class EmojiPickerMenu extends Component {
                 return;
             }
 
+            // Return if the key is related to any tab cycling event so that the default logic
+            // can be executed.
+            if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Shift' || keyBoardEvent.key === 'Enter') {
+                this.setState({isUsingKeyboardMovement: true});
+                return;
+            }
+
             // We allow typing in the search box if any key is pressed apart from Arrow keys.
             if (this.searchInput && !this.searchInput.isFocused()) {
                 this.setState({selectTextOnFocus: false});
@@ -383,7 +390,7 @@ class EmojiPickerMenu extends Component {
      * @param {String} searchTerm
      */
     filterEmojis(searchTerm) {
-        const normalizedSearchTerm = searchTerm.toLowerCase().trim();
+        const normalizedSearchTerm = searchTerm.toLowerCase().trim().replaceAll(':', '');
         if (this.emojiList) {
             this.emojiList.scrollToOffset({offset: 0, animated: false});
         }
@@ -453,6 +460,8 @@ class EmojiPickerMenu extends Component {
             ? types[this.props.preferredSkinTone]
             : code;
 
+        const isEmojiFocused = index === this.state.highlightedIndex && this.state.isUsingKeyboardMovement;
+
         return (
             <EmojiPickerMenuItem
                 onPress={emoji => this.addToFrequentAndSelectEmoji(emoji, item)}
@@ -464,6 +473,13 @@ class EmojiPickerMenu extends Component {
                     this.setState({highlightedIndex: -1});
                 }}
                 emoji={emojiCode}
+                onFocus={() => this.setState({highlightedIndex: index})}
+                onBlur={() => this.setState(prevState => ({
+                    // Only clear the highlighted index if the highlighted index is the same,
+                    // meaning that the focus changed to an element that is not an emoji item.
+                    highlightedIndex: prevState.highlightedIndex === index ? -1 : prevState.highlightedIndex,
+                }))}
+                isFocused={isEmojiFocused}
                 isHighlighted={index === this.state.highlightedIndex}
                 isUsingKeyboardMovement={this.state.isUsingKeyboardMovement}
             />
@@ -507,6 +523,7 @@ class EmojiPickerMenu extends Component {
                                 styles.dFlex,
                                 styles.alignItemsCenter,
                                 styles.justifyContentCenter,
+                                styles.flexGrow1,
                                 this.isMobileLandscape() && styles.emojiPickerListLandscape,
                             ]}
                         >
