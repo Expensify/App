@@ -45,16 +45,21 @@ class AttachmentCarousel extends React.Component {
     constructor(props) {
         super(props);
 
+        this.scrollRef = React.createRef();
         this.canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
         this.viewabilityConfig = {
             // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
             // more than 90% visible. When that happens we update the page index in the state.
             itemVisiblePercentThreshold: 95,
         };
+
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
+        this.getItemLayout = this.getItemLayout.bind(this);
+        this.renderItem = this.renderItem.bind(this);
+        this.renderCell = this.renderCell.bind(this);
+        this.updatePage = this.updatePage.bind(this);
 
         this.state = {
-            page: 0,
             attachments: [],
             source: this.props.source,
             shouldShowArrow: this.canUseTouchScreen,
@@ -64,8 +69,6 @@ class AttachmentCarousel extends React.Component {
             ...this.state,
             ...this.makeStateWithReports(),
         };
-
-        this.scrollRef = React.createRef();
     }
 
     componentDidUpdate(prevProps) {
@@ -95,6 +98,21 @@ class AttachmentCarousel extends React.Component {
     }
 
     /**
+     * Calculate items layout information to optimize scrolling performance
+     * @param {*} data
+     * @param {Number} index
+     * @returns {{offset: Number, length: Number, index: Number}}
+     */
+    getItemLayout(data, index) {
+        const width = this.props.windowWidth;
+        return ({
+            length: width,
+            offset: width * index,
+            index,
+        });
+    }
+
+    /**
      * Toggles the visibility of the arrows
      * @param {Boolean} shouldShowArrow
      */
@@ -103,7 +121,8 @@ class AttachmentCarousel extends React.Component {
     }
 
     /**
-     * This is called when there are new reports to set the state
+     * Map report actions to attachment items
+     * @returns {{attachments: Array<{source: String, file: {name: String}}>, page: Number}}
      */
     makeStateWithReports() {
         let page = 0;
@@ -156,39 +175,11 @@ class AttachmentCarousel extends React.Component {
         this.scrollRef.current.scrollToIndex({index: nextIndex, animated: true});
     }
 
-    getItemLayout = (data, index) => {
-        const width = this.width || this.props.windowWidth;
-        return ({
-            length: width,
-            offset: width * index,
-            index,
-        });
-    }
-
-    renderItem = ({item}) => {
-        const authSource = addEncryptedAuthTokenToURL(item.source);
-
-        return (
-            <AttachmentView
-                onPress={() => this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
-                source={authSource}
-                file={item.file}
-            />
-        );
-    }
-
-    renderCell = props => (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <View {...props} style={[props.style, styles.flex1]} />
-    )
-
-    keyExtractor = item => item.source
-
     /**
      * Updates the page state when the user navigates between attachments
      * @param {Array<{item: *, index: Number}>} viewableItems
      */
-    updatePage = ({viewableItems}) => {
+    updatePage({viewableItems}) {
         // Since we can have only one item in view at a time, we can use the first item in the array
         // to get the index of the current page
         const entry = _.first(viewableItems);
@@ -200,6 +191,33 @@ class AttachmentCarousel extends React.Component {
         const {source, file} = this.getAttachment(entry.item);
         this.props.onNavigate({source: addEncryptedAuthTokenToURL(source), file});
         this.setState({page, source});
+    }
+
+    /**
+     * Defines how a container for a single attachment should be rendered
+     * @param {Object} props
+     * @returns {JSX.Element}
+     */
+    renderCell(props) {
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        return <View {...props} style={[props.style, styles.flex1]} />;
+    }
+
+    /**
+     * Defines how a single attachment should be rendered
+     * @param {{ source: String, file: { name: String } }} item
+     * @returns {JSX.Element}
+     */
+    renderItem({item}) {
+        const authSource = addEncryptedAuthTokenToURL(item.source);
+
+        return (
+            <AttachmentView
+                onPress={() => this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
+                source={authSource}
+                file={item.file}
+            />
+        );
     }
 
     render() {
@@ -270,7 +288,7 @@ class AttachmentCarousel extends React.Component {
                     CellRendererComponent={this.renderCell}
                     renderItem={this.renderItem}
                     getItemLayout={this.getItemLayout}
-                    keyExtractor={this.keyExtractor}
+                    keyExtractor={item => item.source}
                     viewabilityConfig={this.viewabilityConfig}
                     onViewableItemsChanged={this.updatePage}
                 />
