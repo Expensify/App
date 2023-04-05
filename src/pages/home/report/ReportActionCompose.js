@@ -148,7 +148,6 @@ const getMaxArrowIndex = (numRows, isEmojiPickerLarge) => {
 };
 
 const ReportActionCompose = (props) => {
-    // TODO: Pass to composer
     const composer = useRef();
     ReportActionComposeFocusManager.composerRef.current = composer;
 
@@ -162,8 +161,6 @@ const ReportActionCompose = (props) => {
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [suggestedEmojis, setSuggestedEmojis] = useState([]);
     const [highlightedEmojiIndex, setHighlightedEmojiIndex] = useState(0);
-    // TODO: Maybe get rid of lastColonIndex
-    const [lastColonIndex, setLastColonIndex] = useState(-1);
     const [shouldShowEmojiSuggestionMenu, setShouldShowEmojiSuggestionMenu] = useState(false);
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
@@ -181,6 +178,7 @@ const ReportActionCompose = (props) => {
     const conciergePlaceHolderRandomIndex = useMemo(
         () => _.random(props.translate('reportActionCompose.conciergePlaceholderOptions').length - (props.isSmallScreenWidth ? 4 : 1)),
     [props.isSmallScreenWidth, props.translate]);
+    const colonIndex = useMemo(() => comment.substring(0, selection.end).lastIndexOf(':'), [comment, selection]);
 
     let placeholder = props.translate('reportActionCompose.writeSomething');
     if (chatIncludesConcierge) {
@@ -260,18 +258,18 @@ const ReportActionCompose = (props) => {
      * @param {Number} highlightedEmojiIndex
      */
     const insertSelectedEmoji = useCallback((highlightedEmojiIndex) => {
-        const commentBeforeColon = comment.slice(0, lastColonIndex);
+        const commentBeforeColon = comment.slice(0, colonIndex);
         const emojiObject = suggestedEmojis[highlightedEmojiIndex];
         const emojiCode = emojiObject.types && emojiObject.types[props.preferredSkinTone]
             ? emojiObject.types[props.preferredSkinTone]
             : emojiObject.code;
         const commentAfterColonWithEmojiNameRemoved = comment.slice(selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
         updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, true);
-        const newCursorPosition = lastColonIndex + emojiCode.length + CONST.SPACE_LENGTH;
+        const newCursorPosition = colonIndex + emojiCode.length + CONST.SPACE_LENGTH;
         setSelection({start: newCursorPosition, end: newCursorPosition});
         setSuggestedEmojis([]);
         EmojiUtils.addToFrequentlyUsedEmojis(props.frequentlyUsedEmojis, emojiObject);
-    }, [lastColonIndex, suggestedEmojis, comment, props.preferredSkinTone, props.frequentlyUsedEmojis]);
+    }, [colonIndex, suggestedEmojis, comment, props.preferredSkinTone, props.frequentlyUsedEmojis]);
 
     const resetSuggestedEmoji = useCallback(() => {
         setSuggestedEmojis([]);
@@ -364,9 +362,6 @@ const ReportActionCompose = (props) => {
     ]);
 
     const calculateEmojiSuggestion = useCallback(() => {
-        const leftString = comment.substring(0, selection.end);
-        const colonIndex = leftString.lastIndexOf(':');
-
         // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
         const hasEnoughSpaceForLargeSuggestion = props.windowHeight / composerHeight >= 6.8;
         const isEmojiPickerLarge = !props.isSmallScreenWidth || hasEnoughSpaceForLargeSuggestion;
@@ -377,7 +372,6 @@ const ReportActionCompose = (props) => {
         setSuggestedEmojis(newSuggestedEmojis);
         setShouldShowEmojiSuggestionMenu(!_.isEmpty(newSuggestedEmojis))
         setHighlightedEmojiIndex(0);
-        setLastColonIndex(colonIndex);
         setIsEmojiPickerLarge(isEmojiPickerLarge);
     }, [comment, selection, composerHeight, props.windowHeight, props.isSmallScreenWidth]);
 
@@ -731,8 +725,7 @@ const ReportActionCompose = (props) => {
                         emojis={suggestedEmojis}
                         comment={comment}
                         updateComment={setComment}
-                        colonIndex={lastColonIndex}
-                        prefix={comment.slice(lastColonIndex + 1).split(' ')[0]}
+                        prefix={comment.slice(colonIndex + 1).split(' ')[0]}
                         onSelect={insertSelectedEmoji}
                         isComposerFullSize={props.isComposerFullSize}
                         // TODO: should subscribe to preferredSkinTone in EmojiSuggestions?
