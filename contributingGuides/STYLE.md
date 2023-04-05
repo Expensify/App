@@ -628,6 +628,10 @@ In most cases, a custom hook is a better pattern to use than an HOC or Render Pr
 
 If your inline function does not have any dependencies (i.e. props or state that it depends on) it can be removed from the component and moved to the top of the file. If it does have dependencies, then we should wrap it in `useCallback()` and pass the dependencies as an argument. At one time, we questioned whether there is some performance penalty to using `useCallback()` as a pre-optimization and the conclusion was that there is generally a higher potential cost to not using it vs. using it.
 
+## Why does `useState()` sometimes get initialized with a function?
+
+React saves the initial state once and ignores it on the next renders. However, if you pass the result of a function to `useState()` or call a function directly e.g. `useState(doExpensiveThings())` it will *still run on every render*. This can hurt performance depending on what work the function is doing. As an optimization, we can pass an initializer function instead of a value e.g. `useState(doExpensiveThings)` or `useState(() => doExpensiveThings())`.
+
 ## Is there an equivalent to `componentDidUpdate()` when using hooks?
 
 The short answer is no. A longer answer is that sometimes we need to check not only that a dependency has changed, but how it has changed in order to run a side effect. For example, a prop had a value of an empty string on a previous render, but now is non-empty. The generally accepted practice is to store the "previous" value in a `ref` so the comparison can be made in a `useEffect()` call.
