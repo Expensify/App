@@ -19,6 +19,7 @@ import Tooltip from '../Tooltip';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import compose from '../../libs/compose';
+import CarouselActions from './CarouselActions';
 
 const propTypes = {
     /** source is used to determine the starting index in the array of attachments */
@@ -273,6 +274,7 @@ class AttachmentCarousel extends React.Component {
                     viewabilityConfig={this.viewabilityConfig}
                     onViewableItemsChanged={this.updatePage}
                 />
+                <CarouselActions onCycleThroughAttachments={this.cycleThroughAttachments} />
             </View>
         );
     }
