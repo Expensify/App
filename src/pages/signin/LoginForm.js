@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
-import {GoogleSigninButton} from 'react-native-google-signin/google-signin';
+import {GoogleSigninButton} from '@react-native-google-signin/google-signin';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
@@ -213,7 +213,6 @@ class LoginForm extends React.Component {
                                 onPress={Session.beginGoogleSignIn}
                                 disabled={this.state.isSigninInProgress}
                             />
-                            ;
                         </View>
                     )
                 }

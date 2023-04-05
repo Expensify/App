@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {GoogleSignin, statusCodes} from 'react-native-google-signin/google-signin';
+import {GoogleSignin, statusCodes} from '@react-native-google-signin/google-signin';
 import ONYXKEYS from '../../../ONYXKEYS';
 import redirectToSignIn from '../SignInRedirect';
 import CONFIG from '../../../CONFIG';
@@ -244,14 +244,15 @@ function beginSignIn(login) {
 function signInWithGoogle(apiCallback) {
     GoogleSignin.configure({
         webClientId: '921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com',
-
         iosClientId: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
         offlineAccess: false,
     });
 
     GoogleSignin.signIn()
         .then((response) => {
-            apiCallback({token: response.idToken, email: response.user.email});
+            apiCallback({token: response.idToken, email: response.user.email}).then(
+                (apiResponse => Log.error('API response: ', apiResponse)).catch(apiError => Log.error('API Callback error: ', apiError)),
+            );
         })
         .catch((error) => {
             if (error.code === statusCodes.SIGN_IN_CANCELLED) {
