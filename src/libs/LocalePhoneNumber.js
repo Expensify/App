@@ -1,6 +1,8 @@
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import {parsePhoneNumber} from 'awesome-phonenumber';
+import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 
 let currentUserEmail;
@@ -40,6 +42,12 @@ Onyx.connect({
 
 function formatPhoneNumber(number) {
     const parsed = parsePhoneNumber(number);
+
+    // return the string untouched if it's not a phone number
+    if (!parsed.valid && !parsed.possible) {
+        return number;
+    }
+
     let locale;
 
     if (currentUserPersonalDetails.phoneNumber) {
@@ -58,7 +66,24 @@ function formatPhoneNumber(number) {
     return parsed.number.international;
 }
 
+function formatPhoneNumberInText(text) {
+    if (!text) {
+        return '';
+    }
+
+    const textArray = text.split(' ');
+
+    const formattedText = _.map(textArray, (txt) => {
+        if (Str.isSMSLogin(txt)) {
+            return formatPhoneNumber(Str.removeSMSDomain(txt));
+        }
+        return txt;
+    }).join(' ');
+
+    return formattedText;
+}
+
 export {
-    // eslint-disable-next-line import/prefer-default-export
     formatPhoneNumber,
+    formatPhoneNumberInText,
 };

@@ -82,7 +82,7 @@ const IOUQuote = props => (
                         : styles.cursorDefault]}
                     >
                         {/* Get remainder of IOU message */}
-                        {fragment.text.substring(fragment.text.indexOf(' '))}
+                        {props.formatPhoneNumberInText(fragment.text.substring(fragment.text.indexOf(' ')))}
                     </Text>
                 </Text>
                 <Icon src={Expensicons.ArrowRight} fill={props.shouldAllowViewDetails ? StyleUtils.getIconFillColor(getButtonState(props.isHovered)) : themeColors.transparent} />

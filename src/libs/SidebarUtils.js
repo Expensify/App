@@ -297,7 +297,7 @@ function getOptionData(reportID) {
                 }).join(' ');
         }
 
-        result.alternateText = lastMessageText || formattedLogin;
+        result.alternateText = LocalePhoneNumber.formatPhoneNumberInText(lastMessageText) || formattedLogin;
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);
