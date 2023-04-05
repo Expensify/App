@@ -154,7 +154,7 @@ function Expensify(props) {
             if (!appStateChangeListener.current) { return; }
             appStateChangeListener.current.remove();
         };
-    }, [isAuthenticated]);
+    }, [isAuthenticated, reportBootSplashStatus]);
 
     React.useEffect(() => {
         if (!isNavigationReady || !isSplashShown) {
