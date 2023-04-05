@@ -163,4 +163,5 @@ export {
     updateIOUOwnerAndTotal,
     getIOUReportActions,
     isIOUReportPendingCurrencyConversion,
+    getCurrencyUnits,
 };
