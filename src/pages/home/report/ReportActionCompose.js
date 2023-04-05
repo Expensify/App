@@ -156,7 +156,6 @@ const ReportActionCompose = (props) => {
     const [isFocused, setIsFocused] = useState(willBlurTextInputOnTapOutside() && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible);
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(props.isComposerFullSize);
     const [shouldClearTextInput, setShouldClearTextInput] = useState(false);
-    // TODO: more descriptive name?
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [suggestedEmojis, setSuggestedEmojis] = useState([]);
     const [highlightedEmojiIndex, setHighlightedEmojiIndex] = useState(0);
@@ -165,12 +164,6 @@ const ReportActionCompose = (props) => {
 
     // TODO: try to derive composerHeight from the ref rather than using state
     const [composerHeight, setComposerHeight] = useState(0);
-
-    // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
-    const hasEnoughSpaceForLargeSuggestion = useMemo(() => props.windowHeight / composerHeight >= 6.8, [props.windowHeight, composerHeight]);
-
-    // TODO: Correctly initialize isEmojiPickerLarge
-    const [isEmojiPickerLarge, setIsEmojiPickerLarge] = useState(false);
 
     const isCommentEmpty = /^(\s)*$/.test(comment);
     const chatIncludesConcierge = useMemo(() => ReportUtils.chatIncludesConcierge(props.report), [props.report.participants]);
@@ -181,6 +174,11 @@ const ReportActionCompose = (props) => {
         () => _.random(props.translate('reportActionCompose.conciergePlaceholderOptions').length - (props.isSmallScreenWidth ? 4 : 1)),
     [props.isSmallScreenWidth, props.translate]);
     const colonIndex = useMemo(() => comment.substring(0, selection.end).lastIndexOf(':'), [comment, selection.end]);
+    const isEmojiPickerLarge = useMemo(() => {
+        // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
+        const hasEnoughSpaceForLargeSuggestion = props.windowHeight / composerHeight >= 6.8;
+        return !props.isSmallScreenWidth || hasEnoughSpaceForLargeSuggestion;
+    }, [props.windowHeight, props.isSmallScreenWidth, composerHeight]);
 
     let placeholder = props.translate('reportActionCompose.writeSomething');
     if (chatIncludesConcierge) {
@@ -364,16 +362,12 @@ const ReportActionCompose = (props) => {
     ]);
 
     const calculateEmojiSuggestion = useCallback(() => {
-        const isEmojiPickerLarge = !props.isSmallScreenWidth || hasEnoughSpaceForLargeSuggestion;
-
         LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
-
         const newSuggestedEmojis = EmojiUtils.suggestEmojis(comment.substring(0, selection.end));
         setSuggestedEmojis(newSuggestedEmojis);
         setShouldShowEmojiSuggestionMenu(!_.isEmpty(newSuggestedEmojis))
         setHighlightedEmojiIndex(0);
-        setIsEmojiPickerLarge(isEmojiPickerLarge);
-    }, [comment, selection, props.isSmallScreenWidth, hasEnoughSpaceForLargeSuggestion]);
+    }, [comment, selection, props.isSmallScreenWidth]);
 
     const addEmojiToTextBox = useCallback((emoji) => {
         const emojiWithSpace = `${emoji} `;
@@ -730,7 +724,7 @@ const ReportActionCompose = (props) => {
                         isComposerFullSize={props.isComposerFullSize}
                         // TODO: should subscribe to preferredSkinTone in EmojiSuggestions?
                         preferredSkinToneIndex={props.preferredSkinTone}
-                        isEmojiPickerLarge={composerHeight}
+                        isEmojiPickerLarge={isEmojiPickerLarge}
                         shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
                     />
                 </ArrowKeyFocusManager>
