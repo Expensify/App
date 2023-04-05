@@ -366,10 +366,18 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             isOptimisticReport: false,
         },
     };
+    const reportFailureData = {
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            isLoadingReportActions: false,
+        },
+    };
 
     const onyxData = {
         optimisticData: [optimisticReportData],
         successData: [reportSuccessData],
+        failureData: [reportFailureData],
     };
 
     const params = {
@@ -711,14 +719,20 @@ function deleteReportComment(reportID, reportAction) {
         },
     };
 
-    // If we are deleting the last visible message, let's find the previous visible one and update the lastMessageText in the LHN.
+    // If we are deleting the last visible message, let's find the previous visible one (or set an empty one if there are none) and update the lastMessageText in the LHN.
     // Similarly, if we are deleting the last read comment we will want to update the lastVisibleActionCreated to use the previous visible message.
-    const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
-    const lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions).created;
-    const optimisticReport = {
-        lastMessageText,
-        lastVisibleActionCreated,
+    let optimisticReport = {
+        lastMessageText: '',
+        lastVisibleActionCreated: '',
     };
+    const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
+    if (lastMessageText.length > 0) {
+        const lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions).created;
+        optimisticReport = {
+            lastMessageText,
+            lastVisibleActionCreated,
+        };
+    }
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
     // and and remove the pendingAction so the strike-through clears
@@ -828,8 +842,8 @@ const handleUserDeletedLinks = (newCommentText, originalHtml) => {
         return newCommentText;
     }
     const htmlWithAutoLinks = parser.replace(newCommentText);
-    const markdownWithAutoLinks = parser.htmlToMarkdown(htmlWithAutoLinks);
-    const markdownOriginalComment = parser.htmlToMarkdown(originalHtml);
+    const markdownWithAutoLinks = parser.htmlToMarkdown(htmlWithAutoLinks).trim();
+    const markdownOriginalComment = parser.htmlToMarkdown(originalHtml).trim();
     const removedLinks = getRemovedMarkdownLinks(markdownOriginalComment, newCommentText);
     return removeLinks(markdownWithAutoLinks, removedLinks);
 };
@@ -858,7 +872,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     let parsedOriginalCommentHTML = originalCommentHTML;
     if (markdownForNewComment.length < CONST.MAX_MARKUP_LENGTH) {
         htmlForNewComment = parser.replace(markdownForNewComment, autolinkFilter);
-        parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML), autolinkFilter);
+        parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML).trim(), autolinkFilter);
     }
 
     //  Delete the comment if it's empty

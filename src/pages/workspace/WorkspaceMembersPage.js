@@ -129,6 +129,7 @@ class WorkspaceMembersPage extends React.Component {
      * Open the modal to invite a user
      */
     inviteUser() {
+        this.updateSearchValue('');
         Navigation.navigate(ROUTES.getWorkspaceInviteRoute(this.props.route.params.policyID));
     }
 
@@ -373,6 +374,7 @@ class WorkspaceMembersPage extends React.Component {
                             subtitle={policyName}
                             onCloseButtonPress={() => Navigation.dismissModal()}
                             onBackButtonPress={() => {
+                                this.updateSearchValue('');
                                 Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
                             }}
                             shouldShowGetAssistanceButton

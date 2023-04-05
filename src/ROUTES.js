@@ -6,9 +6,9 @@ import * as Url from './libs/Url';
  */
 
 const REPORT = 'r';
-const IOU_REQUEST = 'iou/request';
-const IOU_BILL = 'iou/split';
-const IOU_SEND = 'iou/send';
+const IOU_REQUEST = 'request/new';
+const IOU_BILL = 'split/new';
+const IOU_SEND = 'send/new';
 const IOU_DETAILS = 'iou/details';
 const IOU_REQUEST_CURRENCY = `${IOU_REQUEST}/currency`;
 const IOU_BILL_CURRENCY = `${IOU_BILL}/currency`;
@@ -51,6 +51,8 @@ export default {
     SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH: `${SETTINGS_PERSONAL_DETAILS}/date-of-birth`,
     SETTINGS_PERSONAL_DETAILS_ADDRESS: `${SETTINGS_PERSONAL_DETAILS}/address`,
     SETTINGS_CONTACT_METHODS,
+    SETTINGS_CONTACT_METHOD_DETAILS: `${SETTINGS_CONTACT_METHODS}/:contactMethod/details`,
+    getEditContactMethodRoute: contactMethod => `${SETTINGS_CONTACT_METHODS}/${encodeURIComponent(contactMethod)}/details`,
     NEW_GROUP: 'new/group',
     NEW_CHAT: 'new/chat',
     REPORT,
