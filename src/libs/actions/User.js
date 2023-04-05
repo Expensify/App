@@ -266,7 +266,6 @@ function clearContactMethodErrors(contactMethod, fieldName) {
  * @param {String} password
  */
 function addNewContactMethodAndNavigate(contactMethod, password) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
     const optimisticData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
