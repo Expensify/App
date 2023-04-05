@@ -148,7 +148,7 @@ const ReportDetailsModalStackNavigator = createModalStackNavigator([{
 
 const ReportSettingsModalStackNavigator = createModalStackNavigator([{
     getComponent: () => {
-        const ReportSettingsPage = require('../../../pages/ReportSettingsPage').default;
+        const ReportSettingsPage = require('../../../pages/settings/Report/ReportSettingsPage').default;
         return ReportSettingsPage;
     },
     name: 'Report_Settings_Root',
