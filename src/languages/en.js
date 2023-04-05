@@ -14,6 +14,7 @@ export default {
         new: 'New',
         search: 'Search',
         next: 'Next',
+        previous: 'Previous',
         goBack: 'Go back',
         add: 'Add',
         resend: 'Resend',
