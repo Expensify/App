@@ -90,7 +90,7 @@ class WorkspaceSettingsPage extends React.Component {
             >
                 {hasVBA => (
                     <Form
-                        formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
+                        formID={`${ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}_${this.props.policy.id}`}
                         submitButtonText={this.props.translate('workspace.editor.save')}
                         style={[styles.mh5, styles.flexGrow1]}
                         scrollContextEnabled
