@@ -1,10 +1,9 @@
 import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import ROUTES from '../../../ROUTES';
 import Form from '../../../components/Form';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
@@ -12,7 +11,7 @@ import TextInput from '../../../components/TextInput';
 import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
 import compose from '../../../libs/compose';
-import * as RoomNameInputUtils from "../../../libs/RoomNameInputUtils";
+import * as RoomNameInputUtils from '../../../libs/RoomNameInputUtils';
 
 const propTypes = {
     reportID: PropTypes.string.isRequired,
@@ -20,14 +19,9 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const defaultProps = {
-};
-
 class RoomNamePage extends Component {
     constructor(props) {
         super(props);
-
-        this.validate = this.validate.bind(this);
         this.updateRoomName = this.updateRoomName.bind(this);
     }
 
@@ -52,7 +46,6 @@ class RoomNamePage extends Component {
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}
-                    validate={this.validate}
                     onSubmit={this.updateDisplayName}
                     submitButtonText={this.props.translate('common.save')}
                     enabledWhenOffline
@@ -73,9 +66,7 @@ class RoomNamePage extends Component {
 }
 
 RoomNamePage.propTypes = propTypes;
-RoomNamePage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withCurrentUserPersonalDetails,
 )(RoomNamePage);

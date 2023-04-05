@@ -25,6 +25,7 @@ import reportPropTypes from '../../reportPropTypes';
 import withReportOrNotFound from '../../home/report/withReportOrNotFound';
 import Form from '../../../components/Form';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
+import RoomNamePage from "./RoomNamePage";
 
 const propTypes = {
     /** Route params */
@@ -207,9 +208,10 @@ class ReportSettingsPage extends Component {
                                                 </View>
                                             )
                                                 : (
-                                                    <RoomNameInput
+                                                    <RoomNamePage
                                                         inputID="newRoomName"
-                                                        defaultValue={this.props.report.reportName}
+                                                        roomName={this.props.report.reportName}
+                                                        reportID={this.props.report.reportID}
                                                     />
                                                 )}
                                         </View>
