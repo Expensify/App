@@ -6,7 +6,6 @@ import _ from 'underscore';
 import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
-import CarouselActions from './CarouselActions';
 import Button from '../Button';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import AttachmentView from '../AttachmentView';
@@ -46,6 +45,11 @@ class AttachmentCarousel extends React.Component {
         super(props);
 
         this.canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
+        this.viewabilityConfig = {
+            // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
+            // more than 90% visible. When that happens we update the page index in the state.
+            itemVisiblePercentThreshold: 95,
+        };
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
 
         this.state = {
@@ -53,8 +57,6 @@ class AttachmentCarousel extends React.Component {
             attachments: [],
             source: this.props.source,
             shouldShowArrow: this.canUseTouchScreen,
-            isForwardDisabled: true,
-            isBackDisabled: true,
         };
 
         this.state = {
@@ -135,8 +137,6 @@ class AttachmentCarousel extends React.Component {
         return {
             page,
             attachments,
-            isForwardDisabled: page === 0,
-            isBackDisabled: page === attachments.length - 1,
         };
     }
 
@@ -145,23 +145,14 @@ class AttachmentCarousel extends React.Component {
      * @param {Number} deltaSlide
     */
     cycleThroughAttachments(deltaSlide) {
-        if ((deltaSlide > 0 && this.state.isForwardDisabled) || (deltaSlide < 0 && this.state.isBackDisabled)) {
+        const nextIndex = this.state.page - deltaSlide;
+        const nextItem = this.state.attachments[nextIndex];
+
+        if (!nextItem) {
             return;
         }
 
-        this.setState(({attachments, page}) => {
-            const nextIndex = page - deltaSlide;
-            const {source, file} = this.getAttachment(attachments[nextIndex]);
-            this.props.onNavigate({source: addEncryptedAuthTokenToURL(source), file});
-            this.scrollRef.current.scrollToIndex({index: nextIndex, animated: true});
-            return {
-                page: nextIndex,
-                source,
-                file,
-                isBackDisabled: nextIndex === attachments.length - 1,
-                isForwardDisabled: nextIndex === 0,
-            };
-        });
+        this.scrollRef.current.scrollToIndex({index: nextIndex, animated: true});
     }
 
     getItemLayout = (data, index) => {
@@ -192,7 +183,28 @@ class AttachmentCarousel extends React.Component {
 
     keyExtractor = item => item.source
 
+    /**
+     * Updates the page state when the user navigates between attachments
+     * @param {Array<{item: *, index: Number}>} viewableItems
+     */
+    updatePage = ({viewableItems}) => {
+        // Since we can have only one item in view at a time, we can use the first item in the array
+        // to get the index of the current page
+        const entry = _.first(viewableItems);
+        if (!entry) {
+            return;
+        }
+
+        const page = entry.index;
+        const {source, file} = this.getAttachment(entry.item);
+        this.props.onNavigate({source: addEncryptedAuthTokenToURL(source), file});
+        this.setState({page, source});
+    }
+
     render() {
+        const isForwardDisabled = this.state.page === 0;
+        const isBackDisabled = this.state.page === _.size(this.state.attachments) - 1;
+
         return (
             <View
                 style={[styles.attachmentModalArrowsContainer, styles.flex1]}
@@ -201,7 +213,7 @@ class AttachmentCarousel extends React.Component {
             >
                 {this.state.shouldShowArrow && (
                     <>
-                        {!this.state.isBackDisabled && (
+                        {!isBackDisabled && (
                             <View style={styles.leftAttachmentArrow}>
                                 <Tooltip text={this.props.translate('common.previous')}>
                                     <Button
@@ -215,7 +227,7 @@ class AttachmentCarousel extends React.Component {
                                 </Tooltip>
                             </View>
                         )}
-                        {!this.state.isForwardDisabled && (
+                        {!isForwardDisabled && (
                             <View style={styles.rightAttachmentArrow}>
                                 <Tooltip text={this.props.translate('common.next')}>
                                     <Button
@@ -232,15 +244,16 @@ class AttachmentCarousel extends React.Component {
                     </>
                 )}
                 <FlatList
+                    listKey="AttachmentCarousel"
                     horizontal
                     disableIntervalMomentum
-                    inverted={this.canUseTouchScreen}
                     pagingEnabled
+                    inverted={this.canUseTouchScreen}
                     decelerationRate="fast"
                     showsHorizontalScrollIndicator={false}
                     bounces={false}
                     snapToAlignment="start"
-                    snapToInterval={this.width || this.props.windowWidth}
+                    snapToInterval={this.props.windowWidth}
 
                     // Enable scrolling by swiping on mobile (touch) devices only
                     // disable scroll for desktop/browsers because they add their own scrollbars
@@ -257,7 +270,8 @@ class AttachmentCarousel extends React.Component {
                     renderItem={this.renderItem}
                     getItemLayout={this.getItemLayout}
                     keyExtractor={this.keyExtractor}
-                    listKey="AttachmentCarousel"
+                    viewabilityConfig={this.viewabilityConfig}
+                    onViewableItemsChanged={this.updatePage}
                 />
             </View>
         );
