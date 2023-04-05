@@ -101,6 +101,11 @@ class SidebarLinks extends React.Component {
         this.showReportPage = this.showReportPage.bind(this);
     }
 
+    componentDidMount() {
+        App.setSidebarLoaded();
+        this.isSidebarLoaded = true;
+    }
+
     showSearchPage() {
         if (this.props.isCreateMenuOpen) {
             // Prevent opening Search page when click Search icon quickly after clicking FAB icon
@@ -204,11 +209,6 @@ class SidebarLinks extends React.Component {
                             onSelectRow={this.showReportPage}
                             shouldDisableFocusOptions={this.props.isSmallScreenWidth}
                             optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
-                            onLayout={() => {
-                                this.props.onLayout();
-                                App.setSidebarLoaded();
-                                this.isSidebarLoaded = true;
-                            }}
                         />
                     )}
                 </Freeze>

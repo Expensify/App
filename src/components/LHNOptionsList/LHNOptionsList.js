@@ -99,7 +99,6 @@ class LHNOptionsList extends Component {
                     initialNumToRender={5}
                     maxToRenderPerBatch={5}
                     windowSize={5}
-                    onLayout={this.props.onLayout}
                 />
             </View>
         );
