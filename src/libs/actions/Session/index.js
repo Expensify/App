@@ -257,12 +257,16 @@ function signInWithGoogle(apiCallback) {
         .catch((error) => {
             if (error.code === statusCodes.SIGN_IN_CANCELLED) {
                 Log.error('Google sign in cancelled', true, {error});
+                console.log('Google sign in cancelled', error);
             } else if (error.code === statusCodes.IN_PROGRESS) {
                 Log.error('Google sign in already in progress', true, {error});
+                console.log('Google sign in already in progress', error);
             } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
                 Log.error('Google play services not available or outdated', true, {error});
+                console.log('Google play services not available or outdated', error);
             } else {
                 Log.error('Unknown Google sign in error', true, {error});
+                console.log('Unknown Google sign in error', error);
             }
         });
 }
@@ -315,7 +319,11 @@ function beginGoogleSignIn() {
         },
     ];
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    const apiCallback = authToken => API.makeRequestWithSideEffects('SignInGoogle', {authToken}, {optimisticData, successData, failureData});
+    const apiCallback = (authToken) => {
+        console.log(authToken);
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects('SignInGoogle', {authToken}, {optimisticData, successData, failureData});
+    };
     signInWithGoogle(apiCallback);
 }
 
