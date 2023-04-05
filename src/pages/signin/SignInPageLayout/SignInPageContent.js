@@ -55,12 +55,13 @@ const SignInPageContent = props => (
                 <SignInPageForm style={[styles.alignSelfStretch]}>
                     <View style={[
                         styles.componentHeightLarge,
+                        props.isSmallScreenWidth ? styles.alignItemsCenter : {},
                         StyleUtils.getHeight(variables.signInLogoHeight),
                         ...(props.isSmallScreenWidth ? [styles.mb2] : [styles.mt6, styles.mb5]),
                         !props.isSmallScreenWidth ? styles.alignSelfStart : {},
                     ]}
                     >
-                        <ExpensifyWordmark />
+                        <ExpensifyWordmark width={props.isSmallScreenWidth ? 120 : 144} />
                     </View>
                     <View style={[styles.mv5, styles.signInPageWelcomeTextContainer]}>
                         {(props.shouldShowWelcomeHeader && props.welcomeHeader) && (
@@ -76,16 +77,16 @@ const SignInPageContent = props => (
                     </View>
                     {props.children}
                 </SignInPageForm>
+                {props.isSmallScreenWidth ? (
+                    <View style={[styles.mt8]}>
+                        <SignInHeroImage />
+                    </View>
+                ) : undefined}
             </View>
             <View style={[]}>
                 {/* Google Auth */}
             </View>
         </KeyboardAvoidingView>
-        {props.isSmallScreenWidth ? (
-            <View style={[{width: props.windowWidth}]}>
-                <SignInHeroImage />
-            </View>
-        ) : undefined}
         <View style={[styles.mb5, styles.signInPageWelcomeTextContainer, styles.alignSelfCenter]}>
             <OfflineIndicator style={[styles.m0, styles.pl0, styles.alignItemsStart]} />
         </View>

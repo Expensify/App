@@ -177,6 +177,10 @@ export default {
         marginTop: 24,
     },
 
+    mt8: {
+        marginTop: 32,
+    },
+
     mb0: {
         marginBottom: 0,
     },
@@ -388,6 +392,10 @@ export default {
 
     pt10: {
         paddingTop: 40,
+    },
+
+    pt20: {
+        paddingTop: 80,
     },
 
     pb1: {

@@ -13,6 +13,7 @@ import scrollViewContentContainerStyles from './signInPageStyles';
 import themeColors from '../../../styles/themes/default';
 import SignInHeroBackgroundImage from '../../../../assets/images/home-background--desktop.svg';
 import SignInHeroBackgroundImageMobile from '../../../../assets/images/home-background--mobile.svg';
+import SignInGradient from '../../../../assets/images/home-fade-gradient.svg';
 import variables from '../../../styles/variables';
 
 const propTypes = {
@@ -64,13 +65,21 @@ const SignInPageLayout = (props) => {
                             contentContainerStyle={[styles.flex1]}
                         >
                             <View style={[styles.flex1]}>
-                                <SignInHeroBackgroundImage
-                                    pointerEvents="none"
-                                    height="100%"
-                                    style={styles.signInBackgroundDesktop}
-                                />
+                                <View style={{
+                                    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center',
+                                }}
+                                >
+                                    <SignInHeroBackgroundImage
+                                        pointerEvents="none"
+                                        width={2000}
+                                        style={[]}
+                                    />
+                                </View>
                                 <View style={[]}>
-                                    <View style={[styles.signInPageGradient]} />
+                                    <View style={styles.signInPageGradient}>
+                                        <SignInGradient height="100%" preserveAspectRatio="none" />
+                                    </View>
+                                    {/* <View style={[styles.signInPageGradient]} /> */}
                                     <View style={[
                                         styles.alignSelfCenter,
                                         StyleUtils.getMaximumWidth(variables.signInHeroContentMaxWidth),
@@ -92,6 +101,7 @@ const SignInPageLayout = (props) => {
                         <View style={[styles.flex1, styles.flexColumn, StyleUtils.getMinimumHeight(Math.max(variables.signInContentMinHeight, containerHeight))]}>
                             <SignInHeroBackgroundImageMobile
                                 pointerEvents="none"
+                                width={800}
                                 style={styles.signInBackgroundMobile}
                             />
                             <SignInPageContent

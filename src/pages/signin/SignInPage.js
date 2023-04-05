@@ -93,17 +93,21 @@ class SignInPage extends Component {
         if (showValidateCodeForm) {
             if (this.props.account.requiresTwoFactorAuth) {
                 // We will only know this after a user signs in successfully, without their 2FA code
-                welcomeHeader = this.props.translate('welcomeText.header.phrase2');
+                welcomeHeader = !this.props.isSmallScreenWidth ? this.props.translate('welcomeText.header.phrase2') : '';
+
+                // welcomeHeader = this.props.translate('welcomeText.header.phrase2');
                 welcomeText = this.props.translate('validateCodeForm.enterAuthenticatorCode');
             } else {
                 const userLogin = Str.removeSMSDomain(lodashGet(this.props, 'credentials.login', ''));
-                welcomeHeader = this.props.translate('welcomeText.header.phrase2');
+
+                // welcomeHeader = this.props.translate('welcomeText.header.phrase2');
+                welcomeHeader = !this.props.isSmallScreenWidth ? this.props.translate('welcomeText.header.phrase2') : '';
                 welcomeText = this.props.account.validated
                     ? this.props.translate('welcomeText.welcomeBackEnterMagicCode', {login: userLogin})
                     : this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLogin});
             }
         } else if (showPasswordForm) {
-            welcomeHeader = this.props.translate('welcomeText.header.phrase2');
+            welcomeHeader = !this.props.isSmallScreenWidth ? this.props.translate('welcomeText.header.phrase2') : '';
             welcomeText = this.props.translate('welcomeText.welcomeBack');
         } else if (!showResendValidationForm) {
             welcomeHeader = this.props.isSmallScreenWidth ? this.props.translate('login.hero.header') : this.props.translate('welcomeText.header.phrase1');
@@ -115,7 +119,7 @@ class SignInPage extends Component {
                 <SignInPageLayout
                     welcomeHeader={welcomeHeader}
                     welcomeText={welcomeText}
-                    shouldShowWelcomeHeader={showLoginForm || showPasswordForm || showValidateCodeForm || !showResendValidationForm}
+                    shouldShowWelcomeHeader={(showLoginForm || showPasswordForm || showValidateCodeForm || !showResendValidationForm) || !this.props.isSmallScreenWidth}
                     shouldShowWelcomeText={showLoginForm || showPasswordForm || showValidateCodeForm || !showResendValidationForm}
                 >
                     {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden

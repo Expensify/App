@@ -4,36 +4,37 @@ import React from 'react';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import styles from '../../styles/styles';
-
-// import variables from '../../styles/variables';
+import variables from '../../styles/variables';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
 const SignInHeroImage = (props) => {
-    let imageWidth;
+    let imageSize;
     if (props.isSmallScreenWidth) {
-        imageWidth = 303;
+        imageSize = {
+            height: variables.signInHeroImageMobileHeight,
+            width: variables.signInHeroImageMobileWidth,
+        };
     } else if (props.isMediumScreenWidth) {
-        imageWidth = 347;
+        imageSize = {
+            height: variables.signInHeroImageTabletHeight,
+            width: variables.signInHeroImageTabletWidth,
+        };
     } else {
-        imageWidth = 387;
+        imageSize = {
+            height: variables.signInHeroImageDesktopHeight,
+            width: variables.signInHeroImageDesktopWidth,
+        };
     }
 
     return (
-        <View style={[{backgroundColor: 'transparent'}, styles.alignSelfCenter, styles.flex1, {width: imageWidth}]}>
-            {props.isSmallScreenWidth ? (
-                <Illustrations.HandsMobile
-                    width="100%"
-                    height="100%"
-                />
-            ) : (
-                <Illustrations.HandsDesktop
-                    width="100%"
-                    height="100%"
-                />
-            )}
+        <View style={[styles.alignSelfCenter, imageSize]}>
+            <Illustrations.Hands
+                width="100%"
+                height="100%"
+            />
         </View>
     );
 };

@@ -1011,7 +1011,6 @@ const styles = {
     },
 
     signInPageGradient: {
-        background: 'linear-gradient(90deg, #07271F 0%, rgba(0, 46, 34, 0) 100%)',
         height: '100%',
         width: 540,
         position: 'absolute',
@@ -1019,16 +1018,26 @@ const styles = {
         left: 0,
     },
 
-    signInBackgroundDesktop: {
-        height: '100%',
-        width: 'auto',
+    signInPageGradientMobile: {
+        height: 300,
+        width: 800,
         position: 'absolute',
+        top: 0,
+        left: 0,
+    },
+
+    signInBackgroundDesktop: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
         minHeight: 700,
     },
 
     signInBackgroundMobile: {
-        width: '100%',
+        // width: '100%',
         position: 'absolute',
+        bottom: 0,
+        left: 0,
         minHeight: 700,
     },
 
@@ -3069,9 +3078,6 @@ const styles = {
         fontSize: variables.fontSizeXXLarge,
         letterSpacing: 4,
     },
-    footer: {
-        backgroundColor: themeColors.transparent,
-    },
 
     footerWrapper: {
         fontSize: variables.fontSizeNormal,
@@ -3127,7 +3133,7 @@ const styles = {
     loginHeroHeader: {
         fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
         color: themeColors.success,
-        fontWeight: 500,
+        fontWeight: '500',
         textAlign: 'center',
     },
 

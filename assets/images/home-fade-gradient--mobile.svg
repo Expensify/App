@@ -5,7 +5,7 @@
 <style type="text/css">
 	.st0{fill:url(#SVGID_1_);}
 </style>
-<linearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="0%" y1="0%" x2="100%" y2="0%">
+<linearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="0%" y1="0%" x2="0%" y2="100%">
 	<stop  offset="0%" style="stop-color:#07271F"/> 
 	<!-- <stop  offset="0%" style="stop-color:#07271F"/>  -->
 	<stop  offset="100%" style="stop-color:#002E22;stop-opacity:0"/>

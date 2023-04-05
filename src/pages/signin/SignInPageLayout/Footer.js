@@ -3,6 +3,8 @@ import React from 'react';
 import _ from 'underscore';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
+import themeColors from '../../../styles/themes/default';
 import variables from '../../../styles/variables';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import TextLink from '../../../components/TextLink';
@@ -15,6 +17,7 @@ import Hoverable from '../../../components/Hoverable';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import * as Session from '../../../libs/actions/Session';
+import SignInGradient from '../../../../assets/images/home-fade-gradient--mobile.svg';
 
 // import GradientBG from '../../../../assets/images/home-fade-gradient.svg';
 
@@ -164,7 +167,7 @@ const Footer = (props) => {
                     top: 0,
                 }}
             /> */}
-            <View style={styles.footer}>
+            <View style={[props.isSmallScreenWidth ? StyleUtils.getBackgroundColorStyle(themeColors.signInPage) : {}]}>
                 {/* <GradientBG
                     height="100%"
                     style={{
@@ -173,6 +176,11 @@ const Footer = (props) => {
                         top: 0,
                     }}
                 /> */}
+                {props.isSmallScreenWidth ? (
+                    <View style={[styles.signInPageGradientMobile]}>
+                        <SignInGradient height="100%" />
+                    </View>
+                ) : undefined}
                 <View style={pageFooterWrapper}>
                     <View style={footerColumns}>
                         {_.map(columns, (column, i) => (
