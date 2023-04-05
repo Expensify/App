@@ -14,6 +14,7 @@ export default {
         new: 'New',
         search: 'Search',
         next: 'Next',
+        previous: 'Previous',
         goBack: 'Go back',
         add: 'Add',
         resend: 'Resend',
@@ -157,6 +158,11 @@ export default {
     baseUpdateAppModal: {
         updateApp: 'Update app',
         updatePrompt: 'A new version of this app is available.\nUpdate now or restart the app at a later time to download the latest changes.',
+    },
+    deeplinkWrapper: {
+        launching: 'Launching Expensify',
+        expired: 'Your session has expired.',
+        signIn: 'Please sign in again.',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\nyou are signed in!',
@@ -336,8 +342,6 @@ export default {
     },
     profilePage: {
         profile: 'Profile',
-        john: 'John',
-        doe: 'Doe',
         preferredPronouns: 'Preferred pronouns',
         selectYourPronouns: 'Select your pronouns',
         selfSelectYourPronoun: 'Self-select your pronoun',
@@ -397,8 +401,6 @@ export default {
     displayNamePage: {
         headerTitle: 'Display name',
         isShownOnProfile: 'Your display name is shown on your profile.',
-        john: 'John',
-        doe: 'Doe',
     },
     timezonePage: {
         timezone: 'Timezone',

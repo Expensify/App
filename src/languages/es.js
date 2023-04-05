@@ -13,6 +13,7 @@ export default {
         new: 'Nuevo',
         search: 'Buscar',
         next: 'Siguiente',
+        previous: 'Anterior',
         goBack: 'Volver',
         add: 'Agregar',
         resend: 'Reenviar',
@@ -156,6 +157,11 @@ export default {
     baseUpdateAppModal: {
         updateApp: 'Actualizar app',
         updatePrompt: 'Existe una nueva versión de esta aplicación.\nActualiza ahora or reinicia la aplicación más tarde para recibir la última versión.',
+    },
+    deeplinkWrapper: {
+        launching: 'Cargando Expensify',
+        expired: 'Tu sesión ha expirado.',
+        signIn: 'Por favor, inicia sesión de nuevo.',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
@@ -335,8 +341,6 @@ export default {
     },
     profilePage: {
         profile: 'Perfil',
-        john: 'Juan',
-        doe: 'Nadie',
         preferredPronouns: 'Pronombres preferidos',
         selectYourPronouns: 'Selecciona tus pronombres',
         selfSelectYourPronoun: 'Auto-selecciona tu pronombre',
@@ -396,8 +400,6 @@ export default {
     displayNamePage: {
         headerTitle: 'Nombre',
         isShownOnProfile: 'Este nombre es visible en su perfil.',
-        john: 'Juan',
-        doe: 'Nadie',
     },
     timezonePage: {
         timezone: 'Zona horaria',
