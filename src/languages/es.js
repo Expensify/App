@@ -18,6 +18,8 @@ export default {
         resend: 'Reenviar',
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
+        rotateImage: 'Rotar',
+        zoomImage: 'Zoom',
         password: 'Contraseña',
         magicCode: 'Código mágico',
         workspaces: 'Espacios de trabajo',
@@ -148,8 +150,6 @@ export default {
     avatarCropModal: {
         title: 'Editar foto',
         description: 'Arrastra, haz zoom y rota tu imagen para que quede como te gusta.',
-        rotateImage: 'Girar',
-        zoomImage: 'Zoom',
     },
     composer: {
         noExtensionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
