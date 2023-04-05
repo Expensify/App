@@ -93,8 +93,7 @@ const propTypes = {
     isFocused: PropTypes.bool.isRequired,
 
     /** Whether user interactions should be disabled */
-    // TODO: Should be isDisabled
-    disabled: PropTypes.bool,
+    isDisabled: PropTypes.bool.isRequired,
 
     // The NVP describing a user's block status
     blockedFromConcierge: PropTypes.shape({
@@ -543,7 +542,7 @@ const ReportActionCompose = (props) => {
                                                         }}
                                                         onMouseDown={e => e.preventDefault()}
                                                         style={styles.composerSizeButton}
-                                                        disabled={isUserBlockedFromConcierge || props.disabled}
+                                                        disabled={isUserBlockedFromConcierge || props.isDisabled}
                                                     >
                                                         <Icon src={Expensicons.Collapse} />
                                                     </TouchableOpacity>
@@ -564,7 +563,7 @@ const ReportActionCompose = (props) => {
                                                         // Keep focus on the composer when Expand button is clicked.
                                                         onMouseDown={e => e.preventDefault()}
                                                         style={styles.composerSizeButton}
-                                                        disabled={isUserBlockedFromConcierge || props.disabled}
+                                                        disabled={isUserBlockedFromConcierge || props.isDisabled}
                                                     >
                                                         <Icon src={Expensicons.Expand} />
                                                     </TouchableOpacity>
@@ -580,7 +579,7 @@ const ReportActionCompose = (props) => {
                                                             setIsMenuVisible(true);
                                                         }}
                                                         style={styles.composerSizeButton}
-                                                        disabled={isUserBlockedFromConcierge || props.disabled}
+                                                        disabled={isUserBlockedFromConcierge || props.isDisabled}
                                                     >
                                                         <Icon src={Expensicons.Plus} />
                                                     </TouchableOpacity>
@@ -621,7 +620,7 @@ const ReportActionCompose = (props) => {
                                         displayFileInModal(file);
                                         setIsDraggingOver(false);
                                     }}
-                                    disabled={props.disabled}
+                                    isDisabled={props.isDisabled}
                                 >
                                     <Composer
                                         ref={composer}
@@ -642,7 +641,7 @@ const ReportActionCompose = (props) => {
                                         onPasteFile={displayFileInModal}
                                         shouldClear={shouldClearTextInput}
                                         onClear={() => setShouldClearTextInput(false)}
-                                        isDisabled={(this.props.isDrawerOpen && this.props.isSmallScreenWidth) || isUserBlockedFromConcierge || props.disabled}
+                                        isDisabled={(this.props.isDrawerOpen && this.props.isSmallScreenWidth) || isUserBlockedFromConcierge || props.isDisabled}
                                         selection={selection}
                                         onSelectionChange={(e) => {
                                             setSelection(e.nativeEvent.selection);
@@ -675,7 +674,7 @@ const ReportActionCompose = (props) => {
                 </AttachmentModal>
                 {DeviceCapabilities.canUseTouchScreen() && props.isMediumScreenWidth ? null : (
                     <EmojiPickerButton
-                        isDisabled={isUserBlockedFromConcierge || props.disabled}
+                        isDisabled={isUserBlockedFromConcierge || props.isDisabled}
                         onModalHide={() => focus(true)}
                         onEmojiSelected={addEmojiToTextBox}
                     />
@@ -693,7 +692,7 @@ const ReportActionCompose = (props) => {
                                 (isCommentEmpty ? undefined : styles.buttonSuccess),
                             ]}
                             onPress={submitForm}
-                            disabled={isCommentEmpty || isUserBlockedFromConcierge || props.disabled || isCommentTooLong}
+                            disabled={isCommentEmpty || isUserBlockedFromConcierge || props.isDisabled || isCommentTooLong}
                             hitSlop={{top: 3, right: 3, bottom: 3, left: 3}}
                         >
                             <Icon src={Expensicons.Send} fill={(isCommentEmpty || isCommentTooLong) ? themeColors.icon : themeColors.textLight} />

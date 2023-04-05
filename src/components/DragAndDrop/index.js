@@ -18,7 +18,7 @@ const propTypes = {
     shouldAcceptDrop: PropTypes.func,
 
     /** Whether drag & drop should be disabled */
-    disabled: PropTypes.bool,
+    isDisabled: PropTypes.bool,
 
     /** Rendered child component */
     children: PropTypes.node.isRequired,
@@ -36,7 +36,7 @@ const defaultProps = {
         }
         return false;
     },
-    disabled: false,
+    isDisabled: false,
 };
 
 export default class DragAndDrop extends React.Component {
@@ -56,15 +56,15 @@ export default class DragAndDrop extends React.Component {
     }
 
     componentDidMount() {
-        if (this.props.disabled) {
+        if (this.props.isDisabled) {
             return;
         }
         this.addEventListeners();
     }
 
     componentDidUpdate(prevProps) {
-        const isDisabled = this.props.disabled;
-        if (isDisabled === prevProps.disabled) {
+        const isDisabled = this.props.isDisabled;
+        if (isDisabled === prevProps.isDisabled) {
             return;
         }
         if (isDisabled) {
@@ -75,7 +75,7 @@ export default class DragAndDrop extends React.Component {
     }
 
     componentWillUnmount() {
-        if (this.props.disabled) {
+        if (this.props.isDisabled) {
             return;
         }
         this.removeEventListeners();

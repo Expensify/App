@@ -100,7 +100,7 @@ class ReportFooter extends React.Component {
                                     reportActions={this.props.reportActions}
                                     report={this.props.report}
                                     isComposerFullSize={this.props.isComposerFullSize}
-                                    disabled={this.props.shouldDisableCompose}
+                                    isDisabled={this.props.shouldDisableCompose}
                                 />
                             </OfflineWithFeedback>
                         </SwipeableView>
