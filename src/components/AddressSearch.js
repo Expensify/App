@@ -95,7 +95,7 @@ const AddressSearch = (props) => {
         query.components = 'country:us';
     }
 
-    const saveLocationDetails = (details) => {
+    const saveLocationDetails = (autocompleteData, details) => {
         const addressComponents = details.address_components;
         if (!addressComponents) {
             return;
@@ -105,8 +105,9 @@ const AddressSearch = (props) => {
         const {
             street_number: streetNumber,
             route: streetName,
-            locality: city,
-            sublocality: cityFallback, // Some locations only return sublocality instead of locality
+            locality,
+            sublocality,
+            postal_town: postalTown,
             postal_code: zipCode,
             administrative_area_level_1: state,
             country,
@@ -115,6 +116,7 @@ const AddressSearch = (props) => {
             route: 'long_name',
             locality: 'long_name',
             sublocality: 'long_name',
+            postal_town: 'long_name',
             postal_code: 'long_name',
             administrative_area_level_1: 'short_name',
             country: 'short_name',
@@ -130,12 +132,22 @@ const AddressSearch = (props) => {
 
         // Make sure that the order of keys remains such that the country is always set above the state.
         // Refer to https://github.com/Expensify/App/issues/15633 for more information.
+        const {
+            state: stateAutoCompleteFallback = '',
+            city: cityAutocompleteFallback = '',
+        } = GooglePlacesUtils.getPlaceAutocompleteTerms(autocompleteData.terms);
+
         const values = {
             street: props.value ? props.value.trim() : '',
-            city: city || cityFallback,
+
+            // When locality is not returned, many countries return the city as postalTown (e.g. 5 New Street
+            // Square, London), otherwise as sublocality (e.g. 384 Court Street Brooklyn). If postalTown is
+            // returned, the sublocality will be a city subdivision so shouldn't take precedence (e.g.
+            // Salagatan, Upssala, Sweden).
+            city: locality || postalTown || sublocality || cityAutocompleteFallback,
             zipCode,
             country: '',
-            state,
+            state: state || stateAutoCompleteFallback,
         };
 
         // If the address is not in the US, use the full length state name since we're displaying the address's
@@ -193,7 +205,7 @@ const AddressSearch = (props) => {
                     suppressDefaultStyles
                     enablePoweredByContainer={false}
                     onPress={(data, details) => {
-                        saveLocationDetails(details);
+                        saveLocationDetails(data, details);
 
                         // After we select an option, we set displayListViewBorder to false to prevent UI flickering
                         setDisplayListViewBorder(false);

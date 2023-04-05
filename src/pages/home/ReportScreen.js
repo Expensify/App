@@ -22,6 +22,7 @@ import reportActionPropTypes from './report/reportActionPropTypes';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
 import {withNetwork} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
+import Visibility from '../../libs/Visibility';
 import networkPropTypes from '../../components/networkPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
@@ -36,6 +37,9 @@ import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../component
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import personalDetailsPropType from '../personalDetailsPropType';
+import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
+import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
+import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -129,6 +133,16 @@ class ReportScreen extends React.Component {
     }
 
     componentDidMount() {
+        this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
+            // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
+            // we don't need to call openReport
+            if (!getIsReportFullyVisible(this.props.isDrawerOpen, this.props.isSmallScreenWidth) || this.props.report.isOptimisticReport) {
+                return;
+            }
+
+            Report.openReport(this.props.report.reportID);
+        });
+
         this.fetchReportIfNeeded();
         toggleReportActionComposeView(true);
         Navigation.setIsReportScreenIsReady();
@@ -150,6 +164,9 @@ class ReportScreen extends React.Component {
     }
 
     componentWillUnmount() {
+        if (this.unsubscribeVisibilityListener) {
+            this.unsubscribeVisibilityListener();
+        }
         Navigation.resetIsReportScreenReadyPromise();
     }
 
@@ -294,14 +311,23 @@ class ReportScreen extends React.Component {
                             }}
                         >
                             {(this.isReportReadyForDisplay() && !isLoadingInitialReportActions && !isLoading) && (
+                                <ReportActionsView
+                                    reportActions={this.props.reportActions}
+                                    report={this.props.report}
+                                    isComposerFullSize={this.props.isComposerFullSize}
+                                    isDrawerOpen={this.props.isDrawerOpen}
+                                    parentViewHeight={this.state.skeletonViewContainerHeight}
+                                />
+                            )}
+
+                            {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
+                            we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
+                            {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions || isLoading) && (
+                                <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
+                            )}
+
+                            {this.isReportReadyForDisplay() && (
                                 <>
-                                    <ReportActionsView
-                                        reportActions={this.props.reportActions}
-                                        report={this.props.report}
-                                        isComposerFullSize={this.props.isComposerFullSize}
-                                        isDrawerOpen={this.props.isDrawerOpen}
-                                        parentViewHeight={this.state.skeletonViewContainerHeight}
-                                    />
                                     <ReportFooter
                                         errors={addWorkspaceRoomOrChatErrors}
                                         pendingAction={addWorkspaceRoomOrChatPendingAction}
@@ -314,14 +340,11 @@ class ReportScreen extends React.Component {
                                 </>
                             )}
 
-                            {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
-                            we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                            {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions || isLoading) && (
-                                <>
-                                    <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
-                                    <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
-                                </>
+                            {!this.isReportReadyForDisplay() && (
+                                <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
                             )}
+
+                            <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                             <PortalHost name={CONST.REPORT.DROP_HOST_NAME} />
                         </View>
                     </FullPageNotFoundView>
