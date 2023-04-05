@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
@@ -9,14 +8,10 @@ import ROUTES from '../../../ROUTES';
 import Form from '../../../components/Form';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
-import * as ValidationUtils from '../../../libs/ValidationUtils';
 import TextInput from '../../../components/TextInput';
-import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
-import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
-import * as ErrorUtils from '../../../libs/ErrorUtils';
 import * as RoomNameInputUtils from "../../../libs/RoomNameInputUtils";
 
 const propTypes = {
