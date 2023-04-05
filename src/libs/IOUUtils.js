@@ -35,20 +35,18 @@ function calculateAmount(participants, total, currency, isDefaultUser = false, s
     const totalParticipants = participants.length + 1;
     const amountPerPerson = Math.round(iouAmount / totalParticipants);
 
-    if (!isDefaultUser) {
-        if (shouldConvertTo2DigitsFormat) {
-            return (amountPerPerson * 100) / currencyUnits;
-        }
-        return amountPerPerson;
+    let finalAmount = amountPerPerson;
+
+    if (isDefaultUser) {
+        const sumAmount = amountPerPerson * totalParticipants;
+        const difference = iouAmount - sumAmount;
+        finalAmount = iouAmount !== sumAmount ? (amountPerPerson + difference) : amountPerPerson;
     }
 
-    const sumAmount = amountPerPerson * totalParticipants;
-    const difference = iouAmount - sumAmount;
-
-    const finalAmount = iouAmount !== sumAmount ? (amountPerPerson + difference) : amountPerPerson;
     if (shouldConvertTo2DigitsFormat) {
-        return (finalAmount * 100) / currencyUnits;
+        finalAmount = (finalAmount * 100) / currencyUnits;
     }
+
     return finalAmount;
 }
 
