@@ -9,7 +9,6 @@ import Permissions from '../../Permissions';
 import ReportScreen from '../../../pages/home/ReportScreen';
 import * as ReportUtils from '../../ReportUtils';
 import reportPropTypes from '../../../pages/reportPropTypes';
-import getReportIDFromRoute from './getReportIDFromRoute';
 import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
@@ -67,7 +66,7 @@ class ReportScreenWrapper extends Component {
         super(props);
 
         // If there is no ReportID in route, try to find last accessed and use it for setParams
-        if (!getReportIDFromRoute(this.props.route)) {
+        if (!lodashGet(this.props.route, 'params.reportID', null)) {
             const reportID = getLastAccessedReportID(
                 this.props.reports,
                 !Permissions.canUseDefaultRooms(this.props.betas),
@@ -85,7 +84,7 @@ class ReportScreenWrapper extends Component {
 
     shouldComponentUpdate(nextProps) {
         // Don't update if there is a reportID in the params already
-        if (getReportIDFromRoute(this.props.route)) { return false; }
+        if (lodashGet(this.props.route, 'params.reportID', null)) { return false; }
 
         // If the reports weren't fully loaded in the contructor
         // try to get and set reportID again
@@ -105,7 +104,7 @@ class ReportScreenWrapper extends Component {
 
     render() {
         // Wait until there is reportID in the route params
-        if (getReportIDFromRoute(this.props.route)) {
+        if (lodashGet(this.props.route, 'params.reportID', null)) {
             return <ReportScreen route={this.props.route} />;
         }
 
