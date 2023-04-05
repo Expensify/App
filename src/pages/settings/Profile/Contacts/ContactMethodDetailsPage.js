@@ -151,7 +151,7 @@ class ContactMethodDetailsPage extends Component {
         const isDefaultContactMethod = this.props.session.email === loginData.partnerUserID;
         const hasMagicCodeBeenSent = lodashGet(this.props.loginList, [contactMethod, 'validateCodeSent'], false);
         const formErrorText = this.state.formError ? this.props.translate(this.state.formError) : '';
-        const isFailedAddContactMethod = Boolean(lodashGet(loginData, 'errorFields.addedLogin', null));
+        const isFailedAddContactMethod = Boolean(lodashGet(loginData, 'errorFields.addedLogin'));
 
         return (
             <ScreenWrapper>
