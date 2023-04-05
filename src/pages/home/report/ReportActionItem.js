@@ -78,7 +78,7 @@ const defaultProps = {
 
 function ReportActionItem(props) {
     const [isContextMenuActive, setIsContextMenuActive] = useState(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
-    const previousDraftMessageRef = useRef('');
+    const previousDraftMessageRef = useRef(props.draftMessage);
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
 
