@@ -33,10 +33,6 @@ const withLocalizePropTypes = {
      * and an internationally converted phone number with the country code for numbers from other regions */
     formatPhoneNumber: PropTypes.func.isRequired,
 
-    /** Returns a locally converted phone number for numbers from the same region
-     * and an internationally converted phone number with the country code for numbers from other regions */
-    formatPhoneNumberInText: PropTypes.func.isRequired,
-
     /** Gets the standard digit corresponding to a locale digit */
     fromLocaleDigit: PropTypes.func.isRequired,
 
@@ -80,7 +76,6 @@ class LocaleContextProvider extends React.Component {
             datetimeToRelative: this.datetimeToRelative.bind(this),
             datetimeToCalendarTime: this.datetimeToCalendarTime.bind(this),
             formatPhoneNumber: this.formatPhoneNumber.bind(this),
-            formatPhoneNumberInText: this.formatPhoneNumberInText.bind(this),
             fromLocaleDigit: this.fromLocaleDigit.bind(this),
             toLocaleDigit: this.toLocaleDigit.bind(this),
             preferredLocale: this.props.preferredLocale,
@@ -133,14 +128,6 @@ class LocaleContextProvider extends React.Component {
      */
     formatPhoneNumber(phoneNumber) {
         return LocalePhoneNumber.formatPhoneNumber(phoneNumber);
-    }
-
-    /**
-     * @param {String} text
-     * @returns {String}
-     */
-    formatPhoneNumberInText(text) {
-        return LocalePhoneNumber.formatPhoneNumberInText(text);
     }
 
     /**

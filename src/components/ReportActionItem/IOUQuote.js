@@ -14,6 +14,7 @@ import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
+import * as LocalePhoneNumber from '../../libs/LocalePhoneNumber';
 
 const propTypes = {
     /** All the data of the action */
@@ -82,7 +83,7 @@ const IOUQuote = props => (
                         : styles.cursorDefault]}
                     >
                         {/* Get remainder of IOU message */}
-                        {props.formatPhoneNumberInText(fragment.text.substring(fragment.text.indexOf(' ')))}
+                        {LocalePhoneNumber.formatPhoneNumberInText(fragment.text.substring(fragment.text.indexOf(' ')))}
                     </Text>
                 </Text>
                 <Icon src={Expensicons.ArrowRight} fill={props.shouldAllowViewDetails ? StyleUtils.getIconFillColor(getButtonState(props.isHovered)) : themeColors.transparent} />

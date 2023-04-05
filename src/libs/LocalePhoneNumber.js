@@ -73,14 +73,12 @@ function formatPhoneNumberInText(text) {
 
     const textArray = text.split(' ');
 
-    const formattedText = _.map(textArray, (txt) => {
+    return _.map(textArray, (txt) => {
         if (Str.isSMSLogin(txt)) {
             return formatPhoneNumber(Str.removeSMSDomain(txt));
         }
         return txt;
     }).join(' ');
-
-    return formattedText;
 }
 
 export {
