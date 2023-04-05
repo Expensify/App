@@ -106,7 +106,15 @@ const Steps = {
 
 const MoneyRequestModal = (props) => {
     const reportParticipants = lodashGet(props, 'report.participants', []);
-    const participantsWithDetails = _.map(OptionsListUtils.getPersonalDetailsForLogins(reportParticipants, props.personalDetails), personalDetails => ({
+
+    // Skip IOUParticipants step if participants are passed in
+    const steps = reportParticipants.length ? [Steps.IOUAmount, Steps.IOUConfirm] : [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm];
+
+    const [previousStepIndex, setPreviousStepIndex] = useState(0);
+    const [currentStepIndex, setCurrentStepIndex] = useState(0);
+    const [amount, setAmount] = useState('');
+    const [comment, setComment] = useState('');
+    const [participants, setParticipants] = useState(_.map(OptionsListUtils.getPersonalDetailsForLogins(reportParticipants, props.personalDetails), personalDetails => ({
         login: personalDetails.login,
         text: personalDetails.displayName,
         firstName: lodashGet(personalDetails, 'firstName', ''),
@@ -120,54 +128,13 @@ const MoneyRequestModal = (props) => {
         keyForList: personalDetails.login,
         payPalMeAddress: lodashGet(personalDetails, 'payPalMeAddress', ''),
         phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
-    }));
-
-    // Skip IOUParticipants step if participants are passed in
-    const steps = reportParticipants.length ? [Steps.IOUAmount, Steps.IOUConfirm] : [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm];
-
-    const prevCreatingIOUTransactionStatusRef = useRef(lodashGet(props.iou, 'creatingIOUTransaction'));
-    const prevNetworkStatusRef = useRef(props.network.isOffline);
-
-    const [previousStepIndex, setPreviousStepIndex] = useState(0);
-    const [currentStepIndex, setCurrentStepIndex] = useState(0);
-    const [participants, setParticipants] = useState(participantsWithDetails);
-    const [amount, setAmount] = useState('');
-    const [comment, setComment] = useState('');
+    })));
 
     useEffect(() => {
         PersonalDetails.openMoneyRequestModalPage();
         IOU.setIOUSelectedCurrency(props.currentUserPersonalDetails.localCurrencyCode);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- props.currentUserPersonalDetails will always exist from Onyx and we don't want this effect to run again
     }, []);
-
-    useEffect(() => {
-        // We only want to check if we just finished creating an IOU transaction
-        // We check it within this effect because we're sending the request optimistically but if an error occurs from the API, we will update the iou state with the error later
-        if (!prevCreatingIOUTransactionStatusRef.current || lodashGet(props.iou, 'creatingIOUTransaction')) {
-            return;
-        }
-
-        if (lodashGet(props.iou, 'error') === true) {
-            setCurrentStepIndex(0);
-        } else {
-            Navigation.dismissModal();
-        }
-    }, [props.iou]);
-
-    useEffect(() => {
-        if (props.network.isOffline || !prevNetworkStatusRef.current) {
-            return;
-        }
-
-        // User came back online, so let's refetch the currency details based on location
-        PersonalDetails.openMoneyRequestModalPage();
-    }, [props.network.isOffline]);
-
-    useEffect(() => {
-        // Used to store previous prop values to compare on next render
-        prevNetworkStatusRef.current = props.network.isOffline;
-        prevCreatingIOUTransactionStatusRef.current = lodashGet(props.iou, 'creatingIOUTransaction');
-    });
 
     /**
      * Decides our animation type based on whether we're increasing or decreasing
