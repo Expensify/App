@@ -155,7 +155,8 @@ class IOUAmountPage extends React.Component {
         const leadingZeroesLength = lodashGet(leadingZeroes, '[0].length', 0);
         const absAmount = parseFloat((this.stripCommaFromAmount(amount) * 100).toFixed(2)).toString();
 
-        // The following logic will prevent users from pasting an amount that is excessively long in length, which would result in the 'absAmount' value being expressed in scientific notation or becoming infinity."
+        // The following logic will prevent users from pasting an amount that is excessively long in length,
+        // which would result in the 'absAmount' value being expressed in scientific notation or becoming infinity.
         if (/\D/.test(absAmount)) {
             return CONST.IOU.AMOUNT_MAX_LENGTH + 1;
         }
