@@ -85,7 +85,7 @@ const defaultProps = {
     report: {
         participants: [],
     },
-    iouType: CONST.IOU.IOU_TYPE.REQUEST,
+    iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     currentUserPersonalDetails: {
         localCurrencyCode: CONST.CURRENCY.USD,
     },
@@ -194,7 +194,7 @@ const MoneyRequestModal = (props) => {
      * @returns {String}
      */
     const titleForStep = useMemo(() => {
-        const isSendingMoney = props.iouType === CONST.IOU.IOU_TYPE.SEND;
+        const isSendingMoney = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
         if (currentStepIndex === 1 || currentStepIndex === 2) {
             const formattedAmount = props.numberFormat(
                 amount, {
@@ -382,6 +382,7 @@ const MoneyRequestModal = (props) => {
                                             onAddParticipants={selectedParticipants => setParticipants(selectedParticipants)}
                                             onStepComplete={navigateToNextStep}
                                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                                            iouType={props.iouType}
                                         />
                                     </AnimatedStep>
                                 )}

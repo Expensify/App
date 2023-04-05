@@ -825,7 +825,7 @@ const CONST = {
             EXPENSIFY: 'Expensify',
             PAYPAL_ME: 'PayPal.me',
         },
-        IOU_TYPE: {
+        MONEY_REQUEST_TYPE: {
             SEND: 'send',
             SPLIT: 'split',
             REQUEST: 'request',

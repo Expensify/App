@@ -50,7 +50,7 @@ const propTypes = {
 const defaultProps = {
     onUpdateComment: null,
     comment: '',
-    iouType: CONST.IOU.IOU_TYPE.REQUEST,
+    iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     canModifyParticipants: false,
 };
 

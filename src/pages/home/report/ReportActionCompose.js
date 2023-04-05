@@ -334,17 +334,17 @@ class ReportActionCompose extends React.Component {
      */
     getMoneyRequestOptions(reportParticipants) {
         const options = {
-            [CONST.IOU.IOU_TYPE.SPLIT]: {
+            [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: {
                 icon: Expensicons.Receipt,
                 text: this.props.translate('iou.splitBill'),
                 onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
             },
-            [CONST.IOU.IOU_TYPE.REQUEST]: {
+            [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: {
                 icon: Expensicons.MoneyCircle,
                 text: this.props.translate('iou.requestMoney'),
                 onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
             },
-            [CONST.IOU.IOU_TYPE.SEND]: {
+            [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: {
                 icon: Expensicons.Send,
                 text: this.props.translate('iou.sendMoney'),
                 onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),

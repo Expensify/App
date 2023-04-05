@@ -33,6 +33,9 @@ const propTypes = {
         PropTypes.object,
     ]),
 
+    /** The type of IOU report, i.e. bill, request, send */
+    iouType: PropTypes.string.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -54,15 +57,7 @@ class IOUParticipantsRequest extends Component {
             recentReports,
             personalDetails,
             userToInvite,
-        } = OptionsListUtils.getNewChatOptions(
-            props.reports,
-            props.personalDetails,
-            props.betas,
-            '',
-            [],
-            CONST.EXPENSIFY_EMAILS,
-            false,
-        );
+        } = this.getRequestOptions();
 
         this.state = {
             recentReports,
@@ -70,6 +65,22 @@ class IOUParticipantsRequest extends Component {
             userToInvite,
             searchTerm: '',
         };
+    }
+
+    /**
+     * @param {string} searchTerm
+     * @returns {Object}
+     */
+    getRequestOptions(searchTerm = '') {
+        return OptionsListUtils.getNewChatOptions(
+            this.props.reports,
+            this.props.personalDetails,
+            this.props.betas,
+            searchTerm,
+            [],
+            CONST.EXPENSIFY_EMAILS,
+            this.props.iouType !== CONST.IOU.MONEY_REQUEST_TYPE.SEND,
+        );
     }
 
     /**
@@ -114,15 +125,7 @@ class IOUParticipantsRequest extends Component {
             recentReports,
             personalDetails,
             userToInvite,
-        } = OptionsListUtils.getNewChatOptions(
-            this.props.reports,
-            this.props.personalDetails,
-            this.props.betas,
-            searchTerm,
-            [],
-            CONST.EXPENSIFY_EMAILS,
-            false,
-        );
+        } = this.getRequestOptions(searchTerm);
         this.setState({
             searchTerm,
             recentReports,
