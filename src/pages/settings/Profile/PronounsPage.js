@@ -34,10 +34,12 @@ class PronounsPage extends Component {
         this.loadPronouns = this.loadPronouns.bind(this);
         this.onChangeText = this.onChangeText.bind(this);
         this.getFilteredPronouns = this.getFilteredPronouns.bind(this);
+        this.updatePronouns = this.updatePronouns.bind(this);
+        this.initiallyFocusedOption = {};
 
         this.loadPronouns();
         this.state = {
-            searchValue: '',
+            searchValue: this.initiallyFocusedOption.text || '',
         };
     }
 
@@ -83,6 +85,13 @@ class PronounsPage extends Component {
             const fullPronounKey = `${CONST.PRONOUNS.PREFIX}${key}`;
             const isCurrentPronouns = fullPronounKey === currentPronouns;
 
+            if (isCurrentPronouns) {
+                this.initiallyFocusedOption = {
+                    text: value,
+                    keyForList: key,
+                };
+            }
+
             return {
                 text: value,
                 value: fullPronounKey,
@@ -101,7 +110,7 @@ class PronounsPage extends Component {
      * @param {Object} selectedPronouns
      */
     updatePronouns(selectedPronouns) {
-        PersonalDetails.updatePronouns(selectedPronouns.value);
+        PersonalDetails.updatePronouns(selectedPronouns.keyForList === this.initiallyFocusedOption.keyForList ? '' : lodashGet(selectedPronouns, 'value', ''));
     }
 
     render() {
@@ -133,6 +142,7 @@ class PronounsPage extends Component {
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             shouldFocusOnSelectRow
                             shouldHaveOptionSeparator
+                            initiallyFocusedOptionKey={this.initiallyFocusedOption.keyForList}
                         />
                     </>
                 )}
