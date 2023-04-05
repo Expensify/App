@@ -158,6 +158,9 @@ class BaseOptionsList extends Component {
      */
     renderItem({item, index, section}) {
         const isDisabled = this.props.isDisabled || section.isDisabled;
+        const indexOffset = section.indexOffset || 0;
+
+        console.log('item', item, index, this.props.focusedIndex, index + section.indexOffset);
         return (
             <OptionRow
                 option={item}
@@ -165,7 +168,7 @@ class BaseOptionsList extends Component {
                 hoverStyle={this.props.optionHoveredStyle}
                 optionIsFocused={!this.props.disableFocusOptions
                     && !isDisabled
-                    && this.props.focusedIndex === (index + section.indexOffset)}
+                    && this.props.focusedIndex === (index + indexOffset)}
                 onSelectRow={this.props.onSelectRow}
                 isSelected={Boolean(_.find(this.props.selectedOptions, option => option.login === item.login))}
                 showSelectedState={this.props.canSelectMultipleOptions}
