@@ -12,11 +12,15 @@ import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
 import compose from '../../../libs/compose';
 import * as RoomNameInputUtils from '../../../libs/RoomNameInputUtils';
+import withReportOrNotFound from '../../home/report/withReportOrNotFound';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
-    reportID: PropTypes.string.isRequired,
-    roomName: PropTypes.string.isRequired,
     ...withLocalizePropTypes,
+
+    /* Onyx Props */
+    /** The active report */
+    report: reportPropTypes.isRequired,
 };
 
 class RoomNamePage extends Component {
@@ -40,7 +44,7 @@ class RoomNamePage extends Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('newRoomPage.roomName')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.getReportSettingsRoute(this.props.reportID)}
+                    onBackButtonPress={() => Navigation.getReportSettingsRoute(this.props.report.reportID)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <Form
@@ -55,7 +59,7 @@ class RoomNamePage extends Component {
                             inputID="roomName"
                             name="name"
                             label={this.props.translate('newRoomPage.roomName')}
-                            defaultValue={this.props.roomName}
+                            defaultValue={this.props.report.reportName}
                             maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
                         />
                     </View>
@@ -69,4 +73,5 @@ RoomNamePage.propTypes = propTypes;
 
 export default compose(
     withLocalize,
+    withReportOrNotFound,
 )(RoomNamePage);
