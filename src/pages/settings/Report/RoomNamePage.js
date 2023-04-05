@@ -15,12 +15,12 @@ import compose from '../../../libs/compose';
 import * as RoomNameInputUtils from "../../../libs/RoomNameInputUtils";
 
 const propTypes = {
+    reportID: PropTypes.string.isRequired,
+    roomName: PropTypes.string.isRequired,
     ...withLocalizePropTypes,
-    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
-    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 class RoomNamePage extends Component {
@@ -46,7 +46,7 @@ class RoomNamePage extends Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('newRoomPage.roomName')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
+                    onBackButtonPress={() => Navigation.getReportSettingsRoute(this.props.reportID)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <Form
@@ -62,7 +62,7 @@ class RoomNamePage extends Component {
                             inputID="roomName"
                             name="name"
                             label={this.props.translate('newRoomPage.roomName')}
-                            defaultValue=this.props.roomName
+                            defaultValue={this.props.roomName}
                             maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
                         />
                     </View>
