@@ -145,3 +145,14 @@ describe('getCurrencyDecimals', () => {
         expect(IOUUtils.getCurrencyDecimals('UYW')).toBe(2);
     });
 });
+
+describe('getCurrencyUnits', () => {
+    test('Currency with decimals smaller than or equal 2', () => {
+        expect(IOUUtils.getCurrencyUnits('JPY')).toBe(1);
+        expect(IOUUtils.getCurrencyUnits('USD')).toBe(100);
+    });
+
+    test('Currency with decimals larger than 2 should be floor to 2', () => {
+        expect(IOUUtils.getCurrencyUnits('LYD')).toBe(100);
+    });
+});

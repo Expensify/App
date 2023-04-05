@@ -18,6 +18,13 @@ function getCurrencyDecimals(currency) {
         : Math.min(formatted.length - decimalPointIndex - 1, 2);
 }
 
+/**
+ * Returns the currency's minor unit quantity
+ * i.e. Cent in USD
+ *
+ * @param {String} currency - IOU currency
+ * @returns {Number}
+ */
 function getCurrencyUnits(currency) {
     return 10 ** getCurrencyDecimals(currency);
 }
