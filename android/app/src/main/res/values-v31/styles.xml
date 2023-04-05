@@ -1,0 +1,13 @@
+<resources>
+
+    <!-- App Theme for Android versions 12 and above -->
+    <style name="AppTheme" parent="BaseAppTheme"/>
+
+    <!-- Android 12 lets us clips the ripple at the outline, so we do that rather than inset -->
+    <style name="AppTheme.Popup" parent="Base.ThemeOverlay.AppCompat">
+        <item name="colorBackgroundFloating">@null</item>
+        <item name="android:background">@drawable/picker_background</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:clipToOutline">true</item>
+    </style>
+</resources>
