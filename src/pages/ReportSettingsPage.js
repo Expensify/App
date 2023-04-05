@@ -111,7 +111,6 @@ class ReportSettingsPage extends Component {
             return;
         }
         Report.updatePolicyRoomName(this.props.report, values.newRoomName);
-        Navigation.goBack();
     }
 
     /**
