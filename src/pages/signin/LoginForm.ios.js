@@ -84,30 +84,7 @@ class LoginForm extends React.Component {
             return;
         }
         this.input.focus();
-
-        const clientId = 'com.expensify.expensifylite.AppleSignIn';
-        const redirectURI = 'https://www.expensify.com/partners/apple/loginCallback';
-        const scope = 'name email';
-        const state = '';
-        const script = document.createElement('script');
-        script.src = 'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js';
-        script.async = true;
-        script.onload = () => {
-            window.AppleID.auth.init({
-                clientId,
-                scope,
-                redirectURI,
-                state,
-                usePopup: false,
-            });
-        };
-
-        document.body.appendChild(script);
-        this.cleanupScript = () => {
-            document.body.removeChild(script);
-        };
     }
-
 
     componentDidUpdate(prevProps) {
         if (!prevProps.blurOnSubmit && this.props.blurOnSubmit) {
@@ -117,13 +94,6 @@ class LoginForm extends React.Component {
             return;
         }
         this.input.focus();
-    }
-
-
-    componentWillUnmount() {
-        if (this.cleanupScript) {
-            this.cleanupScript();
-        }
     }
 
     /**
@@ -226,7 +196,7 @@ class LoginForm extends React.Component {
                     <DotIndicatorMessage style={[styles.mv2]} type="success" messages={{0: this.props.closeAccount.success}} />
                 )}
                 { // We need to unmount the submit button when the component is not visible so that the Enter button
-                    // key handler gets unsubscribed and does not conflict with the Password Form
+                  // key handler gets unsubscribed and does not conflict with the Password Form
                     this.props.isVisible && (
                         <View style={[styles.mt5]}>
                             <FormAlertWithSubmitButton
