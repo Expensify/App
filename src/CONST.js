@@ -2200,6 +2200,10 @@ const CONST = {
     PATHS_TO_TREAT_AS_EXTERNAL: [
         'NewExpensify.dmg',
     ],
+
+    PAYPAL_SUPPORTED_CURRENCIES: ['AUD', 'BRL', 'CAD', 'CNY', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF', 'ILS', 'JPY', 'MYR', 'MXN', 'TWD', 'NZD', 'NOK', 'PHP', 'PLN', 'GBP', 'RUB', 'SGD', 'SEK',
+        'CHF', 'THB', 'USD'],
+
 };
 
 export default CONST;
