@@ -160,7 +160,7 @@ function Expensify(props) {
             if (!appStateChangeListener.current) { return; }
             appStateChangeListener.current.remove();
         };
-    }, []);
+    }, [isAuthenticated(), reportBootSplashStatus()]);
 
     React.useEffect(() => {
         if (!isNavigationReady || !isSplashShown) {
@@ -177,7 +177,7 @@ function Expensify(props) {
             // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
             Linking.getInitialURL().then(url => Report.openReportFromDeepLink(url));
         }
-    }, [props.isSidebarLoaded, isNavigationReady, isSplashShown]);
+    }, [props.isSidebarLoaded, isNavigationReady, isSplashShown, isAuthenticated()]);
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
