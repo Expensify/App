@@ -242,7 +242,7 @@ const AddressSearch = (props) => {
                         shouldSaveDraft: props.shouldSaveDraft,
                         onBlur: (event) => {
                             resetDisplayListViewBorderOnBlur(event, containerRef, setDisplayListViewBorder);
-                            props.onBlur(event);
+                            props.onBlur();
                         },
                         autoComplete: 'off',
                         onInputChange: (text) => {
