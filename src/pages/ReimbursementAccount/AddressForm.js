@@ -2,10 +2,10 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import TextInput from '../../components/TextInput';
+import AddressSearch from '../../components/AddressSearch';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
 import StatePicker from '../../components/StatePicker';
-import AddressSearch from '../../components/AddressSearch';
 
 const propTypes = {
 

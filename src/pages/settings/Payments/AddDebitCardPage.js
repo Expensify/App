@@ -18,10 +18,10 @@ import StatePicker from '../../../components/StatePicker';
 import TextInput from '../../../components/TextInput';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
+import AddressSearch from '../../../components/AddressSearch';
 import * as ComponentUtils from '../../../libs/ComponentUtils';
 import Form from '../../../components/Form';
 import Permissions from '../../../libs/Permissions';
-import AddressSearch from '../../../components/AddressSearch';
 
 const propTypes = {
     /* Onyx Props */
