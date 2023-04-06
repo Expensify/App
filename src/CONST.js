@@ -190,6 +190,7 @@ const CONST = {
         POLICY_ROOMS: 'policyRooms',
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         PASSWORDLESS: 'passwordless',
+        TASKS: 'tasks',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
