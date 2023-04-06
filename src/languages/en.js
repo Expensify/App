@@ -20,6 +20,8 @@ export default {
         resend: 'Resend',
         save: 'Save',
         saveChanges: 'Save changes',
+        rotate: 'Rotate',
+        zoom: 'Zoom',
         password: 'Password',
         magicCode: 'Magic code',
         workspaces: 'Workspaces',
