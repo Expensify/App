@@ -52,10 +52,9 @@ function AutoUpdateTime(props) {
         return `GMT ${currentUserLocalTime.zoneAbbr()}`;
     }, [currentUserLocalTime]);
 
-    /**
-     * Update the user's local time at the top of every minute
-     */
-    const updateCurrentTime = useCallback(() => {
+    useEffect(() => {
+        // If the user leaves this page open, we want to make sure the displayed time is updated every minute when the clock changes
+        // To do this we set a timer on initial load and then create a new timer every time we update the time
         if (timerRef.current) {
             clearTimeout(timerRef.current);
             timerRef.current = null;
@@ -64,15 +63,11 @@ function AutoUpdateTime(props) {
         timerRef.current = setTimeout(() => {
             setCurrentUserLocalTime(getCurrentUserLocalTime());
         }, millisecondsUntilNextMinute);
-    }, [currentUserLocalTime, getCurrentUserLocalTime]);
-
-    useEffect(() => {
-        updateCurrentTime();
 
         return () => {
             clearTimeout(timerRef.current);
         };
-    }, [updateCurrentTime]);
+    }, [currentUserLocalTime, getCurrentUserLocalTime]);
 
     return (
         <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
