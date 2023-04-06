@@ -216,10 +216,15 @@ function removeMembers(members, policyID) {
         key: membersListKey,
         value: _.object(members, Array(members.length).fill({errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericRemove')}})),
     }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: membersListKey,
+        value: _.object(members, Array(members.length).fill(null)),
+    }];
     API.write('DeleteMembersFromWorkspace', {
         emailList: members.join(','),
         policyID,
-    }, {optimisticData, failureData});
+    }, {optimisticData, failureData, successData});
 }
 
 /**
