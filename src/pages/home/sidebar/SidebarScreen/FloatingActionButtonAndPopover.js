@@ -109,6 +109,9 @@ class FloatingActionButtonAndPopover extends React.Component {
      * Method called when we click the floating action button
      */
     showCreateMenu() {
+        if (!this.props.isFocused && this.props.isSmallScreenWidth) {
+            return;
+        }
         this.setState({
             isCreateMenuActive: true,
         });
@@ -211,6 +214,7 @@ export default compose(
     withLocalize,
     withNavigation,
     withNavigationFocus,
+    withWindowDimensions,
     withWindowDimensions,
     withOnyx({
         allPolicies: {
