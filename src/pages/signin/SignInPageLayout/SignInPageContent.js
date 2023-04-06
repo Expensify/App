@@ -23,6 +23,8 @@ const propTypes = {
      * on form type (set password, sign in, etc.) */
     welcomeText: PropTypes.string.isRequired,
 
+    /** Welcome header to show in the header of the form, changes depending
+     * on form type (set password, sign in, etc.) and small vs large screens */
     welcomeHeader: PropTypes.string.isRequired,
 
     /** Whether to show welcome text on a particular page */
@@ -51,36 +53,29 @@ const SignInPageContent = props => (
             {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
             <View style={[styles.flexGrow1, styles.signInPageContentTopSpacer]} />
 
-            <View style={[styles.flexGrow2]}>
+            <View style={[styles.flexGrow2, styles.mb8]}>
                 <SignInPageForm style={[styles.alignSelfStretch]}>
-                    <View style={[props.isSmallScreenWidth ? styles.gap8 : styles.gap15]}>
-                        <View style={[
-                            props.isSmallScreenWidth ? styles.alignItemsCenter : {},
-
-                            // ...(props.isSmallScreenWidth ? [styles.mb2] : [styles.mt6, styles.mb5]),
-                            !props.isSmallScreenWidth ? styles.alignSelfStart : {},
-                        ]}
-                        >
-                            <ExpensifyWordmark />
-                        </View>
-                        <View style={[styles.gap5, styles.signInPageWelcomeTextContainer]}>
-                            {(props.shouldShowWelcomeHeader && props.welcomeHeader) ? (
-                                <Text style={[
-                                    styles.loginHeroHeader,
-                                    StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroXSmall),
-                                    !props.welcomeText ? styles.mb5 : {},
-                                    !props.isSmallScreenWidth ? styles.textAlignLeft : {},
-                                ]}
-                                >
-                                    {props.welcomeHeader}
-                                </Text>
-                            ) : undefined}
-                            {(props.shouldShowWelcomeText && props.welcomeText) ? (
-                                <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !props.isSmallScreenWidth ? styles.textAlignLeft : {}]}>
-                                    {props.welcomeText}
-                                </Text>
-                            ) : undefined}
-                        </View>
+                    <View style={[props.isSmallScreenWidth ? styles.mb8 : styles.mb15, props.isSmallScreenWidth ? styles.alignItemsCenter : styles.alignSelfStart]}>
+                        <ExpensifyWordmark />
+                    </View>
+                    <View style={[styles.signInPageWelcomeTextContainer]}>
+                        {(props.shouldShowWelcomeHeader && props.welcomeHeader) ? (
+                            <Text style={[
+                                styles.loginHeroHeader,
+                                StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroXSmall),
+                                !props.welcomeText ? styles.mb5 : {},
+                                !props.isSmallScreenWidth ? styles.textAlignLeft : {},
+                                styles.mb5,
+                            ]}
+                            >
+                                {props.welcomeHeader}
+                            </Text>
+                        ) : undefined}
+                        {(props.shouldShowWelcomeText && props.welcomeText) ? (
+                            <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !props.isSmallScreenWidth ? styles.textAlignLeft : {}]}>
+                                {props.welcomeText}
+                            </Text>
+                        ) : undefined}
                     </View>
                     {props.children}
                 </SignInPageForm>
@@ -90,13 +85,12 @@ const SignInPageContent = props => (
                     </View>
                 ) : undefined}
             </View>
-            <View style={[]}>
-                {/* Google Auth */}
-            </View>
         </KeyboardAvoidingView>
-        <View style={[styles.mb5, styles.signInPageWelcomeTextContainer, styles.alignSelfCenter]}>
-            <OfflineIndicator style={[styles.m0, styles.pl0, styles.alignItemsStart]} />
-        </View>
+        {!props.isSmallScreenWidth ? (
+            <View style={[styles.mb8, styles.signInPageWelcomeTextContainer, styles.alignSelfCenter]}>
+                <OfflineIndicator style={[styles.m0, styles.pl0, styles.alignItemsStart]} />
+            </View>
+        ) : undefined}
     </View>
 );
 

@@ -801,7 +801,7 @@ function getReportWelcomeTopMarginStyle(isSmallScreenWidth) {
 }
 
 /**
- * Gets the correct top margin size for the chat welcome message based on screen dimensions
+ * Returns fontSize style
  *
  * @param {Number} fontSize
  * @returns {Object}

@@ -1012,6 +1012,16 @@ const styles = {
         flex: 1,
     },
 
+    signInPageHeroCenter: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
     signInPageGradient: {
         height: '100%',
         width: 540,

@@ -24,6 +24,8 @@ const propTypes = {
      * on form type (set password, sign in, etc.) */
     welcomeText: PropTypes.string.isRequired,
 
+    /** Welcome header to show in the header of the form, changes depending
+     * on form type (set password, sign in, etc.) and small vs large screens */
     welcomeHeader: PropTypes.string.isRequired,
 
     /** Whether to show welcome text on a particular page */
@@ -65,24 +67,19 @@ const SignInPageLayout = (props) => {
                             contentContainerStyle={[styles.flex1]}
                         >
                             <View style={[styles.flex1]}>
-                                <View style={{
-                                    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center',
-                                }}
-                                >
+                                <View style={styles.signInPageHeroCenter}>
                                     <SignInHeroBackgroundImage
                                         pointerEvents="none"
-                                        width={2000}
-                                        style={[]}
+                                        width={variables.signInHeroBackgroundWidth}
                                     />
                                 </View>
-                                <View style={[]}>
-                                    <View style={styles.signInPageGradient}>
+                                <View>
+                                    <View style={[styles.t0, styles.l0, styles.h100, styles.pAbsolute, styles.signInPageGradient]}>
                                         <SignInGradient height="100%" preserveAspectRatio="none" />
                                     </View>
-                                    {/* <View style={[styles.signInPageGradient]} /> */}
                                     <View style={[
                                         styles.alignSelfCenter,
-                                        StyleUtils.getMaximumWidth(variables.signInHeroContentMaxWidth),
+                                        StyleUtils.getMaximumWidth(variables.signInContentMaxWidth),
                                         props.isMediumScreenWidth ? styles.ph10 : {},
                                         props.isLargeScreenWidth ? styles.ph25 : {}]}
                                     >
@@ -101,7 +98,7 @@ const SignInPageLayout = (props) => {
                         <View style={[styles.flex1, styles.flexColumn, StyleUtils.getMinimumHeight(Math.max(variables.signInContentMinHeight, containerHeight))]}>
                             <SignInHeroBackgroundImageMobile
                                 pointerEvents="none"
-                                width={800}
+                                width={variables.signInHeroBackgroundWidthMobile}
                                 style={styles.signInBackgroundMobile}
                             />
                             <SignInPageContent

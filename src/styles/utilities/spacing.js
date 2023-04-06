@@ -217,6 +217,10 @@ export default {
         marginBottom: 32,
     },
 
+    mb15: {
+        marginBottom: 60,
+    },
+
     mbn1: {
         marginBottom: -4,
     },
@@ -438,23 +442,8 @@ export default {
         gap: 4,
     },
 
-    gap5: {
-        gap: 20,
-    },
-
     gap7: {
         gap: 28,
     },
 
-    gap8: {
-        gap: 32,
-    },
-
-    gap9: {
-        gap: 36,
-    },
-
-    gap15: {
-        gap: 60,
-    },
 };

@@ -24,18 +24,15 @@ const logoComponents = {
 };
 
 const ExpensifyWordmark = (props) => {
-    const logoPillWidth = props.isSmallScreenWidth ? variables.signInLogoWidthPill : variables.signInLogoWidthLargeScreenPill;
-    const logoPillLeftMargin = props.isSmallScreenWidth ? styles.ml3 : {};
-
     const logoWidth = {
-        [CONST.ENVIRONMENT.DEV]: logoPillWidth,
-        [CONST.ENVIRONMENT.STAGING]: logoPillWidth,
+        [CONST.ENVIRONMENT.DEV]: props.isSmallScreenWidth ? variables.signInLogoWidthPill : variables.signInLogoWidthLargeScreenPill,
+        [CONST.ENVIRONMENT.STAGING]: props.isSmallScreenWidth ? variables.signInLogoWidthPill : variables.signInLogoWidthLargeScreenPill,
         [CONST.ENVIRONMENT.PRODUCTION]: props.isSmallScreenWidth ? variables.signInLogoWidth : variables.signInLogoWidthLargeScreen,
     };
 
-    const logoMargins = {
-        [CONST.ENVIRONMENT.DEV]: logoPillLeftMargin,
-        [CONST.ENVIRONMENT.STAGING]: logoPillLeftMargin,
+    const logoMarginStyle = {
+        [CONST.ENVIRONMENT.DEV]: props.isSmallScreenWidth ? styles.ml3 : {},
+        [CONST.ENVIRONMENT.STAGING]: props.isSmallScreenWidth ? styles.ml3 : {},
         [CONST.ENVIRONMENT.PRODUCTION]: {},
     };
 
@@ -43,7 +40,7 @@ const ExpensifyWordmark = (props) => {
     const LogoComponent = logoComponents[props.environment];
     return (
         <>
-            <View style={[StyleUtils.getWidthStyle(logoWidth[props.environment]), styles.h100, logoMargins[props.environment]]}>
+            <View style={[StyleUtils.getWidthStyle(logoWidth[props.environment]), StyleUtils.getHeight(props.isSmallScreenWidth ? 28 : 34), logoMarginStyle[props.environment]]}>
                 <LogoComponent fill={themeColors.success} />
             </View>
         </>

@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
@@ -16,6 +15,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import Performance from '../../libs/Performance';
 import Permissions from '../../libs/Permissions';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import ScreenWrapper from '../../components/ScreenWrapper';
 
 const propTypes = {
     /* Onyx Props */
@@ -93,14 +93,7 @@ class SignInPage extends Component {
         if (showValidateCodeForm) {
             if (this.props.account.requiresTwoFactorAuth) {
                 // We will only know this after a user signs in successfully, without their 2FA code
-
-                if (this.props.account.validated) {
-                    welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcomeBack');
-                } else {
-                    welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcome');
-                }
-
-                // welcomeHeader = this.props.translate('welcomeText.welcomeBack');
+                welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcomeBack');
                 welcomeText = this.props.translate('validateCodeForm.enterAuthenticatorCode');
             } else {
                 const userLogin = Str.removeSMSDomain(lodashGet(this.props, 'credentials.login', ''));
@@ -128,7 +121,7 @@ class SignInPage extends Component {
         }
 
         return (
-            <SafeAreaView style={[styles.signInPage]}>
+            <ScreenWrapper style={[styles.signInPage]}>
                 <SignInPageLayout
                     welcomeHeader={welcomeHeader}
                     welcomeText={welcomeText}
@@ -145,7 +138,7 @@ class SignInPage extends Component {
                     )}
                     {showResendValidationForm && <ResendValidationForm />}
                 </SignInPageLayout>
-            </SafeAreaView>
+            </ScreenWrapper>
         );
     }
 }
