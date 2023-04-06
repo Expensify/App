@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import IOUConfirmationList from '../../../components/IOUConfirmationList';
+import MoneyRequestConfirmationList from '../../../components/MoneyRequestConfirmationList';
 import CONST from '../../../CONST';
 import optionPropTypes from '../../../components/optionPropTypes';
 
@@ -40,8 +40,8 @@ const defaultProps = {
     canModifyParticipants: false,
 };
 
-const IOUConfirmPage = props => (
-    <IOUConfirmationList
+const MoneyRequestConfirmPage = props => (
+    <MoneyRequestConfirmationList
         hasMultipleParticipants={props.hasMultipleParticipants}
         participants={props.participants}
         comment={props.comment}
@@ -54,8 +54,8 @@ const IOUConfirmPage = props => (
     />
 );
 
-IOUConfirmPage.displayName = 'IOUConfirmPage';
-IOUConfirmPage.propTypes = propTypes;
-IOUConfirmPage.defaultProps = defaultProps;
+MoneyRequestConfirmPage.displayName = 'IOUConfirmPage';
+MoneyRequestConfirmPage.propTypes = propTypes;
+MoneyRequestConfirmPage.defaultProps = defaultProps;
 
-export default IOUConfirmPage;
+export default MoneyRequestConfirmPage;

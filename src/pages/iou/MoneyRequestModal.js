@@ -9,7 +9,7 @@ import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import MoneyRequestAmountPage from './steps/MoneyRequestAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage/IOUParticipantsPage';
-import IOUConfirmPage from './steps/IOUConfirmPage';
+import MoneyRequestConfirmPage from './steps/MoneyRequestConfirmPage';
 import ModalHeader from './ModalHeader';
 import styles from '../../styles/styles';
 import * as IOU from '../../libs/actions/IOU';
@@ -391,7 +391,7 @@ const MoneyRequestModal = (props) => {
                                         direction={direction}
                                     >
                                         {modalHeader}
-                                        <IOUConfirmPage
+                                        <MoneyRequestConfirmPage
                                             onConfirm={(selectedParticipants) => {
                                                 // TODO: ADD HANDLING TO DISABLE BUTTON FUNCTIONALITY WHILE REQUEST IS IN FLIGHT
                                                 createTransaction(selectedParticipants);
