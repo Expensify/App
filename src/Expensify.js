@@ -1,7 +1,9 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {
+    useCallback, useState, useEffect, useRef, useLayoutEffect
+} from 'react';
 import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 
@@ -85,14 +87,14 @@ const defaultProps = {
 };
 
 function Expensify(props) {
-    const appStateChangeListener = React.useRef(null);
-    const [isNavigationReady, setIsNavigationReady] = React.useState(false);
-    const [isOnyxMigrated, setIsOnyxMigrated] = React.useState(false);
-    const [isSplashShown, setIsSplashShown] = React.useState(true);
+    const appStateChangeListener = useRef(null);
+    const [isNavigationReady, setIsNavigationReady] = useState(false);
+    const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
+    const [isSplashShown, setIsSplashShown] = useState(true);
 
     const isAuthenticated = Boolean(lodashGet(props, 'session.authToken', null));
 
-    const reportBootSplashStatus = () => {
+    const reportBootSplashStatus = useCallback(() => {
         BootSplash
             .getVisibilityStatus()
             .then((status) => {
@@ -105,7 +107,7 @@ function Expensify(props) {
                     Log.alert('[BootSplash] splash screen is still visible', {propsToLog}, false);
                 }
             });
-    };
+    });
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
@@ -122,12 +124,12 @@ function Expensify(props) {
         Navigation.setIsNavigationReady();
     };
 
-    React.useLayoutEffect(() => {
+    useLayoutEffect(() => {
         // Used for the offline indicator appearing when someone is offline
         NetworkConnection.subscribeToNetInfo();
     }, []);
 
-    React.useEffect(() => {
+    useEffect(() => {
         setTimeout(() => reportBootSplashStatus(), 30 * 1000);
 
         // This timer is set in the native layer when launching the app and we stop it here so we can measure how long
@@ -156,7 +158,7 @@ function Expensify(props) {
         };
     }, [isAuthenticated, reportBootSplashStatus]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!isNavigationReady || !isSplashShown) {
             return;
         }
