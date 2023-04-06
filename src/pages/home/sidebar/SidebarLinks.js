@@ -68,9 +68,6 @@ const propTypes = {
     /** Current reportID from the route in react navigation state object */
     reportIDFromRoute: PropTypes.string,
 
-    /** Callback when onLayout of sidebar is called */
-    onLayout: PropTypes.func,
-
     /** Whether we are viewing below the responsive breakpoint */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
