@@ -60,13 +60,13 @@ const MenuItem = (props) => {
         (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
         styles.pre,
     ], props.style);
-    const descritionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
+    const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const descriptionTextStyle = StyleUtils.combineStyles([
         styles.textLabelSupporting,
         (props.icon ? styles.ml3 : undefined),
         styles.breakWord,
         styles.lineHeightNormal,
-        props.title ? descritionVerticalMargin : undefined,
+        props.title ? descriptionVerticalMargin : undefined,
     ], props.style);
 
     return (
