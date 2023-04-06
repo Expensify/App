@@ -30,6 +30,7 @@ import Slider from './Slider';
 import cropOrRotateImage from '../../libs/cropOrRotateImage';
 import HeaderGap from '../HeaderGap';
 import * as StyleUtils from '../../styles/StyleUtils';
+import Tooltip from '../Tooltip';
 
 const propTypes = {
     /** Link to image for cropping */
@@ -398,14 +399,16 @@ const AvatarCropModal = (props) => {
                                 >
                                     <Slider sliderValue={translateSlider} onGesture={panSliderGestureEventHandler} />
                                 </Pressable>
-                                <Button
-                                    medium
-                                    icon={Expensicons.Rotate}
-                                    iconFill={themeColors.inverse}
-                                    iconStyles={[styles.mr0]}
-                                    style={[styles.imageCropRotateButton]}
-                                    onPress={rotateImage}
-                                />
+                                <Tooltip text={props.translate('common.rotate')} shiftVertical={-2}>
+                                    <Button
+                                        medium
+                                        icon={Expensicons.Rotate}
+                                        iconFill={themeColors.inverse}
+                                        iconStyles={[styles.mr0]}
+                                        style={[styles.imageCropRotateButton]}
+                                        onPress={rotateImage}
+                                    />
+                                </Tooltip>
                             </View>
                         </>
                     )}

@@ -19,6 +19,8 @@ export default {
         resend: 'Reenviar',
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
+        rotate: 'Rotar',
+        zoom: 'Zoom',
         password: 'Contraseña',
         magicCode: 'Código mágico',
         workspaces: 'Espacios de trabajo',

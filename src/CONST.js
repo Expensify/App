@@ -1041,7 +1041,7 @@ const CONST = {
         SUPPORT_URL: `${USE_EXPENSIFY_URL}/support`,
         COMMUNITY_URL: 'https://community.expensify.com/',
         PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
-        ABOUT_URL: 'https://we.are.expensify.com/',
+        ABOUT_URL: 'https://we.are.expensify.com/how-we-got-here',
         BLOG_URL: 'https://blog.expensify.com/',
         JOBS_URL: 'https://we.are.expensify.com/apply',
         ORG_URL: 'https://expensify.org/',
