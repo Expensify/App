@@ -1064,49 +1064,18 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
-    statusIndicator: {
+    statusIndicator: (backgroundColor = themeColors.danger) => ({
         borderColor: themeColors.sidebar,
-        backgroundColor: themeColors.danger,
-        borderRadius: 6,
-        borderWidth: 2,
-        position: 'absolute',
-        right: -1,
-        bottom: -1,
-        height: 12,
-        width: 12,
-        zIndex: 10,
-    },
-
-    statusIndicatorLarge: {
-        borderColor: themeColors.componentBG,
-        backgroundColor: themeColors.danger,
+        backgroundColor,
         borderRadius: 8,
         borderWidth: 2,
         position: 'absolute',
-        right: 4,
-        bottom: 4,
+        right: -2,
+        top: -1,
         height: 16,
         width: 16,
         zIndex: 10,
-    },
-
-    statusIndicatorOnline: {
-        backgroundColor: themeColors.success,
-    },
-
-    avatarWithIndicator: {
-        errorDot: {
-            borderColor: themeColors.sidebar,
-            borderRadius: 6,
-            borderWidth: 2,
-            position: 'absolute',
-            right: -1,
-            bottom: -1,
-            height: 12,
-            width: 12,
-            zIndex: 10,
-        },
-    },
+    }),
 
     floatingActionButtonContainer: {
         position: 'absolute',
@@ -2850,6 +2819,12 @@ const styles = {
         cursor: 'move',
     },
 
+    sliderKnobTooltipView: {
+        height: variables.sliderKnobSize,
+        width: variables.sliderKnobSize,
+        borderRadius: variables.sliderKnobSize / 2,
+    },
+
     sliderKnob: {
         backgroundColor: themeColors.success,
         position: 'absolute',
@@ -2909,7 +2884,6 @@ const styles = {
     },
 
     textPill: {
-        ellipsizeMode: 'end',
         backgroundColor: themeColors.border,
         borderRadius: 10,
         overflow: 'hidden',

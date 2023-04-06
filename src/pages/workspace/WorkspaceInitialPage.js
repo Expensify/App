@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -42,230 +42,206 @@ const defaultProps = {
     ...policyDefaultProps,
 };
 
-class WorkspaceInitialPage extends React.Component {
-    constructor(props) {
-        super(props);
+/**
+ * @param {string} policyID
+ */
+function openEditor(policyID) {
+    Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(policyID));
+}
 
-        this.openEditor = this.openEditor.bind(this);
-        this.toggleDeleteModal = this.toggleDeleteModal.bind(this);
-        this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
-        this.hasPolicyCreationError = this.hasPolicyCreationError.bind(this);
-        this.dismissError = this.dismissError.bind(this);
+/**
+ * @param {string} policyID
+ */
+function dismissError(policyID) {
+    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+    Policy.removeWorkspace(policyID);
+}
 
-        this.state = {
-            isDeleteModalOpen: false,
-        };
-    }
-
-    /**
-     * Open Workspace Editor
-     */
-    openEditor() {
-        Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(this.props.policy.id));
-    }
-
-    /**
-     * Toggle delete confirm modal visibility
-     * @param {Boolean} shouldOpen
-     */
-    toggleDeleteModal(shouldOpen) {
-        this.setState({isDeleteModalOpen: shouldOpen});
-    }
+const WorkspaceInitialPage = (props) => {
+    const policy = props.policy;
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const hasPolicyCreationError = Boolean(policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.errors);
 
     /**
      * Call the delete policy and hide the modal
      */
-    confirmDeleteAndHideModal() {
-        const policyReports = _.filter(this.props.reports, report => report && report.policyID === this.props.policy.id);
-        Policy.deleteWorkspace(this.props.policy.id, policyReports, this.props.policy.name);
-        this.toggleDeleteModal(false);
+    const confirmDeleteAndHideModal = useCallback(() => {
+        const policyReports = _.filter(props.reports, report => report && report.policyID === policy.id);
+        Policy.deleteWorkspace(policy.id, policyReports, policy.name);
+        setIsDeleteModalOpen(false);
         Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
-    }
+    }, [props.reports, policy]);
 
-    /**
-     * @returns {Boolean}
-     */
-    hasPolicyCreationError() {
-        return Boolean(this.props.policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && this.props.policy.errors);
-    }
+    const policyName = lodashGet(policy, 'name', '');
+    const hasMembersError = PolicyUtils.hasPolicyMemberError(props.policyMemberList);
+    const hasGeneralSettingsError = !_.isEmpty(lodashGet(policy, 'errorFields.generalSettings', {}))
+        || !_.isEmpty(lodashGet(policy, 'errorFields.avatar', {}));
+    const hasCustomUnitsError = PolicyUtils.hasCustomUnitsError(policy);
+    const menuItems = [
+        {
+            translationKey: 'workspace.common.settings',
+            icon: Expensicons.Gear,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(policy.id)),
+            brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
+        },
+        {
+            translationKey: 'workspace.common.card',
+            icon: Expensicons.ExpensifyCard,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id)),
+        },
+        {
+            translationKey: 'workspace.common.reimburse',
+            icon: Expensicons.Receipt,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceReimburseRoute(policy.id)),
+            error: hasCustomUnitsError,
+        },
+        {
+            translationKey: 'workspace.common.bills',
+            icon: Expensicons.Bill,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceBillsRoute(policy.id)),
+        },
+        {
+            translationKey: 'workspace.common.invoices',
+            icon: Expensicons.Invoice,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceInvoicesRoute(policy.id)),
+        },
+        {
+            translationKey: 'workspace.common.travel',
+            icon: Expensicons.Luggage,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceTravelRoute(policy.id)),
+        },
+        {
+            translationKey: 'workspace.common.members',
+            icon: Expensicons.Users,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceMembersRoute(policy.id)),
+            brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
+        },
+        {
+            translationKey: 'workspace.common.bankAccount',
+            icon: Expensicons.Bank,
+            action: () => ReimbursementAccount.navigateToBankAccountRoute(policy.id),
+        },
+    ];
 
-    dismissError() {
-        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
-        Policy.removeWorkspace(this.props.policy.id);
-    }
-
-    render() {
-        const policy = this.props.policy;
-        const policyName = lodashGet(this.props.policy, 'name', '');
-        const hasMembersError = PolicyUtils.hasPolicyMemberError(this.props.policyMemberList);
-        const hasGeneralSettingsError = !_.isEmpty(lodashGet(this.props.policy, 'errorFields.generalSettings', {}))
-            || !_.isEmpty(lodashGet(this.props.policy, 'errorFields.avatar', {}));
-        const hasCustomUnitsError = PolicyUtils.hasCustomUnitsError(this.props.policy);
-        const menuItems = [
-            {
-                translationKey: 'workspace.common.settings',
-                icon: Expensicons.Gear,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(policy.id)),
-                brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
-            },
-            {
-                translationKey: 'workspace.common.card',
-                icon: Expensicons.ExpensifyCard,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id)),
-            },
-            {
-                translationKey: 'workspace.common.reimburse',
-                icon: Expensicons.Receipt,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceReimburseRoute(policy.id)),
-                error: hasCustomUnitsError,
-            },
-            {
-                translationKey: 'workspace.common.bills',
-                icon: Expensicons.Bill,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceBillsRoute(policy.id)),
-            },
-            {
-                translationKey: 'workspace.common.invoices',
-                icon: Expensicons.Invoice,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceInvoicesRoute(policy.id)),
-            },
-            {
-                translationKey: 'workspace.common.travel',
-                icon: Expensicons.Luggage,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceTravelRoute(policy.id)),
-            },
-            {
-                translationKey: 'workspace.common.members',
-                icon: Expensicons.Users,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceMembersRoute(policy.id)),
-                brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
-            },
-            {
-                translationKey: 'workspace.common.bankAccount',
-                icon: Expensicons.Bank,
-                action: () => ReimbursementAccount.navigateToBankAccountRoute(policy.id),
-            },
-        ];
-
-        return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                {({safeAreaPaddingBottomStyle}) => (
-                    <FullPageNotFoundView
-                        shouldShow={_.isEmpty(this.props.policy)}
+    return (
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            {({safeAreaPaddingBottomStyle}) => (
+                <FullPageNotFoundView
+                    shouldShow={_.isEmpty(policy)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                >
+                    <HeaderWithCloseButton
+                        title={props.translate('workspace.common.workspace')}
+                        shouldShowBackButton
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                        onCloseButtonPress={() => Navigation.dismissModal()}
+                        shouldShowThreeDotsButton
+                        shouldShowGetAssistanceButton
+                        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
+                        threeDotsMenuItems={[
+                            {
+                                icon: Expensicons.Trashcan,
+                                text: props.translate('workspace.common.delete'),
+                                onSelected: () => setIsDeleteModalOpen(true),
+                            },
+                        ]}
+                        threeDotsAnchorPosition={styles.threeDotsPopoverOffset}
+                    />
+                    <ScrollView
+                        contentContainerStyle={[
+                            styles.flexGrow1,
+                            styles.flexColumn,
+                            styles.justifyContentBetween,
+                            safeAreaPaddingBottomStyle,
+                        ]}
                     >
-                        <HeaderWithCloseButton
-                            title={this.props.translate('workspace.common.workspace')}
-                            shouldShowBackButton
-                            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
-                            onCloseButtonPress={() => Navigation.dismissModal()}
-                            shouldShowThreeDotsButton
-                            shouldShowGetAssistanceButton
-                            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
-                            threeDotsMenuItems={[
-                                {
-                                    icon: Expensicons.Trashcan,
-                                    text: this.props.translate('workspace.common.delete'),
-                                    onSelected: () => this.setState({isDeleteModalOpen: true}),
-                                },
-                            ]}
-                            threeDotsAnchorPosition={styles.threeDotsPopoverOffset}
-                        />
-                        <ScrollView
-                            contentContainerStyle={[
-                                styles.flexGrow1,
-                                styles.flexColumn,
-                                styles.justifyContentBetween,
-                                safeAreaPaddingBottomStyle,
-                            ]}
+                        <OfflineWithFeedback
+                            pendingAction={policy.pendingAction}
+                            onClose={() => dismissError(policy.id)}
+                            errors={policy.errors}
+                            errorRowStyles={[styles.ph6, styles.pv2]}
                         >
-                            <OfflineWithFeedback
-                                pendingAction={this.props.policy.pendingAction}
-                                onClose={this.dismissError}
-                                errors={this.props.policy.errors}
-                                errorRowStyles={[styles.ph6, styles.pv2]}
-                            >
-                                <View style={[styles.flex1]}>
-                                    <View style={styles.avatarSectionWrapper}>
-                                        <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
+                            <View style={[styles.flex1]}>
+                                <View style={styles.avatarSectionWrapper}>
+                                    <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
+                                        <Pressable
+                                            disabled={hasPolicyCreationError}
+                                            style={[styles.pRelative, styles.avatarLarge]}
+                                            onPress={() => openEditor(policy.id)}
+                                        >
+                                            <Tooltip text={props.translate('workspace.common.settings')}>
+                                                <Avatar
+                                                    containerStyles={styles.avatarLarge}
+                                                    imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                                    source={policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
+                                                    fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                                                    size={CONST.AVATAR_SIZE.LARGE}
+                                                    name={policyName}
+                                                    type={CONST.ICON_TYPE_WORKSPACE}
+                                                />
+                                            </Tooltip>
+                                        </Pressable>
+                                        {!_.isEmpty(policy.name) && (
                                             <Pressable
-                                                disabled={this.hasPolicyCreationError()}
-                                                style={[styles.pRelative, styles.avatarLarge]}
-                                                onPress={this.openEditor}
+                                                disabled={hasPolicyCreationError}
+                                                style={[
+                                                    styles.alignSelfCenter,
+                                                    styles.mt4,
+                                                    styles.w100,
+                                                ]}
+                                                onPress={() => openEditor(policy.id)}
                                             >
-                                                <Tooltip text={this.props.translate('workspace.common.settings')}>
-                                                    <Avatar
-                                                        containerStyles={styles.avatarLarge}
-                                                        imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                                        source={this.props.policy.avatar ? this.props.policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
-                                                        fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                                                        size={CONST.AVATAR_SIZE.LARGE}
-                                                        name={policyName}
-                                                        type={CONST.ICON_TYPE_WORKSPACE}
-                                                    />
+                                                <Tooltip text={props.translate('workspace.common.settings')}>
+                                                    <Text
+                                                        numberOfLines={1}
+                                                        style={[
+                                                            styles.textHeadline,
+                                                            styles.alignSelfCenter,
+                                                            styles.pre,
+                                                        ]}
+                                                    >
+                                                        {policy.name}
+                                                    </Text>
                                                 </Tooltip>
                                             </Pressable>
-                                            {!_.isEmpty(this.props.policy.name) && (
-                                                <Pressable
-                                                    disabled={this.hasPolicyCreationError()}
-                                                    style={[
-                                                        styles.alignSelfCenter,
-                                                        styles.mt4,
-                                                        styles.w100,
-                                                    ]}
-                                                    onPress={this.openEditor}
-                                                >
-                                                    <Tooltip text={this.props.translate('workspace.common.settings')}>
-                                                        <Text
-                                                            numberOfLines={1}
-                                                            style={[
-                                                                styles.textHeadline,
-                                                                styles.alignSelfCenter,
-                                                                styles.pre,
-                                                            ]}
-                                                        >
-                                                            {this.props.policy.name}
-                                                        </Text>
-                                                    </Tooltip>
-                                                </Pressable>
-                                            )}
-                                        </View>
+                                        )}
                                     </View>
-                                    {_.map(menuItems, item => (
-                                        <MenuItem
-                                            key={item.translationKey}
-                                            disabled={this.hasPolicyCreationError()}
-                                            interactive={!this.hasPolicyCreationError()}
-                                            title={this.props.translate(item.translationKey)}
-                                            icon={item.icon}
-                                            iconRight={item.iconRight}
-                                            onPress={() => item.action()}
-                                            shouldShowRightIcon
-                                            brickRoadIndicator={item.brickRoadIndicator}
-                                        />
-                                    ))}
                                 </View>
-                            </OfflineWithFeedback>
-                        </ScrollView>
-                        <ConfirmModal
-                            title={this.props.translate('workspace.common.delete')}
-                            isVisible={this.state.isDeleteModalOpen}
-                            onConfirm={this.confirmDeleteAndHideModal}
-                            onCancel={() => this.toggleDeleteModal(false)}
-                            prompt={this.props.translate('workspace.common.deleteConfirmation')}
-                            confirmText={this.props.translate('common.delete')}
-                            cancelText={this.props.translate('common.cancel')}
-                            danger
-                        />
-                    </FullPageNotFoundView>
-                )}
-            </ScreenWrapper>
-        );
-    }
-}
+                                {_.map(menuItems, item => (
+                                    <MenuItem
+                                        key={item.translationKey}
+                                        disabled={hasPolicyCreationError}
+                                        interactive={!hasPolicyCreationError}
+                                        title={props.translate(item.translationKey)}
+                                        icon={item.icon}
+                                        iconRight={item.iconRight}
+                                        onPress={() => item.action()}
+                                        shouldShowRightIcon
+                                        brickRoadIndicator={item.brickRoadIndicator}
+                                    />
+                                ))}
+                            </View>
+                        </OfflineWithFeedback>
+                    </ScrollView>
+                    <ConfirmModal
+                        title={props.translate('workspace.common.delete')}
+                        isVisible={isDeleteModalOpen}
+                        onConfirm={confirmDeleteAndHideModal}
+                        onCancel={() => setIsDeleteModalOpen(false)}
+                        prompt={props.translate('workspace.common.deleteConfirmation')}
+                        confirmText={props.translate('common.delete')}
+                        cancelText={props.translate('common.cancel')}
+                        danger
+                    />
+                </FullPageNotFoundView>
+            )}
+        </ScreenWrapper>
+    );
+};
 
 WorkspaceInitialPage.propTypes = propTypes;
 WorkspaceInitialPage.defaultProps = defaultProps;
+WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
 export default compose(
     withLocalize,

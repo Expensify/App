@@ -282,6 +282,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsContactMethodDetailsPage = require('../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default;
+            return SettingsContactMethodDetailsPage;
+        },
+        name: 'Settings_ContactMethodDetails',
+    },
+    {
+        getComponent: () => {
             const SettingsAddSecondaryLoginPage = require('../../../pages/settings/Profile/Contacts/AddSecondaryLoginPage').default;
             return SettingsAddSecondaryLoginPage;
         },
