@@ -234,7 +234,7 @@ class ContactMethodDetailsPage extends Component {
                             >
                                 <MenuItem
                                     title={this.props.translate('contacts.setAsDefault')}
-                                    icon={Expensicons.CircleCheck}
+                                    icon={Expensicons.Profile}
                                     onPress={() => User.setContactMethodAsDefault(contactMethod)}
                                 />
                             </OfflineWithFeedback>

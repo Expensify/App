@@ -19,7 +19,6 @@ import Cash from '../../../assets/images/cash.svg';
 import ChatBubble from '../../../assets/images/chatbubble.svg';
 import Checkmark from '../../../assets/images/checkmark.svg';
 import Chair from '../../../assets/images/chair.svg';
-import CircleCheck from '../../../assets/images/circle-check.svg';
 import Clipboard from '../../../assets/images/clipboard.svg';
 import Close from '../../../assets/images/close.svg';
 import ClosedSign from '../../../assets/images/closed-sign.svg';
@@ -134,7 +133,6 @@ export {
     ChatBubble,
     Checkmark,
     Chair,
-    CircleCheck,
     Clipboard,
     Close,
     ClosedSign,
