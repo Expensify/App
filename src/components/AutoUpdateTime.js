@@ -39,7 +39,7 @@ function AutoUpdateTime(props) {
         )
     ), [props.preferredLocale, props.timezone.selected]);
 
-    const [currentUserLocalTime, setCurrentUserLocalTime] = useState(getCurrentUserLocalTime());
+    const [currentUserLocalTime, setCurrentUserLocalTime] = useState(getCurrentUserLocalTime);
     const timerRef = useRef(null);
 
     /**
