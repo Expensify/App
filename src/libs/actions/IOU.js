@@ -11,6 +11,7 @@ import asyncOpenURL from '../asyncOpenURL';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import * as IOUUtils from '../IOUUtils';
+import * as NumberFormatUtils from '../NumberFormatUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 
@@ -875,6 +876,8 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             chatReportID: chatReport.reportID,
             reportActionID: optimisticIOUReportAction.reportActionID,
             paymentMethodType,
+            amount: iouReport.total,
+            currency: iouReport.currency,
         },
         optimisticData,
         successData,
