@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import IOUParticipantsSplit from './IOUParticipantsSplit';
-import IOUParticipantsRequest from './IOUParticipantsRequest';
+import MoneyRequestParticipantsSplit from './MoneyRequestParticipantsSplit';
+import MoneyRequestParticipantsRequest from './MoneyRequestParticipantsRequest';
 import styles from '../../../../styles/styles';
 import FullScreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 import optionPropTypes from '../../../../components/optionPropTypes';
@@ -44,7 +44,7 @@ const defaultProps = {
     safeAreaPaddingBottomStyle: {},
 };
 
-const IOUParticipantsPage = (props) => {
+const MoneyRequestParticipantsPage = (props) => {
     if (props.iou.loading) {
         return (
             <View style={styles.flex1}>
@@ -55,7 +55,7 @@ const IOUParticipantsPage = (props) => {
 
     return (props.hasMultipleParticipants
         ? (
-            <IOUParticipantsSplit
+            <MoneyRequestParticipantsSplit
                 onStepComplete={props.onStepComplete}
                 participants={props.participants}
                 onAddParticipants={props.onAddParticipants}
@@ -63,7 +63,7 @@ const IOUParticipantsPage = (props) => {
             />
         )
         : (
-            <IOUParticipantsRequest
+            <MoneyRequestParticipantsRequest
                 onStepComplete={props.onStepComplete}
                 onAddParticipants={props.onAddParticipants}
                 safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle}
@@ -72,10 +72,10 @@ const IOUParticipantsPage = (props) => {
     );
 };
 
-IOUParticipantsPage.displayName = 'IOUParticipantsPage';
-IOUParticipantsPage.propTypes = propTypes;
-IOUParticipantsPage.defaultProps = defaultProps;
+MoneyRequestParticipantsPage.displayName = 'IOUParticipantsPage';
+MoneyRequestParticipantsPage.propTypes = propTypes;
+MoneyRequestParticipantsPage.defaultProps = defaultProps;
 
 export default withOnyx({
     iou: {key: ONYXKEYS.IOU},
-})(IOUParticipantsPage);
+})(MoneyRequestParticipantsPage);

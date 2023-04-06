@@ -60,7 +60,7 @@ const defaultProps = {
     safeAreaPaddingBottomStyle: {},
 };
 
-class IOUParticipantsSplit extends Component {
+class MoneyRequestParticipantsSplit extends Component {
     constructor(props) {
         super(props);
 
@@ -244,8 +244,8 @@ class IOUParticipantsSplit extends Component {
     }
 }
 
-IOUParticipantsSplit.propTypes = propTypes;
-IOUParticipantsSplit.defaultProps = defaultProps;
+MoneyRequestParticipantsSplit.propTypes = propTypes;
+MoneyRequestParticipantsSplit.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -260,4 +260,4 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
     }),
-)(IOUParticipantsSplit);
+)(MoneyRequestParticipantsSplit);

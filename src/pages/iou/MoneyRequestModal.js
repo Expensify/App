@@ -8,7 +8,7 @@ import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import MoneyRequestAmountPage from './steps/MoneyRequestAmountPage';
-import IOUParticipantsPage from './steps/IOUParticipantsPage/IOUParticipantsPage';
+import MoneyRequestParticipantsPage from './steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage';
 import MoneyRequestConfirmPage from './steps/MoneyRequestConfirmPage';
 import ModalHeader from './ModalHeader';
 import styles from '../../styles/styles';
@@ -376,7 +376,7 @@ const MoneyRequestModal = (props) => {
                                         direction={direction}
                                     >
                                         {modalHeader}
-                                        <IOUParticipantsPage
+                                        <MoneyRequestParticipantsPage
                                             participants={selectedOptions}
                                             hasMultipleParticipants={props.hasMultipleParticipants}
                                             onAddParticipants={selectedParticipants => setSelectedOptions(selectedParticipants)}
