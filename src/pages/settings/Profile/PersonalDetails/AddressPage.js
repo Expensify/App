@@ -16,6 +16,7 @@ import TextInput from '../../../../components/TextInput';
 import styles from '../../../../styles/styles';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
+import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import compose from '../../../../libs/compose';
 import AddressSearch from '../../../../components/AddressSearch';
 import CountryPicker from '../../../../components/CountryPicker';
@@ -60,8 +61,10 @@ class AddressPage extends Component {
         this.onCountryUpdate = this.onCountryUpdate.bind(this);
 
         const currentCountry = lodashGet(props.privatePersonalDetails, 'address.country') || '';
+        const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountry, 'samples'], '');
         this.state = {
             isUsaForm: (currentCountry === CONST.COUNTRY.US || currentCountry === CONST.USA_COUNTRY_NAME),
+            zipFormat: this.props.translate('common.format', {zipSampleFormat}),
         };
     }
 
@@ -69,7 +72,11 @@ class AddressPage extends Component {
      * @param {String} newCountry - new country selected in form
      */
     onCountryUpdate(newCountry) {
-        this.setState({isUsaForm: newCountry === CONST.COUNTRY.US});
+        const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, `${newCountry}.samples`, '');
+        this.setState({
+            isUsaForm: newCountry === CONST.COUNTRY.US,
+            zipFormat: this.props.translate('common.format', {zipSampleFormat}),
+        });
     }
 
     /**
@@ -82,7 +89,7 @@ class AddressPage extends Component {
             values.addressLine2.trim(),
             values.city.trim(),
             values.state.trim(),
-            values.zipPostCode,
+            values.zipPostCode.trim(),
             values.country,
         );
     }
@@ -97,7 +104,6 @@ class AddressPage extends Component {
         const requiredFields = [
             'addressLine1',
             'city',
-            'zipPostCode',
             'country',
             'state',
         ];
@@ -109,11 +115,30 @@ class AddressPage extends Component {
 
         // Add "Field required" errors if any required field is empty
         _.each(requiredFields, (fieldKey) => {
-            if (!_.isEmpty(values[fieldKey])) {
+            if (ValidationUtils.isRequiredFulfilled(values[fieldKey])) {
                 return;
             }
             errors[fieldKey] = this.props.translate('common.error.fieldRequired');
         });
+
+        // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
+        const countryRegexDetails = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, values.country, {});
+
+        // The postal code system might not exist for a country, so no regex either for them.
+        const countrySpecificZipRegex = lodashGet(countryRegexDetails, 'regex');
+        const zipFormat = lodashGet(countryRegexDetails, 'samples');
+
+        if (countrySpecificZipRegex) {
+            if (!countrySpecificZipRegex.test(values.zipPostCode.trim())) {
+                if (ValidationUtils.isRequiredFulfilled(values.zipPostCode.trim())) {
+                    errors.zipPostCode = this.props.translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat});
+                } else {
+                    errors.zipPostCode = this.props.translate('common.error.fieldRequired');
+                }
+            }
+        } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values.zipPostCode.trim())) {
+            errors.zipPostCode = this.props.translate('privatePersonalDetails.error.incorrectZipFormat');
+        }
 
         return errors;
     }
@@ -170,31 +195,30 @@ class AddressPage extends Component {
                             maxLength={CONST.FORM_CHARACTER_LIMIT}
                         />
                     </View>
-                    <View style={[styles.flexRow, styles.mb4]}>
-                        <View style={[styles.flex1, styles.mr2]}>
-                            {this.state.isUsaForm ? (
-                                <StatePicker
-                                    inputID="state"
-                                    defaultValue={address.state || ''}
-                                />
-                            ) : (
-                                <TextInput
-                                    inputID="state"
-                                    label={this.props.translate('common.stateOrProvince')}
-                                    defaultValue={address.state || ''}
-                                    maxLength={CONST.FORM_CHARACTER_LIMIT}
-                                />
-                            )}
-                        </View>
-                        <View style={[styles.flex1]}>
-                            <TextInput
-                                inputID="zipPostCode"
-                                label={this.props.translate('common.zipPostCode')}
-                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                defaultValue={address.zip || ''}
-                                maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+                    <View style={styles.mb4}>
+                        {this.state.isUsaForm ? (
+                            <StatePicker
+                                inputID="state"
+                                defaultValue={address.state || ''}
                             />
-                        </View>
+                        ) : (
+                            <TextInput
+                                inputID="state"
+                                label={this.props.translate('common.stateOrProvince')}
+                                defaultValue={address.state || ''}
+                                maxLength={CONST.FORM_CHARACTER_LIMIT}
+                            />
+                        )}
+                    </View>
+                    <View style={styles.mb4}>
+                        <TextInput
+                            inputID="zipPostCode"
+                            label={this.props.translate('common.zipPostCode')}
+                            autoCapitalize="characters"
+                            defaultValue={address.zip || ''}
+                            maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+                            hint={this.state.zipFormat}
+                        />
                     </View>
                     <View>
                         <CountryPicker

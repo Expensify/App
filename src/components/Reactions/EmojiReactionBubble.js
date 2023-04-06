@@ -66,6 +66,9 @@ const EmojiReactionBubble = (props) => {
             ]}
             onPress={props.onPress}
             onLongPress={props.onReactionListOpen}
+
+            // Prevent text input blur when emoji reaction is clicked
+            onMouseDown={e => e.preventDefault()}
         >
             <Text style={[
                 styles.emojiReactionText,

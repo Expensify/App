@@ -63,7 +63,7 @@ class FloatingMessageCounter extends PureComponent {
     render() {
         return (
             <FloatingMessageCounterContainer
-                accessibilityHint="Scroll to newest messages"
+                accessibilityHint={this.props.translate('accessibilityHints.scrollToNewestMessages')}
                 containerStyles={[styles.floatingMessageCounterTransformation(this.translateY)]}
             >
                 <View style={styles.floatingMessageCounter}>

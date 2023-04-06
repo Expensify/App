@@ -18,7 +18,7 @@ const propTypes = {
     /** Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
 
-    /** Callback to add participants in IOUModal */
+    /** Callback to add participants in MoneyRequestModal */
     onAddParticipants: PropTypes.func.isRequired,
 
     /** All of the personal details for everyone */

@@ -34,6 +34,7 @@ import ConfirmModal from '../../components/ConfirmModal';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as Link from '../../libs/actions/Link';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import * as UserUtils from '../../libs/UserUtils';
 import policyMemberPropType from '../policyMemberPropType';
 
 const propTypes = {
@@ -81,6 +82,15 @@ const propTypes = {
     /** Information about the user accepting the terms for payments */
     walletTerms: walletTermsPropTypes,
 
+    /** Login list for the user that is signed in */
+    loginList: PropTypes.shape({
+        /** Date login was validated, used to show brickroad info status */
+        validatedDate: PropTypes.string,
+
+        /** Field-specific server side errors keyed by microtime */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+    }),
+
     /** List of policy members */
     policyMembers: PropTypes.objectOf(policyMemberPropType),
 
@@ -98,6 +108,7 @@ const defaultProps = {
     walletTerms: {},
     bankAccountList: {},
     cardList: {},
+    loginList: {},
     policyMembers: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -152,6 +163,7 @@ class InitialSettingsPage extends React.Component {
             .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
             .find(policy => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers))
             .value() ? 'error' : null;
+        const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(this.props.loginList);
 
         return ([
             {
@@ -166,6 +178,7 @@ class InitialSettingsPage extends React.Component {
                 translationKey: 'common.profile',
                 icon: Expensicons.Profile,
                 action: () => { App.openProfile(); },
+                brickRoadIndicator: profileBrickRoadIndicator,
             },
             {
                 translationKey: 'common.preferences',
@@ -216,7 +229,6 @@ class InitialSettingsPage extends React.Component {
                 iconType={item.iconType}
                 onPress={item.action}
                 iconStyles={item.iconStyles}
-                iconFill={item.iconFill}
                 shouldShowRightIcon
                 iconRight={item.iconRight}
                 badgeText={this.getWalletBalance(isPaymentItem)}
@@ -348,6 +360,9 @@ export default compose(
         },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,
+        },
+        loginList: {
+            key: ONYXKEYS.LOGIN_LIST,
         },
     }),
     withNetwork(),

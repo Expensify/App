@@ -77,6 +77,7 @@ class YearPickerPage extends React.Component {
     }
 
     render() {
+        const headerMessage = this.state.inputText.trim() && !this.state.yearOptions.length ? this.props.translate('common.noResultsFound') : '';
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
@@ -93,6 +94,7 @@ class YearPickerPage extends React.Component {
                     value={this.state.inputText}
                     sections={[{data: this.state.yearOptions, indexOffset: 0}]}
                     onSelectRow={option => this.updateSelectedYear(option.value)}
+                    headerMessage={headerMessage}
                     initiallyFocusedOptionKey={this.currentYear.toString()}
                     hideSectionHeaders
                     optionHoveredStyle={styles.hoveredComponentBG}
