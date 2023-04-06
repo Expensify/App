@@ -99,12 +99,23 @@ function getReportParticipantsTitle(logins) {
 }
 
 /**
- * Attempts to find a report in onyx with the provided list of participants
+ * Checks if a report is an Expense report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isExpenseReport(report) {
+    return lodashGet(report, 'type') === CONST.REPORT.TYPE.EXPENSE;
+}
+
+/**
+ * Checks if a report is an IOU report.
+ *
  * @param {Object} report
  * @returns {Boolean}
  */
 function isIOUReport(report) {
-    return report && _.has(report, 'total');
+    return lodashGet(report, 'type') === CONST.REPORT.TYPE.IOU;
 }
 
 /**
@@ -1736,6 +1747,7 @@ export {
     getAllPolicyReports,
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
+    isExpenseReport,
     isIOUReport,
     chatIncludesChronos,
     getAvatar,
