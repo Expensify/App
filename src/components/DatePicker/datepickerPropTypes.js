@@ -18,11 +18,16 @@ const propTypes = {
      * `onInputChange` would always be called with a Date (or null)
      */
     defaultValue: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
+
+    minDate: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
+    maxDate: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
 };
 
 const defaultProps = {
     ...defaultFieldPropTypes,
     value: undefined,
+    minDate: undefined,
+    maxDate: undefined,
 };
 
 export {propTypes, defaultProps};
