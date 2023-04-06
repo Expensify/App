@@ -112,6 +112,7 @@ export default {
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         POLICY_MEMBER_LIST: 'policyMemberList_',
         DOWNLOAD: 'download_',
+        SECURITY_GROUP: 'securityGroup_',
     },
 
     // Indicates which locale should be used
@@ -197,4 +198,7 @@ export default {
 
     // Whether the auth token is valid
     IS_TOKEN_VALID: 'isTokenValid',
+
+    // A map of the user's security group IDs they belong to in specific domains
+    MY_DOMAIN_SECURITY_GROUPS: 'myDomainSecurityGroups',
 };

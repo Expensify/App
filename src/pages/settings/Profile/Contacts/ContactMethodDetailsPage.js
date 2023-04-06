@@ -140,6 +140,30 @@ class ContactMethodDetailsPage extends Component {
         }
     }
 
+    /**
+     * Checks if the user is allowed to change their default contact method by looking at
+     * their security group settings on their primary domain.
+     *
+     * @returns {Boolean}
+     */
+    getCanChangeDefaultContactMethod() {
+        const domainName = Str.extractEmailDomain(this.props.session.email);
+        const primaryDomainSecurityGroupID = lodashGet(this.props.myDomainSecurityGroups, domainName);
+
+        // If there's no security group associated with the user for the primary domain,
+        // default to allowing the user to change their default contact method.
+        if (!primaryDomainSecurityGroupID) {
+            return true;
+        }
+
+        const hasRestrictedPrimaryLogin = lodashGet(this.props.securityGroups, [
+            `${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`,
+            'hasRestrictedPrimaryLogin'
+        ], false);
+
+        return !hasRestrictedPrimaryLogin;
+    }
+
     render() {
         const contactMethod = this.getContactMethod();
         const loginData = this.props.loginList[contactMethod];
@@ -150,6 +174,8 @@ class ContactMethodDetailsPage extends Component {
         const isDefaultContactMethod = this.props.session.email === loginData.partnerUserID;
         const hasMagicCodeBeenSent = lodashGet(this.props.loginList, [contactMethod, 'validateCodeSent'], false);
         const formErrorText = this.state.formError ? this.props.translate(this.state.formError) : '';
+
+        const canChangeDefaultContactMethod = !isDefaultContactMethod && this.getCanChangeDefaultContactMethod();
 
         return (
             <ScreenWrapper>
@@ -226,18 +252,23 @@ class ContactMethodDetailsPage extends Component {
                         </Text>
                     ) : (
                         <>
-                            <OfflineWithFeedback
-                                pendingAction={lodashGet(loginData, 'pendingFields.defaultLogin', null)}
-                                errors={ErrorUtils.getLatestErrorField(loginData, 'defaultLogin')}
-                                errorRowStyles={[styles.ml8, styles.mr5]}
-                                onClose={() => User.clearContactMethodErrors(contactMethod, 'defaultLogin')}
-                            >
-                                <MenuItem
-                                    title={this.props.translate('contacts.setAsDefault')}
-                                    icon={Expensicons.Profile}
-                                    onPress={() => User.setContactMethodAsDefault(contactMethod)}
-                                />
-                            </OfflineWithFeedback>
+                            {canChangeDefaultContactMethod && (
+                                <OfflineWithFeedback
+                                    pendingAction={lodashGet(loginData, 'pendingFields.defaultLogin', null)}
+                                    errors={ErrorUtils.getLatestErrorField(loginData, 'defaultLogin')}
+                                    errorRowStyles={[styles.ml8, styles.mr5]}
+                                    onClose={() => User.clearContactMethodErrors(contactMethod, 'defaultLogin')}
+                                >
+                                    <MenuItem
+                                        title={this.props.translate('contacts.setAsDefault')}
+                                        icon={Expensicons.Profile}
+                                        onPress={() => {
+                                            User.setContactMethodAsDefault(contactMethod);
+                                            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+                                        }}
+                                    />
+                                </OfflineWithFeedback>
+                            )}
                             <OfflineWithFeedback
                                 pendingAction={lodashGet(loginData, 'pendingFields.deletedLogin', null)}
                                 errors={ErrorUtils.getLatestErrorField(loginData, 'deletedLogin')}
@@ -270,6 +301,12 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        myDomainSecurityGroups: {
+            key: ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS,
+        },
+        securityGroups: {
+            key: `${ONYXKEYS.COLLECTION.SECURITY_GROUP}`,
         },
     }),
 )(ContactMethodDetailsPage);
