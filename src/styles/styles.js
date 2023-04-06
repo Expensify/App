@@ -473,7 +473,7 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonSuccessDisabled: {
+    buttonOpacityDisabled: {
         opacity: 0.5,
     },
 
@@ -485,10 +485,6 @@ const styles = {
     buttonDanger: {
         backgroundColor: themeColors.danger,
         borderWidth: 0,
-    },
-
-    buttonDangerDisabled: {
-        opacity: 0.5,
     },
 
     buttonDangerHovered: {
