@@ -346,7 +346,7 @@ const AvatarCropModal = (props) => {
 
         'worklet';
 
-        if (!isPressableEnabled.value) {
+        if (!isPressableEnabled.value || !locationX) {
             return;
         }
         const newSliderValue = clamp(locationX, [0, sliderContainerSize]);
