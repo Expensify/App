@@ -99,9 +99,9 @@ const defaultProps = {
 
 // Determines type of step to display within Modal, value provides the title for that page.
 const Steps = {
-    IOUAmount: 'iou.amount',
-    IOUParticipants: 'iou.participants',
-    IOUConfirm: 'iou.confirm',
+    MoneyRequestAmount: 'moneyRequest.amount',
+    MoneyRequestParticipants: 'moneyRequest.participants',
+    MoneyRequestConfirm: 'moneyRequest.confirm',
 };
 
 const MoneyRequestModal = (props) => {
@@ -123,7 +123,7 @@ const MoneyRequestModal = (props) => {
     }));
 
     // Skip IOUParticipants step if participants are passed in
-    const steps = reportParticipants.length ? [Steps.IOUAmount, Steps.IOUConfirm] : [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm];
+    const steps = reportParticipants.length ? [Steps.MoneyRequestAmount, Steps.MoneyRequestConfirm] : [Steps.MoneyRequestAmount, Steps.MoneyRequestParticipants, Steps.MoneyRequestConfirm];
 
     const prevCreatingIOUTransactionStatusRef = useRef(lodashGet(props.iou, 'creatingIOUTransaction'));
     const prevNetworkStatusRef = useRef(props.network.isOffline);
@@ -351,7 +351,7 @@ const MoneyRequestModal = (props) => {
                         {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
                         {didScreenTransitionEnd && (
                             <>
-                                {currentStep === Steps.IOUAmount && (
+                                {currentStep === Steps.MoneyRequestAmount && (
                                     <AnimatedStep
                                         direction={direction}
                                         style={[styles.flex1, safeAreaPaddingBottomStyle]}
@@ -370,7 +370,7 @@ const MoneyRequestModal = (props) => {
                                         />
                                     </AnimatedStep>
                                 )}
-                                {currentStep === Steps.IOUParticipants && (
+                                {currentStep === Steps.MoneyRequestParticipants && (
                                     <AnimatedStep
                                         style={[styles.flex1]}
                                         direction={direction}
@@ -385,7 +385,7 @@ const MoneyRequestModal = (props) => {
                                         />
                                     </AnimatedStep>
                                 )}
-                                {currentStep === Steps.IOUConfirm && (
+                                {currentStep === Steps.MoneyRequestConfirm && (
                                     <AnimatedStep
                                         style={[styles.flex1, safeAreaPaddingBottomStyle]}
                                         direction={direction}
