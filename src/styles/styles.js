@@ -3040,9 +3040,6 @@ const styles = {
     },
 
     reactionListContainer: {
-        width: '100%',
-        minWidth: 350,
-        minHeight: 100,
         maxHeight: 450,
     },
 

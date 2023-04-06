@@ -37,13 +37,13 @@ const HeaderReactionList = props => (
         </View>
 
         {props.isSmallScreenWidth && (
-        <TouchableOpacity
-            onPress={props.onClose}
-            accessibilityRole="button"
-            accessibilityLabel={props.translate('common.close')}
-        >
-            <Icon src={Expensicons.Close} />
-        </TouchableOpacity>
+            <TouchableOpacity
+                onPress={props.onClose}
+                accessibilityRole="button"
+                accessibilityLabel={props.translate('common.close')}
+            >
+                <Icon src={Expensicons.Close} />
+            </TouchableOpacity>
         )}
     </View>
 );

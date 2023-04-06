@@ -60,7 +60,7 @@ const BaseReactionList = (props) => {
                 renderItem={renderItem}
                 keyExtractor={keyExtractor}
                 getItemLayout={getItemLayout}
-                style={[styles.pb3, styles.pt2]}
+                contentContainerStyle={styles.pv2}
             />
         </View>
     );
