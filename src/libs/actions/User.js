@@ -266,7 +266,6 @@ function clearContactMethodErrors(contactMethod, fieldName) {
  * @param {String} password
  */
 function addNewContactMethodAndNavigate(contactMethod, password) {
-
     const optimisticData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: ONYXKEYS.LOGIN_LIST,
@@ -301,7 +300,7 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
             [contactMethod]: {
                 errorFields: {
                     addedLogin: {
-                        [DateUtils.getMicroseconds()]: `${Localize.translateLocal('contacts.failedNewContact')} ${Localize.translateLocal('common.conciergeHelp')}`,
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.addContactMethod'),
                     },
                 },
                 pendingFields: {

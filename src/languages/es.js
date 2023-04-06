@@ -370,6 +370,7 @@ export default {
             requestContactMethodValidateCode: 'No se ha podido enviar un nuevo código mágico. Espera un rato y vuelve a intentarlo.',
             validateSecondaryLogin: 'No se ha podido validar el método de contacto con el código mágico provisto. Solicita un nuevo código y vuelve a intentarlo.',
             deleteContactMethod: 'No se ha podido eliminar el método de contacto. Por favor contacta con Concierge para obtener ayuda.',
+            addContactMethod: 'Hubo un error al añadir este método de contacto. Por favor contacta con Concierge para obtener ayuda.',
         },
         newContactMethod: 'Nuevo método de contacto',
     },

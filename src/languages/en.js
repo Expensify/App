@@ -371,6 +371,7 @@ export default {
             requestContactMethodValidateCode: 'Failed to send a new magic code. Please wait a bit and try again.',
             validateSecondaryLogin: 'Failed to validate contact method with given magic code. Please request a new code and try again.',
             deleteContactMethod: 'Failed to delete contact method. Please reach out to Concierge for help.',
+            addContactMethod: 'Failed to add this contact method. Please reach out to Concierge for help.',
         },
         newContactMethod: 'New contact method',
     },
