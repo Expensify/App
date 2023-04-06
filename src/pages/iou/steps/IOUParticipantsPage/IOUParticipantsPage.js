@@ -7,7 +7,7 @@ import IOUParticipantsSplit from './IOUParticipantsSplit';
 import IOUParticipantsRequest from './IOUParticipantsRequest';
 import styles from '../../../../styles/styles';
 import FullScreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
-import avatarPropTypes from '../../../../components/avatarPropTypes';
+import optionPropTypes from '../../../../components/optionPropTypes';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -20,19 +20,7 @@ const propTypes = {
     onAddParticipants: PropTypes.func.isRequired,
 
     /** Selected participants from MoneyRequestModal with login */
-    participants: PropTypes.arrayOf(PropTypes.shape({
-        login: PropTypes.string.isRequired,
-        alternateText: PropTypes.string,
-        hasDraftComment: PropTypes.bool,
-        icons: PropTypes.arrayOf(avatarPropTypes),
-        searchText: PropTypes.string,
-        text: PropTypes.string,
-        keyForList: PropTypes.string,
-        isPinned: PropTypes.bool,
-        reportID: PropTypes.string,
-        phoneNumber: PropTypes.string,
-        payPalMeAddress: PropTypes.string,
-    })),
+    participants: PropTypes.arrayOf(optionPropTypes),
 
     /* Onyx Props */
 

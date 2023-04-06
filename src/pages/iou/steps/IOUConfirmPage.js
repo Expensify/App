@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import IOUConfirmationList from '../../../components/IOUConfirmationList';
 import CONST from '../../../CONST';
-import avatarPropTypes from '../../../components/avatarPropTypes';
+import optionPropTypes from '../../../components/optionPropTypes';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -24,21 +24,7 @@ const propTypes = {
     iouAmount: PropTypes.string.isRequired,
 
     /** Selected participants from MoneyRequestModal with login */
-    participants: PropTypes.arrayOf(PropTypes.shape({
-        login: PropTypes.string.isRequired,
-        alternateText: PropTypes.string,
-        hasDraftComment: PropTypes.bool,
-        icons: PropTypes.arrayOf(avatarPropTypes),
-        searchText: PropTypes.string,
-        text: PropTypes.string,
-        keyForList: PropTypes.string,
-        isPinned: PropTypes.bool,
-        reportID: PropTypes.string,
-        // eslint-disable-next-line react/forbid-prop-types
-        participantsList: PropTypes.arrayOf(PropTypes.object),
-        payPalMeAddress: PropTypes.string,
-        phoneNumber: PropTypes.string,
-    })).isRequired,
+    participants: PropTypes.arrayOf(optionPropTypes).isRequired,
 
     /** IOU type */
     iouType: PropTypes.string,
