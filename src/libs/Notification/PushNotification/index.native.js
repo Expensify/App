@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import {UrbanAirship, EventType, iOS} from 'urbanairship-react-native';
+import Airship, {EventType, iOS} from '@ua/react-native-airship';
 import lodashGet from 'lodash/get';
 import Log from '../../Log';
 import NotificationType from './NotificationType';
@@ -57,7 +57,7 @@ function pushNotificationEventCallback(eventType, notification) {
  * Check if a user is opted-in to push notifications on this device and update the `pushNotificationsEnabled` NVP accordingly.
  */
 function refreshNotificationOptInStatus() {
-    UrbanAirship.getNotificationStatus()
+    Airship.push.getNotificationStatus()
         .then((notificationStatus) => {
             const isOptedIn = notificationStatus.airshipOptIn && notificationStatus.systemEnabled;
             if (isOptedIn === isUserOptedInToPushNotifications) {
@@ -78,7 +78,7 @@ function refreshNotificationOptInStatus() {
  */
 function init() {
     // Setup event listeners
-    UrbanAirship.addListener(EventType.PushReceived, (notification) => {
+    Airship.addListener(EventType.PushReceived, (notification) => {
         // By default, refresh notification opt-in status to true if we receive a notification
         if (!isUserOptedInToPushNotifications) {
             PushNotification.setPushNotificationOptInStatus(true);
@@ -89,19 +89,20 @@ function init() {
 
     // Note: the NotificationResponse event has a nested PushReceived event,
     // so event.notification refers to the same thing as notification above ^
-    UrbanAirship.addListener(EventType.NotificationResponse, (event) => {
+    Airship.addListener(EventType.NotificationResponse, (event) => {
         pushNotificationEventCallback(EventType.NotificationResponse, event.notification);
     });
 
     // Keep track of which users have enabled push notifications via an NVP.
-    UrbanAirship.addListener(EventType.NotificationOptInStatus, refreshNotificationOptInStatus);
+    Airship.addListener(EventType.NotificationOptInStatus, refreshNotificationOptInStatus);
 
     // This statement has effect on iOS only.
     // It enables the App to display push notifications when the App is in foreground.
     // By default, the push notifications are silenced on iOS if the App is in foreground.
     // More info here https://developer.apple.com/documentation/usernotifications/unusernotificationcenterdelegate/1649518-usernotificationcenter
-    UrbanAirship.setForegroundPresentationOptions([
-        iOS.ForegroundPresentationOption.Alert,
+    Airship.push.iOS.setForegroundPresentationOptions([
+        iOS.ForegroundPresentationOption.List,
+        iOS.ForegroundPresentationOption.Banner,
         iOS.ForegroundPresentationOption.Sound,
         iOS.ForegroundPresentationOption.Badge,
     ]);
@@ -113,13 +114,13 @@ function init() {
  * @param {String|Number} accountID
  */
 function register(accountID) {
-    if (UrbanAirship.getNamedUser() === accountID.toString()) {
+    if (Airship.contact.getNamedUserId() === accountID.toString()) {
         // No need to register again for this accountID.
         return;
     }
 
     // Get permissions to display push notifications (prompts user on iOS, but not Android)
-    UrbanAirship.enableUserPushNotifications()
+    Airship.push.enableUserNotifications()
         .then((isEnabled) => {
             if (isEnabled) {
                 return;
@@ -131,7 +132,7 @@ function register(accountID) {
     // Register this device as a named user in AirshipAPI.
     // Regardless of the user's opt-in status, we still want to receive silent push notifications.
     Log.info(`[PUSH_NOTIFICATIONS] Subscribing to notifications for account ID ${accountID}`);
-    UrbanAirship.setNamedUser(accountID.toString());
+    Airship.contact.identify(accountID.toString());
 
     // Refresh notification opt-in status NVP for the new user.
     refreshNotificationOptInStatus();
@@ -142,9 +143,9 @@ function register(accountID) {
  */
 function deregister() {
     Log.info('[PUSH_NOTIFICATIONS] Unsubscribing from push notifications.');
-    UrbanAirship.setNamedUser(null);
-    UrbanAirship.removeAllListeners(EventType.PushReceived);
-    UrbanAirship.removeAllListeners(EventType.NotificationResponse);
+    Airship.contact.reset();
+    Airship.removeAllListeners(EventType.PushReceived);
+    Airship.removeAllListeners(EventType.NotificationResponse);
 }
 
 /**
@@ -191,7 +192,7 @@ function onSelected(notificationType, callback) {
  * Clear all push notifications
  */
 function clearNotifications() {
-    UrbanAirship.clearNotifications();
+    Airship.push.clearNotifications();
 }
 
 export default {

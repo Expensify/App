@@ -7,7 +7,7 @@ import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
 const PlaidLink = (props) => {
     // We are stashing initial props in a ref since we don't want a new token to trigger the link to open again
     // and just want openLink() to be called once
-    const propsRef = useRef(props.token);
+    const propsRef = useRef(props);
     useDeepLinkRedirector();
     usePlaidEmitter((event) => {
         Log.info('[PlaidLink] Handled Plaid Event: ', false, event);

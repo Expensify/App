@@ -1,19 +1,25 @@
 PODS:
-  - Airship (16.10.7):
-    - Airship/Automation (= 16.10.7)
-    - Airship/Basement (= 16.10.7)
-    - Airship/Core (= 16.10.7)
-    - Airship/ExtendedActions (= 16.10.7)
-    - Airship/MessageCenter (= 16.10.7)
-  - Airship/Automation (16.10.7):
+  - Airship (16.11.2):
+    - Airship/Automation (= 16.11.2)
+    - Airship/Basement (= 16.11.2)
+    - Airship/Core (= 16.11.2)
+    - Airship/ExtendedActions (= 16.11.2)
+    - Airship/MessageCenter (= 16.11.2)
+  - Airship/Automation (16.11.2):
     - Airship/Core
-  - Airship/Basement (16.10.7)
-  - Airship/Core (16.10.7):
+  - Airship/Basement (16.11.2)
+  - Airship/Core (16.11.2):
     - Airship/Basement
-  - Airship/ExtendedActions (16.10.7):
+  - Airship/ExtendedActions (16.11.2):
     - Airship/Core
-  - Airship/MessageCenter (16.10.7):
+  - Airship/MessageCenter (16.11.2):
     - Airship/Core
+  - Airship/PreferenceCenter (16.11.2):
+    - Airship/Core
+  - AirshipFrameworkProxy (2.0.1):
+    - Airship (= 16.11.2)
+    - Airship/MessageCenter (= 16.11.2)
+    - Airship/PreferenceCenter (= 16.11.2)
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
@@ -462,9 +468,12 @@ PODS:
   - React-jsinspector (0.70.4-alpha.2)
   - React-logger (0.70.4-alpha.2):
     - glog
+  - react-native-airship (15.2.0):
+    - AirshipFrameworkProxy (= 2.0.1)
+    - React-Core
   - react-native-blob-util (0.16.2):
     - React-Core
-  - react-native-cameraroll (4.1.2):
+  - react-native-cameraroll (5.0.4):
     - React-Core
   - react-native-config (1.4.6):
     - react-native-config/App (= 1.4.6)
@@ -645,9 +654,6 @@ PODS:
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.10)
   - SocketRocket (0.6.0)
-  - urbanairship-react-native (14.6.1):
-    - Airship (= 16.10.7)
-    - React-Core
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -704,8 +710,9 @@ DEPENDENCIES:
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
+  - "react-native-airship (from `../node_modules/@ua/react-native-airship`)"
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
-  - "react-native-cameraroll (from `../node_modules/@react-native-community/cameraroll`)"
+  - "react-native-cameraroll (from `../node_modules/@react-native-camera-roll/camera-roll`)"
   - react-native-config (from `../node_modules/react-native-config`)
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
   - react-native-flipper (from `../node_modules/react-native-flipper`)
@@ -749,12 +756,12 @@ DEPENDENCIES:
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSVG (from `../node_modules/react-native-svg`)
-  - urbanairship-react-native (from `../node_modules/urbanairship-react-native`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
   trunk:
     - Airship
+    - AirshipFrameworkProxy
     - CocoaAsyncSocket
     - Firebase
     - FirebaseABTesting
@@ -846,10 +853,12 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/jsinspector"
   React-logger:
     :path: "../node_modules/react-native/ReactCommon/logger"
+  react-native-airship:
+    :path: "../node_modules/@ua/react-native-airship"
   react-native-blob-util:
     :path: "../node_modules/react-native-blob-util"
   react-native-cameraroll:
-    :path: "../node_modules/@react-native-community/cameraroll"
+    :path: "../node_modules/@react-native-camera-roll/camera-roll"
   react-native-config:
     :path: "../node_modules/react-native-config"
   react-native-document-picker:
@@ -936,13 +945,12 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-screens"
   RNSVG:
     :path: "../node_modules/react-native-svg"
-  urbanairship-react-native:
-    :path: "../node_modules/urbanairship-react-native"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Airship: fbff646723323c58e3871cd30488612ca373f597
+  Airship: 19ead2c0bdc791c1b9d6ebb7940aaac99614414e
+  AirshipFrameworkProxy: 037a0ad6491757c45de2c70a6cc47bae5fcfa32b
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
@@ -1001,8 +1009,9 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 523e742f144a346f7df32dea4fe1944d39b02473
   React-jsinspector: 7b02a02b9b9bf830102394039c80b3bf2e0200b0
   React-logger: b2c47bb0829c3c45ba3a04add9a2b4aea3f3dd4e
+  react-native-airship: 8690a133d791068741855d4f20ea83ec4a7761d1
   react-native-blob-util: c3b0faecd2919db568e9d552084396f3e50b57c7
-  react-native-cameraroll: 2957f2bce63ae896a848fbe0d5352c1bd4d20866
+  react-native-cameraroll: 38b40d9033e4077b6c603f92f95c6d05fa7907df
   react-native-config: 7cd105e71d903104e8919261480858940a6b9c0e
   react-native-document-picker: f68191637788994baed5f57d12994aa32cf8bf88
   react-native-flipper: dc5290261fbeeb2faec1bdc57ae6dd8d562e1de4
@@ -1049,10 +1058,9 @@ SPEC CHECKSUMS:
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
-  urbanairship-react-native: fe4d169332546a0efd348a009aa490dc36ff815e
   Yoga: f77f6497bccebdcbc8efb03dbf83eadfdec6d104
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 48093a300788c218e76f70cf6d102915cd993f34
+PODFILE CHECKSUM: 4478f05b452c2dbc905adb8db4704eb8a860331c
 
 COCOAPODS: 1.11.3
