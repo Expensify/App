@@ -45,6 +45,10 @@ export default {
         marginHorizontal: 20,
     },
 
+    mh6: {
+        marginHorizontal: 24,
+    },
+
     mh8: {
         marginHorizontal: 32,
     },

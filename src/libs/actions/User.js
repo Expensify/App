@@ -709,7 +709,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
             value: {
-                [newDefaultContact]: {
+                [newDefaultContactMethod]: {
                     pendingFields: {
                         defaultLogin: null,
                     },
