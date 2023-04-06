@@ -20,6 +20,7 @@ import CONST from '../../../CONST';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
+import withLocalize from '../../../components/withLocalize';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -150,7 +151,7 @@ class ReportActionsList extends React.Component {
         return (
             <Animated.View style={[StyleUtils.fade(this.state.fadeInAnimation), styles.flex1]}>
                 <InvertedFlatList
-                    accessibilityLabel="List of chat messages"
+                    accessibilityLabel={this.props.translate('sidebarScreen.listOfChatMessages')}
                     ref={ReportScrollManager.flatListRef}
                     data={this.props.sortedReportActions}
                     renderItem={this.renderItem}
@@ -208,6 +209,7 @@ ReportActionsList.defaultProps = defaultProps;
 export default compose(
     withDrawerState,
     withWindowDimensions,
+    withLocalize,
     withPersonalDetails(),
     withNetwork(),
 )(ReportActionsList);

@@ -17,15 +17,15 @@ import avatarPropTypes from '../../../../components/avatarPropTypes';
 
 const propTypes = {
     /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
 
-    /** Callback to add participants in IOUModal */
+    /** Callback to add participants in MoneyRequestModal */
     onAddParticipants: PropTypes.func.isRequired,
 
-    /** Selected participants from IOUModal with login */
+    /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
@@ -38,10 +38,10 @@ const propTypes = {
     })),
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** All reports shared with the user */
-    reports: PropTypes.objectOf(reportPropTypes).isRequired,
+    reports: PropTypes.objectOf(reportPropTypes),
 
     /** padding bottom style of safe area */
     safeAreaPaddingBottomStyle: PropTypes.oneOfType([
@@ -54,6 +54,9 @@ const propTypes = {
 
 const defaultProps = {
     participants: [],
+    betas: [],
+    personalDetails: {},
+    reports: {},
     safeAreaPaddingBottomStyle: {},
 };
 

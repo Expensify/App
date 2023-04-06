@@ -32,9 +32,19 @@ const baseQuickEmojiReactionsPropTypes = {
     onPressOpenPicker: PropTypes.func,
 };
 
+const baseQuickEmojiReactionsDefaultProps = {
+    onWillShowPicker: () => {},
+    onPressOpenPicker: () => {},
+};
+
 const propTypes = {
     ...baseQuickEmojiReactionsPropTypes,
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+};
+
+const defaultProps = {
+    ...baseQuickEmojiReactionsDefaultProps,
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
 const BaseQuickEmojiReactions = props => (
@@ -44,7 +54,6 @@ const BaseQuickEmojiReactions = props => (
             // Note: focus is handled by the Pressable component in EmojiReactionBubble
             <Tooltip text={`:${emoji.name}:`} key={emoji.name} focusable={false}>
                 <EmojiReactionBubble
-                    emojiName={emoji.name}
                     emojiCodes={[getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
                     sizeScale={EMOJI_BUBBLE_SCALE}
                     onPress={() => {
@@ -65,6 +74,7 @@ const BaseQuickEmojiReactions = props => (
 
 BaseQuickEmojiReactions.displayName = 'BaseQuickEmojiReactions';
 BaseQuickEmojiReactions.propTypes = propTypes;
+BaseQuickEmojiReactions.defaultProps = defaultProps;
 export default withOnyx({
     preferredSkinTone: {
         key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
