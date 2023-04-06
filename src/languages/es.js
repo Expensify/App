@@ -366,6 +366,7 @@ export default {
         pleaseVerify: 'Por favor verifica este método de contacto',
         getInTouch: 'Utilizaremos este método de contacto cuando necesitemos contactarte.',
         enterMagicCode: ({contactMethod}) => `Por favor, introduce el código mágico enviado a ${contactMethod}`,
+        setAsDefault: 'Establecer como predeterminado',
         yourDefaultContactMethod: 'Este es tu método de contacto predeterminado. No podrás eliminarlo hasta que añadas otro método de contacto y lo marques como predeterminado pulsando "Establecer como predeterminado".',
         removeContactMethod: 'Eliminar método de contacto',
         removeAreYouSure: '¿Estás seguro de que quieres eliminar este método de contacto? Esta acción no se puede deshacer.',

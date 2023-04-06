@@ -367,6 +367,7 @@ export default {
         pleaseVerify: 'Please verify this contact method',
         getInTouch: "Whenever we need to get in touch with you, we'll use this contact method.",
         enterMagicCode: ({contactMethod}) => `Please enter the magic code sent to ${contactMethod}`,
+        setAsDefault: 'Set as default',
         yourDefaultContactMethod: 'This is your current default contact method. You will not be able to delete this contact method until you set an alternative default by selecting another contact method and pressing “Set as default”.',
         removeContactMethod: 'Remove contact method',
         removeAreYouSure: 'Are you sure you want to remove this contact method? This action cannot be undone.',

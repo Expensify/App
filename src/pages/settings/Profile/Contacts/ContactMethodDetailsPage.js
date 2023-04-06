@@ -227,6 +227,18 @@ class ContactMethodDetailsPage extends Component {
                     ) : (
                         <>
                             <OfflineWithFeedback
+                                pendingAction={lodashGet(loginData, 'pendingFields.defaultLogin', null)}
+                                errors={ErrorUtils.getLatestErrorField(loginData, 'defaultLogin')}
+                                errorRowStyles={[styles.ml8, styles.mr5]}
+                                onClose={() => User.clearContactMethodErrors(contactMethod, 'defaultLogin')}
+                            >
+                                <MenuItem
+                                    title={this.props.translate('contacts.setAsDefault')}
+                                    icon={Expensicons.CircleCheck}
+                                    onPress={() => User.setContactMethodAsDefault(contactMethod)}
+                                />
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback
                                 pendingAction={lodashGet(loginData, 'pendingFields.deletedLogin', null)}
                                 errors={ErrorUtils.getLatestErrorField(loginData, 'deletedLogin')}
                                 errorRowStyles={[styles.mt6]}
@@ -239,11 +251,6 @@ class ContactMethodDetailsPage extends Component {
                                     onPress={() => this.toggleDeleteModal(true)}
                                 />
                             </OfflineWithFeedback>
-                            <MenuItem
-                                title="Set as default"
-                                icon={Expensicons.CircleCheck}
-                                onPress={() => User.setContactMethodAsDefault(contactMethod)}
-                            />
                         </>
                     )}
                 </ScrollView>
