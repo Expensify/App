@@ -4,14 +4,14 @@ import PropTypes from 'prop-types';
 import {LogBox, ScrollView, View} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import lodashGet from 'lodash/get';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import TextInput from './TextInput';
-import * as ApiUtils from '../libs/ApiUtils';
-import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
-import CONST from '../CONST';
-import DisplayListViewborder from '../libs/resetDisplayListViewborderWhenBlur';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
+import TextInput from '../TextInput';
+import * as ApiUtils from '../../libs/ApiUtils';
+import * as GooglePlacesUtils from '../../libs/GooglePlacesUtils';
+import CONST from '../../CONST';
+import resetDisplayListViewBorderWhenBlur from './resetDisplayListViewBorderWhenBlur';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -207,6 +207,7 @@ const AddressSearch = (props) => {
                     suppressDefaultStyles
                     enablePoweredByContainer={false}
                     onPress={(data, details) => {
+                        console.log('onPress');
                         saveLocationDetails(data, details);
 
                         // After we select an option, we set displayListViewBorder to false to prevent UI flickering
@@ -241,7 +242,8 @@ const AddressSearch = (props) => {
                         inputID: props.inputID,
                         shouldSaveDraft: props.shouldSaveDraft,
                         onBlur: (event) => {
-                            DisplayListViewborder.resetDisplayListViewborderWhenBlur(event, containerRef, setDisplayListViewBorder);
+                            console.log(resetDisplayListViewBorderWhenBlur);
+                            resetDisplayListViewBorderWhenBlur(event, containerRef, setDisplayListViewBorder);
                             props.onBlur(event);
                         },
                         autoComplete: 'off',

@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import TextInput from '../components/TextInput';
 import Picker from '../components/Picker';
 import StatePicker from '../components/StatePicker';
-import AddressSearch from '../components/AddressSearch';
 import DatePicker from '../components/DatePicker';
 import Form from '../components/Form';
 import * as FormActions from '../libs/actions/FormActions';
@@ -11,6 +10,7 @@ import styles from '../styles/styles';
 import CheckboxWithLabel from '../components/CheckboxWithLabel';
 import Text from '../components/Text';
 import NetworkConnection from '../libs/NetworkConnection';
+import AddressSearch from '../components/AddressSearch/AddressSearch';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

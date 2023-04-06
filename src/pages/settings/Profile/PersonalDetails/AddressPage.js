@@ -18,9 +18,9 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import compose from '../../../../libs/compose';
-import AddressSearch from '../../../../components/AddressSearch';
 import CountryPicker from '../../../../components/CountryPicker';
 import StatePicker from '../../../../components/StatePicker';
+import AddressSearch from '../../../../components/AddressSearch/AddressSearch';
 
 const propTypes = {
     /* Onyx Props */
