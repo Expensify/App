@@ -6,6 +6,7 @@ import {View} from 'react-native';
 import React, {
     useCallback,
     useEffect,
+    useMemo,
     useRef,
     useState,
 } from 'react';
@@ -41,11 +42,7 @@ function AutoUpdateTime(props) {
 
     const [currentUserLocalTime, setCurrentUserLocalTime] = useState(getCurrentUserLocalTime);
     const timerRef = useRef(null);
-
-    /**
-     * @returns {string} Returns the timezone name in string, e.g.: GMT +07
-     */
-    const getTimezoneName = useCallback(() => {
+    const timezoneName = useMemo(() => {
         // With non-GMT timezone, moment.zoneAbbr() will return the name of that timezone, so we can use it directly.
         if (Number.isNaN(Number(currentUserLocalTime.zoneAbbr()))) {
             return currentUserLocalTime.zoneAbbr();
@@ -85,7 +82,7 @@ function AutoUpdateTime(props) {
             <Text numberOfLines={1}>
                 {currentUserLocalTime.format('LT')}
                 {' '}
-                {getTimezoneName()}
+                {timezoneName}
             </Text>
         </View>
     );
