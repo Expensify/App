@@ -21,10 +21,10 @@ const propTypes = {
     defaultValue: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
 
     /** The earliest date allowed to select */
-    minDate: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
+    minDate: PropTypes.instanceOf(Date),
 
     /** The latest date allowed to select */
-    maxDate: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
+    maxDate: PropTypes.instanceOf(Date),
 };
 
 const defaultProps = {
