@@ -542,7 +542,11 @@ function getOptions(reports, personalDetails, {
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
             const reportOption = allReportOptions[i];
-            const isCurrentUserOwnedPolicyExpenseChatThatShouldShow = (reportOption.isPolicyExpenseChat && (reportOption.ownerEmail === currentUserLogin) && includeOwnedWorkspaceChats);
+            const isCurrentUserOwnedPolicyExpenseChatThatShouldShow = (reportOption.isPolicyExpenseChat
+                && (reportOption.ownerEmail === currentUserLogin)
+                && includeOwnedWorkspaceChats
+                && !reportOption.isArchivedRoom
+            );
 
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
             if (!isCurrentUserOwnedPolicyExpenseChatThatShouldShow && recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
