@@ -228,7 +228,7 @@ class ReportActionCompose extends React.Component {
         // Show popover on Workspace Welcome
         Welcome.show({
             routes: lodashGet(this.props.navigation.getState(), 'routes', []),
-            showPopoverMenu: this.showPopoverMenu
+            showPopoverMenu: this.showPopoverMenu,
         });
     }
 
