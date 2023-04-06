@@ -69,6 +69,11 @@ function AutoUpdateTime(props) {
         };
     }, [currentUserLocalTime, getCurrentUserLocalTime]);
 
+    useEffect(() => {
+        // If the preferredLocale or timezone changes, we want to update the displayed time immediately
+        setCurrentUserLocalTime(getCurrentUserLocalTime());
+    }, [getCurrentUserLocalTime, props.preferredLocale, props.timezone.selected]);
+
     return (
         <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
             <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
