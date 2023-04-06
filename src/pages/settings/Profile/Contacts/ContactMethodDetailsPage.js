@@ -54,6 +54,14 @@ const propTypes = {
         email: PropTypes.string.isRequired,
     }),
 
+    /** User's security group IDs by domain */
+    myDomainSecurityGroups: PropTypes.objectOf(PropTypes.string),
+
+    /** All of the user's security groups and their settings */
+    securityGroups: PropTypes.shape({
+        hasRestrictedPrimaryLogin: PropTypes.bool,
+    }),
+
     /** Route params */
     route: PropTypes.shape({
         params: PropTypes.shape({
@@ -70,6 +78,8 @@ const defaultProps = {
     session: {
         email: null,
     },
+    myDomainSecurityGroups: {},
+    securityGroups: {},
     route: {
         params: {
             contactMethod: '',
@@ -101,6 +111,30 @@ class ContactMethodDetailsPage extends Component {
      */
     getContactMethod() {
         return decodeURIComponent(lodashGet(this.props.route, 'params.contactMethod'));
+    }
+
+    /**
+     * Checks if the user is allowed to change their default contact method by looking at
+     * their security group settings on their primary domain.
+     *
+     * @returns {Boolean}
+     */
+    getCanChangeDefaultContactMethod() {
+        const domainName = Str.extractEmailDomain(this.props.session.email);
+        const primaryDomainSecurityGroupID = lodashGet(this.props.myDomainSecurityGroups, domainName);
+
+        // If there's no security group associated with the user for the primary domain,
+        // default to allowing the user to change their default contact method.
+        if (!primaryDomainSecurityGroupID) {
+            return true;
+        }
+
+        const hasRestrictedPrimaryLogin = lodashGet(this.props.securityGroups, [
+            `${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`,
+            'hasRestrictedPrimaryLogin',
+        ], false);
+
+        return !hasRestrictedPrimaryLogin;
     }
 
     /**
@@ -138,30 +172,6 @@ class ContactMethodDetailsPage extends Component {
             this.setState({formError: ''});
             User.validateSecondaryLogin(this.getContactMethod(), this.state.validateCode);
         }
-    }
-
-    /**
-     * Checks if the user is allowed to change their default contact method by looking at
-     * their security group settings on their primary domain.
-     *
-     * @returns {Boolean}
-     */
-    getCanChangeDefaultContactMethod() {
-        const domainName = Str.extractEmailDomain(this.props.session.email);
-        const primaryDomainSecurityGroupID = lodashGet(this.props.myDomainSecurityGroups, domainName);
-
-        // If there's no security group associated with the user for the primary domain,
-        // default to allowing the user to change their default contact method.
-        if (!primaryDomainSecurityGroupID) {
-            return true;
-        }
-
-        const hasRestrictedPrimaryLogin = lodashGet(this.props.securityGroups, [
-            `${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`,
-            'hasRestrictedPrimaryLogin'
-        ], false);
-
-        return !hasRestrictedPrimaryLogin;
     }
 
     render() {
