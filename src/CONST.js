@@ -403,6 +403,7 @@ const CONST = {
         },
         TYPE: {
             CHAT: 'chat',
+            EXPENSE: 'expense',
             IOU: 'iou',
         },
         CHAT_TYPE: {
