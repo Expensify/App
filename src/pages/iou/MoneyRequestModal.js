@@ -130,7 +130,7 @@ const MoneyRequestModal = (props) => {
 
     const [previousStepIndex, setPreviousStepIndex] = useState(0);
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
-    const [participants, setParticipants] = useState(participantsWithDetails);
+    const [selectedOptions, setSelectedOptions] = useState(participantsWithDetails);
     const [amount, setAmount] = useState('');
     const [comment, setComment] = useState('');
 
@@ -257,7 +257,7 @@ const MoneyRequestModal = (props) => {
         const amountInDollars = Math.round(amount * 100);
         const currency = props.iou.selectedCurrencyCode;
         const trimmedComment = comment.trim();
-        const participant = participants[0];
+        const participant = selectedOptions[0];
 
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
             IOU.sendMoneyElsewhere(
@@ -293,7 +293,7 @@ const MoneyRequestModal = (props) => {
                 participant,
             );
         }
-    }, [amount, comment, participants, props.currentUserPersonalDetails.login, props.iou.selectedCurrencyCode, props.report]);
+    }, [amount, comment, selectedOptions, props.currentUserPersonalDetails.login, props.iou.selectedCurrencyCode, props.report]);
 
     /**
      * @param {Array} selectedParticipants
@@ -377,9 +377,9 @@ const MoneyRequestModal = (props) => {
                                     >
                                         {modalHeader}
                                         <IOUParticipantsPage
-                                            participants={participants}
+                                            participants={selectedOptions}
                                             hasMultipleParticipants={props.hasMultipleParticipants}
-                                            onAddParticipants={selectedParticipants => setParticipants(selectedParticipants)}
+                                            onAddParticipants={selectedParticipants => setSelectedOptions(selectedParticipants)}
                                             onStepComplete={navigateToNextStep}
                                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                                         />
@@ -403,7 +403,7 @@ const MoneyRequestModal = (props) => {
                                                 ReportScrollManager.scrollToBottom();
                                             }}
                                             hasMultipleParticipants={props.hasMultipleParticipants}
-                                            participants={_.filter(participants, email => props.currentUserPersonalDetails.login !== email.login)}
+                                            participants={_.filter(selectedOptions, email => props.currentUserPersonalDetails.login !== email.login)}
                                             iouAmount={amount}
                                             comment={comment}
                                             onUpdateComment={value => setComment(value)}
