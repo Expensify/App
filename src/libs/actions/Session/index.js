@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
+import ROUTES from '../../../ROUTES';
 import redirectToSignIn from '../SignInRedirect';
 import CONFIG from '../../../CONFIG';
 import Log from '../../Log';
@@ -402,6 +403,11 @@ function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
     }, {optimisticData, successData, failureData});
 }
 
+function signInWithValidateCodeAndNavigate(accountID, validateCode) {
+    signInWithValidateCode(accountID, validateCode);
+    Navigation.navigate(ROUTES.HOME);
+}
+
 /**
  * Initializes the state of the automatic authentication when the user clicks on a magic link.
  *
@@ -641,6 +647,7 @@ export {
     updatePasswordAndSignin,
     signIn,
     signInWithValidateCode,
+    signInWithValidateCodeAndNavigate,
     initAutoAuthState,
     signInWithShortLivedAuthToken,
     cleanupSession,

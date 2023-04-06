@@ -6,6 +6,7 @@ import {
     propTypes as validateLinkPropTypes,
     defaultProps as validateLinkDefaultProps,
 } from './validateLinkPropTypes';
+import ROUTES from '../../ROUTES';
 import * as User from '../../libs/actions/User';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -45,11 +46,24 @@ class ValidateLoginPage extends Component {
                 // because we don't want to block the user with the interstitial page.
                 Navigation.goBack(false);
             } else {
-                Session.signInWithValidateCodeAndNavigate(accountID, validateCode);
+                Session.signInWithValidateCode(accountID, validateCode);
             }
         } else {
             User.validateLogin(accountID, validateCode);
         }
+    }
+
+    componentDidUpdate() {
+        if (
+            lodashGet(this.props, 'credentials.login', null)
+            || !lodashGet(this.props, 'credentials.accountID', null)
+            || !lodashGet(this.props, 'account.requiresTwoFactorAuth', false)
+        ) {
+            return;
+        }
+
+        // The user clicked the option to sign in the current tab
+        Navigation.navigate(ROUTES.REPORT);
     }
 
     render() {
