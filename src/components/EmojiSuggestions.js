@@ -128,6 +128,7 @@ const EmojiSuggestions = (props) => {
                 data={props.emojis}
                 renderItem={renderSuggestionMenuItem}
                 keyExtractor={keyExtractor}
+                removeClippedSubviews={false}
                 style={{height: rowHeight}}
             />
         </View>
