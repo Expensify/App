@@ -21,7 +21,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import * as ComponentUtils from '../../../libs/ComponentUtils';
 import Form from '../../../components/Form';
 import Permissions from '../../../libs/Permissions';
-import AddressSearch from '../../../components/AddressSearch/AddressSearch';
+import AddressSearch from '../../../components/AddressSearch';
 
 const propTypes = {
     /* Onyx Props */

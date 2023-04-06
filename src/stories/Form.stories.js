@@ -10,7 +10,7 @@ import styles from '../styles/styles';
 import CheckboxWithLabel from '../components/CheckboxWithLabel';
 import Text from '../components/Text';
 import NetworkConnection from '../libs/NetworkConnection';
-import AddressSearch from '../components/AddressSearch/AddressSearch';
+import AddressSearch from '../components/AddressSearch';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

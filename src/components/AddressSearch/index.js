@@ -11,7 +11,7 @@ import TextInput from '../TextInput';
 import * as ApiUtils from '../../libs/ApiUtils';
 import * as GooglePlacesUtils from '../../libs/GooglePlacesUtils';
 import CONST from '../../CONST';
-import resetDisplayListViewBorderWhenBlur from './resetDisplayListViewBorderWhenBlur';
+import resetDisplayListViewBorderOnBlur from './resetDisplayListViewBorderOnBlur';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -241,7 +241,7 @@ const AddressSearch = (props) => {
                         inputID: props.inputID,
                         shouldSaveDraft: props.shouldSaveDraft,
                         onBlur: (event) => {
-                            resetDisplayListViewBorderWhenBlur(event, containerRef, setDisplayListViewBorder);
+                            resetDisplayListViewBorderOnBlur(event, containerRef, setDisplayListViewBorder);
                             props.onBlur(event);
                         },
                         autoComplete: 'off',

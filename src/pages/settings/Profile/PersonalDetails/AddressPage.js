@@ -20,7 +20,7 @@ import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import compose from '../../../../libs/compose';
 import CountryPicker from '../../../../components/CountryPicker';
 import StatePicker from '../../../../components/StatePicker';
-import AddressSearch from '../../../../components/AddressSearch/AddressSearch';
+import AddressSearch from '../../../../components/AddressSearch';
 
 const propTypes = {
     /* Onyx Props */

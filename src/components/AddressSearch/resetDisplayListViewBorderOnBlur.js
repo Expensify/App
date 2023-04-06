@@ -1,4 +1,4 @@
-const resetDisplayListViewBorderWhenBlur = (event, containerRef, setDisplayListViewBorder) => {
+const resetDisplayListViewBorderOnBlur = (event, containerRef, setDisplayListViewBorder) => {
     // The related target check is required here
     // because without it when we select an option, the onBlur will still trigger setting displayListViewBorder to false
     // it will make the auto complete component re-render before onPress is called making selecting an option not working.
@@ -8,7 +8,7 @@ const resetDisplayListViewBorderWhenBlur = (event, containerRef, setDisplayListV
     setDisplayListViewBorder(false);
 };
 
-resetDisplayListViewBorderWhenBlur.displayName = 'resetDisplayListViewBorderWhenBlur';
+resetDisplayListViewBorderOnBlur.displayName = 'resetDisplayListViewBorderOnBlur';
 
-export default resetDisplayListViewBorderWhenBlur;
+export default resetDisplayListViewBorderOnBlur;
 

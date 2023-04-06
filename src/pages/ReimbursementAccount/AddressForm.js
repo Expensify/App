@@ -5,7 +5,7 @@ import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
 import StatePicker from '../../components/StatePicker';
-import AddressSearch from '../../components/AddressSearch/AddressSearch';
+import AddressSearch from '../../components/AddressSearch';
 
 const propTypes = {
 
