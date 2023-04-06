@@ -47,14 +47,6 @@ class NewDatePicker extends React.Component {
             return;
         }
         this.showPicker();
-        this.textInputRef.focus();
-    }
-
-    componentWillUnmount() {
-        if (!this.unsubscribeEscapeKey) {
-            return;
-        }
-        this.unsubscribeEscapeKey();
     }
 
     /**
@@ -73,7 +65,6 @@ class NewDatePicker extends React.Component {
     setDate(selectedDate) {
         this.setState({selectedDate}, () => {
             this.props.onInputChange(moment(selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
-            this.textInputRef.blur();
         });
     }
 
@@ -96,7 +87,6 @@ class NewDatePicker extends React.Component {
                 <View style={[this.props.isSmallScreenWidth ? styles.flex2 : {}]}>
                     <TextInput
                         forceActiveLabel
-                        ref={el => this.textInputRef = el}
                         icon={Expensicons.Calendar}
                         onPress={this.showPicker}
                         label={this.props.label}
@@ -113,10 +103,6 @@ class NewDatePicker extends React.Component {
                 {
                     this.state.isPickerVisible && (
                     <Animated.View
-                        onMouseDown={(e) => {
-                            // To prevent focus stealing
-                            e.preventDefault();
-                        }}
                         style={[styles.datePickerPopover, styles.border, {opacity: this.opacity}]}
                     >
                         <CalendarPicker
