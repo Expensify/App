@@ -207,7 +207,6 @@ const AddressSearch = (props) => {
                     suppressDefaultStyles
                     enablePoweredByContainer={false}
                     onPress={(data, details) => {
-                        console.log('onPress');
                         saveLocationDetails(data, details);
 
                         // After we select an option, we set displayListViewBorder to false to prevent UI flickering
@@ -242,7 +241,6 @@ const AddressSearch = (props) => {
                         inputID: props.inputID,
                         shouldSaveDraft: props.shouldSaveDraft,
                         onBlur: (event) => {
-                            console.log(resetDisplayListViewBorderWhenBlur);
                             resetDisplayListViewBorderWhenBlur(event, containerRef, setDisplayListViewBorder);
                             props.onBlur(event);
                         },
