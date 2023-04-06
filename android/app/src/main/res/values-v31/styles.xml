@@ -10,4 +10,10 @@
         <item name="android:textColor">@color/white</item>
         <item name="android:clipToOutline">true</item>
     </style>
+
+    <style name="Theme.SplashScreen" parent="Theme.SplashScreen.Common">
+        <item name="android:windowSplashScreenAnimatedIcon">?windowSplashScreenAnimatedIcon</item>
+        <item name="android:windowSplashScreenBackground">?windowSplashScreenBackground</item>
+    </style>
+
 </resources>
