@@ -111,7 +111,7 @@ export default [
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
-        icon: Expensicons.Clipboard,
+        icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.LINK,
@@ -123,7 +123,7 @@ export default [
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyEmailToClipboard',
-        icon: Expensicons.Clipboard,
+        icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.EMAIL,
@@ -135,7 +135,7 @@ export default [
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyToClipboard',
-        icon: Expensicons.Clipboard,
+        icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
         shouldShow: (type, reportAction) => (type === CONTEXT_MENU_TYPES.REPORT_ACTION

@@ -38,7 +38,7 @@ const CommunicationsLink = props => (
                 {props.children}
             </View>
             <ContextMenuItem
-                icon={Expensicons.Clipboard}
+                icon={Expensicons.Copy}
                 text={props.translate('reportActionContextMenu.copyToClipboard')}
                 successIcon={Expensicons.Checkmark}
                 successText={props.translate('reportActionContextMenu.copied')}
