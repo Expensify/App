@@ -18,9 +18,6 @@ class DatePicker extends React.Component {
 
         this.showPicker = this.showPicker.bind(this);
         this.setDate = this.setDate.bind(this);
-
-        this.maxDate = this.props.maxDate || new Date(CONST.DATE.MAX_DATE);
-        this.minDate = this.props.minDate || new Date(CONST.DATE.MIN_DATE);
     }
 
     /**
@@ -77,8 +74,8 @@ class DatePicker extends React.Component {
                         value={this.props.value || this.props.defaultValue ? moment(this.props.value || this.props.defaultValue).toDate() : new Date()}
                         mode="date"
                         onChange={this.setDate}
-                        maximumDate={this.maxDate}
-                        minimumDate={this.minDate}
+                        maximumDate={this.props.maxDate}
+                        minimumDate={this.props.minDate}
                     />
                 )}
             </>
