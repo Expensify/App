@@ -205,6 +205,11 @@ export default {
                     NewChat_Root: ROUTES.NEW_CHAT,
                 },
             },
+            NewTask: {
+                screens: {
+                    NewTask_Root: ROUTES.NEW_TASK,
+                },
+            },
             Search: {
                 screens: {
                     Search_Root: ROUTES.SEARCH,
