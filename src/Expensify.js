@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {
-    useCallback, useState, useEffect, useRef, useLayoutEffect
+    useCallback, useState, useEffect, useRef, useLayoutEffect, useMemo,
 } from 'react';
 import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
@@ -92,7 +92,7 @@ function Expensify(props) {
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const [isSplashShown, setIsSplashShown] = useState(true);
 
-    const isAuthenticated = Boolean(lodashGet(props, 'session.authToken', null));
+    const isAuthenticated = useMemo(() => Boolean(lodashGet(props, 'session.authToken', null)));
 
     const reportBootSplashStatus = useCallback(() => {
         BootSplash
@@ -117,12 +117,12 @@ function Expensify(props) {
         ActiveClientManager.init();
     };
 
-    const setNavigationReady = () => {
+    const setNavigationReady = useCallback(() => {
         setIsNavigationReady(true);
 
         // Navigate to any pending routes now that the NavigationContainer is ready
         Navigation.setIsNavigationReady();
-    };
+    });
 
     useLayoutEffect(() => {
         // Used for the offline indicator appearing when someone is offline
@@ -156,7 +156,7 @@ function Expensify(props) {
             if (!appStateChangeListener.current) { return; }
             appStateChangeListener.current.remove();
         };
-    }, [isAuthenticated, reportBootSplashStatus]);
+    }, []);
 
     useEffect(() => {
         if (!isNavigationReady || !isSplashShown) {
