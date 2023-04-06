@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import IOUAmountPage from './steps/IOUAmountPage';
+import MoneyRequestAmountPage from './steps/MoneyRequestAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage/IOUParticipantsPage';
 import IOUConfirmPage from './steps/IOUConfirmPage';
 import ModalHeader from './ModalHeader';
@@ -357,7 +357,7 @@ const MoneyRequestModal = (props) => {
                                         style={[styles.flex1, safeAreaPaddingBottomStyle]}
                                     >
                                         {modalHeader}
-                                        <IOUAmountPage
+                                        <MoneyRequestAmountPage
                                             onStepComplete={(value) => {
                                                 setAmount(value);
                                                 navigateToNextStep();
