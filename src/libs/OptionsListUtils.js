@@ -2,6 +2,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashOrderBy from 'lodash/orderBy';
+import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
@@ -76,6 +77,32 @@ Onyx.connect({
         lastReportActions[reportID] = _.last(_.toArray(actions));
     },
 });
+
+const reports = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    callback: (report, key) => {
+        reports[key] = report;
+    },
+});
+
+function getPolicyExpenseReportOptions(report) {
+    if (!ReportUtils.isPolicyExpenseChat(report)) {
+        return [];
+    }
+    const policyID = report.policyID;
+    return _.filter(reports, (report) => {
+        if (report.policyID === policyID) {
+            return true;
+        }
+        return false;
+    });
+}
+
+function getParticipantsOptions(report, personalDetails) {
+    const participants = lodashGet(report, 'participants', []);
+    return getPersonalDetailsForLogins(participants, personalDetails);
+}
 
 /**
  * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
@@ -806,4 +833,6 @@ export {
     getIOUConfirmationOptionsFromParticipants,
     getSearchText,
     getAllReportErrors,
+    getPolicyExpenseReportOptions,
+    getParticipantsOptions,
 };

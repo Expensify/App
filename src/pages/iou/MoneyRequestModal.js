@@ -106,7 +106,7 @@ const Steps = {
 
 const MoneyRequestModal = (props) => {
     const reportParticipants = lodashGet(props, 'report.participants', []);
-    const participantsWithDetails = _.map(OptionsListUtils.getPersonalDetailsForLogins(reportParticipants, props.personalDetails), personalDetails => ({
+    const participantsWithDetails = _.map(ReportUtils.isPolicyExpenseChat(props.report) ? OptionsListUtils.getPolicyExpenseReportOptions(props.report) : OptionsListUtils.getPersonalDetailsForLogins(reportParticipants, props.personalDetails), personalDetails => ({
         login: personalDetails.login,
         text: personalDetails.displayName,
         firstName: lodashGet(personalDetails, 'firstName', ''),
