@@ -2,8 +2,17 @@ import _ from 'underscore';
 import {StackRouter} from '@react-navigation/native';
 import NAVIGATORS from '../../../../NAVIGATORS';
 
+/**
+ * @param {Object} state - react-navigation state
+ * @returns {boolean}
+ */
 const isAtLeastOneCentralPaneNavigatorInState = state => _.find(state.routes, r => r.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
 
+/**
+ * Adds report route without any specific reportID to the state.
+ * The report screen will self set proper reportID param basing on the helper function findLastAccessedReport (look at the ReportScreenWraper for more info)
+ * @param {Object} state - react-navigation state
+ */
 const addCentralPaneNavigatorRoute = (state) => {
     state.routes.splice(1, 0, {name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR});
     // eslint-disable-next-line no-param-reassign

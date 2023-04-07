@@ -1,6 +1,11 @@
 import _ from 'lodash';
 
 // This function is in a separate file than Navigation.js to avoid cyclic dependency.
+
+/**
+ * @param {Object} state - The react-navigation state
+ * @returns {String | undefined} - It's possible that there is no any report screen
+ */
 function getTopmostReportId(state) {
     const topmostCentralPane = _.findLast(state.routes, route => route.name === 'CentralPaneNavigator');
 
