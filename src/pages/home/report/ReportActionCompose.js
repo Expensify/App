@@ -160,7 +160,7 @@ class ReportActionCompose extends React.Component {
         this.focus = this.focus.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
         this.replaceSelectionWithInput = this.replaceSelectionWithInput.bind(this);
-        this.keypressListener = this.keypressListener.bind(this);
+        this.keydownListener = this.keydownListener.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.isEmojiCode = this.isEmojiCode.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
@@ -202,7 +202,7 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidMount() {
-        document.addEventListener('keydown', this.keypressListener);
+        document.addEventListener('keydown', this.keydownListener);
 
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
         // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
@@ -259,7 +259,7 @@ class ReportActionCompose extends React.Component {
     }
 
     componentWillUnmount() {
-        document.removeEventListener('keydown', this.keypressListener);
+        document.removeEventListener('keydown', this.keydownListener);
         ReportActionComposeFocusManager.clear();
 
         if (this.unsubscribeEscapeKey) {
@@ -465,7 +465,7 @@ class ReportActionCompose extends React.Component {
         return _.size(this.props.reportActions) === 1;
     }
 
-    keypressListener(e) {
+    keydownListener(e) {
         if (this.state.isFocused) { return; }
 
         // if the key pressed is non-character keys like Enter, Shift, ... do not focus
@@ -490,8 +490,7 @@ class ReportActionCompose extends React.Component {
                 start: prevState.selection.start + text.length,
                 end: prevState.selection.start + text.length,
             },
-        }));
-        this.updateComment(newComment);
+        }), this.updateComment(newComment));
     }
 
     /**
