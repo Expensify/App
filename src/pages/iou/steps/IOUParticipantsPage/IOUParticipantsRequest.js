@@ -33,6 +33,9 @@ const propTypes = {
         PropTypes.object,
     ]),
 
+    /** The type of IOU report, i.e. bill, request, send */
+    iouType: PropTypes.string.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -54,14 +57,7 @@ class IOUParticipantsRequest extends Component {
             recentReports,
             personalDetails,
             userToInvite,
-        } = OptionsListUtils.getNewChatOptions(
-            props.reports,
-            props.personalDetails,
-            props.betas,
-            '',
-            [],
-            CONST.EXPENSIFY_EMAILS,
-        );
+        } = this.getRequestOptions();
 
         this.state = {
             recentReports,
@@ -69,6 +65,26 @@ class IOUParticipantsRequest extends Component {
             userToInvite,
             searchTerm: '',
         };
+    }
+
+    /**
+     * @param {string} searchTerm
+     * @returns {Object}
+     */
+    getRequestOptions(searchTerm = '') {
+        return OptionsListUtils.getNewChatOptions(
+            this.props.reports,
+            this.props.personalDetails,
+            this.props.betas,
+            searchTerm,
+            [],
+            CONST.EXPENSIFY_EMAILS,
+
+            // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
+            // sees the option to request money from their admin on their own Workspace Chat. These will always be shown in the "Recents" section of the selector
+            // along with any other recent chats.
+            this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+        );
     }
 
     /**
@@ -113,14 +129,7 @@ class IOUParticipantsRequest extends Component {
             recentReports,
             personalDetails,
             userToInvite,
-        } = OptionsListUtils.getNewChatOptions(
-            this.props.reports,
-            this.props.personalDetails,
-            this.props.betas,
-            searchTerm,
-            [],
-            CONST.EXPENSIFY_EMAILS,
-        );
+        } = this.getRequestOptions(searchTerm);
         this.setState({
             searchTerm,
             recentReports,

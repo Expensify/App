@@ -451,6 +451,7 @@ function getOptions(reports, personalDetails, {
     showChatPreviewLine = false,
     sortPersonalDetailsByAlphaAsc = true,
     forcePolicyNamePreview = false,
+    includeOwnedWorkspaceChats = false,
 }) {
     let recentReportOptions = [];
     let personalDetailsOptions = [];
@@ -490,6 +491,10 @@ function getOptions(reports, personalDetails, {
         const isChatRoom = ReportUtils.isChatRoom(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const logins = report.participants || [];
+
+        if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
+            return;
+        }
 
         // Save the report in the map if this is a single participant so we can associate the reportID with the
         // personal detail option later. Individuals should not be associated with single participant
@@ -536,15 +541,20 @@ function getOptions(reports, personalDetails, {
 
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
+            const reportOption = allReportOptions[i];
+            const isCurrentUserOwnedPolicyExpenseChatThatShouldShow = (reportOption.isPolicyExpenseChat
+                && (reportOption.ownerEmail === currentUserLogin)
+                && includeOwnedWorkspaceChats
+                && !reportOption.isArchivedRoom
+            );
+
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
-            if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
+            if (!isCurrentUserOwnedPolicyExpenseChatThatShouldShow && recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
                 break;
             }
 
-            const reportOption = allReportOptions[i];
-
             // Skip if we aren't including multiple participant reports and this report has multiple participants
-            if (!includeMultipleParticipantReports && !reportOption.login) {
+            if (!isCurrentUserOwnedPolicyExpenseChatThatShouldShow && !includeMultipleParticipantReports && !reportOption.login) {
                 continue;
             }
 
@@ -666,6 +676,7 @@ function getSearchOptions(
         showChatPreviewLine: true,
         includePersonalDetails: true,
         forcePolicyNamePreview: true,
+        includeOwnedWorkspaceChats: true,
     });
 }
 
@@ -710,10 +721,11 @@ function getIOUConfirmationOptionsFromParticipants(
  *
  * @param {Object} reports
  * @param {Object} personalDetails
- * @param {Array<String>} betas
- * @param {String} searchValue
- * @param {Array} selectedOptions
- * @param {Array} excludeLogins
+ * @param {Array<String>} [betas]
+ * @param {String} [searchValue]
+ * @param {Array} [selectedOptions]
+ * @param {Array} [excludeLogins]
+ * @param {Boolean} [includeOwnedWorkspaceChats]
  * @returns {Object}
  */
 function getNewChatOptions(
@@ -723,16 +735,17 @@ function getNewChatOptions(
     searchValue = '',
     selectedOptions = [],
     excludeLogins = [],
+    includeOwnedWorkspaceChats = false,
 ) {
     return getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
         selectedOptions,
-        excludeChatRooms: true,
         includeRecentReports: true,
         includePersonalDetails: true,
         maxRecentReportsToShow: 5,
         excludeLogins,
+        includeOwnedWorkspaceChats,
     });
 }
 
