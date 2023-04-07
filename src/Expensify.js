@@ -156,6 +156,7 @@ function Expensify(props) {
             if (!appStateChangeListener.current) { return; }
             appStateChangeListener.current.remove();
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
     useEffect(() => {
