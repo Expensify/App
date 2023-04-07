@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import React from 'react';
 import _ from 'underscore';
@@ -17,12 +18,23 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import * as Session from '../../../libs/actions/Session';
 
 const propTypes = {
+    scrollViewRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.shape({current: PropTypes.element}),
+    ]),
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
-const navigateHome = () => {
-    Navigation.navigate();
+const navigateHome = (scrollViewRef) => {
+    if (Navigation.getActiveRoute() === '/' && scrollViewRef && scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({
+            y: 0,
+            animated: true,
+        });
+    } else {
+        Navigation.navigate();
+    }
 
     // We need to clear sign in data in case the user is already in the ValidateCodeForm or PasswordForm pages
     Session.clearSignInData();
@@ -174,7 +186,7 @@ const Footer = (props) => {
                                                 <TextLink
                                                     style={[styles.footerRow, hovered ? styles.textBlue : {}]}
                                                     href={row.link}
-                                                    onPress={row.onPress}
+                                                    onPress={row.onPress ? () => row.onPress(props.scrollViewRef) : undefined}
                                                 >
                                                     {props.translate(row.translationPath)}
                                                 </TextLink>
@@ -211,6 +223,9 @@ const Footer = (props) => {
 
 Footer.propTypes = propTypes;
 Footer.displayName = 'Footer';
+Footer.defaultProps = {
+    scrollViewRef: {current: null},
+};
 
 export default compose(
     withLocalize,
