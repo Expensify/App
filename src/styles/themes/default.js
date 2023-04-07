@@ -6,6 +6,7 @@ const darkTheme = {
     appBG: colors.greenAppBackground,
     highlightBG: colors.greenHighlightBackground,
     border: colors.greenBorders,
+    borderLighter: colors.greenBordersLighter,
     borderFocus: colors.green,
     icon: colors.greenIcons,
     iconMenu: colors.green,

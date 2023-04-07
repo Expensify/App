@@ -4,7 +4,6 @@ import lodashGet from 'lodash/get';
 import lodashIntersection from 'lodash/intersection';
 import Onyx from 'react-native-onyx';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import {InteractionManager} from 'react-native';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
@@ -90,7 +89,13 @@ function getChatType(report) {
  * @returns {string}
  */
 function getReportParticipantsTitle(logins) {
-    return _.map(logins, login => Str.removeSMSDomain(login)).join(', ');
+    return _.chain(logins)
+
+        // Somehow it's possible for the logins coming from report.participants to contain undefined values so we use compact to remove them.
+        .compact()
+        .map(login => Str.removeSMSDomain(login))
+        .value()
+        .join(', ');
 }
 
 /**
@@ -317,6 +322,25 @@ function getPolicyName(report, policies) {
     return policy.name
         || report.oldPolicyName
         || Localize.translateLocal('workspace.common.unavailable');
+}
+
+/**
+ * Checks if the current user is the admin of the policy given the policy expense chat.
+ * @param {Object} report
+ * @param {String} report.policyID
+ * @param {Object} policies must have OnyxKey prefix (i.e 'policy_') for keys
+ * @returns {Boolean}
+ */
+function isPolicyExpenseChatAdmin(report, policies) {
+    if (!isPolicyExpenseChat(report)) {
+        return false;
+    }
+
+    const policyRole = lodashGet(policies, [
+        `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role',
+    ]);
+
+    return policyRole === CONST.POLICY.ROLE.ADMIN;
 }
 
 /**
@@ -569,6 +593,11 @@ function getFullSizeAvatar(avatarURL, login) {
 function getSmallSizeAvatar(avatarURL, login) {
     const source = getAvatar(avatarURL, login);
     if (!_.isString(source)) {
+        return source;
+    }
+
+    // Because other urls than CloudFront do not support dynamic image sizing (_SIZE suffix), the current source is already what we want to use here.
+    if (!CONST.CLOUDFRONT_DOMAIN_REGEX.test(source)) {
         return source;
     }
 
@@ -869,12 +898,15 @@ function hasReportNameError(report) {
 }
 
 /**
+ * For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
+ * For longer comments, skip parsing, but still escape the text, and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
+ *
  * @param {String} text
  * @returns {String}
  */
 function getParsedComment(text) {
     const parser = new ExpensiMark();
-    return text.length < CONST.MAX_MARKUP_LENGTH ? parser.replace(text) : text;
+    return text.length < CONST.MAX_MARKUP_LENGTH ? parser.replace(text) : _.escape(text);
 }
 
 /**
@@ -883,8 +915,6 @@ function getParsedComment(text) {
  * @returns {Object}
  */
 function buildOptimisticAddCommentReportAction(text, file) {
-    // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
-    // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     const parser = new ExpensiMark();
     const commentText = getParsedComment(text);
     const isAttachment = _.isEmpty(text) && file !== undefined;
@@ -981,7 +1011,6 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
     const who = displayNames.length < 3
         ? displayNames.join(' and ')
         : `${displayNames.slice(0, -1).join(', ')}, and ${_.last(displayNames)}`;
-
     let paymentMethodMessage;
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
@@ -1021,7 +1050,7 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
     }
 
     return [{
-        html: iouMessage,
+        html: getParsedComment(iouMessage),
         text: iouMessage,
         isEdited: false,
         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
@@ -1539,7 +1568,7 @@ function getCommentLength(textComment) {
  * @param {String|null} url
  * @returns {String}
  */
-function getReportIDFromDeepLink(url) {
+function getRouteFromLink(url) {
     if (!url) {
         return '';
     }
@@ -1566,6 +1595,15 @@ function getReportIDFromDeepLink(url) {
             route = route.replace('/', '');
         }
     });
+    return route;
+}
+
+/**
+ * @param {String|null} url
+ * @returns {String}
+ */
+function getReportIDFromLink(url) {
+    const route = getRouteFromLink(url);
     const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(route);
     if (isSubReportPageRoute) {
         // We allow the Sub-Report deep link routes (settings, details, etc.) to be handled by their respective component pages
@@ -1575,18 +1613,13 @@ function getReportIDFromDeepLink(url) {
 }
 
 /**
- * @param {String|null} url
+ * Users can request money in policy expense chats only if they are in a role of a member in the chat (in other words, if it's their policy expense chat)
+ *
+ * @param {Object} report
+ * @returns {Boolean}
  */
-function openReportFromDeepLink(url) {
-    const reportID = getReportIDFromDeepLink(url);
-    if (!reportID) {
-        return;
-    }
-    InteractionManager.runAfterInteractions(() => {
-        Navigation.isReportScreenReady().then(() => {
-            Navigation.navigate(ROUTES.getReportRoute(reportID));
-        });
-    });
+function canRequestMoney(report) {
+    return (!isPolicyExpenseChat(report) || report.isOwnPolicyExpenseChat);
 }
 
 /**
@@ -1595,27 +1628,28 @@ function openReportFromDeepLink(url) {
  * @param {Array} betas
  * @returns {Array}
  */
-function getIOUOptions(report, reportParticipants, betas) {
+function getMoneyRequestOptions(report, reportParticipants, betas) {
     const participants = _.filter(reportParticipants, email => currentUserPersonalDetails.login !== email);
     const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
     const hasMultipleParticipants = participants.length > 1;
 
-    if (hasExcludedIOUEmails || participants.length === 0 || !Permissions.canUseIOU(betas)) {
+    if (hasExcludedIOUEmails || (participants.length === 0 && !report.isOwnPolicyExpenseChat) || !Permissions.canUseIOU(betas)) {
         return [];
     }
 
     // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
     // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
-    // DM chats and workspace chats will have the Split Bill option only when there are at least 3 people in the chat.
-    if (isChatRoom(report) || hasMultipleParticipants) {
-        return [CONST.IOU.IOU_TYPE.SPLIT];
+    // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
+    // There is no Split Bill option for Workspace chats
+    if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report))) {
+        return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
     }
 
     // DM chats that only have 2 people will see the Send / Request money options.
     // Workspace chats should only see the Request money option, as "easy overages" is not available.
     return [
-        CONST.IOU.IOU_TYPE.REQUEST,
-        ...(Permissions.canUseIOUSend(betas) && !isPolicyExpenseChat(report) ? [CONST.IOU.IOU_TYPE.SEND] : []),
+        ...(canRequestMoney(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
+        ...(Permissions.canUseIOUSend(betas) && !isPolicyExpenseChat(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
     ];
 }
 
@@ -1667,6 +1701,7 @@ export {
     getPolicyName,
     getPolicyType,
     isArchivedRoom,
+    isPolicyExpenseChatAdmin,
     isPublicRoom,
     isConciergeChatReport,
     hasAutomatedExpensifyEmails,
@@ -1683,7 +1718,8 @@ export {
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
     getReportName,
-    getReportIDFromDeepLink,
+    getReportIDFromLink,
+    getRouteFromLink,
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
@@ -1710,8 +1746,9 @@ export {
     hashLogin,
     getDefaultWorkspaceAvatar,
     getCommentLength,
-    openReportFromDeepLink,
+    getParsedComment,
     getFullSizeAvatar,
     getSmallSizeAvatar,
-    getIOUOptions,
+    getMoneyRequestOptions,
+    canRequestMoney,
 };

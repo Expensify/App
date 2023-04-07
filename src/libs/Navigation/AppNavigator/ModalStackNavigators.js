@@ -282,6 +282,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsContactMethodDetailsPage = require('../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default;
+            return SettingsContactMethodDetailsPage;
+        },
+        name: 'Settings_ContactMethodDetails',
+    },
+    {
+        getComponent: () => {
             const SettingsAddSecondaryLoginPage = require('../../../pages/settings/Profile/Contacts/AddSecondaryLoginPage').default;
             return SettingsAddSecondaryLoginPage;
         },
@@ -511,6 +518,14 @@ const WalletStatementStackNavigator = createModalStackNavigator([{
     name: 'WalletStatement_Root',
 }]);
 
+const YearPickerStackNavigator = createModalStackNavigator([{
+    getComponent: () => {
+        const YearPickerPage = require('../../../pages/YearPickerPage').default;
+        return YearPickerPage;
+    },
+    name: 'YearPicker_Root',
+}]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
@@ -528,4 +543,5 @@ export {
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
     WalletStatementStackNavigator,
+    YearPickerStackNavigator,
 };

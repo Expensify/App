@@ -1,4 +1,4 @@
-import {Linking} from 'react-native';
+import {Linking, InteractionManager} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -255,7 +255,6 @@ function addActions(reportID, text = '', file) {
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
         file,
-        shouldKeyReportActionsByID: true,
     };
 
     const optimisticData = [
@@ -367,16 +366,23 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             isOptimisticReport: false,
         },
     };
+    const reportFailureData = {
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            isLoadingReportActions: false,
+        },
+    };
 
     const onyxData = {
         optimisticData: [optimisticReportData],
         successData: [reportSuccessData],
+        failureData: [reportFailureData],
     };
 
     const params = {
         reportID,
         emailList: participantList ? participantList.join(',') : '',
-        shouldKeyReportActionsByID: true,
     };
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
@@ -440,7 +446,6 @@ function reconnect(reportID) {
     API.write('ReconnectToReport',
         {
             reportID,
-            shouldKeyReportActionsByID: true,
         },
         {
             optimisticData: [{
@@ -517,7 +522,6 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
     API.read('OpenPaymentDetailsPage', {
         reportID: chatReportID,
         iouReportID,
-        shouldKeyReportActionsByID: true,
     }, {
         optimisticData: [
             {
@@ -632,6 +636,15 @@ function saveReportComment(reportID, comment) {
 }
 
 /**
+ * Saves the number of lines for the comment
+ * @param {String} reportID
+ * @param {Number} numberOfLines
+ */
+function saveReportCommentNumberOfLines(reportID, numberOfLines) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`, numberOfLines);
+}
+
+/**
  * Immediate indication whether the report has a draft comment.
  *
  * @param {String} reportID
@@ -706,14 +719,20 @@ function deleteReportComment(reportID, reportAction) {
         },
     };
 
-    // If we are deleting the last visible message, let's find the previous visible one and update the lastMessageText in the LHN.
+    // If we are deleting the last visible message, let's find the previous visible one (or set an empty one if there are none) and update the lastMessageText in the LHN.
     // Similarly, if we are deleting the last read comment we will want to update the lastVisibleActionCreated to use the previous visible message.
-    const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
-    const lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions).created;
-    const optimisticReport = {
-        lastMessageText,
-        lastVisibleActionCreated,
+    let optimisticReport = {
+        lastMessageText: '',
+        lastVisibleActionCreated: '',
     };
+    const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
+    if (lastMessageText.length > 0) {
+        const lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions).created;
+        optimisticReport = {
+            lastMessageText,
+            lastVisibleActionCreated,
+        };
+    }
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
     // and and remove the pendingAction so the strike-through clears
@@ -760,7 +779,6 @@ function deleteReportComment(reportID, reportAction) {
     const parameters = {
         reportID,
         reportActionID: reportAction.reportActionID,
-        shouldKeyReportActionsByID: true,
     };
     API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
 }
@@ -824,8 +842,8 @@ const handleUserDeletedLinks = (newCommentText, originalHtml) => {
         return newCommentText;
     }
     const htmlWithAutoLinks = parser.replace(newCommentText);
-    const markdownWithAutoLinks = parser.htmlToMarkdown(htmlWithAutoLinks);
-    const markdownOriginalComment = parser.htmlToMarkdown(originalHtml);
+    const markdownWithAutoLinks = parser.htmlToMarkdown(htmlWithAutoLinks).trim();
+    const markdownOriginalComment = parser.htmlToMarkdown(originalHtml).trim();
     const removedLinks = getRemovedMarkdownLinks(markdownOriginalComment, newCommentText);
     return removeLinks(markdownWithAutoLinks, removedLinks);
 };
@@ -854,7 +872,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     let parsedOriginalCommentHTML = originalCommentHTML;
     if (markdownForNewComment.length < CONST.MAX_MARKUP_LENGTH) {
         htmlForNewComment = parser.replace(markdownForNewComment, autolinkFilter);
-        parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML), autolinkFilter);
+        parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML).trim(), autolinkFilter);
     }
 
     //  Delete the comment if it's empty
@@ -920,7 +938,6 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         reportID,
         reportComment: htmlForNewComment,
         reportActionID,
-        shouldKeyReportActionsByID: true,
     };
     API.write('UpdateComment', parameters, {optimisticData, successData, failureData});
 }
@@ -934,6 +951,16 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
  */
 function saveReportActionDraft(reportID, reportActionID, draftMessage) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
+}
+
+/**
+ * Saves the number of lines for the report action draft
+ * @param {String} reportID
+ * @param {Number} reportActionID
+ * @param {Number} numberOfLines
+ */
+function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLines) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}_${reportActionID}`, numberOfLines);
 }
 
 /**
@@ -1367,6 +1394,24 @@ function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = pref
     return addEmojiReaction(reportID, reportAction, emoji, skinTone);
 }
 
+/**
+ * @param {String|null} url
+ */
+function openReportFromDeepLink(url) {
+    InteractionManager.runAfterInteractions(() => {
+        Navigation.isReportScreenReady().then(() => {
+            const route = ReportUtils.getRouteFromLink(url);
+            const reportID = ReportUtils.getReportIDFromLink(url);
+            if (reportID) {
+                Navigation.navigate(ROUTES.getReportRoute(reportID));
+            }
+            if (route === ROUTES.CONCIERGE) {
+                navigateToConciergeChat();
+            }
+        });
+    });
+}
+
 function getCurrentUserAccountID() {
     return currentUserAccountID;
 }
@@ -1380,11 +1425,13 @@ export {
     subscribeToReportCommentPushNotifications,
     unsubscribeFromReportChannel,
     saveReportComment,
+    saveReportCommentNumberOfLines,
     broadcastUserIsTyping,
     togglePinnedState,
     editReportComment,
     handleUserDeletedLinks,
     saveReportActionDraft,
+    saveReportActionDraftNumberOfLines,
     deleteReportComment,
     navigateToConciergeChat,
     setReportWithDraft,
@@ -1395,6 +1442,7 @@ export {
     readNewestAction,
     readOldestAction,
     openReport,
+    openReportFromDeepLink,
     navigateToAndOpenReport,
     openPaymentDetailsPage,
     updatePolicyRoomName,

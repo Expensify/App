@@ -75,19 +75,15 @@ class Hoverable extends Component {
             onMouseEnter: (el) => {
                 this.setIsHovered(true);
 
-                // Call the original onMouseEnter, if any
-                const {onMouseEnter} = child;
-                if (_.isFunction(onMouseEnter)) {
-                    onMouseEnter(el);
+                if (_.isFunction(this.props.children.props.onMouseEnter)) {
+                    this.props.children.props.onMouseEnter(el);
                 }
             },
             onMouseLeave: (el) => {
                 this.setIsHovered(false);
 
-                // Call the original onMouseLeave, if any
-                const {onMouseLeave} = child;
-                if (_.isFunction(onMouseLeave)) {
-                    onMouseLeave(el);
+                if (_.isFunction(this.props.children.props.onMouseLeave)) {
+                    this.props.children.props.onMouseLeave(el);
                 }
             },
             onBlur: (el) => {
@@ -95,10 +91,8 @@ class Hoverable extends Component {
                     this.setIsHovered(false);
                 }
 
-                // Call the original onBlur, if any
-                const {onBlur} = child;
-                if (_.isFunction(onBlur)) {
-                    onBlur(el);
+                if (_.isFunction(this.props.children.props.onBlur)) {
+                    this.props.children.props.onBlur(el);
                 }
             },
         });

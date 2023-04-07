@@ -35,7 +35,7 @@ export default function () {
             [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
             [ONYXKEYS.NETWORK]: {isOffline: false},
             [ONYXKEYS.IOU]: {
-                loading: false, error: false, creatingIOUTransaction: false, isRetrievingCurrency: false,
+                loading: false, error: false, creatingIOUTransaction: false,
             },
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
             [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,

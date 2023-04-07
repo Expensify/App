@@ -24,6 +24,7 @@ import * as User from '../../src/libs/actions/User';
 import * as Pusher from '../../src/libs/Pusher/pusher';
 import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
 import CONFIG from '../../src/CONFIG';
+import * as Localize from '../../src/libs/Localize';
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(30000);
@@ -51,7 +52,8 @@ beforeAll(() => {
 });
 
 function scrollUpToRevealNewMessagesBadge() {
-    fireEvent.scroll(screen.queryByLabelText('List of chat messages'), {
+    const hintText = Localize.translateLocal('sidebarScreen.listOfChatMessages');
+    fireEvent.scroll(screen.queryByLabelText(hintText), {
         nativeEvent: {
             contentOffset: {
                 y: 250,
@@ -74,7 +76,8 @@ function scrollUpToRevealNewMessagesBadge() {
  * @return {Boolean}
  */
 function isNewMessagesBadgeVisible() {
-    const badge = screen.queryByAccessibilityHint('Scroll to newest messages');
+    const hintText = Localize.translateLocal('accessibilityHints.scrollToNewestMessages');
+    const badge = screen.queryByAccessibilityHint(hintText);
     return Math.round(badge.props.style.transform[0].translateY) === 10;
 }
 
@@ -82,7 +85,8 @@ function isNewMessagesBadgeVisible() {
  * @return {Promise}
  */
 function navigateToSidebar() {
-    const reportHeaderBackButton = screen.queryByAccessibilityHint('Navigate back to chats list');
+    const hintText = Localize.translateLocal('accessibilityHints.navigateToChatsList');
+    const reportHeaderBackButton = screen.queryByAccessibilityHint(hintText);
     fireEvent(reportHeaderBackButton, 'press');
     return waitForPromisesToResolve();
 }
@@ -92,7 +96,8 @@ function navigateToSidebar() {
  * @return {Promise}
  */
 function navigateToSidebarOption(index) {
-    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+    const optionRows = screen.queryAllByAccessibilityHint(hintText);
     fireEvent(optionRows[index], 'press');
     return waitForPromisesToResolve();
 }
@@ -101,7 +106,8 @@ function navigateToSidebarOption(index) {
  * @return {Boolean}
  */
 function isDrawerOpen() {
-    const sidebarLinks = screen.queryAllByLabelText('List of chats');
+    const hintText = Localize.translateLocal('sidebarScreen.listOfChats');
+    const sidebarLinks = screen.queryAllByLabelText(hintText);
     return !lodashGet(sidebarLinks, [0, 'props', 'accessibilityElementsHidden']);
 }
 
@@ -126,7 +132,8 @@ function signInAndGetAppWithUnreadChat() {
     render(<App />);
     return waitForPromisesToResolveWithAct()
         .then(() => {
-            const loginForm = screen.queryAllByLabelText('Login form');
+            const hintText = Localize.translateLocal('loginForm.loginForm');
+            const loginForm = screen.queryAllByLabelText(hintText);
             expect(loginForm).toHaveLength(1);
 
             return TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
@@ -201,16 +208,19 @@ describe('Unread Indicators', () => {
             expect(LocalNotification.showCommentNotification.mock.calls).toHaveLength(0);
 
             // Verify the sidebar links are rendered
-            const sidebarLinks = screen.queryAllByLabelText('List of chats');
+            const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
+            const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
             expect(sidebarLinks).toHaveLength(1);
             expect(isDrawerOpen()).toBe(true);
 
             // Verify there is only one option in the sidebar
-            const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+            const optionRowsHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+            const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
             expect(optionRows).toHaveLength(1);
 
             // And that the text is bold
-            const displayNameText = screen.queryByLabelText('Chat user display names');
+            const displayNameHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+            const displayNameText = screen.queryByLabelText(displayNameHintText);
             expect(lodashGet(displayNameText, ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
 
             return navigateToSidebarOption(0);
@@ -220,14 +230,17 @@ describe('Unread Indicators', () => {
             expect(isDrawerOpen()).toBe(false);
 
             // That the report actions are visible along with the created action
-            const createdAction = screen.queryByLabelText('Chat welcome message');
+            const welcomeMessageHintText = Localize.translateLocal('accessibilityHints.chatWelcomeMessage');
+            const createdAction = screen.queryByLabelText(welcomeMessageHintText);
             expect(createdAction).toBeTruthy();
-            const reportComments = screen.queryAllByLabelText('Chat message');
+            const reportCommentsHintText = Localize.translateLocal('accessibilityHints.chatMessage');
+            const reportComments = screen.queryAllByLabelText(reportCommentsHintText);
             expect(reportComments).toHaveLength(9);
 
             // Since the last read timestamp is the timestamp of action 3 we should have an unread indicator above the next "unread" action which will
             // have actionID of 4
-            const unreadIndicator = screen.queryAllByLabelText('New message line indicator');
+            const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+            const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
             expect(unreadIndicator).toHaveLength(1);
             const reportActionID = lodashGet(unreadIndicator, [0, 'props', 'data-action-id']);
             expect(reportActionID).toBe('4');
@@ -252,7 +265,8 @@ describe('Unread Indicators', () => {
             expect(isDrawerOpen()).toBe(true);
 
             // Verify that the option row in the LHN is no longer bold (since OpenReport marked it as read)
-            const updatedDisplayNameText = screen.queryByLabelText('Chat user display names');
+            const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+            const updatedDisplayNameText = screen.queryByLabelText(hintText);
             expect(lodashGet(updatedDisplayNameText, ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
 
             // Tap on the chat again
@@ -260,7 +274,8 @@ describe('Unread Indicators', () => {
         })
         .then(() => {
             // Verify the unread indicator is not present
-            const unreadIndicator = screen.queryAllByLabelText('New message line indicator');
+            const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+            const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
             expect(unreadIndicator).toHaveLength(0);
             expect(isDrawerOpen()).toBe(false);
 
@@ -334,11 +349,13 @@ describe('Unread Indicators', () => {
         })
         .then(() => {
             // // Verify the new report option appears in the LHN
-            const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+            const optionRowsHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+            const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
             expect(optionRows).toHaveLength(2);
 
             // Verify the text for both chats are bold indicating that nothing has not yet been read
-            const displayNameTexts = screen.queryAllByLabelText('Chat user display names');
+            const displayNameHintTexts = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+            const displayNameTexts = screen.queryAllByLabelText(displayNameHintTexts);
             expect(displayNameTexts).toHaveLength(2);
             const firstReportOption = displayNameTexts[0];
             expect(lodashGet(firstReportOption, ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
@@ -353,7 +370,8 @@ describe('Unread Indicators', () => {
         })
         .then(() => {
             // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
-            const displayNameTexts = screen.queryAllByLabelText('Chat user display names');
+            const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+            const displayNameTexts = screen.queryAllByLabelText(hintText);
             expect(displayNameTexts).toHaveLength(2);
             expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
             expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('C User');
@@ -373,7 +391,8 @@ describe('Unread Indicators', () => {
         })
         .then(() => {
             // Verify the indicator appears above the last action
-            const unreadIndicator = screen.queryAllByLabelText('New message line indicator');
+            const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+            const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
             expect(unreadIndicator).toHaveLength(1);
             const reportActionID = lodashGet(unreadIndicator, [0, 'props', 'data-action-id']);
             expect(reportActionID).toBe('3');
@@ -387,7 +406,8 @@ describe('Unread Indicators', () => {
         .then(navigateToSidebar)
         .then(() => {
             // Verify the report is marked as unread in the sidebar
-            const displayNameTexts = screen.queryAllByLabelText('Chat user display names');
+            const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+            const displayNameTexts = screen.queryAllByLabelText(hintText);
             expect(displayNameTexts).toHaveLength(1);
             expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
             expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');
@@ -398,7 +418,8 @@ describe('Unread Indicators', () => {
         .then(() => navigateToSidebar())
         .then(() => {
             // Verify the report is now marked as read
-            const displayNameTexts = screen.queryAllByLabelText('Chat user display names');
+            const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+            const displayNameTexts = screen.queryAllByLabelText(hintText);
             expect(displayNameTexts).toHaveLength(1);
             expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
             expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');
@@ -407,7 +428,8 @@ describe('Unread Indicators', () => {
             return navigateToSidebarOption(0);
         })
         .then(() => {
-            const unreadIndicator = screen.queryAllByLabelText('New message line indicator');
+            const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+            const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
             expect(unreadIndicator).toHaveLength(0);
 
             // Scroll up and verify the "New messages" badge is hidden
@@ -420,7 +442,8 @@ describe('Unread Indicators', () => {
             // Verify we are on the LHN and that the chat shows as unread in the LHN
             expect(isDrawerOpen()).toBe(true);
 
-            const displayNameTexts = screen.queryAllByLabelText('Chat user display names');
+            const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+            const displayNameTexts = screen.queryAllByLabelText(hintText);
             expect(displayNameTexts).toHaveLength(1);
             expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');
             expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
@@ -429,7 +452,8 @@ describe('Unread Indicators', () => {
             return navigateToSidebarOption(0);
         })
         .then(() => {
-            const unreadIndicator = screen.queryAllByLabelText('New message line indicator');
+            const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+            const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
             expect(unreadIndicator).toHaveLength(1);
 
             // Leave a comment as the current user and verify the indicator is removed
@@ -437,7 +461,8 @@ describe('Unread Indicators', () => {
             return waitForPromisesToResolve();
         })
         .then(() => {
-            const unreadIndicator = screen.queryAllByLabelText('New message line indicator');
+            const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+            const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
             expect(unreadIndicator).toHaveLength(0);
         }));
 
@@ -446,7 +471,8 @@ describe('Unread Indicators', () => {
             // Verify we are on the LHN and that the chat shows as unread in the LHN
             expect(isDrawerOpen()).toBe(true);
 
-            const displayNameTexts = screen.queryAllByLabelText('Chat user display names');
+            const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+            const displayNameTexts = screen.queryAllByLabelText(hintText);
             expect(displayNameTexts).toHaveLength(1);
             expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');
             expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
@@ -455,7 +481,8 @@ describe('Unread Indicators', () => {
             return navigateToSidebarOption(0);
         })
         .then(() => {
-            const unreadIndicator = screen.queryAllByLabelText('New message line indicator');
+            const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+            const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
             expect(unreadIndicator).toHaveLength(1);
 
             // Then back to the LHN - then back to the chat again and verify the new line indicator has cleared
@@ -463,7 +490,8 @@ describe('Unread Indicators', () => {
         })
         .then(() => navigateToSidebarOption(0))
         .then(() => {
-            const unreadIndicator = screen.queryAllByLabelText('New message line indicator');
+            const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+            const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
             expect(unreadIndicator).toHaveLength(0);
 
             // Mark a previous comment as unread and verify the unread action indicator returns
@@ -471,7 +499,8 @@ describe('Unread Indicators', () => {
             return waitForPromisesToResolve();
         })
         .then(() => {
-            let unreadIndicator = screen.queryAllByLabelText('New message line indicator');
+            const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+            let unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
             expect(unreadIndicator).toHaveLength(1);
 
             // Trigger the app going inactive and active again
@@ -479,7 +508,7 @@ describe('Unread Indicators', () => {
             AppState.emitCurrentTestState('active');
 
             // Verify the new line is still present
-            unreadIndicator = screen.queryAllByLabelText('New message line indicator');
+            unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
             expect(unreadIndicator).toHaveLength(1);
         }));
 
@@ -512,7 +541,8 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // Verify the chat preview text matches the last comment from the current user
-                const alternateText = screen.queryAllByLabelText('Last chat message preview');
+                const hintText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
+                const alternateText = screen.queryAllByLabelText(hintText);
                 expect(alternateText).toHaveLength(1);
                 expect(alternateText[0].props.children).toBe('Current User Comment 1');
 
@@ -520,7 +550,8 @@ describe('Unread Indicators', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                const alternateText = screen.queryAllByLabelText('Last chat message preview');
+                const hintText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
+                const alternateText = screen.queryAllByLabelText(hintText);
                 expect(alternateText).toHaveLength(1);
                 expect(alternateText[0].props.children).toBe('Comment 9');
             });

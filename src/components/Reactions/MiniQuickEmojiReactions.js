@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -32,12 +32,13 @@ const propTypes = {
     onEmojiPickerClosed: PropTypes.func,
 
     ...withLocalizePropTypes,
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
 };
 
 const defaultProps = {
     onEmojiPickerClosed: () => {},
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
 /**
@@ -49,7 +50,7 @@ const defaultProps = {
  * @returns {JSX.Element}
  */
 const MiniQuickEmojiReactions = (props) => {
-    const ref = React.createRef();
+    const ref = useRef();
 
     const openEmojiPicker = () => {
         props.onPressOpenPicker();
@@ -84,7 +85,7 @@ const MiniQuickEmojiReactions = (props) => {
                 ref={ref}
                 onPress={openEmojiPicker}
                 isDelayButtonStateComplete={false}
-                tooltipText={props.translate('reportActionContextMenu.addReactionTooltip')}
+                tooltipText={props.translate('emojiReactions.addReactionTooltip')}
             >
                 {({hovered, pressed}) => (
                     <Icon
