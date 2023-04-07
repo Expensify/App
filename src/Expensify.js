@@ -122,7 +122,7 @@ function Expensify(props) {
 
         // Navigate to any pending routes now that the NavigationContainer is ready
         Navigation.setIsNavigationReady();
-    });
+    }, []);
 
     useLayoutEffect(() => {
         // Used for the offline indicator appearing when someone is offline
