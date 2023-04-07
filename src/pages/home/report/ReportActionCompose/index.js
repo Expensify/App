@@ -261,7 +261,7 @@ class ReportActionCompose extends React.Component {
     }
 
     componentWillUnmount() {
-        removeListenKeyDown();
+        removeListenKeyDown(this.keydownListener);
         ReportActionComposeFocusManager.clear();
 
         if (this.unsubscribeEscapeKey) {
