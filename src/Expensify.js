@@ -94,21 +94,6 @@ function Expensify(props) {
 
     const isAuthenticated = useMemo(() => Boolean(lodashGet(props.session, 'authToken', null)), [props.session]);
 
-    const reportBootSplashStatus = useCallback(() => {
-        BootSplash
-            .getVisibilityStatus()
-            .then((status) => {
-                const appState = AppState.currentState;
-                Log.info('[BootSplash] splash screen status', false, {appState, status});
-
-                if (status === 'visible') {
-                    const propsToLog = _.omit(props, ['children', 'session']);
-                    propsToLog.isAuthenticated = isAuthenticated;
-                    Log.alert('[BootSplash] splash screen is still visible', {propsToLog}, false);
-                }
-            });
-    });
-
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
             return;
@@ -130,7 +115,20 @@ function Expensify(props) {
     }, []);
 
     useEffect(() => {
-        setTimeout(() => reportBootSplashStatus(), 30 * 1000);
+        setTimeout(() => {
+            BootSplash
+                .getVisibilityStatus()
+                .then((status) => {
+                    const appState = AppState.currentState;
+                    Log.info('[BootSplash] splash screen status', false, {appState, status});
+
+                    if (status === 'visible') {
+                        const propsToLog = _.omit(props, ['children', 'session']);
+                        propsToLog.isAuthenticated = isAuthenticated;
+                        Log.alert('[BootSplash] splash screen is still visible', {propsToLog}, false);
+                    }
+                });
+        }, 30 * 1000);
 
         // This timer is set in the native layer when launching the app and we stop it here so we can measure how long
         // it took for the main app itself to load.
