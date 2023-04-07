@@ -224,7 +224,7 @@ function removeMembers(members, policyID) {
     API.write('DeleteMembersFromWorkspace', {
         emailList: members.join(','),
         policyID,
-    }, {optimisticData, failureData, successData});
+    }, {optimisticData, successData, failureData});
 }
 
 /**
