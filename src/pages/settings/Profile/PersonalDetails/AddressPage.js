@@ -171,6 +171,7 @@ class AddressPage extends Component {
                             isLimitedToUSA={false}
                             renamedInputKeys={{
                                 street: 'addressLine1',
+                                street2: 'addressLine2',
                                 city: 'city',
                                 state: 'state',
                                 zipCode: 'zipPostCode',
