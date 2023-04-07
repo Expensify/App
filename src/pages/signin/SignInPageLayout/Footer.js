@@ -18,10 +18,10 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import * as Session from '../../../libs/actions/Session';
 
 const propTypes = {
-    scrollViewRef: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.shape({current: PropTypes.element}),
-    ]),
+    scrollViewRef: PropTypes.shape({
+        // eslint-disable-next-line react/forbid-prop-types
+        current: PropTypes.any,
+    }),
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
