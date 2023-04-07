@@ -72,9 +72,15 @@ function hasSameExpensifyOrigin(url1, url2) {
     return host1WithoutW3 === host2WithoutW3;
 }
 
+function isValidateLoginUrl(url) {
+    const {path} = getURLObject(url);
+    return path.startsWith('/v/');
+}
+
 export {
     // eslint-disable-next-line import/prefer-default-export
     addTrailingForwardSlash,
     hasSameExpensifyOrigin,
     getURLObject,
+    isValidateLoginUrl,
 };

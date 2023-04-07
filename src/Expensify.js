@@ -16,6 +16,7 @@ import UpdateAppModal from './components/UpdateAppModal';
 import Visibility from './libs/Visibility';
 import GrowlNotification from './components/GrowlNotification';
 import * as Growl from './libs/Growl';
+import * as Url from './libs/Url';
 import StartupTimer from './libs/StartupTimer';
 import Log from './libs/Log';
 import ConfirmModal from './components/ConfirmModal';
@@ -140,8 +141,15 @@ class Expensify extends PureComponent {
             // eslint-disable-next-line react/no-did-update-set-state
             this.setState({isSplashShown: false});
 
-            // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
-            Linking.getInitialURL().then(url => Report.openReportFromDeepLink(url));
+            // If the app is opened from a deep link, check if it's a validate login URL
+            // otherwise it has to be a report.
+            Linking.getInitialURL().then((url) => {
+                if (Url.isValidateLoginUrl(url)) {
+                    Navigation.navigate(Url.getURLObject(url).path.substring(1));
+                    return;
+                }
+                Report.openReportFromDeepLink(url);
+            });
         }
     }
 
