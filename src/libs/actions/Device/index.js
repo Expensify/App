@@ -45,8 +45,6 @@ function setDeviceID() {
         .catch(err => Log.info('Found existing deviceID', false, err.message));
 }
 
-window.getDeviceInfo = getDeviceInfo;
-
 export {
     getDeviceInfo,
     getDeviceID,
