@@ -36,6 +36,9 @@ const propTypes = {
         PropTypes.arrayOf(PropTypes.object),
         PropTypes.object,
     ]),
+
+    /** The type of IOU report, i.e. bill, request, send */
+    iouType: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -67,6 +70,7 @@ const MoneyRequestParticipantsPage = (props) => {
                 onStepComplete={props.onStepComplete}
                 onAddParticipants={props.onAddParticipants}
                 safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle}
+                iouType={props.iouType}
             />
         )
     );
