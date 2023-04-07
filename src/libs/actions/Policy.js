@@ -211,15 +211,15 @@ function removeMembers(members, policyID) {
         key: membersListKey,
         value: _.object(members, Array(members.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
     }];
-    const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: membersListKey,
-        value: _.object(members, Array(members.length).fill({errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericRemove')}})),
-    }];
     const successData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: membersListKey,
         value: _.object(members, Array(members.length).fill(null)),
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: membersListKey,
+        value: _.object(members, Array(members.length).fill({errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericRemove')}})),
     }];
     API.write('DeleteMembersFromWorkspace', {
         emailList: members.join(','),
