@@ -92,7 +92,7 @@ function Expensify(props) {
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const [isSplashShown, setIsSplashShown] = useState(true);
 
-    const isAuthenticated = useMemo(() => Boolean(lodashGet(props, 'session.authToken', null)));
+    const isAuthenticated = useMemo(() => Boolean(lodashGet(props.session, 'authToken', null)), [props.session]);
 
     const reportBootSplashStatus = useCallback(() => {
         BootSplash
