@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import * as windowDimensionsPropTypes from '../withWindowDimensions';
+import {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
     /** Array of additional styles to add */
