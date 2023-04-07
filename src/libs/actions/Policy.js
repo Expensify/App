@@ -275,7 +275,6 @@ function createPolicyExpenseChats(policyID, members, betas) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
             value: {
-                isLoadingReportActions: false,
                 pendingFields: {
                     createChat: null,
                 },
