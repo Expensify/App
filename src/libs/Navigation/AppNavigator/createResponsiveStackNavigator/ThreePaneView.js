@@ -9,13 +9,13 @@ import themeColors from '../../../../styles/themes/default';
 import NAVIGATORS from '../../../../NAVIGATORS';
 import * as StyleUtils from '../../../../styles/StyleUtils';
 import {withNavigationPropTypes} from '../../../../components/withNavigation';
+import styles from '../../../../styles/styles';
 
 const RIGHT_PANEL_WIDTH = 375;
 const LEFT_PANEL_WIDTH = 350;
 
-// TODO-NR what to do with styles
-const styles = StyleSheet.create({
-    container: {flexDirection: 'row', flex: 1},
+// TODO-NR this has tobe removed
+const localStyles = StyleSheet.create({
     leftPanelContainer: {
         flex: 1,
         maxWidth: LEFT_PANEL_WIDTH,
@@ -24,7 +24,6 @@ const styles = StyleSheet.create({
         // TODO-NR maybe in different place?
         borderRightColor: themeColors.border,
     },
-    centralPanelContainer: {flex: 1},
     rightPanelContainer: {
         width: '100%',
         height: '100%',
@@ -57,29 +56,12 @@ const propTypes = {
 const ThreePaneView = (props) => {
     const lastCentralPaneIndex = _.findLastIndex(props.state.routes, {name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR});
 
-    const renderRightPanel = ({key, shouldDisplay, children}) => (
-        <View
-            key={key}
-            style={[
-                styles.rightPanelContainer,
-                StyleUtils.displayIfTrue(shouldDisplay),
-            ]}
-        >
-            <Pressable style={{flex: 1}} onPress={() => props.navigation.goBack()} />
-            <View
-                style={styles.rightPanelInnerContainer}
-            >
-                {children}
-            </View>
-        </View>
-    );
-
     return (
-        <View style={styles.container}>
+        <View style={[styles.flex1, styles.flexRow]}>
             {_.map(props.state.routes, (route, i) => {
                 if (route.name === SCREENS.HOME) {
                     return (
-                        <View key={route.key} style={styles.leftPanelContainer}>
+                        <View key={route.key} style={localStyles.leftPanelContainer}>
                             {props.descriptors[route.key].render()}
                         </View>
                     );
@@ -89,7 +71,7 @@ const ThreePaneView = (props) => {
                         <View
                             key={route.key}
                             style={[
-                                styles.centralPanelContainer,
+                                styles.flex1,
                                 StyleUtils.displayIfTrue(lastCentralPaneIndex === i),
                             ]}
                         >
@@ -98,14 +80,25 @@ const ThreePaneView = (props) => {
                     );
                 }
                 if (route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
-                    return renderRightPanel({
-                        key: route.key,
-                        shouldDisplay: props.state.index === i,
-                        children: props.descriptors[route.key].render(),
-                    });
+                    return (
+                        <View
+                            key={route.key}
+                            style={[
+                                localStyles.rightPanelContainer,
+                                StyleUtils.displayIfTrue(props.state.index === i),
+                            ]}
+                        >
+                            <Pressable style={[styles.flex1]} onPress={() => props.navigation.goBack()} />
+                            <View
+                                style={localStyles.rightPanelInnerContainer}
+                            >
+                                {props.descriptors[route.key].render()}
+                            </View>
+                        </View>
+                    );
                 }
                 return (
-                    <View key={route.key} style={styles.fullScreen}>
+                    <View key={route.key} style={localStyles.fullScreen}>
                         {props.descriptors[route.key].render()}
                     </View>
                 );
