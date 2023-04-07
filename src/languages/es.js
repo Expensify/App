@@ -130,7 +130,7 @@ export default {
         yesContinue: 'Sí, Continuar',
         zipCodeExample: 'p. ej. 12345, 12345-1234, 12345 1234',
         websiteExample: 'p. ej. https://www.expensify.com',
-        format: ({zipSampleFormat}) => (zipSampleFormat ? `Formato: ${zipSampleFormat}` : ''),
+        format: ({zipSampleFormat}) => (zipSampleFormat ? `p. ej. ${zipSampleFormat}` : ''),
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
