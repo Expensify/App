@@ -245,6 +245,21 @@ function createPolicyExpenseChats(policyID, members, betas) {
     }
 
     _.each(members, (login) => {
+        const oldChat = ReportUtils.getChatByParticipantsAndPolicy([login, sessionEmail], policyID);
+
+        // If the chat already exists, we don't want to create a new one - just make sure it's not archived
+        if (oldChat) {
+            workspaceMembersChats.optimisticReportIDs[login] = oldChat.reportID;
+            workspaceMembersChats.onyxOptimisticData.push({
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${oldChat.reportID}`,
+                value: {
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS.OPEN,
+                },
+            });
+            return;
+        }
         const optimisticReport = ReportUtils.buildOptimisticChatReport(
             [login],
             undefined,
