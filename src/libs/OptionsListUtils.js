@@ -93,39 +93,26 @@ function getPolicyExpenseReportOptions(report) {
     if (!ReportUtils.isPolicyExpenseChat(report)) {
         return [];
     }
-    const filteredReports = _.filter(policyExpenseReports, (policyExpenseReport) => {
+    const filteredPolicyExpenseReports = _.filter(policyExpenseReports, (policyExpenseReport) => {
         if (policyExpenseReport.policyID === report.policyID) {
             return true;
         }
         return false;
     });
-    return _.map(filteredReports, (report) => {
+    return _.map(filteredPolicyExpenseReports, (expenseReport) => {
         const policyExpenseChatAvatarSource = lodashGet(policies, [
-            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar',
-        ]) || ReportUtils.getDefaultWorkspaceAvatar(report.displayName);
+            `${ONYXKEYS.COLLECTION.POLICY}${expenseReport.policyID}`, 'avatar',
+        ]) || ReportUtils.getDefaultWorkspaceAvatar(expenseReport.displayName);
         return {
-            ...report,
+            ...expenseReport,
             alternateText: Localize.translateLocal('workspace.common.workspace'),
             icons: [{
                 source: policyExpenseChatAvatarSource,
-                name: report.displayName,
+                name: expenseReport.displayName,
                 type: CONST.ICON_TYPE_WORKSPACE,
             }],
         };
     });
-}
-
-function getParticipantsOptions(report, personalDetails) {
-    const participants = lodashGet(report, 'participants', []);
-    return _.map(getPersonalDetailsForLogins(participants, personalDetails), details => ({
-        ...details,
-        alternateText: Str.isSMSLogin(details.login) ? Str.removeSMSDomain(details.login) : details.login,
-        icons: [{
-            source: ReportUtils.getAvatar(details.avatar, details.login),
-            name: details.login,
-            type: CONST.ICON_TYPE_AVATAR,
-        }],
-    }));
 }
 
 /**
@@ -175,6 +162,19 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
             personalDetailsForLogins[login] = personalDetail;
         });
     return personalDetailsForLogins;
+}
+
+function getParticipantsOptions(report, personalDetails) {
+    const participants = lodashGet(report, 'participants', []);
+    return _.map(getPersonalDetailsForLogins(participants, personalDetails), details => ({
+        ...details,
+        alternateText: Str.isSMSLogin(details.login) ? Str.removeSMSDomain(details.login) : details.login,
+        icons: [{
+            source: ReportUtils.getAvatar(details.avatar, details.login),
+            name: details.login,
+            type: CONST.ICON_TYPE_AVATAR,
+        }],
+    }));
 }
 
 /**

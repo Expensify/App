@@ -6,7 +6,6 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import MoneyRequestAmountPage from './steps/MoneyRequestAmountPage';
 import MoneyRequestParticipantsPage from './steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage';
 import MoneyRequestConfirmPage from './steps/MoneyRequestConfirmPage';
@@ -105,21 +104,25 @@ const Steps = {
 };
 
 const MoneyRequestModal = (props) => {
-    const reportParticipants = lodashGet(props, 'report.participants', []);
-    const participantsWithDetails = _.map(ReportUtils.isPolicyExpenseChat(props.report) ? OptionsListUtils.getPolicyExpenseReportOptions(props.report) : OptionsListUtils.getParticipantsOptions(props.report, props.personalDetails), option => {
-        return ({
-        login: option.login,
-        text: option.displayName,
-        firstName: lodashGet(option, 'firstName', ''),
-        lastName: lodashGet(option, 'lastName', ''),
-        alternateText: option.alternateText,
-        icons: option.icons,
-        keyForList: option.login,
-        payPalMeAddress: lodashGet(option, 'payPalMeAddress', ''),
-        phoneNumber: lodashGet(option, 'phoneNumber', ''),
-    });});
+    const participantsWithDetails = _.map(
+        ReportUtils.isPolicyExpenseChat(props.report)
+            ? OptionsListUtils.getPolicyExpenseReportOptions(props.report)
+            : OptionsListUtils.getParticipantsOptions(props.report, props.personalDetails),
+        option => ({
+            login: option.login,
+            text: option.displayName,
+            firstName: lodashGet(option, 'firstName', ''),
+            lastName: lodashGet(option, 'lastName', ''),
+            alternateText: option.alternateText,
+            icons: option.icons,
+            keyForList: option.login,
+            payPalMeAddress: lodashGet(option, 'payPalMeAddress', ''),
+            phoneNumber: lodashGet(option, 'phoneNumber', ''),
+        }),
+    );
 
     // Skip IOUParticipants step if participants are passed in
+    const reportParticipants = lodashGet(props, 'report.participants', []);
     const steps = reportParticipants.length ? [Steps.MoneyRequestAmount, Steps.MoneyRequestConfirm] : [Steps.MoneyRequestAmount, Steps.MoneyRequestParticipants, Steps.MoneyRequestConfirm];
 
     const prevCreatingIOUTransactionStatusRef = useRef(lodashGet(props.iou, 'creatingIOUTransaction'));
