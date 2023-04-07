@@ -5,6 +5,7 @@ import {
 import _ from 'lodash';
 import NAVIGATORS from '../../NAVIGATORS';
 import linkingConfig from './linkingConfig';
+import getTopmostReportId from './getTopmostReportId';
 
 export default function linkTo(navigation, path) {
     const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
@@ -33,11 +34,12 @@ export default function linkTo(navigation, path) {
 
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
     if (action.type === 'NAVIGATE') {
-        // If this action is navigating to the report screen - push
-        if (action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
+        // If this action is navigating to the report screen and the top most navigator is different from the one we want to navigate - PUSH
+        if (action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR && getTopmostReportId(root.getState()) !== getTopmostReportId(state)) {
             action.type = 'PUSH';
+
+        // If this action is navigating to the RightModalNavigator and the last route on the root navigator is not RightModalNavigator then push
         } else if (action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && _.last(root.getState().routes).name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
-            // If this action is navigating to the RightModalNavigator and the last route on the root navigator is not RightModalNavigator then push
             action.type = 'PUSH';
         }
     }

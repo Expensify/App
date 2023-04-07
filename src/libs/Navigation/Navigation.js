@@ -1,7 +1,7 @@
-/* eslint-disable es/no-optional-chaining */
 import _ from 'lodash';
 import lodashGet from 'lodash/get';
-import {Keyboard} from 'react-native';
+
+/* import {Keyboard} from 'react-native'; */
 import {
     CommonActions, getPathFromState, StackActions,
 } from '@react-navigation/native';
@@ -14,6 +14,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 import NAVIGATORS from '../../NAVIGATORS';
+import getTopmostReportId from './getTopmostReportId';
 
 let resolveNavigationIsReadyPromise;
 const navigationIsReadyPromise = new Promise((resolve) => {
@@ -237,26 +238,6 @@ function setIsReportScreenIsReady() {
     resolveReportScreenIsReadyPromise();
 }
 
-function getTopmostReportId(state = navigationRef.getState()) {
-    const topmostCentralPane = state.routes?.findLast(route => route.name === 'CentralPaneNavigator');
-    if (!topmostCentralPane) {
-        return;
-    }
-    const directReportIdParam = topmostCentralPane.params?.params?.reportID;
-
-    if (!topmostCentralPane.state && !directReportIdParam) {
-        return;
-    }
-
-    if (directReportIdParam) {
-        return directReportIdParam;
-    }
-
-    const topmostReportID = topmostCentralPane.state.routes?.findLast(route => route.name === 'Report')?.params?.reportID;
-
-    return topmostReportID;
-}
-
 export default {
     canNavigate,
     navigate,
@@ -276,7 +257,9 @@ export default {
     isDrawerRoute,
     isReportScreenReady,
     setIsReportScreenIsReady,
-    getTopmostReportId,
+
+    // Re-exporting the getTopmostReportId here to fill in default value for state. The getTopmostReportId isn't defined in this file to avoid cyclic dependencies.
+    getTopmostReportId: (state = navigationRef.getState()) => getTopmostReportId(state),
 };
 
 export {
