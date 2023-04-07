@@ -347,7 +347,7 @@ const MoneyRequestModal = (props) => {
     const enableMaxHeight = DeviceCapabilities.canUseTouchScreen() && currentStep !== Steps.IOUAmount;
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false} enableMaxHeight={enableMaxHeight}>
+        <ScreenWrapper includeSafeAreaPaddingBottom={false} shouldEnableMaxHeight={enableMaxHeight}>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
                     <View style={[styles.pRelative, styles.flex1]}>

@@ -85,7 +85,7 @@ class ScreenWrapper extends React.Component {
     }
 
     render() {
-        const maxHeight = this.props.enableMaxHeight ? this.props.windowHeight : false;
+        const maxHeight = this.props.shouldEnableMaxHeight ? this.props.windowHeight : null;
 
         return (
             <SafeAreaConsumer>

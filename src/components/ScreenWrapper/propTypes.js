@@ -34,7 +34,7 @@ const propTypes = {
     shouldDismissKeyboardBeforeClose: PropTypes.bool,
 
     /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
-    enableMaxHeight: PropTypes.bool,
+    shouldEnableMaxHeight: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -45,7 +45,7 @@ const defaultProps = {
     onEntryTransitionEnd: () => {},
     modal: {},
     keyboardAvoidingViewBehavior: 'padding',
-    enableMaxHeight: !DeviceCapabilities.canUseTouchScreen(),
+    shouldEnableMaxHeight: !DeviceCapabilities.canUseTouchScreen(),
 };
 
 export {propTypes, defaultProps};

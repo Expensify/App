@@ -34,7 +34,6 @@ import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import ConfirmContent from '../../../../components/ConfirmContent';
 import Button from '../../../../components/Button';
 import themeColors from '../../../../styles/themes/default';
-import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
