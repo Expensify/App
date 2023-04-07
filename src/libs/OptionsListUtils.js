@@ -99,20 +99,33 @@ function getPolicyExpenseReportOptions(report) {
         }
         return false;
     });
-    return filteredReports;
-    // return _.map(filteredReports, (report) => {
-    //     const policyExpenseChatAvatarSource = lodashGet(policies, [
-    //         `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar',
-    //     ]) || getDefaultWorkspaceAvatar(workspaceName);
-    //     return {
-    //         ...report,
-    //     };
-    // });
+    return _.map(filteredReports, (report) => {
+        const policyExpenseChatAvatarSource = lodashGet(policies, [
+            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar',
+        ]) || ReportUtils.getDefaultWorkspaceAvatar(report.displayName);
+        return {
+            ...report,
+            alternateText: Localize.translateLocal('workspace.common.workspace'),
+            icons: [{
+                source: policyExpenseChatAvatarSource,
+                name: report.displayName,
+                type: CONST.ICON_TYPE_WORKSPACE,
+            }],
+        };
+    });
 }
 
 function getParticipantsOptions(report, personalDetails) {
     const participants = lodashGet(report, 'participants', []);
-    return getPersonalDetailsForLogins(participants, personalDetails);
+    return _.map(getPersonalDetailsForLogins(participants, personalDetails), details => ({
+        ...details,
+        alternateText: Str.isSMSLogin(details.login) ? Str.removeSMSDomain(details.login) : details.login,
+        icons: [{
+            source: ReportUtils.getAvatar(details.avatar, details.login),
+            name: details.login,
+            type: CONST.ICON_TYPE_AVATAR,
+        }],
+    }));
 }
 
 /**
