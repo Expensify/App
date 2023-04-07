@@ -129,12 +129,11 @@ class ContactMethodDetailsPage extends Component {
             return true;
         }
 
-        const hasRestrictedPrimaryLogin = lodashGet(this.props.securityGroups, [
+        // Return true if there's no security group with 'hasRestrictedPrimaryLogin' set to true.
+        return !lodashGet(this.props.securityGroups, [
             `${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`,
             'hasRestrictedPrimaryLogin',
         ], false);
-
-        return !hasRestrictedPrimaryLogin;
     }
 
     /**
