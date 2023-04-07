@@ -106,23 +106,17 @@ const Steps = {
 
 const MoneyRequestModal = (props) => {
     const reportParticipants = lodashGet(props, 'report.participants', []);
-    const participantsWithDetails = _.map(ReportUtils.isPolicyExpenseChat(props.report) ? OptionsListUtils.getPolicyExpenseReportOptions(props.report) : OptionsListUtils.getPersonalDetailsForLogins(reportParticipants, props.personalDetails), personalDetails => {
-        console.debug('careful!');
-        console.debug(personalDetails);
+    const participantsWithDetails = _.map(ReportUtils.isPolicyExpenseChat(props.report) ? OptionsListUtils.getPolicyExpenseReportOptions(props.report) : OptionsListUtils.getParticipantsOptions(props.report, props.personalDetails), option => {
         return ({
-        login: personalDetails.login,
-        text: personalDetails.displayName,
-        firstName: lodashGet(personalDetails, 'firstName', ''),
-        lastName: lodashGet(personalDetails, 'lastName', ''),
-        alternateText: 'Something',
-        icons: [{
-            source: ReportUtils.getAvatar(personalDetails.avatar, personalDetails.login),
-            name: personalDetails.login,
-            type: CONST.ICON_TYPE_AVATAR,
-        }],
-        keyForList: personalDetails.login,
-        payPalMeAddress: lodashGet(personalDetails, 'payPalMeAddress', ''),
-        phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
+        login: option.login,
+        text: option.displayName,
+        firstName: lodashGet(option, 'firstName', ''),
+        lastName: lodashGet(option, 'lastName', ''),
+        alternateText: option.alternateText,
+        icons: option.icons,
+        keyForList: option.login,
+        payPalMeAddress: lodashGet(option, 'payPalMeAddress', ''),
+        phoneNumber: lodashGet(option, 'phoneNumber', ''),
     });});
 
     // Skip IOUParticipants step if participants are passed in
