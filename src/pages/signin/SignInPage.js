@@ -64,7 +64,7 @@ class SignInPage extends Component {
         // - AND a password hasn't been entered yet
         // - AND haven't forgotten password
         // - AND the user is NOT on the passwordless beta
-        const showPasswordForm = this.props.credentials.login
+        const showPasswordForm = Boolean(this.props.credentials.login)
             && this.props.account.validated
             && !this.props.credentials.password
             && !this.props.account.forgotPassword
@@ -116,7 +116,7 @@ class SignInPage extends Component {
                     ) : (
                         <PasswordForm isVisible={showPasswordForm} />
                     )}
-                    {Boolean(showResendValidationForm) && <ResendValidationForm />}
+                    {showResendValidationForm && <ResendValidationForm />}
                 </SignInPageLayout>
             </SafeAreaView>
         );
