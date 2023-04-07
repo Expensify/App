@@ -92,7 +92,7 @@ class Expensify extends PureComponent {
         // Initialize this client as being an active client
         ActiveClientManager.init();
         this.setNavigationReady = this.setNavigationReady.bind(this);
-        this.handleDeepLink = this.handleDeepLink.bind(this);
+        this.deepLinkTo = this.deepLinkTo.bind(this);
         this.initializeClient = this.initializeClient.bind(true);
         this.appStateChangeListener = null;
         this.state = {
@@ -127,7 +127,7 @@ class Expensify extends PureComponent {
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            this.handleDeepLink(state.url);
+            this.deepLinkTo(state.url);
         });
     }
 
@@ -144,7 +144,7 @@ class Expensify extends PureComponent {
             // eslint-disable-next-line react/no-did-update-set-state
             this.setState({isSplashShown: false});
 
-            Linking.getInitialURL().then(this.handleDeepLink);
+            Linking.getInitialURL().then(this.deepLinkTo);
         }
     }
 
@@ -164,7 +164,7 @@ class Expensify extends PureComponent {
      * Called when we deeplink to the app from an external URL
      * @param {String} url
      */
-    handleDeepLink(url) {
+    deepLinkTo(url) {
         if (Url.isValidateLoginUrl(url)) {
             Navigation.navigate(Url.getURLObject(url).path.substring(1));
             return;
