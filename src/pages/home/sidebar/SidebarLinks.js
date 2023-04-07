@@ -85,7 +85,6 @@ const defaultProps = {
         avatar: '',
     },
     reportIDFromRoute: '',
-    onLayout: () => {},
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 

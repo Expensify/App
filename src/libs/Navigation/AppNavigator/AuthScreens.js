@@ -22,9 +22,6 @@ import * as User from '../../actions/User';
 import * as Modal from '../../actions/Modal';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createResponsiveStackNavigator from './createResponsiveStackNavigator';
-import getCurrentUrl from '../currentUrl';
-
-// Modal Stack Navigators
 import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
@@ -164,8 +161,10 @@ class AuthScreens extends React.Component {
             ...commonScreenOptions,
             cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
         };
-        const url = getCurrentUrl();
-        const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : '';
+
+        // TODO-NR - we need find example url with openOnAdminRoom and adjust new architecture to parse it as a param for report screens
+        // const url = getCurrentUrl();
+        // const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : '';
 
         return (
             <RootStack.Navigator
