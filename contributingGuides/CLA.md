@@ -18,3 +18,6 @@ You agree that the following terms apply to all of your past, present and future
 
 **Assignment.** You agree that Expensify may assign this Agreement, and all of its rights, obligations and licenses hereunder.
 
+
+
+I have read the CLA Document and I hereby sign the CLA
