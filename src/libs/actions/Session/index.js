@@ -706,7 +706,7 @@ function unlinkLogin(accountID, validateCode) {
             value: {
                 isLoading: false,
                 errors: {
-                    [DateUtils.getMicroseconds()]: Localize.translateLocal('unlinkLoginForm.unlinkFailedMessage'),
+                    [DateUtils.getMicroseconds()]: Localize.translateLocal('unlinkLoginForm.validationLinkFailedMessage'),
                 },
             },
         },

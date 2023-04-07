@@ -658,7 +658,6 @@ export default {
         linkHasBeenResent: 'Link has been re-sent',
         weSentYouMagicSignInLink: ({login, loginType}) => `I've sent a magic sign-in link to ${login}. Please check your ${loginType} to sign in.`,
         resendLink: 'Resend link',
-        validationCodeFailedMessage: 'It looks like there was an error with your validation link or it has expired.',
     },
     unlinkLoginForm: {
         toValidateLogin: ({primaryLogin, secondaryLogin}) => `To validate ${secondaryLogin}, please resend the magic code from the Account Settings of ${primaryLogin}.`,
@@ -666,7 +665,7 @@ export default {
         unlink: 'Unlink',
         linkSent: 'Link sent!',
         succesfullyUnlinkedLogin: 'Secondary login successfully unlinked!',
-        unlinkFailedMessage: 'It looks like there was an error with your link or it has expired.',
+        validationLinkFailedMessage: 'It looks like there was an error with your validation link or it has expired.'
     },
     detailsPage: {
         localTime: 'Local time',
