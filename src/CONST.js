@@ -2204,6 +2204,9 @@ const CONST = {
         SAMPLE_INPUT: '123456.789',
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
+    INTERNAL_NEW_EXPENSIFY_EXCLUDED_PATHS: [
+        'NewExpensify.dmg',
+    ],
 };
 
 export default CONST;
