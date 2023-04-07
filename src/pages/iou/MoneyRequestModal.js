@@ -106,12 +106,15 @@ const Steps = {
 
 const MoneyRequestModal = (props) => {
     const reportParticipants = lodashGet(props, 'report.participants', []);
-    const participantsWithDetails = _.map(ReportUtils.isPolicyExpenseChat(props.report) ? OptionsListUtils.getPolicyExpenseReportOptions(props.report) : OptionsListUtils.getPersonalDetailsForLogins(reportParticipants, props.personalDetails), personalDetails => ({
+    const participantsWithDetails = _.map(ReportUtils.isPolicyExpenseChat(props.report) ? OptionsListUtils.getPolicyExpenseReportOptions(props.report) : OptionsListUtils.getPersonalDetailsForLogins(reportParticipants, props.personalDetails), personalDetails => {
+        console.debug('careful!');
+        console.debug(personalDetails);
+        return ({
         login: personalDetails.login,
         text: personalDetails.displayName,
         firstName: lodashGet(personalDetails, 'firstName', ''),
         lastName: lodashGet(personalDetails, 'lastName', ''),
-        alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
+        alternateText: 'Something',
         icons: [{
             source: ReportUtils.getAvatar(personalDetails.avatar, personalDetails.login),
             name: personalDetails.login,
@@ -120,7 +123,7 @@ const MoneyRequestModal = (props) => {
         keyForList: personalDetails.login,
         payPalMeAddress: lodashGet(personalDetails, 'payPalMeAddress', ''),
         phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
-    }));
+    });});
 
     // Skip IOUParticipants step if participants are passed in
     const steps = reportParticipants.length ? [Steps.MoneyRequestAmount, Steps.MoneyRequestConfirm] : [Steps.MoneyRequestAmount, Steps.MoneyRequestParticipants, Steps.MoneyRequestConfirm];

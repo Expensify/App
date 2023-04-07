@@ -78,11 +78,14 @@ Onyx.connect({
     },
 });
 
-const reports = {};
+const policyExpenseReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (report, key) => {
-        reports[key] = report;
+        if (!ReportUtils.isPolicyExpenseChat(report)) {
+            return;
+        }
+        policyExpenseReports[key] = report;
     },
 });
 
@@ -90,13 +93,21 @@ function getPolicyExpenseReportOptions(report) {
     if (!ReportUtils.isPolicyExpenseChat(report)) {
         return [];
     }
-    const policyID = report.policyID;
-    return _.filter(reports, (report) => {
-        if (report.policyID === policyID) {
+    const filteredReports = _.filter(policyExpenseReports, (policyExpenseReport) => {
+        if (policyExpenseReport.policyID === report.policyID) {
             return true;
         }
         return false;
     });
+    return filteredReports;
+    // return _.map(filteredReports, (report) => {
+    //     const policyExpenseChatAvatarSource = lodashGet(policies, [
+    //         `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar',
+    //     ]) || getDefaultWorkspaceAvatar(workspaceName);
+    //     return {
+    //         ...report,
+    //     };
+    // });
 }
 
 function getParticipantsOptions(report, personalDetails) {
