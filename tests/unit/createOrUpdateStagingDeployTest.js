@@ -106,6 +106,8 @@ const deployerVerificationsHeader = '**Deployer verifications:**';
 const timingDashboardVerification = 'I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.';
 // eslint-disable-next-line max-len
 const firebaseVerification = 'I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).';
+// eslint-disable-next-line max-len
+const ghVerification = 'I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.';
 const ccApplauseLeads = 'cc @Expensify/applauseleads\r\n';
 const deployBlockerHeader = '**Deploy Blockers:**';
 const lineBreak = '\r\n';
@@ -175,6 +177,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                     + `${lineBreakDouble}${deployerVerificationsHeader}`
                     + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
                     + `${lineBreak}${openCheckbox}${firebaseVerification}`
+                    + `${lineBreak}${openCheckbox}${ghVerification}`
                     + `${lineBreakDouble}${ccApplauseLeads}`,
             });
         });
@@ -198,6 +201,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                 + `${lineBreakDouble}${deployerVerificationsHeader}`
                 + `${lineBreak}${closedCheckbox}${timingDashboardVerification}`
                 + `${lineBreak}${closedCheckbox}${firebaseVerification}`
+                + `${lineBreak}${closedCheckbox}${ghVerification}`
                 + `${lineBreakDouble}${ccApplauseLeads}`,
             state: 'open',
         };
@@ -299,6 +303,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                         // Note: these will be unchecked with a new app version, and that's intentional
                         + `${lineBreak}${openCheckbox}${timingDashboardVerification}`
                         + `${lineBreak}${openCheckbox}${firebaseVerification}`
+                        + `${lineBreak}${openCheckbox}${ghVerification}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                 });
             });
@@ -368,6 +373,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                         + `${lineBreakDouble}${deployerVerificationsHeader}`
                         + `${lineBreak}${closedCheckbox}${timingDashboardVerification}`
                         + `${lineBreak}${closedCheckbox}${firebaseVerification}`
+                        + `${lineBreak}${closedCheckbox}${ghVerification}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                 });
             });

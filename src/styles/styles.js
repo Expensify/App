@@ -2819,6 +2819,12 @@ const styles = {
         cursor: 'move',
     },
 
+    sliderKnobTooltipView: {
+        height: variables.sliderKnobSize,
+        width: variables.sliderKnobSize,
+        borderRadius: variables.sliderKnobSize / 2,
+    },
+
     sliderKnob: {
         backgroundColor: themeColors.success,
         position: 'absolute',
@@ -2878,7 +2884,6 @@ const styles = {
     },
 
     textPill: {
-        ellipsizeMode: 'end',
         backgroundColor: themeColors.border,
         borderRadius: 10,
         overflow: 'hidden',

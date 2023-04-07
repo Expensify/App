@@ -1,7 +1,6 @@
 import React from 'react';
 import {View, Animated} from 'react-native';
 import moment from 'moment';
-import _ from 'underscore';
 import TextInput from '../TextInput';
 import CalendarPicker from '../CalendarPicker';
 import CONST from '../../CONST';
@@ -46,6 +45,11 @@ class NewDatePicker extends React.Component {
     }
 
     componentDidMount() {
+        if (this.props.autoFocus) {
+            this.showPicker();
+            this.textInputRef.focus();
+        }
+
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
         this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
             if (!this.state.isPickerVisible) {
@@ -128,13 +132,7 @@ class NewDatePicker extends React.Component {
                 <View style={[this.props.isSmallScreenWidth ? styles.flex2 : {}]}>
                     <TextInput
                         forceActiveLabel
-                        ref={(el) => {
-                            this.textInputRef = el;
-                            if (!_.isFunction(this.props.innerRef)) {
-                                return;
-                            }
-                            this.props.innerRef(el);
-                        }}
+                        ref={el => this.textInputRef = el}
                         icon={Expensicons.Calendar}
                         onPress={this.showPicker}
                         label={this.props.label}
@@ -177,7 +175,4 @@ class NewDatePicker extends React.Component {
 NewDatePicker.propTypes = propTypes;
 NewDatePicker.defaultProps = datePickerDefaultProps;
 
-export default withLocalize(React.forwardRef((props, ref) => (
-    /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <NewDatePicker {...props} innerRef={ref} />
-)));
+export default withLocalize(NewDatePicker);

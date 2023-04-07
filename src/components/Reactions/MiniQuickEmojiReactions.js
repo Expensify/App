@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -50,7 +50,7 @@ const defaultProps = {
  * @returns {JSX.Element}
  */
 const MiniQuickEmojiReactions = (props) => {
-    const ref = React.createRef();
+    const ref = useRef();
 
     const openEmojiPicker = () => {
         props.onPressOpenPicker();
