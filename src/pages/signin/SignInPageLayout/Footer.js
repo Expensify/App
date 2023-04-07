@@ -14,8 +14,9 @@ import Licenses from '../Licenses';
 import Socials from '../Socials';
 import Hoverable from '../../../components/Hoverable';
 import CONST from '../../../CONST';
-import Navigation from '../../../libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '../../../libs/Navigation/Navigation';
 import * as Session from '../../../libs/actions/Session';
+import screens from '../../../SCREENS';
 
 const propTypes = {
     scrollViewRef: PropTypes.shape({
@@ -27,7 +28,12 @@ const propTypes = {
 };
 
 const navigateHome = (scrollViewRef) => {
-    if (Navigation.getActiveRoute() === '/' && scrollViewRef && scrollViewRef.current) {
+    const currentRoute = navigationRef.current.getCurrentRoute();
+    if (
+        currentRoute.name === screens.HOME
+        && scrollViewRef
+        && scrollViewRef.current
+    ) {
         scrollViewRef.current.scrollTo({
             y: 0,
             animated: true,
