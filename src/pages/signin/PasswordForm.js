@@ -50,7 +50,7 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
-    preferredLocale: CONST.DEFAULT_LOCALE,
+    preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
 class PasswordForm extends React.Component {

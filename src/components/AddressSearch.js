@@ -105,6 +105,7 @@ const AddressSearch = (props) => {
         const {
             street_number: streetNumber,
             route: streetName,
+            subpremise,
             locality,
             sublocality,
             postal_town: postalTown,
@@ -114,6 +115,7 @@ const AddressSearch = (props) => {
         } = GooglePlacesUtils.getAddressComponents(addressComponents, {
             street_number: 'long_name',
             route: 'long_name',
+            subpremise: 'long_name',
             locality: 'long_name',
             sublocality: 'long_name',
             postal_town: 'long_name',
@@ -138,7 +140,10 @@ const AddressSearch = (props) => {
         } = GooglePlacesUtils.getPlaceAutocompleteTerms(autocompleteData.terms);
 
         const values = {
-            street: props.value ? props.value.trim() : '',
+            street: `${streetNumber} ${streetName}`.trim(),
+
+            // Autocomplete returns any additional valid address fragments (e.g. Apt #) as subpremise.
+            street2: subpremise,
 
             // When locality is not returned, many countries return the city as postalTown (e.g. 5 New Street
             // Square, London), otherwise as sublocality (e.g. 384 Court Street Brooklyn). If postalTown is
@@ -156,13 +161,10 @@ const AddressSearch = (props) => {
             values.state = longStateName;
         }
 
-        const street = `${streetNumber} ${streetName}`.trim();
-        if (street && street.length >= values.street.length) {
-            // We are only passing the street number and name if the combined length is longer than the value
-            // that was initially passed to the autocomplete component. Google Places can truncate details
-            // like Apt # and this is the best way we have to tell that the new value it's giving us is less
-            // specific than the one the user entered manually.
-            values.street = street;
+        // Not all pages define the Address Line 2 field, so in that case we append any additional address details
+        // (e.g. Apt #) to Address Line 1
+        if (subpremise && typeof props.renamedInputKeys.street2 === 'undefined') {
+            values.street += `, ${subpremise}`;
         }
 
         const isValidCountryCode = lodashGet(CONST.ALL_COUNTRIES, country);

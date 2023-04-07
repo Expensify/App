@@ -13,11 +13,14 @@ export default {
         new: 'Nuevo',
         search: 'Buscar',
         next: 'Siguiente',
+        previous: 'Anterior',
         goBack: 'Volver',
         add: 'Agregar',
         resend: 'Reenviar',
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
+        rotate: 'Rotar',
+        zoom: 'Zoom',
         password: 'Contraseña',
         magicCode: 'Código mágico',
         workspaces: 'Espacios de trabajo',
@@ -340,8 +343,6 @@ export default {
     },
     profilePage: {
         profile: 'Perfil',
-        john: 'Juan',
-        doe: 'Nadie',
         preferredPronouns: 'Pronombres preferidos',
         selectYourPronouns: 'Selecciona tus pronombres',
         selfSelectYourPronoun: 'Auto-selecciona tu pronombre',
@@ -401,8 +402,6 @@ export default {
     displayNamePage: {
         headerTitle: 'Nombre',
         isShownOnProfile: 'Este nombre es visible en su perfil.',
-        john: 'Juan',
-        doe: 'Nadie',
     },
     timezonePage: {
         timezone: 'Zona horaria',

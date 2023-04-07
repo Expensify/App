@@ -61,11 +61,13 @@ const MenuItem = (props) => {
         (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
         styles.pre,
     ], props.titleStyle);
+    const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const descriptionTextStyle = StyleUtils.combineStyles([
         styles.textLabelSupporting,
         (props.icon ? styles.ml3 : undefined),
         styles.breakWord,
         styles.lineHeightNormal,
+        props.title ? descriptionVerticalMargin : undefined,
     ]);
 
     return (
@@ -129,7 +131,7 @@ const MenuItem = (props) => {
                                 )}
                             </View>
                         )}
-                        <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1, styles.gap1]}>
+                        <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1]}>
                             {Boolean(props.description) && props.shouldShowDescriptionOnTop && (
                                 <Text
                                     style={descriptionTextStyle}

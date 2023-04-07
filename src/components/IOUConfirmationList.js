@@ -26,10 +26,10 @@ const propTypes = {
     /** Callback to parent modal to send money */
     onSendMoney: PropTypes.func.isRequired,
 
-    /** Callback to update comment from IOUModal */
+    /** Callback to update comment from MoneyRequestModal */
     onUpdateComment: PropTypes.func,
 
-    /** Comment value from IOUModal */
+    /** Comment value from MoneyRequestModal */
     comment: PropTypes.string,
 
     /** Should we request a single or multiple participant selection from user */
@@ -41,7 +41,7 @@ const propTypes = {
     /** IOU type */
     iouType: PropTypes.string,
 
-    /** Selected participants from IOUModal with login */
+    /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
@@ -90,7 +90,7 @@ const defaultProps = {
     },
     onUpdateComment: null,
     comment: '',
-    iouType: CONST.IOU.IOU_TYPE.REQUEST,
+    iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     canModifyParticipants: false,
     session: {
         email: null,
@@ -126,7 +126,7 @@ class IOUConfirmationList extends Component {
                     {style: 'currency', currency: this.props.iou.selectedCurrencyCode},
                 ),
             }),
-            value: this.props.hasMultipleParticipants ? CONST.IOU.IOU_TYPE.SPLIT : CONST.IOU.IOU_TYPE.REQUEST,
+            value: this.props.hasMultipleParticipants ? CONST.IOU.MONEY_REQUEST_TYPE.SPLIT : CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
         }];
     }
 
@@ -263,7 +263,7 @@ class IOUConfirmationList extends Component {
             return;
         }
 
-        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
+        if (this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
             if (!paymentMethod) {
                 return;
             }
@@ -277,7 +277,7 @@ class IOUConfirmationList extends Component {
 
     render() {
         const selectedParticipants = this.getSelectedParticipants();
-        const shouldShowSettlementButton = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
+        const shouldShowSettlementButton = this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
         const recipient = this.state.participants[0];
         const canModifyParticipants = this.props.canModifyParticipants && this.props.hasMultipleParticipants;
