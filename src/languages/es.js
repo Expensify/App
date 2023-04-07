@@ -128,7 +128,6 @@ export default {
         areYouSure: '¿Estás seguro?',
         verify: 'Verifique',
         yesContinue: 'Sí, Continuar',
-        zipCodeExample: 'p. ej. 12345, 12345-1234, 12345 1234',
         websiteExample: 'p. ej. https://www.expensify.com',
         format: ({zipSampleFormat}) => (zipSampleFormat ? `p. ej. ${zipSampleFormat}` : ''),
     },
