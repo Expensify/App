@@ -235,6 +235,7 @@ function createPolicyExpenseChats(policyID, members, betas) {
     const workspaceMembersChats = {
         onyxSuccessData: [],
         onyxOptimisticData: [],
+        onyxFailureData: [],
         optimisticReportIDs: {},
     };
 
@@ -288,6 +289,13 @@ function createPolicyExpenseChats(policyID, members, betas) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReport.reportID}`,
             value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
+        });
+        workspaceMembersChats.onyxFailureData.push({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
+            value: {
+                isLoadingReportActions: false,
+            },
         });
     });
     return workspaceMembersChats;
@@ -344,6 +352,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
                 },
             })),
         },
+        ...membersChats.onyxFailureData,
     ];
 
     API.write('AddMembersToWorkspace', {
