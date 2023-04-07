@@ -159,6 +159,8 @@ class ReportActionCompose extends React.Component {
         this.setIsFullComposerAvailable = this.setIsFullComposerAvailable.bind(this);
         this.focus = this.focus.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
+        this.replaceSelectionWithInput = this.replaceSelectionWithInput.bind(this);
+        this.keypressListener = this.keypressListener.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.isEmojiCode = this.isEmojiCode.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
@@ -200,6 +202,8 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidMount() {
+        document.addEventListener('keydown', this.keypressListener);
+
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
         // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
         ReportActionComposeFocusManager.onComposerFocus(() => {
@@ -255,6 +259,7 @@ class ReportActionCompose extends React.Component {
     }
 
     componentWillUnmount() {
+        document.removeEventListener('keydown', this.keypressListener);
         ReportActionComposeFocusManager.clear();
 
         if (this.unsubscribeEscapeKey) {
@@ -460,6 +465,35 @@ class ReportActionCompose extends React.Component {
         return _.size(this.props.reportActions) === 1;
     }
 
+    keypressListener(e) {
+        if (this.state.isFocused) { return; }
+
+        // if the key pressed is non-character keys like Enter, Shift, ... do not focus
+        if (e.key.length > 1) { return; }
+
+        // if we're typing on another input/text area, do not focus
+        if (e.target.nodeName === 'INPUT' || e.target.nodeName === 'TEXTAREA') { return; }
+
+        this.focus();
+        this.replaceSelectionWithInput(e.key);
+    }
+
+    /**
+     * @param {String} text
+     */
+    replaceSelectionWithInput(text) {
+        const newComment = this.comment.slice(0, this.state.selection.start)
+            + text
+            + this.comment.slice(this.state.selection.end, this.comment.length);
+        this.setState(prevState => ({
+            selection: {
+                start: prevState.selection.start + text.length,
+                end: prevState.selection.start + text.length,
+            },
+        }));
+        this.updateComment(newComment);
+    }
+
     /**
      * Callback for the emoji picker to add whatever emoji is chosen into the main input
      *
@@ -467,16 +501,7 @@ class ReportActionCompose extends React.Component {
      */
     addEmojiToTextBox(emoji) {
         const emojiWithSpace = `${emoji} `;
-        const newComment = this.comment.slice(0, this.state.selection.start)
-            + emojiWithSpace
-            + this.comment.slice(this.state.selection.end, this.comment.length);
-        this.setState(prevState => ({
-            selection: {
-                start: prevState.selection.start + emojiWithSpace.length,
-                end: prevState.selection.start + emojiWithSpace.length,
-            },
-        }));
-        this.updateComment(newComment);
+        this.replaceSelectionWithInput(emojiWithSpace);
     }
 
     /**
