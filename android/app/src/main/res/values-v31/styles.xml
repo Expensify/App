@@ -1,0 +1,8 @@
+<resources>
+
+    <style name="Theme.SplashScreen" parent="Theme.SplashScreen.Common">
+        <item name="android:windowSplashScreenAnimatedIcon">?windowSplashScreenAnimatedIcon</item>
+        <item name="android:windowSplashScreenBackground">?windowSplashScreenBackground</item>
+    </style>
+
+</resources>
