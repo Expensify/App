@@ -6,12 +6,19 @@ import ThreePaneView from './ThreePaneView';
 import CustomRouter from './CustomRouter';
 
 const propTypes = {
+    /* Determines if the navigator should render the StackView (narrow) or ThreePaneView (wide) */
     isSmallScreenWidth: PropTypes.bool.isRequired,
+
+    /* Children for the useNavigationBuilder hook */
     children: PropTypes.oneOfType([
         PropTypes.func,
         PropTypes.node,
     ]).isRequired,
+
+    /* initialRouteName for this navigator */
     initialRouteName: PropTypes.oneOf([PropTypes.string, PropTypes.undefined]),
+
+    /* Screen options defined for this navigator */
     // eslint-disable-next-line react/forbid-prop-types
     screenOptions: PropTypes.object,
 };
