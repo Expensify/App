@@ -18,6 +18,7 @@ import * as NetworkStore from '../../Network/NetworkStore';
 import * as Report from '../Report';
 import DateUtils from '../../DateUtils';
 import Navigation from '../../Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 let credentials = {};
 Onyx.connect({
@@ -402,6 +403,11 @@ function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
     }, {optimisticData, successData, failureData});
 }
 
+function signInWithValidateCodeAndNavigate(accountID, validateCode, twoFactorAuthCode) {
+    signInWithValidateCode(accountID, validateCode, twoFactorAuthCode);
+    Navigation.navigate(ROUTES.HOME);
+}
+
 /**
  * Initializes the state of the automatic authentication when the user clicks on a magic link.
  *
@@ -641,6 +647,7 @@ export {
     updatePasswordAndSignin,
     signIn,
     signInWithValidateCode,
+    signInWithValidateCodeAndNavigate,
     initAutoAuthState,
     signInWithShortLivedAuthToken,
     cleanupSession,
