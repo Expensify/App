@@ -119,7 +119,7 @@ const propTypes = {
 const defaultProps = {
     betas: [],
     comment: '',
-    numberOfLines: 1,
+    numberOfLines: undefined,
     modal: {},
     report: {},
     reportActions: [],
