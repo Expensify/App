@@ -165,8 +165,12 @@ class Expensify extends PureComponent {
      * @param {String} url
      */
     deepLinkTo(url) {
+        if (!url) {
+            return;
+        }
         if (Url.isValidateLoginUrl(url)) {
-            Navigation.navigate(Url.getURLObject(url).path.substring(1));
+            const {path} = Url.getURLObject(url);
+            Navigation.navigate(path.substring(1));
             return;
         }
         Report.openReportFromDeepLink(url);
