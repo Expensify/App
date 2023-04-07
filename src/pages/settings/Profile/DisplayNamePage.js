@@ -102,6 +102,7 @@ class DisplayNamePage extends Component {
                             label={this.props.translate('common.firstName')}
                             defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                            autoCapitalize="words"
                         />
                     </View>
                     <View>
@@ -111,6 +112,7 @@ class DisplayNamePage extends Component {
                             label={this.props.translate('common.lastName')}
                             defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                            autoCapitalize="words"
                         />
                     </View>
                 </Form>
