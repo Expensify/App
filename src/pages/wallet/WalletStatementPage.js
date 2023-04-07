@@ -50,7 +50,7 @@ const defaultProps = {
     walletStatement: {
         isGenerating: false,
     },
-    preferredLocale: CONST.DEFAULT_LOCALE,
+    preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
 class WalletStatementPage extends React.Component {
