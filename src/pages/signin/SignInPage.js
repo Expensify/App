@@ -81,7 +81,7 @@ class SignInPage extends Component {
         // - A login has been entered
         // - AND is not validated or password is forgotten
         // - AND user is not on 'passwordless' beta
-        const showResendValidationForm = this.props.credentials.login
+        const showResendValidationForm = Boolean(this.props.credentials.login)
             && (!this.props.account.validated || this.props.account.forgotPassword)
             && !Permissions.canUsePasswordlessLogins(this.props.betas);
 
