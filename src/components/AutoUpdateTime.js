@@ -41,7 +41,7 @@ function AutoUpdateTime(props) {
     ), [props.preferredLocale, props.timezone.selected]);
 
     const [currentUserLocalTime, setCurrentUserLocalTime] = useState(getCurrentUserLocalTime);
-    const timerRef = useRef(null);
+    const minuteRef = useRef(new Date().getMinutes());
     const timezoneName = useMemo(() => {
         // With non-GMT timezone, moment.zoneAbbr() will return the name of that timezone, so we can use it directly.
         if (Number.isNaN(Number(currentUserLocalTime.zoneAbbr()))) {
@@ -54,20 +54,16 @@ function AutoUpdateTime(props) {
 
     useEffect(() => {
         // If the user leaves this page open, we want to make sure the displayed time is updated every minute when the clock changes
-        // To do this we set a timer on initial load and then create a new timer every time we update the time
-        if (timerRef.current) {
-            clearTimeout(timerRef.current);
-            timerRef.current = null;
-        }
-        const millisecondsUntilNextMinute = (60 - currentUserLocalTime.seconds()) * 1000;
-        timerRef.current = setTimeout(() => {
-            setCurrentUserLocalTime(getCurrentUserLocalTime());
-        }, millisecondsUntilNextMinute);
-
-        return () => {
-            clearTimeout(timerRef.current);
-        };
-    }, [currentUserLocalTime, getCurrentUserLocalTime]);
+        // To do this we create an interval to check if the minute has changed every second and update the displayed time if it has
+        const interval = setInterval(() => {
+            const currentMinute = new Date().getMinutes();
+            if (currentMinute !== minuteRef.current) {
+                setCurrentUserLocalTime(getCurrentUserLocalTime());
+                minuteRef.current = currentMinute;
+            }
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [getCurrentUserLocalTime]);
 
     useEffect(() => {
         // If the preferredLocale or timezone changes, we want to update the displayed time immediately
