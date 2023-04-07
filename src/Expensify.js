@@ -92,7 +92,7 @@ function Expensify(props) {
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const [isSplashShown, setIsSplashShown] = useState(true);
 
-    const isAuthenticated = useMemo(() => Boolean(lodashGet(props, 'session.authToken', null)));
+    const isAuthenticated = useMemo(() => Boolean(lodashGet(props.session, 'authToken', null)), [props.session]);
 
     const reportBootSplashStatus = useCallback(() => {
         BootSplash
@@ -122,7 +122,7 @@ function Expensify(props) {
 
         // Navigate to any pending routes now that the NavigationContainer is ready
         Navigation.setIsNavigationReady();
-    });
+    }, []);
 
     useLayoutEffect(() => {
         // Used for the offline indicator appearing when someone is offline
@@ -156,6 +156,7 @@ function Expensify(props) {
             if (!appStateChangeListener.current) { return; }
             appStateChangeListener.current.remove();
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
     useEffect(() => {
