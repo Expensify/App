@@ -144,8 +144,6 @@ class Expensify extends PureComponent {
             // eslint-disable-next-line react/no-did-update-set-state
             this.setState({isSplashShown: false});
 
-            // If the app is opened from a deep link, check if it's a validate login URL
-            // otherwise it has to be a report.
             Linking.getInitialURL().then(this.handleDeepLink);
         }
     }
