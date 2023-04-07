@@ -92,6 +92,7 @@ class Expensify extends PureComponent {
         // Initialize this client as being an active client
         ActiveClientManager.init();
         this.setNavigationReady = this.setNavigationReady.bind(this);
+        this.handleDeepLink = this.handleDeepLink.bind(this);
         this.initializeClient = this.initializeClient.bind(true);
         this.appStateChangeListener = null;
         this.state = {
@@ -125,7 +126,9 @@ class Expensify extends PureComponent {
         this.appStateChangeListener = AppState.addEventListener('change', this.initializeClient);
 
         // Open chat report from a deep link (only mobile native)
-        Linking.addEventListener('url', state => Report.openReportFromDeepLink(state.url));
+        Linking.addEventListener('url', (state) => {
+            this.handleDeepLink(state.url);
+        });
     }
 
     componentDidUpdate() {
@@ -143,13 +146,7 @@ class Expensify extends PureComponent {
 
             // If the app is opened from a deep link, check if it's a validate login URL
             // otherwise it has to be a report.
-            Linking.getInitialURL().then((url) => {
-                if (Url.isValidateLoginUrl(url)) {
-                    Navigation.navigate(Url.getURLObject(url).path.substring(1));
-                    return;
-                }
-                Report.openReportFromDeepLink(url);
-            });
+            Linking.getInitialURL().then(this.handleDeepLink);
         }
     }
 
@@ -163,6 +160,18 @@ class Expensify extends PureComponent {
 
         // Navigate to any pending routes now that the NavigationContainer is ready
         Navigation.setIsNavigationReady();
+    }
+
+    /**
+     * Called when we deeplink to the app from an external URL
+     * @param {String} url
+     */
+    handleDeepLink(url) {
+        if (Url.isValidateLoginUrl(url)) {
+            Navigation.navigate(Url.getURLObject(url).path.substring(1));
+            return;
+        }
+        Report.openReportFromDeepLink(url);
     }
 
     /**
