@@ -18,6 +18,7 @@ import * as NetworkStore from '../../Network/NetworkStore';
 import * as Report from '../Report';
 import DateUtils from '../../DateUtils';
 import Navigation from '../../Navigation/Navigation';
+import * as Device from '../Device';
 
 let credentials = {};
 Onyx.connect({
@@ -332,7 +333,12 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
         },
     ];
 
-    const params = {twoFactorAuthCode, email: credentials.login, preferredLocale};
+    const params = {
+        twoFactorAuthCode,
+        email: credentials.login,
+        preferredLocale,
+        deviceInfo: Device.getDeviceInfo(),
+    };
 
     // Conditionally pass a password or validateCode to command since we temporarily allow both flows
     if (validateCode) {
@@ -399,6 +405,7 @@ function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
         accountID,
         validateCode,
         twoFactorAuthCode,
+        deviceInfo: Device.getDeviceInfo(),
     }, {optimisticData, successData, failureData});
 }
 
