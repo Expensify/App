@@ -11,12 +11,6 @@ const propTypes = {
     /** Callback to to parent modal to send money */
     onSendMoney: PropTypes.func.isRequired,
 
-    /** Callback to update comment from MoneyRequestModal */
-    onUpdateComment: PropTypes.func,
-
-    /** Comment value from MoneyRequestModal */
-    comment: PropTypes.string,
-
     /** Should we request a single or multiple participant selection from user */
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
@@ -50,8 +44,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    onUpdateComment: null,
-    comment: '',
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     canModifyParticipants: false,
 };
@@ -60,8 +52,6 @@ const IOUConfirmPage = props => (
     <IOUConfirmationList
         hasMultipleParticipants={props.hasMultipleParticipants}
         participants={props.participants}
-        comment={props.comment}
-        onUpdateComment={props.onUpdateComment}
         iouAmount={props.iouAmount}
         onConfirm={props.onConfirm}
         onSendMoney={props.onSendMoney}

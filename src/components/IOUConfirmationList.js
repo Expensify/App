@@ -27,12 +27,6 @@ const propTypes = {
     /** Callback to parent modal to send money */
     onSendMoney: PropTypes.func.isRequired,
 
-    /** Callback to update comment from MoneyRequestModal */
-    onUpdateComment: PropTypes.func,
-
-    /** Comment value from MoneyRequestModal */
-    comment: PropTypes.string,
-
     /** Should we request a single or multiple participant selection from user */
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
@@ -91,8 +85,6 @@ const defaultProps = {
     iou: {
         selectedCurrencyCode: CONST.CURRENCY.USD,
     },
-    onUpdateComment: null,
-    comment: '',
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     canModifyParticipants: false,
     session: {
@@ -292,7 +284,7 @@ class IOUConfirmationList extends Component {
         return (
             <OptionsSelector
                 sections={this.getSections()}
-                value={this.props.comment}
+                value={''}
                 onSelectRow={canModifyParticipants ? this.toggleOption : undefined}
                 onConfirmSelection={this.confirm}
                 onChangeText={this.props.onUpdateComment}
@@ -332,13 +324,13 @@ class IOUConfirmationList extends Component {
                     title={formattedAmount}
                     description={this.props.translate('iou.amount')}
                     interactive={false}
-                    onPress={() => this.props.navigateToStep(0)} // TODO: Make this go to edit amount!
+                    onPress={() => this.props.navigateToStep(0)} // Index 0 here because the amount step is always the first step.
                     style={styles.iouMenuItem}
                     titleStyle={styles.iouConfirmationAmount}
                 />
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
-                    title={this.props.comment}
+                    title={this.props.iou.comment}
                     description={this.props.translate('iOUConfirmationList.whatsItFor')}
                     interactive={false}
                     onPress={() => Navigation.navigate(ROUTES.IOU_REQUEST_DESCRIPTION)}

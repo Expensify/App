@@ -132,11 +132,11 @@ const MoneyRequestModal = (props) => {
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [participants, setParticipants] = useState(participantsWithDetails);
     const [amount, setAmount] = useState('');
-    const [comment, setComment] = useState('');
 
     useEffect(() => {
         PersonalDetails.openMoneyRequestModalPage();
         IOU.setIOUSelectedCurrency(props.currentUserPersonalDetails.localCurrencyCode);
+        IOU.setIOUComment('');
     // eslint-disable-next-line react-hooks/exhaustive-deps -- props.currentUserPersonalDetails will always exist from Onyx and we don't want this effect to run again
     }, []);
 
@@ -281,7 +281,7 @@ const MoneyRequestModal = (props) => {
     const sendMoney = useCallback((paymentMethodType) => {
         const amountInDollars = Math.round(amount * 100);
         const currency = props.iou.selectedCurrencyCode;
-        const trimmedComment = comment.trim();
+        const trimmedComment = props.iou.comment.trim();
         const participant = participants[0];
 
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -318,14 +318,14 @@ const MoneyRequestModal = (props) => {
                 participant,
             );
         }
-    }, [amount, comment, participants, props.currentUserPersonalDetails.login, props.iou.selectedCurrencyCode, props.report]);
+    }, [amount, props.iou.comment, participants, props.currentUserPersonalDetails.login, props.iou.selectedCurrencyCode, props.report]);
 
     /**
      * @param {Array} selectedParticipants
      */
     const createTransaction = useCallback((selectedParticipants) => {
         const reportID = lodashGet(props.route, 'params.reportID', '');
-        const trimmedComment = comment.trim();
+        const trimmedComment = props.iou.comment.trim();
 
         // IOUs created from a group report will have a reportID param in the route.
         // Since the user is already viewing the report, we don't need to navigate them to the report
@@ -362,7 +362,7 @@ const MoneyRequestModal = (props) => {
             selectedParticipants[0],
             trimmedComment,
         );
-    }, [amount, comment, props.currentUserPersonalDetails.login, props.hasMultipleParticipants, props.iou.selectedCurrencyCode, props.preferredLocale, props.report, props.route]);
+    }, [amount, props.iou.comment, props.currentUserPersonalDetails.login, props.hasMultipleParticipants, props.iou.selectedCurrencyCode, props.preferredLocale, props.report, props.route]);
 
     const currentStep = steps[currentStepIndex];
     const reportID = lodashGet(props, 'route.params.reportID', '');
@@ -431,8 +431,6 @@ const MoneyRequestModal = (props) => {
                                             hasMultipleParticipants={props.hasMultipleParticipants}
                                             participants={_.filter(participants, email => props.currentUserPersonalDetails.login !== email.login)}
                                             iouAmount={amount}
-                                            comment={comment}
-                                            onUpdateComment={value => setComment(value)}
                                             iouType={props.iouType}
 
                                             // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.

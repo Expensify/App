@@ -63,6 +63,13 @@ const IOURequestModalStackNavigator = createModalStackNavigator([{
         return IOUCurrencySelection;
     },
     name: 'IOU_Request_Currency',
+},
+{
+    getComponent: () => {
+        const IOUDescriptionPage = require('../../../pages/iou/IOUDescriptionPage').default;
+        return IOUDescriptionPage;
+    },
+    name: 'IOU_Request_Description',
 }]);
 
 const IOUSendModalStackNavigator = createModalStackNavigator([{

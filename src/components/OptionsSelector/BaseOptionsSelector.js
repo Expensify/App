@@ -99,10 +99,12 @@ class BaseOptionsSelector extends Component {
             return;
         }
 
-        if (this.props.shouldDelayFocus) {
-            this.focusTimeout = setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
-        } else {
-            this.textInput.focus();
+        if (this.props.shouldShowTextInput) {
+            if (this.props.shouldDelayFocus) {
+                this.focusTimeout = setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
+            } else {
+                this.textInput.focus();
+            }
         }
     }
 
@@ -238,7 +240,7 @@ class BaseOptionsSelector extends Component {
      */
     selectRow(option, ref) {
         return new Promise((resolve) => {
-            if (this.props.shouldFocusOnSelectRow) {
+            if (this.props.shouldShowTextInput && this.props.shouldFocusOnSelectRow) {
                 if (this.relatedTarget && ref === this.relatedTarget) {
                     this.textInput.focus();
                     this.relatedTarget = null;
@@ -329,14 +331,14 @@ class BaseOptionsSelector extends Component {
                                     </View>
                                     <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0]}>
                                         {this.props.children}
-                                        {textInput}
+                                        {this.props.shouldShowTextInput ? textInput : null}
                                     </View>
                                 </>
                             ) : (
                                 <>
                                     <View style={[styles.ph5, styles.pv3]}>
                                         {this.props.children}
-                                        {textInput}
+                                        {this.props.shouldShowTextInput ? textInput : null}
                                     </View>
                                     {optionsList}
                                 </>

@@ -637,6 +637,15 @@ function setIOUSelectedCurrency(selectedCurrencyCode) {
 }
 
 /**
+ * Sets IOU'S comment
+ *
+ * @param {String} comment
+ */
+function setIOUComment(comment) {
+    Onyx.merge(ONYXKEYS.IOU, {comment});
+}
+
+/**
  * @param {Number} amount
  * @param {String} submitterPayPalMeAddress
  * @param {String} currency
@@ -995,6 +1004,7 @@ export {
     payMoneyRequestElsewhere,
     payMoneyRequestViaPaypal,
     setIOUSelectedCurrency,
+    setIOUComment,
     sendMoneyWithWallet,
     payMoneyRequestWithWallet,
 };

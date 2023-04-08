@@ -225,6 +225,7 @@ export default {
                 screens: {
                     IOU_Request_Root: ROUTES.IOU_REQUEST_WITH_REPORT_ID,
                     IOU_Request_Currency: ROUTES.IOU_REQUEST_CURRENCY,
+                    IOU_Request_Description: ROUTES.IOU_REQUEST_DESCRIPTION,
                 },
             },
             IOU_Bill: {
