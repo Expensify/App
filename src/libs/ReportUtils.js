@@ -1423,6 +1423,11 @@ function canSeeDefaultRoom(report, policies, betas) {
         return true;
     }
 
+    // Include any public announce rooms, since they could include people who should have access but we don't know to add to the beta
+    if (report.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE) {
+        return true;
+    }
+
     // For all other cases, just check that the user belongs to the default rooms beta
     return Permissions.canUseDefaultRooms(betas);
 }
