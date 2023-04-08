@@ -18,6 +18,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes,
 import * as IOUUtils from '../libs/IOUUtils';
 import avatarPropTypes from './avatarPropTypes';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import Navigation from '../libs/Navigation/Navigation';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -82,6 +83,8 @@ const propTypes = {
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
     }),
+
+    navigateToStep: PropTypes.func,
 };
 
 const defaultProps = {
@@ -303,6 +306,7 @@ class IOUConfirmationList extends Component {
                 autoFocus
                 shouldDelayFocus
                 shouldTextInputAppearBelowOptions
+                shouldShowTextInput={false}
                 optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
                 footerContent={shouldShowSettlementButton
                     ? (
@@ -328,9 +332,17 @@ class IOUConfirmationList extends Component {
                     title={formattedAmount}
                     description={this.props.translate('iou.amount')}
                     interactive={false}
-                    onPress={() => {}} // TODO: Make this go to edit amount!
+                    onPress={() => this.props.navigateToStep(0)} // TODO: Make this go to edit amount!
                     style={styles.iouMenuItem}
                     titleStyle={styles.iouConfirmationAmount}
+                />
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon
+                    title={this.props.comment}
+                    description={this.props.translate('iOUConfirmationList.whatsItFor')}
+                    interactive={false}
+                    onPress={() => Navigation.navigate(ROUTES.IOU_REQUEST_DESCRIPTION)}
+                    style={styles.iouMenuItem}
                 />
             </OptionsSelector>
         );

@@ -225,6 +225,24 @@ const MoneyRequestModal = (props) => {
     }, [amount, currentStepIndex, props.hasMultipleParticipants, props.iou.selectedCurrencyCode, props.iouType, props.numberFormat, steps]);
 
     /**
+     * Navigate to a provided step.
+     *
+     * @type {(function(*): void)|*}
+     */
+    const navigateToStep = useCallback((stepIndex) => {
+        if (stepIndex < 0 || stepIndex > steps.length) {
+            return;
+        }
+
+        if (currentStepIndex === stepIndex) {
+            return;
+        }
+
+        setPreviousStepIndex(currentStepIndex);
+        setCurrentStepIndex(stepIndex);
+    }, [currentStepIndex, steps.length]);
+
+    /**
      * Navigate to the previous request step if possible
      */
     const navigateToPreviousStep = useCallback(() => {
@@ -241,6 +259,13 @@ const MoneyRequestModal = (props) => {
      */
     const navigateToNextStep = useCallback(() => {
         if (currentStepIndex >= steps.length - 1) {
+            return;
+        }
+
+        // If we're coming from the confirm step, it means we were editing something so go back to the confirm step.
+        const confirmIndex = _.indexOf(steps, Steps.IOUConfirm);
+        if (previousStepIndex === confirmIndex) {
+            navigateToStep(confirmIndex);
             return;
         }
 
@@ -416,6 +441,7 @@ const MoneyRequestModal = (props) => {
                                             // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
                                             // the floating-action-button (since it is something that exists outside the context of a report).
                                             canModifyParticipants={!_.isEmpty(reportID)}
+                                            navigateToStep={navigateToStep}
                                         />
                                     </AnimatedStep>
                                 )}

@@ -45,6 +45,8 @@ const propTypes = {
 
     /** Can the participants be modified or not */
     canModifyParticipants: PropTypes.bool,
+
+    navigateToStep: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -65,6 +67,7 @@ const IOUConfirmPage = props => (
         onSendMoney={props.onSendMoney}
         iouType={props.iouType}
         canModifyParticipants={props.canModifyParticipants}
+        navigateToStep={props.navigateToStep}
     />
 );
 
