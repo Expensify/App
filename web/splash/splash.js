@@ -27,9 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isRootMounted = root.children.length > 0;
         if (passedMiliseconds >= minMilisecondsToWait && isRootMounted && areFontsReady) {
             clearInterval(intervalId);
-
             splash.style.opacity = 0;
-            splash.style.pointerEvents = 'none';
 
             setTimeout(() => {
                 splash.parentNode.removeChild(splash);
