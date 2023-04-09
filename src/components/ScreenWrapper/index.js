@@ -29,7 +29,7 @@ class ScreenWrapper extends React.Component {
         this.panResponder = PanResponder.create({
             onStartShouldSetPanResponderCapture: (e, gestureState) => gestureState.numberActiveTouches === 4,
             onPanResponderRelease: App.toggleTestToolsModal,
-        }); 
+        });
 
         this.state = {
             didScreenTransitionEnd: false,
