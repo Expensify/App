@@ -1,4 +1,4 @@
-import {Keyboard, View} from 'react-native';
+import {Keyboard, View, PanResponder} from 'react-native';
 import React from 'react';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -19,12 +19,17 @@ import {withNetwork} from '../OnyxProvider';
 import {propTypes, defaultProps} from './propTypes';
 import SafeAreaConsumer from '../SafeAreaConsumer';
 import TestToolsModal from '../TestToolsModal';
-import TestToolsGestureDetector from '../TestToolsGestureDetector';
 import withKeyboardState from '../withKeyboardState';
+import * as App from '../../libs/actions/App';
 
 class ScreenWrapper extends React.Component {
     constructor(props) {
         super(props);
+
+        this.panResponder = PanResponder.create({
+            onStartShouldSetPanResponderCapture: (e, gestureState) => gestureState.numberActiveTouches === 4,
+            onPanResponderRelease: App.toggleTestToolsModal,
+        }); 
 
         this.state = {
             didScreenTransitionEnd: false,
@@ -114,32 +119,32 @@ class ScreenWrapper extends React.Component {
                     }
 
                     return (
-                        <TestToolsGestureDetector>
-                            <View
-                                style={[
-                                    ...this.props.style,
-                                    styles.flex1,
-                                    paddingStyle,
-                                ]}
-                            >
-                                <KeyboardAvoidingView style={[styles.w100, styles.h100, {maxHeight: this.props.windowHeight}]} behavior={this.props.keyboardAvoidingViewBehavior}>
-                                    <HeaderGap />
-                                    {(this.props.environment === CONST.ENVIRONMENT.DEV) && <TestToolsModal />}
-                                    {// If props.children is a function, call it to provide the insets to the children.
-                                        _.isFunction(this.props.children)
-                                            ? this.props.children({
-                                                insets,
-                                                safeAreaPaddingBottomStyle,
-                                                didScreenTransitionEnd: this.state.didScreenTransitionEnd,
-                                            })
-                                            : this.props.children
-                                    }
-                                    {this.props.isSmallScreenWidth && (
-                                        <OfflineIndicator />
-                                    )}
-                                </KeyboardAvoidingView>
-                            </View>
-                        </TestToolsGestureDetector>
+                        <View
+                            style={[
+                                ...this.props.style,
+                                styles.flex1,
+                                paddingStyle,
+                            ]}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...(this.props.environment === CONST.ENVIRONMENT.DEV) ? this.panResponder.panHandlers : {}}
+                        >
+                            <KeyboardAvoidingView style={[styles.w100, styles.h100, {maxHeight: this.props.windowHeight}]} behavior={this.props.keyboardAvoidingViewBehavior}>
+                                <HeaderGap />
+                                {(this.props.environment === CONST.ENVIRONMENT.DEV) && <TestToolsModal />}
+                                {// If props.children is a function, call it to provide the insets to the children.
+                                    _.isFunction(this.props.children)
+                                        ? this.props.children({
+                                            insets,
+                                            safeAreaPaddingBottomStyle,
+                                            didScreenTransitionEnd: this.state.didScreenTransitionEnd,
+                                        })
+                                        : this.props.children
+                                }
+                                {this.props.isSmallScreenWidth && (
+                                    <OfflineIndicator />
+                                )}
+                            </KeyboardAvoidingView>
+                        </View>
                     );
                 }}
             </SafeAreaConsumer>
