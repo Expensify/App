@@ -65,7 +65,6 @@ function init(args, params) {
         }
 
         socket = new Pusher(args.appKey, options);
-        pusherSocketID = socket.connection.socket_id;
 
         // If we want to pass params in our requests to api.php we'll need to add it to socket.config.auth.params
         // as per the documentation
@@ -83,6 +82,7 @@ function init(args, params) {
         });
 
         socket.connection.bind('connected', () => {
+            pusherSocketID = socket.connection.socket_id;
             callSocketEventCallbacks('connected');
             resolve();
         });
