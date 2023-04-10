@@ -4,8 +4,6 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
-
-import {GoogleSigninButton} from '@react-native-google-signin/google-signin';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
@@ -25,6 +23,7 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
 import CONST from '../../CONST';
+import Button from '../../components/Button';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -207,13 +206,7 @@ class LoginForm extends React.Component {
                                 isAlertVisible={!_.isEmpty(serverErrorText)}
                                 containerStyles={[styles.mh0]}
                             />
-                            <GoogleSigninButton
-                                style={{width: 192, height: 48}}
-                                size={GoogleSigninButton.Size.Wide}
-                                color={GoogleSigninButton.Color.Dark}
-                                onPress={Session.beginGoogleSignIn}
-                                disabled={this.state.isSigninInProgress}
-                            />
+                            <Button style={{width: 192, height: 48}} onPress={Session.beginGoogleSignIn} disabled={this.state.isSigninInProgress} text="Sign In With Google" />
                         </View>
                     )
                 }

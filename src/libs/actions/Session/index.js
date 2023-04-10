@@ -17,7 +17,7 @@ import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
 import * as Report from '../Report';
 import DateUtils from '../../DateUtils';
-import signInWithGoogle from '../SignInWithGoogle/SignInWithGoogle.native';
+import signInWithGoogle from '../signInWithGoogle/index.native';
 
 let credentials = {};
 Onyx.connect({
@@ -294,6 +294,7 @@ function beginGoogleSignIn() {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects('SignInGoogle', {authToken}, {optimisticData, successData, failureData});
     };
+
     signInWithGoogle(apiCallback);
 }
 

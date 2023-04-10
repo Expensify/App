@@ -9,9 +9,9 @@ GoogleSignin.configure({
 });
 
 export default async function signInWithGoogle(apiCallback) {
-    await GoogleSignin.revokeAccess().catch(error => Log.error('Google revoke access error: ', error));
+    // await GoogleSignin.revokeAccess().catch(error => Log.error('Google revoke access error: ', error));
 
-    // await GoogleSignin.signOut();
+    await GoogleSignin.signOut();
     GoogleSignin.signIn()
         .then((response) => {
             apiCallback({token: response.idToken, email: response.user.email}).then(
