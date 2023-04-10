@@ -112,7 +112,7 @@ function Expensify(props) {
     useLayoutEffect(() => {
         // Initialize this client as being an active client
         ActiveClientManager.init();
-        
+
         // Used for the offline indicator appearing when someone is offline
         NetworkConnection.subscribeToNetInfo();
     }, []);
