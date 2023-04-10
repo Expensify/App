@@ -15,13 +15,6 @@
         <item name="android:alertDialogTheme">@style/AlertDialogTheme</item>
     </style>
 
-    <!-- Themes unique to the boot splash page -->
-    <style name="BootTheme" parent="AppTheme">
-        <item name="android:background">@drawable/bootsplash</item>
-        <item name="android:windowTranslucentStatus">false</item>
-        <item name="android:fitsSystemWindows">true</item>
-    </style>
-
     <!-- Themes used by the Picker -->
     <style name="AppTheme.Popup" parent="Base.ThemeOverlay.AppCompat">
         <item name="colorBackgroundFloating">@null</item>
@@ -67,4 +60,25 @@
     <style name="AlertTextAppearanceLarge" parent="TextAppearance.AppCompat.Large">
         <item name="android:fontFamily">@font/expneuebold</item>
     </style>
+
+    <style name="Theme.SplashScreen.Common" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@drawable/bootsplash</item>
+    </style>
+
+    <style name="Theme.SplashScreen.Dialog">
+        <item name="android:windowEnterAnimation">@null</item>
+        <item name="android:windowExitAnimation">@anim/fade_out</item>
+    </style>
+
+    <style name="Theme.SplashScreen" parent="Theme.SplashScreen.Common">
+        <item name="windowSplashScreenAnimatedIcon">@android:drawable/sym_def_app_icon</item>
+        <item name="windowSplashScreenBackground">?android:colorBackground</item>
+    </style>
+
+    <style name="BootTheme" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/bootsplash_logo</item>
+        <item name="android:statusBarColor">@color/bootsplash_background</item>
+        <item name="windowSplashScreenBackground">@color/bootsplash_background</item>
+    </style>
+
 </resources>

@@ -18,6 +18,7 @@ import * as NetworkStore from '../../Network/NetworkStore';
 import * as Report from '../Report';
 import DateUtils from '../../DateUtils';
 import Navigation from '../../Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 let credentials = {};
 Onyx.connect({
@@ -300,7 +301,7 @@ function signInWithShortLivedAuthToken(email, authToken) {
  * @param {String} [twoFactorAuthCode]
  * @param {String} [preferredLocale] Indicates which language to use when the user lands in the app
  */
-function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CONST.DEFAULT_LOCALE) {
+function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -400,6 +401,11 @@ function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
         validateCode,
         twoFactorAuthCode,
     }, {optimisticData, successData, failureData});
+}
+
+function signInWithValidateCodeAndNavigate(accountID, validateCode, twoFactorAuthCode) {
+    signInWithValidateCode(accountID, validateCode, twoFactorAuthCode);
+    Navigation.navigate(ROUTES.HOME);
 }
 
 /**
@@ -641,6 +647,7 @@ export {
     updatePasswordAndSignin,
     signIn,
     signInWithValidateCode,
+    signInWithValidateCodeAndNavigate,
     initAutoAuthState,
     signInWithShortLivedAuthToken,
     cleanupSession,
