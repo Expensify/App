@@ -236,7 +236,7 @@ function createPolicyExpenseChats(policyID, members, betas) {
         onyxSuccessData: [],
         onyxOptimisticData: [],
         onyxFailureData: [],
-        optimisticReportIDs: {},
+        reportIDs: {},
     };
 
     // If the user is not in the beta, we don't want to create any chats
@@ -269,7 +269,11 @@ function createPolicyExpenseChats(policyID, members, betas) {
         );
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticReport.ownerEmail);
 
-        workspaceMembersChats.optimisticReportIDs[login] = optimisticReport.reportID;
+        workspaceMembersChats.reportIDs[login] = {
+            reportID: optimisticReport.reportID,
+            reportActionID: optimisticCreatedAction.reportActionID,
+        };
+
         workspaceMembersChats.onyxOptimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
@@ -286,6 +290,7 @@ function createPolicyExpenseChats(policyID, members, betas) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReport.reportID}`,
             value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
         });
+
         workspaceMembersChats.onyxSuccessData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
@@ -304,6 +309,7 @@ function createPolicyExpenseChats(policyID, members, betas) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReport.reportID}`,
             value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
         });
+
         workspaceMembersChats.onyxFailureData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
@@ -375,7 +381,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
         // Escape HTML special chars to enable them to appear in the invite email
         welcomeNote: _.escape(welcomeNote),
         policyID,
-        optimisticReportIDs: JSON.stringify(membersChats.optimisticReportIDs),
+        reportIDs: JSON.stringify(membersChats.reportIDs),
     }, {optimisticData, successData, failureData});
 }
 
