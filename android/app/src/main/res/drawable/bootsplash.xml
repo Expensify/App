@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android" android:opacity="opaque">
-    <item android:drawable="@color/bootsplash_background" />
+    <item android:gravity="fill">
+        <color android:color="?attr/windowSplashScreenBackground" />
+    </item>
 
-    <item>
-        <bitmap android:src="@mipmap/bootsplash_logo" android:gravity="center" />
+    <item android:gravity="fill">
+        <bitmap android:src="?windowSplashScreenAnimatedIcon" android:gravity="center" />
     </item>
 </layer-list>

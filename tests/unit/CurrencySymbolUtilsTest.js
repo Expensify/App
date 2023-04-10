@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import * as CurrencySymbolUtils from '../../src/libs/CurrencySymbolUtils';
+import CONST from '../../src/CONST';
 
 // This file can get outdated. In that case, you can follow these steps to update it:
 // - open your browser console and navigate to the Network tab
@@ -10,12 +11,12 @@ import * as CurrencySymbolUtils from '../../src/libs/CurrencySymbolUtils';
 import currencyList from './currencyList.json';
 
 const currencyCodeList = _.keys(currencyList);
-const AVAILABLE_LOCALES = ['en', 'es'];
+const AVAILABLE_LOCALES = [CONST.LOCALES.EN, CONST.LOCALES.ES];
 
 // Contains item [isLeft, locale, currencyCode]
 const symbolPositions = [
-    [true, 'en', 'USD'],
-    [false, 'es', 'USD'],
+    [true, CONST.LOCALES.EN, 'USD'],
+    [false, CONST.LOCALES.ES, 'USD'],
 ];
 
 describe('CurrencySymbolUtils', () => {
