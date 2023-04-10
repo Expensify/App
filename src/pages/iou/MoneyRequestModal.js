@@ -123,7 +123,7 @@ const MoneyRequestModal = (props) => {
     }));
 
     // Skip IOUParticipants step if participants are passed in
-    const steps = reportParticipants.length ? [Steps.IOUAmount, Steps.IOUConfirm] : [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm];
+    const steps = useMemo(() => (reportParticipants.length ? [Steps.IOUAmount, Steps.IOUConfirm] : [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm]), [reportParticipants.length]);
 
     const prevCreatingIOUTransactionStatusRef = useRef(lodashGet(props.iou, 'creatingIOUTransaction'));
     const prevNetworkStatusRef = useRef(props.network.isOffline);
@@ -271,7 +271,7 @@ const MoneyRequestModal = (props) => {
 
         setPreviousStepIndex(currentStepIndex);
         setCurrentStepIndex(currentStepIndex + 1);
-    }, [currentStepIndex, steps.length]);
+    }, [currentStepIndex, previousStepIndex, navigateToStep, steps]);
 
     /**
      * Checks if user has a GOLD wallet then creates a paid IOU report on the fly
