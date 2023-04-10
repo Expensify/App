@@ -16,8 +16,7 @@ import * as IOU from '../../libs/actions/IOU';
 const propTypes = {
     ...withLocalizePropTypes,
 
-    /* Onyx Props */
-
+    /** Onyx Props */
     /** Holds data related to IOU view state, rather than the underlying IOU data. */
     iou: PropTypes.shape({
         comment: PropTypes.string,
@@ -37,6 +36,12 @@ class IOUDescriptionPage extends Component {
         this.updateComment = this.updateComment.bind(this);
     }
 
+    /**
+     * Sets the IOU comment by saving it to Onyx.
+     *
+     * @param {Object} value
+     * @param {String} value.iouComment
+     */
     updateComment(value) {
         IOU.setIOUComment(value.iouComment);
         Navigation.goBack();

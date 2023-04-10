@@ -78,6 +78,7 @@ const propTypes = {
         email: PropTypes.string.isRequired,
     }),
 
+    /** Callback function to navigate to a provided step in the MoneyRequestModal flow */
     navigateToStep: PropTypes.func,
 };
 
@@ -323,7 +324,7 @@ class IOUConfirmationList extends Component {
                     shouldShowRightIcon
                     title={formattedAmount}
                     description={this.props.translate('iou.amount')}
-                    interactive={false}
+                    interactive={false} // This is so the menu item's background doesn't change color on hover
                     onPress={() => this.props.navigateToStep(0)} // Index 0 here because the amount step is always the first step.
                     style={styles.iouMenuItem}
                     titleStyle={styles.iouConfirmationAmount}
@@ -332,7 +333,7 @@ class IOUConfirmationList extends Component {
                     shouldShowRightIcon
                     title={this.props.iou.comment}
                     description={this.props.translate('iOUConfirmationList.whatsItFor')}
-                    interactive={false}
+                    interactive={false} // This is so the menu item's background doesn't change color on hover
                     onPress={() => Navigation.navigate(ROUTES.IOU_REQUEST_DESCRIPTION)}
                     style={styles.iouMenuItem}
                 />
