@@ -916,10 +916,10 @@ function getEmojiReactionBubbleTextStyle(isContextMenu = false) {
 
 function getEmojiReactionCounterTextStyle(hasUserReacted) {
     if (hasUserReacted) {
-        return {color: themeColors.textLight};
+        return {color: themeColors.link};
     }
 
-    return {color: themeColors.link};
+    return {color: themeColors.textLight};
 }
 
 /**
