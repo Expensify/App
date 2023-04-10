@@ -92,6 +92,8 @@ const ReportActionsList = (props) => {
     }, [opacity]);
     const [skeletonViewHeight, setSkeletonViewHeight] = useState(0);
 
+    const windowHeight = props.windowHeight;
+
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
      * the height of the smallest report action possible.
@@ -100,10 +102,10 @@ const ReportActionsList = (props) => {
     const calculateInitialNumToRender = useCallback(() => {
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom
             + variables.fontSizeNormalHeight;
-        const availableHeight = props.windowHeight
+        const availableHeight = windowHeight
             - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
         return Math.ceil(availableHeight / minimumReportActionHeight);
-    }, [props.windowHeight]);
+    }, [windowHeight]);
 
     const report = props.report;
     const hasOutstandingIOU = props.report.hasOutstandingIOU;
@@ -112,14 +114,8 @@ const ReportActionsList = (props) => {
     const mostRecentIOUReportActionID = props.mostRecentIOUReportActionID;
 
     /**
-     * Do not move this or make it an anonymous function it is a method
-     * so it will not be recreated each time we render an item
-     *
-     * See: https://reactnative.dev/docs/optimizing-flatlist-configuration#avoid-anonymous-function-on-renderitem
-     *
      * @param {Object} args
      * @param {Number} args.index
-     *
      * @returns {React.Component}
      */
     const renderItem = useCallback(({
