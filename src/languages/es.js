@@ -372,11 +372,14 @@ export default {
         removeContactMethod: 'Eliminar método de contacto',
         removeAreYouSure: '¿Estás seguro de que quieres eliminar este método de contacto? Esta acción no se puede deshacer.',
         resendMagicCode: 'Reenviar código mágico',
+        failedNewContact: 'Hubo un error al añadir este método de contacto.',
         genericFailureMessages: {
             requestContactMethodValidateCode: 'No se ha podido enviar un nuevo código mágico. Espera un rato y vuelve a intentarlo.',
             validateSecondaryLogin: 'No se ha podido validar el método de contacto con el código mágico provisto. Solicita un nuevo código y vuelve a intentarlo.',
             deleteContactMethod: 'No se ha podido eliminar el método de contacto. Por favor contacta con Concierge para obtener ayuda.',
+            addContactMethod: 'Hubo un error al añadir este método de contacto. Por favor contacta con Concierge para obtener ayuda.',
         },
+        newContactMethod: 'Nuevo método de contacto',
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -407,13 +410,6 @@ export default {
         timezone: 'Zona horaria',
         isShownOnProfile: 'Tu zona horaria se muestra en tu perfil.',
         getLocationAutomatically: 'Detecta tu ubicación automáticamente.',
-    },
-    addSecondaryLoginPage: {
-        addPhoneNumber: 'Agregar número de teléfono',
-        addEmailAddress: 'Agregar dirección de email',
-        enterPreferredPhoneNumberToSendValidationLink: 'Escribe tu número de teléfono para recibir el enlace de validación.',
-        enterPreferredEmailToSendValidationLink: 'Escribe tu email para recibir el enlace de validación.',
-        sendValidation: 'Enviar validación',
     },
     initialSettingsPage: {
         about: 'Acerca de',

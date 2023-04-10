@@ -1453,7 +1453,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
-    if (!report || !report.reportID || !report.participants || _.isEmpty(report.participants) || isIOUReport(report)) {
+    if (!report || !report.reportID || !report.participants || (_.isEmpty(report.participants) && !isPublicRoom(report)) || isIOUReport(report)) {
         return false;
     }
 
