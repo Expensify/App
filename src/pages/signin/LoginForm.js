@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
+
 import {GoogleSigninButton} from '@react-native-google-signin/google-signin';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';

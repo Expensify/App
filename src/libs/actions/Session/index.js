@@ -1,7 +1,6 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {GoogleSignin, statusCodes} from '@react-native-google-signin/google-signin';
 import ONYXKEYS from '../../../ONYXKEYS';
 import redirectToSignIn from '../SignInRedirect';
 import CONFIG from '../../../CONFIG';
@@ -18,6 +17,7 @@ import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
 import * as Report from '../Report';
 import DateUtils from '../../DateUtils';
+import signInWithGoogle from '../SignInWithGoogle/SignInWithGoogle.native';
 
 let credentials = {};
 Onyx.connect({
@@ -239,36 +239,6 @@ function beginSignIn(login) {
     ];
 
     API.read('BeginSignIn', {email: login}, {optimisticData, successData, failureData});
-}
-
-function signInWithGoogle(apiCallback) {
-    GoogleSignin.configure({
-        webClientId: '921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com',
-        iosClientId: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
-        offlineAccess: false,
-    });
-
-    GoogleSignin.signIn()
-        .then((response) => {
-            apiCallback({token: response.idToken, email: response.user.email}).then(
-                (apiResponse => Log.error('API response: ', apiResponse)).catch(apiError => Log.error('API Callback error: ', apiError)),
-            );
-        })
-        .catch((error) => {
-            if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-                Log.error('Google sign in cancelled', true, {error});
-                console.log('Google sign in cancelled', error);
-            } else if (error.code === statusCodes.IN_PROGRESS) {
-                Log.error('Google sign in already in progress', true, {error});
-                console.log('Google sign in already in progress', error);
-            } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-                Log.error('Google play services not available or outdated', true, {error});
-                console.log('Google play services not available or outdated', error);
-            } else {
-                Log.error('Unknown Google sign in error', true, {error});
-                console.log('Unknown Google sign in error', error);
-            }
-        });
 }
 
 /**
