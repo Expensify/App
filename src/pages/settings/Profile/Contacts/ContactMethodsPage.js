@@ -16,11 +16,11 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
 import styles from '../../../../styles/styles';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
 import MenuItem from '../../../../components/MenuItem';
 import Text from '../../../../components/Text';
 import CopyTextToClipboard from '../../../../components/CopyTextToClipboard';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
+import FixedFooter from '../../../../components/FixedFooter';
 
 const propTypes = {
     /* Onyx Props */
@@ -121,16 +121,15 @@ const ContactMethodsPage = (props) => {
                     </Text>
                 </View>
                 {loginMenuItems}
+            </ScrollView>
+            <FixedFooter style={[styles.flexGrow0, styles.pt5]}>
                 <Button
-                    style={[styles.buttonCTA, styles.mt6]}
-                    iconStyles={[styles.buttonCTAIcon]}
                     success
-                    icon={Expensicons.Plus}
                     text={props.translate('contacts.newContactMethod')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD)}
                     pressOnEnter
                 />
-            </ScrollView>
+            </FixedFooter>
         </ScreenWrapper>
     );
 };
