@@ -1,9 +1,8 @@
-import {getUserAgentSync} from 'react-native-device-info';
 import {UAParser} from 'ua-parser-js';
 
 export default function getOSAndName() {
     const parser = new UAParser();
-    const result = parser.setUA(getUserAgentSync()).getResult();
+    const result = parser.getResult();
     return {
         os: result.os.name,
         os_version: result.os.version,

@@ -338,7 +338,7 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
         twoFactorAuthCode,
         email: credentials.login,
         preferredLocale,
-        deviceInfo: Device.getDeviceInfo(),
+        deviceInfo: JSON.stringify(Device.getDeviceInfo()),
     };
 
     // Conditionally pass a password or validateCode to command since we temporarily allow both flows
@@ -406,7 +406,7 @@ function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
         accountID,
         validateCode,
         twoFactorAuthCode,
-        deviceInfo: Device.getDeviceInfo(),
+        deviceInfo: JSON.stringify(Device.getDeviceInfo()),
     }, {optimisticData, successData, failureData});
 }
 
