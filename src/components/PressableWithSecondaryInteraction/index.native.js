@@ -20,7 +20,7 @@ const PressableWithSecondaryInteraction = (props) => {
             onPress={props.onPress}
             onLongPress={(e) => {
                 e.preventDefault();
-                HapticFeedback.trigger();
+                HapticFeedback.longPress();
                 props.onSecondaryInteraction(e);
             }}
             onPressIn={props.onPressIn}
