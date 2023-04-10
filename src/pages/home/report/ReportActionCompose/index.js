@@ -229,6 +229,15 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (this.props.modal.isVisible !== prevProps.modal.isVisible) {
+            if (this.props.modal.isVisible) {
+                if (this.keydownListener) {
+                    KeyDownAction.removeListenKeyDown(this.keydownListener);
+                }
+            } else {
+                KeyDownAction.listenKeyDown(this.keydownListener);
+            }
+        }
         const sidebarOpened = !prevProps.isDrawerOpen && this.props.isDrawerOpen;
         if (sidebarOpened) {
             toggleReportActionComposeView(true);
