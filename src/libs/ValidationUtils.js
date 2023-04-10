@@ -1,5 +1,6 @@
 import moment from 'moment';
 import _ from 'underscore';
+import {Buffer} from 'buffer';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
@@ -437,8 +438,7 @@ function isValidTaxID(taxID) {
  * @returns {Number}
  */
 function getTextByteLength(text) {
-    const encoder = new TextEncoder();
-    const encodedText = encoder.encode(text);
+    const encodedText = Buffer.from(text);
     return encodedText.byteLength;
 }
 
