@@ -101,6 +101,13 @@ class ReportActionItemMessageEdit extends React.Component {
         };
     }
 
+    componentWillUnmount() {
+        // Show the main composer when the focused message is deleted from another client
+        if (this.state.isFocused) {
+            toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
+        }
+    }
+
     /**
      * Update Selection on change cursor position.
      *
