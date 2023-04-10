@@ -158,7 +158,6 @@ class BaseOptionsList extends Component {
      */
     renderItem({item, index, section}) {
         const isDisabled = this.props.isDisabled || section.isDisabled;
-
         return (
             <OptionRow
                 option={item}
