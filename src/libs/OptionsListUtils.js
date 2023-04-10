@@ -68,10 +68,9 @@ Onyx.connect({
             return;
         }
 
-        if (!ReportUtils.isIOUReport(report)) {
-            return;
+        if (ReportUtils.isIOUReport(report)) {
+            iouReports[key] = report;
         }
-        iouReports[key] = report;
     },
 });
 
