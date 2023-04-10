@@ -27,6 +27,10 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
+const defaultProps = {
+    scrollViewRef: {current: null},
+};
+
 const navigateHome = (scrollViewRef) => {
     const currentRoute = navigationRef.current.getCurrentRoute();
     if (
@@ -229,9 +233,7 @@ const Footer = (props) => {
 
 Footer.propTypes = propTypes;
 Footer.displayName = 'Footer';
-Footer.defaultProps = {
-    scrollViewRef: {current: null},
-};
+Footer.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
