@@ -39,10 +39,10 @@ const defaultProps = {
 };
 
 const StatePicker = forwardRef((props, ref) => {
-    const STATES = _.map(props.translate('allStates'), ({stateISO, stateName}) => ({
-        value: stateISO,
-        label: stateName,
-    }));
+    const STATES = _.chain(props.translate('allStates'))
+        .sortBy(({stateName}) => stateName.toLowerCase())
+        .map(({stateISO, stateName}) => ({value: stateISO, label: stateName}))
+        .value();
 
     return (
         <Picker
