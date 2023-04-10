@@ -284,7 +284,7 @@ class IOUConfirmationList extends Component {
         return (
             <OptionsSelector
                 sections={this.getSections()}
-                value={''}
+                value=""
                 onSelectRow={canModifyParticipants ? this.toggleOption : undefined}
                 onConfirmSelection={this.confirm}
                 onChangeText={this.props.onUpdateComment}
