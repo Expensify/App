@@ -16,7 +16,6 @@ import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Text from '../../../components/Text';
-import RoomNameInput from '../../../components/RoomNameInput';
 import Picker from '../../../components/Picker';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import * as ErrorUtils from '../../../libs/ErrorUtils';
@@ -25,9 +24,8 @@ import reportPropTypes from '../../reportPropTypes';
 import withReportOrNotFound from '../../home/report/withReportOrNotFound';
 import Form from '../../../components/Form';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
-import RoomNamePage from "./RoomNamePage";
-import MenuItemWithTopDescription from "../../../components/MenuItemWithTopDescription";
-import ROUTES from "../../../ROUTES";
+import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     /** Route params */

@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import PropTypes from 'prop-types';
+import _ from 'underscore';
 import {View} from 'react-native';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
@@ -14,9 +14,7 @@ import compose from '../../../libs/compose';
 import * as RoomNameInputUtils from '../../../libs/RoomNameInputUtils';
 import withReportOrNotFound from '../../home/report/withReportOrNotFound';
 import reportPropTypes from '../../reportPropTypes';
-import ROUTES from "../../../ROUTES";
-import * as ValidationUtils from "../../../libs/ValidationUtils";
-import _ from "underscore/underscore-node.mjs";
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     ...withLocalizePropTypes,
