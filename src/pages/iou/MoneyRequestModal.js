@@ -202,7 +202,7 @@ const MoneyRequestModal = (props) => {
         }
         return props.translate('iou.cash');
         // eslint-disable-next-line react-hooks/exhaustive-deps -- props does not need to be a dependency as it will always exist
-    }, [currentStepIndex]);
+    }, [currentStepIndex, props.translate]);
 
     /**
      * Navigate to the previous request step if possible
