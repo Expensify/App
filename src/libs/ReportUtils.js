@@ -28,7 +28,7 @@ Onyx.connect({
     callback: val => sessionEmail = val ? val.email : null,
 });
 
-let preferredLocale = CONST.DEFAULT_LOCALE;
+let preferredLocale = CONST.LOCALES.DEFAULT;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => {
@@ -1420,6 +1420,11 @@ function canSeeDefaultRoom(report, policies, betas) {
 
     // If the room has an assigned guide, it can be seen.
     if (hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
+        return true;
+    }
+
+    // Include any public announce rooms, since they could include people who should have access but we don't know to add to the beta
+    if (report.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE) {
         return true;
     }
 
