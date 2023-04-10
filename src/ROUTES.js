@@ -53,8 +53,6 @@ export default {
     SETTINGS_CONTACT_METHODS,
     SETTINGS_CONTACT_METHOD_DETAILS: `${SETTINGS_CONTACT_METHODS}/:contactMethod/details`,
     getEditContactMethodRoute: contactMethod => `${SETTINGS_CONTACT_METHODS}/${encodeURIComponent(contactMethod)}/details`,
-    SETTINGS_CONTACT_METHODS_SET_DEFAULT: `${SETTINGS_CONTACT_METHODS}/:contactMethod/set-default`,
-    getSetDefaultContactMethodRoute: contactMethod => `${SETTINGS_CONTACT_METHODS}/${encodeURIComponent(contactMethod)}/set-default`,
     NEW_GROUP: 'new/group',
     NEW_CHAT: 'new/chat',
     REPORT,
