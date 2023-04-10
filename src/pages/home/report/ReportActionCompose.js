@@ -631,11 +631,6 @@ class ReportActionCompose extends React.Component {
         }
 
         this.updateComment('');
-
-        // Since we're submitting the form here which should clear the composer
-        // We don't really care about saving the draft the user was typing
-        // We need to make sure an empty draft gets saved instead
-        this.debouncedSaveReportComment.cancel();
         this.setTextInputShouldClear(true);
         if (this.props.isComposerFullSize) {
             Report.setIsComposerFullSize(this.props.reportID, false);
@@ -650,6 +645,12 @@ class ReportActionCompose extends React.Component {
      */
     addAttachment(file) {
         const comment = this.prepareCommentAndResetComposer();
+
+        // Since we're submitting the form here which should clear the composer
+        // We don't really care about saving the draft the user was typing
+        // We need to make sure an empty draft gets saved instead
+        this.debouncedSaveReportComment.cancel();
+
         Report.addAttachment(this.props.reportID, file, comment);
         this.setTextInputShouldClear(false);
     }
@@ -663,6 +664,11 @@ class ReportActionCompose extends React.Component {
         if (e) {
             e.preventDefault();
         }
+
+        // Since we're submitting the form here which should clear the composer
+        // We don't really care about saving the draft the user was typing
+        // We need to make sure an empty draft gets saved instead
+        this.debouncedSaveReportComment.cancel();
 
         const comment = this.prepareCommentAndResetComposer();
         if (!comment) {
