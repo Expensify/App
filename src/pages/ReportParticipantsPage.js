@@ -73,7 +73,7 @@ const getAllParticipants = (report, personalDetails) => {
             login,
             text: userPersonalDetail.displayName,
             tooltipText: userLogin,
-            participantsList: [{login: userLogin, displayName: userPersonalDetail.displayName}],
+            participantsList: [{login, displayName: userPersonalDetail.displayName}],
         });
     });
 };

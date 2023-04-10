@@ -85,7 +85,7 @@ const defaultProps = {
     report: {
         participants: [],
     },
-    iouType: CONST.IOU.IOU_TYPE.REQUEST,
+    iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     currentUserPersonalDetails: {
         localCurrencyCode: CONST.CURRENCY.USD,
     },
@@ -195,14 +195,14 @@ const MoneyRequestModal = (props) => {
      */
     const titleForStep = useMemo(() => {
         if (currentStepIndex === 0) {
-            if (props.iouType === CONST.IOU.IOU_TYPE.SEND) {
+            if (props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
                 return props.translate('iou.sendMoney');
             }
             return props.translate(props.hasMultipleParticipants ? 'iou.splitBill' : 'iou.requestMoney');
         }
         return props.translate('iou.cash');
         // eslint-disable-next-line react-hooks/exhaustive-deps -- props does not need to be a dependency as it will always exist
-    }, [currentStepIndex, props.hasMultipleParticipants, props.iouType]);
+    }, [currentStepIndex]);
 
     /**
      * Navigate to the previous request step if possible
@@ -362,6 +362,7 @@ const MoneyRequestModal = (props) => {
                                             onAddParticipants={selectedParticipants => setParticipants(selectedParticipants)}
                                             onStepComplete={navigateToNextStep}
                                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                                            iouType={props.iouType}
                                         />
                                     </AnimatedStep>
                                 )}
