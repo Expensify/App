@@ -91,7 +91,7 @@ function init() {
     // Note: the NotificationResponse event has a nested PushReceived event,
     // so event.notification refers to the same thing as notification above ^
     Airship.addListener(EventType.NotificationResponse, (event) => {
-        pushNotificationEventCallback(EventType.NotificationResponse, event.notification);
+        pushNotificationEventCallback(EventType.NotificationResponse, event.pushPayload);
     });
 
     // Keep track of which users have enabled push notifications via an NVP.
