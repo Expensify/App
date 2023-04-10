@@ -51,8 +51,7 @@ import EmojiSuggestions from '../../../../components/EmojiSuggestions';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../../components/withKeyboardState';
 import ArrowKeyFocusManager from '../../../../components/ArrowKeyFocusManager';
 import KeyboardShortcut from '../../../../libs/KeyboardShortcut';
-import listenKeyDown from './listenKeyDown';
-import removeListenKeyDown from './removeListenKeyDown';
+import KeyDownAction from './keyDownAction';
 
 const propTypes = {
     /** Beta features list */
@@ -204,7 +203,7 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidMount() {
-        listenKeyDown(this.keydownListener);
+        KeyDownAction.listenKeyDown(this.keydownListener);
 
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
         // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
@@ -261,7 +260,9 @@ class ReportActionCompose extends React.Component {
     }
 
     componentWillUnmount() {
-        removeListenKeyDown(this.keydownListener);
+        if (this.keydownListener) {
+            KeyDownAction.removeListenKeyDown(this.keydownListener);
+        }
         ReportActionComposeFocusManager.clear();
 
         if (this.unsubscribeEscapeKey) {
@@ -468,14 +469,18 @@ class ReportActionCompose extends React.Component {
     }
 
     keydownListener(e) {
-        if (this.state.isFocused) { return; }
+        if (this.state.isFocused) {
+            return;
+        }
 
         // if the key pressed is non-character keys like Enter, Shift, ... do not focus
-        if (e.key.length > 1) { return; }
+        if (e.key.length > 1) {
+            return;
+        }
 
         // if we're typing on another input/text area, do not focus
-        if (e.target.nodeName === 'INPUT' || e.target.nodeName === 'TEXTAREA') { 
-            return; 
+        if (e.target.nodeName === 'INPUT' || e.target.nodeName === 'TEXTAREA') {
+            return;
         }
 
         this.focus();
