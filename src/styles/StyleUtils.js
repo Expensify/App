@@ -877,12 +877,12 @@ const getColoredBackgroundStyle = isColored => ({backgroundColor: isColored ? co
 function getEmojiReactionBubbleStyle(isHovered, hasUserReacted, isContextMenu = false) {
     let backgroundColor = themeColors.border;
 
-    if (hasUserReacted) {
-        backgroundColor = themeColors.reactionActive;
-    }
-
     if (isHovered) {
         backgroundColor = themeColors.buttonHoveredBG;
+    }
+
+    if (hasUserReacted) {
+        backgroundColor = themeColors.reactionActive;
     }
 
     if (isContextMenu) {
