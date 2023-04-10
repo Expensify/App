@@ -1,4 +1,4 @@
-import React, {PureComponent} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -60,21 +60,22 @@ const defaultProps = {
     name: '',
 };
 
-class Avatar extends PureComponent {
-    constructor(props) {
-        super(props);
-        this.state = {
-            imageError: false,
-        };
+function Avatar(props) {
+    const [imageError, setImageError] = useState(false);
+
+    useEffect(() => {	
+        const isReconnecting = prevProps.network.isOffline && !props.network.isOffline;	
+        if (!imageError || !isReconnecting) {	
+            return;	
+        }	
+        setImageError(false);	
+    }, [props.network.isOffline]);
+
+    if (!props.source) {	
+        return null;	
     }
 
-    componentDidUpdate(prevProps) {
-        const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
-        if (!this.state.imageError || !isReconnecting) {
-            return;
-        }
-        this.setState({imageError: false});
-    }
+}
 
     render() {
         if (!this.props.source) {
