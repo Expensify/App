@@ -329,6 +329,11 @@ const MoneyRequestModal = (props) => {
             );
             return;
         }
+        console.debug(selectedParticipants);
+        if (!selectedParticipants[0].login) {
+            // TODO - request to the policy expense chat. Not implemented yet!
+            return;
+        }
         IOU.requestMoney(
             props.report,
             Math.round(amount * 100),
