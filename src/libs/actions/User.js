@@ -657,11 +657,13 @@ function generateStatementPDF(period) {
 }
 
 /**
- * Sets a contact method / secondary login as the user's "Default" contact method
+ * Sets a contact method / secondary login as the user's "Default" contact method.
+ * Note: password is not used if the user is on the Passwordless beta.
  *
  * @param {String} newDefaultContactMethod
+ * @param {String} [password]
  */
-function setContactMethodAsDefault(newDefaultContactMethod) {
+function setContactMethodAsDefault(newDefaultContactMethod, password = '') {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData = [
         {
@@ -722,7 +724,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
             },
         },
     ];
-    API.write('SetContactMethodAsDefault', {partnerUserID: newDefaultContactMethod}, {optimisticData, successData, failureData});
+    API.write('SetContactMethodAsDefault', {partnerUserID: newDefaultContactMethod, password}, {optimisticData, successData, failureData});
 }
 
 export {
