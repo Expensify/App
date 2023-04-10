@@ -991,6 +991,7 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
 
     return {
         // If we're sending money, hasOutstandingIOU should be false
+        type: CONST.REPORT.TYPE.IOU,
         hasOutstandingIOU: !isSendingMoney,
         cachedTotal: formattedTotal,
         chatReportID,
@@ -1157,6 +1158,7 @@ function buildOptimisticChatReport(
 ) {
     const currentTime = DateUtils.getDBTime();
     return {
+        type: CONST.REPORT.TYPE.CHAT,
         chatType,
         hasOutstandingIOU: false,
         isOwnPolicyExpenseChat,
