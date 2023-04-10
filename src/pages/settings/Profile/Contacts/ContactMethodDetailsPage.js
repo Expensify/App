@@ -1,5 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
@@ -105,6 +106,9 @@ class ContactMethodDetailsPage extends Component {
         return decodeURIComponent(lodashGet(this.props.route, 'params.contactMethod'));
     }
 
+    /**
+     * Deletes the contact method if it has errors. Otherwise, it shows the confirmation alert and deletes it only if the user confirms.
+     */
     deleteContactMethod() {
         if (!_.isEmpty(lodashGet(this.props.loginList, [this.getContactMethod(), 'errorFields'], {}))) {
             User.deleteContactMethod(this.getContactMethod());
