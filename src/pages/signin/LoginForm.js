@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Button} from 'react-native';
+import {View, Button, Platform} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -22,6 +22,7 @@ import networkPropTypes from '../../components/networkPropTypes';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
+import AppleSignInScript from './AppleSignInScript';
 import CONST from '../../CONST';
 
 const propTypes = {
@@ -84,28 +85,6 @@ class LoginForm extends React.Component {
             return;
         }
         this.input.focus();
-
-        const clientId = 'com.expensify.expensifylite.AppleSignIn';
-        const redirectURI = 'https://www.expensify.com/partners/apple/loginCallback';
-        const scope = 'name email';
-        const state = '';
-        const script = document.createElement('script');
-        script.src = 'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js';
-        script.async = true;
-        script.onload = () => {
-            window.AppleID.auth.init({
-                clientId,
-                scope,
-                redirectURI,
-                state,
-                usePopup: false,
-            });
-        };
-
-        document.body.appendChild(script);
-        this.cleanupScript = () => {
-            document.body.removeChild(script);
-        };
     }
 
     componentDidUpdate(prevProps) {
@@ -116,13 +95,6 @@ class LoginForm extends React.Component {
             return;
         }
         this.input.focus();
-    }
-
-    componentWillUnmount() {
-        if (!this.cleanupScript) {
-            return;
-        }
-        this.cleanupScript();
     }
 
     /**
@@ -198,6 +170,7 @@ class LoginForm extends React.Component {
         const hasError = !_.isEmpty(serverErrorText);
         return (
             <>
+                {Platform.OS === 'web' && <AppleSignInScript />}
                 <View accessibilityLabel={this.props.translate('loginForm.loginForm')} style={[styles.mt3]}>
                     <TextInput
                         ref={el => this.input = el}
