@@ -28,7 +28,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    scrollViewRef: {current: null},
+    scrollViewRef: undefined,
 };
 
 const navigateHome = (scrollViewRef) => {
