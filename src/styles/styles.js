@@ -2973,7 +2973,7 @@ const styles = {
     },
 
     miniQuickEmojiReactionText: {
-        fontSize: 13,
+        fontSize: 15,
         lineHeight: 20,
         textAlignVertical: 'center',
     },
