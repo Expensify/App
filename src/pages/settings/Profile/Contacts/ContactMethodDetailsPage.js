@@ -82,6 +82,7 @@ class ContactMethodDetailsPage extends Component {
     constructor(props) {
         super(props);
 
+        this.deleteContactMethod = this.deleteContactMethod.bind(this);
         this.toggleDeleteModal = this.toggleDeleteModal.bind(this);
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
         this.resendValidateCode = this.resendValidateCode.bind(this);
@@ -102,6 +103,14 @@ class ContactMethodDetailsPage extends Component {
      */
     getContactMethod() {
         return decodeURIComponent(lodashGet(this.props.route, 'params.contactMethod'));
+    }
+
+    deleteContactMethod() {
+        if (!_.isEmpty(lodashGet(this.props.loginList, [this.getContactMethod(), 'errorFields'], {}))) {
+            User.deleteContactMethod(this.getContactMethod());
+            return;
+        }
+        this.toggleDeleteModal(true);
     }
 
     /**
@@ -238,7 +247,7 @@ class ContactMethodDetailsPage extends Component {
                                 title={this.props.translate('common.remove')}
                                 icon={Expensicons.Trashcan}
                                 iconFill={themeColors.danger}
-                                onPress={() => this.toggleDeleteModal(true)}
+                                onPress={this.deleteContactMethod}
                             />
                         </OfflineWithFeedback>
                     )}
