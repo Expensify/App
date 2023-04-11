@@ -85,7 +85,7 @@ function init() {
             PushNotification.setPushNotificationOptInStatus(true);
         }
 
-        pushNotificationEventCallback(EventType.PushReceived, notification);
+        pushNotificationEventCallback(EventType.PushReceived, notification.pushPayload);
     });
 
     // Note: the NotificationResponse event has a nested PushReceived event,
