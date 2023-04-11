@@ -1,6 +1,6 @@
 import '../wdyr';
 import React from 'react';
-import {LogBox} from 'react-native';
+import {LogBox, Platform} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import Onyx from 'react-native-onyx';
@@ -39,12 +39,12 @@ const App = () => (
                 OnyxProvider,
                 SafeAreaProvider,
                 PortalProvider,
-                GoogleProvider,
                 SafeArea,
                 LocaleContextProvider,
                 HTMLEngineProvider,
                 WindowDimensionsProvider,
                 KeyboardStateProvider,
+                ...(Platform.OS === 'web' ? [GoogleProvider] : []),
             ]}
         >
             <CustomStatusBar />

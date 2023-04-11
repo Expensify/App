@@ -23,7 +23,7 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
 import CONST from '../../CONST';
-import GoogleSignInButton from '../../components/GoogleSignInButton/index.website';
+import GoogleSignInButton from '../../components/GoogleSignInButton';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
