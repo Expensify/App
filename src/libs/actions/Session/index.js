@@ -17,7 +17,7 @@ import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
 import * as Report from '../Report';
 import DateUtils from '../../DateUtils';
-import signInWithGoogle from '../signInWithGoogle/index.native';
+import signInWithGoogle from '../signInWithGoogle';
 
 let credentials = {};
 Onyx.connect({
@@ -241,13 +241,7 @@ function beginSignIn(login) {
     API.read('BeginSignIn', {email: login}, {optimisticData, successData, failureData});
 }
 
-/**
- * Shows Apple sign-in process, and if an auth token is successfully obtained,
- * passes the token on to the Expensify API to sign in with
- *
- * @param {String} login
- */
-function beginGoogleSignIn() {
+function googleApiCallback(authToken) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -288,14 +282,19 @@ function beginGoogleSignIn() {
             },
         },
     ];
+    console.log(authToken);
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    const apiCallback = (authToken) => {
-        console.log(authToken);
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects('SignInGoogle', {authToken}, {optimisticData, successData, failureData});
-    };
+    API.makeRequestWithSideEffects('SignInGoogle', {authToken}, {optimisticData, successData, failureData});
+}
 
-    signInWithGoogle(apiCallback);
+/**
+ * Shows Google sign-in process, and if an auth token is successfully obtained,
+ * passes the token on to the Expensify API to sign in with
+ *
+ * @param {String} login
+ */
+function beginGoogleSignIn() {
+    signInWithGoogle(googleApiCallback);
 }
 
 /**
@@ -703,6 +702,7 @@ function authenticatePusher(socketID, channelName, callback) {
 export {
     beginSignIn,
     beginGoogleSignIn,
+    googleApiCallback,
     updatePasswordAndSignin,
     signIn,
     signInWithValidateCode,

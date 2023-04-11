@@ -23,7 +23,7 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
 import CONST from '../../CONST';
-import Button from '../../components/Button';
+import GoogleSignInButton from '../../components/GoogleSignInButton/index.website';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -206,7 +206,7 @@ class LoginForm extends React.Component {
                                 isAlertVisible={!_.isEmpty(serverErrorText)}
                                 containerStyles={[styles.mh0]}
                             />
-                            <Button style={{width: 192, height: 48}} onPress={Session.beginGoogleSignIn} disabled={this.state.isSigninInProgress} text="Sign In With Google" />
+                            <GoogleSignInButton apiCallback={Session.googleApiCallback} />
                         </View>
                     )
                 }
