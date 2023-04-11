@@ -228,6 +228,22 @@ function getLastClosedReportAction(reportActions) {
     return lodashFindLast(sortedReportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
 }
 
+/**
+ * @param {Array} onyxData
+ * @returns {Object} The latest report action in the `onyxData` or `null` if one couldn't be found
+ */
+function getLatestReportActionFromOnyxData(onyxData) {
+    const reportActionUpdate = _.find(onyxData, onyxUpdate => onyxUpdate.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
+
+    if (!reportActionUpdate) {
+        return null;
+    }
+
+    const reportActions = _.values(reportActionUpdate.value);
+    const sortedReportActions = getSortedReportActions(reportActions);
+    return _.last(sortedReportActions);
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -237,4 +253,5 @@ export {
     isConsecutiveActionMadeByPreviousActor,
     getSortedReportActionsForDisplay,
     getLastClosedReportAction,
+    getLatestReportActionFromOnyxData,
 };

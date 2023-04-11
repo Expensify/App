@@ -134,7 +134,7 @@ class PronounsPage extends Component {
                             textInputLabel={this.props.translate('pronounsPage.pronouns')}
                             placeholderText={this.props.translate('pronounsPage.placeholderText')}
                             headerMessage={headerMessage}
-                            sections={[{data: filteredPronounsList}]}
+                            sections={[{data: filteredPronounsList, indexOffset: 0}]}
                             value={this.state.searchValue}
                             onSelectRow={this.updatePronouns}
                             onChangeText={this.onChangeText}
