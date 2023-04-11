@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
@@ -16,7 +17,6 @@ import Performance from '../../libs/Performance';
 import * as App from '../../libs/actions/App';
 import Permissions from '../../libs/Permissions';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import * as Localize from '../../libs/Localize';
 
 const propTypes = {
@@ -125,7 +125,7 @@ class SignInPage extends Component {
         }
 
         return (
-            <ScreenWrapper style={[styles.signInPage]}>
+            <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout
                     welcomeHeader={welcomeHeader}
                     welcomeText={welcomeText}
@@ -142,7 +142,7 @@ class SignInPage extends Component {
                     )}
                     {showResendValidationForm && <ResendValidationForm />}
                 </SignInPageLayout>
-            </ScreenWrapper>
+            </SafeAreaView>
         );
     }
 }

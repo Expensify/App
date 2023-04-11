@@ -80,9 +80,14 @@ const SignInPageContent = props => (
                     {props.children}
                 </SignInPageForm>
                 {props.isSmallScreenWidth ? (
-                    <View style={[styles.mt8]}>
-                        <SignInHeroImage />
-                    </View>
+                    <>
+                        <View style={[styles.mb8, styles.signInPageWelcomeTextContainer, styles.alignSelfCenter]}>
+                            <OfflineIndicator style={[styles.m0, styles.pl0, styles.alignItemsStart]} />
+                        </View>
+                        <View style={[styles.mt8]}>
+                            <SignInHeroImage />
+                        </View>
+                    </>
                 ) : undefined}
             </View>
         </KeyboardAvoidingView>
