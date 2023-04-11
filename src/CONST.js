@@ -2201,7 +2201,7 @@ const CONST = {
         'NewExpensify.dmg',
     ],
 
-    PAYPAL_SUPPORTED_CURRENCIES: ['AUD', 'BRL', 'CAD', 'CNY', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF', 'ILS', 'JPY', 'MYR', 'MXN', 'TWD', 'NZD', 'NOK', 'PHP', 'PLN', 'GBP', 'RUB', 'SGD', 'SEK',
+    PAYPAL_SUPPORTED_CURRENCIES: ['AUD', 'BRL', 'CAD', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF', 'ILS', 'JPY', 'MYR', 'MXN', 'TWD', 'NZD', 'NOK', 'PHP', 'PLN', 'GBP', 'RUB', 'SGD', 'SEK',
         'CHF', 'THB', 'USD'],
 
 };
