@@ -15,6 +15,7 @@ import * as RoomNameInputUtils from '../../../libs/RoomNameInputUtils';
 import withReportOrNotFound from '../../home/report/withReportOrNotFound';
 import reportPropTypes from '../../reportPropTypes';
 import ROUTES from '../../../ROUTES';
+import * as Report from '../../../libs/actions/Report';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -37,7 +38,8 @@ class RoomNamePage extends Component {
      * @param {String} values.roomName
      */
     updateRoomName(values) {
-        RoomNameInputUtils.modifyRoomName(values.roomName);
+        Report.updatePolicyRoomName(this.props.report, RoomNameInputUtils.modifyRoomName(values.roomName));
+        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(this.props.report.reportID));
     }
 
     /**
@@ -77,7 +79,7 @@ class RoomNamePage extends Component {
                             name="name"
                             prefixCharacter={CONST.POLICY.ROOM_PREFIX}
                             label={this.props.translate('newRoomPage.roomName')}
-                            defaultValue={this.props.report.reportName.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
+                            defaultValue={this.props.report.reportName.substring(1)} // Since the room name always starts with a prefix, we omit the first character.
                             maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
                         />
                     </View>
