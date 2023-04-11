@@ -98,6 +98,7 @@ export default {
             characterLimit: ({limit}) => `Exceeds the maximum length of ${limit} characters`,
             dateInvalid: 'Please enter a valid date',
             invalidCharacter: 'Invalid character',
+            invalidEmail: 'Invalid email'
         },
         comma: 'comma',
         semicolon: 'semicolon',
