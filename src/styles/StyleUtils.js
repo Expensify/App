@@ -287,7 +287,7 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
- * Returns a style with the specified backgroundColor
+ * Returns the width style for the wordmark logo on the sign in page
  *
  * @param {String} environment
  * @param {Boolean} isSmallScreenWidth
@@ -303,7 +303,7 @@ function getSignInWordmarkWidthStyle(environment, isSmallScreenWidth) {
     if (environment === CONST.ENVIRONMENT.PRODUCTION) {
         return isSmallScreenWidth ? {width: variables.signInLogoWidth} : {width: variables.signInLogoWidthLargeScreen};
     }
-    return {};
+    return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
 }
 
 /**
