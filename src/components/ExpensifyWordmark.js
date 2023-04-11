@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import ProductionLogo from '../../assets/images/expensify-wordmark.svg';
 import DevLogo from '../../assets/images/expensify-logo--dev.svg';
 import StagingLogo from '../../assets/images/expensify-logo--staging.svg';
+import AdHocLogo from '../../expensify-logo--adhoc.svg';
 import CONST from '../CONST';
 import withEnvironment, {environmentPropTypes} from './withEnvironment';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
@@ -24,7 +25,7 @@ const logoComponents = {
 
 const ExpensifyWordmark = (props) => {
     // PascalCase is required for React components, so capitalize the const here
-    const LogoComponent = logoComponents[props.environment];
+    const LogoComponent = logoComponents[props.environment] || AdHocLogo;
     return (
         <>
             <View style={[
