@@ -85,8 +85,14 @@ project.ext.react = [
 ]
 
 project.ext.envConfigFiles = [
-    debug: ".env",
-    release: ".env.production",
+    productiondebug: ".env.production",
+    productionrelease: ".env.production",
+    stagingrelease: ".env.staging",
+    stagingdebug: ".env.staging",
+    adhocrelease: ".env.adhoc",
+    adhocdebug: ".env.adhoc",
+    developmentrelease: ".env",
+    developmentdebug: ".env"
 ]
 
 apply from: "../../node_modules/react-native/react.gradle"
@@ -219,6 +225,22 @@ android {
         }
     }
 
+    flavorDimensions "default"
+    productFlavors {
+        production {
+            applicationId "com.expensify.chat"
+        }
+        staging {
+            applicationId "com.expensify.chat"
+        }
+        adhoc {
+            applicationId "com.expensify.chat.internal"
+        }
+        development {
+            applicationId "com.expensify.chat.dev"
+        }
+    }
+
     splits {
         abi {
             reset()
@@ -254,11 +276,6 @@ android {
         }
         // We need a custom build type, so we can allow http clear text traffic in a release build:
         e2eRelease {
-            initWith release
-            matchingFallbacks = ['release']
-            signingConfig signingConfigs.debug
-        }
-        internalRelease {
             initWith release
             matchingFallbacks = ['release']
             signingConfig signingConfigs.debug
@@ -365,10 +382,7 @@ task copyDownloadableDepsToLibs(type: Copy) {
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
-def googleServicesFile = rootProject.file('app/google-services.json')
-if (googleServicesFile.exists()) {
-    apply plugin: 'com.google.gms.google-services'  // Google Play services Gradle plugin
-}
+apply plugin: 'com.google.gms.google-services'  // Google Play services Gradle plugin
 apply plugin: 'com.google.firebase.crashlytics'
 
 def isNewArchitectureEnabled() {
