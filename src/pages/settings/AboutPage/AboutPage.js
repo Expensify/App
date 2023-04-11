@@ -93,7 +93,7 @@ const AboutPage = (props) => {
                                         ]}
                                     >
                                         v
-                                        {pkg.version}
+                                        {`${pkg.version}-PR.${CONST.PULL_REQUEST_NUMBER}`}
                                     </Text>
                                     <Text style={[styles.baseFontStyle, styles.mv5]}>
                                         {props.translate('initialSettingsPage.aboutPage.description')}
