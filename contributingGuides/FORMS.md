@@ -106,7 +106,9 @@ Once a user has “touched” an input, i.e. blurred the input, we will also sta
 
 All form fields will additionally be validated when the form is submitted. Although we are validating on blur this additional step is necessary to cover edge cases where forms are auto-filled or when a form is submitted by pressing enter (i.e. there will be only a ‘submit’ event and no ‘blur’ event to hook into).
 
-The Form component takes care of validation internally and the only requirement is that we pass a validate callback prop. The validate callback takes in the input values as argument and should return an object with shape `{[inputID]: errorMessage}`. Here's an example for a form that has two inputs, `routingNumber` and `accountNumber`:
+The Form component takes care of validation internally and the only requirement is that we pass a validate callback prop. The validate callback takes in the input values as argument and should return an object with shape `{[inputID]: errorMessage}`. 
+
+Here's an example for a form that has two inputs, `routingNumber` and `accountNumber`:
 
 ```js
 function validate(values) {
@@ -119,6 +121,28 @@ function validate(values) {
     }
     return errors;
 }
+```
+
+When more than one method is used to validate the value, the `addErrorMessage` function from `ErrorUtils` should be used. Here's an example for a form with a field with multiple validators for `firstName` input:
+
+```js
+function validate(values) {
+        let errors = {};
+
+        if (!ValidationUtils.isValidDisplayName(values.firstName)) {
+            errors = ErrorUtils.addErrorMessage(errors, 'firstName', props.translate('personalDetails.error.hasInvalidCharacter'));
+        }
+
+        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
+            errors = ErrorUtils.addErrorMessage(errors, 'firstName', props.translate('personalDetails.error.containsReservedWord'));
+        }
+
+        if (!ValidationUtils.isValidDisplayName(values.lastName)) {
+            errors.lastName = props.translate('personalDetails.error.hasInvalidCharacter');
+        }
+
+        return errors;
+    }
 ```
 
 For a working example, check [Form story](https://github.com/Expensify/App/blob/aa1f0f34eeba5d761657168255a1ae9aebdbd95e/src/stories/Form.stories.js#L63-L72)

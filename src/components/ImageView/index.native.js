@@ -21,11 +21,15 @@ const propTypes = {
     /** URL to full-sized image */
     url: PropTypes.string.isRequired,
 
+    /** Function for handle on press */
+    onPress: PropTypes.func,
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     isAuthTokenRequired: false,
+    onPress: () => {},
 };
 
 class ImageView extends PureComponent {
@@ -37,7 +41,6 @@ class ImageView extends PureComponent {
             imageWidth: 0,
             imageHeight: 0,
             interactionPromise: undefined,
-            containerHeight: undefined,
         };
 
         // Use the default double click interval from the ImageZoom library
@@ -53,6 +56,19 @@ class ImageView extends PureComponent {
         });
 
         this.configureImageZoom = this.configureImageZoom.bind(this);
+        this.imageLoadingStart = this.imageLoadingStart.bind(this);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (this.props.url === prevProps.url) {
+            return;
+        }
+
+        this.imageLoadingStart();
+
+        if (this.interactionPromise) {
+            this.state.interactionPromise.cancel();
+        }
     }
 
     componentWillUnmount() {
@@ -91,7 +107,7 @@ class ImageView extends PureComponent {
             let imageWidth = nativeEvent.width;
             let imageHeight = nativeEvent.height;
             const containerWidth = Math.round(this.props.windowWidth);
-            const containerHeight = Math.round(this.state.containerHeight);
+            const containerHeight = Math.round(this.state.containerHeight ? this.state.containerHeight : this.props.windowHeight);
 
             const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
 
@@ -103,10 +119,37 @@ class ImageView extends PureComponent {
 
             // Resize the image to max dimensions possible on the Native platforms to prevent crashes on Android. To keep the same behavior, apply to IOS as well.
             const maxDimensionsScale = 11;
-            imageHeight = Math.min(imageHeight, (this.props.windowHeight * maxDimensionsScale));
-            imageWidth = Math.min(imageWidth, (this.props.windowWidth * maxDimensionsScale));
+            imageWidth = Math.min(imageWidth, (containerWidth * maxDimensionsScale));
+            imageHeight = Math.min(imageHeight, (containerHeight * maxDimensionsScale));
             this.setState({imageHeight, imageWidth, isLoading: false});
         });
+    }
+
+    /**
+     * When the url changes and the image must load again,
+     * this resets the zoom to ensure the next image loads with the correct dimensions.
+     */
+    resetImageZoom() {
+        if (this.imageZoomScale !== 1) {
+            this.imageZoomScale = 1;
+        }
+
+        if (this.zoom) {
+            this.zoom.centerOn({
+                x: 0,
+                y: 0,
+                scale: 1,
+                duration: 0,
+            });
+        }
+    }
+
+    imageLoadingStart() {
+        if (this.state.isLoading) {
+            return;
+        }
+        this.resetImageZoom();
+        this.setState({imageHeight: 0, imageWidth: 0, isLoading: true});
     }
 
     render() {
@@ -135,6 +178,7 @@ class ImageView extends PureComponent {
                 {this.state.containerHeight && (
                     <ImageZoom
                         ref={el => this.zoom = el}
+                        onClick={() => this.props.onPress()}
                         cropWidth={this.props.windowWidth}
                         cropHeight={windowHeight}
                         imageWidth={this.state.imageWidth}
@@ -180,6 +224,7 @@ class ImageView extends PureComponent {
                             source={{uri: this.props.url}}
                             isAuthTokenRequired={this.props.isAuthTokenRequired}
                             resizeMode={Image.resizeMode.contain}
+                            onLoadStart={this.imageLoadingStart}
                             onLoad={this.configureImageZoom}
                         />
                         {/**

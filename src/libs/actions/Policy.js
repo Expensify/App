@@ -14,6 +14,7 @@ import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import * as ReportUtils from '../ReportUtils';
 import Log from '../Log';
+import * as Report from './Report';
 
 const allPolicies = {};
 Onyx.connect({
@@ -151,6 +152,16 @@ function isAdminOfFreePolicy(policies) {
 }
 
 /**
+ * Is the user the owner of the given policy?
+ *
+ * @param {Object} policy
+ * @returns {Boolean}
+ */
+function isPolicyOwner(policy) {
+    return policy.owner === sessionEmail;
+}
+
+/**
 * Check if the user has any active free policies (aka workspaces)
 *
 * @param {Array} policies
@@ -260,7 +271,9 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID) {
 
     API.write('AddMembersToWorkspace', {
         employees: JSON.stringify(_.map(logins, login => ({email: login}))),
-        welcomeNote,
+
+        // Escape HTML special chars to enable them to appear in the invite email
+        welcomeNote: _.escape(welcomeNote),
         policyID,
     }, {optimisticData, successData, failureData});
 }
@@ -1000,6 +1013,38 @@ function openWorkspaceInvitePage(policyID, clientMemberEmails) {
     });
 }
 
+/**
+ *
+ * @param {String} reportID
+ */
+function leaveRoom(reportID) {
+    API.write('LeaveRoom', {
+        reportID,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS.CLOSED,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS.OPEN,
+                },
+            },
+        ],
+    });
+    Report.navigateToConciergeChat();
+}
+
 export {
     removeMembers,
     addMembersToWorkspace,
@@ -1027,4 +1072,6 @@ export {
     openWorkspaceMembersPage,
     openWorkspaceInvitePage,
     removeWorkspace,
+    isPolicyOwner,
+    leaveRoom,
 };

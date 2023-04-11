@@ -1,5 +1,6 @@
 module.exports = {
-    extends: ['expensify', 'plugin:storybook/recommended'],
+    extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended'],
+    plugins: ['react-hooks'],
     parser: 'babel-eslint',
     ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js', 'desktop/dist/*.js', 'dist/*.js', 'node_modules/.bin/**', '.git/**'],
     env: {

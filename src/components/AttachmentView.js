@@ -34,6 +34,9 @@ const propTypes = {
     /** Flag to show the loading indicator */
     shouldShowLoadingSpinnerIcon: PropTypes.bool,
 
+    /** Function for handle on press */
+    onPress: PropTypes.func,
+
     /** Notify parent that the UI should be modified to accommodate keyboard */
     onToggleKeyboard: PropTypes.func,
 
@@ -47,6 +50,7 @@ const defaultProps = {
     },
     shouldShowDownloadIcon: false,
     shouldShowLoadingSpinnerIcon: false,
+    onPress: () => {},
     onToggleKeyboard: () => {},
 };
 
@@ -67,6 +71,7 @@ const AttachmentView = (props) => {
             : props.source;
         return (
             <PDFView
+                onPress={props.onPress}
                 sourceURL={sourceURL}
                 style={styles.imageModalPDF}
                 onToggleKeyboard={props.onToggleKeyboard}
@@ -78,7 +83,7 @@ const AttachmentView = (props) => {
     // both PDFs and images will appear as images when pasted into the the text field
     if (Str.isImage(props.source) || (props.file && Str.isImage(props.file.name))) {
         return (
-            <ImageView url={props.source} isAuthTokenRequired={props.isAuthTokenRequired} />
+            <ImageView onPress={props.onPress} url={props.source} isAuthTokenRequired={props.isAuthTokenRequired} />
         );
     }
 

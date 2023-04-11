@@ -207,7 +207,6 @@ function transferWalletBalance(paymentMethod) {
                 key: ONYXKEYS.WALLET_TRANSFER,
                 value: {
                     loading: true,
-                    error: null,
                     errors: null,
                 },
             },

@@ -30,8 +30,14 @@ const propTypes = {
     /** Callback fired when text changes */
     onChangeText: PropTypes.func.isRequired,
 
+    /** Limits the maximum number of characters that can be entered in input field */
+    maxLength: PropTypes.number,
+
     /** Label to display for the text input */
     textInputLabel: PropTypes.string,
+
+    /** Optional keyboard type for the input */
+    keyboardType: PropTypes.string,
 
     /** Optional placeholder text for the selector */
     placeholderText: PropTypes.string,
@@ -98,6 +104,7 @@ const defaultProps = {
     onSelectRow: () => {},
     textInputLabel: '',
     placeholderText: '',
+    keyboardType: 'default',
     selectedOptions: [],
     headerMessage: '',
     canSelectMultipleOptions: false,
@@ -117,6 +124,7 @@ const defaultProps = {
     isDisabled: false,
     shouldHaveOptionSeparator: false,
     initiallyFocusedOptionKey: undefined,
+    maxLength: undefined,
 };
 
 export {propTypes, defaultProps};

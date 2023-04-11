@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="dialog_radius">16dp</dimen>
+    <dimen name="spinner_font_size">16dp</dimen>
+</resources>

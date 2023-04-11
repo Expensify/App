@@ -113,8 +113,5 @@ export default compose(
             // Let's get a new onfido token each time the user hits this flow (as it should only be once)
             initWithStoredValues: false,
         },
-        userWallet: {
-            key: ONYXKEYS.USER_WALLET,
-        },
     }),
 )(OnfidoPrivacy);

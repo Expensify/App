@@ -108,28 +108,25 @@ const AddressForm = props => (
                 renamedInputKeys={props.inputKeys}
             />
         </View>
-        <View style={[styles.flexRow, styles.mt4]}>
-            <View style={[styles.flex2, styles.mr2]}>
-                <TextInput
-                    inputID={props.inputKeys.city}
-                    shouldSaveDraft={props.shouldSaveDraft}
-                    label={props.translate('common.city')}
-                    value={props.values.city}
-                    defaultValue={props.defaultValues.city}
-                    onChangeText={value => props.onFieldChange({city: value})}
-                    errorText={props.errors.city ? props.translate('bankAccount.error.addressCity') : ''}
-                />
-            </View>
-            <View style={[styles.flex1]}>
-                <StatePicker
-                    inputID={props.inputKeys.state}
-                    shouldSaveDraft={props.shouldSaveDraft}
-                    value={props.values.state}
-                    defaultValue={props.defaultValues.state}
-                    onInputChange={value => props.onFieldChange({state: value})}
-                    errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
-                />
-            </View>
+        <TextInput
+            inputID={props.inputKeys.city}
+            shouldSaveDraft={props.shouldSaveDraft}
+            label={props.translate('common.city')}
+            value={props.values.city}
+            defaultValue={props.defaultValues.city}
+            onChangeText={value => props.onFieldChange({city: value})}
+            errorText={props.errors.city ? props.translate('bankAccount.error.addressCity') : ''}
+            containerStyles={[styles.mt4]}
+        />
+        <View style={styles.mt4}>
+            <StatePicker
+                inputID={props.inputKeys.state}
+                shouldSaveDraft={props.shouldSaveDraft}
+                value={props.values.state}
+                defaultValue={props.defaultValues.state}
+                onInputChange={value => props.onFieldChange({state: value})}
+                errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
+            />
         </View>
         <TextInput
             inputID={props.inputKeys.zipCode}

@@ -44,6 +44,10 @@ const customHTMLElementModels = {
         tagName: 'email-comment',
         mixedUAStyles: {whiteSpace: 'normal'},
     }),
+    strong: defaultHTMLElementModels.span.extend({
+        tagName: 'strong',
+        mixedUAStyles: {whiteSpace: 'pre'},
+    }),
 };
 
 const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};

@@ -1,16 +1,19 @@
-import {useCallback, useEffect} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {usePlaidLink} from 'react-plaid-link';
 import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
 import Log from '../../libs/Log';
 
 const PlaidLink = (props) => {
-    const onSuccess = useCallback((publicToken, metadata) => {
-        props.onSuccess({publicToken, metadata});
-    }, []);
+    const [isPlaidLoaded, setIsPlaidLoaded] = useState(false);
+    const onSuccess = props.onSuccess;
+    const onError = props.onError;
+    const successCallback = useCallback((publicToken, metadata) => {
+        onSuccess({publicToken, metadata});
+    }, [onSuccess]);
 
     const {open, ready, error} = usePlaidLink({
         token: props.token,
-        onSuccess,
+        onSuccess: successCallback,
         onExit: (exitError, metadata) => {
             Log.info('[PlaidLink] Exit: ', false, {exitError, metadata});
             props.onExit();
@@ -18,6 +21,7 @@ const PlaidLink = (props) => {
         onEvent: (event, metadata) => {
             Log.info('[PlaidLink] Event: ', false, {event, metadata});
         },
+        onLoad: () => setIsPlaidLoaded(true),
 
         // The redirect URI with an OAuth state ID. Needed to re-initialize the PlaidLink after directing the
         // user to their respective bank platform
@@ -26,7 +30,7 @@ const PlaidLink = (props) => {
 
     useEffect(() => {
         if (error) {
-            props.onError(error);
+            onError(error);
             return;
         }
 
@@ -34,8 +38,12 @@ const PlaidLink = (props) => {
             return;
         }
 
+        if (!isPlaidLoaded) {
+            return;
+        }
+
         open();
-    }, [ready, error]);
+    }, [ready, error, isPlaidLoaded, open, onError]);
 
     return null;
 };

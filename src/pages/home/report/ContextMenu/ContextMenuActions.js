@@ -1,3 +1,4 @@
+import React from 'react';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
@@ -16,6 +17,8 @@ import addEncryptedAuthTokenToURL from '../../../../libs/addEncryptedAuthTokenTo
 import * as ContextMenuUtils from './ContextMenuUtils';
 import * as Environment from '../../../../libs/Environment/Environment';
 import Permissions from '../../../../libs/Permissions';
+import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReactions';
+import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickEmojiReactions';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -35,6 +38,50 @@ const CONTEXT_MENU_TYPES = {
 
 // A list of all the context actions in this menu.
 export default [
+    {
+        shouldKeepOpen: true,
+        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && _.has(reportAction, 'message') && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU,
+        renderContent: (closePopover, {
+            reportID, reportAction, close: closeManually, openContextMenu,
+        }) => {
+            const isMini = !closePopover;
+
+            const closeContextMenu = (onHideCallback) => {
+                if (isMini) {
+                    closeManually();
+                    if (onHideCallback) {
+                        onHideCallback();
+                    }
+                } else {
+                    hideContextMenu(false, onHideCallback);
+                }
+            };
+
+            const onEmojiSelected = (emoji) => {
+                Report.toggleEmojiReaction(reportID, reportAction, emoji);
+                closeContextMenu();
+            };
+
+            if (isMini) {
+                return (
+                    <MiniQuickEmojiReactions
+                        key="MiniQuickEmojiReactions"
+                        onEmojiSelected={onEmojiSelected}
+                        onPressOpenPicker={openContextMenu}
+                        onEmojiPickerClosed={closeContextMenu}
+                    />
+                );
+            }
+
+            return (
+                <QuickEmojiReactions
+                    key="BaseQuickEmojiReactions"
+                    closeContextMenu={closeContextMenu}
+                    onEmojiSelected={onEmojiSelected}
+                />
+            );
+        },
+    },
     {
         textTranslateKey: 'common.download',
         icon: Expensicons.Download,

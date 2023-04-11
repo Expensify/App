@@ -1,14 +1,8 @@
 import _ from 'underscore';
 import React, {forwardRef} from 'react';
 import PropTypes from 'prop-types';
-import {CONST} from 'expensify-common/lib/CONST';
 import Picker from './Picker';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-
-const STATES = _.map(CONST.STATES, ({stateISO}) => ({
-    value: stateISO,
-    label: stateISO,
-}));
 
 const propTypes = {
     /** The label for the field */
@@ -44,20 +38,27 @@ const defaultProps = {
     onBlur: () => {},
 };
 
-const StatePicker = forwardRef((props, ref) => (
-    <Picker
-        ref={ref}
-        inputID={props.inputID}
-        placeholder={{value: '', label: '-'}}
-        items={STATES}
-        onInputChange={props.onInputChange}
-        value={props.value}
-        label={props.label || props.translate('common.state')}
-        errorText={props.errorText}
-        onBlur={props.onBlur}
-        shouldSaveDraft={props.shouldSaveDraft}
-    />
-));
+const StatePicker = forwardRef((props, ref) => {
+    const STATES = _.map(props.translate('allStates'), ({stateISO, stateName}) => ({
+        value: stateISO,
+        label: stateName,
+    }));
+
+    return (
+        <Picker
+            ref={ref}
+            inputID={props.inputID}
+            placeholder={{value: '', label: '-'}}
+            items={STATES}
+            onInputChange={props.onInputChange}
+            value={props.value}
+            label={props.label || props.translate('common.state')}
+            errorText={props.errorText}
+            onBlur={props.onBlur}
+            shouldSaveDraft={props.shouldSaveDraft}
+        />
+    );
+});
 
 StatePicker.propTypes = propTypes;
 StatePicker.defaultProps = defaultProps;

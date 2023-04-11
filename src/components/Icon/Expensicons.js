@@ -13,6 +13,7 @@ import Bolt from '../../../assets/images/bolt.svg';
 import Briefcase from '../../../assets/images/briefcase.svg';
 import Bug from '../../../assets/images/bug.svg';
 import Building from '../../../assets/images/building.svg';
+import Calendar from '../../../assets/images/calendar.svg';
 import Camera from '../../../assets/images/camera.svg';
 import Cash from '../../../assets/images/cash.svg';
 import ChatBubble from '../../../assets/images/chatbubble.svg';
@@ -46,7 +47,8 @@ import Globe from '../../../assets/images/globe.svg';
 import Hashtag from '../../../assets/images/hashtag.svg';
 import History from '../../../assets/images/history.svg';
 import Hourglass from '../../../assets/images/hourglass.svg';
-import ImageCropMask from '../../../assets/images/image-crop-mask.svg';
+import ImageCropCircleMask from '../../../assets/images/image-crop-circle-mask.svg';
+import ImageCropSquareMask from '../../../assets/images/image-crop-square-mask.svg';
 import Info from '../../../assets/images/info.svg';
 import Invoice from '../../../assets/images/invoice.svg';
 import Key from '../../../assets/images/key.svg';
@@ -106,9 +108,11 @@ import Facebook from '../../../assets/images/social-facebook.svg';
 import Podcast from '../../../assets/images/social-podcast.svg';
 import Linkedin from '../../../assets/images/social-linkedin.svg';
 import Instagram from '../../../assets/images/social-instagram.svg';
+import AddReaction from '../../../assets/images/add-reaction.svg';
 
 export {
     ActiveRoomAvatar,
+    AddReaction,
     AdminRoomAvatar,
     Android,
     AnnounceRoomAvatar,
@@ -123,6 +127,7 @@ export {
     Briefcase,
     Bug,
     Building,
+    Calendar,
     Camera,
     Cash,
     ChatBubble,
@@ -161,7 +166,8 @@ export {
     Hashtag,
     History,
     Hourglass,
-    ImageCropMask,
+    ImageCropCircleMask,
+    ImageCropSquareMask,
     Info,
     Invoice,
     Key,

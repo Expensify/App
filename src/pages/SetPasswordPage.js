@@ -117,6 +117,7 @@ class SetPasswordPage extends Component {
                                 message={error}
                                 isAlertVisible={!_.isEmpty(error)}
                                 isDisabled={!this.state.isFormValid}
+                                disablePressOnEnter
                             />
                         </View>
                     </FormSubmit>

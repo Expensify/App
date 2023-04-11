@@ -15,6 +15,7 @@ import styles from '../styles/styles';
 import DisplayNames from '../components/DisplayNames';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/ReportUtils';
+import * as Policy from '../libs/actions/Policy';
 import participantPropTypes from '../components/participantPropTypes';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
@@ -28,11 +29,6 @@ import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundVi
 const propTypes = {
     ...withLocalizePropTypes,
 
-    /** Whether or not to show the Compose Input */
-    session: PropTypes.shape({
-        accountID: PropTypes.number,
-    }).isRequired,
-
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
 
@@ -40,7 +36,7 @@ const propTypes = {
     policies: PropTypes.shape({
         /** Name of the policy */
         name: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** Route params */
     route: PropTypes.shape({
@@ -51,7 +47,12 @@ const propTypes = {
     }).isRequired,
 
     /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
+    personalDetails: PropTypes.objectOf(participantPropTypes),
+};
+
+const defaultProps = {
+    policies: {},
+    personalDetails: {},
 };
 
 class ReportDetailsPage extends Component {
@@ -86,14 +87,19 @@ class ReportDetailsPage extends Component {
                 translationKey: 'common.invite',
                 icon: Expensicons.Plus,
                 action: () => { /* Placeholder for when inviting other users is built in */ },
-            },
-            {
+            });
+        }
+
+        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
+        if (ReportUtils.isUserCreatedPolicyRoom(this.props.report) || ReportUtils.canLeaveRoom(this.props.report, !_.isEmpty(policy))) {
+            menuItems.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: 'common.leaveRoom',
                 icon: Expensicons.Exit,
-                action: () => { /* Placeholder for when leaving rooms is built in */ },
+                action: () => Policy.leaveRoom(this.props.report.reportID),
             });
         }
+
         return menuItems;
     }
 
@@ -133,7 +139,7 @@ class ReportDetailsPage extends Component {
                                             displayNamesWithTooltips={displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}
-                                            textStyles={[styles.textHeadline, styles.mb2, styles.textAlignCenter]}
+                                            textStyles={[styles.textHeadline, styles.mb2, styles.textAlignCenter, styles.pre]}
                                             shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
                                         />
                                     </View>
@@ -143,6 +149,7 @@ class ReportDetailsPage extends Component {
                                             styles.optionAlternateText,
                                             styles.textLabelSupporting,
                                             styles.mb2,
+                                            styles.pre,
                                         ]}
                                         numberOfLines={1}
                                     >
@@ -178,7 +185,7 @@ class ReportDetailsPage extends Component {
 }
 
 ReportDetailsPage.propTypes = propTypes;
-
+ReportDetailsPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withReportOrNotFound,
@@ -188,9 +195,6 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     }),
 )(ReportDetailsPage);

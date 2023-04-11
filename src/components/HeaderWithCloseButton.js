@@ -163,7 +163,12 @@ class HeaderWithCloseButton extends Component {
                             <Tooltip text={this.props.translate('common.download')}>
 
                                 <Pressable
-                                    onPress={this.triggerButtonCompleteAndDownload}
+                                    onPress={(e) => {
+                                        // Blur the pressable in case this button triggers a Growl notification
+                                        // We do not want to overlap Growl with the Tooltip (#15271)
+                                        e.currentTarget.blur();
+                                        this.triggerButtonCompleteAndDownload();
+                                    }}
                                     style={[styles.touchableButtonImage]}
                                 >
                                     <Icon

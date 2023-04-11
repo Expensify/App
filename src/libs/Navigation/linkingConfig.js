@@ -124,6 +124,9 @@ export default {
                         path: ROUTES.SETTINGS_CONTACT_METHODS,
                         exact: true,
                     },
+                    Settings_ContactMethodDetails: {
+                        path: ROUTES.SETTINGS_CONTACT_METHOD_DETAILS,
+                    },
                     Settings_Add_Secondary_Login: {
                         path: ROUTES.SETTINGS_ADD_LOGIN,
                     },
@@ -257,14 +260,14 @@ export default {
                     EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
                 },
             },
-            RequestCall: {
-                screens: {
-                    RequestCall_Root: ROUTES.REQUEST_CALL,
-                },
-            },
             Wallet_Statement: {
                 screens: {
                     WalletStatement_Root: ROUTES.WALLET_STATEMENT_WITH_DATE,
+                },
+            },
+            Select_Year: {
+                screens: {
+                    YearPicker_Root: ROUTES.SELECT_YEAR,
                 },
             },
             [SCREENS.NOT_FOUND]: '*',

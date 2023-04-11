@@ -30,7 +30,7 @@ export default {
     // Credentials to authenticate the user
     CREDENTIALS: 'credentials',
 
-    // Contains loading data for the IOU feature (IOUModal, IOUDetail, & IOUPreview Components)
+    // Contains loading data for the IOU feature (MoneyRequestModal, IOUDetail, & IOUPreview Components)
     IOU: 'iou',
 
     // Keeps track if there is modal currently visible or not
@@ -105,6 +105,7 @@ export default {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
+        REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         POLICY: 'policy_',
@@ -161,9 +162,6 @@ export default {
     // Set when we are loading payment methods
     IS_LOADING_PAYMENT_METHODS: 'isLoadingPaymentMethods',
 
-    // The number of minutes a user has to wait for a call.
-    INBOX_CALL_USER_WAIT_TIME: 'inboxCallUserWaitTime',
-
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
@@ -182,7 +180,6 @@ export default {
     // List of Form ids
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
-        REQUEST_CALL_FORM: 'requestCallForm',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
         CLOSE_ACCOUNT_FORM: 'closeAccount',
@@ -200,4 +197,7 @@ export default {
 
     // Is app in beta version
     IS_BETA: 'isBeta',
+
+    // Whether the auth token is valid
+    IS_TOKEN_VALID: 'isTokenValid',
 };

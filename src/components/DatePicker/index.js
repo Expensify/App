@@ -19,12 +19,7 @@ class DatePicker extends React.Component {
         this.setDate = this.setDate.bind(this);
         this.showDatepicker = this.showDatepicker.bind(this);
 
-        /* We're using uncontrolled input otherwise it wont be possible to
-        * raise change events with a date value - each change will produce a date
-        * and make us reset the text input */
-        this.defaultValue = props.defaultValue
-            ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
-            : '';
+        this.defaultValue = props.defaultValue ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
     }
 
     componentDidMount() {

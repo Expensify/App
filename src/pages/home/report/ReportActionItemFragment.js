@@ -15,6 +15,9 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import compose from '../../../libs/compose';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import {withNetwork} from '../../../components/OnyxProvider';
+import CONST from '../../../CONST';
+import applyStrikethrough from '../../../components/HTMLEngineProvider/applyStrikethrough';
 
 const propTypes = {
     /** The message fragment needing to be displayed */
@@ -107,8 +110,10 @@ const ReportActionItemFragment = (props) => {
 
             // Only render HTML if we have html in the fragment
             if (!differByLineBreaksOnly) {
+                const isPendingDelete = props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && props.network.isOffline;
                 const editedTag = props.fragment.isEdited ? '<edited></edited>' : '';
-                const htmlContent = html + editedTag;
+                const htmlContent = applyStrikethrough(html + editedTag, isPendingDelete);
+
                 return (
                     <RenderHTML
                         html={props.source === 'email'
@@ -140,9 +145,9 @@ const ReportActionItemFragment = (props) => {
                 <Tooltip text={props.tooltipText}>
                     <Text
                         numberOfLines={props.isSingleLine ? 1 : undefined}
-                        style={[styles.chatItemMessageHeaderSender]}
+                        style={[styles.chatItemMessageHeaderSender, (props.isSingleLine ? styles.pre : styles.preWrap)]}
                     >
-                        {Str.htmlDecode(props.fragment.text)}
+                        {props.fragment.text}
                     </Text>
                 </Tooltip>
             );
@@ -172,4 +177,5 @@ ReportActionItemFragment.displayName = 'ReportActionItemFragment';
 export default compose(
     withWindowDimensions,
     withLocalize,
+    withNetwork(),
 )(memo(ReportActionItemFragment));

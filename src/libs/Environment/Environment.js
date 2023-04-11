@@ -10,6 +10,12 @@ const ENVIRONMENT_URLS = {
     [CONST.ENVIRONMENT.PRODUCTION]: CONST.NEW_EXPENSIFY_URL,
 };
 
+const OLDDOT_ENVIRONMENT_URLS = {
+    [CONST.ENVIRONMENT.DEV]: CONST.INTERNAL_DEV_EXPENSIFY_URL,
+    [CONST.ENVIRONMENT.STAGING]: CONST.STAGING_EXPENSIFY_URL,
+    [CONST.ENVIRONMENT.PRODUCTION]: CONST.EXPENSIFY_URL,
+};
+
 /**
  * Are we running the app in development?
  *
@@ -31,8 +37,19 @@ function getEnvironmentURL() {
     });
 }
 
+/**
+ * Get the corresponding oldDot URL based on the environment we are in
+ *
+ * @returns {Promise<string>}
+ */
+function getOldDotEnvironmentURL() {
+    return getEnvironment()
+        .then(environment => OLDDOT_ENVIRONMENT_URLS[environment]);
+}
+
 export {
     getEnvironment,
     isDevelopment,
     getEnvironmentURL,
+    getOldDotEnvironmentURL,
 };

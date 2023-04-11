@@ -4,6 +4,7 @@ import {
     View,
     TouchableOpacity,
     InteractionManager,
+    LayoutAnimation,
 } from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -20,6 +21,9 @@ import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
 import PopoverMenu from '../../../components/PopoverMenu';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withDrawerState from '../../../components/withDrawerState';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import willBlurTextInputOnTapOutside from '../../../libs/willBlurTextInputOnTapOutside';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -40,13 +44,13 @@ import OfflineIndicator from '../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
-import reportPropTypes from '../../reportPropTypes';
 import ReportDropUI from './ReportDropUI';
 import DragAndDrop from '../../../components/DragAndDrop';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import withDrawerState from '../../../components/withDrawerState';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import reportPropTypes from '../../reportPropTypes';
+import EmojiSuggestions from '../../../components/EmojiSuggestions';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
+import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
+import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 
 const propTypes = {
     /** Beta features list */
@@ -57,6 +61,9 @@ const propTypes = {
 
     /** The comment left by the user */
     comment: PropTypes.string,
+
+    /** Number of lines for the comment */
+    numberOfLines: PropTypes.number,
 
     /** The ID of the report actions will be created for */
     reportID: PropTypes.string.isRequired,
@@ -74,7 +81,7 @@ const propTypes = {
     report: reportPropTypes,
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Is the report view covered by the drawer */
     isDrawerOpen: PropTypes.bool.isRequired,
@@ -85,9 +92,6 @@ const propTypes = {
     /** Is composer screen focused */
     isFocused: PropTypes.bool.isRequired,
 
-    /** Is the composer full size */
-    isComposerFullSize: PropTypes.bool,
-
     /** Whether user interactions should be disabled */
     disabled: PropTypes.bool,
 
@@ -96,6 +100,15 @@ const propTypes = {
         // The date that the user will be unblocked
         expiresAt: PropTypes.string,
     }),
+
+    /** Stores user's preferred skin tone */
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+
+    /** User's frequently used emojis */
+    frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
+        code: PropTypes.string.isRequired,
+        keywords: PropTypes.arrayOf(PropTypes.string),
+    })),
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
@@ -106,18 +119,37 @@ const propTypes = {
 const defaultProps = {
     betas: [],
     comment: '',
+    numberOfLines: 1,
     modal: {},
     report: {},
-    reportActions: {},
+    reportActions: [],
     blockedFromConcierge: {},
     personalDetails: {},
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
+    frequentlyUsedEmojis: [],
     ...withCurrentUserPersonalDetailsDefaultProps,
+};
+
+/**
+  * Return the max available index for arrow manager.
+ * @param {Number} numRows
+ * @param {Boolean} isEmojiPickerLarge
+ * @returns {Number}
+ */
+const getMaxArrowIndex = (numRows, isEmojiPickerLarge) => {
+    // EmojiRowCount is number of emoji suggestions. For small screen we can fit 3 items and for large we show up to 5 items
+    const emojiRowCount = isEmojiPickerLarge
+        ? Math.max(numRows, CONST.EMOJI_SUGGESTER.MAX_AMOUNT_OF_ITEMS)
+        : Math.max(numRows, CONST.EMOJI_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
+
+    // -1 because we start at 0
+    return emojiRowCount - 1;
 };
 
 class ReportActionCompose extends React.Component {
     constructor(props) {
         super(props);
-
+        this.calculateEmojiSuggestion = _.debounce(this.calculateEmojiSuggestion, 10, false);
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.debouncedBroadcastUserIsTyping = _.debounce(this.debouncedBroadcastUserIsTyping.bind(this), 100, true);
@@ -128,11 +160,14 @@ class ReportActionCompose extends React.Component {
         this.focus = this.focus.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
+        this.isEmojiCode = this.isEmojiCode.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
-        this.getIOUOptions = this.getIOUOptions.bind(this);
+        this.getMoneyRequestOptions = this.getMoneyRequestOptions.bind(this);
         this.addAttachment = this.addAttachment.bind(this);
+        this.insertSelectedEmoji = this.insertSelectedEmoji.bind(this);
         this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
+        this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.comment = props.comment;
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
@@ -154,6 +189,12 @@ class ReportActionCompose extends React.Component {
 
             // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
             conciergePlaceholderRandomIndex: _.random(this.props.translate('reportActionCompose.conciergePlaceholderOptions').length - (this.props.isSmallScreenWidth ? 4 : 1)),
+            suggestedEmojis: [],
+            highlightedEmojiIndex: 0,
+            colonIndex: -1,
+            shouldShowSuggestionMenu: false,
+            isEmojiPickerLarge: false,
+            composerHeight: 0,
             hasExceededMaxCommentLength: false,
         };
     }
@@ -168,6 +209,16 @@ class ReportActionCompose extends React.Component {
 
             this.focus(false);
         });
+
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
+            if (!this.state.isFocused || this.comment.length === 0) {
+                return;
+            }
+
+            this.updateComment('', true);
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+
         this.setMaxLines();
         this.updateComment(this.comment);
     }
@@ -190,9 +241,13 @@ class ReportActionCompose extends React.Component {
             this.setMaxLines();
         }
 
+        // Value state does not have the same value as comment props when the comment gets changed from another tab.
+        // In this case, we should synchronize the value between tabs.
+        const shouldSyncComment = prevProps.comment !== this.props.comment && this.state.value !== this.props.comment;
+
         // As the report IDs change, make sure to update the composer comment as we need to make sure
         // we do not show incorrect data in there (ie. draft of message from other report).
-        if (this.props.report.reportID === prevProps.report.reportID) {
+        if (this.props.report.reportID === prevProps.report.reportID && !shouldSyncComment) {
             return;
         }
 
@@ -201,10 +256,15 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         ReportActionComposeFocusManager.clear();
+
+        if (this.unsubscribeEscapeKey) {
+            this.unsubscribeEscapeKey();
+        }
     }
 
     onSelectionChange(e) {
         this.setState({selection: e.nativeEvent.selection});
+        this.calculateEmojiSuggestion();
     }
 
     /**
@@ -272,25 +332,35 @@ class ReportActionCompose extends React.Component {
      * @param {Array} reportParticipants
      * @returns {Array<object>}
      */
-    getIOUOptions(reportParticipants) {
+    getMoneyRequestOptions(reportParticipants) {
         const options = {
-            [CONST.IOU.IOU_TYPE.SPLIT]: {
+            [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: {
                 icon: Expensicons.Receipt,
                 text: this.props.translate('iou.splitBill'),
                 onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
             },
-            [CONST.IOU.IOU_TYPE.REQUEST]: {
+            [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: {
                 icon: Expensicons.MoneyCircle,
                 text: this.props.translate('iou.requestMoney'),
                 onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
             },
-            [CONST.IOU.IOU_TYPE.SEND]: {
+            [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: {
                 icon: Expensicons.Send,
                 text: this.props.translate('iou.sendMoney'),
                 onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
             },
         };
-        return _.map(ReportUtils.getIOUOptions(this.props.report, reportParticipants, this.props.betas), option => options[option]);
+        return _.map(ReportUtils.getMoneyRequestOptions(this.props.report, reportParticipants, this.props.betas), option => options[option]);
+    }
+
+    /**
+     * Updates the composer when the comment length is exceeded
+     * Shows red borders and prevents the comment from being sent
+     *
+     * @param {Boolean} hasExceededMaxCommentLength
+     */
+    setExceededMaxCommentLength(hasExceededMaxCommentLength) {
+        this.setState({hasExceededMaxCommentLength});
     }
 
     /**
@@ -304,14 +374,86 @@ class ReportActionCompose extends React.Component {
         this.setState({maxLines});
     }
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    setShouldShowSuggestionMenuToFalse() {
+        if (this.state && this.state.shouldShowSuggestionMenu) {
+            this.setState({shouldShowSuggestionMenu: false});
+        }
+    }
+
     /**
-     * Updates the composer when the comment length is exceeded
-     * Shows red borders and prevents the comment from being sent
-     *
-     * @param {Boolean} hasExceededMaxCommentLength
+     * Clean data related to EmojiSuggestions
      */
-    setExceededMaxCommentLength(hasExceededMaxCommentLength) {
-        this.setState({hasExceededMaxCommentLength});
+    resetSuggestedEmojis() {
+        this.setState({
+            suggestedEmojis: [],
+            shouldShowSuggestionMenu: false,
+        });
+    }
+
+    /**
+     * Calculates and cares about the content of an Emoji Suggester
+     */
+    calculateEmojiSuggestion() {
+        const leftString = this.state.value.substring(0, this.state.selection.end);
+        const colonIndex = leftString.lastIndexOf(':');
+        const isCurrentlyShowingEmojiSuggestion = this.isEmojiCode(this.state.value, this.state.selection.end);
+
+        // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
+        const hasEnoughSpaceForLargeSuggestion = this.props.windowHeight / this.state.composerHeight >= 6.8;
+        const isEmojiPickerLarge = !this.props.isSmallScreenWidth || (this.props.isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
+
+        const nextState = {
+            suggestedEmojis: [],
+            highlightedEmojiIndex: 0,
+            colonIndex,
+            shouldShowSuggestionMenu: false,
+            isEmojiPickerLarge,
+        };
+        const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString);
+
+        if (newSuggestedEmojis.length && isCurrentlyShowingEmojiSuggestion) {
+            nextState.suggestedEmojis = newSuggestedEmojis;
+            nextState.shouldShowSuggestionMenu = !_.isEmpty(newSuggestedEmojis);
+        }
+
+        LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
+
+        this.setState(nextState);
+    }
+
+    /**
+     * Check if this piece of string looks like an emoji
+     * @param {String} str
+     * @param {Number} pos
+     * @returns {Boolean}
+     */
+    isEmojiCode(str, pos) {
+        const leftWords = str.slice(0, pos).split(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE);
+        const leftWord = _.last(leftWords);
+
+        return CONST.REGEX.HAS_COLON_ONLY_AT_THE_BEGINNING.test(leftWord) && leftWord.length > 2;
+    }
+
+    /**
+     * Replace the code of emoji and update selection
+     * @param {Number} highlightedEmojiIndex
+     */
+    insertSelectedEmoji(highlightedEmojiIndex) {
+        const commentBeforeColon = this.state.value.slice(0, this.state.colonIndex);
+        const emojiObject = this.state.suggestedEmojis[highlightedEmojiIndex];
+        const emojiCode = emojiObject.types && emojiObject.types[this.props.preferredSkinTone] ? emojiObject.types[this.props.preferredSkinTone] : emojiObject.code;
+        const commentAfterColonWithEmojiNameRemoved = this.state.value.slice(this.state.selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
+
+        this.updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, true);
+        this.setState(prevState => ({
+            selection: {
+                start: prevState.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
+                end: prevState.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
+            },
+            suggestedEmojis: [],
+        }));
+        EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
     }
 
     isEmptyChat() {
@@ -324,12 +466,14 @@ class ReportActionCompose extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
+        const emojiWithSpace = `${emoji} `;
         const newComment = this.comment.slice(0, this.state.selection.start)
-            + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
+            + emojiWithSpace
+            + this.comment.slice(this.state.selection.end, this.comment.length);
         this.setState(prevState => ({
             selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
+                start: prevState.selection.start + emojiWithSpace.length,
+                end: prevState.selection.start + emojiWithSpace.length,
             },
         }));
         this.updateComment(newComment);
@@ -385,7 +529,7 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(comment, shouldDebounceSaveComment) {
-        const newComment = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth);
+        const newComment = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
         this.setState((prevState) => {
             const newState = {
                 isCommentEmpty: !!newComment.match(/^(\s)*$/),
@@ -423,6 +567,14 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Update the number of lines for a comment in Onyx
+     * @param {Number} numberOfLines
+     */
+    updateNumberOfLines(numberOfLines) {
+        Report.saveReportCommentNumberOfLines(this.props.reportID, numberOfLines);
+    }
+
+    /**
      * Listens for keyboard shortcuts and applies the action
      *
      * @param {Object} e
@@ -433,24 +585,36 @@ class ReportActionCompose extends React.Component {
             return;
         }
 
+        if ((e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && this.state.suggestedEmojis.length) {
+            e.preventDefault();
+            this.insertSelectedEmoji(this.state.highlightedEmojiIndex);
+            return;
+        }
+        if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && this.state.suggestedEmojis.length) {
+            e.preventDefault();
+            this.resetSuggestedEmojis();
+            return;
+        }
+
         // Submit the form when Enter is pressed
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
             e.preventDefault();
             this.submitForm();
         }
 
         // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
-        if (e.key === 'ArrowUp' && this.textInput.selectionStart === 0 && this.state.isCommentEmpty && !ReportUtils.chatIncludesChronos(this.props.report)) {
+        if (
+            e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && this.textInput.selectionStart === 0 && this.state.isCommentEmpty && !ReportUtils.chatIncludesChronos(this.props.report)
+        ) {
             e.preventDefault();
 
-            const reportActionKey = _.find(
-                _.keys(this.props.reportActions).reverse(),
-                key => ReportUtils.canEditReportAction(this.props.reportActions[key]),
+            const lastReportAction = _.find(
+                this.props.reportActions,
+                action => ReportUtils.canEditReportAction(action),
             );
 
-            if (reportActionKey !== -1 && this.props.reportActions[reportActionKey]) {
-                const {reportActionID, message} = this.props.reportActions[reportActionKey];
-                Report.saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).html);
+            if (lastReportAction !== -1 && lastReportAction) {
+                Report.saveReportActionDraft(this.props.reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
             }
         }
     }
@@ -509,11 +673,6 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
-        // Waiting until ONYX variables are loaded before displaying the component
-        if (_.isEmpty(this.props.personalDetails)) {
-            return null;
-        }
-
         const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
         const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
         const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyEmails[0]];
@@ -525,6 +684,7 @@ class ReportActionCompose extends React.Component {
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
+        const shouldUseFocusedColor = !isBlockedFromConcierge && !this.props.disabled && (this.state.isFocused || this.state.isDraggingOver);
         const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
 
         return (
@@ -533,10 +693,9 @@ class ReportActionCompose extends React.Component {
                 this.props.isComposerFullSize && styles.chatItemFullComposeRow,
             ]}
             >
-                {shouldShowReportRecipientLocalTime
-                    && <ParticipantLocalTime participant={reportRecipient} />}
+                {shouldShowReportRecipientLocalTime && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
-                    (!isBlockedFromConcierge && !this.props.disabled && (this.state.isFocused || this.state.isDraggingOver))
+                    shouldUseFocusedColor
                         ? styles.chatItemComposeBoxFocusedColor
                         : styles.chatItemComposeBoxColor,
                     styles.flexRow,
@@ -564,6 +723,7 @@ class ReportActionCompose extends React.Component {
                                                         <TouchableOpacity
                                                             onPress={(e) => {
                                                                 e.preventDefault();
+                                                                this.setShouldShowSuggestionMenuToFalse();
                                                                 Report.setIsComposerFullSize(this.props.reportID, false);
                                                             }}
 
@@ -582,6 +742,7 @@ class ReportActionCompose extends React.Component {
                                                         <TouchableOpacity
                                                             onPress={(e) => {
                                                                 e.preventDefault();
+                                                                this.setShouldShowSuggestionMenuToFalse();
                                                                 Report.setIsComposerFullSize(this.props.reportID, true);
                                                             }}
 
@@ -619,7 +780,7 @@ class ReportActionCompose extends React.Component {
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
                                                 anchorPosition={styles.createMenuPositionReportActionCompose}
-                                                menuItems={[...this.getIOUOptions(reportParticipants),
+                                                menuItems={[...this.getMoneyRequestOptions(reportParticipants),
                                                     {
                                                         icon: Expensicons.Paperclip,
                                                         text: this.props.translate('reportActionCompose.addAttachment'),
@@ -667,7 +828,10 @@ class ReportActionCompose extends React.Component {
                                             style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                                             maxLines={this.state.maxLines}
                                             onFocus={() => this.setIsFocused(true)}
-                                            onBlur={() => this.setIsFocused(false)}
+                                            onBlur={() => {
+                                                this.setIsFocused(false);
+                                                this.resetSuggestedEmojis();
+                                            }}
                                             onPasteFile={displayFileInModal}
                                             shouldClear={this.state.textInputShouldClear}
                                             onClear={() => this.setTextInputShouldClear(false)}
@@ -678,6 +842,16 @@ class ReportActionCompose extends React.Component {
                                             setIsFullComposerAvailable={this.setIsFullComposerAvailable}
                                             isComposerFullSize={this.props.isComposerFullSize}
                                             value={this.state.value}
+                                            numberOfLines={this.props.numberOfLines}
+                                            onNumberOfLinesChange={this.updateNumberOfLines}
+                                            onLayout={(e) => {
+                                                const composerHeight = e.nativeEvent.layout.height;
+                                                if (this.state.composerHeight === composerHeight) {
+                                                    return;
+                                                }
+                                                this.setState({composerHeight});
+                                            }}
+                                            onScroll={() => this.setShouldShowSuggestionMenuToFalse()}
                                         />
                                     </DragAndDrop>
                                 </View>
@@ -724,6 +898,30 @@ class ReportActionCompose extends React.Component {
                     <ExceededCommentLength comment={this.comment} onExceededMaxCommentLength={this.setExceededMaxCommentLength} />
                 </View>
                 {this.state.isDraggingOver && <ReportDropUI />}
+                {!_.isEmpty(this.state.suggestedEmojis) && this.state.shouldShowSuggestionMenu && (
+                    <ArrowKeyFocusManager
+                        focusedIndex={this.state.highlightedEmojiIndex}
+                        maxIndex={getMaxArrowIndex(this.state.suggestedEmojis.length, this.state.isEmojiPickerLarge)}
+                        shouldExcludeTextAreaNodes={false}
+                        onFocusedIndexChanged={index => this.setState({highlightedEmojiIndex: index})}
+                    >
+                        <EmojiSuggestions
+                            onClose={() => this.setState({suggestedEmojis: []})}
+                            highlightedEmojiIndex={this.state.highlightedEmojiIndex}
+                            emojis={this.state.suggestedEmojis}
+                            comment={this.state.value}
+                            updateComment={newComment => this.setState({value: newComment})}
+                            colonIndex={this.state.colonIndex}
+                            prefix={this.state.value.slice(this.state.colonIndex + 1).split(' ')[0]}
+                            onSelect={this.insertSelectedEmoji}
+                            isComposerFullSize={this.props.isComposerFullSize}
+                            preferredSkinToneIndex={this.props.preferredSkinTone}
+                            isEmojiPickerLarge={this.state.isEmojiPickerLarge}
+                            composerHeight={this.state.composerHeight}
+                            shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
+                        />
+                    </ArrowKeyFocusManager>
+                )}
             </View>
         );
     }
@@ -748,11 +946,20 @@ export default compose(
         comment: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
         },
+        numberOfLines: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`,
+        },
         modal: {
             key: ONYXKEYS.MODAL,
         },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
+        },
+        frequentlyUsedEmojis: {
+            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
+        },
+        preferredSkinTone: {
+            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },
     }),
 )(ReportActionCompose);

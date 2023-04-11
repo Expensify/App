@@ -30,6 +30,9 @@ const propTypes = {
     /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
     chatReportID: PropTypes.string,
 
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     ...withLocalizePropTypes,
 };
 
@@ -37,6 +40,7 @@ const defaultProps = {
     currency: CONST.CURRENCY.USD,
     shouldShowPaypal: false,
     chatReportID: '',
+    betas: [],
 };
 
 class SettlementButton extends React.Component {

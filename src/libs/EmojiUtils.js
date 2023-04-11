@@ -5,6 +5,7 @@ import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
 import * as User from './actions/User';
 import emojisTrie from './EmojiTrie';
+import FrequentlyUsed from '../../assets/images/history.svg';
 
 /**
  * Get the unicode code of an emoji in base 16.
@@ -82,17 +83,17 @@ function containsOnlyEmojis(message) {
 }
 
 /**
- * Get the header indices based on the max emojis per row
+ * Get the header emojis with their code, icon and index
  * @param {Object[]} emojis
- * @returns {Number[]}
+ * @returns {Object[]}
  */
-function getHeaderIndices(emojis) {
+function getHeaderEmojis(emojis) {
     const headerIndices = [];
     _.each(emojis, (emoji, index) => {
         if (!emoji.header) {
             return;
         }
-        headerIndices.push(index);
+        headerIndices.push({code: emoji.code, index, icon: emoji.icon});
     });
     return headerIndices;
 }
@@ -149,6 +150,7 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis, frequentlyUsedEmojis = []) 
     let allEmojis = [{
         header: true,
         code: 'frequentlyUsed',
+        icon: FrequentlyUsed,
     }];
 
     allEmojis = allEmojis.concat(frequentlyUsedEmojis, emojis);
@@ -184,13 +186,30 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
 }
 
 /**
+ * Given an emoji item object, return an emoji code based on its type.
+ *
+ * @param {Object} item
+ * @param {Number} preferredSkinToneIndex
+ * @returns {String}
+ */
+const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
+    const {code, types} = item;
+    if (types && types[preferredSkinToneIndex]) {
+        return types[preferredSkinToneIndex];
+    }
+
+    return code;
+};
+
+/**
  * Replace any emoji name in a text with the emoji icon.
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  * @param {String} text
  * @param {Boolean} isSmallScreenWidth
+ * @param {Number} preferredSkinTone
  * @returns {String}
  */
-function replaceEmojis(text, isSmallScreenWidth = false) {
+function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE) {
     let newText = text;
     const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
     if (!emojiData || emojiData.length === 0) {
@@ -199,7 +218,7 @@ function replaceEmojis(text, isSmallScreenWidth = false) {
     for (let i = 0; i < emojiData.length; i++) {
         const checkEmoji = emojisTrie.search(emojiData[i].slice(1, -1));
         if (checkEmoji && checkEmoji.metaData.code) {
-            let emojiReplacement = checkEmoji.metaData.code;
+            let emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData, preferredSkinTone);
 
             // If this is the last emoji in the message and it's the end of the message so far,
             // add a space after it so the user can keep typing easily.
@@ -246,11 +265,12 @@ function suggestEmojis(text, limit = 5) {
 }
 
 export {
-    getHeaderIndices,
+    getHeaderEmojis,
     mergeEmojisWithFrequentlyUsedEmojis,
     addToFrequentlyUsedEmojis,
     containsOnlyEmojis,
     replaceEmojis,
     suggestEmojis,
     trimEmojiUnicode,
+    getEmojiCodeWithSkinColor,
 };

@@ -1,14 +1,8 @@
 import _ from 'underscore';
 import React, {forwardRef} from 'react';
 import PropTypes from 'prop-types';
-import CONST from '../CONST';
 import Picker from './Picker';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-
-const COUNTRIES = _.map(CONST.ALL_COUNTRIES, countryName => ({
-    value: countryName,
-    label: countryName,
-}));
 
 const propTypes = {
     /** The label for the field */
@@ -44,20 +38,27 @@ const defaultProps = {
     onBlur: () => {},
 };
 
-const CountryPicker = forwardRef((props, ref) => (
-    <Picker
-        ref={ref}
-        inputID={props.inputID}
-        placeholder={{value: '', label: '-'}}
-        items={COUNTRIES}
-        onInputChange={props.onInputChange}
-        value={props.value}
-        label={props.label || props.translate('common.country')}
-        errorText={props.errorText}
-        onBlur={props.onBlur}
-        shouldSaveDraft={props.shouldSaveDraft}
-    />
-));
+const CountryPicker = forwardRef((props, ref) => {
+    const COUNTRIES = _.map(props.translate('allCountries'), (countryName, countryISO) => ({
+        value: countryISO,
+        label: countryName,
+    }));
+
+    return (
+        <Picker
+            ref={ref}
+            inputID={props.inputID}
+            placeholder={{value: '', label: '-'}}
+            items={COUNTRIES}
+            onInputChange={props.onInputChange}
+            value={props.value}
+            label={props.label || props.translate('common.country')}
+            errorText={props.errorText}
+            onBlur={props.onBlur}
+            shouldSaveDraft={props.shouldSaveDraft}
+        />
+    );
+});
 
 CountryPicker.propTypes = propTypes;
 CountryPicker.defaultProps = defaultProps;

@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
@@ -15,8 +14,8 @@ import TestToolRow from './TestToolRow';
 import networkPropTypes from './networkPropTypes';
 import compose from '../libs/compose';
 import {withNetwork} from './OnyxProvider';
-import getPlatform from '../libs/getPlatform';
-import CONST from '../CONST';
+import * as ApiUtils from '../libs/ApiUtils';
+import CONFIG from '../CONFIG';
 
 const propTypes = {
     /** User object in Onyx */
@@ -31,7 +30,9 @@ const propTypes = {
 
 const defaultProps = {
     user: {
-        shouldUseStagingServer: false,
+        // The default value is environment specific and can't be set with `defaultProps` (ENV is not resolved yet)
+        // When undefined (during render) STAGING defaults to `true`, other envs default to `false`
+        shouldUseStagingServer: undefined,
     },
 };
 
@@ -41,14 +42,19 @@ const TestToolMenu = props => (
             Test Preferences
         </Text>
 
-        {/* Option to switch from using the staging secure endpoint or the production secure endpoint.
-        This enables QA and internal testers to take advantage of sandbox environments for 3rd party services like Plaid and Onfido. */}
-        <TestToolRow title="Use Staging Server">
-            <Switch
-                isOn={lodashGet(props, 'user.shouldUseStagingServer', _.contains([CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP], getPlatform()))}
-                onToggle={() => User.setShouldUseStagingServer(!lodashGet(props, 'user.shouldUseStagingServer', true))}
-            />
-        </TestToolRow>
+        {/* Option to switch between staging and default api endpoints.
+        This enables QA, internal testers and external devs to take advantage of sandbox environments for 3rd party services like Plaid and Onfido.
+        This toggle is not rendered for internal devs as they make environment changes directly to the .env file. */}
+        {!CONFIG.IS_USING_LOCAL_WEB && (
+            <TestToolRow title="Use Staging Server">
+                <Switch
+                    isOn={lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi())}
+                    onToggle={() => User.setShouldUseStagingServer(
+                        !lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi()),
+                    )}
+                />
+            </TestToolRow>
+        )}
 
         {/* When toggled the app will be forced offline. */}
         <TestToolRow title="Force offline">

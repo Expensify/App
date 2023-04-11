@@ -5,6 +5,7 @@ import {
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import styles from '../../../styles/styles';
 import Button from '../../../components/Button';
 import Text from '../../../components/Text';
@@ -44,6 +45,9 @@ const propTypes = {
         login: PropTypes.string,
     }),
 
+    /** Indicates which locale the user currently has selected */
+    preferredLocale: PropTypes.string,
+
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -57,6 +61,7 @@ const propTypes = {
 const defaultProps = {
     account: {},
     credentials: {},
+    preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
 class BaseValidateCodeForm extends React.Component {
@@ -175,7 +180,12 @@ class BaseValidateCodeForm extends React.Component {
             formError: {},
         });
 
-        Session.signIn('', this.state.validateCode, this.state.twoFactorAuthCode);
+        const accountID = lodashGet(this.props, 'credentials.accountID');
+        if (accountID) {
+            Session.signInWithValidateCode(accountID, this.state.validateCode, this.state.twoFactorAuthCode);
+        } else {
+            Session.signIn('', this.state.validateCode, this.state.twoFactorAuthCode, this.props.preferredLocale);
+        }
     }
 
     render() {
@@ -265,6 +275,7 @@ export default compose(
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
         credentials: {key: ONYXKEYS.CREDENTIALS},
+        preferredLocale: {key: ONYXKEYS.NVP_PREFERRED_LOCALE},
     }),
     withToggleVisibilityView,
     withNetwork(),

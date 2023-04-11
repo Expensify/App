@@ -142,16 +142,17 @@ class Tooltip extends PureComponent {
     }
 
     render() {
-        // Skip the tooltip and return the children if the text is empty or the device does not support hovering
-        if (_.isEmpty(this.props.text) || !this.hasHoverSupport) {
+        // Skip the tooltip and return the children if the text is empty,
+        // we don't have a render function or the device does not support hovering
+        if ((_.isEmpty(this.props.text) && this.props.renderTooltipContent == null) || !this.hasHoverSupport) {
             return this.props.children;
         }
         let child = (
             <View
                 ref={el => this.wrapperView = el}
-                style={this.props.containerStyles}
                 onBlur={this.hideTooltip}
-                focusable
+                focusable={this.props.focusable}
+                style={this.props.containerStyles}
             >
                 {this.props.children}
             </View>
@@ -171,15 +172,14 @@ class Tooltip extends PureComponent {
                 onBlur: (el) => {
                     this.hideTooltip();
 
-                    // Call the original onBlur, if any
-                    const {onBlur} = this.props.children;
-                    if (_.isFunction(onBlur)) {
-                        onBlur(el);
+                    if (_.isFunction(this.props.children.props.onBlur)) {
+                        this.props.children.props.onBlur(el);
                     }
                 },
                 focusable: true,
             });
         }
+
         return (
             <>
                 {this.state.isRendered && (
@@ -195,6 +195,7 @@ class Tooltip extends PureComponent {
                         text={this.props.text}
                         maxWidth={this.props.maxWidth}
                         numberOfLines={this.props.numberOfLines}
+                        renderTooltipContent={this.props.renderTooltipContent}
                     />
                 )}
                 <Hoverable

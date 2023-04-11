@@ -27,10 +27,17 @@ const propTypes = {
     session: PropTypes.shape({
         /** Email address */
         email: PropTypes.string.isRequired,
-    }).isRequired,
+    }),
 
     /** Information about the logged in user's account */
-    user: userPropTypes.isRequired,
+    user: userPropTypes,
+};
+
+const defaultProps = {
+    session: {
+        email: null,
+    },
+    user: {},
 };
 
 const WorkspaceBillsFirstSection = (props) => {
@@ -76,6 +83,7 @@ const WorkspaceBillsFirstSection = (props) => {
 };
 
 WorkspaceBillsFirstSection.propTypes = propTypes;
+WorkspaceBillsFirstSection.defaultProps = defaultProps;
 WorkspaceBillsFirstSection.displayName = 'WorkspaceBillsFirstSection';
 
 export default compose(

@@ -4,11 +4,11 @@ import PropTypes from 'prop-types';
 import {LogBox, ScrollView, View} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import lodashGet from 'lodash/get';
-import CONFIG from '../CONFIG';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import TextInput from './TextInput';
+import * as ApiUtils from '../libs/ApiUtils';
 import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
 import CONST from '../CONST';
 
@@ -95,7 +95,7 @@ const AddressSearch = (props) => {
         query.components = 'country:us';
     }
 
-    const saveLocationDetails = (details) => {
+    const saveLocationDetails = (autocompleteData, details) => {
         const addressComponents = details.address_components;
         if (!addressComponents) {
             return;
@@ -105,39 +105,70 @@ const AddressSearch = (props) => {
         const {
             street_number: streetNumber,
             route: streetName,
-            locality: city,
-            sublocality: cityFallback, // Some locations only return sublocality instead of locality
+            subpremise,
+            locality,
+            sublocality,
+            postal_town: postalTown,
             postal_code: zipCode,
             administrative_area_level_1: state,
             country,
         } = GooglePlacesUtils.getAddressComponents(addressComponents, {
             street_number: 'long_name',
             route: 'long_name',
+            subpremise: 'long_name',
             locality: 'long_name',
             sublocality: 'long_name',
+            postal_town: 'long_name',
             postal_code: 'long_name',
             administrative_area_level_1: 'short_name',
-            country: 'long_name',
+            country: 'short_name',
         });
 
+        // The state's iso code (short_name) is needed for the StatePicker component but we also
+        // need the state's full name (long_name) when we render the state in a TextInput.
+        const {
+            administrative_area_level_1: longStateName,
+        } = GooglePlacesUtils.getAddressComponents(addressComponents, {
+            administrative_area_level_1: 'long_name',
+        });
+
+        // Make sure that the order of keys remains such that the country is always set above the state.
+        // Refer to https://github.com/Expensify/App/issues/15633 for more information.
+        const {
+            state: stateAutoCompleteFallback = '',
+            city: cityAutocompleteFallback = '',
+        } = GooglePlacesUtils.getPlaceAutocompleteTerms(autocompleteData.terms);
+
         const values = {
-            street: props.value ? props.value.trim() : '',
-            city: city || cityFallback,
+            street: `${streetNumber} ${streetName}`.trim(),
+
+            // Autocomplete returns any additional valid address fragments (e.g. Apt #) as subpremise.
+            street2: subpremise,
+
+            // When locality is not returned, many countries return the city as postalTown (e.g. 5 New Street
+            // Square, London), otherwise as sublocality (e.g. 384 Court Street Brooklyn). If postalTown is
+            // returned, the sublocality will be a city subdivision so shouldn't take precedence (e.g.
+            // Salagatan, Upssala, Sweden).
+            city: locality || postalTown || sublocality || cityAutocompleteFallback,
             zipCode,
-            state,
             country: '',
+            state: state || stateAutoCompleteFallback,
         };
 
-        const street = `${streetNumber} ${streetName}`.trim();
-        if (street && street.length >= values.street.length) {
-            // We are only passing the street number and name if the combined length is longer than the value
-            // that was initially passed to the autocomplete component. Google Places can truncate details
-            // like Apt # and this is the best way we have to tell that the new value it's giving us is less
-            // specific than the one the user entered manually.
-            values.street = street;
+        // If the address is not in the US, use the full length state name since we're displaying the address's
+        // state / province in a TextInput instead of in a picker.
+        if (country !== CONST.COUNTRY.US) {
+            values.state = longStateName;
         }
 
-        if (_.includes(CONST.ALL_COUNTRIES, country)) {
+        // Not all pages define the Address Line 2 field, so in that case we append any additional address details
+        // (e.g. Apt #) to Address Line 1
+        if (subpremise && typeof props.renamedInputKeys.street2 === 'undefined') {
+            values.street += `, ${subpremise}`;
+        }
+
+        const isValidCountryCode = lodashGet(CONST.ALL_COUNTRIES, country);
+        if (isValidCountryCode) {
             values.country = country;
         }
 
@@ -176,7 +207,7 @@ const AddressSearch = (props) => {
                     suppressDefaultStyles
                     enablePoweredByContainer={false}
                     onPress={(data, details) => {
-                        saveLocationDetails(details);
+                        saveLocationDetails(data, details);
 
                         // After we select an option, we set displayListViewBorder to false to prevent UI flickering
                         setDisplayListViewBorder(false);
@@ -184,7 +215,7 @@ const AddressSearch = (props) => {
                     query={query}
                     requestUrl={{
                         useOnPlatform: 'all',
-                        url: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Proxy_GooglePlaces&proxyUrl=`,
+                        url: ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
                     }}
                     textInputProps={{
                         InputComp: TextInput,

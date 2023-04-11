@@ -48,7 +48,7 @@ class FormSubmit extends React.Component {
             // React-native-web prevents event bubbling on TextInput for key presses
             // https://github.com/necolas/react-native-web/blob/fa47f80d34ee6cde2536b2a2241e326f84b633c4/packages/react-native-web/src/exports/TextInput/index.js#L272
             // Thus use capture phase.
-            <View onKeyDownCapture={this.submitForm} style={this.props.style}>{this.props.children}</View>
+            <View ref={this.props.innerRef} onKeyDownCapture={this.submitForm} style={this.props.style}>{this.props.children}</View>
         );
     }
 }
@@ -56,4 +56,7 @@ class FormSubmit extends React.Component {
 FormSubmit.propTypes = formSubmitPropTypes.propTypes;
 FormSubmit.defaultProps = formSubmitPropTypes.defaultProps;
 
-export default FormSubmit;
+export default React.forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <FormSubmit {...props} innerRef={ref} />
+));
