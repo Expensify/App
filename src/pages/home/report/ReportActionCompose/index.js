@@ -477,6 +477,10 @@ class ReportActionCompose extends React.Component {
             return;
         }
 
+        if (this.props.isSmallScreenWidth) {
+            return;
+        }
+
         // if the key pressed is non-character keys like Enter, Shift, ... do not focus
         if (e.key.length > 1) {
             return;
