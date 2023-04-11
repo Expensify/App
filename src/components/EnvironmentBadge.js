@@ -27,6 +27,7 @@ const EnvironmentBadge = (props) => {
             error={props.environment !== CONST.ENVIRONMENT.STAGING && props.environment !== CONST.ENVIRONMENT.ADHOC}
             text={text}
             badgeStyles={[styles.alignSelfCenter]}
+            environment={props.environment}
         />
     );
 };
