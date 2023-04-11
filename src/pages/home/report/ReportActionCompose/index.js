@@ -481,6 +481,10 @@ class ReportActionCompose extends React.Component {
             return;
         }
 
+        if (!_.isEmpty(this.state.suggestedEmojis) && this.state.shouldShowSuggestionMenu) {
+            return;
+        }
+
         // if the key pressed is non-character keys like Enter, Shift, ... do not focus
         if (e.key.length > 1) {
             return;
