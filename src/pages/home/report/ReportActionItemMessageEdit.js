@@ -67,7 +67,7 @@ const defaultProps = {
     forwardedRef: () => {},
     report: {},
     shouldDisableEmojiPicker: false,
-    numberOfLines: 1,
+    numberOfLines: undefined,
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
