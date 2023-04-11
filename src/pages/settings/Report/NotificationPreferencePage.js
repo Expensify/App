@@ -16,6 +16,7 @@ import withReportOrNotFound from '../../home/report/withReportOrNotFound';
 import reportPropTypes from '../../reportPropTypes';
 import ROUTES from '../../../ROUTES';
 import * as Report from '../../../libs/actions/Report';
+import OptionsSelector from "../../../components/OptionsSelector";
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -29,6 +30,7 @@ class NotificationPreferencePage extends Component {
     constructor(props) {
         super(props);
         this.updateNotificationPreference = this.updateNotificationPreference.bind(this);
+        this.getNotificationPreferenceOptions = this.getNotificationPreferenceOptions.bind(this);
         this.validate = this.validate.bind(this);
     }
 
@@ -44,6 +46,14 @@ class NotificationPreferencePage extends Component {
             values.notificationPreference,
         );
         Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(this.props.report.reportID));
+    }
+
+    getNotificationPreferenceOptions() {
+        return [
+            {value: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, label: this.props.translate('notificationPreferences.immediately')},
+            {value: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY, label: this.props.translate('notificationPreferences.daily')},
+            {value: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE, label: this.props.translate('notificationPreferences.mute')},
+        ];
     }
 
     render() {
@@ -64,6 +74,15 @@ class NotificationPreferencePage extends Component {
                     enabledWhenOffline
                 >
                     <View style={styles.mb4}>
+                        <OptionsSelector
+                            textInputLabel={this.props.translate('notificationPreferences.label')}
+                            value={this.props.report.notificationPreference}
+                            onChangeText={this.filterShownTimezones}
+                            onSelectRow={this.updateNotificationPreference}
+                            optionHoveredStyle={styles.hoveredComponentBG}
+                            sections={[{data: this.getNotificationPreferenceOptions(), indexOffset: 0, isDisabled: false}]}
+                            shouldHaveOptionSeparator
+                        />
                         <TextInput
                             inputID="notificationPreferences"
                             name="preferences"

@@ -163,6 +163,11 @@ class ReportSettingsPage extends Component {
                         description={this.props.translate('newRoomPage.roomName')}
                         onPress={() => Navigation.navigate(ROUTES.getReportSettingsRoomNameRoute(this.props.report.reportID))}
                     />
+                    <MenuItemWithTopDescription
+                        title={this.props.report.notificationPreference}
+                        description={this.props.translate('notificationPreferences.label')}
+                        onPress={() => Navigation.navigate(ROUTES.getReportSettingsRoomNameRoute(this.props.report.reportID))}
+                    />
                     <Form
                         formID={ONYXKEYS.FORMS.ROOM_SETTINGS_FORM}
                         submitButtonText={this.props.translate('common.save')}

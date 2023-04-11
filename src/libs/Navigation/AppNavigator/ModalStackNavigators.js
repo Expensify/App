@@ -160,6 +160,13 @@ const ReportSettingsModalStackNavigator = createModalStackNavigator([{
     },
     name: 'Report_Settings_Room_Name',
 },
+{
+    getComponent: () => {
+        const NotificationPreferencesPage = require('../../../pages/settings/Report/NotificationPreferencePage').default;
+        return NotificationPreferencesPage;
+    },
+    name: 'Report_Settings_Room_Name',
+},
 ]);
 
 const ReportParticipantsModalStackNavigator = createModalStackNavigator([
