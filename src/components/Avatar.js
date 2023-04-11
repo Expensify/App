@@ -70,6 +70,9 @@ function Avatar(props) {
             return;
         }
         setImageError(false);
+
+        // We have not added the imageError as the dependency because effect is concerned with `imageError` only when the network state changes from offline -> online
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.network.isOffline]);
 
     useEffect(() => {
