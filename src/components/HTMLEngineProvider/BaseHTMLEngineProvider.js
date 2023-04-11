@@ -48,10 +48,6 @@ const customHTMLElementModels = {
         tagName: 'strong',
         mixedUAStyles: {whiteSpace: 'pre'},
     }),
-    pre: defaultHTMLElementModels.div.extend({
-        tagName: 'pre',
-        mixedUAStyles: {fontStyle: 'normal', fontWeight: 'normal'}, // override italic, bold styles
-    }),
 };
 
 const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};
