@@ -69,6 +69,7 @@ class MoneyRequestDescriptionPage extends Component {
                             inputID="iouComment"
                             name="iouComment"
                             defaultValue={this.props.iou.comment}
+                            label={this.props.translate('iOUConfirmationList.whatsItFor')}
                         />
                     </View>
                 </Form>
